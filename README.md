@@ -1,2 +1,6 @@
 # da-ayr-webapp
-The frontend code for the Access Your Records project
+The webapp code for the Access Your Records project
+
+# Quickstart
+
+    docker compose up --build
