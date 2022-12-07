@@ -1,0 +1,6 @@
+!/Dockerfile
+/.dockerignore
+/.gitignore
+/db.sqlite3
+/README.md
+/venv
