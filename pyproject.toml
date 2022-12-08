@@ -6,8 +6,8 @@ build-backend = "hatchling.build"
 name = "da-ayr-webapp"
 version = "0"
 dependencies = [
-    "django",
-    "python-dotenv"
+    "django==4.1.4",
+    "python-dotenv==0.21.0"
 ]
 
 [project.optional-dependencies]
