@@ -22,7 +22,7 @@ See also Dependency Management section.
 
 After installing `pip-tools`
 
-    pip install -r dev-requirements.txt
+    pip install -r requirements-dev.txt
 
 
 # Dependency Management
@@ -39,6 +39,6 @@ To generate a new `requirements.txt` file
 
     pip-compile -o requirements.txt pyproject.toml
 
-To generate a new dev-requirements.txt file
+To generate a new dev requirements.txt file
 
-    pip-compile --extra dev -o dev-requirements.txt pyproject.toml
+    pip-compile --extra dev -o requirements-dev.txt pyproject.toml
