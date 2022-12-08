@@ -12,3 +12,33 @@ You can generate a secret-key with a password manage or a free secret key genera
     docker compose up --build
 
 This will build and run the Django app available at http://localhost:8000/
+
+# Local Development
+Create a new virtual environment for this project, then
+
+    pip install pip-tools
+
+See also Dependency Management section.
+
+After installing `pip-tools`
+
+    pip install -r dev-requirements.txt
+
+
+# Dependency Management
+ 
+This project is using [pip-tools](https://github.com/jazzband/pip-tools/) for dependency management. 
+
+Install it in your local virtual env 
+
+    pip install pip-tools
+
+All dependencies should be declared and pinned in `pyproject.toml`
+
+To generate a new `requirements.txt` file
+
+    pip-compile -o requirements.txt pyproject.toml
+
+To generate a new dev-requirements.txt file
+
+    pip-compile --extra dev -o dev-requirements.txt pyproject.toml
