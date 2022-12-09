@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "da-ayr-webapp"
+version = "0"
+dependencies = [
+    "django==4.1.4",
+    "python-dotenv==0.21.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black"
+]
