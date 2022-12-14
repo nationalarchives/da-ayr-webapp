@@ -4,9 +4,8 @@ volumes:
   postgres_data:
     driver: local
 
-
 services:
-#  Postgres
+
   postgres:
     image: postgres
     volumes:
@@ -15,8 +14,9 @@ services:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: password
+    networks:
+      - local-keycloak
 
-#  Keycloak
   keycloak:
     image: quay.io/keycloak/keycloak:latest
     environment:
@@ -34,13 +34,21 @@ services:
       - postgres
     command:
       - "start-dev"
+    networks:
+      - local-keycloak
+    volumes:
+    - .local/keycloak/:/opt/keycloak/data
 
-# Django App
   web:
     build:
       context: .
     ports:
       - "8000:8000"
     depends_on:
-      - keycloack
       - postgres
+      - keycloak
+    volumes:
+      - .:/app
+
+networks:
+  local-keycloak:
