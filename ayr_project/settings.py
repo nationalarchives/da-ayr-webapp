@@ -134,16 +134,16 @@ AUTHENTICATION_BACKENDS = (
     "mozilla_django_oidc.auth.OIDCAuthenticationBackend",
 )
 BASE_URI = "http://localhost:8080"
-KEYCLOACK_IP = ""
+KEYCLOACK_IP = "172.26.0.3"
 KEYCLOACK_URI = f"http://{KEYCLOACK_IP}:8080"
 OIDC_RP_SIGN_ALGO = "RS256"
-OIDC_OP_JWKS_ENDPOINT = f"{BASE_URI}/realms/demo/protocol/openid-connect/certs"
+OIDC_OP_JWKS_ENDPOINT = f"{KEYCLOACK_URI}/realms/demo/protocol/openid-connect/certs"
 
 OIDC_RP_CLIENT_ID = os.environ['OIDC_RP_CLIENT_ID']
 OIDC_RP_CLIENT_SECRET = os.environ['OIDC_RP_CLIENT_SECRET']
 
 OIDC_OP_AUTHORIZATION_ENDPOINT = f"{BASE_URI}/realms/demo/protocol/openid-connect/auth"
-OIDC_OP_TOKEN_ENDPOINT = f"{BASE_URI}/realms/demo/protocol/openid-connect/token"
-OIDC_OP_USER_ENDPOINT = f"{BASE_URI}/realms/demo/protocol/openid-connect/userinfo"
+OIDC_OP_TOKEN_ENDPOINT = f"{KEYCLOACK_URI}/realms/demo/protocol/openid-connect/token"
+OIDC_OP_USER_ENDPOINT = f"{KEYCLOACK_URI}/realms/demo/protocol/openid-connect/userinfo"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
