@@ -7,5 +7,5 @@ from ayr_project import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.index),
-    path("oidc/", include('mozilla_django_oidc.urls')),
+    path("oidc/", include("mozilla_django_oidc.urls")),
 ]
