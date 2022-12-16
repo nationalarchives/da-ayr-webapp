@@ -30,7 +30,7 @@ SECRET_KEY = os.environ["SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["0.0.0.0", "localhost"]
+ALLOWED_HOSTS = ["0.0.0.0", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -129,21 +129,42 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+    },
+}
+
+
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
     "mozilla_django_oidc.auth.OIDCAuthenticationBackend",
 )
-BASE_URI = "http://localhost:8080"
-KEYCLOACK_IP = "172.26.0.3"
-KEYCLOACK_URI = f"http://{KEYCLOACK_IP}:8080"
+BASE_URI = "http://keycloak:8080"
+
 OIDC_RP_SIGN_ALGO = "RS256"
-OIDC_OP_JWKS_ENDPOINT = f"{KEYCLOACK_URI}/realms/demo/protocol/openid-connect/certs"
+OIDC_OP_JWKS_ENDPOINT = f"http://keycloak:8080/realms/demo/protocol/openid-connect/certs"
 
 OIDC_RP_CLIENT_ID = os.environ['OIDC_RP_CLIENT_ID']
 OIDC_RP_CLIENT_SECRET = os.environ['OIDC_RP_CLIENT_SECRET']
 
 OIDC_OP_AUTHORIZATION_ENDPOINT = f"{BASE_URI}/realms/demo/protocol/openid-connect/auth"
-OIDC_OP_TOKEN_ENDPOINT = f"{KEYCLOACK_URI}/realms/demo/protocol/openid-connect/token"
-OIDC_OP_USER_ENDPOINT = f"{KEYCLOACK_URI}/realms/demo/protocol/openid-connect/userinfo"
+OIDC_OP_TOKEN_ENDPOINT = f"{BASE_URI}/realms/demo/protocol/openid-connect/token"
+OIDC_OP_USER_ENDPOINT = f"{BASE_URI}/realms/demo/protocol/openid-connect/userinfo"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
