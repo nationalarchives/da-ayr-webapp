@@ -49,6 +49,8 @@ services:
       - keycloak
     volumes:
       - .:/app
+    networks:
+      - local-keycloak
 
 networks:
   local-keycloak:
