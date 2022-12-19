@@ -155,16 +155,19 @@ AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
     "mozilla_django_oidc.auth.OIDCAuthenticationBackend",
 )
-BASE_URI = "http://keycloak:8080"
+KEYCLOACK_BASE_URI = os.environ["KEYCLOACK_BASE_URI"]
+KEYCLOACK_REALM_NAME = os.environ["KEYCLOACK_REALM_NAME"]
+KEYCLOACK_REALM_BASE_URI = f"{KEYCLOACK_BASE_URI}/realms/{KEYCLOACK_REALM_NAME}"
 
-OIDC_RP_SIGN_ALGO = "RS256"
-OIDC_OP_JWKS_ENDPOINT = f"{BASE_URI}/realms/demo/protocol/openid-connect/certs"
 
 OIDC_RP_CLIENT_ID = os.environ["OIDC_RP_CLIENT_ID"]
 OIDC_RP_CLIENT_SECRET = os.environ["OIDC_RP_CLIENT_SECRET"]
 
-OIDC_OP_AUTHORIZATION_ENDPOINT = f"{BASE_URI}/realms/demo/protocol/openid-connect/auth"
-OIDC_OP_TOKEN_ENDPOINT = f"{BASE_URI}/realms/demo/protocol/openid-connect/token"
-OIDC_OP_USER_ENDPOINT = f"{BASE_URI}/realms/demo/protocol/openid-connect/userinfo"
+OIDC_RP_SIGN_ALGO = "RS256"
+OIDC_OP_JWKS_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/certs"
+OIDC_OP_AUTHORIZATION_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/auth"
+OIDC_OP_TOKEN_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/token"
+OIDC_OP_USER_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/userinfo"
+OIDC_OP_LOGOUT_URL_METHOD = "ayr_project.auth.provider_logout"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
