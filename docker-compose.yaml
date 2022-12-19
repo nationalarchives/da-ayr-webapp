@@ -1,22 +1,24 @@
 version: '3'
 
 volumes:
-  postgres_data:
+  keycloack_db_data:
     driver: local
   keycloack_data:
     driver: local
+  webapp_db_data:
+    driver: local
 
 services:
-  postgres:
+  keycloack-db:
     image: postgres:latest
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - keycloack_db_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${KEYCLOACK_DB_NAME}
+      POSTGRES_USER: ${KEYCLOACK_DB_USER}
+      POSTGRES_PASSWORD: ${KEYCLOACK_DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5431:5432"
     networks:
       - local
   keycloak:
@@ -24,31 +26,44 @@ services:
     environment:
       DB_VENDOR: POSTGRES
       DB_ADDR: postgres
-      DB_DATABASE: ${POSTGRES_DB}
-      DB_USER: ${POSTGRES_USER}
+      DB_DATABASE: ${KEYCLOACK_DB_NAME}
+      DB_USER: ${KEYCLOACK_DB_USER}
       DB_SCHEMA: public
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_PASSWORD: ${KEYCLOACK_DB_PASSWORD}
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
+      - keycloack-db
     command:
       - "start-dev"
     networks:
       - local
     volumes:
       - keycloack_data:/opt/keycloak/data
+  webapp-db:
+    image: postgres:latest
+    volumes:
+      - webapp_db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${WEBAPP_DB_NAME}
+      POSTGRES_USER: ${WEBAPP_DB_USER}
+      POSTGRES_PASSWORD: ${WEBAPP_DB_PASSWORD}
+    ports:
+      - "5432:5432"
 
+    networks:
+      - local
   web:
     build:
       context: .
     ports:
       - "8000:8000"
     depends_on:
-      - postgres
+      - keycloack-db
       - keycloak
+      - webapp-db
     volumes:
       - .:/app
     networks:
