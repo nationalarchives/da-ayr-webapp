@@ -41,6 +41,8 @@ platformdirs==2.6.0
     # via black
 pluggy==1.0.0
     # via pytest
+psycopg2-binary==2.9.5
+    # via da-ayr-webapp (pyproject.toml)
 pycparser==2.21
     # via cffi
 pyopenssl==22.1.0

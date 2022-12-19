@@ -21,6 +21,8 @@ josepy==1.13.0
     # via mozilla-django-oidc
 mozilla-django-oidc==3.0.0
     # via da-ayr-webapp (pyproject.toml)
+psycopg2-binary==2.9.5
+    # via da-ayr-webapp (pyproject.toml)
 pycparser==2.21
     # via cffi
 pyopenssl==22.1.0
