@@ -82,16 +82,14 @@ WSGI_APPLICATION = "ayr_project.wsgi.application"
 
 DATABASES = {
     "default": {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ["WEBAPP_DB_NAME"],
-        'USER': os.environ["WEBAPP_DB_USER"],
-        'PASSWORD': os.environ["WEBAPP_DB_PASSWORD"],
-        'HOST': 'webapp-db',
-        'PORT': '5432',
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ["WEBAPP_DB_NAME"],
+        "USER": os.environ["WEBAPP_DB_USER"],
+        "PASSWORD": os.environ["WEBAPP_DB_PASSWORD"],
+        "HOST": "webapp-db",
+        "PORT": "5432",
     }
 }
-
-
 
 
 # Password validation
@@ -171,7 +169,9 @@ OIDC_RP_CLIENT_SECRET = os.environ["OIDC_RP_CLIENT_SECRET"]
 
 OIDC_RP_SIGN_ALGO = "RS256"
 OIDC_OP_JWKS_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/certs"
-OIDC_OP_AUTHORIZATION_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/auth"
+OIDC_OP_AUTHORIZATION_ENDPOINT = (
+    f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/auth"
+)
 OIDC_OP_TOKEN_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/token"
 OIDC_OP_USER_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/userinfo"
 OIDC_OP_LOGOUT_URL_METHOD = "ayr_project.auth.provider_logout"
