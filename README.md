@@ -54,6 +54,9 @@ Alias for
     docker compose up --build
 
 This will build and run the Django app available at `http://localhost:8000` and the Keycloack server available at `http://keycloack:8080`, alias for `http://localhost:8000`.
+If you are running the app for the first time you will need to run migrations beforehand.
+
+    make migrate
 
 ## Keycloack setup
 
