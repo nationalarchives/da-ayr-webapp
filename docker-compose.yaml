@@ -10,7 +10,7 @@ volumes:
 
 services:
   keycloack-db:
-    image: postgres:latest
+    image: postgres:13
     volumes:
       - keycloack_db_data:/var/lib/postgresql/data
     environment:
@@ -43,7 +43,7 @@ services:
     volumes:
       - keycloack_data:/opt/keycloak/data
   webapp-db:
-    image: postgres:latest
+    image: postgres:13
     volumes:
       - webapp_db_data:/var/lib/postgresql/data
     environment:
