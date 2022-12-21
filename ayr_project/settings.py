@@ -30,7 +30,7 @@ SECRET_KEY = os.environ["SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["0.0.0.0", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -38,6 +38,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
+    "mozilla_django_oidc",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -52,6 +53,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "mozilla_django_oidc.middleware.SessionRefresh",
 ]
 
 ROOT_URLCONF = "ayr_project.urls"
@@ -59,7 +61,7 @@ ROOT_URLCONF = "ayr_project.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -80,8 +82,12 @@ WSGI_APPLICATION = "ayr_project.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ["WEBAPP_DB_NAME"],
+        "USER": os.environ["WEBAPP_DB_USER"],
+        "PASSWORD": os.environ["WEBAPP_DB_PASSWORD"],
+        "HOST": "webapp-db",
+        "PORT": "5432",
     }
 }
 
@@ -126,3 +132,48 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+            "propagate": False,
+        },
+    },
+}
+
+
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "mozilla_django_oidc.auth.OIDCAuthenticationBackend",
+)
+KEYCLOACK_BASE_URI = os.environ["KEYCLOACK_BASE_URI"]
+KEYCLOACK_REALM_NAME = os.environ["KEYCLOACK_REALM_NAME"]
+KEYCLOACK_REALM_BASE_URI = f"{KEYCLOACK_BASE_URI}/realms/{KEYCLOACK_REALM_NAME}"
+
+
+OIDC_RP_CLIENT_ID = os.environ["OIDC_RP_CLIENT_ID"]
+OIDC_RP_CLIENT_SECRET = os.environ["OIDC_RP_CLIENT_SECRET"]
+
+OIDC_RP_SIGN_ALGO = "RS256"
+OIDC_OP_JWKS_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/certs"
+OIDC_OP_AUTHORIZATION_ENDPOINT = (
+    f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/auth"
+)
+OIDC_OP_TOKEN_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/token"
+OIDC_OP_USER_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/userinfo"
+OIDC_OP_LOGOUT_URL_METHOD = "ayr_project.auth.provider_logout"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
