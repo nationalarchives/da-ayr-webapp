@@ -11,3 +11,9 @@ migrate:
 
 migrations:
 	docker compose exec web python manage.py makemigrations
+
+requirements:
+	pip-compile -o requirements.txt pyproject.toml
+
+requirements-dev:
+	pip-compile --extra dev -o requirements-dev.txt pyproject.toml
