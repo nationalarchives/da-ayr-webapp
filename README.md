@@ -21,6 +21,10 @@ Minimum length should be 50 chars. It should include alphanumeric values and sym
 
 `KEYCLOACK_BASE_URI=http://keycloak:8080`
 
+If you are using an ARM Macbook, this URI may not work. In that case please use 
+
+`KEYCLOACK_BASE_URI=http://kubernetes.docker.internal:8080`
+
 `KEYCLOACK_REALM_NAME=ayr`
 
 `OIDC_RP_CLIENT_ID=webapp`
@@ -46,6 +50,12 @@ This value needs to be copied from the Open ID Client created in Keycloack
 `WEBAPP_DB_PASSWORD=yopur-webapp-db-password`
 
 ### Build and run
+
+If you are using an ARM Macbook, you need to add this env var to your shell beforehand
+
+    export DOCKER_DEFAULT_PLATFORM=linux/amd64
+
+This is due to an issue with psycopg2 and libpq. ref: https://stackoverflow.com/questions/62807717/how-can-i-solve-postgresql-scram-authentication-problem
 
     make build
 
