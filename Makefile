@@ -33,7 +33,7 @@ down:
 	$(COMPOSE) down
 
 test:
-	docker build --target=test -t $(TEST_TAG) . && docker run --rm $(TEST_NAME)
+	docker build --target=test -t $(TEST_TAG) . && docker run --rm $(TEST_NAME) --name $(TEST_NAME)
 
 black:
 	docker build --target=test -t $(TEST_TAG) . && docker run --rm  $(TEST_NAME) black .
@@ -45,7 +45,11 @@ migrations:
 	$(COMPOSE) up web -d && $(COMPOSE) exec web python manage.py makemigrations
 
 requirements:
-	docker build --target=test -t $(TEST_TAG) . && docker run --rm $(TEST_NAME) pip-compile -o requirements.txt pyproject.toml
+	docker build --target=test -t $(TEST_TAG) . &&\
+ 	docker run --name=$(TEST_NAME) $(TEST_NAME) pip-compile -o requirements.txt pyproject.toml &&\
+ 	docker cp $(TEST_NAME):/app/requirements.txt ./requirements.txt
 
 requirements-dev:
-	docker build --target=test -t $(TEST_TAG) . && docker run --rm $(TEST_NAME) pip-compile --extra dev -o requirements-dev.txt pyproject.toml
+	docker build --target=test -t $(TEST_TAG) . &&\
+ 	docker run --name=$(TEST_NAME) $(TEST_NAME) pip-compile --extra dev -o requirements-dev.txt pyproject.toml &&\
+ 	docker cp $(TEST_NAME):/app/requirements-dev.txt ./requirements-dev.txt
