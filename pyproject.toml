@@ -18,4 +18,5 @@ dev = [
     "pytest-django",
     "black",
     "flake8",
+    "pip-tools"
 ]
