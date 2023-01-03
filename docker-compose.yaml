@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 
 volumes:
   keycloack_db_data:
@@ -58,6 +58,7 @@ services:
   web:
     build:
       context: .
+      target: build
     ports:
       - "8000:8000"
     depends_on:
