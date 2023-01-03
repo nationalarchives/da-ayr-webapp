@@ -39,13 +39,13 @@ black:
 	docker build --target=test -t $(TEST_TAG) . && docker run --rm  $(TEST_NAME) black .
 
 migrate:
-	$(COMPOSE) up -d && $(COMPOSE) exec web python manage.py migrate
+	$(COMPOSE) up web -d && $(COMPOSE) exec web python manage.py migrate
 
 migrations:
-	$(COMPOSE) up -d && $(COMPOSE) exec web python manage.py makemigrations
+	$(COMPOSE) up web -d && $(COMPOSE) exec web python manage.py makemigrations
 
 requirements:
-	pip-compile -o requirements.txt pyproject.toml
+	docker build --target=test -t $(TEST_TAG) . && docker run --rm $(TEST_NAME) pip-compile -o requirements.txt pyproject.toml
 
 requirements-dev:
-	pip-compile --extra dev -o requirements-dev.txt pyproject.toml
+	docker build --target=test -t $(TEST_TAG) . && docker run --rm $(TEST_NAME) pip-compile --extra dev -o requirements-dev.txt pyproject.toml
