@@ -1,4 +1,4 @@
-FROM python:3.10-slim-buster as build
+FROM python:3.10-slim-buster as prebuild
 EXPOSE 8000
 
 # env vars
@@ -12,17 +12,21 @@ RUN apt update && apt install python3-pip python3-dev libpq-dev postgresql postg
 # app deps
 WORKDIR /app
 COPY ./requirements.txt /app
+COPY . /app
 RUN pip install --upgrade pip && pip install -r requirements.txt --no-cache-dir
 
-FROM python:3.10-slim-buster as run
+FROM prebuild as test
+COPY ./requirements-dev.txt /app
+COPY ./tests.sh /app
+RUN pip install --upgrade pip && pip install -r requirements-dev.txt --no-cache-dir
+CMD ["sh", "tests.sh"]
+
+FROM python:3.10-slim-buster as build
 WORKDIR /app
-COPY --from=build /usr/local/lib/python3.10/site-packages/ /usr/local/lib/python3.10/site-packages/
-COPY --from=build /usr/local/bin/ /usr/local/bin/
+COPY --from=prebuild /usr/local/lib/python3.10/site-packages/ /usr/local/lib/python3.10/site-packages/
+COPY --from=prebuild /usr/local/bin/ /usr/local/bin/
 COPY . /app
 ENTRYPOINT ["python3"]
 CMD ["manage.py", "runserver", "0.0.0.0:8000"]
 
-FROM python:3.10-slim-buster as test
-WORKDIR /app
-COPY ./requirements.txt /app
-RUN pip install --upgrade pip && pip install -r requirements-dev.txt --no-cache-dir
+
