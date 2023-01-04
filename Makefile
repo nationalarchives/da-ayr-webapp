@@ -4,6 +4,7 @@
 SHELL = /bin/bash
 COMPOSE ?= docker compose
 GIT ?= git
+APP_NAME = da-ayr-webapp
 TEST_NAME = da-ayr-webapp-test
 TEST_TAG = $(TEST_NAME):latest
 
@@ -26,6 +27,10 @@ clean:
 	rm -fr .coverage
 	rm -fr .pytest_cache
 
+
+build_latest:
+	docker build --target=release -t $(APP_NAME):latest .
+
 up:
 	$(COMPOSE) up --build
 
@@ -33,7 +38,7 @@ down:
 	$(COMPOSE) down
 
 test:
-	docker build --target=test -t $(TEST_TAG) . && docker run --rm $(TEST_NAME)
+	docker build --target=test -t $(TEST_TAG) . && docker run --env-file .env --rm $(TEST_NAME)
 
 black:
 	docker build --target=test -t $(TEST_TAG) . && docker run --rm  $(TEST_NAME) black .

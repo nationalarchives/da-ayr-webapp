@@ -1,4 +1,4 @@
-FROM python:3.10-slim-buster as prebuild
+FROM python:3.10-slim-buster as build
 EXPOSE 8000
 
 # env vars
@@ -10,23 +10,26 @@ ENV PYTHONUNBUFFERED 1
 RUN apt update && apt install python3-pip python3-dev libpq-dev postgresql postgresql-contrib -y
 
 # app deps
-WORKDIR /app
-COPY ./requirements.txt /app
-COPY . /app
+WORKDIR /code
+COPY ./requirements.txt /code
 RUN pip install --upgrade pip && pip install -r requirements.txt --no-cache-dir
+COPY app/ /code/app
+COPY project/ /code/project
+COPY templates/ /code/templates
+COPY manage.py /code
 
-FROM prebuild as test
-COPY ./requirements-dev.txt /app
-COPY ./tests.sh /app
+FROM build as test
+COPY tests /code/tests
+COPY requirements-dev.txt /code
+COPY tests.sh /code
+COPY tox.ini /code
 RUN pip install --upgrade pip && pip install -r requirements-dev.txt --no-cache-dir
 CMD ["sh", "tests.sh"]
 
-FROM python:3.10-slim-buster as build
-WORKDIR /app
-COPY --from=prebuild /usr/local/lib/python3.10/site-packages/ /usr/local/lib/python3.10/site-packages/
-COPY --from=prebuild /usr/local/bin/ /usr/local/bin/
-COPY . /app
+FROM python:3.10-slim-buster as release
+WORKDIR /code
+COPY --from=build /code/ /code/
+COPY --from=build /usr/local/lib/python3.10/site-packages/ /usr/local/lib/python3.10/site-packages/
+COPY --from=build /usr/local/bin/ /usr/local/bin/
 ENTRYPOINT ["python3"]
 CMD ["manage.py", "runserver", "0.0.0.0:8000"]
-
-
