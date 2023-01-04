@@ -23,6 +23,7 @@ COPY tests /code/tests
 COPY requirements-dev.txt /code
 COPY tests.sh /code
 COPY tox.ini /code
+COPY pyproject.toml /code
 RUN pip install --upgrade pip && pip install -r requirements-dev.txt --no-cache-dir
 CMD ["sh", "tests.sh"]
 

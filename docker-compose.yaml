@@ -68,7 +68,7 @@ services:
       - keycloak
       - webapp-db
     volumes:
-      - .:/app
+      - .:/code
     networks:
       - local
 
