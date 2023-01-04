@@ -1,4 +1,4 @@
-from .settings import KEYCLOACK_REALM_BASE_URI
+from project.settings import KEYCLOACK_REALM_BASE_URI
 
 
 def provider_logout(request):
