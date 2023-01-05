@@ -1,4 +1,4 @@
-.PHONY: all help clean up down migrate migrations requirements requirements-dev
+.PHONY: all help clean up down test pytest flake8 rm-test migrate migrations requirements requirements-dev
 
 
 SHELL = /bin/bash
@@ -40,6 +40,14 @@ down:
 test:
 	docker container rm $(TEST_NAME) || true &&\
 	docker build --target=test -t $(TEST_TAG) . && docker run --env-file .env --rm $(TEST_NAME) bash tests.sh
+
+pytest:
+	docker container rm $(TEST_NAME) || true &&\
+	docker build --target=test -t $(TEST_TAG) . && docker run --env-file .env --rm $(TEST_NAME) pytest -s
+
+flake8:
+	docker container rm $(TEST_NAME) || true &&\
+	docker build --target=test -t $(TEST_TAG) . && docker run --env-file .env --rm $(TEST_NAME) flake8 app project tests
 
 rm-test:
 	docker container rm $(TEST_NAME)
