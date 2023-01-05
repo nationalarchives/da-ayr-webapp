@@ -25,7 +25,6 @@ COPY tests.sh /code
 COPY tox.ini /code
 COPY pyproject.toml /code
 RUN pip install --upgrade pip && pip install -r requirements-dev.txt --no-cache-dir
-CMD ["sh", "tests.sh"]
 
 FROM python:3.10-slim-buster as release
 WORKDIR /code

@@ -38,7 +38,8 @@ down:
 	$(COMPOSE) down
 
 test:
-	docker build --target=test -t $(TEST_TAG) . && docker run --env-file .env --rm $(TEST_NAME)
+	docker container rm $(TEST_NAME) || true &&\
+	docker build --target=test -t $(TEST_TAG) . && docker run --env-file .env --rm $(TEST_NAME) bash tests.sh
 
 rm-test:
 	docker container rm $(TEST_NAME)
