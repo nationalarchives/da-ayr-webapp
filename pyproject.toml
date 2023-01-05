@@ -15,5 +15,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "black"
+    "pytest-django",
+    "black",
+    "flake8",
+    "pip-tools"
 ]

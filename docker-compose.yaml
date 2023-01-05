@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 
 volumes:
   keycloack_db_data:
@@ -58,6 +58,9 @@ services:
   web:
     build:
       context: .
+      target: release
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     depends_on:
@@ -65,7 +68,7 @@ services:
       - keycloak
       - webapp-db
     volumes:
-      - .:/app
+      - .:/code
     networks:
       - local
 
