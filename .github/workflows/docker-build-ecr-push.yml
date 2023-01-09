@@ -1,0 +1,17 @@
+name: Docker Build ECR Push
+on:
+  push:
+    branches: [AYR-127]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Env is 
+        default: dev
+
+jobs:
+  terraform-deployment:
+    uses: https://github.com/nationalarchives/da-ayr-gthub-actions/blob/AYR-127/.github/workflows/docker-build-ecr-deploy.yml@AYR-127
+    with:
+      environment: ${{ inputs.environment }}
+    secrets:
+      AWS_ROLE: ${{ secrets.AWS_ROLE }}
