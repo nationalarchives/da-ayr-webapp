@@ -10,7 +10,7 @@ on:
 
 jobs:
   terraform-deployment:
-    uses: https://github.com/nationalarchives/da-ayr-gthub-actions/blob/AYR-127/.github/workflows/docker-build-ecr-deploy.yml@AYR-127
+    uses: nationalarchives/da-ayr-gthub-actions/.github/workflows/docker-build-ecr-deploy.yml@AYR-127
     with:
       environment: ${{ inputs.environment }}
     secrets:
