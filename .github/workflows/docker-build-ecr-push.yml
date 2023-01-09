@@ -12,6 +12,6 @@ jobs:
   terraform-deployment:
     uses: nationalarchives/da-ayr-gthub-actions/.github/workflows/docker-build-ecr-deploy.yml@AYR-127
     with:
-      environment: ${{ inputs.docker_image_name }}
+      docker_image_name: ${{ inputs.docker_image_name }}
     secrets:
       AWS_ROLE: ${{ secrets.AWS_ROLE }}
