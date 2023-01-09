@@ -4,9 +4,9 @@ on:
     branches: [AYR-127]
   workflow_dispatch:
     inputs:
-      environment:
-        description: Env is 
-        default: dev
+      docker_image_name:
+        description: Docker Image is
+ 
 
 jobs:
   terraform-deployment:
