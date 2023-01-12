@@ -9,7 +9,7 @@ on:
  
 
 jobs:
-  terraform-deployment:
+  docker-build-push-ecr:
     uses: nationalarchives/da-ayr-gthub-actions/.github/workflows/docker-build-ecr-deploy.yml@AYR-127
     with:
       docker_image_name: ${{ inputs.docker_image_name }}
