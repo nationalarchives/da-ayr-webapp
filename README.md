@@ -118,3 +118,4 @@ To generate a new `requirements.txt` file
 To generate a new dev requirements.txt file
 
     pip-compile --extra dev -o requirements-dev.txt pyproject.toml
+
