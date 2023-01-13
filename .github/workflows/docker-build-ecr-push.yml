@@ -21,3 +21,5 @@ jobs:
       AWS_REGISTRIES: ${{ secrets.AWS_REGISTRIES }}
       ECR_Account: ${{ secrets.ECR_Account }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+      ENV_VARS:   ${{ secrets.ENV_VARS }}
+      
