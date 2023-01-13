@@ -22,5 +22,5 @@ jobs:
       ECR_Account: ${{ secrets.ECR_Account }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       ENV_VARS:   ${{ secrets.ENV_VARS }}
-      DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
       
