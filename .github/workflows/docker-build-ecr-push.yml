@@ -24,3 +24,4 @@ jobs:
       ENV_VARS:   ${{ secrets.ENV_VARS }}
       SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
       WEBAPP_DB_PASSWORD: ${{ secrets.WEBAPP_DB_PASSWORD }}
+      OIDC_RP_CLIENT_SECRET: ${{ secrets.OIDC_RP_CLIENT_SECRET }}
