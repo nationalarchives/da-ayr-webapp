@@ -1,0 +1,27 @@
+name: Docker Build ECR Push
+on:
+  push:
+    branches: [AYR-127]
+  workflow_dispatch:
+    inputs:
+      docker_image_name:
+        description: Docker Image is
+ 
+
+jobs:
+  docker-build-push-ecr:
+    uses: nationalarchives/da-ayr-gthub-actions/.github/workflows/docker-build-ecr-deploy.yml@AYR-127
+    with:
+      docker_image_name: ${{ inputs.docker_image_name }}
+    secrets:
+      AWS_ROLE: ${{ secrets.AWS_ROLE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS.SECRET.ACCESS_KEEY }}
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      AWS_REGISTRIES: ${{ secrets.AWS_REGISTRIES }}
+      ECR_Account: ${{ secrets.ECR_Account }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ENV_VARS:   ${{ secrets.ENV_VARS }}
+      SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      WEBAPP_DB_PASSWORD: ${{ secrets.WEBAPP_DB_PASSWORD }}
+      OIDC_RP_CLIENT_SECRET: ${{ secrets.OIDC_RP_CLIENT_SECRET }}
