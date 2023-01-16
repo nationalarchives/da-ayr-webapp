@@ -19,7 +19,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS.SECRET.ACCESS_KEEY }}
       ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
       AWS_REGISTRIES: ${{ secrets.AWS_REGISTRIES }}
-      ECR_Account: ${{ secrets.ECR_Account }}
+      ECR_ACCOUNT: ${{ secrets.ECR_Account }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
       WEBAPP_DB_PASSWORD: ${{ secrets.WEBAPP_DB_PASSWORD }}
