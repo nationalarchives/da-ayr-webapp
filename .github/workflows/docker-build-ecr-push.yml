@@ -6,8 +6,6 @@ on:
     inputs:
       docker_image_name:
         description: Docker Image is
- 
-
 jobs:
   docker-build-push-ecr:
     uses: nationalarchives/da-ayr-gthub-actions/.github/workflows/docker-build-ecr-deploy.yml@dev
@@ -31,5 +29,3 @@ jobs:
       KEYCLOACK_DB_USER: ${{ secrets.KEYCLOACK_DB_USER }}
       WEBAPP_DB_NAME: ${{ secrets.WEBAPP_DB_NAME }}
       WEBAPP_DB_USER: ${{ secrets.WEBAPP_DB_USER }}
-
-
