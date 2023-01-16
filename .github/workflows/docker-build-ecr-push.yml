@@ -1,7 +1,7 @@
 name: Docker Build ECR Push
 on:
   push:
-    branches: [main]
+    branches: [main, AYR-134]
   workflow_dispatch:
     inputs:
       docker_image_name:
