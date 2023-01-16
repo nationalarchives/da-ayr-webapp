@@ -1,7 +1,7 @@
 name: Docker Build ECR Push
 on:
   push:
-    branches: [AYR-127]
+    branches: [main]
   workflow_dispatch:
     inputs:
       docker_image_name:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   docker-build-push-ecr:
-    uses: nationalarchives/da-ayr-gthub-actions/.github/workflows/docker-build-ecr-deploy.yml@AYR-127
+    uses: nationalarchives/da-ayr-gthub-actions/.github/workflows/docker-build-ecr-deploy.yml@dev
     with:
       docker_image_name: ${{ inputs.docker_image_name }}
     secrets:
