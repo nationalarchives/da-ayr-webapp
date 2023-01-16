@@ -1,0 +1,31 @@
+name: Docker Build ECR Push
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      docker_image_name:
+        description: Docker image name to use
+jobs:
+  docker-build-push-ecr:
+    uses: nationalarchives/da-ayr-github-actions/.github/workflows/docker-build-ecr-deploy.yml@dev
+    with:
+      docker_image_name: ${{ inputs.docker_image_name }}
+    secrets:
+      AWS_ROLE: ${{ secrets.AWS_ROLE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS.SECRET.ACCESS_KEEY }}
+      AWS_REGISTRIES: ${{ secrets.AWS_REGISTRIES }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      ECR_ACCOUNT: ${{ secrets.ECR_Account }}
+      WEBAPP_DB_PASSWORD: ${{ secrets.WEBAPP_DB_PASSWORD }}
+      WEBAPP_DB_NAME: ${{ secrets.WEBAPP_DB_NAME }}
+      WEBAPP_DB_USER: ${{ secrets.WEBAPP_DB_USER }}
+      WEBAPP_DB_HOST: ${{ secrets.WEBAPP_DB_HOST }}
+      WEBAPP_DEBUG: ${{ secrets.WEBAPP_DEBUG }}
+      KEYCLOACK_BASE_URI: ${{ secrets.KEYCLOACK_BASE_URI }}
+      KEYCLOACK_DB_NAME: ${{ secrets.KEYCLOACK_DB_NAME }}
+      KEYCLOACK_DB_USER: ${{ secrets.KEYCLOACK_DB_USER }}
+      SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      OIDC_RP_CLIENT_SECRET: ${{ secrets.OIDC_RP_CLIENT_SECRET }}
