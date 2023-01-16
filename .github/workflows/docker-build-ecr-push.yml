@@ -21,7 +21,15 @@ jobs:
       AWS_REGISTRIES: ${{ secrets.AWS_REGISTRIES }}
       ECR_Account: ${{ secrets.ECR_Account }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
-      ENV_VARS:   ${{ secrets.ENV_VARS }}
       SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
       WEBAPP_DB_PASSWORD: ${{ secrets.WEBAPP_DB_PASSWORD }}
       OIDC_RP_CLIENT_SECRET: ${{ secrets.OIDC_RP_CLIENT_SECRET }}
+      WEBAPP_DB_HOST: ${{ secrets.WEBAPP_DB_HOST }}
+      WEBAPP_DEBUG: ${{ secrets.WEBAPP_DEBUG }}
+      KEYCLOACK_BASE_URI: ${{ secrets.KEYCLOACK_BASE_URI }}
+      KEYCLOACK_DB_NAME: ${{ secrets.KEYCLOACK_DB_NAME }}
+      KEYCLOACK_DB_USER: ${{ secrets.KEYCLOACK_DB_USER }}
+      WEBAPP_DB_NAME: ${{ secrets.WEBAPP_DB_NAME }}
+      WEBAPP_DB_USER: ${{ secrets.WEBAPP_DB_USER }}
+
+
