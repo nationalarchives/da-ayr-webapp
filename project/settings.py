@@ -87,8 +87,8 @@ DATABASES = {
         "NAME": os.environ["WEBAPP_DB_NAME"],
         "USER": os.environ["WEBAPP_DB_USER"],
         "PASSWORD": os.environ["WEBAPP_DB_PASSWORD"],
-        "HOST": "webapp-db",
-        "PORT": "5432",
+        "HOST": os.environ.get("WEBAPP_DB_HOST", "webapp-db"),
+        "PORT": os.environ.get("WEBAPP_DB_PORT", "5432"),
     }
 }
 
