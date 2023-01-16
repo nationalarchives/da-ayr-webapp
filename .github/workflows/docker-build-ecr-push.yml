@@ -8,7 +8,7 @@ on:
         description: Docker image name to use
 jobs:
   docker-build-push-ecr:
-    uses: nationalarchives/da-ayr-github-actions/.github/workflows/docker-build-ecr-deploy.yml@dev
+    uses: nationalarchives/da-ayr-github-actions/.github/workflows/docker-build-ecr-deploy.yml@AYR-134
     with:
       docker_image_name: ${{ inputs.docker_image_name }}
     secrets:
