@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       docker_image_name:
-        description: Docker Image is
+        description: Docker image name to use
 jobs:
   docker-build-push-ecr:
     uses: nationalarchives/da-ayr-gthub-actions/.github/workflows/docker-build-ecr-deploy.yml@dev
