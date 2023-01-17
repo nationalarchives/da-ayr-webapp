@@ -24,4 +24,3 @@ jobs:
       KEYCLOACK_DB_USER: ${{ secrets.KEYCLOACK_DB_USER }}
       SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
       OIDC_RP_CLIENT_SECRET: ${{ secrets.OIDC_RP_CLIENT_SECRET }}
-
