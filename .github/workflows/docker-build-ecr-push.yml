@@ -1,16 +1,9 @@
 name: Docker Build ECR Push
 on:
-  # push:
-  #   branches: [main, AYR-134]
   workflow_dispatch:
-    # inputs:
-    #   docker_image_name:
-    #     description: Docker image name to use
 jobs:
   docker-build-push-ecr:
     uses: nationalarchives/da-ayr-github-actions/.github/workflows/docker-build-ecr-deploy.yml@AYR-134
-    with:
-      docker_image_name: ${{ inputs.docker_image_name }}
     secrets:
       AWS_ROLE: ${{ secrets.AWS_ROLE }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
