@@ -1,5 +1,5 @@
 FROM scratch
-COPY hello /
+
 CMD ["/hello"]
 
 # FROM python:3.10-slim-buster as build
