@@ -21,7 +21,5 @@ do
    echo "Restarting Service ..."
 done
 
-# NEW_TASK=$(aws ecs list-tasks --cluster ecs-cluster-dev --output text)
-
-
-# echo "New Cluster is up and running: $NEW_TASK"
+NEW_TASK=$(aws ecs list-tasks --cluster ecs-cluster-dev --output text)
+echo "New Cluster is up and running: $NEW_TASK"
