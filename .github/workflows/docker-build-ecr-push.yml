@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 jobs:
   docker-build-push-ecr:
-    uses: nationalarchives/da-ayr-github-actions/.github/workflows/docker-build-ecr-deploy.yml@AYR-134
+    uses: nationalarchives/da-ayr-github-actions/.github/workflows/docker-build-ecr-deploy.yml@dev
     secrets:
       AWS_ROLE: ${{ secrets.AWS_ROLE }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
