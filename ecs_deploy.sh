@@ -1,6 +1,6 @@
 echo "List existing Service Task ..."
 TASK=$(aws ecs list-tasks --cluster ecs-cluster-dev --output text)
-
+echo $TASK
 if [  -z "${TASK}"  ]
    then
    echo "First deployment - nothing to terminate - spin up new task"
@@ -21,7 +21,7 @@ do
    echo "Restarting Service ..."
 done
 
-NEW_TASK=$(aws ecs list-tasks --cluster ecs-cluster-dev --output text)
+# NEW_TASK=$(aws ecs list-tasks --cluster ecs-cluster-dev --output text)
 
 
-echo "New Cluster is up and running: $NEW_TASK"
+# echo "New Cluster is up and running: $NEW_TASK"
