@@ -1,6 +1,5 @@
-FROM scratch
-
-CMD ["/hello"]
+FROM node:18-alpine
+WORKDIR /code
 
 # FROM python:3.10-slim-buster as build
 # EXPOSE 8000
