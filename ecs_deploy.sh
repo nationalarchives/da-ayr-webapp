@@ -14,12 +14,12 @@ fi
 
 echo "Run new task and check if running ..."
 PENDING_TASK=""
-while [  -z "${PENDING_TASK}"  ]
-do 
-   PENDING_TASK=$(aws ecs list-tasks --cluster ecs-cluster-dev --desired-status RUNNING --output text)
-   sleep 0.2
-   echo "Restarting Service ..."
-done
+# while [  -z "${PENDING_TASK}"  ]
+# do 
+#    PENDING_TASK=$(aws ecs list-tasks --cluster ecs-cluster-dev --desired-status RUNNING --output text)
+#    sleep 0.2
+#    echo "Restarting Service ..."
+# done
 
 NEW_TASK=$(aws ecs list-tasks --cluster ecs-cluster-dev --output text)
 
