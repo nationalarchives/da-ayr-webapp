@@ -19,7 +19,7 @@ if os.path.isfile(dotenv_file):
     dotenv.load_dotenv(dotenv_file)
 SECRET_KEY = os.environ["SECRET_KEY"]
 
-DEBUG = os.environ.get("WEBAPP_DEBUG", True)
+DEBUG = os.environ.get("WEBAPP_DEBUG", "true") == "true"
 
 ALLOWED_HOSTS = ["*"]
 
