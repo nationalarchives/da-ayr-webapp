@@ -9,7 +9,8 @@ dependencies = [
     "django==4.1.4",
     "python-dotenv==0.21.0",
     "mozilla-django-oidc==3.0.0",
-    "psycopg2-binary==2.9.5"
+    "psycopg2-binary==2.9.5",
+    "gunicorn"
 ]
 
 [project.optional-dependencies]
