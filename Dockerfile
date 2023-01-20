@@ -33,5 +33,5 @@ COPY --from=build /usr/local/lib/python3.10/site-packages/ /usr/local/lib/python
 COPY --from=build /usr/local/bin/ /usr/local/bin/
 COPY entry_point.sh .
 RUN chmod +x ./entry_point.sh
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["/bin/sh"]
 CMD ["./entry_point.sh"]
