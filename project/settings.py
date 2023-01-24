@@ -172,4 +172,12 @@ LOGOUT_REDIRECT_URL = "/"
 CSRF_TRUSTED_ORIGINS = [
     "https://keycloak.ayr.labs.zaizicloud.net/",
     "https://webapp.ayr.labs.zaizicloud.net/",
+    "https://dev-keycloak-loadbalancer-1788036597.eu-west-2.elb.amazonaws.com",
+    "https://dev-loadbalancer-108847439.eu-west-2.elb.amazonaws.com",
+    "http://dev-keycloak-loadbalancer-1788036597.eu-west-2.elb.amazonaws.com",
+    "http://dev-loadbalancer-108847439.eu-west-2.elb.amazonaws.com",
+    "https://keycloak.ayr.labs.zaizicloud.net",
+    "https://webapp.ayr.labs.zaizicloud.net",
+    "http://keycloak.ayr.labs.zaizicloud.net",
+    "http://webapp.ayr.labs.zaizicloud.net",
 ]
