@@ -180,5 +180,6 @@ CSRF_TRUSTED_ORIGINS = [
     "https://webapp.ayr.labs.zaizicloud.net",
     "http://keycloak.ayr.labs.zaizicloud.net",
     "http://webapp.ayr.labs.zaizicloud.net",
+    "https://d3l63ild8vbvpj.cloudfront.net"
 ]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
