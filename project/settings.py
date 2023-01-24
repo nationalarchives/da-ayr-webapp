@@ -170,6 +170,6 @@ OIDC_OP_LOGOUT_URL_METHOD = "app.auth.provider_logout"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 CSRF_TRUSTED_ORIGINS = [
+    "https://keycloak.ayr.labs.zaizicloud.net/",
     "https://webapp.ayr.labs.zaizicloud.net/",
-    "https://keycloak.ayr.labs.zaizicloud.net/"
 ]
