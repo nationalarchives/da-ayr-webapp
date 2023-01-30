@@ -15,6 +15,8 @@ django==4.1.4
     # via
     #   da-ayr-webapp (pyproject.toml)
     #   mozilla-django-oidc
+gunicorn==20.1.0
+    # via da-ayr-webapp (pyproject.toml)
 idna==3.4
     # via requests
 josepy==1.13.0
