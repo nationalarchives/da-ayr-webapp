@@ -19,7 +19,8 @@ if os.path.isfile(dotenv_file):
     dotenv.load_dotenv(dotenv_file)
 SECRET_KEY = os.environ["SECRET_KEY"]
 
-DEBUG = os.environ.get("WEBAPP_DEBUG", "true") == "true"
+# DEBUG = os.environ.get("WEBAPP_DEBUG", "true") == "true"
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -29,11 +30,12 @@ ALLOWED_HOSTS = ["*"]
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
-    "mozilla_django_oidc",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "mozilla_django_oidc",
+    "django_bootstrap5",
     "app",
 ]
 

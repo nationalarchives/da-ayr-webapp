@@ -14,7 +14,10 @@ cryptography==38.0.4
 django==4.1.4
     # via
     #   da-ayr-webapp (pyproject.toml)
+    #   django-bootstrap5
     #   mozilla-django-oidc
+django-bootstrap5==22.2
+    # via da-ayr-webapp (pyproject.toml)
 gunicorn==20.1.0
     # via da-ayr-webapp (pyproject.toml)
 idna==3.4
