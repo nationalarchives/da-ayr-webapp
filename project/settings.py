@@ -169,3 +169,9 @@ OIDC_OP_USER_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/use
 OIDC_OP_LOGOUT_URL_METHOD = "app.auth.provider_logout"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+# we may or may not need this when Django is properly deployed to https
+# USE_X_FORWARDED_HOST = True
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SECURE_SSL_REDIRECT = True
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
