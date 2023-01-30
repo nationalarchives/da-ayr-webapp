@@ -31,5 +31,4 @@ WORKDIR /code
 COPY --from=build /code/ /code/
 COPY --from=build /usr/local/lib/python3.10/site-packages/ /usr/local/lib/python3.10/site-packages/
 COPY --from=build /usr/local/bin/ /usr/local/bin/
-#CMD ["gunicorn", "--bind", "0.0.0.0:8000", "project.wsgi"]
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "project.wsgi"]
