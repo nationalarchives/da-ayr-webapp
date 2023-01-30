@@ -34,4 +34,4 @@ COPY --from=build /usr/local/bin/ /usr/local/bin/
 COPY entry_point.sh .
 RUN chmod +x ./entry_point.sh
 ENTRYPOINT ["/bin/sh"]
-CMD ["./entry_point.sh"]
+CMD ["entry_point.sh"]
