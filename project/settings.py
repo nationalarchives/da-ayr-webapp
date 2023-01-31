@@ -169,23 +169,11 @@ OIDC_OP_AUTHORIZATION_ENDPOINT = (
 OIDC_OP_TOKEN_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/token"
 OIDC_OP_USER_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/userinfo"
 OIDC_OP_LOGOUT_URL_METHOD = "app.auth.provider_logout"
-OIDC_VERIFY_SSL = False
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
-CSRF_TRUSTED_ORIGINS = [
-    "https://keycloak.ayr.labs.zaizicloud.net/",
-    "https://webapp.ayr.labs.zaizicloud.net/",
-    "https://dev-keycloak-loadbalancer-1788036597.eu-west-2.elb.amazonaws.com",
-    "https://dev-loadbalancer-108847439.eu-west-2.elb.amazonaws.com",
-    "http://dev-keycloak-loadbalancer-1788036597.eu-west-2.elb.amazonaws.com",
-    "http://dev-loadbalancer-108847439.eu-west-2.elb.amazonaws.com",
-    "https://keycloak.ayr.labs.zaizicloud.net",
-    "https://webapp.ayr.labs.zaizicloud.net",
-    "http://keycloak.ayr.labs.zaizicloud.net",
-    "http://webapp.ayr.labs.zaizicloud.net",
-    "https://d3l63ild8vbvpj.cloudfront.net"
-]
 
+# we may or may not need this when Django is properly deployed to https
 # USE_X_FORWARDED_HOST = True
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # SECURE_SSL_REDIRECT = True
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
