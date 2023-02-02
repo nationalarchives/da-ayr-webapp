@@ -18,6 +18,8 @@ django==4.1.4
     #   mozilla-django-oidc
 django-bootstrap5==22.2
     # via da-ayr-webapp (pyproject.toml)
+ecdsa==0.18.0
+    # via python-jose
 gunicorn==20.1.0
     # via da-ayr-webapp (pyproject.toml)
 idna==3.4
@@ -28,15 +30,34 @@ mozilla-django-oidc==3.0.0
     # via da-ayr-webapp (pyproject.toml)
 psycopg2-binary==2.9.5
     # via da-ayr-webapp (pyproject.toml)
+pyasn1==0.4.8
+    # via
+    #   python-jose
+    #   rsa
 pycparser==2.21
     # via cffi
 pyopenssl==22.1.0
     # via josepy
 python-dotenv==0.21.0
     # via da-ayr-webapp (pyproject.toml)
+python-jose==3.3.0
+    # via python-keycloak
+python-keycloak==2.9.0
+    # via da-ayr-webapp (pyproject.toml)
 requests==2.28.1
-    # via mozilla-django-oidc
+    # via
+    #   mozilla-django-oidc
+    #   python-keycloak
+    #   requests-toolbelt
+requests-toolbelt==0.9.1
+    # via python-keycloak
+rsa==4.9
+    # via python-jose
+six==1.16.0
+    # via ecdsa
 sqlparse==0.4.3
     # via django
 urllib3==1.26.13
-    # via requests
+    # via
+    #   python-keycloak
+    #   requests
