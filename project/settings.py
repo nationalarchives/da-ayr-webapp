@@ -158,6 +158,7 @@ AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
     "app.auth.AYRAuthenticationBackend",
 )
+
 KEYCLOACK_BASE_URI = os.environ["KEYCLOACK_BASE_URI"]
 KEYCLOACK_REALM_NAME = os.environ["KEYCLOACK_REALM_NAME"]
 KEYCLOACK_REALM_BASE_URI = f"{KEYCLOACK_BASE_URI}/realms/{KEYCLOACK_REALM_NAME}"
@@ -174,7 +175,7 @@ OIDC_OP_AUTHORIZATION_ENDPOINT = (
 OIDC_OP_TOKEN_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/token"
 OIDC_OP_USER_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/userinfo"
 OIDC_OP_LOGOUT_URL_METHOD = "app.auth.provider_logout"
-OIDC_RP_SCOPES = 'openid profile roles email'
+OIDC_RP_SCOPES = "openid profile roles email"
 OIDC_RENEW_ID_TOKEN_EXPIRY_SECONDS = 60
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
