@@ -13,6 +13,7 @@ dependencies = [
     "psycopg2-binary==2.9.5",
     "python-dotenv==0.21.0",
     "python-keycloak==2.9.0",
+    "whitenoise==6.3.0",
 ]
 
 [project.optional-dependencies]

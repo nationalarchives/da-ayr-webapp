@@ -61,3 +61,5 @@ urllib3==1.26.13
     # via
     #   python-keycloak
     #   requests
+whitenoise==6.3.0
+    # via da-ayr-webapp (pyproject.toml)

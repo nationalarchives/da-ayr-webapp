@@ -113,3 +113,5 @@ urllib3==1.26.13
     #   requests
 wheel==0.38.4
     # via pip-tools
+whitenoise==6.3.0
+    # via da-ayr-webapp (pyproject.toml)
