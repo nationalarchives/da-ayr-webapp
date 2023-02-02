@@ -31,7 +31,7 @@ class DepartmentMetadataBaseView(UserPassesTestMixin, View):
 
     def get(self, request, *args, **kwargs):
         context = {"department_name": self.name}
-        return render(request, template_name="records.html", context=context)
+        return render(request, template_name="metadata.html", context=context)
 
 
 class DepartmentARecordsView(DepartmentRecordsBaseView):
