@@ -20,7 +20,7 @@ class Department:
 
     @property
     def resources(self) -> tuple[str, str]:
-        return (f"departments/{self.name}/records", f"departments/{self.name}/metadata")
+        return f"departments/{self.name}/records", f"departments/{self.name}/metadata"
 
 
 class ProxyUser(User):
