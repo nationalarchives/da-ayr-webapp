@@ -31,5 +31,5 @@ class ProxyUser(User):
         return [Department.from_group_name(g.name) for g in self.groups.all()]
 
     @property
-    def resources(self):
+    def resources(self) -> list[tuple[str, str]]:
         return [d.resources for d in self.departments]
