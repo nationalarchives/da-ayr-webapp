@@ -11,7 +11,7 @@ def index(request):
 
 
 class DepartmentRecordsBaseView(UserPassesTestMixin, View):
-    name = None
+    name = ""
     raise_exception = True
 
     def test_func(self):
@@ -23,7 +23,7 @@ class DepartmentRecordsBaseView(UserPassesTestMixin, View):
 
 
 class DepartmentMetadataBaseView(UserPassesTestMixin, View):
-    name = None
+    name = ""
     raise_exception = True
 
     def test_func(self):
