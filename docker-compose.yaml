@@ -63,7 +63,8 @@ services:
       - .env
     ports:
       - "8000:8000"
-    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    command: ["manage.py", "runserver", "0.0.0.0:8000"]
+    entrypoint: "python3"
     depends_on:
       - keycloack-db
       - keycloak

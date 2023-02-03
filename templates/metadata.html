@@ -1,0 +1,16 @@
+{% extends "base_template.html" %}
+{% load django_bootstrap5 %}
+{% block content %}
+    {% if user.is_authenticated %}
+        <p>Current user: {{ user.email }}</p>
+        <h1>Department {{ department_name }} Metadata</h1>
+        <form action="{% url 'oidc_logout' %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="logout">
+        </form>
+    {% else %}
+        <div class="d-flex justify-content-center mt-4"><a href="{% url 'oidc_authentication_init' %}">
+            <button type="button" class="btn btn-success">Log-in</button>
+        </a></div>
+    {% endif %}
+{% endblock %}

@@ -6,18 +6,21 @@ build-backend = "hatchling.build"
 name = "da-ayr-webapp"
 version = "0"
 dependencies = [
+    "django-bootstrap5==22.2",
     "django==4.1.4",
-    "python-dotenv==0.21.0",
+    "gunicorn==20.1.0",
     "mozilla-django-oidc==3.0.0",
     "psycopg2-binary==2.9.5",
-    "gunicorn==20.1.0"
+    "python-dotenv==0.21.0",
+    "python-keycloak==2.9.0",
+    "whitenoise==6.3.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest",
-    "pytest-django",
     "black",
     "flake8",
-    "pip-tools"
+    "pip-tools",
+    "pytest",
+    "pytest-django",
 ]
