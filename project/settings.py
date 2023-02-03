@@ -19,7 +19,8 @@ if os.path.isfile(dotenv_file):
     dotenv.load_dotenv(dotenv_file)
 SECRET_KEY = os.environ["SECRET_KEY"]
 
-DEBUG = os.environ.get("WEBAPP_DEBUG", "true") == "true"
+# DEBUG = os.environ.get("WEBAPP_DEBUG", "true") == "true"
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -29,11 +30,12 @@ ALLOWED_HOSTS = ["*"]
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
-    "mozilla_django_oidc",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "mozilla_django_oidc",
+    "django_bootstrap5",
     "app",
 ]
 
@@ -46,6 +48,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "mozilla_django_oidc.middleware.SessionRefresh",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "project.urls"
@@ -143,14 +146,20 @@ LOGGING = {
             "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
             "propagate": False,
         },
+        "app": {
+            "handlers": ["console"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+            "propagate": False,
+        },
     },
 }
 
 
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
-    "mozilla_django_oidc.auth.OIDCAuthenticationBackend",
+    "app.auth.AYRAuthenticationBackend",
 )
+
 KEYCLOACK_BASE_URI = os.environ["KEYCLOACK_BASE_URI"]
 KEYCLOACK_REALM_NAME = os.environ["KEYCLOACK_REALM_NAME"]
 KEYCLOACK_REALM_BASE_URI = f"{KEYCLOACK_BASE_URI}/realms/{KEYCLOACK_REALM_NAME}"
@@ -167,6 +176,8 @@ OIDC_OP_AUTHORIZATION_ENDPOINT = (
 OIDC_OP_TOKEN_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/token"
 OIDC_OP_USER_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/userinfo"
 OIDC_OP_LOGOUT_URL_METHOD = "app.auth.provider_logout"
+OIDC_RP_SCOPES = "openid profile roles email"
+OIDC_RENEW_ID_TOKEN_EXPIRY_SECONDS = 60
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
@@ -175,3 +186,7 @@ LOGOUT_REDIRECT_URL = "/"
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # SECURE_SSL_REDIRECT = True
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SECURE_SSL_REDIRECT = False

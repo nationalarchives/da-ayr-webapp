@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load django_bootstrap5 %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+    {% bootstrap_messages %}
+    <title>AYR</title>
+</head>
+
+<body>
+
+
+<div class="d-flex justify-content-lg-between bg-dark p-4">
+
+    <div class="text-bg-dark">The National Archives</div>
+    <a class="navbar-brand text-bg-dark" href="#">AYR</a>
+    <div class="text-bg-dark">The National Archives</div>
+</div>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            <div class="container">
+                {% block content %}
+                {% endblock %}
+            </div>
+
+        </div>
+    </div>
+</div>
+<footer class="container-fluid">
+    <hr>
+</footer>
+
+
+</body>
+</html>
