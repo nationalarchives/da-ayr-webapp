@@ -10,49 +10,23 @@ def index(request):
     return HttpResponse(template.render({}, request))
 
 
-class DepartmentRecordsBaseView(UserPassesTestMixin, View):
-    name = ""
+class DepartmentBaseView(UserPassesTestMixin, View):
     raise_exception = True
 
-    def test_func(self):
+    def name(self):
+        return self.kwargs["name"]
+
+    def test_func(self) -> bool:
         return self.request.user.groups.filter(name=f"department_{self.name}").exists()
 
+
+class DepartmentRecordsView(DepartmentBaseView):
     def get(self, request, *args, **kwargs):
         context = {"department_name": self.name}
         return render(request, template_name="records.html", context=context)
 
 
-class DepartmentMetadataBaseView(UserPassesTestMixin, View):
-    name = ""
-    raise_exception = True
-
-    def test_func(self):
-        return self.request.user.groups.filter(name=f"department_{self.name}").exists()
-
+class DepartmentMetadataView(DepartmentBaseView):
     def get(self, request, *args, **kwargs):
         context = {"department_name": self.name}
         return render(request, template_name="metadata.html", context=context)
-
-
-class DepartmentARecordsView(DepartmentRecordsBaseView):
-    name = "a"
-
-
-class DepartmentAMetadataView(DepartmentMetadataBaseView):
-    name = "a"
-
-
-class DepartmentBRecordsView(DepartmentRecordsBaseView):
-    name = "b"
-
-
-class DepartmentBMetadataView(DepartmentMetadataBaseView):
-    name = "b"
-
-
-class DepartmentCRecordsView(DepartmentRecordsBaseView):
-    name = "c"
-
-
-class DepartmentCMetadataView(DepartmentMetadataBaseView):
-    name = "c"

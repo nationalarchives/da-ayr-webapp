@@ -3,7 +3,7 @@ from typing import Iterator
 
 import requests
 from django.contrib.auth.models import Group, User
-from keycloak import KeycloakOpenID
+from keycloak import KeycloakOpenID, KeycloakPostError
 from mozilla_django_oidc.auth import OIDCAuthenticationBackend
 
 from app.models import ProxyUser
@@ -53,8 +53,11 @@ class AYRAuthenticationBackend(OIDCAuthenticationBackend):
         )
         user_response.raise_for_status()
         user_info = user_response.json()
-        # this is a workaround for a bug with Keycloack API that doesn't return roles from info endpoint
-        uma_permissions = self.get_uma_permissions(access_token)
+        # this is a workaround for a bug(?) with Keycloack API that doesn't return roles from info endpoint
+        try:
+            uma_permissions = self.get_uma_permissions(access_token)
+        except KeycloakPostError:
+            uma_permissions = dict()
         user_info["permissions"] = uma_permissions
         return user_info
 
