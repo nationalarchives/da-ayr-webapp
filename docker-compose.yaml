@@ -41,7 +41,7 @@ services:
     networks:
       - local
     volumes:
-      - keycloack_data:/opt/keycloak/data
+      - .keycloack_data:/opt/keycloak/data
   webapp-db:
     image: postgres:13
     volumes:
