@@ -13,6 +13,7 @@ def index(request):
 class DepartmentBaseView(UserPassesTestMixin, View):
     raise_exception = True
 
+    @property
     def name(self):
         return self.kwargs["name"]
 
