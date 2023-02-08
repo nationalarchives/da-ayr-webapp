@@ -59,10 +59,14 @@ black:
 	docker cp $(TEST_NAME):/code/. ./
 
 migrate:
-	$(COMPOSE) up web -d && $(COMPOSE) exec web python manage.py migrate
+	docker container rm $(TEST_NAME) || true &&\
+	docker build --target=test -t $(TEST_TAG) . &&\
+ 	docker run --name=$(TEST_NAME) $(TEST_NAME) python manage.py migrate
 
 migrations:
-	$(COMPOSE) up web -d && $(COMPOSE) exec web python manage.py makemigrations
+	docker container rm $(TEST_NAME) || true &&\
+	docker build --target=test -t $(TEST_TAG) . &&\
+ 	docker run --name=$(TEST_NAME) $(TEST_NAME) python manage.py makemigrations
 
 requirements:
 	docker container rm $(TEST_NAME) || true &&\
@@ -75,3 +79,8 @@ requirements-dev:
 	docker build --target=test -t $(TEST_TAG) . &&\
  	docker run --name=$(TEST_NAME) $(TEST_NAME) pip-compile --extra dev -o requirements-dev.txt pyproject.toml &&\
  	docker cp $(TEST_NAME):/code/requirements-dev.txt ./requirements-dev.txt
+
+superuser:
+	docker container rm $(TEST_NAME) || true &&\
+	docker build --target=test --env-file=.env -t $(TEST_TAG) . &&\
+ 	docker run --name=$(TEST_NAME) $(TEST_NAME) python manage.py createsuperuser
