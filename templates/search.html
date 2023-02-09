@@ -1,0 +1,37 @@
+{% extends "base_template.html" %}
+{% load django_bootstrap5 %}
+{% block content %}
+{% if user.is_authenticated %}
+    <p>Current user: {{ user.email }}</p>
+    <p>You have access to the following department(s): </p>
+    <ul class="list-group mb-4">
+        {% for department in user.departments %}
+            <li class="list-group-item">Department {{ department }}</li>
+        {% endfor %}
+    </ul>
+    {% for department in user.departments %}
+    {% endfor %}
+    <p>You have access to the following resource(s): </p>
+    <ul class="list-group mb-4">
+        {% for resource in user.resources %}
+            {% for url in resource %}
+                <li class="list-group-item">
+                    <a href="{{ url }}">{{ url }}</a>
+                </li>
+            {% endfor %}
+        {% endfor %}
+    </ul>
+    {% for department in user.departments %}
+    {% endfor %}
+    <form method="POST" action="/search">
+    {% csrf_token %}
+    <label>
+        <input type="text" name="search_term">
+    </label>
+    <button type="submit">Search</button>
+    </form>
+    {% if result %}
+        <h1>{{ result }}</h1>
+    {% endif %}
+{% endif %}
+{% endblock %}

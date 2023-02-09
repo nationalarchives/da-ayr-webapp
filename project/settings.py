@@ -178,7 +178,7 @@ OIDC_OP_USER_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/use
 OIDC_OP_LOGOUT_URL_METHOD = "app.auth.provider_logout"
 OIDC_RP_SCOPES = "openid profile roles email"
 OIDC_RENEW_ID_TOKEN_EXPIRY_SECONDS = 60
-LOGIN_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "/search"
 LOGOUT_REDIRECT_URL = "/"
 
 # we may or may not need this when Django is properly deployed to https
