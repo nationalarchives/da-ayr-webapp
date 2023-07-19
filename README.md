@@ -47,7 +47,7 @@ This value needs to be copied from the Open ID Client created in Keycloack
 
 ### Build and run
 
-    make build
+    make up
 
 Alias for
 
@@ -62,22 +62,29 @@ If you are running the app for the first time you will need to run migrations be
 
 Login to Keycloack using your admin credentials.
 
-From the admin panel create a new realm called `ayr`.
+### Create ayr realm
+- From the admin panel create a new realm called `ayr`.
 
+### Create client in ayr realm
 Once in the new realm (the default is called `admin`), create a new client with the following settings
+#### General settings
 
 `Client type = Open ID Connect`
 
 `Client ID = webapp`
-
-Fill the fields `Valid redirect URIs`, `Valid post logout redirect URIs`, `Web origins` with the value `http://localhost:8000/*`.
+#### Capability config
 
 Set `Client authentication` to On.
 
+
+#### Login settings
+
+Fill the fields `Valid redirect URIs`, `Valid post logout redirect URIs`, `Web origins` with the value `http://localhost:8000/*`.
+
 Save the changes.
+## Create a new user
 
-Create a new user with email. In the credentials tab create a new password.
-
+Create a new user in the ayr realm with email. In the credentials tab create a new password.
 ## Authentication flow
 
 Navigate to http://localhost:8000.
