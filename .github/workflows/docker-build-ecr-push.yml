@@ -1,7 +1,7 @@
 name: Docker Build ECR Push
 on:
-  push:
-    branches: ['**']
+  #push:
+  #  branches: ['**']
   workflow_dispatch:
 jobs:
   docker-build-push-ecr:
