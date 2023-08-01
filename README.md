@@ -49,12 +49,12 @@ This value needs to be copied from the Open ID Client created in Keycloak
 `WEBAPP_DB_PASSWORD=yopur-webapp-db-password`
 
 ### Linux
-```docker.internal``` is not setup on Docker for Linux.  
+```docker.internal``` is not setup on Docker for Linux.
 One possible solution is to use:
 
 ```KEYCLOAK_BASE_URI=http://keycloak:8080```
 
-And to set a hostname in ```/etc/hosts``` for ```keycloak``` 
+And to set a hostname in ```/etc/hosts``` for ```keycloak```
 
 Using this hostname will resolve for the host machine and for hosts in the Docker network
 
@@ -78,7 +78,7 @@ If you are running the app for the first time you will need to run migrations be
 
     make migrate
 
-or 
+or
 
 ```docker-compose exec web python manage.py migrate```
 
