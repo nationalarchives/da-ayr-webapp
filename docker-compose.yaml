@@ -14,9 +14,9 @@ services:
     volumes:
       - keycloack_db_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: ${KEYCLOACK_DB_NAME}
-      POSTGRES_USER: ${KEYCLOACK_DB_USER}
-      POSTGRES_PASSWORD: ${KEYCLOACK_DB_PASSWORD}
+      POSTGRES_DB: ${KEYCLOAK_DB_NAME}
+      POSTGRES_USER: ${KEYCLOAK_DB_USER}
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
     ports:
       - "5431:5432"
     networks:
@@ -26,10 +26,10 @@ services:
     environment:
       DB_VENDOR: POSTGRES
       DB_ADDR: postgres
-      DB_DATABASE: ${KEYCLOACK_DB_NAME}
-      DB_USER: ${KEYCLOACK_DB_USER}
+      DB_DATABASE: ${KEYCLOAK_DB_NAME}
+      DB_USER: ${KEYCLOAK_DB_USER}
       DB_SCHEMA: public
-      DB_PASSWORD: ${KEYCLOACK_DB_PASSWORD}
+      DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
     ports:

@@ -8,7 +8,7 @@ from mozilla_django_oidc.auth import OIDCAuthenticationBackend
 
 from app.models import ProxyUser
 from project import settings
-from project.settings import KEYCLOACK_REALM_BASE_URI
+from project.settings import KEYCLOAK_REALM_BASE_URI
 
 logger = logging.getLogger(__name__)
 
@@ -63,9 +63,9 @@ class AYRAuthenticationBackend(OIDCAuthenticationBackend):
 
     def get_uma_permissions(self, access_token):
         keycloak_openid = KeycloakOpenID(
-            server_url=settings.KEYCLOACK_BASE_URI,
+            server_url=settings.KEYCLOAK_BASE_URI,
             client_id=settings.OIDC_RP_CLIENT_ID,
-            realm_name=settings.KEYCLOACK_REALM_NAME,
+            realm_name=settings.KEYCLOAK_REALM_NAME,
             client_secret_key=settings.OIDC_RP_CLIENT_SECRET,
         )
         return keycloak_openid.uma_permissions(access_token)
@@ -98,4 +98,4 @@ class AYRAuthenticationBackend(OIDCAuthenticationBackend):
 
 
 def provider_logout(request):
-    return f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/logout"
+    return f"{KEYCLOAK_REALM_BASE_URI}/protocol/openid-connect/logout"

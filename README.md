@@ -19,9 +19,9 @@ You can generate a secret-key with a password manage or a free online secret key
 
 Minimum length should be 50 chars. It should include alphanumeric values and symbols.
 
-`KEYCLOACK_BASE_URI=http://kubernetes.docker.internal:8080`
+`KEYCLOAK_BASE_URI=http://kubernetes.docker.internal:8080`
 
-`KEYCLOACK_REALM_NAME=ayr`
+`KEYCLOAK_REALM_NAME=ayr`
 
 `OIDC_RP_CLIENT_ID=webapp`
 
@@ -29,11 +29,11 @@ Minimum length should be 50 chars. It should include alphanumeric values and sym
 This value needs to be copied from the Open ID Client created in Keycloack
 
 
-`KEYCLOACK_DB_NAME=keycloack`
+`KEYCLOAK_DB_NAME=keycloack`
 
-`KEYCLOACK_DB_USER=keycloack`
+`KEYCLOAK_DB_USER=keycloack`
 
-`KEYCLOACK_DB_PASSWORD=your-keycloack-db-password`
+`KEYCLOAK_DB_PASSWORD=your-keycloack-db-password`
 
 `KEYCLOAK_ADMIN=admin`
 
