@@ -53,7 +53,7 @@ class AYRAuthenticationBackend(OIDCAuthenticationBackend):
         )
         user_response.raise_for_status()
         user_info = user_response.json()
-        # this is a workaround for a bug(?) with Keycloack API that doesn't return roles from info endpoint
+        # this is a workaround for a bug(?) with Keycloak API that doesn't return roles from info endpoint
         try:
             uma_permissions = self.get_uma_permissions(access_token)
         except KeycloakPostError:

@@ -169,4 +169,4 @@ Security
 /db.sqlite3
 /secrets.txt
 /db.sqlite
-/.keycloack_data/
+/.keycloak_data/

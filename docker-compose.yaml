@@ -1,18 +1,18 @@
 version: '3.4'
 
 volumes:
-  keycloack_db_data:
+  keycloak_db_data:
     driver: local
-  keycloack_data:
+  keycloak_data:
     driver: local
   webapp_db_data:
     driver: local
 
 services:
-  keycloack-db:
+  keycloak-db:
     image: postgres:13
     volumes:
-      - keycloack_db_data:/var/lib/postgresql/data
+      - keycloak_db_data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${KEYCLOAK_DB_NAME}
       POSTGRES_USER: ${KEYCLOAK_DB_USER}
@@ -35,13 +35,13 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - keycloack-db
+      - keycloak-db
     command:
       - "start-dev"
     networks:
       - local
     volumes:
-      - .keycloack_data:/opt/keycloak/data
+      - .keycloak_data:/opt/keycloak/data
   webapp-db:
     image: postgres:13
     volumes:
@@ -66,7 +66,7 @@ services:
     command: ["manage.py", "runserver", "0.0.0.0:8000"]
     entrypoint: "python3"
     depends_on:
-      - keycloack-db
+      - keycloak-db
       - keycloak
       - webapp-db
     volumes:

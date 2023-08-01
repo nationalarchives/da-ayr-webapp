@@ -26,18 +26,18 @@ Minimum length should be 50 chars. It should include alphanumeric values and sym
 `OIDC_RP_CLIENT_ID=webapp`
 
 `OIDC_RP_CLIENT_SECRET=your-client-secret`
-This value needs to be copied from the Open ID Client created in Keycloack
+This value needs to be copied from the Open ID Client created in Keycloak
 
 
-`KEYCLOAK_DB_NAME=keycloack`
+`KEYCLOAK_DB_NAME=keycloak`
 
-`KEYCLOAK_DB_USER=keycloack`
+`KEYCLOAK_DB_USER=keycloak`
 
-`KEYCLOAK_DB_PASSWORD=your-keycloack-db-password`
+`KEYCLOAK_DB_PASSWORD=your-keycloak-db-password`
 
 `KEYCLOAK_ADMIN=admin`
 
-`KEYCLOAK_ADMIN_PASSWORD=your-keycloack-admin-password`
+`KEYCLOAK_ADMIN_PASSWORD=your-keycloak-admin-password`
 
 `WEBAPP_DB_NAME=django`
 
@@ -53,14 +53,14 @@ Alias for
 
     docker compose up --build
 
-This will build and run the Django app available at `http://localhost:8000` and the Keycloack server available at `http://keycloack:8080`, alias for `http://localhost:8000`.
+This will build and run the Django app available at `http://localhost:8000` and the Keycloak server available at `http://keycloak:8080`, alias for `http://localhost:8000`.
 If you are running the app for the first time you will need to run migrations beforehand.
 
     make migrate
 
-## Keycloack setup
+## Keycloak setup
 
-Login to Keycloack using your admin credentials.
+Login to Keycloak using your admin credentials.
 
 ### Create ayr realm
 - From the admin panel create a new realm called `ayr`.
@@ -91,7 +91,7 @@ Navigate to http://localhost:8000.
 
 Click on the `login` button.
 
-You will be redirected to keycloack for the authentication.
+You will be redirected to keycloak for the authentication.
 Enter the newly created user credentials and press enter.
 
 You should now be redirected to Django app index and see a `logout` button.
