@@ -160,21 +160,21 @@ AUTHENTICATION_BACKENDS = (
     "app.auth.AYRAuthenticationBackend",
 )
 
-KEYCLOACK_BASE_URI = os.environ["KEYCLOACK_BASE_URI"]
-KEYCLOACK_REALM_NAME = os.environ["KEYCLOACK_REALM_NAME"]
-KEYCLOACK_REALM_BASE_URI = f"{KEYCLOACK_BASE_URI}/realms/{KEYCLOACK_REALM_NAME}"
+KEYCLOAK_BASE_URI = os.environ["KEYCLOAK_BASE_URI"]
+KEYCLOAK_REALM_NAME = os.environ["KEYCLOAK_REALM_NAME"]
+KEYCLOAK_REALM_BASE_URI = f"{KEYCLOAK_BASE_URI}/realms/{KEYCLOAK_REALM_NAME}"
 
 
 OIDC_RP_CLIENT_ID = os.environ["OIDC_RP_CLIENT_ID"]
 OIDC_RP_CLIENT_SECRET = os.environ["OIDC_RP_CLIENT_SECRET"]
 
 OIDC_RP_SIGN_ALGO = "RS256"
-OIDC_OP_JWKS_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/certs"
+OIDC_OP_JWKS_ENDPOINT = f"{KEYCLOAK_REALM_BASE_URI}/protocol/openid-connect/certs"
 OIDC_OP_AUTHORIZATION_ENDPOINT = (
-    f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/auth"
+    f"{KEYCLOAK_REALM_BASE_URI}/protocol/openid-connect/auth"
 )
-OIDC_OP_TOKEN_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/token"
-OIDC_OP_USER_ENDPOINT = f"{KEYCLOACK_REALM_BASE_URI}/protocol/openid-connect/userinfo"
+OIDC_OP_TOKEN_ENDPOINT = f"{KEYCLOAK_REALM_BASE_URI}/protocol/openid-connect/token"
+OIDC_OP_USER_ENDPOINT = f"{KEYCLOAK_REALM_BASE_URI}/protocol/openid-connect/userinfo"
 OIDC_OP_LOGOUT_URL_METHOD = "app.auth.provider_logout"
 OIDC_RP_SCOPES = "openid profile roles email"
 OIDC_RENEW_ID_TOKEN_EXPIRY_SECONDS = 60

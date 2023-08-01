@@ -20,9 +20,9 @@ jobs:
       WEBAPP_DB_USER: ${{ secrets.WEBAPP_DB_USER }}
       WEBAPP_DB_HOST: ${{ secrets.WEBAPP_DB_HOST }}
       WEBAPP_DEBUG: ${{ secrets.WEBAPP_DEBUG }}
-      KEYCLOACK_BASE_URI: ${{ secrets.KEYCLOACK_BASE_URI }}
-      KEYCLOACK_DB_NAME: ${{ secrets.KEYCLOACK_DB_NAME }}
-      KEYCLOACK_DB_USER: ${{ secrets.KEYCLOACK_DB_USER }}
+      KEYCLOAK_BASE_URI: ${{ secrets.KEYCLOAK_BASE_URI }}
+      KEYCLOAK_DB_NAME: ${{ secrets.KEYCLOAK_DB_NAME }}
+      KEYCLOAK_DB_USER: ${{ secrets.KEYCLOAK_DB_USER }}
       SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
       OIDC_RP_CLIENT_SECRET: ${{ secrets.OIDC_RP_CLIENT_SECRET }}
       CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
