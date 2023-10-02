@@ -1,12 +1,12 @@
 CONTACT_EMAIL=[contact email]
 CONTACT_PHONE=[contact phone]
-DEPARTMENT_NAME=[name of department]
-DEPARTMENT_URL=[url of department]
+DEPARTMENT_NAME="The National Archives"
+DEPARTMENT_URL="https://www.nationalarchives.gov.uk/"
 FLASK_APP=govuk-frontend-flask.py
 FLASK_DEBUG=True
 FLASK_RUN_PORT=5000
 REDIS_URL=memory://
 SECRET_KEY=
-SERVICE_NAME=[name of service]
-SERVICE_PHASE=[phase]
-SERVICE_URL=[url of service]
+SERVICE_NAME="AYR - Access Your Records"
+SERVICE_PHASE="BETA"
+SERVICE_URL="https://ayr.nationalarchives.gov.uk/"
