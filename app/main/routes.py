@@ -1,14 +1,79 @@
-from flask import flash, json, make_response, redirect, render_template, request
+from flask import flash, json, make_response, redirect, render_template, request, url_for, redirect, session
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import HTTPException
+import requests
+import os
 
 from app.main import bp
 from app.main.forms import CookiesForm
 
+from keycloak import KeycloakOpenID
+
+KEYCLOAK_BASE_URI = os.getenv("KEYCLOAK_BASE_URI")
+KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID")
+KEYCLOAK_REALM_NAME = os.getenv("KEYCLOAK_REALM_NAME")
+KEYCLOAK_CLIENT_SECRET = os.getenv("KEYCLOAK_CLIENT_SECRET")
+
+# Configure client
+keycloak_openid = KeycloakOpenID(server_url=KEYCLOAK_BASE_URI,
+                                          client_id=KEYCLOAK_CLIENT_ID,
+                                          realm_name=KEYCLOAK_REALM_NAME,
+                                          client_secret_key=KEYCLOAK_CLIENT_SECRET)
+
+
+# Get WellKnown
+config_well_known = keycloak_openid.well_known()
 
 @bp.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
+
+
+@bp.route("/login", methods=["GET"])
+def login():
+    # Get Code With Oauth Authorization Request
+    auth_url = keycloak_openid.auth_url(
+        redirect_uri="http://localhost:5000/callback",
+        scope="email",
+        state="your_state_info")
+
+    return redirect(auth_url)
+
+
+@bp.route("/callback", methods=["GET"])
+def callback():
+    code = request.args.get("code")
+
+    access_token_response = keycloak_openid.token(
+        grant_type='authorization_code',
+        code=code,
+        redirect_uri="http://localhost:5000/callback")
+    
+    session["access_token_response"] = access_token_response
+    session["access_token"] = access_token_response["access_token"]
+    session["refresh_token"] = access_token_response["refresh_token"]
+    session["token_type"] = access_token_response["token_type"]
+    session["token_scope"] = access_token_response["scope"]
+    session["session_state"] = access_token_response["session_state"]
+    
+    # send token to api gateway
+    api_gateway_url = 'https://ljciqom6td.execute-api.eu-west-2.amazonaws.com/Dev'
+
+    # Set up headers with the access token
+    headers = {
+        'Authorization': session["access_token"],
+        'Content-Type': 'application/json'  # Adjust content type as needed
+    }
+
+    try:
+        response = requests.post(api_gateway_url, headers=headers)
+        if response.status_code == 200:
+            return render_template("dashboard.html")
+        else:
+            return f"API Error: {response.status_code} - {response.text}"
+
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 
 @bp.route("/accessibility", methods=["GET"])

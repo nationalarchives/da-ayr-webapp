@@ -100,3 +100,5 @@ wtforms==3.0.1
     # via
     #   flask-wtf
     #   govuk-frontend-wtf
+python-keycloak==3.3.0
+
