@@ -48,14 +48,14 @@ def callback():
         grant_type='authorization_code',
         code=code,
         redirect_uri="http://localhost:5000/callback")
-    
+
     session["access_token_response"] = access_token_response
     session["access_token"] = access_token_response["access_token"]
     session["refresh_token"] = access_token_response["refresh_token"]
     session["token_type"] = access_token_response["token_type"]
     session["token_scope"] = access_token_response["scope"]
     session["session_state"] = access_token_response["session_state"]
-    
+
     # send token to api gateway
     api_gateway_url = 'https://ljciqom6td.execute-api.eu-west-2.amazonaws.com/Dev'
 
