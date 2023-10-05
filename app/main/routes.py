@@ -81,6 +81,41 @@ def accessibility():
     return render_template("accessibility.html")
 
 
+@bp.route("/dashboard", methods=["GET"])
+def dashboard():
+    return render_template("dashboard.html")
+
+
+@bp.route("/search", methods=["GET"])
+def search():
+    return render_template("search.html")
+
+
+@bp.route("/advanced-search", methods=["GET"])
+def advanced_search():
+    return render_template("search.html")
+
+
+@bp.route("/record", methods=["GET"])
+def results():
+    return render_template("results.html")
+
+
+@bp.route("/browse", methods=["GET"])
+def browse():
+    return render_template("browse.html")
+
+
+@bp.route("/record", methods=["GET"])
+def record():
+    return render_template("record.html")
+
+
+@bp.route("/all-departments", methods=["GET"])
+def departments():
+    return render_template("departments.html")
+
+
 @bp.route("/cookies", methods=["GET", "POST"])
 def cookies():
     form = CookiesForm()
