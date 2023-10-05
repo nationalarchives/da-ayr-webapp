@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{%- from 'govuk_frontend_jinja/components/radios/macro.html' import govukRadios -%}
+{%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
+
+
+
+{% block content %}
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        {{ super() }}
+        <h1 class="govuk-heading-xl">Search</h1>
+
+
+        <div class="govuk-form-group govuk-!-display-inline">
+            <fieldset class="govuk-fieldset">
+              <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                <h1 class="govuk-fieldset__heading">
+                  Filter
+                </h1>
+              </legend>
+              <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
+                <div class="govuk-radios__item">
+                  <input class="govuk-radios__input" id="changedName" name="changedName" type="radio" value="month">
+                  <label class="govuk-label govuk-radios__label" for="changedName">
+                    My Records
+                  </label>
+                </div>
+                <div class="govuk-radios__item">
+                  <input class="govuk-radios__input" id="changedName-2" name="changedName" type="radio" value="year">
+                  <label class="govuk-label govuk-radios__label" for="changedName-2">
+                    All Departments
+                  </label>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+
+    </div>
+</div>
+{% endblock %}
