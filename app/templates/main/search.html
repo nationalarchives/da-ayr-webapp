@@ -7,35 +7,55 @@
 
 {% block content %}
 <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
+    <div class="govuk-grid-column-full">
         {{ super() }}
-        <h1 class="govuk-heading-xl">Search</h1>
+        <h2 class="govuk-heading-l">Search for records</h2>
+        <p class="govuk-body-l">Search for digital-born records transfered to The National Archives</p>
 
 
-        <div class="govuk-form-group govuk-!-display-inline">
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="two-thirds">  
+          </label>
+          <input class="govuk-input govuk-!-width-two-thirds" id="two-thirds" name="twoThirds" type="text">
+         <button class="govuk-button" data-module="govuk-button">Search</button>
+
+         
+         
+        <div class="govuk-form-group">
             <fieldset class="govuk-fieldset">
               <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-                <h1 class="govuk-fieldset__heading">
-                  Filter
-                </h1>
               </legend>
-              <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
+              
+
+              <div class="govuk-radios govuk-radios--small govuk-radios--inline" data-module="govuk-radios">
+                <p class="govuk-body govuk-link govuk-!-display-inline">
+                  <a href="#" class="govuk-link">Advanced search</a>
+                  </p>
                 <div class="govuk-radios__item">
-                  <input class="govuk-radios__input" id="changedName" name="changedName" type="radio" value="month">
+                  <input class="govuk-radios__input" id="changedName" name="changedName" type="radio" value="yes">
                   <label class="govuk-label govuk-radios__label" for="changedName">
-                    My Records
+                    My records
                   </label>
                 </div>
+                
                 <div class="govuk-radios__item">
-                  <input class="govuk-radios__input" id="changedName-2" name="changedName" type="radio" value="year">
+                  <input class="govuk-radios__input" id="changedName-2" name="changedName" type="radio" value="no">
                   <label class="govuk-label govuk-radios__label" for="changedName-2">
-                    All Departments
+                    All department records
                   </label>
+                  </div>
                 </div>
+                
               </div>
             </fieldset>
           </div>
+        </div>
 
-    </div>
+
+            
 </div>
+
+</div>
+
+
 {% endblock %}
