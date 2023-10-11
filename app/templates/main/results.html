@@ -2,6 +2,7 @@
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
 
 
+
 {% block content %}
 <div class="govuk-grid-row">
 <div class="govuk-grid-column-full">
@@ -12,7 +13,7 @@
 
     <h1 class="govuk-heading-l">Search</h1> 
     <div class="govuk-form-group">
-    <input class="govuk-input govuk-grid-column-full govuk-!-display-inline-block" id="full" name="full" type="text">
+    <input class="govuk-input govuk-!-width-three-quarters govuk-!-display-inline-block" id="three-quarters" name="threeQuarters" type="text">
     </div> <button class="govuk-button" data-module="govuk-button">Search</button>
     </tr>
 </thead>
@@ -25,10 +26,10 @@
   </thead>
         <tbody class="govuk-table__body govuk-!-width-full">
           <tr class="govuk-table__row">
-            <th scope="row" class="govuk-table__header"> <h1 class="govuk-heading-l">Refine results</h1></th>
+            <th scope="row" class="govuk-table__header"> <h2 class="govuk-heading-m">Refine results</h2></th>
 
             <td class="govuk-table__cell">
-                <div class="govuk-form-group">
+                <div class="govuk-form-group govuk-!-display-inline-block">
                     <select class="govuk-select" id="sort" name="sort">
                       <option value="published">Recently published</option>
                       <option value="updated" selected>Date Created</option>
@@ -37,7 +38,7 @@
                     </select>
                   </div>
 
-                  <div class="govuk-form-group">
+                  <div class="govuk-form-group govuk-!-display-inline-block">
                     
                     <select class="govuk-select" id="sort" name="sort">
                       <option value="published">Recently published</option>
@@ -47,7 +48,7 @@
                     </select>
                   </div>
 
-                  <div class="govuk-form-group">
+                  <div class="govuk-form-group govuk-!-display-inline-block">
                     <select class="govuk-select" id="sort" name="sort">
                       <option value="published">Recently published</option>
                       <option value="updated" selected>Closure Status</option>
@@ -56,7 +57,7 @@
                     </select>
                   </div>
 
-                  <div class="govuk-form-group">
+                  <div class="govuk-form-group govuk-!-display-inline-block">
                     <select class="govuk-select" id="sort" name="sort">
                       <option value="published">Recently published</option>
                       <option value="updated" selected>File Format</option>
@@ -65,7 +66,7 @@
                     </select>
                   </div>
 
-                  <div class="govuk-form-group">
+                  <div class="govuk-form-group govuk-!-display-inline-block">
                     <select class="govuk-select" id="sort" name="sort">
                       <option value="published">Recently published</option>
                       <option value="updated" selected>Title Only</option>
@@ -79,20 +80,38 @@
 
           <table class="govuk-table">
             <p class="govuk-body-m">Showing 7 items (of 7) in 'Records of the Department for Something'</p>
+            <div class="govuk-form-group">
+              <label class="govuk-label" for="sort">
+                Sort by
+              </label>
+              <select class="govuk-select" id="sort" name="sort">
+                <option value="published">Recently published</option>
+                <option value="updated" selected>Date - ascending</option>
+                <option value="views">Most views</option>
+                <option value="comments">Most comments</option>
+              </select>
+              <img src="{{ url_for('static', filename='images/list.png')}}" width=20>
+              <img src="{{ url_for('static', filename='images/square-grid.png')}}" width=20>
+            </div>
+
             <caption class="govuk-table__caption govuk-table__caption--m">Exact match</caption>
             <thead class="govuk-table__head">
               <tr class="govuk-table__row">
                 <th scope="col" class="govuk-table__header">Title</th>
                 <th scope="col" class="govuk-table__header">Reference</th>
                 <th scope="col" class="govuk-table__header">Date Created</th>
+                <th scope="col" class="govuk-table__header"></th>
               </tr>
             </thead>
+            
             <tbody class="govuk-table__body">
               <tr class="govuk-table__row">
-                <th scope="row" class="govuk-table__header">Lorem ipsum dolor sit amet</th>
+                <th scope="row" class="govuk-table__header"><img src="{{ url_for('static', filename='images/blank-page.png')}}" width=20></th>
                 <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
                 <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
+                <td class="govuk-table__cell">Details</td>
               </tr>
+              
           </table>
           <table class="govuk-table">
             <caption class="govuk-table__caption govuk-table__caption--m">Other Results</caption>
@@ -101,48 +120,49 @@
                 <th scope="col" class="govuk-table__header">Title</th>
                 <th scope="col" class="govuk-table__header">Reference</th>
                 <th scope="col" class="govuk-table__header">Date Created</th>
+                <th scope="col" class="govuk-table__header"></th>
               </tr>
             </thead>
             <tbody class="govuk-table__body">
               <tr class="govuk-table__row">
-                <th scope="row" class="govuk-table__header">Lorem ipsum dolor sit amet</th>
+
+                <th scope="row" class="govuk-table__header"><img src="{{ url_for('static', filename='images/blank-page.png')}}" width=20></th>
                 <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
                 <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
+                <td class="govuk-table__cell">Details</td>
+              </tr>
+              
+              <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header"><img src="{{ url_for('static', filename='images/blank-page.png')}}" width=20></th>
+                <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
+                <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
+                <td class="govuk-table__cell">Details</td>
               </tr>
 
               <tr class="govuk-table__row">
-                <th scope="row" class="govuk-table__header">Lorem ipsum dolor sit amet</th>
+                <th scope="row" class="govuk-table__header"><img src="{{ url_for('static', filename='images/blank-page.png')}}" width=20></th>
                 <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
                 <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
+                <td class="govuk-table__cell">Details</td>
               </tr>
 
               <tr class="govuk-table__row">
-                <th scope="row" class="govuk-table__header">Lorem ipsum dolor sit amet</th>
-                <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
-                <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
-              </tr>
-
-              <tr class="govuk-table__row">
-                <th scope="row" class="govuk-table__header">Lorem ipsum dolor sit amet</th>
+                <th scope="row" class="govuk-table__header"><img src="{{ url_for('static', filename='images/blank-page.png')}}" width=20></th>
                 <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
                 <td class="govuk-table__cell">Lorem ipsum dolor sit ameta</td>
+                <td class="govuk-table__cell">Details</td>
               </tr>
 
               <tr class="govuk-table__row">
-                <th scope="row" class="govuk-table__header">Lorem ipsum dolor sit amet</th>
+                <th scope="row" class="govuk-table__header"><img src="{{ url_for('static', filename='images/blank-page.png')}}" width=20></th>
                 <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
                 <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
+                <td class="govuk-table__cell">Details</td>
               </tr>
             </table>
 
-
-
-
-
         </tbody>
-
-
-          
+  
 </div>
 </div>
   {% endblock %}
