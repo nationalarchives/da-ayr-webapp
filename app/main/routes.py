@@ -96,7 +96,7 @@ def advanced_search():
     return render_template("search.html")
 
 
-@bp.route("/record", methods=["GET"])
+@bp.route("/refine-results", methods=["GET"])
 def results():
     return render_template("results.html")
 
