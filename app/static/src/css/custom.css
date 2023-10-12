@@ -1,7 +1,7 @@
 /* Your custom CSS goes here... */
 
 img {
-    text-align: left;
+    float: left;
 }
 
 .govuk-header {
@@ -9,6 +9,19 @@ img {
     width:100%;
 }
 
+.govuk-button {
+    float: right;
+    margin-right: 21rem;
+}
+
+
+.govuk-form-group-sort{
+    
+    float:right;
+    margin-right: 10rem;
+
+
+}
 .govuk-header__container {
     
     height: 100%;
