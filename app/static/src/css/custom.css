@@ -4,9 +4,15 @@ img {
     text-align: left;
 }
 
+.govuk-header {
+    height: 100%;
+    width:100%;
+}
+
 .govuk-header__container {
     
-   
+    height: 100%;
+    width:100%;
 }
 
 .govuk-width-container {
