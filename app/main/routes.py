@@ -97,6 +97,11 @@ def results():
     return render_template("results.html")
 
 
+@bp.route("/poc-search-view", methods=["GET"])
+def poc_search():
+    return render_template("poc-search.html")
+
+
 @bp.route("/browse", methods=["GET"])
 def browse():
     return render_template("browse.html")
