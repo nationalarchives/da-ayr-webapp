@@ -3,119 +3,44 @@
 
 
 
+{% block pageTitle %}Dashboard – {{config['SERVICE_NAME']}} – GOV.UK{% endblock %}
+
+{% block beforeContent %}
+  {{ super() }}
+ 
+{% endblock %}
+
 {% block content %}
 <div class="govuk-grid-row">
-<div class="govuk-grid-column-full">
-    <table class="govuk-table">
-
-        <thead class="govuk-table__head">
-            <tr class="govuk-table__row">
-
-    <h1 class="govuk-heading-m">Search</h1> 
-    <div class="govuk-form-group">
-        <input class="govuk-input govuk-!-width-three-quarters" id="three-quarters" name="threeQuarters" type="text">
-</div>
+  <div class="govuk-grid-column-two-thirds">
+    {{ super() }}
+    <div class="govuk-width-container">
         
-    <button class="govuk-button" data-module="govuk-button">Search</button>
-    </tr>
-</thead>
-
-<thead class="govuk-table__head govuk-!-width-full">
-    <tr class="govuk-table__row">
-      <th scope="col" class="govuk-table__header"></th>
-      <th scope="col" class="govuk-table__header"></th>
-    </tr>
-  </thead>
-        <tbody class="govuk-table__body govuk-!-width-full">
-          <tr class="govuk-table__row">
-            <th scope="row" class="govuk-table__header"> <h2 class="govuk-heading-m">Results</h2></th>
-
-            <td class="govuk-table__cell">
-                <div class="govuk-form-group-filter">
-                    <select class="govuk-select" id="sort" name="sort">
-                      <option value="published">Recently published</option>
-                      <option value="updated" selected>Date Created</option>
-                      <option value="views">Most views</option>
-                      <option value="comments">Most comments</option>
-                    </select>
+        <main class="govuk-main-wrapper">
+          <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                <h2 class="govuk-heading-l">Search design PoC</h2>
+                <h3 class="govuk-heading-s">Search for a closed record</h3>
+                <div class="govuk-form-group">
+                    <input class="govuk-input govuk-!-width-three-quarters" id="three-quarters" name="threeQuarters" type="text">
                   </div>
-
-                  <div class="govuk-form-group-filter">
-                    
-                    <select class="govuk-select" id="sort" name="sort">
-                      <option value="published">Recently published</option>
-                      <option value="updated" selected>Date Transfered</option>
-                      <option value="views">Most views</option>
-                      <option value="comments">Most comments</option>
-                    </select>
-                  </div>
-
-                  <div class="govuk-form-group-filter">
-                    <select class="govuk-select" id="sort" name="sort">
-                      <option value="published">Recently published</option>
-                      <option value="updated" selected>Closure Status</option>
-                      <option value="views">Most views</option>
-                      <option value="comments">Most comments</option>
-                    </select>
-                  </div>
-
-                  <div class="govuk-form-group-filter">
-                    <select class="govuk-select" id="sort" name="sort">
-                      <option value="published">Recently published</option>
-                      <option value="updated" selected>File Format</option>
-                      <option value="views">Most views</option>
-                      <option value="comments">Most comments</option>
-                    </select>
-                  </div>
-
-                  <div class="govuk-form-group-filter">
-                    <select class="govuk-select" id="sort" name="sort">
-                      <option value="published">Recently published</option>
-                      <option value="updated" selected>Title Only</option>
-                      <option value="views">Most views</option>
-                      <option value="comments">Most comments</option>
-                    </select>
-                  </div>
-            </td>
-          </tr>
-
-
-          <table class="govuk-table">
-            <p class="govuk-body-m">Showing * items (of *) in 'Records of the Department for Something'</p>
-            <div class="govuk-form-group-sort">
-              <label class="govuk-label" for="sort">
-                Sort by
-              </label>
-              <select class="govuk-select" id="sort" name="sort">
-                <option value="published">Recently published</option>
-                <option value="updated" selected>Date - ascending</option>
-                <option value="views">Most views</option>
-                <option value="comments">Most comments</option>
-              </select>
-             
+                  <button class="govuk-button" data-module="govuk-button">
+                    Search
+                  </button>
             </div>
+          </div>
+        </main>
+      </div>
 
-            <caption class="govuk-table__caption govuk-table__caption--m">Exact match</caption>
-            <thead class="govuk-table__head">
-              <tr class="govuk-table__row">
-                <th scope="col" class="govuk-table__header">Title</th>
-                <th scope="col" class="govuk-table__header">Reference</th>
-                <th scope="col" class="govuk-table__header">Date Created</th>
-                <th scope="col" class="govuk-table__header"></th>
-              </tr>
-            </thead>
-            
-            <tbody class="govuk-table__body">
-              <tr class="govuk-table__row">
-                <th scope="row" class="govuk-table__header"><img src="{{ url_for('static', filename='images/blank-page.png')}}" width=20></th>
-                <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
-                <td class="govuk-table__cell">Lorem ipsum dolor sit amet</td>
-                <td class="govuk-table__cell">Details</td>
-              </tr>
-              
-          </table>
-        </tbody>
-  
+
+
+   
+  </div>
 </div>
-</div>
+
+
+
+
+
+
   {% endblock %}

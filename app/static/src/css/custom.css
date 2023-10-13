@@ -1,105 +1,16 @@
 /* Your custom CSS goes here... */
 
-img {
-    float: left;
+
+
+.govuk-form-group {
+    width: 850px;
 }
-
-
 
 .govuk-button {
     position:absolute;
-    margin-top:-174px;
+    margin-top:-70px;
     margin-bottom:-300px;
-    margin-left: 885px;
+    margin-left: 645px;
+    height: 40px;
 }
 
-
-.govuk-heading-m {
-    padding-bottom: 4.5rem;
-    margin-left: 35px;
-}
-
-
-.govuk-form-group-filter {
-    margin-top: 4rem;
-    margin-left: 10px;
-    margin-right: 10px;
-    margin-bottom: 4rem;
-    position:relative;
-    display:inline-block;
-}
-
-
-
-.govuk-table__head {
-    padding-bottom: 1rem;
-}
-
-.govuk-form-group {
-    width: 1000px;
-    padding-bottom: 1rem;
-    
-}
-
-
-.govuk-form-group-sort{
-    
-    float:right;
-    margin-right: 10rem;
-}
-
-.govuk-header__container {
-    
-    height: auto;
-    width:100%;
-}
-
-.govuk-input {
-    position: absolute;
-    margin-bottom: 5rem;
-    margin-left: 8rem;
-    margin-top: -8rem;
-}
-
-.govuk-table__cell {
-    padding-right:70px;
-    padding-bottom:70px;
-    padding-left:15px;
-    margin-left: -10px;
-}
-
-
-.govuk-form-group {
-    position: relative;
-}
-
-
-.govuk-grid-column-full {
-    width:100%;  
-}
-
-
-.govuk-width-container {
-     margin-bottom: 50px; 
-    margin-left: 20px;
-    margin-right: 20px;
-}
-
-
-
-.govuk-main-wrapper {
-    
-    height: 100%;
-    width:100%;
-    position:absolute;
-    padding-bottom: 0.1rem;
-     
-}
-
-.govuk-footer {
-
-position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 0.1rem;  
-}
