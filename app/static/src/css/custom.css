@@ -1,7 +1,5 @@
 /* Your custom CSS goes here... */
 
-
-
 .govuk-form-group {
     width: 53rem;
 }
@@ -13,23 +11,6 @@
     margin-left: 645px;
     height: 40px;
 } 
-
-
-
-
-.govuk-table__row {
-
-    padding-top: 17px;
-    padding-bottom: 17px;
-   
-}
-
-.govuk-table__cell {
-  
-    padding-top: 17px;
-    padding-bottom: 17px;
-}
-
 
 .govuk-grid-column-full {
     width: 61rem;
