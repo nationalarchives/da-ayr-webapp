@@ -1,5 +1,6 @@
 from flask import flash, json, make_response, redirect, render_template, request, url_for, redirect, session
 from flask_wtf.csrf import CSRFError
+from .forms import SearchForm
 from werkzeug.exceptions import HTTPException
 import requests
 import os
@@ -23,24 +24,24 @@ keycloak_openid = KeycloakOpenID(server_url=KEYCLOAK_BASE_URI,
 sample_records = [
 {
     'title': '1.2_record1.pdf',                 
-    'description': '-',
+    'description': '⚊',
     'last_modified': '2023-01-15', 
-    'status': 'open',
-    'closure_period_years': None,
+    'status': 'Open',
+    'closure_period_years': '⚊',
 }, 
 {
     'title': '1.1_record2.doc',                 
-    'description': '-',
+    'description': '⚊',
     'last_modified': '2023-02-20', 
-    'status': 'closed',
-    'closure_period_years': 2,
+    'status': 'Closed',
+    'closure_period_years': 50,
 }, 
 {
     'title': 'record_3.jpg',                 
-    'description': '-',
+    'description': '⚊',
     'last_modified': '2023-09-23', 
-    'status': 'closed',
-    'closure_period_years': 9,
+    'status': 'Closed',
+    'closure_period_years': 20,
 }, 
 ]
 
@@ -120,9 +121,17 @@ def results():
     return render_template("results.html")
 
 
-@bp.route("/poc-search-view", methods=["GET"])
+@bp.route("/poc-search-view", methods=["POST", "GET"])
 def poc_search():
-    return render_template("poc-search.html")
+    form = SearchForm()
+    results = []
+    query = request.form.get('query', '').lower()
+    if query:
+        search_terms = query.split()
+        for term in search_terms:
+            results.extend([record for record in sample_records if term in record['title'].lower() or term in record['description'].lower() or term in record['status'].lower()])
+    num_records_found = len(results)
+    return render_template("poc-search.html", form=form, results=results, num_records_found=num_records_found)
 
 
 @bp.route("/browse", methods=["GET"])
