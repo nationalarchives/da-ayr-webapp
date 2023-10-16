@@ -17,6 +17,9 @@ csrf = CSRFProtect()
 limiter = Limiter(get_remote_address, default_limits=["2 per second", "60 per minute"])
 talisman = Talisman()
 
+# Define your custom Jinja2 filter function
+def null_to_dash(value):
+    return '—' if value == "null" else value
 
 def create_app(config_class=Config):
     app = Flask(__name__, static_url_path="/assets")
@@ -44,6 +47,9 @@ def create_app(config_class=Config):
             "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",
         ],
     }
+
+    # Register your custom Jinja2 filter
+    app.jinja_env.filters['null_to_dash'] = null_to_dash
 
     # Initialise app extensions
     assets.init_app(app)
