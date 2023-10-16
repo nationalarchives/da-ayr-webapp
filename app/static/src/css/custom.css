@@ -6,11 +6,36 @@
     width: 850px;
 }
 
-.govuk-button {
+/*.govuk-button {
     position:absolute;
     margin-top:-70px;
     margin-bottom:-300px;
     margin-left: 645px;
     height: 40px;
+} */
+
+
+.govuk-table__header {
+    width:200px;
+    padding-bottom: 0;
+    padding-top: 25px;
+   
 }
 
+.govuk-table__row {
+
+    padding-top: 17px;
+    padding-bottom: 17px;
+    width: 200px;
+}
+
+.govuk-table__cell {
+  
+    padding-top: 17px;
+    padding-bottom: 17px;
+}
+
+
+.govuk-grid-column-full {
+    width: 990px;
+}
