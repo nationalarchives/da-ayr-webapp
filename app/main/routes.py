@@ -20,6 +20,29 @@ keycloak_openid = KeycloakOpenID(server_url=KEYCLOAK_BASE_URI,
                                           realm_name=KEYCLOAK_REALM_NAME,
                                           client_secret_key=KEYCLOAK_CLIENT_SECRET)
 
+sample_records = [
+{
+    'file_name': '1.2_record1.pdf',                 
+    'description': '-',
+    'last_modified': '2023-01-15', 
+    'status': 'open',
+    'closure_period_years': None,
+}, 
+{
+    'file_name': '1.1_record2.doc',                 
+    'description': '-',
+    'last_modified': '2023-02-20', 
+    'status': 'closed',
+    'closure_period_years': 2,
+}, 
+{
+    'file_name': 'record_3.jpg',                 
+    'description': '-',
+    'last_modified': '2023-09-23', 
+    'status': 'closed',
+    'closure_period_years': 9,
+}, 
+]
 
 # Get WellKnown
 config_well_known = keycloak_openid.well_known()
