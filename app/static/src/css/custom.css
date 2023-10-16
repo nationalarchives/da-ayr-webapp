@@ -3,30 +3,25 @@
 
 
 .govuk-form-group {
-    width: 850px;
+    width: 53rem;
 }
 
-/*.govuk-button {
-    position:absolute;
+.govuk-button {
+    
     margin-top:-70px;
     margin-bottom:-300px;
     margin-left: 645px;
     height: 40px;
-} */
+} 
 
 
-.govuk-table__header {
-    width:200px;
-    padding-bottom: 0;
-    padding-top: 25px;
-   
-}
+
 
 .govuk-table__row {
 
     padding-top: 17px;
     padding-bottom: 17px;
-    width: 200px;
+   
 }
 
 .govuk-table__cell {
@@ -37,5 +32,5 @@
 
 
 .govuk-grid-column-full {
-    width: 990px;
+    width: 61rem;
 }
