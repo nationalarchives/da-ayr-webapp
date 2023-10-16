@@ -1,4 +1,12 @@
-from flask import flash, json, make_response, redirect, render_template, request, url_for, redirect, session
+from flask import (
+    flash,
+    json,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    session,
+)
 from flask_wtf.csrf import CSRFError
 from .forms import SearchForm
 from werkzeug.exceptions import HTTPException
@@ -7,7 +15,6 @@ import os
 
 from app.main import bp
 from app.main.forms import CookiesForm
-
 from keycloak import KeycloakOpenID
 
 KEYCLOAK_BASE_URI = os.getenv("KEYCLOAK_BASE_URI")
@@ -16,37 +23,40 @@ KEYCLOAK_REALM_NAME = os.getenv("KEYCLOAK_REALM_NAME")
 KEYCLOAK_CLIENT_SECRET = os.getenv("KEYCLOAK_CLIENT_SECRET")
 
 # Configure client
-keycloak_openid = KeycloakOpenID(server_url=KEYCLOAK_BASE_URI,
-                                          client_id=KEYCLOAK_CLIENT_ID,
-                                          realm_name=KEYCLOAK_REALM_NAME,
-                                          client_secret_key=KEYCLOAK_CLIENT_SECRET)
+keycloak_openid = KeycloakOpenID(
+    server_url=KEYCLOAK_BASE_URI,
+    client_id=KEYCLOAK_CLIENT_ID,
+    realm_name=KEYCLOAK_REALM_NAME,
+    client_secret_key=KEYCLOAK_CLIENT_SECRET,
+)
 
 sample_records = [
-{
-    'title': '1.2_record1.pdf',                 
-    'description': '⚊',
-    'last_modified': '2023-01-15', 
-    'status': 'Open',
-    'closure_period_years': '⚊',
-}, 
-{
-    'title': '1.1_record2.doc',                 
-    'description': '⚊',
-    'last_modified': '2023-02-20', 
-    'status': 'Closed',
-    'closure_period_years': 50,
-}, 
-{
-    'title': 'record_3.jpg',                 
-    'description': '⚊',
-    'last_modified': '2023-09-23', 
-    'status': 'Closed',
-    'closure_period_years': 20,
-}, 
+    {
+        "title": "1.2_record1.pdf",
+        "description": "⚊",
+        "last_modified": "2023-01-15",
+        "status": "Open",
+        "closure_period_years": "⚊",
+    },
+    {
+        "title": "1.1_record2.doc",
+        "description": "⚊",
+        "last_modified": "2023-02-20",
+        "status": "Closed",
+        "closure_period_years": 50,
+    },
+    {
+        "title": "record_3.jpg",
+        "description": "⚊",
+        "last_modified": "2023-09-23",
+        "status": "Closed",
+        "closure_period_years": 20,
+    },
 ]
 
 # Get WellKnown
 config_well_known = keycloak_openid.well_known()
+
 
 @bp.route("/", methods=["GET"])
 def index():
@@ -59,7 +69,8 @@ def login():
     auth_url = keycloak_openid.auth_url(
         redirect_uri="http://localhost:5000/callback",
         scope="email",
-        state="your_state_info")
+        state="your_state_info",
+    )
 
     return redirect(auth_url)
 
@@ -69,9 +80,10 @@ def callback():
     code = request.args.get("code")
 
     access_token_response = keycloak_openid.token(
-        grant_type='authorization_code',
+        grant_type="authorization_code",
         code=code,
-        redirect_uri="http://localhost:5000/callback")
+        redirect_uri="http://localhost:5000/callback",
+    )
 
     session["access_token_response"] = access_token_response
     session["access_token"] = access_token_response["access_token"]
@@ -81,12 +93,12 @@ def callback():
     session["session_state"] = access_token_response["session_state"]
 
     # send token to api gateway
-    api_gateway_url = 'https://ljciqom6td.execute-api.eu-west-2.amazonaws.com/Dev'
+    api_gateway_url = "https://ljciqom6td.execute-api.eu-west-2.amazonaws.com/Dev"
 
     # Set up headers with the access token
     headers = {
-        'Authorization': session["access_token"],
-        'Content-Type': 'application/json'  # Adjust content type as needed
+        "Authorization": session["access_token"],
+        "Content-Type": "application/json",  # Adjust content type as needed
     }
 
     try:
@@ -115,7 +127,6 @@ def search():
     return render_template("search.html")
 
 
-
 @bp.route("/refine-results", methods=["GET"])
 def results():
     return render_template("results.html")
@@ -125,13 +136,26 @@ def results():
 def poc_search():
     form = SearchForm()
     results = []
-    query = request.form.get('query', '').lower()
+    query = request.form.get("query", "").lower()
     if query:
         search_terms = query.split()
         for term in search_terms:
-            results.extend([record for record in sample_records if term in record['title'].lower() or term in record['description'].lower() or term in record['status'].lower()])
+            results.extend(
+                [
+                    record
+                    for record in sample_records
+                    if term in record["title"].lower()
+                    or term in record["description"].lower()
+                    or term in record["status"].lower()
+                ]
+            )
     num_records_found = len(results)
-    return render_template("poc-search.html", form=form, results=results, num_records_found=num_records_found)
+    return render_template(
+        "poc-search.html",
+        form=form,
+        results=results,
+        num_records_found=num_records_found,
+    )
 
 
 @bp.route("/browse", methods=["GET"])
@@ -167,7 +191,9 @@ def cookies():
         response = make_response(render_template("cookies.html", form=form))
 
         # Set cookies policy for one year
-        response.set_cookie("cookies_policy", json.dumps(cookies_policy), max_age=31557600)
+        response.set_cookie(
+            "cookies_policy", json.dumps(cookies_policy), max_age=31557600
+        )
         return response
     elif request.method == "GET":
         if request.cookies.get("cookies_policy"):
