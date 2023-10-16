@@ -22,21 +22,21 @@ keycloak_openid = KeycloakOpenID(server_url=KEYCLOAK_BASE_URI,
 
 sample_records = [
 {
-    'file_name': '1.2_record1.pdf',                 
+    'title': '1.2_record1.pdf',                 
     'description': '-',
     'last_modified': '2023-01-15', 
     'status': 'open',
     'closure_period_years': None,
 }, 
 {
-    'file_name': '1.1_record2.doc',                 
+    'title': '1.1_record2.doc',                 
     'description': '-',
     'last_modified': '2023-02-20', 
     'status': 'closed',
     'closure_period_years': 2,
 }, 
 {
-    'file_name': 'record_3.jpg',                 
+    'title': 'record_3.jpg',                 
     'description': '-',
     'last_modified': '2023-09-23', 
     'status': 'closed',
