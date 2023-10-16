@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from govuk_frontend_wtf.wtforms_widgets import GovRadioInput, GovSubmitInput
-from wtforms.fields import RadioField, SubmitField
+from wtforms.fields import RadioField, SubmitField, StringField
 from wtforms.validators import InputRequired
 
 
@@ -20,3 +20,7 @@ class CookiesForm(FlaskForm):
         default="no",
     )
     save = SubmitField("Save cookie settings", widget=GovSubmitInput())
+
+
+class SearchForm(FlaskForm):
+    query = StringField('Search', validators=[InputRequired()])
