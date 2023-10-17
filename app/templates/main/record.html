@@ -30,7 +30,7 @@
                 <dd class="govuk-summary-list__value">{{ consignment._source.Source_Organization | null_to_dash }}</dd>
             </div>
               <div class="govuk-summary-list__row">
-                <dt class="govuk-summary-list__key">Consignment series</dt>
+                <dt class="govuk-summary-list__key">Consignment ID</dt>
                 <dd class="govuk-summary-list__value">{{ consignment_files._source.join_field.parent | null_to_dash }}</dd>
             </div>
               <div class="govuk-summary-list__row">
@@ -54,7 +54,7 @@
                 <dd class="govuk-summary-list__value">{{ consignment_files._source.held_by | null_to_dash }}</dd>
             </div>
               <div class="govuk-summary-list__row">
-                <dt class="govuk-summary-list__key">Date last modified</dt>
+                <dt class="govuk-summary-list__key">Last modified</dt>
                 <dd class="govuk-summary-list__value">{{ consignment_files._source.date_last_modified | null_to_dash }}</dd>
             </div>
               <div class="govuk-summary-list__row">

@@ -17,9 +17,11 @@ csrf = CSRFProtect()
 limiter = Limiter(get_remote_address, default_limits=["2 per second", "60 per minute"])
 talisman = Talisman()
 
+
 # Define your custom Jinja2 filter function
 def null_to_dash(value):
-    return '—' if value == "null" else value
+    return "—" if value == "null" else value
+
 
 def create_app(config_class=Config):
     app = Flask(__name__, static_url_path="/assets")
@@ -49,7 +51,7 @@ def create_app(config_class=Config):
     }
 
     # Register your custom Jinja2 filter
-    app.jinja_env.filters['null_to_dash'] = null_to_dash
+    app.jinja_env.filters["null_to_dash"] = null_to_dash
 
     # Initialise app extensions
     assets.init_app(app)
@@ -60,8 +62,12 @@ def create_app(config_class=Config):
     WTFormsHelpers(app)
 
     # Create static asset bundles
-    css = Bundle("src/css/*.css", filters="cssmin", output="dist/css/custom-%(version)s.min.css")
-    js = Bundle("src/js/*.js", filters="jsmin", output="dist/js/custom-%(version)s.min.js")
+    css = Bundle(
+        "src/css/*.css", filters="cssmin", output="dist/css/custom-%(version)s.min.css"
+    )
+    js = Bundle(
+        "src/js/*.js", filters="jsmin", output="dist/js/custom-%(version)s.min.js"
+    )
     if "css" not in assets:
         assets.register("css", css)
     if "js" not in assets:
