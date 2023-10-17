@@ -18,7 +18,6 @@ limiter = Limiter(get_remote_address, default_limits=["2 per second", "60 per mi
 talisman = Talisman()
 
 
-# Define your custom Jinja2 filter function
 def null_to_dash(value):
     return "—" if value == "null" else value
 
@@ -50,7 +49,6 @@ def create_app(config_class=Config):
         ],
     }
 
-    # Register your custom Jinja2 filter
     app.jinja_env.filters["null_to_dash"] = null_to_dash
 
     # Initialise app extensions
