@@ -1,4 +1,4 @@
-from flask import Flask, url_for, redirect
+from flask import Flask
 from flask_assets import Bundle, Environment
 from flask_compress import Compress
 from flask_limiter import Limiter
@@ -42,11 +42,7 @@ def create_app(config_class=Config):
     # Set content security policy
     csp = {
         "default-src": "'self'",
-        "script-src": [
-            "'self'",
-            "'sha256-+6WnXIl4mbFTCARd8N3COQmT3bJJmo32N8q8ZSQAIcU='",
-            "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",
-        ],
+        "script-src": ["'self'"],
     }
 
     app.jinja_env.filters["null_to_dash"] = null_to_dash

@@ -5,14 +5,11 @@ from flask import (
     redirect,
     render_template,
     request,
-    url_for,
-    redirect,
     session,
 )
 from flask_wtf.csrf import CSRFError
 from .forms import SearchForm
 from werkzeug.exceptions import HTTPException
-import requests
 import os
 
 from app.main import bp

@@ -83,7 +83,8 @@ class BankDetailsForm(FlaskForm):
             ),
             Regexp(
                 regex=r"[a-zA-Z0-9- /.]*$",
-                message="Building society roll number must only include letters a to z, numbers, hyphens, spaces, forward slashes and full stops",
+                message="""Building society roll number must only include letters a to z,
+                numbers, hyphens, spaces, forward slashes and full stops""",
             ),
         ],
         description="You can find it on your card, statement or passbook",
@@ -123,7 +124,8 @@ class CreateAccountForm(FlaskForm):
                 message="Enter a National Insurance number in the correct format",
             ),
         ],
-        description="It’s on your National Insurance card, benefit letter, payslip or P60. For example, ‘QQ 12 34 56 C’.",
+        description="""It’s on your National Insurance card, benefit letter, payslip or P60.
+        For example, ‘QQ 12 34 56 C’.""",
     )
     email_address = StringField(
         "Email address",
