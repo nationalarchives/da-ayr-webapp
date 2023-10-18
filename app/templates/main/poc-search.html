@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
+
+
+
+{% block pageTitle %}Dashboard – {{config['SERVICE_NAME']}} – GOV.UK{% endblock %}
+
+{% block beforeContent %}
+  {{ super() }}
+ 
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {{ super() }}
+    <div class="govuk-width-container">
+      <main class="govuk-main-wrapper">
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+            <h2 class="govuk-heading-l">Search design PoC</h2>
+            <h3 class="govuk-heading-s govuk-!-font-weight-bold">Search for digital records</h3>
+            <form method="POST">
+              {{ form.csrf_token }}
+              <div class="govuk-form-group">
+                <input class="govuk-input govuk-!-width-three-quarters" id="searchInput" name="query" type="text">
+              </div>
+              <button class="govuk-button" data-module="govuk-button" type="submit">Search</button>
+            </form>
+          </div>
+        </div>
+        {% if num_records_found > 0 %}
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-full">
+            <h2 class="govuk-heading-m">{{ num_records_found}} records found</h2>
+            <table class="govuk-table">
+              <thead class="govuk-table__head">
+                <tr class="govuk-table__row">
+                  <th scope="row" class="govuk-table__header govuk-!-width-one-third"></th>
+                  <td class="govuk-table__cell"></td>
+                  <td class="govuk-table__cell"></td>
+                  <td class="govuk-table__cell"></td>
+                  <td class="govuk-table__cell"></td>
+                  <td class="govuk-table__cell"></td>
+                </tr>
+                <tr class="govuk-table__row govuk-!-font-size-14">
+                  <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Title</th>
+                  <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Description</th>
+                  <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Last modified</th>
+                  <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Status</th>
+                  <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Closure period (years)</th>
+                </tr>
+              </thead>
+              <tbody class="govuk-table__body">
+                {% for record in results %}
+                <tr class="govuk-table__row">
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14"><a href="{{'#'}}">{{ record.title }}</a></td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record.description }}</td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record.last_modified }}</td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record.status }}</td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record.closure_period_years }}</td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14"></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+      </main>
+    </div>
+  </div>
+</div>
+
+
+  {% endblock %}
