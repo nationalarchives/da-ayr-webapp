@@ -5,6 +5,8 @@ from flask import (
     redirect,
     render_template,
     request,
+    url_for,
+    redirect,
     session,
 )
 from flask_wtf.csrf import CSRFError
@@ -15,6 +17,9 @@ import os
 
 from app.main import bp
 from app.main.forms import CookiesForm
+
+from app.data.data import consignment_response, consignment_files_response
+
 from keycloak import KeycloakOpenID
 
 KEYCLOAK_BASE_URI = os.getenv("KEYCLOAK_BASE_URI")
@@ -29,6 +34,7 @@ keycloak_openid = KeycloakOpenID(
     realm_name=KEYCLOAK_REALM_NAME,
     client_secret_key=KEYCLOAK_CLIENT_SECRET,
 )
+
 
 sample_records = [
     {
@@ -53,6 +59,7 @@ sample_records = [
         "closure_period_years": 20,
     },
 ]
+
 
 # Get WellKnown
 config_well_known = keycloak_openid.well_known()
@@ -92,25 +99,6 @@ def callback():
     session["token_scope"] = access_token_response["scope"]
     session["session_state"] = access_token_response["session_state"]
 
-    # send token to api gateway
-    api_gateway_url = "https://ljciqom6td.execute-api.eu-west-2.amazonaws.com/Dev"
-
-    # Set up headers with the access token
-    headers = {
-        "Authorization": session["access_token"],
-        "Content-Type": "application/json",  # Adjust content type as needed
-    }
-
-    try:
-        response = requests.post(api_gateway_url, headers=headers)
-        if response.status_code == 200:
-            return render_template("dashboard.html")
-        else:
-            return f"API Error: {response.status_code} - {response.text}"
-
-    except Exception as e:
-        return f"Error: {str(e)}"
-
 
 @bp.route("/accessibility", methods=["GET"])
 def accessibility():
@@ -127,7 +115,7 @@ def search():
     return render_template("search.html")
 
 
-@bp.route("/refine-results", methods=["GET"])
+@bp.route("/results", methods=["GET"])
 def results():
     return render_template("results.html")
 
@@ -163,9 +151,18 @@ def browse():
     return render_template("browse.html")
 
 
+@bp.route("/quick-access", methods=["GET"])
+def quick_access():
+    return render_template("quick-access.html")
+
+
 @bp.route("/record", methods=["GET"])
 def record():
-    return render_template("record.html")
+    return render_template(
+        "record.html",
+        consignment=consignment_response,
+        consignment_files=consignment_files_response,
+    )
 
 
 @bp.route("/all-departments", methods=["GET"])

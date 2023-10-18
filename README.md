@@ -26,14 +26,21 @@ The app is provided intentionally bare, with just the essential parts that all s
 ### Create a new repository
 
 [Create a new repository](https://github.com/LandRegistry/govuk-frontend-flask/generate) using this template, with the same directory structure and files. Then clone a local copy of your newly created repository.
-
-### Create venv and install requirements
-
-```shell
-python3 -m venv venv
-source venv/bin/activate
-pip3 install -r requirements.txt ; pip3 install -r requirements_dev.txt
+### Setup Poetry environment
+[Install poetry](https://python-poetry.org/docs/) and ensure you have the poetry.lock file.
+Check poetry has been installed using:
 ```
+poetry --version
+```
+Then install the required dependencies using:
+```
+poetry install
+```
+A shell can then be activated using:
+```
+poetry shell
+```
+
 
 ### Get GOV.UK Frontend assets
 
