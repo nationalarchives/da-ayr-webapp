@@ -15,9 +15,9 @@
   <meta name="author" content="{{config['DEPARTMENT_NAME']}}">
   <!--[if gt IE 8]><!--><link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='govuk-frontend-4.7.0.min.css') }}" /><!--<![endif]-->
   <!--[if IE 8]><link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='govuk-frontend-ie8-4.7.0.min.css') }}" /><![endif]-->
-   <!-- custom css stylesheet --> 
-   <link rel="stylesheet" type="text/css" src="{{ url_for('static', filename='poc-search.css') }}" /> 
-   <!-- custom css stylesheet end --> 
+   <!-- custom css stylesheet -->
+   <link rel="stylesheet" type="text/css" src="{{ url_for('static', filename='poc-search.css') }}" />
+   <!-- custom css stylesheet end -->
   {% assets "css" %}<link href="{{ ASSET_URL }}" rel="stylesheet">{% endassets %}
 {% endblock %}
 
