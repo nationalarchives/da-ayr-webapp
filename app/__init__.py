@@ -18,6 +18,10 @@ limiter = Limiter(get_remote_address, default_limits=["2 per second", "60 per mi
 talisman = Talisman()
 
 
+def null_to_dash(value):
+    return "—" if value == "null" else value
+
+
 def create_app(config_class=Config):
     app = Flask(__name__, static_url_path="/assets")
     app.config.from_object(config_class)
@@ -44,6 +48,8 @@ def create_app(config_class=Config):
             "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",
         ],
     }
+
+    app.jinja_env.filters["null_to_dash"] = null_to_dash
 
     # Initialise app extensions
     assets.init_app(app)
