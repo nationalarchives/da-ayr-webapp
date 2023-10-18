@@ -99,25 +99,6 @@ def callback():
     session["token_scope"] = access_token_response["scope"]
     session["session_state"] = access_token_response["session_state"]
 
-    # send token to api gateway
-    api_gateway_url = os.getenv("API_GATEWAY_URL")
-
-    # Set up headers with the access token
-    headers = {
-        "Authorization": session["access_token"],
-        "Content-Type": "application/json",  # Adjust content type as needed
-    }
-
-    try:
-        response = requests.post(api_gateway_url, headers=headers)
-        if response.status_code == 200:
-            return render_template("dashboard.html")
-        else:
-            return f"API Error: {response.status_code} - {response.text}"
-
-    except Exception as e:
-        return f"Error: {str(e)}"
-
 
 @bp.route("/accessibility", methods=["GET"])
 def accessibility():
