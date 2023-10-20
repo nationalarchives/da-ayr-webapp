@@ -1,0 +1,17 @@
+/* CSS for Proof of concept Search Page */
+
+.govuk-form-group {
+    width: 53rem;
+}
+
+.govuk-button {
+
+    margin-top: -4.3rem;
+    margin-bottom:-18.7rem;
+    margin-left: 40rem;
+    height: 2.5rem;
+}
+
+.govuk-grid-column-full {
+    width: 61rem;
+}
