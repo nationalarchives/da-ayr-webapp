@@ -12,7 +12,9 @@ class RequiredIf(InputRequired):
         other_field = form._fields.get(self.other_field_name)
 
         if other_field is None:
-            raise Exception('no field named "%s" in form' % self.other_field_name)
+            raise Exception(
+                'no field named "%s" in form' % self.other_field_name
+            )
 
         if other_field.data == self.other_field_value:
             super(RequiredIf, self).__call__(form, field)

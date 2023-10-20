@@ -8,13 +8,14 @@ from flask_wtf.csrf import CSRFProtect
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
-
 from config import Config
 
 assets = Environment()
 compress = Compress()
 csrf = CSRFProtect()
-limiter = Limiter(get_remote_address, default_limits=["2 per second", "60 per minute"])
+limiter = Limiter(
+    get_remote_address, default_limits=["2 per second", "60 per minute"]
+)
 talisman = Talisman()
 
 
@@ -32,7 +33,9 @@ def create_app(config_class=Config):
             PackageLoader("app"),
             PrefixLoader(
                 {
-                    "govuk_frontend_jinja": PackageLoader("govuk_frontend_jinja"),
+                    "govuk_frontend_jinja": PackageLoader(
+                        "govuk_frontend_jinja"
+                    ),
                     "govuk_frontend_wtf": PackageLoader("govuk_frontend_wtf"),
                 }
             ),
@@ -57,10 +60,14 @@ def create_app(config_class=Config):
 
     # Create static asset bundles
     css = Bundle(
-        "src/css/*.css", filters="cssmin", output="dist/css/custom-%(version)s.min.css"
+        "src/css/*.css",
+        filters="cssmin",
+        output="dist/css/custom-%(version)s.min.css",
     )
     js = Bundle(
-        "src/js/*.js", filters="jsmin", output="dist/js/custom-%(version)s.min.js"
+        "src/js/*.js",
+        filters="jsmin",
+        output="dist/js/custom-%(version)s.min.js",
     )
     if "css" not in assets:
         assets.register("css", css)
