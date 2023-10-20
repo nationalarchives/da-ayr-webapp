@@ -1,3 +1,5 @@
+import os
+
 from flask import (
     flash,
     json,
@@ -8,16 +10,13 @@ from flask import (
     session,
 )
 from flask_wtf.csrf import CSRFError
-from .forms import SearchForm
+from keycloak import KeycloakOpenID
 from werkzeug.exceptions import HTTPException
-import os
 
 from app.main import bp
 from app.main.forms import CookiesForm
 
-from app.data.data import consignment_response, consignment_files_response
-
-from keycloak import KeycloakOpenID
+from .forms import SearchForm
 
 KEYCLOAK_BASE_URI = os.getenv("KEYCLOAK_BASE_URI")
 KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID")
@@ -155,11 +154,7 @@ def quick_access():
 
 @bp.route("/record", methods=["GET"])
 def record():
-    return render_template(
-        "record.html",
-        consignment=consignment_response,
-        consignment_files=consignment_files_response,
-    )
+    return render_template("record.html")
 
 
 @bp.route("/all-departments", methods=["GET"])

@@ -53,7 +53,9 @@ class BankDetailsForm(FlaskForm):
         widget=GovTextInput(),
         validators=[
             InputRequired(message="Enter a sort code"),
-            Regexp(regex=r"\d{6}", message="Enter a valid sort code like 309430"),
+            Regexp(
+                regex=r"\d{6}", message="Enter a valid sort code like 309430"
+            ),
         ],
         description="Must be 6 digits long",
     )
@@ -63,10 +65,13 @@ class BankDetailsForm(FlaskForm):
         validators=[
             InputRequired(message="Enter an account number"),
             Regexp(
-                regex=r"\d{6,8}", message="Enter a valid account number like 00733445"
+                regex=r"\d{6,8}",
+                message="Enter a valid account number like 00733445",
             ),
             Length(
-                min=6, max=8, message="Account number must be between 6 and 8 digits"
+                min=6,
+                max=8,
+                message="Account number must be between 6 and 8 digits",
             ),
         ],
         description="Must be between 6 and 8 digits long",
@@ -132,7 +137,10 @@ class CreateAccountForm(FlaskForm):
         widget=GovTextInput(),
         validators=[
             InputRequired(message="Enter an email address"),
-            Length(max=256, message="Email address must be 256 characters or fewer"),
+            Length(
+                max=256,
+                message="Email address must be 256 characters or fewer",
+            ),
             Email(
                 message="Enter an email address in the correct format, like name@example.com"
             ),
@@ -228,7 +236,8 @@ class KitchenSinkForm(FlaskForm):
         validators=[
             InputRequired(message="CharacterCountField is required"),
             Length(
-                max=200, message="CharacterCountField must be 200 characters or fewer "
+                max=200,
+                message="CharacterCountField must be 200 characters or fewer ",
             ),
         ],
         description="Hint text: WTForm TextAreaField rendered using a GovCharacterCount widget.",

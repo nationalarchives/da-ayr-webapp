@@ -25,7 +25,9 @@ def components():
 @bp.route("/components/<string:component>", methods=["GET"])
 def component(component):
     try:
-        with open("govuk_components/{}/fixtures.json".format(component)) as json_file:
+        with open(
+            "govuk_components/{}/fixtures.json".format(component)
+        ) as json_file:
             fixtures = json.load(json_file)
     except FileNotFoundError:
         raise NotFound
