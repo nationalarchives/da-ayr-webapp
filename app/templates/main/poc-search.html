@@ -54,11 +54,11 @@
               <tbody class="govuk-table__body">
                 {% for record in results %}
                 <tr class="govuk-table__row">
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14"><a href="{{'#'}}">{{ record.title }}</a></td>
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record.description }}</td>
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record.last_modified }}</td>
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record.status }}</td>
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record.closure_period_years }}</td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14"><a href="{{'#'}}">{{ record._source.file_name }}</a></td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record._source.description }}</td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record._source.date_last_modified }}</td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record._source.legal_status }}</td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record._source.closure_period }}</td>
                   <td class="govuk-table__cell govuk-body govuk-!-font-size-14"></td>
                 </tr>
                 {% endfor %}
