@@ -101,3 +101,4 @@ wtforms==3.0.1
     #   flask-wtf
     #   govuk-frontend-wtf
 python-keycloak==3.3.0
+pytest-playwright==0.4.3

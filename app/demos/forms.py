@@ -29,7 +29,15 @@ from wtforms.fields import (
     SubmitField,
     TextAreaField,
 )
-from wtforms.validators import Email, EqualTo, InputRequired, Length, Optional, Regexp, ValidationError
+from wtforms.validators import (
+    Email,
+    EqualTo,
+    InputRequired,
+    Length,
+    Optional,
+    Regexp,
+    ValidationError,
+)
 
 from app.demos.custom_validators import RequiredIf
 
@@ -54,8 +62,12 @@ class BankDetailsForm(FlaskForm):
         widget=GovTextInput(),
         validators=[
             InputRequired(message="Enter an account number"),
-            Regexp(regex=r"\d{6,8}", message="Enter a valid account number like 00733445"),
-            Length(min=6, max=8, message="Account number must be between 6 and 8 digits"),
+            Regexp(
+                regex=r"\d{6,8}", message="Enter a valid account number like 00733445"
+            ),
+            Length(
+                min=6, max=8, message="Account number must be between 6 and 8 digits"
+            ),
         ],
         description="Must be between 6 and 8 digits long",
     )
@@ -71,7 +83,8 @@ class BankDetailsForm(FlaskForm):
             ),
             Regexp(
                 regex=r"[a-zA-Z0-9- /.]*$",
-                message="Building society roll number must only include letters a to z, numbers, hyphens, spaces, forward slashes and full stops",
+                message="""Building society roll number must only include letters a to z,
+                numbers, hyphens, spaces, forward slashes and full stops""",
             ),
         ],
         description="You can find it on your card, statement or passbook",
@@ -111,7 +124,8 @@ class CreateAccountForm(FlaskForm):
                 message="Enter a National Insurance number in the correct format",
             ),
         ],
-        description="It’s on your National Insurance card, benefit letter, payslip or P60. For example, ‘QQ 12 34 56 C’.",
+        description="""It’s on your National Insurance card, benefit letter, payslip or P60.
+        For example, ‘QQ 12 34 56 C’.""",
     )
     email_address = StringField(
         "Email address",
@@ -119,7 +133,9 @@ class CreateAccountForm(FlaskForm):
         validators=[
             InputRequired(message="Enter an email address"),
             Length(max=256, message="Email address must be 256 characters or fewer"),
-            Email(message="Enter an email address in the correct format, like name@example.com"),
+            Email(
+                message="Enter an email address in the correct format, like name@example.com"
+            ),
         ],
         description="You'll need this email address to sign in to your account",
     )
@@ -154,7 +170,11 @@ class CreateAccountForm(FlaskForm):
     terms_and_conditions = BooleanField(
         "I agree to the terms and conditions",
         widget=GovCheckboxInput(),
-        validators=[InputRequired(message="Select to confirm you agree with the terms and conditions")],
+        validators=[
+            InputRequired(
+                message="Select to confirm you agree with the terms and conditions"
+            )
+        ],
     )
     submit = SubmitField("Create account", widget=GovSubmitInput())
 
@@ -207,7 +227,9 @@ class KitchenSinkForm(FlaskForm):
         widget=GovCharacterCount(),
         validators=[
             InputRequired(message="CharacterCountField is required"),
-            Length(max=200, message="CharacterCountField must be 200 characters or fewer "),
+            Length(
+                max=200, message="CharacterCountField must be 200 characters or fewer "
+            ),
         ],
         description="Hint text: WTForm TextAreaField rendered using a GovCharacterCount widget.",
     )
@@ -297,7 +319,9 @@ class ConditionalRevealForm(FlaskForm):
     contact = RadioField(
         "How would you prefer to be contacted?",
         widget=GovRadioInput(),
-        validators=[InputRequired(message="Select how you would prefer to be contacted")],
+        validators=[
+            InputRequired(message="Select how you would prefer to be contacted")
+        ],
         choices=[
             ("email", "Email"),
             ("phone", "Phone"),
