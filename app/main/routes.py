@@ -16,9 +16,7 @@ from werkzeug.exceptions import HTTPException
 from app.main import bp
 from app.main.forms import CookiesForm
 
-# from app.data.data import consignment_response, consignment_files_response
-
-from keycloak import KeycloakOpenID
+from .forms import SearchForm
 
 KEYCLOAK_BASE_URI = os.getenv("KEYCLOAK_BASE_URI")
 KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID")
@@ -150,13 +148,9 @@ def quick_access():
     return render_template("quick-access.html")
 
 
-# @bp.route("/record", methods=["GET"])
-# def record():
-#     return render_template(
-#         "record.html",
-#         consignment=consignment_response,
-#         consignment_files=consignment_files_response,
-#     )
+@bp.route("/record", methods=["GET"])
+def record():
+    return render_template("record.html")
 
 
 @bp.route("/all-departments", methods=["GET"])
