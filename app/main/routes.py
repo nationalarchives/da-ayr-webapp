@@ -33,31 +33,6 @@ keycloak_openid = KeycloakOpenID(
 )
 
 
-sample_records = [
-    {
-        "title": "1.2_record1.pdf",
-        "description": "⚊",
-        "last_modified": "2023-01-15",
-        "status": "Open",
-        "closure_period_years": "⚊",
-    },
-    {
-        "title": "1.1_record2.doc",
-        "description": "⚊",
-        "last_modified": "2023-02-20",
-        "status": "Closed",
-        "closure_period_years": 50,
-    },
-    {
-        "title": "record_3.jpg",
-        "description": "⚊",
-        "last_modified": "2023-09-23",
-        "status": "Closed",
-        "closure_period_years": 20,
-    },
-]
-
-
 @bp.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
