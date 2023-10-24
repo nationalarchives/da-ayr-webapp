@@ -9,7 +9,7 @@ from flask import (
 )
 from flask_wtf.csrf import CSRFError
 
-from app.main.search import open_search
+from app.main.search import search_logic
 from .forms import SearchForm
 from werkzeug.exceptions import HTTPException
 import os
@@ -101,7 +101,7 @@ def poc_search():
 
     if query:
         open_search_response = (
-            open_search.generate_open_search_client_and_make_poc_search(query)
+            search_logic.generate_open_search_client_and_make_poc_search(query)
         )
         results = open_search_response["hits"]["hits"]
 
