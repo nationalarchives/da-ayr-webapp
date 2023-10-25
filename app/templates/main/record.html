@@ -6,11 +6,11 @@
 {% block pageTitle %}Record – {{config['SERVICE_NAME']}} – GOV.UK{% endblock %}
 
 {% block beforeContent %}
-  {{ super() }}
-  {{ govukBackLink({
-    'text': "Back",
-    'href': url_for('main.index')
-  }) }}
+{{ super() }}
+{{ govukBackLink({
+'text': "Back",
+'href': url_for('main.poc_search')
+}) }}
 {% endblock %}
 
 {% block content %}
@@ -20,54 +20,54 @@
     <h1 class="govuk-heading-xl">Record metadata</h1>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column">
-          <dl class="govuk-summary-list">
-              <div class="govuk-summary-list__row">
-                  <dt class="govuk-summary-list__key">ID</dt>
-                  <dd class="govuk-summary-list__value">{{ consignment_files._source.id | null_to_dash }}</dd>
-              </div>
-              <div class="govuk-summary-list__row">
-                <dt class="govuk-summary-list__key">Source organisation</dt>
-                <dd class="govuk-summary-list__value">{{ consignment._source.Source_Organization | null_to_dash }}</dd>
-            </div>
-              <div class="govuk-summary-list__row">
-                <dt class="govuk-summary-list__key">Consignment ID</dt>
-                <dd class="govuk-summary-list__value">{{ consignment_files._source.join_field.parent | null_to_dash }}</dd>
-            </div>
-              <div class="govuk-summary-list__row">
-                <dt class="govuk-summary-list__key">File name</dt>
-                <dd class="govuk-summary-list__value">{{ consignment_files._source.file_name | null_to_dash }}</dd>
-            </div>
-              <div class="govuk-summary-list__row">
-                <dt class="govuk-summary-list__key">Description</dt>
-                <dd class="govuk-summary-list__value">{{ consignment_files._source.description | null_to_dash }}</dd>
-            </div>
-            <div class="govuk-summary-list__row">
-              <dt class="govuk-summary-list__key">Rights copyright</dt>
-              <dd class="govuk-summary-list__value">{{ consignment_files._source.rights_copyright | null_to_dash }}</dd>
+        <dl class="govuk-summary-list">
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">ID</dt>
+            <dd class="govuk-summary-list__value">{{ consignment_files.id | null_to_dash }}</dd>
           </div>
-              <div class="govuk-summary-list__row">
-                <dt class="govuk-summary-list__key">Legal status</dt>
-                <dd class="govuk-summary-list__value">{{ consignment_files._source.legal_status | null_to_dash }}</dd>
-            </div>
-              <div class="govuk-summary-list__row">
-                <dt class="govuk-summary-list__key">Held by</dt>
-                <dd class="govuk-summary-list__value">{{ consignment_files._source.held_by | null_to_dash }}</dd>
-            </div>
-              <div class="govuk-summary-list__row">
-                <dt class="govuk-summary-list__key">Last modified</dt>
-                <dd class="govuk-summary-list__value">{{ consignment_files._source.date_last_modified | null_to_dash }}</dd>
-            </div>
-              <div class="govuk-summary-list__row">
-                <dt class="govuk-summary-list__key">Closure type</dt>
-                <dd class="govuk-summary-list__value">{{ consignment_files._source.closure_type | null_to_dash }}</dd>
-            </div>
-              <div class="govuk-summary-list__row">
-                <dt class="govuk-summary-list__key">Language</dt>
-                <dd class="govuk-summary-list__value">{{ consignment_files._source.language | null_to_dash }}</dd>
-            </div>
-          </dl>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Source organisation</dt>
+            <dd class="govuk-summary-list__value">{{ consignment_files.Source_Organization | null_to_dash }}</dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Consignment ID</dt>
+            <dd class="govuk-summary-list__value">{{ consignment_files.join_field.parent | null_to_dash }}</dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">File name</dt>
+            <dd class="govuk-summary-list__value">{{ consignment_files.file_name | null_to_dash }}</dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Description</dt>
+            <dd class="govuk-summary-list__value">{{ consignment_files.description | null_to_dash }}</dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Rights copyright</dt>
+            <dd class="govuk-summary-list__value">{{ consignment_files.rights_copyright | null_to_dash }}</dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Legal status</dt>
+            <dd class="govuk-summary-list__value">{{ consignment_files.legal_status | null_to_dash }}</dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Held by</dt>
+            <dd class="govuk-summary-list__value">{{ consignment_files.held_by | null_to_dash }}</dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Last modified</dt>
+            <dd class="govuk-summary-list__value">{{ consignment_files.date_last_modified | null_to_dash }}</dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Closure type</dt>
+            <dd class="govuk-summary-list__value">{{ consignment_files.closure_type | null_to_dash }}</dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Language</dt>
+            <dd class="govuk-summary-list__value">{{ consignment_files.language | null_to_dash }}</dd>
+          </div>
+        </dl>
       </div>
-  </div>
+    </div>
   </div>
 </div>
 {% endblock %}
