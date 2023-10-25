@@ -15,7 +15,7 @@ import os
 from app.main import bp
 from app.main.forms import CookiesForm
 
-from app.data.data import consignment_response, consignment_files_response
+# from app.data.data import consignment_response, consignment_files_response
 
 from keycloak import KeycloakOpenID
 
@@ -56,10 +56,6 @@ sample_records = [
         "closure_period_years": 20,
     },
 ]
-
-
-# Get WellKnown
-config_well_known = keycloak_openid.well_known()
 
 
 @bp.route("/", methods=["GET"])
@@ -153,13 +149,13 @@ def quick_access():
     return render_template("quick-access.html")
 
 
-@bp.route("/record", methods=["GET"])
-def record():
-    return render_template(
-        "record.html",
-        consignment=consignment_response,
-        consignment_files=consignment_files_response,
-    )
+# @bp.route("/record", methods=["GET"])
+# def record():
+#     return render_template(
+#         "record.html",
+#         consignment=consignment_response,
+#         consignment_files=consignment_files_response,
+#     )
 
 
 @bp.route("/all-departments", methods=["GET"])
