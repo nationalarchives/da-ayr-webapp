@@ -29,7 +29,7 @@ jobs:
       - name: Check code for potential security vulnerabilities
         run:  bandit -c pyproject.toml -r .
       - name: Check code formatting
-        run: black . -l 120 --check
+        run: black . --check
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
