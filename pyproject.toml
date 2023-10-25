@@ -5,6 +5,9 @@ description = ""
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
+[tool.bandit]
+exclude_dirs = ['*_test.py', '*/test_*.py', 'venv']
+
 [tool.poetry.dependencies]
 python = "^3.11"
 cssmin = "0.2.0"
