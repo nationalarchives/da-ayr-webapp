@@ -39,7 +39,7 @@
 
 @media (max-width: 1354px) {
 
-
+   
  .govuk-footer{
     justify-content: flex-start;
     flex-wrap: wrap;
@@ -54,12 +54,14 @@
 
 
 .govuk-footer__tna-logo {
-
+        
     margin-right: 0px;
     margin-left: -190px;
     margin-top: 0px;
     margin-bottom: 0px;
 }
-
-
+    
 }
+    
+
+
