@@ -15,7 +15,6 @@ import os
 from app.main import bp
 from app.main.forms import CookiesForm
 
-from app.data.data import consignment_response, consignment_files_response
 
 from keycloak import KeycloakOpenID
 
@@ -151,15 +150,6 @@ def browse():
 @bp.route("/quick-access", methods=["GET"])
 def quick_access():
     return render_template("quick-access.html")
-
-
-@bp.route("/record", methods=["GET"])
-def record():
-    return render_template(
-        "record.html",
-        consignment=consignment_response,
-        consignment_files=consignment_files_response,
-    )
 
 
 @bp.route("/all-departments", methods=["GET"])
