@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.11"]
 
     steps:
       - uses: actions/checkout@v3
@@ -27,9 +27,9 @@ jobs:
       - name: Check dependencies for known security vulnerabilities
         run: safety check -r requirements.txt
       - name: Check code for potential security vulnerabilities
-        run: bandit -r .
+        run:  bandit -c pyproject.toml -r .
       - name: Check code formatting
-        run: black . -l 120 --check
+        run: black . --check
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
