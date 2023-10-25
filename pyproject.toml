@@ -25,6 +25,7 @@ python-dotenv = "1.0.0"
 redis = "5.0.1"
 python-keycloak = "3.3.0"
 pytest-playwright = "0.4.3"
+flask-pytest = "^0.0.5"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "1.7.5"
