@@ -75,10 +75,8 @@ def create_app(config_class=Config):
         assets.register("js", js)
 
     # Register blueprints
-    from app.demos import bp as demo_bp
     from app.main import bp as main_bp
 
-    app.register_blueprint(demo_bp)
     app.register_blueprint(main_bp)
 
     return app
