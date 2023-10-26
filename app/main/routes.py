@@ -16,9 +16,10 @@ from werkzeug.exceptions import HTTPException
 from app.main import bp
 from app.main.forms import CookiesForm
 
+from .forms import SearchForm
+
 # from app.data.data import consignment_response, consignment_files_response
 
-from keycloak import KeycloakOpenID
 
 KEYCLOAK_BASE_URI = os.getenv("KEYCLOAK_BASE_URI")
 KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID")
