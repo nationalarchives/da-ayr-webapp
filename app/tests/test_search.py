@@ -2,6 +2,7 @@ from unittest.mock import patch
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
+
 def test_poc_search_get(client: FlaskClient):
     """
     Given a user accessing the search page
@@ -29,7 +30,7 @@ def test_poc_search_no_query(client: FlaskClient):
     assert b"records found" not in response.data
 
 
-@patch("app.main.routes.open_search.generate_open_search_client_and_make_poc_search")
+@patch("app.main.routes.search_logic.generate_open_search_client_and_make_poc_search")
 def test_poc_search_with_no_results(mock_open_search, client: FlaskClient):
     """
     Given a user with a search query
@@ -45,7 +46,7 @@ def test_poc_search_with_no_results(mock_open_search, client: FlaskClient):
     assert b"records found" not in response.data
 
 
-@patch("app.main.routes.open_search.generate_open_search_client_and_make_poc_search")
+@patch("app.main.routes.search_logic.generate_open_search_client_and_make_poc_search")
 def test_poc_search_results_displayed(mock_open_search, client: FlaskClient):
     """
     Given a user with a search query which should return n results
@@ -114,4 +115,3 @@ def test_poc_search_results_displayed(mock_open_search, client: FlaskClient):
         assert [result.text for result in row.find_all("td")] == expected_results_table[
             row_index + 1
         ]
-
