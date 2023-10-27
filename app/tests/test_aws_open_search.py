@@ -10,7 +10,7 @@ from app.main.aws.open_search import (
 
 @mock_ssm
 def test_get_open_search_index_from_aws_params():
-    ssm_client = boto3.client("ssm", region_name="eu-west-2")
+    ssm_client = boto3.client("ssm")
     ssm_client.put_parameter(
         Name="ENVIRONMENT_NAME",
         Value="test_env",
@@ -30,7 +30,7 @@ def test_get_open_search_index_from_aws_params():
 @mock_ssm
 @patch("app.main.aws.open_search.OpenSearch")
 def test_generate_open_search_client_from_aws_params(mock_open_search):
-    ssm_client = boto3.client("ssm", region_name="eu-west-2")
+    ssm_client = boto3.client("ssm")
     ssm_client.put_parameter(
         Name="ENVIRONMENT_NAME",
         Value="test_env",
