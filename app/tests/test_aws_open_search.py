@@ -1,10 +1,11 @@
 from unittest.mock import patch
-from moto import mock_ssm
+
 import boto3
+from moto import mock_ssm
 
 from app.main.aws.open_search import (
-    get_open_search_index_from_aws_params,
     generate_open_search_client_from_aws_params,
+    get_open_search_index_from_aws_params,
 )
 
 
@@ -57,7 +58,8 @@ def test_generate_open_search_client_from_aws_params(mock_open_search):
     )
 
     assert (
-        generate_open_search_client_from_aws_params() == mock_open_search.return_value
+        generate_open_search_client_from_aws_params()
+        == mock_open_search.return_value
     )
 
     mock_open_search.assert_called_once_with(
