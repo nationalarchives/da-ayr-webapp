@@ -32,7 +32,9 @@ def create_app(config_class=Config):
 
     # use only for local development
     if app.config["DEFAULT_AWS_PROFILE"]:
-        boto3.setup_default_session(profile_name=app.config["DEFAULT_AWS_PROFILE"])
+        boto3.setup_default_session(
+            profile_name=app.config["DEFAULT_AWS_PROFILE"]
+        )
 
     app.jinja_env.lstrip_blocks = True
     app.jinja_env.trim_blocks = True

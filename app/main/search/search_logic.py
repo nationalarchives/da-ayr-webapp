@@ -2,6 +2,7 @@ import logging
 from typing import Any
 
 from opensearchpy import ImproperlyConfigured
+
 from app.main.aws.open_search import (
     generate_open_search_client_from_aws_params,
     get_open_search_index_from_aws_params,

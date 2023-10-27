@@ -1,6 +1,7 @@
+import logging
+
 import boto3
 from botocore.exceptions import ClientError
-import logging
 
 
 def get_aws_environment_prefix() -> str:
@@ -18,10 +19,13 @@ def get_parameter_store_key_value(key: str) -> str:
     ssm_client = boto3.client("ssm")
     parameter_value = ""
     try:
-        parameter_value = ssm_client.get_parameter(Name=key)["Parameter"]["Value"]
+        parameter_value = ssm_client.get_parameter(Name=key)["Parameter"][
+            "Value"
+        ]
         logging.info("Parameter value retrieved successfully")
     except ClientError as e:
         logging.error(
-            "Failed to get parameter value, Error : %s", e.response["Error"]["Code"]
+            "Failed to get parameter value, Error : %s",
+            e.response["Error"]["Code"],
         )
     return parameter_value

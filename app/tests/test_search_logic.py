@@ -1,12 +1,16 @@
 from unittest.mock import Mock, patch
 
-from opensearchpy import ImproperlyConfigured
 import pytest
+from opensearchpy import ImproperlyConfigured
 
-from app.main.search.search_logic import generate_open_search_client_and_make_poc_search
+from app.main.search.search_logic import (
+    generate_open_search_client_and_make_poc_search,
+)
 
 
-@patch("app.main.search.search_logic.generate_open_search_client_from_aws_params")
+@patch(
+    "app.main.search.search_logic.generate_open_search_client_from_aws_params"
+)
 @patch("app.main.search.search_logic.get_open_search_index_from_aws_params")
 def test_generate_open_search_client_and_make_poc_search(
     mock_get_open_search_index_from_aws_params,
@@ -52,7 +56,9 @@ def test_generate_open_search_client_and_make_poc_search(
     assert results == ["result 1", "result 2"]
 
 
-@patch("app.main.search.search_logic.generate_open_search_client_from_aws_params")
+@patch(
+    "app.main.search.search_logic.generate_open_search_client_from_aws_params"
+)
 @patch("app.main.search.search_logic.get_open_search_index_from_aws_params")
 def test_generate_open_search_client_and_make_poc_search_raises_connection_error(
     mock_get_open_search_index_from_aws_params,
@@ -67,7 +73,9 @@ def test_generate_open_search_client_and_make_poc_search_raises_connection_error
     def raise_improperly_configured_exception():
         raise ImproperlyConfigured()
 
-    mock_open_search_client.ping.side_effect = raise_improperly_configured_exception
+    mock_open_search_client.ping.side_effect = (
+        raise_improperly_configured_exception
+    )
     mock_generate_open_search_client_from_aws_params.return_value = (
         mock_open_search_client
     )

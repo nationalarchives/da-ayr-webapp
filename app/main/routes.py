@@ -1,3 +1,5 @@
+import os
+
 from flask import (
     flash,
     json,
@@ -8,16 +10,14 @@ from flask import (
     session,
 )
 from flask_wtf.csrf import CSRFError
-
-from app.main.search import search_logic
-from .forms import SearchForm
+from keycloak import KeycloakOpenID
 from werkzeug.exceptions import HTTPException
-import os
 
 from app.main import bp
 from app.main.forms import CookiesForm
+from app.main.search import search_logic
 
-from keycloak import KeycloakOpenID
+from .forms import SearchForm
 
 KEYCLOAK_BASE_URI = os.getenv("KEYCLOAK_BASE_URI")
 KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID")
