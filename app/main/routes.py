@@ -8,14 +8,14 @@ from flask import (
     session,
 )
 from flask_wtf.csrf import CSRFError
+
+from app.main.search import search_logic
 from .forms import SearchForm
 from werkzeug.exceptions import HTTPException
 import os
 
 from app.main import bp
 from app.main.forms import CookiesForm
-
-# from app.data.data import consignment_response, consignment_files_response
 
 from keycloak import KeycloakOpenID
 
@@ -31,31 +31,6 @@ keycloak_openid = KeycloakOpenID(
     realm_name=KEYCLOAK_REALM_NAME,
     client_secret_key=KEYCLOAK_CLIENT_SECRET,
 )
-
-
-sample_records = [
-    {
-        "title": "1.2_record1.pdf",
-        "description": "⚊",
-        "last_modified": "2023-01-15",
-        "status": "Open",
-        "closure_period_years": "⚊",
-    },
-    {
-        "title": "1.1_record2.doc",
-        "description": "⚊",
-        "last_modified": "2023-02-20",
-        "status": "Closed",
-        "closure_period_years": 50,
-    },
-    {
-        "title": "record_3.jpg",
-        "description": "⚊",
-        "last_modified": "2023-09-23",
-        "status": "Closed",
-        "closure_period_years": 20,
-    },
-]
 
 
 @bp.route("/", methods=["GET"])
@@ -118,19 +93,15 @@ def poc_search():
     form = SearchForm()
     results = []
     query = request.form.get("query", "").lower()
+
     if query:
-        search_terms = query.split()
-        for term in search_terms:
-            results.extend(
-                [
-                    record
-                    for record in sample_records
-                    if term in record["title"].lower()
-                    or term in record["description"].lower()
-                    or term in record["status"].lower()
-                ]
-            )
+        open_search_response = (
+            search_logic.generate_open_search_client_and_make_poc_search(query)
+        )
+        results = open_search_response["hits"]["hits"]
+
     num_records_found = len(results)
+
     return render_template(
         "poc-search.html",
         form=form,
@@ -147,15 +118,6 @@ def browse():
 @bp.route("/quick-access", methods=["GET"])
 def quick_access():
     return render_template("quick-access.html")
-
-
-# @bp.route("/record", methods=["GET"])
-# def record():
-#     return render_template(
-#         "record.html",
-#         consignment=consignment_response,
-#         consignment_files=consignment_files_response,
-#     )
 
 
 @bp.route("/all-departments", methods=["GET"])
