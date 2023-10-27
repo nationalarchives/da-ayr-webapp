@@ -1,13 +1,12 @@
 import pytest
 
 from app import create_app
+from testing_config import TestingConfig
 
 
 @pytest.fixture
 def app():
-    app = create_app()
-    app.config["TESTING"] = True
-    app.config["WTF_CSRF_ENABLED"] = False
+    app = create_app(config_class=TestingConfig)
     yield app
 
 

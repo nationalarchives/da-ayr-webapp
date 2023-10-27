@@ -1,3 +1,4 @@
+import boto3
 from flask import Flask
 from flask_assets import Bundle, Environment
 from flask_compress import Compress
@@ -26,8 +27,16 @@ def null_to_dash(value):
 def create_app(config_class=Config):
     app = Flask(__name__, static_url_path="/assets")
     app.config.from_object(config_class)
+
+    force_https = False if app.config["TESTING"] else True
+
+    # use only for local development
+    if app.config["DEFAULT_AWS_PROFILE"]:
+        boto3.setup_default_session(profile_name=app.config["DEFAULT_AWS_PROFILE"])
+
     app.jinja_env.lstrip_blocks = True
     app.jinja_env.trim_blocks = True
+    app.jinja_env.filters["null_to_dash"] = null_to_dash
     app.jinja_loader = ChoiceLoader(
         [
             PackageLoader("app"),
@@ -48,14 +57,12 @@ def create_app(config_class=Config):
         "script-src": ["'self'"],
     }
 
-    app.jinja_env.filters["null_to_dash"] = null_to_dash
-
     # Initialise app extensions
     assets.init_app(app)
     compress.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
-    talisman.init_app(app, content_security_policy=csp)
+    talisman.init_app(app, content_security_policy=csp, force_https=force_https)
     WTFormsHelpers(app)
 
     # Create static asset bundles
