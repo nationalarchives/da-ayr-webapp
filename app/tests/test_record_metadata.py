@@ -1,6 +1,7 @@
 import re
-from playwright.sync_api import Page, expect
 import time
+
+from playwright.sync_api import Page, expect
 
 
 def test_page_title_and_header(page: Page):
