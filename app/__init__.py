@@ -26,12 +26,16 @@ def null_to_dash(value):
 def create_app(config_class=Config):
     app = Flask(__name__, static_url_path="/assets")
     app.config.from_object(config_class)
-    # use only for local testing
-    DEFAULT_AWS_PROFILE = app.config["DEFAULT_AWS_PROFILE"]
+
+    force_https = False if app.config["TESTING"] else True
+
+    # use only for local development
     if app.config["DEFAULT_AWS_PROFILE"]:
-        boto3.setup_default_session(profile_name=DEFAULT_AWS_PROFILE)
+        boto3.setup_default_session(profile_name=app.config["DEFAULT_AWS_PROFILE"])
+
     app.jinja_env.lstrip_blocks = True
     app.jinja_env.trim_blocks = True
+    app.jinja_env.filters["null_to_dash"] = null_to_dash
     app.jinja_loader = ChoiceLoader(
         [
             PackageLoader("app"),
@@ -44,16 +48,11 @@ def create_app(config_class=Config):
         ]
     )
 
-    app.jinja_env.filters["null_to_dash"] = null_to_dash
-
     # Set content security policy
     csp = {
         "default-src": "'self'",
         "script-src": ["'self'"],
     }
-
-    # Disable https if app is run in testing mode
-    force_https = False if app.config["TESTING"] else True
 
     # Initialise app extensions
     assets.init_app(app)
