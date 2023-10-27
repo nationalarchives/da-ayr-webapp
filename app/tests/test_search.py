@@ -9,7 +9,7 @@ def test_poc_search_get(client: FlaskClient):
     When they make a GET request
     Then they should see the search form and page content.
     """
-    response = client.get("/poc-search-view", follow_redirects=True)
+    response = client.get("/poc-search-view")
 
     assert response.status_code == 200
     assert b"Search design PoC" in response.data
@@ -24,7 +24,7 @@ def test_poc_search_no_query(client: FlaskClient):
     Then they should not see any records found.
     """
     form_data = {"foo": "bar"}
-    response = client.post("/poc-search-view", data=form_data, follow_redirects=True)
+    response = client.post("/poc-search-view", data=form_data)
 
     assert response.status_code == 200
     assert b"records found" not in response.data
@@ -40,7 +40,7 @@ def test_poc_search_with_no_results(mock_open_search, client: FlaskClient):
     mock_open_search.return_value = {"hits": {"hits": []}}
 
     form_data = {"query": "test_query"}
-    response = client.post("/poc-search-view", data=form_data, follow_redirects=True)
+    response = client.post("/poc-search-view", data=form_data)
 
     assert response.status_code == 200
     assert b"records found" not in response.data
@@ -79,7 +79,7 @@ def test_poc_search_results_displayed(mock_open_search, client: FlaskClient):
     }
 
     form_data = {"query": "test_query"}
-    response = client.post("/poc-search-view", data=form_data, follow_redirects=True)
+    response = client.post("/poc-search-view", data=form_data)
 
     assert response.status_code == 200
     assert b"2 records found" in response.data

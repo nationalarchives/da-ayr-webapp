@@ -44,20 +44,23 @@ def create_app(config_class=Config):
         ]
     )
 
+    app.jinja_env.filters["null_to_dash"] = null_to_dash
+
     # Set content security policy
     csp = {
         "default-src": "'self'",
         "script-src": ["'self'"],
     }
 
-    app.jinja_env.filters["null_to_dash"] = null_to_dash
+    # Disable https if app is run in testing mode
+    force_https = False if app.config["TESTING"] else True
 
     # Initialise app extensions
     assets.init_app(app)
     compress.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
-    talisman.init_app(app, content_security_policy=csp)
+    talisman.init_app(app, content_security_policy=csp, force_https=force_https)
     WTFormsHelpers(app)
 
     # Create static asset bundles
