@@ -15,6 +15,9 @@ from keycloak import KeycloakOpenID
 from werkzeug.exceptions import HTTPException
 
 from app.main import bp
+from app.main.authorize.keycloak_login_required_decorator import (
+    access_token_login_required,
+)
 from app.main.forms import CookiesForm
 from app.main.search import search_logic
 
@@ -93,6 +96,7 @@ def results():
 
 
 @bp.route("/poc-search-view", methods=["POST", "GET"])
+@access_token_login_required()
 def poc_search():
     form = SearchForm()
     results = []
@@ -116,6 +120,7 @@ def poc_search():
 
 
 @bp.route("/record", methods=["GET"])
+@access_token_login_required()
 def record():
     """
     Render the record details page.
