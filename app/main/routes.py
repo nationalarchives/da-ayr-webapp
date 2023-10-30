@@ -8,6 +8,7 @@ from flask import (
     render_template,
     request,
     session,
+    url_for,
 )
 from flask_wtf.csrf import CSRFError
 from keycloak import KeycloakOpenID
@@ -67,6 +68,8 @@ def callback():
     session["token_type"] = access_token_response["token_type"]
     session["token_scope"] = access_token_response["scope"]
     session["session_state"] = access_token_response["session_state"]
+
+    return redirect(url_for("main.poc_search"))
 
 
 @bp.route("/accessibility", methods=["GET"])
