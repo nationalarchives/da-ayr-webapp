@@ -10,7 +10,7 @@ def test_page_title_and_header(page: Page):
     When the user loads the record page
     Then the AYR record title should be displayed
     """
-    page.goto("http://localhost:5000/record")
+    page.goto("/record")
     expect(page).to_have_title(
         re.compile("Page not found – AYR - Access Your Records – GOV.UK")
     )
@@ -23,7 +23,7 @@ def test_invalid_record(page: Page):
     When the user loads an invalid record page
     Then the AYR 404 page should be displayed
     """
-    page.goto("http://localhost:5000/record")
+    page.goto("/record")
     expect(page.get_by_text("Page not found")).to_be_visible()
 
 
@@ -33,7 +33,7 @@ def test_back_link(page: Page):
     When the user selects the back button / breadcrumb
     Then the user should be navigated back to the the results page
     """
-    page.goto("http://localhost:5000/poc-search-view")
+    page.goto("/poc-search-view")
     page.locator("#searchInput").click()
     page.locator("#searchInput").fill("public record")
     page.get_by_role("button", name="Search").click()
@@ -52,7 +52,7 @@ def test_searched_record_metadata(page: Page):
         "Source organisation" and "Consignment ID,"
     """
     time.sleep(10)
-    page.goto("http://localhost:5000/poc-search-view")
+    page.goto("/poc-search-view")
     page.locator("#searchInput").click()
     page.locator("#searchInput").fill("public record")
     page.get_by_role("button", name="Search").click()

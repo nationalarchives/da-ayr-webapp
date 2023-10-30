@@ -23,6 +23,7 @@ KEYCLOAK_BASE_URI = os.getenv("KEYCLOAK_BASE_URI")
 KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID")
 KEYCLOAK_REALM_NAME = os.getenv("KEYCLOAK_REALM_NAME")
 KEYCLOAK_CLIENT_SECRET = os.getenv("KEYCLOAK_CLIENT_SECRET")
+APP_BASE_URL = os.getenv("APP_BASE_URL")
 
 # Configure client
 keycloak_openid = KeycloakOpenID(
@@ -42,7 +43,7 @@ def index():
 def login():
     # Get Code With Oauth Authorization Request
     auth_url = keycloak_openid.auth_url(
-        redirect_uri="http://localhost:5000/callback",
+        redirect_uri=f"{APP_BASE_URL}/callback",
         scope="email",
         state="your_state_info",
     )
@@ -57,7 +58,7 @@ def callback():
     access_token_response = keycloak_openid.token(
         grant_type="authorization_code",
         code=code,
-        redirect_uri="http://localhost:5000/callback",
+        redirect_uri=f"{APP_BASE_URL}/callback",
     )
 
     session["access_token_response"] = access_token_response
