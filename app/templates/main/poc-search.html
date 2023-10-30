@@ -32,17 +32,9 @@
         {% if num_records_found > 0 %}
         <div class="govuk-grid-row">
           <div class="govuk-grid-column-full">
-            <h2 class="govuk-heading-m">{{ num_records_found}} records found</h2>
+            <h2 class="govuk-heading-m">{{ num_records_found }} records found</h2>
             <table class="govuk-table">
               <thead class="govuk-table__head">
-                <tr class="govuk-table__row">
-                  <th scope="row" class="govuk-table__header govuk-!-width-one-third"></th>
-                  <td class="govuk-table__cell"></td>
-                  <td class="govuk-table__cell"></td>
-                  <td class="govuk-table__cell"></td>
-                  <td class="govuk-table__cell"></td>
-                  <td class="govuk-table__cell"></td>
-                </tr>
                 <tr class="govuk-table__row govuk-!-font-size-14">
                   <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Title</th>
                   <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Description</th>
@@ -54,12 +46,11 @@
               <tbody class="govuk-table__body">
                 {% for record in results %}
                 <tr class="govuk-table__row">
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14"><a href="{{'#'}}">{{ record.title }}</a></td>
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record.description }}</td>
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record.last_modified }}</td>
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record.status }}</td>
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record.closure_period_years }}</td>
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14"></td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14"><a href="{{'#'}}">{{ record._source.file_name }}</a></td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record._source.description }}</td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record._source.date_last_modified }}</td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record._source.legal_status }}</td>
+                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record._source.closure_period }}</td>
                 </tr>
                 {% endfor %}
               </tbody>
