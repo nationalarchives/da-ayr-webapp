@@ -1,7 +1,6 @@
 import logging
 
 import keycloak
-from flask import flash
 
 from app.main.aws.parameter import (
     get_aws_environment_prefix,
@@ -40,30 +39,3 @@ def get_keycloak_openid_object():
         logging.error(
             "Error generating keycloak openid object with error : " + str(e)
         )
-
-
-def is_valid_token_for_ayr(access_token):
-    """
-    validate user group.
-    :param token: user access token received from keycloak.
-    :return: validate user group received in access token from keycloak.
-    """
-    keycloak_ayr_user_group = get_parameter_store_key_value(
-        get_aws_environment_prefix() + "KEYCLOAK_AYR_USER_GROUP"
-    )
-    keycloak_openid = get_keycloak_openid_object()
-
-    decoded_token = keycloak_openid.introspect(access_token)
-    if not decoded_token["active"]:
-        flash("TNA User is not active.")
-        return False
-
-    groups = decoded_token["groups"]
-
-    for group in groups:
-        if keycloak_ayr_user_group in group:
-            flash("TNA User has access to AYR.")
-            return True
-
-    flash("TNA User does not have access to AYR. Please contact your admin.")
-    return False
