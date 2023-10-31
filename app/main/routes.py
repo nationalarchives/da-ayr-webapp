@@ -11,10 +11,9 @@ from flask import (
     url_for,
 )
 from flask_wtf.csrf import CSRFError
-from keycloak import KeycloakOpenID
 from werkzeug.exceptions import HTTPException
 
-from app.main import bp
+from app.main import bp, keycloak_openid
 from app.main.authorize.keycloak_login_required_decorator import (
     access_token_login_required,
 )
@@ -23,19 +22,7 @@ from app.main.search import search_logic
 
 from .forms import SearchForm
 
-KEYCLOAK_BASE_URI = os.getenv("KEYCLOAK_BASE_URI")
-KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID")
-KEYCLOAK_REALM_NAME = os.getenv("KEYCLOAK_REALM_NAME")
-KEYCLOAK_CLIENT_SECRET = os.getenv("KEYCLOAK_CLIENT_SECRET")
 APP_BASE_URL = os.getenv("APP_BASE_URL")
-
-# Configure client
-keycloak_openid = KeycloakOpenID(
-    server_url=KEYCLOAK_BASE_URI,
-    client_id=KEYCLOAK_CLIENT_ID,
-    realm_name=KEYCLOAK_REALM_NAME,
-    client_secret_key=KEYCLOAK_CLIENT_SECRET,
-)
 
 
 @bp.route("/", methods=["GET"])

@@ -2,7 +2,7 @@ from functools import wraps
 
 from flask import current_app, flash, redirect, session, url_for
 
-from app.main.authorize.keycloak_manager import get_keycloak_openid_object
+from app.main import keycloak_openid
 from app.main.aws.parameter import (
     get_aws_environment_prefix,
     get_parameter_store_key_value,
@@ -19,8 +19,6 @@ def access_token_login_required():
             access_token = session.get("access_token")
             if not access_token:
                 return redirect(url_for("main.login"))
-
-            keycloak_openid = get_keycloak_openid_object()
 
             decoded_token = keycloak_openid.introspect(access_token)
             if not decoded_token["active"]:
