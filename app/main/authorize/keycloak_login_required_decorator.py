@@ -14,8 +14,31 @@ def access_token_login_required():
         @wraps(view_func)
         def decorated_view(*args, **kwargs):
             access_token = session.get("access_token")
-            if not (access_token and is_valid_token_for_ayr(access_token)):
+            if not access_token:
+                return redirect(url_for("main.login"))
+
+            keycloak_openid = get_keycloak_openid_object()
+
+            decoded_token = keycloak_openid.introspect(access_token)
+            if not decoded_token["active"]:
+                session.pop("access_token", None)
+                return redirect(url_for("main.login"))
+
+            groups = decoded_token["groups"]
+            keycloak_ayr_user_group = get_parameter_store_key_value(
+                get_aws_environment_prefix() + "KEYCLOAK_AYR_USER_GROUP"
+            )
+            group_exists = group_exists_in_groups(
+                keycloak_ayr_user_group, groups
+            )
+
+            if not group_exists:
+                flash(
+                    "TNA User is logged in but does not have access to AYR. Please contact your admin."
+                )
                 return redirect(url_for("main.index"))
+
+            flash("TNA User is logged in and has access to AYR.")
             return view_func(*args, **kwargs)
 
         return decorated_view
@@ -23,32 +46,9 @@ def access_token_login_required():
     return decorator
 
 
-def is_valid_token_for_ayr(access_token):
-    """
-    validate user group.
-    :param token: user access token received from keycloak.
-    :return: validate user group received in access token from keycloak.
-    """
-    keycloak_ayr_user_group = get_parameter_store_key_value(
-        get_aws_environment_prefix() + "KEYCLOAK_AYR_USER_GROUP"
-    )
-    keycloak_openid = get_keycloak_openid_object()
-
-    decoded_token = keycloak_openid.introspect(access_token)
-    if not decoded_token["active"]:
-        flash(
-            "TNA User is logged in but is not active. Please contact your admin."
-        )
-        return False
-
-    groups = decoded_token["groups"]
-
+def group_exists_in_groups(keycloak_ayr_user_group, groups):
+    group_exists = False
     for group in groups:
         if keycloak_ayr_user_group in group:
-            flash("TNA User is logged in and has access to AYR.")
-            return True
-
-    flash(
-        "TNA User is logged in but does not have access to AYR. Please contact your admin."
-    )
-    return False
+            group_exists = True
+    return group_exists
