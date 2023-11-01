@@ -1,6 +1,5 @@
-import os
-
 from flask import (
+    current_app,
     flash,
     json,
     make_response,
@@ -25,8 +24,6 @@ from app.main.search import search_logic
 
 from .forms import SearchForm
 
-APP_BASE_URL = os.getenv("APP_BASE_URL")
-
 
 @bp.route("/", methods=["GET"])
 def index():
@@ -37,7 +34,7 @@ def index():
 def login():
     keycloak_openid = get_keycloak_openid_object_from_aws_params()
     auth_url = keycloak_openid.auth_url(
-        redirect_uri=f"{APP_BASE_URL}/callback",
+        redirect_uri=f"{current_app.config['APP_BASE_URL']}/callback",
         scope="email",
         state="your_state_info",
     )
@@ -52,7 +49,7 @@ def callback():
     access_token_response = keycloak_openid.token(
         grant_type="authorization_code",
         code=code,
-        redirect_uri=f"{APP_BASE_URL}/callback",
+        redirect_uri=f"{current_app.config['APP_BASE_URL']}/callback",
     )
 
     session["access_token_response"] = access_token_response

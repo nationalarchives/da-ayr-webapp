@@ -2,6 +2,7 @@ import os
 
 
 class Config(object):
+    APP_BASE_URL = os.environ.get("APP_BASE_URL", "")
     CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL", "")
     CONTACT_PHONE = os.environ.get("CONTACT_PHONE", "")
     DEPARTMENT_NAME = os.environ.get("DEPARTMENT_NAME", "")
