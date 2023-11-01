@@ -1,6 +1,6 @@
 from functools import wraps
 
-from flask import flash, redirect, session, url_for
+from flask import current_app, flash, redirect, session, url_for
 
 from app.main import keycloak_openid
 from app.main.aws.parameter import (
@@ -12,6 +12,10 @@ from app.main.aws.parameter import (
 def access_token_login_required(view_func):
     @wraps(view_func)
     def decorated_view(*args, **kwargs):
+        if current_app.config["TESTING"] and not current_app.config.get(
+            "FORCE_AUTHENTICATION_FOR_IN_TESTING"
+        ):
+            return view_func(*args, **kwargs)
         access_token = session.get("access_token")
         if not access_token:
             return redirect(url_for("main.login"))

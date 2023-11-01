@@ -13,6 +13,7 @@ def test_access_token_login_required_decorator_no_token(view_name, app):
     When accessing a route protected by the 'access_token_login_required' decorator,
     Then it should redirect to the login page.
     """
+    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
     with app.test_client() as client:
         with client.session_transaction() as session:
             session["access_token"] = None
@@ -35,6 +36,7 @@ def test_access_token_login_required_decorator_inactive_token(
     """
     mock_decode_keycloak_access_token.return_value = {"active": False}
 
+    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
     with app.test_client() as client:
         with client.session_transaction() as session:
             session["access_token"] = "some_token"
@@ -69,6 +71,7 @@ def test_access_token_login_required_decorator_active_without_ayr_access(
     }
     mock_check_if_user_has_access_to_ayr.return_value = False
 
+    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
     with app.test_client() as client:
         with client.session_transaction() as session:
             session["access_token"] = "valid_token"
@@ -114,6 +117,7 @@ def test_access_token_login_required_decorator_valid_token(
     }
     mock_check_if_user_has_access_to_ayr.return_value = True
 
+    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
     with app.test_client() as client:
         with client.session_transaction() as session:
             session["access_token"] = "valid_token"
