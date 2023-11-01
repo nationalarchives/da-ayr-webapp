@@ -28,9 +28,6 @@ from .forms import SearchForm
 APP_BASE_URL = os.getenv("APP_BASE_URL")
 
 
-keycloak_openid = get_keycloak_openid_object_from_aws_params()
-
-
 @bp.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
@@ -38,7 +35,7 @@ def index():
 
 @bp.route("/login", methods=["GET"])
 def login():
-    # Get Code With Oauth Authorization Request
+    keycloak_openid = get_keycloak_openid_object_from_aws_params()
     auth_url = keycloak_openid.auth_url(
         redirect_uri=f"{APP_BASE_URL}/callback",
         scope="email",
@@ -51,7 +48,7 @@ def login():
 @bp.route("/callback", methods=["GET"])
 def callback():
     code = request.args.get("code")
-
+    keycloak_openid = get_keycloak_openid_object_from_aws_params()
     access_token_response = keycloak_openid.token(
         grant_type="authorization_code",
         code=code,
