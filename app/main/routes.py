@@ -99,6 +99,7 @@ def poc_search():
             search_logic.generate_open_search_client_and_make_poc_search(query)
         )
         results = open_search_response["hits"]["hits"]
+        session["search_results"] = results
 
     num_records_found = len(results)
 
@@ -113,6 +114,40 @@ def poc_search():
 @bp.route("/start-page", methods=["GET"])
 def start_page():
     return render_template("start-page.html")
+
+@bp.route("/record", methods=["GET"])
+def record():
+    """
+    Render the record details page.
+
+    This function retrieves search results from the session, looks for a specific
+    record based on the 'record_id' provided in the query parameters, and renders
+    the record details on the 'record.html' template.
+
+    Returns:
+        A rendered HTML page with record details.
+    """
+    # Retrieve the search results from the session
+    results = session.get("search_results", [])
+
+    # Get the record_id from the query parameters
+    record_id = request.args.get("record_id")
+
+    if not record_id:
+        return render_template("404.html")
+
+    # Find the specific record in the search results
+    record_details = None
+
+    for result in results:
+        if result["_source"]["id"] == record_id:
+            record_details = result["_source"]
+            break
+
+    if not record_details:
+        return render_template("404.html")
+
+    return render_template("record.html", consignment_files=record_details)
 
 
 @bp.route("/browse", methods=["GET"])

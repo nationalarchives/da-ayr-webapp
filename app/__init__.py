@@ -21,7 +21,11 @@ talisman = Talisman()
 
 
 def null_to_dash(value):
-    return "—" if value == "null" else value
+    if value == "null":
+        return "-"
+    if value is None:
+        return "-"
+    return value
 
 
 def create_app(config_class=Config):
