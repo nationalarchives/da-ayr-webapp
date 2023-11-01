@@ -83,7 +83,7 @@ def results():
 
 
 @bp.route("/poc-search-view", methods=["POST", "GET"])
-@access_token_login_required()
+@access_token_login_required
 def poc_search():
     form = SearchForm()
     results = []
@@ -107,7 +107,7 @@ def poc_search():
 
 
 @bp.route("/record", methods=["GET"])
-@access_token_login_required()
+@access_token_login_required
 def record():
     """
     Render the record details page.

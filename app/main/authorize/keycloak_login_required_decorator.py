@@ -1,6 +1,6 @@
 from functools import wraps
 
-from flask import current_app, flash, redirect, session, url_for
+from flask import flash, redirect, session, url_for
 
 from app.main import keycloak_openid
 from app.main.aws.parameter import (
@@ -9,42 +9,38 @@ from app.main.aws.parameter import (
 )
 
 
-def access_token_login_required():
-    def decorator(view_func):
-        @wraps(view_func)
-        def decorated_view(*args, **kwargs):
-            if current_app.config["TESTING"]:
-                return view_func(*args, **kwargs)
+def access_token_login_required(view_func):
+    @wraps(view_func)
+    def decorated_view(*args, **kwargs):
+        access_token = session.get("access_token")
+        if not access_token:
+            return redirect(url_for("main.login"))
 
-            access_token = session.get("access_token")
-            if not access_token:
-                return redirect(url_for("main.login"))
+        decoded_token = decode_keycloak_access_token(access_token)
 
-            decoded_token = keycloak_openid.introspect(access_token)
-            if not decoded_token["active"]:
-                session.pop("access_token", None)
-                return redirect(url_for("main.login"))
+        if not decoded_token["active"]:
+            session.pop("access_token", None)
+            return redirect(url_for("main.login"))
 
-            groups = decoded_token["groups"]
-            keycloak_ayr_user_group = get_parameter_store_key_value(
-                get_aws_environment_prefix() + "KEYCLOAK_AYR_USER_GROUP"
+        if not check_if_user_has_access_to_ayr(decoded_token):
+            flash(
+                "TNA User is logged in but does not have access to AYR. Please contact your admin."
             )
-            group_exists = group_exists_in_groups(
-                keycloak_ayr_user_group, groups
-            )
+            return redirect(url_for("main.index"))
 
-            if not group_exists:
-                flash(
-                    "TNA User is logged in but does not have access to AYR. Please contact your admin."
-                )
-                return redirect(url_for("main.index"))
+        flash("TNA User is logged in and has access to AYR.")
+        return view_func(*args, **kwargs)
 
-            flash("TNA User is logged in and has access to AYR.")
-            return view_func(*args, **kwargs)
+    return decorated_view
 
-        return decorated_view
 
-    return decorator
+def check_if_user_has_access_to_ayr(decoded_token):
+    groups = decoded_token["groups"]
+    keycloak_ayr_user_group = get_parameter_store_key_value(
+        get_aws_environment_prefix() + "KEYCLOAK_AYR_USER_GROUP"
+    )
+    group_exists = group_exists_in_groups(keycloak_ayr_user_group, groups)
+    return group_exists
 
 
 def group_exists_in_groups(keycloak_ayr_user_group, groups):
@@ -53,3 +49,8 @@ def group_exists_in_groups(keycloak_ayr_user_group, groups):
         if keycloak_ayr_user_group in group:
             group_exists = True
     return group_exists
+
+
+def decode_keycloak_access_token(access_token):
+    decoded_token = keycloak_openid.introspect(access_token)
+    return decoded_token
