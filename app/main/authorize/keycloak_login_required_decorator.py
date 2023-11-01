@@ -2,7 +2,9 @@ from functools import wraps
 
 from flask import current_app, flash, redirect, session, url_for
 
-from app.main import keycloak_openid
+from app.main.authorize.keycloak_manager import (
+    get_keycloak_openid_object_from_aws_params,
+)
 from app.main.aws.parameter import (
     get_aws_environment_prefix,
     get_parameter_store_key_value,
@@ -56,5 +58,6 @@ def group_exists_in_groups(keycloak_ayr_user_group, groups):
 
 
 def decode_keycloak_access_token(access_token):
+    keycloak_openid = get_keycloak_openid_object_from_aws_params()
     decoded_token = keycloak_openid.introspect(access_token)
     return decoded_token

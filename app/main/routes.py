@@ -13,9 +13,12 @@ from flask import (
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import HTTPException
 
-from app.main import bp, keycloak_openid
+from app.main import bp
 from app.main.authorize.keycloak_login_required_decorator import (
     access_token_login_required,
+)
+from app.main.authorize.keycloak_manager import (
+    get_keycloak_openid_object_from_aws_params,
 )
 from app.main.forms import CookiesForm
 from app.main.search import search_logic
@@ -23,6 +26,9 @@ from app.main.search import search_logic
 from .forms import SearchForm
 
 APP_BASE_URL = os.getenv("APP_BASE_URL")
+
+
+keycloak_openid = get_keycloak_openid_object_from_aws_params()
 
 
 @bp.route("/", methods=["GET"])
