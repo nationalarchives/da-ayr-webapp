@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
+{% block pageTitle %}Dashboard – {{config['SERVICE_NAME']}} – GOV.UK{% endblock %}
 
+{% block beforeContent %}
+  {{ super() }}
+
+{% endblock %}
 {% block content %}
 
 <h1 class="govuk-heading-l">How to use this service</h1>
