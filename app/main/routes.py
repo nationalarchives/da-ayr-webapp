@@ -115,6 +115,7 @@ def poc_search():
 def start_page():
     return render_template("start-page.html")
 
+
 @bp.route("/record", methods=["GET"])
 def record():
     """
