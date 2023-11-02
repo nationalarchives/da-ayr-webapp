@@ -45,7 +45,7 @@ def access_token_login_required(view_func):
         if not access_token:
             return redirect(url_for("main.login"))
 
-        keycloak_openid = keycloak_openid = keycloak.KeycloakOpenID(
+        keycloak_openid = keycloak.KeycloakOpenID(
             server_url=current_app.config["KEYCLOAK_BASE_URI"],
             client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
             realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
