@@ -201,6 +201,11 @@ def privacy():
     return render_template("privacy.html")
 
 
+@bp.route("/terms-of-use", methods=["GET"])
+def terms_of_use():
+    return render_template("terms-of-use.html")
+
+
 @bp.app_errorhandler(HTTPException)
 def http_exception(error):
     return render_template(f"{error.code}.html"), error.code
