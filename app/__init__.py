@@ -39,7 +39,7 @@ if os.environ.get("DEFAULT_AWS_PROFILE"):
 
 def create_app(config_class=Config):
     app = Flask(__name__, static_url_path="/assets")
-    app.config.from_object(config_class)
+    app.config.from_object(config_class())
 
     force_https = False if app.config["TESTING"] else True
 
