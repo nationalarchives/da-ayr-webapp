@@ -24,7 +24,7 @@ def test_access_token_login_required_decorator_no_token(view_name, app):
 
 @pytest.mark.parametrize("view_name", EXPECTED_PROTECTED_VIEWS)
 @patch(
-    "app.main.authorize.keycloak_login_required_decorator.decode_keycloak_access_token"
+    "app.main.authorize.keycloak_login_required_decorator.keycloak.KeycloakOpenID.introspect"
 )
 def test_access_token_login_required_decorator_inactive_token(
     mock_decode_keycloak_access_token, view_name, app
@@ -48,7 +48,7 @@ def test_access_token_login_required_decorator_inactive_token(
 
 @pytest.mark.parametrize("view_name", EXPECTED_PROTECTED_VIEWS)
 @patch(
-    "app.main.authorize.keycloak_login_required_decorator.decode_keycloak_access_token"
+    "app.main.authorize.keycloak_login_required_decorator.keycloak.KeycloakOpenID.introspect"
 )
 def test_access_token_login_required_decorator_active_without_ayr_access(
     mock_decode_keycloak_access_token,
@@ -91,7 +91,7 @@ def test_access_token_login_required_decorator_active_without_ayr_access(
 
 @pytest.mark.parametrize("view_name", EXPECTED_PROTECTED_VIEWS)
 @patch(
-    "app.main.authorize.keycloak_login_required_decorator.decode_keycloak_access_token"
+    "app.main.authorize.keycloak_login_required_decorator.keycloak.KeycloakOpenID.introspect"
 )
 def test_access_token_login_required_decorator_valid_token(
     mock_decode_keycloak_access_token,

@@ -16,7 +16,14 @@ def access_token_login_required(view_func):
         if not access_token:
             return redirect(url_for("main.login"))
 
-        decoded_token = decode_keycloak_access_token(access_token)
+        keycloak_openid = keycloak_openid = keycloak.KeycloakOpenID(
+            server_url=current_app.config["KEYCLOAK_BASE_URI"],
+            client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
+            realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
+            client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
+        )
+
+        decoded_token = keycloak_openid.introspect(access_token)
 
         if not decoded_token["active"]:
             session.pop("access_token", None)
@@ -44,14 +51,3 @@ def _check_if_user_has_access_to_ayr(keycloak_ayr_user_group, decoded_token):
         if keycloak_ayr_user_group in group:
             group_exists = True
     return group_exists
-
-
-def decode_keycloak_access_token(access_token):
-    keycloak_openid = keycloak_openid = keycloak.KeycloakOpenID(
-        server_url=current_app.config["KEYCLOAK_BASE_URI"],
-        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
-        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
-        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
-    )
-    decoded_token = keycloak_openid.introspect(access_token)
-    return decoded_token
