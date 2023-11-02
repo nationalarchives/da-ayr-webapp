@@ -48,14 +48,10 @@ def test_access_token_login_required_decorator_inactive_token(
 
 @pytest.mark.parametrize("view_name", EXPECTED_PROTECTED_VIEWS)
 @patch(
-    "app.main.authorize.keycloak_login_required_decorator.check_if_user_has_access_to_ayr"
-)
-@patch(
     "app.main.authorize.keycloak_login_required_decorator.decode_keycloak_access_token"
 )
 def test_access_token_login_required_decorator_active_without_ayr_access(
     mock_decode_keycloak_access_token,
-    mock_check_if_user_has_access_to_ayr,
     view_name,
     app,
 ):
@@ -67,11 +63,12 @@ def test_access_token_login_required_decorator_active_without_ayr_access(
     """
     mock_decode_keycloak_access_token.return_value = {
         "active": True,
-        "groups": ["foo", "bar"],
+        "groups": ["application_1/foo", "application_2/bar"],
     }
-    mock_check_if_user_has_access_to_ayr.return_value = False
 
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
+    app.config["KEYCLOAK_AYR_USER_GROUP"] = "application_3"
+
     with app.test_client() as client:
         with client.session_transaction() as session:
             session["access_token"] = "valid_token"
@@ -94,14 +91,10 @@ def test_access_token_login_required_decorator_active_without_ayr_access(
 
 @pytest.mark.parametrize("view_name", EXPECTED_PROTECTED_VIEWS)
 @patch(
-    "app.main.authorize.keycloak_login_required_decorator.check_if_user_has_access_to_ayr"
-)
-@patch(
     "app.main.authorize.keycloak_login_required_decorator.decode_keycloak_access_token"
 )
 def test_access_token_login_required_decorator_valid_token(
     mock_decode_keycloak_access_token,
-    mock_check_if_user_has_access_to_ayr,
     view_name,
     app,
 ):
@@ -113,11 +106,11 @@ def test_access_token_login_required_decorator_valid_token(
     """
     mock_decode_keycloak_access_token.return_value = {
         "active": True,
-        "groups": ["foo", "bar"],
+        "groups": ["application_1/foo", "application_2/bar"],
     }
-    mock_check_if_user_has_access_to_ayr.return_value = True
 
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
+    app.config["KEYCLOAK_AYR_USER_GROUP"] = "application_1"
     with app.test_client() as client:
         with client.session_transaction() as session:
             session["access_token"] = "valid_token"

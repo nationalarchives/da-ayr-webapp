@@ -23,7 +23,7 @@ def access_token_login_required(view_func):
             return redirect(url_for("main.login"))
 
         keycloak_ayr_user_group = current_app.config["KEYCLOAK_AYR_USER_GROUP"]
-        if not check_if_user_has_access_to_ayr(
+        if not _check_if_user_has_access_to_ayr(
             keycloak_ayr_user_group, decoded_token
         ):
             flash(
@@ -37,7 +37,7 @@ def access_token_login_required(view_func):
     return decorated_view
 
 
-def check_if_user_has_access_to_ayr(keycloak_ayr_user_group, decoded_token):
+def _check_if_user_has_access_to_ayr(keycloak_ayr_user_group, decoded_token):
     groups = decoded_token["groups"]
     group_exists = False
     for group in groups:
