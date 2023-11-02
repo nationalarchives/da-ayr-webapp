@@ -1,17 +1,15 @@
 import boto3
 from moto import mock_ssm
 
-from app.main.authorize.keycloak_manager import (
-    get_keycloak_openid_object_from_aws_params,
-)
+from config import Config
 
 
 @mock_ssm
-def test_get_keycloak_openid_object():
+def test_aws_params_config_initialized():
     """
-    GIVEN AWS SSM parameters are set with Keycloak configuration
-    WHEN get_keycloak_openid_object_from_aws_params is called
-    THEN it should return a KeycloakOpenID object with the expected configuration
+    GIVEN AWS SSM parameters are set
+    WHEN Config is initialized
+    THEN it should have attributes with the expected values from the AWS SSM
     """
     ssm_client = boto3.client("ssm")
     ssm_client.put_parameter(
@@ -44,9 +42,19 @@ def test_get_keycloak_openid_object():
         Type="String",
         Overwrite=True,
     )
+    ssm_client.put_parameter(
+        Name="/test_env/KEYCLOAK_AYR_USER_GROUP",
+        Value="e",
+        Type="String",
+        Overwrite=True,
+    )
 
-    keycloak_openid = get_keycloak_openid_object_from_aws_params()
-    assert keycloak_openid.connection.base_url == "a"
-    assert keycloak_openid.client_id == "b"
-    assert keycloak_openid.realm_name == "c"
-    assert keycloak_openid.client_secret_key == "d"
+    config = Config()
+
+    assert config.AWS_ENVIRONMENT_PREFIX == "/test_env/"
+
+    assert config.KEYCLOAK_BASE_URI == "a"
+    assert config.KEYCLOAK_CLIENT_ID == "b"
+    assert config.KEYCLOAK_REALM_NAME == "c"
+    assert config.KEYCLOAK_CLIENT_SECRET == "d"
+    assert config.KEYCLOAK_AYR_USER_GROUP == "e"

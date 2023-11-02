@@ -1,3 +1,4 @@
+import keycloak
 from flask import (
     current_app,
     flash,
@@ -16,9 +17,6 @@ from app.main import bp
 from app.main.authorize.keycloak_login_required_decorator import (
     access_token_login_required,
 )
-from app.main.authorize.keycloak_manager import (
-    get_keycloak_openid_object_from_aws_params,
-)
 from app.main.forms import CookiesForm
 from app.main.search import search_logic
 
@@ -32,7 +30,12 @@ def index():
 
 @bp.route("/login", methods=["GET"])
 def login():
-    keycloak_openid = get_keycloak_openid_object_from_aws_params()
+    keycloak_openid = keycloak.KeycloakOpenID(
+        server_url=current_app.config["KEYCLOAK_BASE_URI"],
+        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
+        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
+        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
+    )
     auth_url = keycloak_openid.auth_url(
         redirect_uri=f"{current_app.config['APP_BASE_URL']}/callback",
         scope="email",
@@ -45,7 +48,12 @@ def login():
 @bp.route("/callback", methods=["GET"])
 def callback():
     code = request.args.get("code")
-    keycloak_openid = get_keycloak_openid_object_from_aws_params()
+    keycloak_openid = keycloak.KeycloakOpenID(
+        server_url=current_app.config["KEYCLOAK_BASE_URI"],
+        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
+        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
+        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
+    )
     access_token_response = keycloak_openid.token(
         grant_type="authorization_code",
         code=code,
