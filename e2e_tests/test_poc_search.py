@@ -1,25 +1,31 @@
 from playwright.sync_api import Page, expect
 
 
-def test_poc_search_end_to_end(page: Page):
+def test_poc_search_end_to_end(authenticated_page: Page):
     """
     Given a user on the search page
     When they interact with the search form and submit a query
     Then the table should contain the expected headers and entries.
     """
-    page.goto("/poc-search-view")
+    authenticated_page.goto("/poc-search-view")
 
-    expect(page.get_by_text("Search design PoC")).to_be_visible()
-    expect(page.locator("text=Search for digital records")).to_be_visible()
+    expect(authenticated_page.get_by_text("Search design PoC")).to_be_visible()
+    expect(
+        authenticated_page.locator("text=Search for digital records")
+    ).to_be_visible()
 
     # Interact with the search form and submit a query
-    page.fill("#searchInput", "Test description")
-    expect(page.locator("#searchInput")).to_have_value("Test description")
-    page.get_by_role("button").get_by_text("Search").click()
+    authenticated_page.fill("#searchInput", "Test description")
+    expect(authenticated_page.locator("#searchInput")).to_have_value(
+        "Test description"
+    )
+    authenticated_page.get_by_role("button").get_by_text("Search").click()
 
-    expect(page.locator("#searchInput")).not_to_have_value("Test description")
+    expect(authenticated_page.locator("#searchInput")).not_to_have_value(
+        "Test description"
+    )
 
-    table = page.locator("table")
+    table = authenticated_page.locator("table")
     # Use JavaScript to extract the text of header elements (th) within the table
     header_texts = table.evaluate(
         '(table) => Array.from(table.querySelectorAll("th")).map(th => th.textContent)'
