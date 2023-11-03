@@ -146,6 +146,11 @@ def record():
     return render_template("record.html", consignment_files=record_details)
 
 
+@bp.route("/start-page", methods=["GET"])
+def start_page():
+    return render_template("start-page.html")
+
+
 @bp.route("/browse", methods=["GET"])
 def browse():
     return render_template("browse.html")
@@ -199,6 +204,11 @@ def cookies():
 @bp.route("/privacy", methods=["GET"])
 def privacy():
     return render_template("privacy.html")
+
+
+@bp.route("/how-to-use-this-service", methods=["GET"])
+def how_to_use():
+    return render_template("how-to-use-this-service.html")
 
 
 @bp.app_errorhandler(HTTPException)
