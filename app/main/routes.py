@@ -99,7 +99,9 @@ def poc_search():
 
     if query:
         open_search_response = (
-            search_logic.generate_open_search_client_and_make_poc_search(query)
+            search_logic.generate_open_search_client_and_make_poc_search(
+                query, current_app.config["AWS_OPEN_SEARCH_INDEX"]
+            )
         )
         results = open_search_response["hits"]["hits"]
         session["search_results"] = results

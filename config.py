@@ -28,6 +28,36 @@ class Config(object):
         )
 
     @property
+    def AWS_REGION(self):
+        return get_parameter_store_key_value(
+            self.AWS_ENVIRONMENT_PREFIX + "AWS_REGION"
+        ) or os.getenv("AWS_REGION")
+
+    @property
+    def AWS_OPEN_SEARCH_INDEX(self):
+        return get_parameter_store_key_value(
+            self.AWS_ENVIRONMENT_PREFIX + "AWS_OPEN_SEARCH_INDEX"
+        ) or os.getenv("AWS_OPEN_SEARCH_INDEX")
+
+    @property
+    def AWS_OPEN_SEARCH_HOST(self):
+        return get_parameter_store_key_value(
+            self.AWS_ENVIRONMENT_PREFIX + "AWS_OPEN_SEARCH_HOST"
+        ) or os.getenv("AWS_OPEN_SEARCH_HOST")
+
+    @property
+    def AWS_OPEN_SEARCH_USERNAME(self):
+        return get_parameter_store_key_value(
+            self.AWS_ENVIRONMENT_PREFIX + "AWS_OPEN_SEARCH_USERNAME"
+        ) or os.getenv("AWS_OPEN_SEARCH_USERNAME")
+
+    @property
+    def AWS_OPEN_SEARCH_PASSWORD(self):
+        return get_parameter_store_key_value(
+            self.AWS_ENVIRONMENT_PREFIX + "AWS_OPEN_SEARCH_PASSWORD"
+        ) or os.getenv("AWS_OPEN_SEARCH_PASSWORD")
+
+    @property
     def KEYCLOAK_BASE_URI(self):
         return get_parameter_store_key_value(
             self.AWS_ENVIRONMENT_PREFIX + "KEYCLOAK_BASE_URI"

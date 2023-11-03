@@ -48,10 +48,42 @@ def test_aws_params_config_initialized():
         Type="String",
         Overwrite=True,
     )
+    ssm_client.put_parameter(
+        Name="/test_env/AWS_OPEN_SEARCH_INDEX",
+        Value="test_open_search_index",
+        Type="String",
+        Overwrite=True,
+    )
+    ssm_client.put_parameter(
+        Name="/test_env/AWS_OPEN_SEARCH_HOST",
+        Value="test_open_search_host",
+        Type="String",
+        Overwrite=True,
+    )
+    ssm_client.put_parameter(
+        Name="/test_env/AWS_OPEN_SEARCH_USERNAME",
+        Value="test_open_search_username",
+        Type="String",
+        Overwrite=True,
+    )
+    ssm_client.put_parameter(
+        Name="/test_env/AWS_OPEN_SEARCH_PASSWORD",
+        Value="test_open_search_password",
+        Type="String",
+        Overwrite=True,
+    )
 
     config = Config()
 
     assert config.AWS_ENVIRONMENT_PREFIX == "/test_env/"
+
+    assert config.AWS_OPEN_SEARCH_INDEX == "test_open_search_index"
+    assert config.AWS_OPEN_SEARCH_HOST == "test_open_search_host"
+    assert config.AWS_OPEN_SEARCH_USERNAME == "test_open_search_username"
+    assert (
+        config.AWS_OPEN_SEARCH_PASSWORD
+        == "test_open_search_password"  # pragma: allowlist secret
+    )
 
     assert config.KEYCLOAK_BASE_URI == "a"
     assert config.KEYCLOAK_CLIENT_ID == "b"

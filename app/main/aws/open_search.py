@@ -1,29 +1,22 @@
 from typing import Tuple
 
 import boto3
+from flask import current_app
 from opensearchpy import AWSV4SignerAuth, OpenSearch
 
-from app.main.aws.parameter import (
-    get_aws_environment_prefix,
-    get_parameter_store_key_value,
-)
 
+def generate_open_search_client_from_current_app_config() -> OpenSearch:
+    """
+    Generate an OpenSearch client with the specified configuration for the AYR application.
 
-def get_open_search_index_from_aws_params() -> str:
-    return get_parameter_store_key_value(
-        get_aws_environment_prefix() + "AWS_OPEN_SEARCH_INDEX"
-    )
-
-
-def generate_open_search_client_from_aws_params() -> OpenSearch:
-    host = get_parameter_store_key_value(
-        get_aws_environment_prefix() + "AWS_OPEN_SEARCH_HOST"
-    )
-    http_auth = _get_open_search_http_auth()
-
+    Returns:
+        OpenSearch: An OpenSearch client configured with settings obtained from the current app's configuration.
+    """
     open_search_client = OpenSearch(
-        hosts=[{"host": host, "port": 443}],
-        http_auth=http_auth,
+        hosts=[
+            {"host": current_app.config["AWS_OPEN_SEARCH_HOST"], "port": 443}
+        ],
+        http_auth=get_open_search_http_auth(),
         use_ssl=True,
         verify_certs=True,
         http_compress=True,
@@ -33,29 +26,26 @@ def generate_open_search_client_from_aws_params() -> OpenSearch:
     return open_search_client
 
 
-def _get_open_search_http_auth(
-    auth_method: str = "username_password",
-) -> Tuple[str, str] | AWSV4SignerAuth:
-    if auth_method == "username_password":
-        return _get_open_search_username_password_auth()
-    return _get_open_search_iam_auth()
+def get_open_search_http_auth(iam=False) -> Tuple[str, str] | AWSV4SignerAuth:
+    """
+    Get the authentication method for OpenSearch.
+
+    Args:
+        iam (bool): A boolean indicating whether IAM authentication should be used.
+
+    Returns:
+        Tuple[str, str] | AWSV4SignerAuth: Depending on the IAM parameter
+    """
+    if not iam:
+        return (
+            current_app.config["AWS_OPEN_SEARCH_USERNAME"],
+            current_app.config["AWS_OPEN_SEARCH_PASSWORD"],
+        )
+    return _get_open_search_iam_auth(current_app.config["AWS_REGION"])
 
 
-def _get_open_search_username_password_auth() -> Tuple[str, str]:
-    username = get_parameter_store_key_value(
-        get_aws_environment_prefix() + "AWS_OPEN_SEARCH_USERNAME"
-    )
-    password = get_parameter_store_key_value(
-        get_aws_environment_prefix() + "AWS_OPEN_SEARCH_PASSWORD"
-    )
-    return (username, password)
-
-
-def _get_open_search_iam_auth() -> AWSV4SignerAuth:
+def _get_open_search_iam_auth(aws_region) -> AWSV4SignerAuth:
     credentials = boto3.Session().get_credentials()
-    aws_region = get_parameter_store_key_value(
-        get_aws_environment_prefix() + "AWS_REGION"
-    )
     service = "es"
     aws_auth = AWSV4SignerAuth(credentials, aws_region, service)
     return aws_auth
