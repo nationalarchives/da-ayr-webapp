@@ -11,7 +11,7 @@ from flask_wtf.csrf import CSRFProtect
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
-from config import Config
+from configs.aws_config import AWSConfig
 
 assets = Environment()
 compress = Compress()
@@ -37,7 +37,7 @@ if os.environ.get("DEFAULT_AWS_PROFILE"):
     )
 
 
-def create_app(config_class=Config):
+def create_app(config_class=AWSConfig):
     app = Flask(__name__, static_url_path="/assets")
     app.config.from_object(config_class())
 
