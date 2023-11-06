@@ -11,7 +11,7 @@ class Config(object):
     CONTACT_PHONE = os.getenv("CONTACT_PHONE")
     DEPARTMENT_NAME = os.getenv("DEPARTMENT_NAME")
     DEPARTMENT_URL = os.getenv("DEPARTMENT_URL")
-    RATELIMIT_STORAGE_URI = os.getenv("REDIS_URL")
+    RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI")
     SECRET_KEY = os.getenv("SECRET_KEY")
     SERVICE_NAME = os.getenv("SERVICE_NAME")
     SERVICE_PHASE = os.getenv("SERVICE_PHASE")
