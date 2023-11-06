@@ -57,11 +57,33 @@ You should now have the app running on <http://localhost:5000/>
 
 ## Testing
 
-To run the tests:
+### Unit and Integration tests
+
+To run the unit and integration tests you can run:
 
 ```shell
-python -m pytest --cov=app --cov-report=term-missing --cov-branch
+python -m pytest --cov=app --cov-report=term-missing --cov-branch -vvv
 ```
+
+This also will generate a test coverage report.
+
+### End To End Tests
+
+We have a separate End To End suite of [Playwright](https://playwright.dev/python/docs/intro) tests in the `e2e_tests/` directory. These are also written in python and use the `pytest-playwright` `PyPi` package to run the tests as specified in the poetry depednecies.
+
+In addition to installing the package, before you run the tests for the first time on your machine, you will need to run `playwright install` to install the required browsers for the end to end tests.
+
+You can then run all of our Playwright tests against localhost with:
+
+```shell
+pytest e2e_tests/ --base-url=http://localhost:5000
+```
+
+You can swap out the base-url for another if you want to run the tests against another instance of the application.
+
+To enable this flexibility we suggest any Playwright tests added to the repo use relative paths when referring to urls of the application itself.
+
+In addition, we recommend that any tests that have dependencies on data, do not make assumptions about any particular database or instance involved, and instead do the test data set up and teardown as part of the test suite.
 
 ## Features
 
