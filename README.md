@@ -88,7 +88,9 @@ and then specifies environment variables for:
 - `KEYCLOAK_CLIENT_SECRET`: The client secret used for Keycloak authentication.
 - `KEYCLOAK_AYR_USER_GROUP`: The Keycloak user group used to check user access.
 
-**Note:** `AWSConfig` depends on a `boto3` session which, when developing locally, can be set to use a specific AWS Profile by setting the environment variable `DEFAULT_AWS_PROFILE`. This value is not a configuration value, as the `boto3` session needs to be configured correctly so that it is authenticated prior to the config being instantiated in the flask application creation process.
+**Note 1:** All of these configuration values which depend on an environment variable default to an empty string if not found.
+
+**Note 2:** `AWSConfig` depends on a `boto3` session which, when developing locally, can be set to use a specific AWS Profile by setting the environment variable `DEFAULT_AWS_PROFILE`. This value is not a configuration value, as the `boto3` session needs to be configured correctly so that it is authenticated prior to the config being instantiated in the flask application creation process.
 
 `TestingConfig` inherits from `Config` but sets:
 
