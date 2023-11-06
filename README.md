@@ -88,6 +88,8 @@ and then specifies environment variables for:
 - `KEYCLOAK_CLIENT_SECRET`: The client secret used for Keycloak authentication.
 - `KEYCLOAK_AYR_USER_GROUP`: The Keycloak user group used to check user access.
 
+**Note:** `AWSConfig` depends on a `boto3` session which, when developing locally, can be set to use a specific AWS Profile by setting the environment variable `DEFAULT_AWS_PROFILE`. This value is not a configuration value, as the `boto3` session needs to be configured correctly so that it is authenticated prior to the config being instantiated in the flask application creation process.
+
 `TestingConfig` inherits from `Config` but sets:
 
 - `TESTING` to `True`
@@ -102,7 +104,7 @@ Ensure you set the above environment variables and configurations before running
 flask run
 ```
 
-Note: By default, the application will use the `AWSConfig` but if you do not want to use AWS parameter store, you can specifically run the `local_flask_app` which uses the base `Config` with `flask --app local_flask_app run`
+**Note:** By default, the application will use the `AWSConfig` but if you do not want to use AWS parameter store, you can specifically run the `local_flask_app` which uses the base `Config` with `flask --app local_flask_app run`
 
 You should now have the app running on <http://localhost:5000/>
 

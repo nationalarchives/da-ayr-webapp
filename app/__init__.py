@@ -1,6 +1,3 @@
-import os
-
-import boto3
 from flask import Flask
 from flask_assets import Bundle, Environment
 from flask_compress import Compress
@@ -28,13 +25,6 @@ def null_to_dash(value):
     if value is None:
         return "-"
     return value
-
-
-# use only for local development
-if os.environ.get("DEFAULT_AWS_PROFILE"):
-    boto3.setup_default_session(
-        profile_name=os.environ.get("DEFAULT_AWS_PROFILE")
-    )
 
 
 def create_app(config_class=AWSConfig):
