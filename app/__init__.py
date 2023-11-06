@@ -1,3 +1,5 @@
+import os
+
 import boto3
 from flask import Flask
 from flask_assets import Bundle, Environment
@@ -28,17 +30,18 @@ def null_to_dash(value):
     return value
 
 
+# use only for local development
+if os.environ.get("DEFAULT_AWS_PROFILE"):
+    boto3.setup_default_session(
+        profile_name=os.environ.get("DEFAULT_AWS_PROFILE")
+    )
+
+
 def create_app(config_class=Config):
     app = Flask(__name__, static_url_path="/assets")
-    app.config.from_object(config_class)
+    app.config.from_object(config_class())
 
     force_https = False if app.config["TESTING"] else True
-
-    # use only for local development
-    if app.config["DEFAULT_AWS_PROFILE"]:
-        boto3.setup_default_session(
-            profile_name=app.config["DEFAULT_AWS_PROFILE"]
-        )
 
     app.jinja_env.lstrip_blocks = True
     app.jinja_env.trim_blocks = True

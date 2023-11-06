@@ -1,6 +1,6 @@
-import os
-
+import keycloak
 from flask import (
+    current_app,
     flash,
     json,
     make_response,
@@ -8,29 +8,19 @@ from flask import (
     render_template,
     request,
     session,
+    url_for,
 )
 from flask_wtf.csrf import CSRFError
-from keycloak import KeycloakOpenID
 from werkzeug.exceptions import HTTPException
 
 from app.main import bp
+from app.main.authorize.keycloak_login_required_decorator import (
+    access_token_login_required,
+)
 from app.main.forms import CookiesForm
 from app.main.search import search_logic
 
 from .forms import SearchForm
-
-KEYCLOAK_BASE_URI = os.getenv("KEYCLOAK_BASE_URI")
-KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID")
-KEYCLOAK_REALM_NAME = os.getenv("KEYCLOAK_REALM_NAME")
-KEYCLOAK_CLIENT_SECRET = os.getenv("KEYCLOAK_CLIENT_SECRET")
-
-# Configure client
-keycloak_openid = KeycloakOpenID(
-    server_url=KEYCLOAK_BASE_URI,
-    client_id=KEYCLOAK_CLIENT_ID,
-    realm_name=KEYCLOAK_REALM_NAME,
-    client_secret_key=KEYCLOAK_CLIENT_SECRET,
-)
 
 
 @bp.route("/", methods=["GET"])
@@ -40,9 +30,14 @@ def index():
 
 @bp.route("/login", methods=["GET"])
 def login():
-    # Get Code With Oauth Authorization Request
+    keycloak_openid = keycloak.KeycloakOpenID(
+        server_url=current_app.config["KEYCLOAK_BASE_URI"],
+        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
+        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
+        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
+    )
     auth_url = keycloak_openid.auth_url(
-        redirect_uri="http://localhost:5000/callback",
+        redirect_uri=f"{current_app.config['APP_BASE_URL']}/callback",
         scope="email",
         state="your_state_info",
     )
@@ -53,11 +48,16 @@ def login():
 @bp.route("/callback", methods=["GET"])
 def callback():
     code = request.args.get("code")
-
+    keycloak_openid = keycloak.KeycloakOpenID(
+        server_url=current_app.config["KEYCLOAK_BASE_URI"],
+        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
+        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
+        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
+    )
     access_token_response = keycloak_openid.token(
         grant_type="authorization_code",
         code=code,
-        redirect_uri="http://localhost:5000/callback",
+        redirect_uri=f"{current_app.config['APP_BASE_URL']}/callback",
     )
 
     session["access_token_response"] = access_token_response
@@ -66,6 +66,8 @@ def callback():
     session["token_type"] = access_token_response["token_type"]
     session["token_scope"] = access_token_response["scope"]
     session["session_state"] = access_token_response["session_state"]
+
+    return redirect(url_for("main.poc_search"))
 
 
 @bp.route("/accessibility", methods=["GET"])
@@ -89,6 +91,7 @@ def results():
 
 
 @bp.route("/poc-search-view", methods=["POST", "GET"])
+@access_token_login_required
 def poc_search():
     form = SearchForm()
     results = []
@@ -96,7 +99,9 @@ def poc_search():
 
     if query:
         open_search_response = (
-            search_logic.generate_open_search_client_and_make_poc_search(query)
+            search_logic.generate_open_search_client_and_make_poc_search(
+                query, current_app.config["AWS_OPEN_SEARCH_INDEX"]
+            )
         )
         results = open_search_response["hits"]["hits"]
         session["search_results"] = results
@@ -112,6 +117,7 @@ def poc_search():
 
 
 @bp.route("/record", methods=["GET"])
+@access_token_login_required
 def record():
     """
     Render the record details page.

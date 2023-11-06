@@ -4,12 +4,20 @@ from typing import Any
 from opensearchpy import ImproperlyConfigured
 
 from app.main.aws.open_search import (
-    generate_open_search_client_from_aws_params,
-    get_open_search_index_from_aws_params,
+    generate_open_search_client_from_current_app_config,
 )
 
 
-def generate_open_search_client_and_make_poc_search(query: str) -> Any:
+def generate_open_search_client_and_make_poc_search(query: str, index) -> Any:
+    open_search_client = generate_open_search_client_from_current_app_config()
+    try:
+        open_search_client.ping()
+    except ImproperlyConfigured as e:
+        logging.error("OpenSearch client improperly configured: " + str(e))
+        raise e
+
+    logging.info("OpenSearch client has been connected successfully")
+
     fields = [
         "legal_status",
         "description",
@@ -22,17 +30,7 @@ def generate_open_search_client_and_make_poc_search(query: str) -> Any:
         "Consignment_Series",
         "Contact_Name",
     ]
-    open_search_client = generate_open_search_client_from_aws_params()
 
-    try:
-        open_search_client.ping()
-    except ImproperlyConfigured as e:
-        logging.error("OpenSearch client improperly configured: " + str(e))
-        raise e
-
-    logging.info("OpenSearch client has been connected successfully")
-
-    open_search_index = get_open_search_index_from_aws_params()
     open_search_query = {
         "query": {
             "multi_match": {
@@ -43,7 +41,8 @@ def generate_open_search_client_and_make_poc_search(query: str) -> Any:
             }
         }
     }
+
     search_results = open_search_client.search(
-        body=open_search_query, index=open_search_index
+        body=open_search_query, index=index
     )
     return search_results

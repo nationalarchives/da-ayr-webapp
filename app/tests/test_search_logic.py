@@ -9,23 +9,27 @@ from app.main.search.search_logic import (
 
 
 @patch(
-    "app.main.search.search_logic.generate_open_search_client_from_aws_params"
+    "app.main.search.search_logic.generate_open_search_client_from_current_app_config"
 )
-@patch("app.main.search.search_logic.get_open_search_index_from_aws_params")
 def test_generate_open_search_client_and_make_poc_search(
-    mock_get_open_search_index_from_aws_params,
-    mock_generate_open_search_client_from_aws_params,
+    mock_generate_open_search_client_from_current_app_config,
 ):
+    """
+    Given a query and index
+    When generate_open_search_client_and_make_poc_search is called
+        and a ping is successfully made to the instance
+    Then the search query is executed, and the results are returned.
+    """
     query = "foo bar"
-    mock_get_open_search_index_from_aws_params.return_value = "test_index"
+    index = "test_index"
 
     mock_open_search_client = Mock()
     mock_open_search_client.search.return_value = ["result 1", "result 2"]
-    mock_generate_open_search_client_from_aws_params.return_value = (
+    mock_generate_open_search_client_from_current_app_config.return_value = (
         mock_open_search_client
     )
 
-    results = generate_open_search_client_and_make_poc_search(query)
+    results = generate_open_search_client_and_make_poc_search(query, index)
 
     mock_open_search_client.ping.assert_called_once()
 
@@ -57,15 +61,19 @@ def test_generate_open_search_client_and_make_poc_search(
 
 
 @patch(
-    "app.main.search.search_logic.generate_open_search_client_from_aws_params"
+    "app.main.search.search_logic.generate_open_search_client_from_current_app_config"
 )
-@patch("app.main.search.search_logic.get_open_search_index_from_aws_params")
 def test_generate_open_search_client_and_make_poc_search_raises_connection_error(
-    mock_get_open_search_index_from_aws_params,
-    mock_generate_open_search_client_from_aws_params,
+    mock_generate_open_search_client_from_current_app_config,
 ):
+    """
+    Given a query and index
+    When generate_open_search_client_and_make_poc_search is called with them,
+        but an ImproperlyConfigured error occurs when pinging the OpenSearch instance
+    Then an ImproperlyConfigured exception is raised, with additional logging message
+    """
     query = "foo bar"
-    mock_get_open_search_index_from_aws_params.return_value = "test_index"
+    index = "test_index"
 
     mock_open_search_client = Mock()
     mock_open_search_client.search.return_value = ["result 1", "result 2"]
@@ -76,11 +84,11 @@ def test_generate_open_search_client_and_make_poc_search_raises_connection_error
     mock_open_search_client.ping.side_effect = (
         raise_improperly_configured_exception
     )
-    mock_generate_open_search_client_from_aws_params.return_value = (
+    mock_generate_open_search_client_from_current_app_config.return_value = (
         mock_open_search_client
     )
 
     with pytest.raises(ImproperlyConfigured):
-        generate_open_search_client_and_make_poc_search(query)
+        generate_open_search_client_and_make_poc_search(query, index)
         mock_open_search_client.ping.assert_called_once()
         mock_open_search_client.search.assert_not_called()
