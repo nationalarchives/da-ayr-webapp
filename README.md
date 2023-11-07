@@ -63,8 +63,8 @@ and then specifies environment variables for:
 `Config` also sets the following configuration properties but `AWSConfig` inherits from `Config` and instead of reading these from environment variables, reads them from AWS parameter store:
 
 - `AWS_REGION`: The AWS region used for AWS services.
-- `AWS_OPENSEARCH_INDEX`: The OpenSearch index used for your application.
-- `AWS_OPENSEARCH_HOST`: The hostname of the OpenSearch service.
+- `AWS_OPEN_SEARCH_INDEX`: The OpenSearch index used for your application.
+- `AWS_OPEN_SEARCH_HOST`: The hostname of the OpenSearch service.
 - `AWS_OPEN_SEARCH_USERNAME`: The username for OpenSearch authentication.
 - `AWS_OPEN_SEARCH_PASSWORD`: The password for OpenSearch authentication.
 - `KEYCLOAK_BASE_URI`: The base URI of the Keycloak authentication service.
