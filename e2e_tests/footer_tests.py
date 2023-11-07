@@ -1,15 +1,29 @@
 import pytest
 from playwright.sync_api import Page, expect
 
-
 # Define list of footer links and their expected URLS
 
 footer_links = [
-
-    ("Terms of use", "/terms-of-use", "Terms of use – AYR - Access Your Records – GOV.UK "),
-    ("Privacy", "/privacy", "Privacy notice – AYR - Access Your Records – GOV.UK "),
-    ("Cookies policy", "/cookies", "Cookies – AYR - Access Your Records – GOV.UK"),
-    ("Accessibility", "/accessibility", "Accessibility statement – AYR - Access Your Records – GOV.UK"),
+    (
+        "Terms of use",
+        "/terms-of-use",
+        "Terms of use – AYR - Access Your Records – GOV.UK ",
+    ),
+    (
+        "Privacy",
+        "/privacy",
+        "Privacy notice – AYR - Access Your Records – GOV.UK ",
+    ),
+    (
+        "Cookies policy",
+        "/cookies",
+        "Cookies – AYR - Access Your Records – GOV.UK",
+    ),
+    (
+        "Accessibility",
+        "/accessibility",
+        "Accessibility statement – AYR - Access Your Records – GOV.UK",
+    ),
 ]
 
 
@@ -19,9 +33,10 @@ def setup_page(page: Page):
     yield page
 
 
-@pytest.mark.parametrize("link_text, expected_url, expected_title", footer_links)
+@pytest.mark.parametrize(
+    "link_text, expected_url, expected_title", footer_links
+)
 def test_footer_links(setup_page, link_text, expected_url, expected_title):
-
     # locate and click footer link as user would
 
     setup_page.click(f'text="{link_text}"')
