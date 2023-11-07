@@ -35,23 +35,63 @@ For convenience a shell script has been provided to download and extract the GOV
 ./build.sh
 ```
 
-### Set local environment variables
+### Configuration and Environment Variables
 
-In the `.flaskenv` file you will find a number of environment variables. These are injected as global variables into the app and pre-populated into page templates as appropriate. Enter your specific information for the following:
+Our application uses configuration values defined across a few different Configuration classes. We have a base `Config`, `AWSConfig` and `TestingConfig`.
 
-- CONTACT_EMAIL
-- CONTACT_PHONE
-- DEPARTMENT_NAME
-- DEPARTMENT_URL
-- SERVICE_NAME
-- SERVICE_PHASE
-- SERVICE_URL
+These variables are used to set up the application's settings and connect it to various services.
+
+`Config` is the base config, which hardcodes:
+
+- `RATELIMIT_HEADERS_ENABLED`: Rate-limiting headers configuration. Is `True`.
+- `SESSION_COOKIE_HTTPONLY`: Configure session cookies to be HTTP-only. Is `True`.
+- `SESSION_COOKIE_SECURE`: Configure session cookies to be secure. Is `True`.
+
+and then specifies environment variables for:
+
+- `APP_BASE_URL`: The base URL of your application.
+- `CONTACT_EMAIL`: Email address for contact information.
+- `CONTACT_PHONE`: Phone number for contact information.
+- `DEPARTMENT_NAME`: The name of the department.
+- `DEPARTMENT_URL`: The URL of the department's website.
+- `RATELIMIT_STORAGE_URI`: The URI for the Redis storage used for rate limiting.
+- `SECRET_KEY`: Secret key used for Flask session and security.
+- `SERVICE_NAME`: The name of the service.
+- `SERVICE_PHASE`: The phase of the service.
+- `SERVICE_URL`: The URL of the service.
+
+`Config` also sets the following configuration properties but `AWSConfig` inherits from `Config` and instead of reading these from environment variables, reads them from AWS parameter store:
+
+- `AWS_REGION`: The AWS region used for AWS services.
+- `AWS_OPENSEARCH_INDEX`: The OpenSearch index used for your application.
+- `AWS_OPENSEARCH_HOST`: The hostname of the OpenSearch service.
+- `AWS_OPEN_SEARCH_USERNAME`: The username for OpenSearch authentication.
+- `AWS_OPEN_SEARCH_PASSWORD`: The password for OpenSearch authentication.
+- `KEYCLOAK_BASE_URI`: The base URI of the Keycloak authentication service.
+- `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
+- `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.
+- `KEYCLOAK_CLIENT_SECRET`: The client secret used for Keycloak authentication.
+- `KEYCLOAK_AYR_USER_GROUP`: The Keycloak user group used to check user access.
+
+**Note 1:** All of these configuration values which depend on an environment variable default to an empty string if not found.
+
+**Note 2:** `AWSConfig` depends on a `boto3` session which, when developing locally, can be set to use a specific AWS Profile by setting the environment variable `DEFAULT_AWS_PROFILE`. This value is not a configuration value, as the `boto3` session needs to be configured correctly so that it is authenticated prior to the config being instantiated in the flask application creation process.
+
+`TestingConfig` inherits from `Config` but sets:
+
+- `TESTING` to `True`
+- `SECRET_KEY` to "TEST_SECRET_KEY" so that Flask sessions work in tests.
+- `WTF_CSRF_ENABLED` to `False` so that we do not need to worry about CSRF protection in our tests.
 
 ### Run app
+
+Ensure you set the above environment variables and configurations before running the Flask application with:
 
 ```shell
 flask run
 ```
+
+**Note:** By default, the application will use the `AWSConfig` but if you do not want to use AWS parameter store, you can specifically run the `local_flask_app` which uses the base `Config` with `flask --app local_flask_app run`
 
 You should now have the app running on <http://localhost:5000/>
 

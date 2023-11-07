@@ -1,6 +1,3 @@
-import os
-
-import boto3
 from flask import Flask
 from flask_assets import Bundle, Environment
 from flask_compress import Compress
@@ -11,7 +8,7 @@ from flask_wtf.csrf import CSRFProtect
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
-from config import Config
+from configs.aws_config import AWSConfig
 
 assets = Environment()
 compress = Compress()
@@ -30,14 +27,7 @@ def null_to_dash(value):
     return value
 
 
-# use only for local development
-if os.environ.get("DEFAULT_AWS_PROFILE"):
-    boto3.setup_default_session(
-        profile_name=os.environ.get("DEFAULT_AWS_PROFILE")
-    )
-
-
-def create_app(config_class=Config):
+def create_app(config_class=AWSConfig):
     app = Flask(__name__, static_url_path="/assets")
     app.config.from_object(config_class())
 

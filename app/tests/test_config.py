@@ -1,7 +1,7 @@
 import boto3
 from moto import mock_ssm
 
-from config import Config
+from configs.aws_config import AWSConfig
 
 
 @mock_ssm
@@ -73,9 +73,7 @@ def test_aws_params_config_initialized():
         Overwrite=True,
     )
 
-    config = Config()
-
-    assert config.AWS_ENVIRONMENT_PREFIX == "/test_env/"
+    config = AWSConfig()
 
     assert config.AWS_OPEN_SEARCH_INDEX == "test_open_search_index"
     assert config.AWS_OPEN_SEARCH_HOST == "test_open_search_host"
