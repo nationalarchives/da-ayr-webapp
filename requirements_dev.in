@@ -1,9 +1,0 @@
-bandit
-black
-flake8-bugbear
-isort
-pep8-naming
-pip-tools
-pur
-pytest-cov
-safety

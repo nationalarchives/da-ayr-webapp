@@ -34,3 +34,17 @@ repos:
       - id: isort
         name: isort (python)
         args: ["--profile", "black", "--filter-files"]
+
+-   repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+    -   id: bandit
+        args: ["-c", "pyproject.toml", "-r", "."]
+
+-   repo: local
+    hooks:
+    -   id: safety-check
+        name: Safety Check
+        entry: custom_hooks/safety_check.sh
+        language: system
+        pass_filenames: false
