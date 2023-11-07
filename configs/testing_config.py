@@ -1,4 +1,4 @@
-from config import Config
+from configs.base_config import Config
 
 
 class TestingConfig(Config):

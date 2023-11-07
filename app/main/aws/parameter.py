@@ -6,7 +6,6 @@ from botocore.exceptions import ClientError
 
 def get_aws_environment_prefix() -> str:
     environment_name = get_parameter_store_key_value("ENVIRONMENT_NAME")
-    print(environment_name)
     return "/" + environment_name + "/"
 
 

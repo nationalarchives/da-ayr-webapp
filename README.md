@@ -1,46 +1,31 @@
-# GOV.UK Frontend Flask
+# DA AYR Beta WebApp
 
-![govuk-frontend 4.7.0](https://img.shields.io/badge/govuk--frontend%20version-4.7.0-005EA5?logo=gov.uk&style=flat)
-
-**GOV.UK Frontend Flask is a [community tool](https://design-system.service.gov.uk/community/resources-and-tools/) of the [GOV.UK Design System](https://design-system.service.gov.uk/). The Design System team is not responsible for it and cannot support you with using it. Contact the [maintainers](#contributors) directly if you need [help](#support) or you want to request a feature.**
-
-This is a template [Flask](https://flask.palletsprojects.com) app using the [GOV.UK Frontend](https://frontend.design-system.service.gov.uk/) and [GOV.UK Design System](https://design-system.service.gov.uk/) which is designed to get a new project started quicker. It is also a reference implementation of two core packages:
-
-- [GOV.UK Frontend Jinja](https://github.com/LandRegistry/govuk-frontend-jinja) which provides Jinja macros of GOV.UK components
-- [GOV.UK Frontend WTForms](https://github.com/LandRegistry/govuk-frontend-wtf) which provides WTForms widgets to integrate the above Jinja macros into form generation and validation
-
-The app is provided intentionally bare, with just the essential parts that all services need, such as error pages, accessibility statement, cookie banner, cookie page and privacy notice. It uses a number of other packages to provide the [features](#features) described below with sensible and best-practice defaults. Please read the [next steps](#next-steps) section for guidance on how to start building out your app on top of this template.
-
-## Prerequisites
-
-### Required
-
-- Python 3.8.x or higher
-
-### Optional
-
-- Redis 4.0.x or higher (for rate limiting, otherwise in-memory storage is used)
+This is a repo created and maintained by The National Archives for the Access Your Records (AYR) project. It holds a Flask application based from the [Land Registry GOV.UK Frontend Flask template repo](https://github.com/LandRegistry/govuk-frontend-flask). Currently the intention is to deploy this via AWS Lambda and API Gateway but you can run it however you would like.
 
 ## Getting started
 
-### Create a new repository
-
-[Create a new repository](https://github.com/LandRegistry/govuk-frontend-flask/generate) using this template, with the same directory structure and files. Then clone a local copy of your newly created repository.
 ### Setup Poetry environment
-[Install poetry](https://python-poetry.org/docs/) and ensure you have the poetry.lock file.
+
+[Install poetry](https://python-poetry.org/docs/)
 Check poetry has been installed using:
-```
+
+```shell
 poetry --version
 ```
+
 Then install the required dependencies using:
-```
+
+```shell
 poetry install
 ```
-A shell can then be activated using:
-```
+
+You can now access the virtual environment created by poetry with:
+
+```shell
 poetry shell
 ```
 
+in which you can run all of the following commands. Alternatively you can prefix all of the following commands with `poetry run`.
 
 ### Get GOV.UK Frontend assets
 
@@ -50,33 +35,95 @@ For convenience a shell script has been provided to download and extract the GOV
 ./build.sh
 ```
 
-### Set local environment variables
+### Configuration and Environment Variables
 
-In the `.flaskenv` file you will find a number of environment variables. These are injected as global variables into the app and pre-populated into page templates as appropriate. Enter your specific information for the following:
+Our application uses configuration values defined across a few different Configuration classes. We have a base `Config`, `AWSConfig` and `TestingConfig`.
 
-- CONTACT_EMAIL
-- CONTACT_PHONE
-- DEPARTMENT_NAME
-- DEPARTMENT_URL
-- SERVICE_NAME
-- SERVICE_PHASE
-- SERVICE_URL
+These variables are used to set up the application's settings and connect it to various services.
+
+`Config` is the base config, which hardcodes:
+
+- `RATELIMIT_HEADERS_ENABLED`: Rate-limiting headers configuration. Is `True`.
+- `SESSION_COOKIE_HTTPONLY`: Configure session cookies to be HTTP-only. Is `True`.
+- `SESSION_COOKIE_SECURE`: Configure session cookies to be secure. Is `True`.
+
+and then specifies environment variables for:
+
+- `APP_BASE_URL`: The base URL of your application.
+- `CONTACT_EMAIL`: Email address for contact information.
+- `CONTACT_PHONE`: Phone number for contact information.
+- `DEPARTMENT_NAME`: The name of the department.
+- `DEPARTMENT_URL`: The URL of the department's website.
+- `RATELIMIT_STORAGE_URI`: The URI for the Redis storage used for rate limiting.
+- `SECRET_KEY`: Secret key used for Flask session and security.
+- `SERVICE_NAME`: The name of the service.
+- `SERVICE_PHASE`: The phase of the service.
+- `SERVICE_URL`: The URL of the service.
+
+`Config` also sets the following configuration properties but `AWSConfig` inherits from `Config` and instead of reading these from environment variables, reads them from AWS parameter store:
+
+- `AWS_REGION`: The AWS region used for AWS services.
+- `AWS_OPENSEARCH_INDEX`: The OpenSearch index used for your application.
+- `AWS_OPENSEARCH_HOST`: The hostname of the OpenSearch service.
+- `AWS_OPEN_SEARCH_USERNAME`: The username for OpenSearch authentication.
+- `AWS_OPEN_SEARCH_PASSWORD`: The password for OpenSearch authentication.
+- `KEYCLOAK_BASE_URI`: The base URI of the Keycloak authentication service.
+- `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
+- `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.
+- `KEYCLOAK_CLIENT_SECRET`: The client secret used for Keycloak authentication.
+- `KEYCLOAK_AYR_USER_GROUP`: The Keycloak user group used to check user access.
+
+**Note 1:** All of these configuration values which depend on an environment variable default to an empty string if not found.
+
+**Note 2:** `AWSConfig` depends on a `boto3` session which, when developing locally, can be set to use a specific AWS Profile by setting the environment variable `DEFAULT_AWS_PROFILE`. This value is not a configuration value, as the `boto3` session needs to be configured correctly so that it is authenticated prior to the config being instantiated in the flask application creation process.
+
+`TestingConfig` inherits from `Config` but sets:
+
+- `TESTING` to `True`
+- `SECRET_KEY` to "TEST_SECRET_KEY" so that Flask sessions work in tests.
+- `WTF_CSRF_ENABLED` to `False` so that we do not need to worry about CSRF protection in our tests.
 
 ### Run app
+
+Ensure you set the above environment variables and configurations before running the Flask application with:
 
 ```shell
 flask run
 ```
 
+**Note:** By default, the application will use the `AWSConfig` but if you do not want to use AWS parameter store, you can specifically run the `local_flask_app` which uses the base `Config` with `flask --app local_flask_app run`
+
 You should now have the app running on <http://localhost:5000/>
 
 ## Testing
 
-To run the tests:
+### Unit and Integration tests
+
+To run the unit and integration tests you can run:
 
 ```shell
-python -m pytest --cov=app --cov-report=term-missing --cov-branch
+python -m pytest --cov=app --cov-report=term-missing --cov-branch -vvv
 ```
+
+This also will generate a test coverage report.
+
+### End To End Tests
+
+We have a separate End To End suite of [Playwright](https://playwright.dev/python/docs/intro) tests in the `e2e_tests/` directory. These are also written in python and use the `pytest-playwright` `PyPi` package to run the tests as specified in the poetry depednecies.
+
+In addition to installing the package, before you run the tests for the first time on your machine, you will need to run `playwright install` to install the required browsers for the end to end tests.
+
+You can then run all of our Playwright tests against localhost with:
+
+```shell
+pytest e2e_tests/ --base-url=http://localhost:5000
+```
+
+You can swap out the base-url for another if you want to run the tests against another instance of the application.
+
+To enable this flexibility we suggest any Playwright tests added to the repo use relative paths when referring to urls of the application itself.
+
+In addition, we recommend that any tests that have dependencies on data, do not make assumptions about any particular database or instance involved, and instead do the test data set up and teardown as part of the test suite.
 
 ## Features
 
@@ -137,14 +184,8 @@ Uses [Flask Limiter](https://flask-limiter.readthedocs.io/en/stable/) to set req
 
 Rate limit storage can be backed by [Redis](https://redis.io/) using the `RATELIMIT_STORAGE_URL` config value in `config.py`, or fall back to in-memory if not present. Rate limit information will also be added to various [response headers](https://flask-limiter.readthedocs.io/en/stable/#rate-limiting-headers).
 
-## Contributors
-
-- [Matt Shaw](https://github.com/matthew-shaw) (Primary maintainer)
-
 ## Support
 
 This software is provided _"as-is"_ without warranty. Support is provided on a _"best endeavours"_ basis by the maintainers and open source community.
 
-If you are a civil servant you can sign up to the [UK Government Digital Slack](https://ukgovernmentdigital.slack.com/signup) workspace to contact the maintainers listed [above](#contributors) and the community of people using this project in the [#govuk-design-system](https://ukgovernmentdigital.slack.com/archives/C6DMEH5R6) channel.
-
-Otherwise, please see the [contribution guidelines](CONTRIBUTING.md) for how to raise a bug report or feature request.
+Please see the [contribution guidelines](CONTRIBUTING.md) for how to raise a bug report or feature request.
