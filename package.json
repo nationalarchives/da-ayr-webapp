@@ -1,0 +1,17 @@
+{
+  "name": "da-ayr-beta-webapp",
+  "description": "This is a repo created and maintained by The National Archives for the Access Your Records (AYR) project. It holds a Flask application based from the [Land Registry GOV.UK Frontend Flask template repo](https://github.com/LandRegistry/govuk-frontend-flask). Currently the intention is to deploy this via AWS Lambda and API Gateway but you can run it however you would like.",
+  "scripts": {
+    "dev": "sass --watch app/static/src/scss:app/static/src/css",
+    "lint": "prettier --write 'app/static/src/scss/**/*.scss' && stylelint --fix 'app/static/src/scss/**/*.scss'",
+    "build": "sass --style=compressed app/static/src/scss:app/static/src/css"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^3.0.3",
+    "sass": "^1.69.5",
+    "stylelint": "^15.11.0",
+    "stylelint-config-standard-scss": "^11.1.0",
+    "stylelint-selector-bem-pattern": "^3.0.1"
+  }
+}
