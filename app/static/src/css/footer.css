@@ -3,7 +3,8 @@
 /* CSS for Footer */
 
 
-.govuk-footer {
+.govuk-footer  {
+
    display:flex;
    flex-direction: row;
    justify-content: space-between;

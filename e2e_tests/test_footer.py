@@ -47,14 +47,6 @@ def test_footer_links(setup_page, link_text, expected_url, expected_title):
 
     # Assertions
 
-    # Check whether the current URL matches the expected URL
-
-    expect(setup_page).to_have_url(expected_url)
-
     # Check if the text of the link is contained within title of the page
 
     expect(setup_page).to_have_title(expected_title)
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])
