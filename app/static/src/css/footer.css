@@ -4,44 +4,31 @@
 
 
 .govuk-footer  {
-
-   display:flex;
-   flex-direction: row;
-   justify-content: space-between;
-   width: 100%;
-   flex-wrap: wrap;
-   padding-top: 40px;
    padding-bottom: 40px;
-   box-sizing: border-box;
 }
 
 .govuk-footer__tna-logo {
    width: 100px;
-   margin-right: 20px;
-   margin-top: 20px;
-   margin-left: -20px;
+}
+
+.govuk-footer__meta {
+   margin: 0;
+   align-items: center;
+   gap: 40px;
 }
 
 .govuk-footer__meta-item {
-  padding-bottom: 10px;
-   display:block;
-   max-width: 100%;
-   margin-left: 20px;
-   margin-top: 20px;
-   margin-bottom: 0px;
+   display: block;
+   margin: 0;
 }
 
-
-.govuk-footer__meta {
-   width: 100%;
-   margin:0;
+.govuk-footer__inline-list-item {
+   margin-bottom: 10px;
 }
 
 @media screen and (max-width: 640px) {
-
    .govuk-footer__meta {
        flex-direction: column;
-       align-items: center;
     }
 
     .govuk-footer__link {
@@ -54,18 +41,14 @@
     .govuk-footer__inline-list-item  {
        display:block;
        margin-right: 0;
+       margin-bottom: 0;
        text-align:center;
-       padding:10px;
+       padding: 10px 0;
     }
 
     .govuk-footer__licence-logo{
-       margin:0 auto;
+       margin:0 auto 10px;
        display:block;
-       margin-bottom: 10px;
-    }
-
-    .govuk-footer__tna-logo {
-       margin-right: 0;
     }
 
     .govuk-footer__licence-description {
