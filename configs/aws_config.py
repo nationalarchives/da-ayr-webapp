@@ -6,7 +6,7 @@ from app.main.aws.parameter import (
     get_aws_environment_prefix,
     get_parameter_store_key_value,
 )
-from configs.base_config import Config
+from configs.local_config import LocalConfig
 
 # use only for local development
 if os.environ.get("DEFAULT_AWS_PROFILE"):
@@ -15,7 +15,7 @@ if os.environ.get("DEFAULT_AWS_PROFILE"):
     )
 
 
-class AWSConfig(Config):
+class AWSConfig(LocalConfig):
     @property
     def _AWS_ENVIRONMENT_PREFIX(self):
         return get_aws_environment_prefix()

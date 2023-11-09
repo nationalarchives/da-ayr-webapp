@@ -1,4 +1,4 @@
 from app import create_app
-from configs.base_config import Config
+from configs.local_config import LocalConfig
 
-app = create_app(Config)
+app = create_app(LocalConfig)
