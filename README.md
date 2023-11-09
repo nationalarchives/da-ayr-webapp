@@ -85,7 +85,7 @@ and then specifies environment variables for:
 
 ### CSS / SCSS
 
-SASS is being used to build CSS files. To build the css files you can use npm to build using: 
+SASS is being used to build CSS files. To build the css files you can use npm to build using:
 
 ```
 npm run build
