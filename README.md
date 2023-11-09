@@ -49,7 +49,6 @@ These variables are used to set up the application's settings and connect it to 
 
 and then specifies environment variables for:
 
-- `APP_BASE_URL`: The base URL of your application.
 - `CONTACT_EMAIL`: Email address for contact information.
 - `CONTACT_PHONE`: Phone number for contact information.
 - `DEPARTMENT_NAME`: The name of the department.

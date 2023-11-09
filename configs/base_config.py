@@ -6,7 +6,6 @@ class Config(object):
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SECURE = True
 
-    APP_BASE_URL = os.getenv("APP_BASE_URL", "")
     CONTACT_EMAIL = os.getenv("CONTACT_EMAIL", "")
     CONTACT_PHONE = os.getenv("CONTACT_PHONE", "")
     DEPARTMENT_NAME = os.getenv("DEPARTMENT_NAME", "")
