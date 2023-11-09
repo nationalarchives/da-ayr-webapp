@@ -1,0 +1,57 @@
+
+
+/* CSS for Footer */
+
+
+.govuk-footer  {
+   padding-bottom: 40px;
+}
+
+.govuk-footer__tna-logo {
+   width: 100px;
+}
+
+.govuk-footer__meta {
+   margin: 0;
+   align-items: center;
+   gap: 40px;
+}
+
+.govuk-footer__meta-item {
+   display: block;
+   margin: 0;
+}
+
+.govuk-footer__inline-list-item {
+   margin-bottom: 10px;
+}
+
+@media screen and (max-width: 640px) {
+   .govuk-footer__meta {
+       flex-direction: column;
+    }
+
+    .govuk-footer__link {
+       order: 2;
+    }
+    .govuk-footer__meta-item--grow {
+       flex-basis: auto;
+    }
+
+    .govuk-footer__inline-list-item  {
+       display:block;
+       margin-right: 0;
+       margin-bottom: 0;
+       text-align:center;
+       padding: 10px 0;
+    }
+
+    .govuk-footer__licence-logo{
+       margin:0 auto 10px;
+       display:block;
+    }
+
+    .govuk-footer__licence-description {
+       text-align: center;
+    }
+}
