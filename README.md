@@ -83,6 +83,23 @@ and then specifies environment variables for:
 - `SECRET_KEY` to "TEST_SECRET_KEY" so that Flask sessions work in tests.
 - `WTF_CSRF_ENABLED` to `False` so that we do not need to worry about CSRF protection in our tests.
 
+### CSS / SCSS
+
+SASS is being used to build CSS files. To build the css files you can use npm to build using: 
+
+```
+npm run build
+```
+or if you'd like to watch for changes use:
+
+```
+npm run watch
+```
+To lint all CSS use:
+```
+npm run lint
+```
+
 ### Run app
 
 Ensure you set the above environment variables and configurations before running the Flask application with:
