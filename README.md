@@ -37,29 +37,26 @@ For convenience a shell script has been provided to download and extract the GOV
 
 ### Configuration and Environment Variables
 
-Our application uses configuration values defined across a few different Configuration classes. We have a base `Config`, `AWSConfig` and `TestingConfig`.
+Our application uses configuration values defined across a few different Configuration classes. We have three usable configs `EnvConfig`, `AWSConfig` and `TestingConfig`, as well as an abstract one `BaseConfig`.
 
-These variables are used to set up the application's settings and connect it to various services.
+The configuration variables are used to set up the application's settings and connect it to various services.
 
-`Config` is the base config, which hardcodes:
+`BaseConfig` is the base config, which hardcodes:
 
 - `RATELIMIT_HEADERS_ENABLED`: Rate-limiting headers configuration. Is `True`.
 - `SESSION_COOKIE_HTTPONLY`: Configure session cookies to be HTTP-only. Is `True`.
 - `SESSION_COOKIE_SECURE`: Configure session cookies to be secure. Is `True`.
-
-and then specifies environment variables for:
-
 - `CONTACT_EMAIL`: Email address for contact information.
 - `CONTACT_PHONE`: Phone number for contact information.
 - `DEPARTMENT_NAME`: The name of the department.
 - `DEPARTMENT_URL`: The URL of the department's website.
-- `RATELIMIT_STORAGE_URI`: The URI for the Redis storage used for rate limiting.
-- `SECRET_KEY`: Secret key used for Flask session and security.
 - `SERVICE_NAME`: The name of the service.
 - `SERVICE_PHASE`: The phase of the service.
 - `SERVICE_URL`: The URL of the service.
 
-`Config` also sets the following configuration properties but `AWSConfig` inherits from `Config` and instead of reading these from environment variables, reads them from AWS parameter store:
+and also specifies all non hardcoded values by calling the abstract method `_get_config_value`, which is implemented in either `AWSParameterStoreConfig` or `EnvConfig` which both extend `BaseConfig`.
+
+ The main difference between `AWSParameterStoreConfig` and `EnvConfig` is that the former reads the following values from AWS Parameter Store, whereas the latter reads them from environment variables:
 
 - `AWS_REGION`: The AWS region used for AWS services.
 - `AWS_OPEN_SEARCH_INDEX`: The OpenSearch index used for your application.
@@ -71,45 +68,69 @@ and then specifies environment variables for:
 - `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.
 - `KEYCLOAK_CLIENT_SECRET`: The client secret used for Keycloak authentication.
 - `KEYCLOAK_AYR_USER_GROUP`: The Keycloak user group used to check user access.
+- `RATELIMIT_STORAGE_URI`: The URI for the Redis storage used for rate limiting.
+- `SECRET_KEY`: Secret key used for Flask session and security.
 
-**Note 1:** All of these configuration values which depend on an environment variable default to an empty string if not found.
+You can specify whether you want to use `AWSParameterStoreConfig`, by specifying the environment variable `CONFIG_SOURCE=AWS_PARAMETER_STORE`, or for `EnvConfig`  specify `CONFIG_SOURCE=ENVIRONMENT_VARIABLES`.
 
-**Note 2:** `AWSConfig` depends on a `boto3` session which, when developing locally, can be set to use a specific AWS Profile by setting the environment variable `DEFAULT_AWS_PROFILE`. This value is not a configuration value, as the `boto3` session needs to be configured correctly so that it is authenticated prior to the config being instantiated in the flask application creation process.
+If you use `AWSParameterStoreConfig`, you should note that it depends on a `boto3` session which, when developing locally, can be set to use a specific AWS Profile by setting the environment variable `DEFAULT_AWS_PROFILE`. This value is not a configuration value, as the `boto3` session needs to be configured correctly so that it is authenticated prior to the config being instantiated in the flask application creation process.
 
-`TestingConfig` inherits from `Config` but sets:
+**Note:** All of these configuration values which depend on an environment variable default to an empty string if not found.
+
+For convenience you can utilise the appropriate environment variable template in the repo to get set up quickly. If you want to use:
+
+- `AWSParameterStoreConfig`, run `cp .env.aws_parameter_store.template .env`
+- `EnvConfig`, run `cp .env.env_var.template .env`
+
+and then fill it out with the appropriate values.
+
+For testing, we have the `client` fixture which uses the `app` fixture which passes in `TestingConfig`.
+
+`TestingConfig` inherits from `EnvConfig` but sets:
 
 - `TESTING` to `True`
 - `SECRET_KEY` to "TEST_SECRET_KEY" so that Flask sessions work in tests.
 - `WTF_CSRF_ENABLED` to `False` so that we do not need to worry about CSRF protection in our tests.
 
+#### The .flaskenv file
+
+In addition to the `.env` file discussed above which can be created from template files, we have a `.flaskenv` with Flask specific configuration values which is committed to the repo and we don't expect to change these.
+
+#### Environment loading
+
+Both the `.env` and `.flask_env` are loaded automatically when we run the flask application as outlined in the following section, thanks to the use of `python-dotenv`. More information on Flask environment variable hierarchies can be found [here](https://flask.palletsprojects.com/en/2.3.x/cli/#environment-variables-from-dotenv).
+
 ### CSS / SCSS
 
 SASS is being used to build CSS files. To build the css files you can use npm to build by first installing the npm packages and then using:
 
-```
+```shell
 npm run build
 ```
+
 or if you'd like to watch for changes use:
 
-```
+```shell
 npm run dev
 ```
+
 To lint all CSS use:
-```
+
+```shell
 npm run lint
 ```
 
 ### Run app
 
-Ensure you set the above environment variables and configurations before running the Flask application with:
+Ensure you set the above environment variables in the `.env` file as appropriate before running the Flask application with:
 
 ```shell
 flask run
 ```
 
-**Note:** By default, the application will use the `AWSConfig` but if you do not want to use AWS parameter store, you can specifically run the `local_flask_app` which uses the base `Config` with `flask --app local_flask_app run`
-
 You should now have the app running on <http://localhost:5000/>
+
+**Note:** Unless you have changed the `FLASK_APP` value in the .flaskenv file to point to another application entrypoint other than `main_app`, you must specify the `CONFIG_SOURCE` environment variable (as populatd by the env file templates), either `AWS_PARAMETER_STORE` or `ENVIRONMENT_VARIABLES` otherwise this command will raise an error.
 
 ## Testing
 
@@ -125,7 +146,7 @@ This also will generate a test coverage report.
 
 ### End To End Tests
 
-We have a separate End To End suite of [Playwright](https://playwright.dev/python/docs/intro) tests in the `e2e_tests/` directory. These are also written in python and use the `pytest-playwright` `PyPi` package to run the tests as specified in the poetry depednecies.
+We have a separate End To End suite of [Playwright](https://playwright.dev/python/docs/intro) tests in the `e2e_tests/` directory. These are also written in python and use the `pytest-playwright` `PyPi` package to run the tests as specified in the poetry dependencies.
 
 In addition to installing the package, before you run the tests for the first time on your machine, you will need to run `playwright install` to install the required browsers for the end to end tests.
 
