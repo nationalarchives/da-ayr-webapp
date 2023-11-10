@@ -39,7 +39,7 @@ repos:
     rev: 1.7.5
     hooks:
     -   id: bandit
-        args: ["-c", "pyproject.toml", "-r", ".", "--exclude", "node_modules/*"]
+        args: ["-c", "pyproject.toml", "--exclude", "node_modules/*", "-r", "."]
 
 -   repo: local
     hooks:
