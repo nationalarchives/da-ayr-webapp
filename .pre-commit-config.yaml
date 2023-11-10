@@ -39,7 +39,7 @@ repos:
     rev: 1.7.5
     hooks:
     -   id: bandit
-        args: ["-c", "pyproject.toml", "-r", "."]
+        args: ["-c", "pyproject.toml", "-r", ".", "--exclude", "node_modules/*"]
 
 -   repo: local
     hooks:
@@ -48,3 +48,13 @@ repos:
         entry: custom_hooks/safety_check.sh
         language: system
         pass_filenames: false
+
+- repo: https://github.com/thibaudcolas/pre-commit-stylelint
+  rev: v15.11.0
+  hooks:
+    - id: stylelint
+      additional_dependencies:
+        - stylelint@15.11.0
+        - stylelint-config-standard-scss@3.0.0
+        - stylelint-config-standard-scss@^11.1.0
+        - stylelint-selector-bem-pattern@^3.0.1
