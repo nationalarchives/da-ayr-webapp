@@ -75,7 +75,7 @@ You can specify whether you want to use `AWSParameterStoreConfig`, by specifying
 
 If you use `AWSParameterStoreConfig`, you should note that it depends on a `boto3` session which, when developing locally, can be set to use a specific AWS Profile by setting the environment variable `DEFAULT_AWS_PROFILE`. This value is not a configuration value, as the `boto3` session needs to be configured correctly so that it is authenticated prior to the config being instantiated in the flask application creation process.
 
-**Note:** All of these configuration values which depend on an environment variable default to an empty string if not found.
+**Note:** All of the configuration values which depend on an environment variable in `EnvConfig` default to an empty string if not found.
 
 For convenience you can utilise the appropriate environment variable template in the repo to get set up quickly. If you want to use:
 
@@ -130,7 +130,7 @@ flask run
 
 You should now have the app running on <http://localhost:5000/>
 
-**Note:** Unless you have changed the `FLASK_APP` value in the .flaskenv file to point to another application entrypoint other than `main_app`, you must specify the `CONFIG_SOURCE` environment variable (as populatd by the env file templates), either `AWS_PARAMETER_STORE` or `ENVIRONMENT_VARIABLES` otherwise this command will raise an error.
+**Note:** Unless you have changed the `FLASK_APP` value in the .flaskenv file to point to another application entrypoint other than `main_app`, you must specify the `CONFIG_SOURCE` environment variable (as populated by the env file templates), either `AWS_PARAMETER_STORE` or `ENVIRONMENT_VARIABLES` otherwise this command will raise an error.
 
 ## Testing
 
