@@ -25,7 +25,7 @@
     margin-bottom: 10px;
  }
 
- @media screen and (max-width: 640px) {
+ @media screen and (width <= 640px) {
     .govuk-footer__meta {
         flex-direction: column;
      }
@@ -33,6 +33,7 @@
      .govuk-footer__link {
         order: 2;
      }
+
      .govuk-footer__meta-item--grow {
         flex-basis: auto;
      }
