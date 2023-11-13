@@ -27,5 +27,11 @@ jobs:
     - name: Install dependencies
       run: poetry install
 
+    - name: Install Node dependencies
+      run: npm install
+
+    - name: Build CSS
+      run: npm run build
+
     - name: Run Pytest tests
       run: AWS_DEFAULT_REGION=eu-west-2 poetry run pytest --cov=app/main  --cov-report term-missing  -vvv app/tests/

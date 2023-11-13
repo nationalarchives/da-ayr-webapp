@@ -1,0 +1,33 @@
+.govuk-button {
+  position: relative;
+  padding: 8px 10px 7px 7px;
+  text-align: center;
+  border: 2px solid transparent;
+
+  &--start {
+    margin-left: 3px;
+    font-weight: 700;
+    font-size: 1.5rem;
+    display: inline-flex;
+    justify-content: center;
+    min-height: auto;
+    margin-top: 20px;
+    margin-bottom: 30px;
+  }
+}
+
+p.govuk-body {
+  margin-bottom: -40px;
+  display: inline-block;
+}
+
+.govuk-heading-l {
+  margin-bottom: 30px;
+  margin-top: -40px;
+  font-weight: 700;
+}
+
+.govuk-heading-m {
+  margin-bottom: 20px;
+  font-weight: 700;
+}
