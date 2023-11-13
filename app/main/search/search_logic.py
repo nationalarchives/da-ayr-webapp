@@ -46,3 +46,31 @@ def generate_open_search_client_and_make_poc_search(query: str, index) -> Any:
         body=open_search_query, index=index
     )
     return search_results
+
+
+def generate_open_search_client_and_unique_values(index, field_name: str) -> Any:
+    open_search_client = generate_open_search_client_from_current_app_config()
+    try:
+        open_search_client.ping()
+    except ImproperlyConfigured as e:
+        logging.error("OpenSearch client improperly configured: " + str(e))
+        raise e
+
+    logging.info("OpenSearch client has been connected successfully")
+
+    open_search_query = {
+        "size": 0,
+        "aggs": {
+            "unique_values": {
+                "terms": {
+                    "field": field_name,
+                }
+            }
+        }
+    }
+    # print(open_search_query)
+
+    search_results = open_search_client.search(
+        body=open_search_query, index=index
+    )
+    return search_results
