@@ -7,6 +7,6 @@ def test_start_page(client):
         b'<h1 class="govuk-heading-l">Access your records</h1>' in response.data
     )
     assert (
-        b"""<a href="#" role="button" draggable="false" class="govuk-button govuk-button--start" data-module="govuk-button">Start now"""
+        b"""<a href="#" role="button" draggable="false" class="govuk-button govuk-button--start" data-module="govuk-button">Start now"""  # noqa
         in response.data
     )
