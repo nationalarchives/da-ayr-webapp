@@ -45,7 +45,7 @@ def access_token_login_required(view_func):
         if not access_token:
             return redirect(url_for("main.login"))
 
-        decoded_token = decode_token(access_token)
+        decoded_token = _decode_token(access_token)
 
         if not decoded_token["active"]:
             session.pop("access_token", None)
@@ -75,7 +75,7 @@ def _check_if_user_has_access_to_ayr(keycloak_ayr_user_group, decoded_token):
     return group_exists
 
 
-def decode_token(access_token):
+def _decode_token(access_token):
     keycloak_openid = keycloak.KeycloakOpenID(
         server_url=current_app.config["KEYCLOAK_BASE_URI"],
         client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
@@ -89,10 +89,23 @@ def decode_token(access_token):
 
 
 def get_user_transferring_body_groups():
+    """
+    function that returns list of transferring body group names based on assignment of user group in keycloak for a user
+
+    User has user group assigned in keycloak, keycloak user groups are linked to transferring bodies
+    Based on active access token of user, user groups are extracted and list of user groups details retrieved
+
+    Args:
+        N/A
+
+    Returns:
+        function: return list of transferring bodies
+    """
+
     access_token = session.get("access_token")
     user_group_list = []
     if access_token:
-        decoded_token = decode_token(access_token)
+        decoded_token = _decode_token(access_token)
         if decoded_token["active"]:
             groups = decoded_token["groups"]
             for group in groups:
