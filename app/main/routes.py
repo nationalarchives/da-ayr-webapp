@@ -157,9 +157,9 @@ def start_page():
     return render_template("start-page.html")
 
 
-@bp.route("/sign-out", methods=["GET"])
-def sign_out():
-    return render_template("sign-out.html")
+@bp.route("/signed-out", methods=["GET"])
+def signed_out():
+    return render_template("signed-out.html")
 
 
 @bp.route("/browse", methods=["GET"])
