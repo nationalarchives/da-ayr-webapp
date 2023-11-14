@@ -1,37 +1,34 @@
 from unittest.mock import patch
+from app.main.authorize.keycloak_login_required_decorator import access_token_login_required
+from app.main.routes import logout, poc_search, record
 
-import pytest
 from flask import url_for
 
-EXPECTED_PROTECTED_VIEWS = [
-    ("main.poc_search"),
-    ("main.record"),
-    ("main.logout"),
-]
-
-
-@pytest.mark.parametrize("view_name", EXPECTED_PROTECTED_VIEWS)
-def test_access_token_login_required_decorator_no_token(view_name, app):
+def test_access_token_login_required_decorator_no_token(app):
     """
     Given no access token in the session,
     When accessing a route protected by the 'access_token_login_required' decorator,
     Then it should redirect to the login page.
     """
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
+    view_name = "/protected_view"
     with app.test_client() as client:
+        @app.route(view_name)
+        @access_token_login_required
+        def protected_view():
+            return "Access granted"
         with client.session_transaction() as session:
             session["access_token"] = None
-        response = client.get(url_for(view_name))
+        response = client.get(view_name)
         assert response.status_code == 302
         assert response.headers["Location"] == url_for("main.login")
 
 
-@pytest.mark.parametrize("view_name", EXPECTED_PROTECTED_VIEWS)
 @patch(
     "app.main.authorize.keycloak_login_required_decorator.keycloak.KeycloakOpenID.introspect"
 )
 def test_access_token_login_required_decorator_inactive_token(
-    mock_decode_keycloak_access_token, view_name, app
+    mock_decode_keycloak_access_token, app
 ):
     """
     Given an inactive access token in the session,
@@ -42,11 +39,16 @@ def test_access_token_login_required_decorator_inactive_token(
     mock_decode_keycloak_access_token.return_value = {"active": False}
 
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
+    view_name = "/protected_view"
     with app.test_client() as client:
+        @app.route(view_name)
+        @access_token_login_required
+        def protected_view():
+            return "Access granted"
         with client.session_transaction() as session:
             session["access_token"] = "some_token"
             session["foo"] = "bar"
-        response = client.get(url_for(view_name))
+        response = client.get(view_name)
 
         assert response.status_code == 302
         assert response.headers["Location"] == url_for("main.login")
@@ -55,13 +57,11 @@ def test_access_token_login_required_decorator_inactive_token(
             assert cleared_session == {}
 
 
-@pytest.mark.parametrize("view_name", EXPECTED_PROTECTED_VIEWS)
 @patch(
     "app.main.authorize.keycloak_login_required_decorator.keycloak.KeycloakOpenID.introspect"
 )
 def test_access_token_login_required_decorator_active_without_ayr_access(
     mock_decode_keycloak_access_token,
-    view_name,
     app,
 ):
     """
@@ -78,11 +78,16 @@ def test_access_token_login_required_decorator_active_without_ayr_access(
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
     app.config["KEYCLOAK_AYR_USER_GROUP"] = "application_3"
 
+    view_name = "/protected_view"
     with app.test_client() as client:
+        @app.route(view_name)
+        @access_token_login_required
+        def protected_view():
+            return "Access granted"
         with client.session_transaction() as session:
             session["access_token"] = "valid_token"
 
-        response = client.get(url_for(view_name))
+        response = client.get(view_name)
 
         with client.session_transaction() as session:
             flashed_messages = session["_flashes"]
@@ -97,14 +102,11 @@ def test_access_token_login_required_decorator_active_without_ayr_access(
         assert response.status_code == 302
         assert response.headers["Location"] == url_for("main.index")
 
-
-@pytest.mark.parametrize("view_name", EXPECTED_PROTECTED_VIEWS)
 @patch(
     "app.main.authorize.keycloak_login_required_decorator.keycloak.KeycloakOpenID.introspect"
 )
 def test_access_token_login_required_decorator_valid_token(
     mock_decode_keycloak_access_token,
-    view_name,
     app,
 ):
     """
@@ -120,10 +122,27 @@ def test_access_token_login_required_decorator_valid_token(
 
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
     app.config["KEYCLOAK_AYR_USER_GROUP"] = "application_1"
+
+    view_name = "/protected_view"
     with app.test_client() as client:
+        @app.route(view_name)
+        @access_token_login_required
+        def protected_view():
+            return "Access granted"
         with client.session_transaction() as session:
             session["access_token"] = "valid_token"
 
-        response = client.get(url_for(view_name))
+        response = client.get(view_name)
 
-        assert response.status_code == 200
+    assert response.status_code == 200
+    assert response.data.decode() == "Access granted"
+
+
+def test_expected_protected_routes_decorated_by_access_token_login_required():
+    """
+    Given a list of views we expect to be protected by the access_token_login_required decorator
+    When introspecting the view function
+    Then it should have the `access_token_login_required` property set to True
+    """
+    expected_protected_views = [poc_search, record, logout]
+    assert all(getattr(expected_protected_view, "access_token_login_required") == True for expected_protected_view in expected_protected_views)

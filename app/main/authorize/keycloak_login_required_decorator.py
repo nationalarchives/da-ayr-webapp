@@ -68,7 +68,9 @@ def access_token_login_required(view_func):
             return redirect(url_for("main.index"))
 
         return view_func(*args, **kwargs)
-
+    
+    decorated_view.access_token_login_required = True
+    
     return decorated_view
 
 
