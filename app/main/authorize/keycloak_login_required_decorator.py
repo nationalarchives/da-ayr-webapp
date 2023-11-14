@@ -67,7 +67,6 @@ def access_token_login_required(view_func):
             )
             return redirect(url_for("main.index"))
 
-        flash("TNA User is logged in and has access to AYR.")
         return view_func(*args, **kwargs)
 
     return decorated_view

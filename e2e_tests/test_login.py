@@ -15,7 +15,6 @@ def test_login_succeeds_when_valid_credentials(page: Page):
     page.get_by_label("Password").fill(os.environ.get("AYR_TEST_PASSWORD"))
     page.get_by_role("button", name="Sign in").click()
     expect(page).to_have_url("/poc-search-view")
-    expect(page.get_by_text("TNA User is logged in and has access to AYR."))
 
 
 def test_login_fails_when_invalid_credentials(page: Page):
