@@ -37,6 +37,7 @@ def test_access_token_login_required_decorator_inactive_token(
     Given an inactive access token in the session,
     When accessing a route protected by the 'access_token_login_required' decorator,
     Then it should redirect to the login page.
+    And the session should be cleared
     """
     mock_decode_keycloak_access_token.return_value = {"active": False}
 
@@ -44,10 +45,14 @@ def test_access_token_login_required_decorator_inactive_token(
     with app.test_client() as client:
         with client.session_transaction() as session:
             session["access_token"] = "some_token"
+            session["foo"] = "bar"
         response = client.get(url_for(view_name))
 
         assert response.status_code == 302
         assert response.headers["Location"] == url_for("main.login")
+
+        with client.session_transaction() as cleared_session:
+            assert cleared_session == {}
 
 
 @pytest.mark.parametrize("view_name", EXPECTED_PROTECTED_VIEWS)

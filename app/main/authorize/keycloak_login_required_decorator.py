@@ -55,7 +55,7 @@ def access_token_login_required(view_func):
         decoded_token = keycloak_openid.introspect(access_token)
 
         if not decoded_token["active"]:
-            session.pop("access_token", None)
+            session.clear()
             return redirect(url_for("main.login"))
 
         keycloak_ayr_user_group = current_app.config["KEYCLOAK_AYR_USER_GROUP"]
