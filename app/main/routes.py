@@ -28,6 +28,21 @@ def index():
     return render_template("index.html")
 
 
+@bp.route("/logout", methods=["GET"])
+@access_token_login_required
+def logout():
+    keycloak_openid = keycloak.KeycloakOpenID(
+        server_url=current_app.config["KEYCLOAK_BASE_URI"],
+        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
+        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
+        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
+    )
+    keycloak_openid.logout(session["refresh_token"])
+    session.clear()
+
+    return redirect("/signed-out")
+
+
 @bp.route("/login", methods=["GET"])
 def login():
     keycloak_openid = keycloak.KeycloakOpenID(

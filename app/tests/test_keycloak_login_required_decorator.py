@@ -3,7 +3,11 @@ from unittest.mock import patch
 import pytest
 from flask import url_for
 
-EXPECTED_PROTECTED_VIEWS = [("main.poc_search"), ("main.record")]
+EXPECTED_PROTECTED_VIEWS = [
+    ("main.poc_search"),
+    ("main.record"),
+    ("main.logout"),
+]
 
 
 @pytest.mark.parametrize("view_name", EXPECTED_PROTECTED_VIEWS)
