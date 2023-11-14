@@ -1865,23 +1865,23 @@ pycryptodome = ["pyasn1", "pycryptodome (>=3.3.1,<4.0.0)"]
 
 [[package]]
 name = "python-keycloak"
-version = "3.3.0"
+version = "3.7.0"
 description = "python-keycloak is a Python package providing access to the Keycloak API."
 optional = false
-python-versions = ">=3.7,<4.0"
+python-versions = ">=3.8,<4.0"
 files = [
-    {file = "python_keycloak-3.3.0-py3-none-any.whl", hash = "sha256:57cd0bd0610e07ad11888197d3f753a00611cb9975742e70444b93a566889a51"},
-    {file = "python_keycloak-3.3.0.tar.gz", hash = "sha256:cc868126f535aa4f320dc9eab24e46af381c13bcc88d9b0701b04293ea75cd24"},
+    {file = "python_keycloak-3.7.0-py3-none-any.whl", hash = "sha256:92aa0a7e965cc5422d335c36efa0519f3188d9b8048cc8083f8f6e23c13178a5"},
+    {file = "python_keycloak-3.7.0.tar.gz", hash = "sha256:29eee9490ba354af81fcdf86ec81d840515d8b53002de831715e05d07298886a"},
 ]
 
 [package.dependencies]
 deprecation = ">=2.1.0"
 python-jose = ">=3.3.0"
 requests = ">=2.20.0"
-requests-toolbelt = ">=1.0.0"
+requests-toolbelt = ">=0.6.0"
 
 [package.extras]
-docs = ["Sphinx (>=5.3.0,<6.0.0)", "alabaster (>=0.7.12,<0.8.0)", "commonmark (>=0.9.1,<0.10.0)", "m2r2 (>=0.3.2,<0.4.0)", "mock (>=4.0.3,<5.0.0)", "readthedocs-sphinx-ext (>=2.1.9,<3.0.0)", "recommonmark (>=0.7.1,<0.8.0)", "sphinx-autoapi (>=2.0.0,<3.0.0)", "sphinx-rtd-theme (>=1.0.0,<2.0.0)"]
+docs = ["Sphinx (>=6.1.0,<7.0.0)", "alabaster (>=0.7.12,<0.8.0)", "commonmark (>=0.9.1,<0.10.0)", "m2r2 (>=0.3.2,<0.4.0)", "mock (>=4.0.3,<5.0.0)", "readthedocs-sphinx-ext (>=2.1.9,<3.0.0)", "recommonmark (>=0.7.1,<0.8.0)", "sphinx-autoapi (>=3.0.0,<4.0.0)", "sphinx-rtd-theme (>=1.0.0,<2.0.0)"]
 
 [[package]]
 name = "python-slugify"
@@ -2471,4 +2471,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "57e19e29c9e26bb8707e0e29f4eccf033405d45d31fd34dda3c1f3e141e0daff"
+content-hash = "5174d89067d6b156822339e8efd3c307e78315f08ed2f8466c67298dde6a35c2"
