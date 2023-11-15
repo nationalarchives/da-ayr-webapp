@@ -122,12 +122,19 @@
 {% endblock %}
 
 {% block beforeContent %}
+<div>
   {{ govukPhaseBanner({
+    'classes': "govuk-!-display-inline-block",
     'tag': {
       'text': config['SERVICE_PHASE']
     },
     'html': 'This is a new service – your <a class="govuk-link" href="mailto:' + config['CONTACT_EMAIL'] +'?subject=Feedback">feedback</a> will help us to improve it.'
   }) }}
+  <a
+    class="govuk-!-display-inline govuk-body govuk-!-font-size-27 govuk-!-font-weight-bold"
+    href="{{ url_for('main.logout') }}"
+  >Sign out</a>
+</div>
 {% endblock %}
 
 {% block content %}
