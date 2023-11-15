@@ -55,6 +55,24 @@ To lint all CSS use:
 npm run lint
 ```
 
+### Set up SSL Certificate
+
+For local development we have decided to require an SSL certificate so that we run our development server with SSL so we are closer to a production system where we intend to use SSL also. We specify the flask cli flags `FLASK_RUN_CERT=cert.pem` and `FLASK_RUN_KEY=key.pem` in the `.flaskenv`, which expect a `cert.pem` and corresponding `key.pem` file in the root of the repo.
+
+You will need to create the cert-key pair with:
+
+  ```shell
+  poetry run openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
+  ```
+
+  and fill out the its prompts with information that you want (it does not matter as it is only being used for a development server).
+
+  **Note:** this command creates a cert-key pair valid for 365 days, but you can amend this as you wish.
+
+When you access the application in a new browser for the first time with one of these keys you will have to tell it you trust the certificate, but then you should not be asked again.
+
+**Note:** [flask-talisman](###HTTP-security-headers) should redirect http requests to https but whenever running the flask development server with a certificate, this doesn't seem to do the redirection. We plan to investigate but for now we will have to deal without this redirection in local dev.
+
 ### Set Flask Configuration Variables
 
 Set the Flask Configuration Variables either with either:
@@ -89,7 +107,7 @@ Ensure you set the above environment variables in the `.env` file as appropriate
 flask run
 ```
 
-You should now have the app running on <http://localhost:5000/>
+You should now have the app running on <https://localhost:5000/>
 
 **Note:** Unless you have changed the `FLASK_APP` value in the `.flaskenv` file to point to another application entrypoint other than `main_app`, you must specify the `CONFIG_SOURCE` environment variable (as populated by the env file templates), to be either `AWS_PARAMETER_STORE` or `ENVIRONMENT_VARIABLES` otherwise `flask run` will raise an error.
 
@@ -178,7 +196,7 @@ In addition to installing the package, before you run the tests for the first ti
 You can then run all of our Playwright tests against localhost with:
 
 ```shell
-pytest e2e_tests/ --base-url=http://localhost:5000
+pytest e2e_tests/ --base-url=https://localhost:5000
 ```
 
 You can swap out the base-url for another if you want to run the tests against another instance of the application.
@@ -223,7 +241,7 @@ CSRF errors are handled by creating a [flash message](#flash-messages) notificat
 
 Uses [Flask Talisman](https://github.com/GoogleCloudPlatform/flask-talisman) to set HTTP headers that can help protect against a few common web application security issues.
 
-- Forces all connections to `https`, unless running with debug enabled.
+- Forces all connections to `https`, unless running with debug enabled or in testing. Note: This seems to not be working when running the local development with a SSL certificate as discussed [above](###set-up-ssl-certificate)
 - Enables [HTTP Strict Transport Security](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security).
 - Sets Flask's session cookie to `secure`, so it will never be set if your application is somehow accessed via a non-secure connection.
 - Sets Flask's session cookie to `httponly`, preventing JavaScript from being able to access its content.
