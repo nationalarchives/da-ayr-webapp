@@ -37,7 +37,7 @@ def access_token_login_required(view_func):
     @wraps(view_func)
     def decorated_view(*args, **kwargs):
         if current_app.config["TESTING"] and not current_app.config.get(
-                "FORCE_AUTHENTICATION_FOR_IN_TESTING"
+            "FORCE_AUTHENTICATION_FOR_IN_TESTING"
         ):
             return view_func(*args, **kwargs)
 
@@ -45,7 +45,14 @@ def access_token_login_required(view_func):
         if not access_token:
             return redirect(url_for("main.login"))
 
-        decoded_token = _decode_token(access_token)
+        keycloak_openid = keycloak.KeycloakOpenID(
+            server_url=current_app.config["KEYCLOAK_BASE_URI"],
+            client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
+            realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
+            client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
+        )
+
+        decoded_token = keycloak_openid.introspect(access_token)
 
         if not decoded_token["active"]:
             session.pop("access_token", None)
@@ -53,7 +60,7 @@ def access_token_login_required(view_func):
 
         keycloak_ayr_user_group = current_app.config["KEYCLOAK_AYR_USER_GROUP"]
         if not _check_if_user_has_access_to_ayr(
-                keycloak_ayr_user_group, decoded_token
+            keycloak_ayr_user_group, decoded_token
         ):
             flash(
                 "TNA User is logged in but does not have access to AYR. Please contact your admin."
@@ -73,46 +80,3 @@ def _check_if_user_has_access_to_ayr(keycloak_ayr_user_group, decoded_token):
         if keycloak_ayr_user_group in group:
             group_exists = True
     return group_exists
-
-
-def _decode_token(access_token):
-    keycloak_openid = keycloak.KeycloakOpenID(
-        server_url=current_app.config["KEYCLOAK_BASE_URI"],
-        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
-        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
-        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
-    )
-
-    decoded_token = keycloak_openid.introspect(access_token)
-
-    return decoded_token
-
-
-def get_user_transferring_body_groups():
-    """
-    function that returns list of transferring body group names based on assignment of user group in keycloak for a user
-
-    User has user group assigned in keycloak, keycloak user groups are linked to transferring bodies
-    Based on active access token of user, user groups are extracted and list of user groups details retrieved
-
-    Args:
-        N/A
-
-    Returns:
-        function: return list of transferring bodies
-    """
-
-    access_token = session.get("access_token")
-    user_group_list = []
-    if access_token:
-        decoded_token = _decode_token(access_token)
-        if decoded_token["active"]:
-            groups = decoded_token["groups"]
-            for group in groups:
-                found_index = group.find("transferring_body")
-                if found_index != -1:
-                    split_str = group.split("/")
-                    if len(split_str) > 1:
-                        group_name = (split_str[2]).strip()
-                        user_group_list.append(group_name)
-    return user_group_list

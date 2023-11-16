@@ -48,7 +48,9 @@ def generate_open_search_client_and_make_poc_search(query: str, index) -> Any:
     return search_results
 
 
-def generate_open_search_client_and_unique_values(index, field_name: str) -> Any:
+def generate_open_search_client_and_unique_values(
+    index, field_name: str
+) -> Any:
     open_search_client = generate_open_search_client_from_current_app_config()
     try:
         open_search_client.ping()
@@ -66,9 +68,8 @@ def generate_open_search_client_and_unique_values(index, field_name: str) -> Any
                     "field": field_name,
                 }
             }
-        }
+        },
     }
-    # print(open_search_query)
 
     search_results = open_search_client.search(
         body=open_search_query, index=index

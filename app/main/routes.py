@@ -16,7 +16,9 @@ from werkzeug.exceptions import HTTPException
 from app.main import bp
 from app.main.authorize.keycloak_login_required_decorator import (
     access_token_login_required,
-    get_user_transferring_body_groups
+)
+from app.main.authorize.keycloak_manager import (
+    get_user_transferring_body_groups,
 )
 from app.main.forms import CookiesForm
 from app.main.search import search_logic
@@ -108,7 +110,7 @@ def poc_search():
         session["search_results"] = search_results
 
     num_records_found = len(search_results)
-    print(num_records_found)
+
     return render_template(
         "poc-search.html",
         form=form,
@@ -123,19 +125,23 @@ def poc_transferring_bodies():
     form = SearchForm()
     field_name = "Source_Organization.keyword"
 
-    # check if user has transferring body group access or not
     user_transferring_body_groups = get_user_transferring_body_groups()
 
-    # get unique transferring bodies
-    unique_response = search_logic.generate_open_search_client_and_unique_values(
-        current_app.config["AWS_OPEN_SEARCH_INDEX"], field_name)
+    unique_response = (
+        search_logic.generate_open_search_client_and_unique_values(
+            current_app.config["AWS_OPEN_SEARCH_INDEX"], field_name
+        )
+    )
     unique_values = unique_response["aggregations"]["unique_values"]["buckets"]
     unique_transferring_bodies = []
     for value in unique_values:
         group_name = value["key"]
         if len(user_transferring_body_groups) > 0:
             for user_group in user_transferring_body_groups:
-                if user_group.strip().replace(' ', '').lower() == group_name.strip().replace(' ', '').lower():
+                if (
+                    user_group.strip().replace(" ", "").lower()
+                    == group_name.strip().replace(" ", "").lower()
+                ):
                     unique_transferring_bodies.append(group_name)
 
     return render_template(
