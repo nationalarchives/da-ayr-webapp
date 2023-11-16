@@ -10,3 +10,8 @@ def test_signed_out_page(client):
         b'<p class="govuk-body-l">Thank you for using Access Your Records.</p>'
         in response.data
     )
+
+    assert (
+        b'<a href="/login" role="button" class="govuk-button govuk-button--sign-in-again" '
+        b'data-module="govuk-button">Sign back in'
+    ) in response.data
