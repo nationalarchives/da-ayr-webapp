@@ -1,0 +1,28 @@
+/* CSS for Header */
+
+.govuk-header__link--tna {
+
+    font-weight: 700;
+}
+
+.govuk-header__content {
+    text-align: right;
+    padding-bottom: 0.5rem;
+    margin-left: auto;
+    word-spacing: 3px;
+
+
+}
+
+.govuk-header__logotype--ayr {
+
+    white-space: nowrap;
+    word-spacing: 3px;
+
+}
+
+.govuk-header__container--ayr {
+    display:flex;
+    align-items: flex-end;
+    padding-top:10px;
+}
