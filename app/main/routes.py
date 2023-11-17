@@ -37,7 +37,7 @@ def login():
         client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
     )
     auth_url = keycloak_openid.auth_url(
-        redirect_uri=f"{current_app.config['APP_BASE_URL']}/callback",
+        redirect_uri=f"{request.url_root}callback",
         scope="email",
         state="your_state_info",
     )
@@ -57,7 +57,7 @@ def callback():
     access_token_response = keycloak_openid.token(
         grant_type="authorization_code",
         code=code,
-        redirect_uri=f"{current_app.config['APP_BASE_URL']}/callback",
+        redirect_uri=f"{request.url_root}callback",
     )
 
     session["access_token_response"] = access_token_response
