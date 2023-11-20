@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import pytest
 from flask import url_for
 
 from app.main.authorize.keycloak_login_required_decorator import (
@@ -151,14 +152,18 @@ def test_access_token_login_required_decorator_valid_token(
     assert response.data.decode() == "Access granted"
 
 
-def test_expected_protected_routes_decorated_by_access_token_login_required():
+EXPECTED_PROTECTED_ROUTES = [poc_search, record, logout]
+
+
+@pytest.mark.parametrize("expected_protected_route", EXPECTED_PROTECTED_ROUTES)
+def test_expected_protected_route_decorated_by_access_token_login_required(
+    expected_protected_route,
+):
     """
-    Given a list of views we expect to be protected by the access_token_login_required decorator
+    Given a route we expect to be protected by the access_token_login_required decorator
     When introspecting the view function
     Then it should have the `access_token_login_required` property set to True
     """
-    expected_protected_views = [poc_search, record, logout]
-    assert all(
-        getattr(expected_protected_view, "access_token_login_required") is True
-        for expected_protected_view in expected_protected_views
+    assert (
+        getattr(expected_protected_route, "access_token_login_required") is True
     )
