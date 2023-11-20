@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from flask import url_for
+from flask import render_template, url_for
 
 from app.main.authorize.keycloak_login_required_decorator import (
     access_token_login_required,
@@ -167,3 +167,53 @@ def test_expected_protected_route_decorated_by_access_token_login_required(
     assert (
         getattr(expected_protected_route, "access_token_login_required") is True
     )
+
+
+@patch(
+    "app.main.authorize.keycloak_login_required_decorator.keycloak.KeycloakOpenID.introspect"
+)
+def test_sign_out_button_on_protected_view_that_uses_base_template(
+    mock_decode_keycloak_access_token, app
+):
+    """
+    Given a view that is protected by the 'access_token_login_required' decorator,
+        and renders the `base.html` template
+    When an authenticated user accesses the view,
+    Then the response should contain a 'Sign out' button.
+    """
+    view_name = "/extended_base_view"
+
+    @app.route(view_name)
+    @access_token_login_required
+    def protected_base_view():
+        return render_template(
+            "base.html",
+        )
+
+    with app.test_client() as client:
+        response = client.get(view_name)
+
+    assert response.status_code == 200
+    assert "Sign out" in response.data.decode()
+
+
+def test_no_sign_out_button_on_unprotected_view_that_uses_base_template(app):
+    """
+    Given a view that is NOT protected by the 'access_token_login_required' decorator,
+        and renders the `base.html` template
+    When a user accesses the view,
+    Then the response should not contain a 'Sign out' button.
+    """
+    view_name = "/extended_base_view"
+
+    @app.route(view_name)
+    def unprotected_base_view():
+        return render_template(
+            "base.html",
+        )
+
+    with app.test_client() as client:
+        response = client.get(view_name)
+
+    assert response.status_code == 200
+    assert "Sign out" not in response.data.decode()
