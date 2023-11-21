@@ -4,7 +4,7 @@ import keycloak
 from flask import current_app, flash, g, redirect, session, url_for
 
 
-def access_token_login_required(view_func):
+def access_token_sign_in_required(view_func):
     """
     Decorator that checks if the user is logged in via Keycloak and has access to AYR.
 
@@ -18,7 +18,7 @@ def access_token_login_required(view_func):
     Returns:
         function: The wrapped view function.
 
-    If the user is not authenticated or does not have access, this decorator redirects to the login page
+    If the user is not authenticated or does not have access, this decorator redirects to the sign in page
     or the main index and displays a flash message accordingly.
 
     Configuration options for Keycloak, such as the client ID, realm name, base URI, and client secret,
@@ -29,14 +29,14 @@ def access_token_login_required(view_func):
 
     Example:
         @app.route('/protected')
-        @access_token_login_required
+        @access_token_sign_in_required
         def protected_route():
             return 'Access granted'
     """
 
     @wraps(view_func)
     def decorated_view(*args, **kwargs):
-        g.access_token_login_required = True  # Set attribute on g
+        g.access_token_sign_in_required = True  # Set attribute on g
         try:
             if current_app.config["TESTING"] and not current_app.config.get(
                 "FORCE_AUTHENTICATION_FOR_IN_TESTING"
@@ -45,7 +45,7 @@ def access_token_login_required(view_func):
 
             access_token = session.get("access_token")
             if not access_token:
-                return redirect(url_for("main.login"))
+                return redirect(url_for("main.sign_in"))
 
             keycloak_openid = keycloak.KeycloakOpenID(
                 server_url=current_app.config["KEYCLOAK_BASE_URI"],
@@ -58,7 +58,7 @@ def access_token_login_required(view_func):
 
             if not decoded_token["active"]:
                 session.clear()
-                return redirect(url_for("main.login"))
+                return redirect(url_for("main.sign_in"))
 
             keycloak_ayr_user_group = current_app.config[
                 "KEYCLOAK_AYR_USER_GROUP"
@@ -73,11 +73,11 @@ def access_token_login_required(view_func):
 
             return view_func(*args, **kwargs)
         finally:
-            g.access_token_login_required = (
+            g.access_token_sign_in_required = (
                 False  # Clear attribute after view execution
             )
 
-    decorated_view.access_token_login_required = True
+    decorated_view.access_token_sign_in_required = True
 
     return decorated_view
 

@@ -3,27 +3,27 @@ import os
 from playwright.sync_api import Page, expect
 
 
-def test_login_succeeds_when_valid_credentials(page: Page):
+def test_sign_in_succeeds_when_valid_credentials(page: Page):
     """
-    Given a user is on the login page,
+    Given a user is on the sign in page,
     When they provide valid credentials and click the "Sign in" button,
     Then they should see a success message indicating they are logged in with access to AYR.
     And they should be on the '/poc-search-view' page.
     """
-    page.goto("/login")
+    page.goto("/sign-in")
     page.get_by_label("Email address").fill(os.environ.get("AYR_TEST_USERNAME"))
     page.get_by_label("Password").fill(os.environ.get("AYR_TEST_PASSWORD"))
     page.get_by_role("button", name="Sign in").click()
     expect(page).to_have_url("/poc-search-view")
 
 
-def test_login_fails_when_invalid_credentials(page: Page):
+def test_sign_in_fails_when_invalid_credentials(page: Page):
     """
-    Given a user is on the login page,
+    Given a user is on the sign in page,
     When they provide invalid credentials and click the "Sign in" button,
     Then they should see an error message indicating the provided credentials are invalid.
     """
-    page.goto("/login")
+    page.goto("/sign-in")
     page.get_by_label("Email address").fill("bad")
     page.get_by_label("Password").fill("credentials")
     page.get_by_role("button", name="Sign in").click()

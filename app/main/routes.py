@@ -14,8 +14,8 @@ from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import HTTPException
 
 from app.main import bp
-from app.main.authorize.keycloak_login_required_decorator import (
-    access_token_login_required,
+from app.main.authorize.access_token_sign_in_required import (
+    access_token_sign_in_required,
 )
 from app.main.forms import CookiesForm
 from app.main.search import search_logic
@@ -28,9 +28,9 @@ def index():
     return render_template("index.html")
 
 
-@bp.route("/logout", methods=["GET"])
-@access_token_login_required
-def logout():
+@bp.route("/sign-out", methods=["GET"])
+@access_token_sign_in_required
+def sign_out():
     keycloak_openid = keycloak.KeycloakOpenID(
         server_url=current_app.config["KEYCLOAK_BASE_URI"],
         client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
@@ -43,8 +43,8 @@ def logout():
     return redirect("/signed-out")
 
 
-@bp.route("/login", methods=["GET"])
-def login():
+@bp.route("/sign-in", methods=["GET"])
+def sign_in():
     keycloak_openid = keycloak.KeycloakOpenID(
         server_url=current_app.config["KEYCLOAK_BASE_URI"],
         client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
@@ -106,7 +106,7 @@ def results():
 
 
 @bp.route("/poc-search-view", methods=["POST", "GET"])
-@access_token_login_required
+@access_token_sign_in_required
 def poc_search():
     form = SearchForm()
     results = []
@@ -132,7 +132,7 @@ def poc_search():
 
 
 @bp.route("/record", methods=["GET"])
-@access_token_login_required
+@access_token_sign_in_required
 def record():
     """
     Render the record details page.
