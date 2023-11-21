@@ -1,28 +1,41 @@
 /* CSS for Header */
 
-.govuk-header__link--tna {
 
+.govuk-header__link--tna {
     font-weight: 700;
 }
 
-.govuk-header__content {
-    text-align: right;
-    padding-bottom: 0.5rem;
-    margin-left: auto;
-    word-spacing: 3px;
-
+.govuk-header__logotype--ayr {
+    white-space: nowrap;
+    word-spacing: 0.19rem;
 
 }
 
-.govuk-header__logotype--ayr {
-
-    white-space: nowrap;
-    word-spacing: 3px;
+.govuk-header__content--tna {
+    text-align: right;
+    padding-bottom: 0.5rem;
+    margin-left: auto;
+    word-spacing: 0.19rem;
 
 }
 
 .govuk-header__container--ayr {
-    display:flex;
-    align-items: flex-end;
-    padding-top:10px;
+    padding-top:0.625rem;
+
+}
+
+
+@media screen and (width <= 750px) {
+    .govuk-header__container--ayr {
+       padding-bottom: 1rem;
+
+    }
+
+    .govuk-header__content--tna {
+        flex-direction: column;
+       align-items: center;
+       text-align:center;
+       width: 100%;
+
+    }
 }
