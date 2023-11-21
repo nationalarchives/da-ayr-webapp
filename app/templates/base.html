@@ -122,12 +122,23 @@
 {% endblock %}
 
 {% block beforeContent %}
-  {{ govukPhaseBanner({
-    'tag': {
-      'text': config['SERVICE_PHASE']
-    },
-    'html': 'This is a new service – your <a class="govuk-link" href="mailto:' + config['CONTACT_EMAIL'] +'?subject=Feedback">feedback</a> will help us to improve it.'
-  }) }}
+<div class="govuk-phase-banner banner__container">
+  <div>
+    <p class="govuk-phase-banner__content">
+      <strong class="govuk-tag govuk-phase-banner__content__tag">
+        Beta
+      </strong>
+      <span class="govuk-phase-banner__text">
+        This is a new service – your <a class="govuk-link" href="#">feedback</a> will help us to improve it.
+      </span>
+    </p>
+  </div>
+  {% if authenticated_view %}
+    <div class="sign-out">
+      <a class="govuk-body govuk-!-font-weight-bold govuk-!-font-size-19" href="/sign-out">Sign out</a>
+    </div>
+  {% endif %}
+</div>
 {% endblock %}
 
 {% block content %}
