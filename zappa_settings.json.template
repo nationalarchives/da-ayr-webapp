@@ -1,0 +1,16 @@
+{
+    "sandbox": {
+        "app_function": "main_app.app",
+        "memory_size": 512,
+        "keep_warm": false,
+        "aws_region": "eu-west-2",
+        "project_name": "da-ayr-flask-la",
+        "attach_policy": "aws_attach_policy.json",
+        "runtime": "python3.11",
+        "environment_variables": {
+            "CONFIG_SOURCE": "AWS_PARAMETER_STORE"
+        },
+        "aws_environment_variables": {"INSTANTIATE_LAMBDA_HANDLER_ON_IMPORT": "True"},
+        "profile_name": ""
+    }
+}

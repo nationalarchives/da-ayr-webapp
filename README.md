@@ -170,6 +170,76 @@ In addition to the `.env` file discussed above, which can be created from templa
 
 Both the `.env` and `.flask_env` are loaded automatically when we run the flask application as outlined in the following section, thanks to the use of `python-dotenv`. More information on Flask environment variable hierarchies can be found [here](https://flask.palletsprojects.com/en/2.3.x/cli/#environment-variables-from-dotenv).
 
+## Deployment
+
+Here we detail a way to run the server-side rendered Flask webapp via a "serverless" AWS Lambda-API Gateway setup.
+
+Specific details on how this architecture works can be found in our service diagram that can be shared upon request to a maintainer of this repo.
+
+To implement this we are currently using [Zappa](https://github.com/zappa/Zappa), as defined in our poetry depedencies. Note this is required to be part of the main dependencies group since it is not just a CLI tool but in fact has it's own code which is run in the Lambda once the application code is packaged and deployed to AWS.
+
+### Zappa Configuration
+
+Zappa is configurable, and can be configured differently for different deployment stages. In particular, each deployment stage's configuration is separated  by the top level environment key in the `zappa_settings.json` file.
+
+In this repo we provide a `zappa_settings.json.template` which provides all the configuration variables except for the `profile_name` that we want to use to update each deployment stage with.
+
+Create a `zappa_settings.json` from the template with:
+
+  ```shell
+  cp zappa_settings.json.template zappa_settings.json
+  ```
+
+  and fill out the `profile_name` in each deployment stage with the AWS profile that you want to use to update that deployment stage with.
+
+Note 1: the name of each deployment stage we want to deploy to is defined as a top-level key in the `zappa_settings.json` e.g. `sandbox`.
+
+Note 2: As part of our template, we refer to `aws_attach_policy.json` which defines the IAM Policy for the Lambda execution role so that it can access certain AWS resources such as SSM Parameter Store.
+
+### Zappa deployments
+
+Zappa packages the active virtual environment, in our case our poetry environment, into a zipfile package which will be pushed to run on AWS Lambda.
+AWS Lambda has a size limit of 250MB for the unzipped code so we want to make sure we make the package as lean as possible.
+
+Before running a zappa deployment, make sure you clean out the environment so that it is as lean as possible:
+
+- remove all files unnecessary for running the application. We recommend stashing any files that aren't committed to the repo.
+- remove all dependencies unneeded for running the application, you can do that with: `poetry install --without dev --sync`
+
+#### Initial Deployments
+
+Once your settings are configured, you can package and deploy your application to a deployment stage with a single command:
+
+```shell
+zappa deploy <DEPLOYMENT_STAGE>
+```
+
+Note: Once the application has been deployed once to a particular stage, then it can't be deployed again. You will need to run `zappa undeploy <DEPLOYMENT_STAGE` first. However, more often than not, you will only need to update the deployment, as detailed below.
+
+#### Only Update Flask Code
+
+If your application has already been deployed and you only need to upload new Python code, but not touch the underlying routes, you can simply run:
+
+```shell
+zappa update <DEPLOYMENT_STAGE>
+```
+
+This creates a new archive, uploads it to S3 and updates the Lambda function to use the new code, but doesn't touch the API Gateway routes.
+
+#### Debugging a deployment
+
+You can watch the logs of a deployment by calling the tail management command:
+
+```shell
+zappa tail <DEPLOYMENT_STAGE>
+```
+
+This is especially useful if a deployment fails.
+
+### CI/CD
+
+We do not currently update any deployment automatically in our CI/CD pipeline, but we will soon.
+
 ## Testing
 
 ### Unit and Integration tests
