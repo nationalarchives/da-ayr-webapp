@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
+{%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
+
+{% block pageTitle %}Browse – {{config['SERVICE_NAME']}} – GOV.UK{% endblock %}
+
+
+{% block content %}
+<div class="govuk-grid-row">
+  {{ super() }}
+  <h1 class="govuk-heading-l">Browse records 213,782</h1>
+  <p class="govuk-body browse-body">You are viewing:</p>
+  <p class="govuk-body-m browse-body browse-available__text">Everything available to you</p>
+  <div class="govuk-form-group">
+    <div class="browse-sort-container">
+      <label class="govuk-label" for="sort">
+        Sort by
+      </label>
+      <select class="govuk-select" id="sort" name="sort">
+        <option value="published">Series (low to high)</option>
+        <option value="updated" selected>Series (high to low)</option>
+        <option value="views">Consignment Transferred (most recent first)</option>
+        <option value="comments">Consignment Transferred (oldest first)</option>
+        <option value="comments">Records Held (most first)</option>
+      </select>
+      <button class="govuk-button update-button" id="sort-update-button" data-module="govuk-button">
+        Apply
+      </button>
+    </div>
+  </div>
+
+  <div class="govuk-width-container">
+    <div class="govuk-grid-row">
+
+      <!-- FILTERS -->
+      <div class="govuk-grid-column-one-third filters-form">
+
+        <div class="browse-filter-container">
+          <p class="govuk-body-l browse-body filters-form__title">Filter within browse</p>
+          <p class="govuk-body-m browse-body">Transferring Body</p>
+          <div class="govuk-form-group browse-filters__form-group filters-form__transferring-body-group">
+            <select class="govuk-select filters-form__transferring-body--select" id="sort" name="sort">
+              <option value="published" selected>Choose one...</option>
+              <option value="updated">Arts Council England</option>
+              <option value="views">Food Standards Agency</option>
+              <option value="comments">Foreign Office</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="browse-series-container">
+          <p class="govuk-body-m browse-body">Series</p>
+          <div class="govuk-form-group browse-filters__form-group filters-form__series-group">
+            <input class="govuk-input filters-form__series--input" id="width-5" name="width10" type="text">
+          </div>
+        </div>
+
+        <div class="browse-consignment-ref-container">
+          <p class="govuk-body-m browse-body">Consignment ref</p>
+          <div class="govuk-form-group browse-filters__form-group filters-form__consignment-ref-group">
+            <input class="govuk-input filters-form__consignment-ref--input" id="width-5" name="width10" type="text">
+          </div>
+        </div>
+
+        <div class="browse-date-container">
+          <div class="govuk-form-group date-form browse-filters__form-group filters-form__date-from-group">
+            <p class="govuk-body-m date-form browse-body filters-form__body-date">Date from</p>
+            <fieldset class="govuk-fieldset" role="group" aria-describedby="date-from">
+              <div class="govuk-date-input" id="date-to">
+                <div class="govuk-date-input__item">
+                  <div class="govuk-form-group">
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-from-day"
+                      name="date-from-day" type="text" inputmode="numeric">
+                    <label class="govuk-label govuk-date-input__label" for="date-from-day">
+                      (DD)
+                    </label>
+                  </div>
+                </div>
+                <div class="govuk-date-input__item">
+                  <div class="govuk-form-group">
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-from-month"
+                      name="date-from-month" type="text" inputmode="numeric">
+                    <label class="govuk-label govuk-date-input__label" for="date-from-month">
+                      (MM)
+                    </label>
+                  </div>
+                </div>
+                <div class="govuk-date-input__item">
+                  <div class="govuk-form-group">
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="date-from-year"
+                      name="date-from-year" type="text" inputmode="numeric">
+                    <label class="govuk-label govuk-date-input__label" for="date-from-year">
+                      (YYYY)
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="govuk-form-group date-form browse-filters__form-group filters-form__date-to-group">
+            <p class="govuk-body-m date-form browse-body filters-form__body-date">To date</p>
+            <fieldset class="govuk-fieldset" role="group" aria-describedby="date-to">
+              <div class="govuk-date-input" id="date-to">
+                <div class="govuk-date-input__item">
+                  <div class="govuk-form-group">
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-to-day"
+                      name="date-to-day" type="text" inputmode="numeric">
+                    <label class="govuk-label govuk-date-input__label" for="date-to-day">
+                      (DD)
+                    </label>
+                  </div>
+                </div>
+                <div class="govuk-date-input__item">
+                  <div class="govuk-form-group">
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-to-month"
+                      name="date-to-month" type="text" inputmode="numeric">
+                    <label class="govuk-label govuk-date-input__label" for="date-to-month">
+                      (MM)
+                    </label>
+                  </div>
+                </div>
+                <div class="govuk-date-input__item">
+                  <div class="govuk-form-group">
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="date-to-year"
+                      name="date-to-year" type="text" inputmode="numeric">
+                    <label class="govuk-label govuk-date-input__label" for="date-to-year">
+                      (YYYY)
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+
+
+          <div class="filters-form__buttons">
+            <button type="button" class="govuk-button filters-form__apply--button" data-module="govuk-button">
+              Apply filters
+            </button>
+            <p class="govuk-body-m filters-form__clear--button"><a href="#">Clear filters</a></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- END FILTERS -->
+
+      <!-- TABLE -->
+      <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
+
+        <dl class="govuk-summary-list">
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key browse-grid__key">
+              Transferring body
+            </dt>
+            <dt class="govuk-summary-list__key browse-grid__key">
+              Series
+            </dt>
+            <dt class="govuk-summary-list__key browse-grid__key">
+              Last record transferred
+            </dt>
+            <dt class="govuk-summary-list__key browse-grid__key">
+              Records held
+            </dt>
+            <dd class="govuk-summary-list__key browse-grid__key">
+              Consignments within series
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dd class="govuk-summary-list__value">
+              Foreign Office
+              </dt>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">FO 01</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">09/10/2023</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">519</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dd class="govuk-summary-list__value">
+              Foreign Office
+              </dt>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">FO 01</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">09/10/2023</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">519</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dd class="govuk-summary-list__value">
+              Foreign Office
+              </dt>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">FO 01</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">09/10/2023</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">519</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dd class="govuk-summary-list__value">
+              Foreign Office
+              </dt>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">FO 01</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">09/10/2023</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">519</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dd class="govuk-summary-list__value">
+              Foreign Office
+              </dt>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">FO 01</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">09/10/2023</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">519</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dd class="govuk-summary-list__value">
+              Foreign Office
+              </dt>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">FO 01</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">09/10/2023</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">519</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dd class="govuk-summary-list__value">
+              Foreign Office
+              </dt>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">FO 01</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">09/10/2023</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">519</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dd class="govuk-summary-list__value">
+              Foreign Office
+              </dt>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">FO 01</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">09/10/2023</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">519</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+            </dd>
+          </div>
+        </dl>
+
+        <!-- PAGINATION -->
+
+        <nav class="govuk-pagination browse-pagination--centered" role="navigation" aria-label="results">
+          <div class="govuk-pagination__prev">
+            <a class="govuk-link govuk-pagination__link" href="#" rel="prev">
+              <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg"
+                height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                <path
+                  d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z">
+                </path>
+              </svg>
+              <span class="govuk-pagination__link-title">Previous</span></a>
+          </div>
+          <ul class="govuk-pagination__list">
+            <li class="govuk-pagination__item">
+              <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 1">
+                1
+              </a>
+            </li>
+            <li class="govuk-pagination__item govuk-pagination__item--current">
+              <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 2" aria-current="page">
+                2
+              </a>
+            </li>
+            <li class="govuk-pagination__item">
+              <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 3">
+                3
+              </a>
+            </li>
+          </ul>
+          <div class="govuk-pagination__next">
+            <a class="govuk-link govuk-pagination__link" href="#" rel="next"> <span
+                class="govuk-pagination__link-title">Next</span> <svg
+                class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg"
+                height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                <path
+                  d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z">
+                </path>
+              </svg></a>
+          </div>
+        </nav>
+      </div>
+
+
+
+    </div>
+  </div>
+
+
+</div>
+{% endblock %}

@@ -1,0 +1,171 @@
+/* Available Records */
+.browse-available__text {
+    width: 300px;
+    height: 28px;
+    background-color: #fff;
+    font-weight: 700;
+}
+
+/* Pagination */
+.browse-pagination--centered {
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Browse Grid */
+.browse-grid--two-thirds {
+    padding: 0;
+}
+
+.browse-grid__key {
+    width: auto;
+}
+
+
+/* Sort By */
+.sort-container {
+    align-items: center;
+}
+
+/* Filters */
+.filters-form {
+    float: right;
+    min-width: 280px;
+}
+
+.browse-filters__form-group {
+    margin: 5px 0 !important;
+}
+
+.browse-body {
+    margin-bottom: 0 !important;
+}
+
+.filters-form__title {
+    font-weight: 700;
+}
+
+.browse-filter-container {
+    background-color: #f3f2f1;
+    padding: 1rem;
+    margin: 5px;
+    min-width: 100%;
+}
+
+.browse-series-container {
+    background-color: #f3f2f1;
+    padding: 1rem;
+    margin: 5px;
+    min-width: 100%;
+}
+
+.browse-consignment-ref-container {
+    background-color: #f3f2f1;
+    padding: 1rem;
+    margin: 5px;
+    min-width: 100%;
+}
+
+.browse-date-container {
+    background-color: #f3f2f1;
+    padding: 1rem;
+    margin: 5px;
+    min-width: 100%;
+}
+
+/* Filter Groups */
+.filters-form__transferring-body-group {
+    display: flex !important;
+    align-items: baseline;
+}
+
+.filters-form__series-group {
+    display: flex;
+}
+
+.filters-form__consignment-ref-group {
+    display: flex;
+}
+
+.filters-form__date-from-group {
+    display: flex;
+    justify-content: space-between;
+}
+
+.filters-form__date-to-group {
+    display: flex;
+    justify-content: space-between;
+}
+
+
+
+/* Filter Inputs */
+.filters-form__transferring-body--select {
+    width:100%;
+    min-width: auto;
+}
+
+.filters-form__series--input {
+    flex-grow: 1;
+    width: 100%;
+}
+
+.filters-form__consignment-ref--input {
+    flex-grow: 1;
+    width: 100%;
+}
+
+
+/* Filter Buttons */
+.filters-form__buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: auto;
+    margin-top: 20px;
+}
+
+.filters-form__apply--button {
+    align-self: flex-start;
+    margin-left: 10px;
+}
+
+.filters-form__clear--button {
+    margin-right: 20px;
+}
+
+.filters-form__transferring-body--button {
+    display: block;
+
+}
+
+.filters-form__series--button {
+    align-self: flex-end;
+    justify-content: flex-end !important;
+    margin-right: 5px !important;
+    margin-left: auto;
+}
+
+.filters-form__consignment-ref--button {
+    align-self: flex-end;
+    justify-content: flex-end !important;
+    margin-right: 5px !important;
+}
+
+.filters-form__date--button {
+    align-self: flex-end;
+    margin-right: 5px !important;
+}
+
+.filter-update-button {
+    align-self: flex-end;
+    justify-content: flex-end !important;
+    margin-right: 5px !important;
+}
+
+
+/* Filter Text */
+.filters-form__body-date {
+    max-width: 2.4rem;
+    font-size: 1rem;
+}
