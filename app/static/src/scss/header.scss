@@ -7,35 +7,36 @@
 
 .govuk-header__logotype--ayr {
     white-space: nowrap;
-    word-spacing: 0.19rem;
+    word-spacing: 0.2rem;
 
 }
 
 .govuk-header__content--tna {
     text-align: right;
-    padding-bottom: 0.5rem;
     margin-left: auto;
-    word-spacing: 0.19rem;
-
+    margin-top: 0.75rem;
+    word-spacing: 0.2rem;
 }
 
 .govuk-header__container--ayr {
     padding-top:0.625rem;
-
 }
 
 
 @media screen and (width <= 750px) {
     .govuk-header__container--ayr {
        padding-bottom: 1rem;
-
     }
 
     .govuk-header__content--tna {
         flex-direction: column;
        align-items: center;
        text-align:center;
-       width: 100%;
-
     }
+
+    .govuk-header__logo {
+        text-align: center;
+        padding-right: 0;
+    }
+
 }
