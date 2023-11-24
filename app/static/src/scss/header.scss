@@ -1,42 +1,47 @@
-/* CSS for Header */
+/* SCSS for Header */
 
 
-.govuk-header__link--tna {
-    font-weight: 700;
+@mixin on-mobile{
+    @media screen and (width <= 750px){
+        @content;
+    }
 }
 
-.govuk-header__logotype--ayr {
-    white-space: nowrap;
-    word-spacing: 0.2rem;
-
-}
-
-.govuk-header__content--tna {
-    text-align: right;
-    margin-left: auto;
-    margin-top: 0.75rem;
-    word-spacing: 0.2rem;
-}
-
-.govuk-header__container--ayr {
-    padding-top:0.625rem;
-}
-
-
-@media screen and (width <= 750px) {
-    .govuk-header__container--ayr {
-       padding-bottom: 1rem;
+.govuk-header {
+    &__link--tna {
+        font-weight: 700;
     }
 
-    .govuk-header__content--tna {
-        flex-direction: column;
+    &__logotype--ayr {
+        white-space: nowrap;
+        word-spacing: 0.2rem;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    &__content--tna {
+        text-align: right;
+        width:100%;
+        padding-bottom: 0.5rem;
+        margin-top: 0.75rem;
+        word-spacing: 0.2rem;
+        @include on-mobile  {
+            flex-direction: column;
+            align-items: center;
+            text-align:center;
+            width: 100%;
+        }
+    }
+
+    &__container--ayr {
+       margin-bottom: 0;
+       display:flex;
+       @include on-mobile  {
+        padding-bottom: 1rem;
+       flex-direction: column;
        align-items: center;
        text-align:center;
-    }
+        }
 
-    .govuk-header__logo {
-        text-align: center;
-        padding-right: 0;
     }
-
 }
