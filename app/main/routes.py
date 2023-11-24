@@ -39,6 +39,7 @@ def sign_out():
     )
     keycloak_openid.logout(session["refresh_token"])
     session.clear()
+    #
 
     return redirect("/signed-out")
 
