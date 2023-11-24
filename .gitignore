@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,git,venv,macos,linux,windows,python,flask,jetbrains+all
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,git,venv,macos,linux,windows,python,flask,jetbrains+all
 
+# Zappa config
+zappa_settings.json
+
 ### GOV.UK Frontend ###
 app/static/src/css*
 app/static/fonts*
