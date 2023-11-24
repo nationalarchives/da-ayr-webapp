@@ -1,7 +1,6 @@
 /* Available Records */
 .browse-available__text {
-    width: 300px;
-    height: 28px;
+    height: 1rem;
     background-color: #fff;
     font-weight: 700;
 }
@@ -9,7 +8,6 @@
 /* Pagination */
 .browse-pagination--centered {
     justify-content: center;
-    margin-top: 20px;
 }
 
 /* Browse Grid */
@@ -17,59 +15,92 @@
     padding: 0;
 }
 
+.browse-grid__list {
+    font-size: 1rem !important;
+}
+
 .browse-grid__key {
     width: auto;
 }
 
+/* .govuk-summary-list__row:nth-child(3) {
+    text-align: right;
+} */
+
 
 /* Sort By */
+.browse-sort-container {
+    margin-top: 2rem;
+}
+
+
 .sort-container {
     align-items: center;
+}
+
+.sort-container__select {
+    margin-right: 0.25rem;
 }
 
 /* Filters */
 .filters-form {
     float: right;
-    min-width: 280px;
+    font-size: 1rem !important;
 }
 
 .browse-filters__form-group {
-    margin: 5px 0 !important;
+    margin: 0.5rem 0 !important;
 }
 
 .browse-body {
     margin-bottom: 0 !important;
+    font-size: 1rem;
+}
+
+.browse-date__label {
+    font-size: 1rem;
 }
 
 .filters-form__title {
     font-weight: 700;
+    font-size: 1.5rem;
 }
 
 .browse-filter-container {
     background-color: #f3f2f1;
-    padding: 1rem;
-    margin: 5px;
+    padding: 0.5rem;
+    margin: 0.5rem;
     min-width: 100%;
+}
+
+.browse-filter__header {
+    display: flex;
+}
+
+.browse-filter__icon {
+    justify-content: space-between;
+    width: 2rem;
+    margin-left: auto;
 }
 
 .browse-series-container {
     background-color: #f3f2f1;
-    padding: 1rem;
-    margin: 5px;
+    padding: 0.5rem;
+    margin: 0.5rem;
     min-width: 100%;
 }
 
 .browse-consignment-ref-container {
     background-color: #f3f2f1;
-    padding: 1rem;
-    margin: 5px;
+    padding: 0.5rem;
+    margin: 0.5rem;
     min-width: 100%;
 }
 
 .browse-date-container {
     background-color: #f3f2f1;
-    padding: 1rem;
-    margin: 5px;
+    padding: 0.5rem;
+    margin: 0.5rem;
     min-width: 100%;
 }
 
@@ -101,8 +132,9 @@
 
 /* Filter Inputs */
 .filters-form__transferring-body--select {
-    width:100%;
+    width: 100%;
     min-width: auto;
+    font-size: 1rem;
 }
 
 .filters-form__series--input {
@@ -122,16 +154,18 @@
     justify-content: space-between;
     align-items: center;
     width: auto;
-    margin-top: 20px;
+    margin-top: 1rem;
 }
 
 .filters-form__apply--button {
     align-self: flex-start;
-    margin-left: 10px;
+    margin-left: 1rem;
+    font-size: 1rem;
 }
 
 .filters-form__clear--button {
-    margin-right: 20px;
+    margin-right: 1rem;
+    font-size: 1rem;
 }
 
 .filters-form__transferring-body--button {
@@ -142,25 +176,25 @@
 .filters-form__series--button {
     align-self: flex-end;
     justify-content: flex-end !important;
-    margin-right: 5px !important;
+    margin-right: 0.5rem !important;
     margin-left: auto;
 }
 
 .filters-form__consignment-ref--button {
     align-self: flex-end;
     justify-content: flex-end !important;
-    margin-right: 5px !important;
+    margin-right: 0.5rem !important;
 }
 
 .filters-form__date--button {
     align-self: flex-end;
-    margin-right: 5px !important;
+    margin-right: 0.5rem !important;
 }
 
 .filter-update-button {
     align-self: flex-end;
     justify-content: flex-end !important;
-    margin-right: 5px !important;
+    margin-right: 0.5rem !important;
 }
 
 
