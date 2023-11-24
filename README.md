@@ -35,32 +35,108 @@ For convenience a shell script has been provided to download and extract the GOV
 ./build.sh
 ```
 
-### Configuration and Environment Variables
+### CSS / SCSS
 
-Our application uses configuration values defined across a few different Configuration classes. We have a base `Config`, `AWSConfig` and `TestingConfig`.
+SASS is being used to build the local CSS files. To build the css files you can use npm to build by first installing the npm packages and then using:
 
-These variables are used to set up the application's settings and connect it to various services.
+```shell
+npm run build
+```
 
-`Config` is the base config, which hardcodes:
+or if you'd like to watch for changes use:
+
+```shell
+npm run dev
+```
+
+To lint all CSS use:
+
+```shell
+npm run lint
+```
+
+### Set up SSL Certificate
+
+For local development we have decided to require an SSL certificate so that we run our development server with SSL so we are closer to a production system where we intend to use SSL also. We specify the flask cli flags `FLASK_RUN_CERT=cert.pem` and `FLASK_RUN_KEY=key.pem` in the `.flaskenv`, which expect a `cert.pem` and corresponding `key.pem` file in the root of the repo.
+
+You will need to create the cert-key pair with:
+
+  ```shell
+  poetry run openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
+  ```
+
+  and fill out the its prompts with information that you want (it does not matter as it is only being used for a development server).
+
+  **Note:** this command creates a cert-key pair valid for 365 days, but you can amend this as you wish.
+
+When you access the application in a new browser for the first time with one of these keys you will have to tell it you trust the certificate, but then you should not be asked again.
+
+**Note:** [flask-talisman](###HTTP-security-headers) should redirect http requests to https but whenever running the flask development server with a certificate, this doesn't seem to do the redirection. We plan to investigate but for now we will have to deal without this redirection in local dev.
+
+### Set Flask Configuration Variables
+
+Set the Flask Configuration Variables either with either:
+
+- Environment Variables:
+  1. Set all desired environment variables for all of the variables specified in `.env.env_var.template`. For convenience you can do this by running the following in the root of the repo:
+
+    ```shell
+    cp .env.env_var.template .env
+    ```
+
+    and filling out the `.env` file as desired.
+
+- AWS SSM Parameter Store values:
+  1. Set up your AWS credentials or log into an AWS account with the AWS CLI environment so that the desired AWS IAM user or role is set up.
+  1. Make sure all of the properties (not the hardcoded values) in the `BaseConfig` class are set in the AWS SSM Parameter Store for this account.
+  1. Set all desired environment variables for all of the variables specified in `env.aws_parameter_store.template`. For convenience you can do this by running the following in the root of the repo:
+
+    ```shell
+    cp .env.aws_parameter_store.template .env
+    ```
+
+    and filling out the `.env` file as desired.
+
+**Note:** `AWSParameterStoreConfig` depends on a `boto3` session which, when developing locally, can be set to use a specific AWS Profile by setting the environment variable `DEFAULT_AWS_PROFILE`.
+
+### Run app
+
+Ensure you set the above environment variables in the `.env` file as appropriate before running the Flask application with:
+
+```shell
+flask run
+```
+
+You should now have the app running on <https://localhost:5000/>
+
+**Note:** Unless you have changed the `FLASK_APP` value in the `.flaskenv` file to point to another application entrypoint other than `main_app`, you must specify the `CONFIG_SOURCE` environment variable (as populated by the env file templates), to be either `AWS_PARAMETER_STORE` or `ENVIRONMENT_VARIABLES` otherwise `flask run` will raise an error.
+
+## Flask App Configuration Details
+
+Our application uses configuration values defined using [Flask Config classes](https://flask.palletsprojects.com/en/2.3.x/config/#development-production) to set up the application's settings and connect it to various services. The pattern we are using consists of a base config class, `BaseConfig`, which is where we specify any hardcoded values, and all other configurable values are defined as a property, for example:
+
+```python
+    @property
+    def EXAMPLE_VARIABLE(self):
+        return self._get_config_value("EXAMPLE_VARIABLE")
+```
+
+where `_get_config_value` is treated as an abstract method which is implemented in the child config classes that extend `BaseConfig`.
+
+Hardcoded values:
 
 - `RATELIMIT_HEADERS_ENABLED`: Rate-limiting headers configuration. Is `True`.
 - `SESSION_COOKIE_HTTPONLY`: Configure session cookies to be HTTP-only. Is `True`.
 - `SESSION_COOKIE_SECURE`: Configure session cookies to be secure. Is `True`.
-
-and then specifies environment variables for:
-
-- `APP_BASE_URL`: The base URL of your application.
 - `CONTACT_EMAIL`: Email address for contact information.
 - `CONTACT_PHONE`: Phone number for contact information.
 - `DEPARTMENT_NAME`: The name of the department.
 - `DEPARTMENT_URL`: The URL of the department's website.
-- `RATELIMIT_STORAGE_URI`: The URI for the Redis storage used for rate limiting.
-- `SECRET_KEY`: Secret key used for Flask session and security.
 - `SERVICE_NAME`: The name of the service.
 - `SERVICE_PHASE`: The phase of the service.
 - `SERVICE_URL`: The URL of the service.
 
-`Config` also sets the following configuration properties but `AWSConfig` inherits from `Config` and instead of reading these from environment variables, reads them from AWS parameter store:
+Properties configurable at runtime:
 
 - `AWS_REGION`: The AWS region used for AWS services.
 - `AWS_OPEN_SEARCH_INDEX`: The OpenSearch index used for your application.
@@ -72,49 +148,36 @@ and then specifies environment variables for:
 - `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.
 - `KEYCLOAK_CLIENT_SECRET`: The client secret used for Keycloak authentication.
 - `KEYCLOAK_AYR_USER_GROUP`: The Keycloak user group used to check user access.
+- `RATELIMIT_STORAGE_URI`: The URI for the Redis storage used for rate limiting.
+- `SECRET_KEY`: Secret key used for Flask session and security.
 
-**Note 1:** All of these configuration values which depend on an environment variable default to an empty string if not found.
+We have two usable configs which extend `BaseConfig` for running the application:
 
-**Note 2:** `AWSConfig` depends on a `boto3` session which, when developing locally, can be set to use a specific AWS Profile by setting the environment variable `DEFAULT_AWS_PROFILE`. This value is not a configuration value, as the `boto3` session needs to be configured correctly so that it is authenticated prior to the config being instantiated in the flask application creation process.
+- `EnvConfig` which implements `_get_config_value` so it reads from environment variables.
+- `AWSParameterStoreConfig` which implements `_get_config_value` so it reads from AWS SSM Parameter Store values.
 
-`TestingConfig` inherits from `Config` but sets:
+When configuring `flask run` run the app created by `main_app.py`, as we do with the line `export FLASK_APP=main_app` in the `.flaskenv`, we can either use `EnvConfig` or `AWSParameterStoreConfig` by setting `CONFIG_SOURCE` as either `ENVIRONMENT_VARIABLES` or `AWS_PARAMETER_STORE` respectively.
 
-- `TESTING` to `True`
-- `SECRET_KEY` to "TEST_SECRET_KEY" so that Flask sessions work in tests.
+We also have a `TestingConfig` that extends `BaseConfig` which is only used for Flask tests as detailed below. Its implementation of  `_get_config_value` returns an empty string for all the configurable properties just so we don't need to worry about setting values in tests we don't care about them in. We may revisit this, as the fact that config vars are unnecessary in some tests that access them seems like a code smell that could be worth addressing; specifying them in any test that needs them and refactoring the code if we still find asserting anything about them unnecessary could be a better approach long term.
+As well as the confgiurable values discussed above, we also hardcode the following on the `TestingConfig`:
+
+- `TESTING` to `True` to disable error catching (further info [here](https://flask.palletsprojects.com/en/3.0.x/config/#TESTING)), and changes certain extension's logic as well as own on (e.g. disables forcing of https) to facilitate easier testing.
+- `SECRET_KEY` to `"TEST_SECRET_KEY"` so that Flask sessions work in the tests.
 - `WTF_CSRF_ENABLED` to `False` so that we do not need to worry about CSRF protection in our tests.
 
-### CSS / SCSS
+### The .flaskenv file
 
-SASS is being used to build CSS files. To build the css files you can use npm to build by first installing the npm packages and then using:
+In addition to the `.env` file discussed above, which can be created from template files, we have a `.flaskenv` file with Flask specific configuration values which is committed to the repo and we don't expect to change these.
 
-```
-npm run build
-```
-or if you'd like to watch for changes use:
+### Environment loading
 
-```
-npm run dev
-```
-To lint all CSS use:
-```
-npm run lint
-```
-
-### Run app
-
-Ensure you set the above environment variables and configurations before running the Flask application with:
-
-```shell
-flask run
-```
-
-**Note:** By default, the application will use the `AWSConfig` but if you do not want to use AWS parameter store, you can specifically run the `local_flask_app` which uses the base `Config` with `flask --app local_flask_app run`
-
-You should now have the app running on <http://localhost:5000/>
+Both the `.env` and `.flask_env` are loaded automatically when we run the flask application as outlined in the following section, thanks to the use of `python-dotenv`. More information on Flask environment variable hierarchies can be found [here](https://flask.palletsprojects.com/en/2.3.x/cli/#environment-variables-from-dotenv).
 
 ## Testing
 
 ### Unit and Integration tests
+
+For running flask app tests, we have the `client` fixture which uses the `app` fixture which utilises `TestingConfig` as discussed above.
 
 To run the unit and integration tests you can run:
 
@@ -126,14 +189,14 @@ This also will generate a test coverage report.
 
 ### End To End Tests
 
-We have a separate End To End suite of [Playwright](https://playwright.dev/python/docs/intro) tests in the `e2e_tests/` directory. These are also written in python and use the `pytest-playwright` `PyPi` package to run the tests as specified in the poetry depednecies.
+We have a separate End To End suite of [Playwright](https://playwright.dev/python/docs/intro) tests in the `e2e_tests/` directory. These are also written in python and use the `pytest-playwright` `PyPi` package to run the tests as specified in the poetry dependencies.
 
 In addition to installing the package, before you run the tests for the first time on your machine, you will need to run `playwright install` to install the required browsers for the end to end tests.
 
 You can then run all of our Playwright tests against localhost with:
 
 ```shell
-pytest e2e_tests/ --base-url=http://localhost:5000
+pytest e2e_tests/ --base-url=https://localhost:5000
 ```
 
 You can swap out the base-url for another if you want to run the tests against another instance of the application.
@@ -178,7 +241,7 @@ CSRF errors are handled by creating a [flash message](#flash-messages) notificat
 
 Uses [Flask Talisman](https://github.com/GoogleCloudPlatform/flask-talisman) to set HTTP headers that can help protect against a few common web application security issues.
 
-- Forces all connections to `https`, unless running with debug enabled.
+- Forces all connections to `https`, unless running with debug enabled or in testing. Note: This seems to not be working when running the local development with a SSL certificate as discussed [above](###set-up-ssl-certificate)
 - Enables [HTTP Strict Transport Security](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security).
 - Sets Flask's session cookie to `secure`, so it will never be set if your application is somehow accessed via a non-secure connection.
 - Sets Flask's session cookie to `httponly`, preventing JavaScript from being able to access its content.

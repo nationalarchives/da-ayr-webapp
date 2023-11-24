@@ -6,10 +6,10 @@ from configs.testing_config import TestingConfig
 
 @pytest.fixture
 def app():
-    app = create_app(config_class=TestingConfig)
+    app = create_app(TestingConfig)
     yield app
 
 
 @pytest.fixture
 def client(app):
-    return app.test_client()
+    yield app.test_client()
