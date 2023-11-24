@@ -3,6 +3,7 @@
         "app_function": "main_app.app",
         "memory_size": 512,
         "keep_warm": false,
+        "timeout_seconds": 7,
         "aws_region": "eu-west-2",
         "project_name": "da-ayr-flask-la",
         "attach_policy": "aws_attach_policy.json",
