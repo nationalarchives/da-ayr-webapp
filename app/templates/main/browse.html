@@ -10,19 +10,20 @@
 <div class="govuk-grid-row">
   {{ super() }}
   <h1 class="govuk-heading-l">Browse records 213,782</h1>
-  <p class="govuk-body browse-body">You are viewing:</p>
+  <p class="govuk-body browse-body">You are viewing</p>
   <p class="govuk-body-m browse-body browse-available__text">Everything available to you</p>
   <div class="govuk-form-group">
     <div class="browse-sort-container">
       <label class="govuk-label" for="sort">
         Sort by
       </label>
-      <select class="govuk-select" id="sort" name="sort">
-        <option value="published">Series (low to high)</option>
-        <option value="updated" selected>Series (high to low)</option>
-        <option value="views">Consignment Transferred (most recent first)</option>
-        <option value="comments">Consignment Transferred (oldest first)</option>
-        <option value="comments">Records Held (most first)</option>
+      <select class="govuk-select sort-container__select" id="sort" name="sort">
+        <option value="body-a">Transferring Body (A to Z)</option>
+        <option value="body-b" selected>Transferring Body (Z to A)</option>
+        <option value="series-a">Series (A to Z)</option>
+        <option value="series-b">Series (Z to A)</option>
+        <option value="date-first">Date record transferred (most recent first)</option>
+        <option value="date-last">Date record transferred (oldest first)</option>
       </select>
       <button class="govuk-button update-button" id="sort-update-button" data-module="govuk-button">
         Apply
@@ -37,8 +38,11 @@
       <div class="govuk-grid-column-one-third filters-form">
 
         <div class="browse-filter-container">
-          <p class="govuk-body-l browse-body filters-form__title">Filter within browse</p>
-          <p class="govuk-body-m browse-body">Transferring Body</p>
+          <div class="browse-filter__header">
+            <p class="govuk-body-l browse-body filters-form__title">Filter within browse</p>
+            <img src="{{ url_for('static', filename='image/filter-icon.svg') }}"  class="browse-filter__icon" alt="filter-icon">
+          </div>
+          <p class="govuk-body browse-body">Transferring Body</p>
           <div class="govuk-form-group browse-filters__form-group filters-form__transferring-body-group">
             <select class="govuk-select filters-form__transferring-body--select" id="sort" name="sort">
               <option value="published" selected>Choose one...</option>
@@ -50,14 +54,14 @@
         </div>
 
         <div class="browse-series-container">
-          <p class="govuk-body-m browse-body">Series</p>
+          <p class="govuk-body browse-body">Series</p>
           <div class="govuk-form-group browse-filters__form-group filters-form__series-group">
             <input class="govuk-input filters-form__series--input" id="width-5" name="width10" type="text">
           </div>
         </div>
 
         <div class="browse-consignment-ref-container">
-          <p class="govuk-body-m browse-body">Consignment ref</p>
+          <p class="govuk-body browse-body">Consignment ref</p>
           <div class="govuk-form-group browse-filters__form-group filters-form__consignment-ref-group">
             <input class="govuk-input filters-form__consignment-ref--input" id="width-5" name="width10" type="text">
           </div>
@@ -65,14 +69,14 @@
 
         <div class="browse-date-container">
           <div class="govuk-form-group date-form browse-filters__form-group filters-form__date-from-group">
-            <p class="govuk-body-m date-form browse-body filters-form__body-date">Date from</p>
+            <p class="govuk-body date-form browse-body filters-form__body-date">Date from</p>
             <fieldset class="govuk-fieldset" role="group" aria-describedby="date-from">
               <div class="govuk-date-input" id="date-to">
                 <div class="govuk-date-input__item">
                   <div class="govuk-form-group">
                     <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-from-day"
                       name="date-from-day" type="text" inputmode="numeric">
-                    <label class="govuk-label govuk-date-input__label" for="date-from-day">
+                    <label class="govuk-label govuk-date-input__label browse-date__label" for="date-from-day">
                       (DD)
                     </label>
                   </div>
@@ -81,7 +85,7 @@
                   <div class="govuk-form-group">
                     <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-from-month"
                       name="date-from-month" type="text" inputmode="numeric">
-                    <label class="govuk-label govuk-date-input__label" for="date-from-month">
+                    <label class="govuk-label govuk-date-input__label browse-date__label" for="date-from-month">
                       (MM)
                     </label>
                   </div>
@@ -90,7 +94,7 @@
                   <div class="govuk-form-group">
                     <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="date-from-year"
                       name="date-from-year" type="text" inputmode="numeric">
-                    <label class="govuk-label govuk-date-input__label" for="date-from-year">
+                    <label class="govuk-label govuk-date-input__label browse-date__label" for="date-from-year">
                       (YYYY)
                     </label>
                   </div>
@@ -107,7 +111,7 @@
                   <div class="govuk-form-group">
                     <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-to-day"
                       name="date-to-day" type="text" inputmode="numeric">
-                    <label class="govuk-label govuk-date-input__label" for="date-to-day">
+                    <label class="govuk-label govuk-date-input__label browse-date__label" for="date-to-day">
                       (DD)
                     </label>
                   </div>
@@ -116,7 +120,7 @@
                   <div class="govuk-form-group">
                     <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-to-month"
                       name="date-to-month" type="text" inputmode="numeric">
-                    <label class="govuk-label govuk-date-input__label" for="date-to-month">
+                    <label class="govuk-label govuk-date-input__label browse-date__label" for="date-to-month">
                       (MM)
                     </label>
                   </div>
@@ -125,7 +129,7 @@
                   <div class="govuk-form-group">
                     <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="date-to-year"
                       name="date-to-year" type="text" inputmode="numeric">
-                    <label class="govuk-label govuk-date-input__label" for="date-to-year">
+                    <label class="govuk-label govuk-date-input__label browse-date__label" for="date-to-year">
                       (YYYY)
                     </label>
                   </div>
@@ -149,7 +153,7 @@
       <!-- TABLE -->
       <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
 
-        <dl class="govuk-summary-list">
+        <dl class="govuk-summary-list browse-grid__list">
           <div class="govuk-summary-list__row">
             <dt class="govuk-summary-list__key browse-grid__key">
               Transferring body
@@ -169,10 +173,14 @@
           </div>
           <div class="govuk-summary-list__row">
             <dd class="govuk-summary-list__value">
-              Foreign Office
+              <a href="#">
+                Foreign Office
+              </a>
               </dt>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body">FO 01</p>
+              <p class="govuk-body browse-body"><a href="#">
+                  FO 01
+                </a></p>
             </dd>
             <dd class="govuk-summary-list__value">
               <p class="govuk-body browse-body">09/10/2023</p>
@@ -181,15 +189,19 @@
               <p class="govuk-body browse-body">519</p>
             </dd>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+              <p class="govuk-body browse-body">7</p>
             </dd>
           </div>
           <div class="govuk-summary-list__row">
             <dd class="govuk-summary-list__value">
-              Foreign Office
+              <a href="#">
+                Foreign Office
+              </a>
               </dt>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body">FO 01</p>
+              <p class="govuk-body browse-body"><a href="#">
+                  FO 01
+                </a></p>
             </dd>
             <dd class="govuk-summary-list__value">
               <p class="govuk-body browse-body">09/10/2023</p>
@@ -198,15 +210,19 @@
               <p class="govuk-body browse-body">519</p>
             </dd>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+              <p class="govuk-body browse-body">7</p>
             </dd>
           </div>
           <div class="govuk-summary-list__row">
             <dd class="govuk-summary-list__value">
-              Foreign Office
+              <a href="#">
+                Foreign Office
+              </a>
               </dt>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body">FO 01</p>
+              <p class="govuk-body browse-body"><a href="#">
+                  FO 01
+                </a></p>
             </dd>
             <dd class="govuk-summary-list__value">
               <p class="govuk-body browse-body">09/10/2023</p>
@@ -215,15 +231,19 @@
               <p class="govuk-body browse-body">519</p>
             </dd>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+              <p class="govuk-body browse-body">7</p>
             </dd>
           </div>
           <div class="govuk-summary-list__row">
             <dd class="govuk-summary-list__value">
-              Foreign Office
+              <a href="#">
+                Foreign Office
+              </a>
               </dt>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body">FO 01</p>
+              <p class="govuk-body browse-body"><a href="#">
+                  FO 01
+                </a></p>
             </dd>
             <dd class="govuk-summary-list__value">
               <p class="govuk-body browse-body">09/10/2023</p>
@@ -232,15 +252,19 @@
               <p class="govuk-body browse-body">519</p>
             </dd>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+              <p class="govuk-body browse-body">7</p>
             </dd>
           </div>
           <div class="govuk-summary-list__row">
             <dd class="govuk-summary-list__value">
-              Foreign Office
+              <a href="#">
+                Foreign Office
+              </a>
               </dt>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body">FO 01</p>
+              <p class="govuk-body browse-body"><a href="#">
+                  FO 01
+                </a></p>
             </dd>
             <dd class="govuk-summary-list__value">
               <p class="govuk-body browse-body">09/10/2023</p>
@@ -249,15 +273,19 @@
               <p class="govuk-body browse-body">519</p>
             </dd>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+              <p class="govuk-body browse-body">7</p>
             </dd>
           </div>
           <div class="govuk-summary-list__row">
             <dd class="govuk-summary-list__value">
-              Foreign Office
+              <a href="#">
+                Foreign Office
+              </a>
               </dt>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body">FO 01</p>
+              <p class="govuk-body browse-body"><a href="#">
+                  FO 01
+                </a></p>
             </dd>
             <dd class="govuk-summary-list__value">
               <p class="govuk-body browse-body">09/10/2023</p>
@@ -266,15 +294,19 @@
               <p class="govuk-body browse-body">519</p>
             </dd>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+              <p class="govuk-body browse-body">7</p>
             </dd>
           </div>
           <div class="govuk-summary-list__row">
             <dd class="govuk-summary-list__value">
-              Foreign Office
+              <a href="#">
+                Foreign Office
+              </a>
               </dt>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body">FO 01</p>
+              <p class="govuk-body browse-body"><a href="#">
+                  FO 01
+                </a></p>
             </dd>
             <dd class="govuk-summary-list__value">
               <p class="govuk-body browse-body">09/10/2023</p>
@@ -283,15 +315,19 @@
               <p class="govuk-body browse-body">519</p>
             </dd>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+              <p class="govuk-body browse-body">7</p>
             </dd>
           </div>
           <div class="govuk-summary-list__row">
             <dd class="govuk-summary-list__value">
-              Foreign Office
+              <a href="#">
+                Foreign Office
+              </a>
               </dt>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body">FO 01</p>
+              <p class="govuk-body browse-body"><a href="#">
+                  FO 01
+                </a></p>
             </dd>
             <dd class="govuk-summary-list__value">
               <p class="govuk-body browse-body">09/10/2023</p>
@@ -300,7 +336,49 @@
               <p class="govuk-body browse-body">519</p>
             </dd>
             <dd class="govuk-summary-list__value">
-              <p class="govuk-body browse-body"><a class="govuk-link" href="#">view (7)</a></p>
+              <p class="govuk-body browse-body">7</p>
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dd class="govuk-summary-list__value">
+              <a href="#">
+                Foreign Office
+              </a>
+              </dt>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body"><a href="#">
+                  FO 01
+                </a></p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">09/10/2023</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">519</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">7</p>
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dd class="govuk-summary-list__value">
+              <a href="#">
+                Foreign Office
+              </a>
+              </dt>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body"><a href="#">
+                  FO 01
+                </a></p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">09/10/2023</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">519</p>
+            </dd>
+            <dd class="govuk-summary-list__value">
+              <p class="govuk-body browse-body">7</p>
             </dd>
           </div>
         </dl>
