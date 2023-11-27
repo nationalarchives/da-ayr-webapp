@@ -199,6 +199,8 @@ Note 1: the name of each deployment stage we want to deploy to is defined as a t
 
 Note 2: As part of our template, we refer to `aws_attach_policy.json` which defines the IAM Policy for the Lambda execution role so that it can access certain AWS resources such as SSM Parameter Store.
 
+Note 3: As part of our template, we refer to `apigateway_policy.json` which defines the IAM Policy for the APIGateway resource created, but we only define a template file, `apigateway_policy.json.template`, so that we do not commit any IPs to source control. Details on filling out the whitelist from an environment variable is detailed below.
+
 ### Zappa deployments
 
 Zappa packages the active virtual environment, in our case our poetry environment, into a zipfile package which will be pushed to run on AWS Lambda.
@@ -210,6 +212,14 @@ Before running a zappa deployment, make sure you clean out the environment so th
 - remove all dependencies unneeded for running the application, you can do that with: `poetry install --without dev --sync`
 
 #### Initial Deployments
+
+Fill out the IP Whitelist in the APIGateway Policy from the environment variable `APIGATEWAY_WHITELISTED_IPS` to allow these IP addresses access to the webapp via the APIGateway with:
+
+```shell
+envsubst < apigateway_policy.json.template > apigateway_policy.json
+```
+
+Note: make sure `APIGATEWAY_WHITELISTED_IPS` is exported as an environment variable in your current terminal like: `export APIGATEWAY_WHITELISTED_IPS='["IP_1/32","IP_2/32","IP_3/32"]'`
 
 Once your settings are configured, you can package and deploy your application to a deployment stage with a single command:
 
