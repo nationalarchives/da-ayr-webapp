@@ -184,17 +184,15 @@ Zappa is configurable, and can be configured differently for different deploymen
 
 In this repo we provide a `zappa_settings.json.template` which provides all the configuration variables except for the `profile_name` that we want to use to update each deployment stage with.
 
-Create a `zappa_settings.json` from the template with:
+Configure the `profile_name` field for the sandbox deployment stage by setting the `ZAPPA_DEPLOYMENT_PROFILE_NAME` environment variable and then create a `zappa_settings.json` from environment variables by running:
 
   ```shell
-  cp zappa_settings.json.template zappa_settings.json
+  envsubst < zappa_settings.json.template > zappa_settings.json
   ```
-
-  and fill out the `profile_name` in each deployment stage with the AWS profile that you want to use to update that deployment stage with.
 
 Note 1: the name of each deployment stage we want to deploy to is defined as a top-level key in the `zappa_settings.json` e.g. `sandbox`.
 
-Note 2: As part of our template, we refer to `aws_attach_policy.json` which defines the IAM Policy for the Lambda execution role so that it can access certain AWS resources such as SSM Parameter Store.
+Note 2: As part of our template, we refer to `lambda_policy.json` which defines the IAM Policy for the Lambda execution role so that it can access certain AWS resources such as SSM Parameter Store.
 
 Note 3: As part of our template, we refer to `apigateway_policy.json` which defines the IAM Policy for the APIGateway resource created, but we only define a template file, `apigateway_policy.json.template`, so that we do not commit any IPs to source control. Details on filling out the whitelist from an environment variable is detailed below.
 

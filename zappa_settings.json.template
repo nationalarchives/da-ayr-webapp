@@ -13,6 +13,6 @@
             "CONFIG_SOURCE": "AWS_PARAMETER_STORE"
         },
         "aws_environment_variables": {"INSTANTIATE_LAMBDA_HANDLER_ON_IMPORT": "True"},
-        "profile_name": ""
+        "profile_name": $ZAPPA_DEPLOYMENT_PROFILE_NAME
     }
 }
