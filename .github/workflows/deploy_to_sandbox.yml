@@ -1,0 +1,37 @@
+name: Deploy to Sandbox
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  unit_test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build GOV.UK Frontend assets
+      run: sh ./build.sh
+
+    - name: Install Node dependencies
+      run: npm install
+
+    - name: Build CSS
+      run: npm run build
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+
+    - name: Install Poetry
+      run: pip install poetry
+
+    - name: Install only prod python dependencies
+      run: poetry install --without dev --sync
+
+    - name: Run Pytest tests
+      run: poetry run zappa update sandbox
