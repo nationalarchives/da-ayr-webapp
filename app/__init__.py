@@ -8,6 +8,8 @@ from flask_wtf.csrf import CSRFProtect
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
+from app.main.db.models import db
+
 assets = Environment()
 compress = Compress()
 csrf = CSRFProtect()
@@ -25,7 +27,7 @@ def null_to_dash(value):
     return value
 
 
-def create_app(config_class):
+def create_app(config_class, database_uri=None):
     app = Flask(__name__, static_url_path="/assets")
     app.config.from_object(config_class())
 
@@ -54,13 +56,26 @@ def create_app(config_class):
         "script-src": ["'self'"],
     }
 
+    # setup database uri for testing
+    if database_uri:
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
+
     # Initialise app extensions
+    db.init_app(app)
     assets.init_app(app)
     compress.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
     talisman.init_app(app, content_security_policy=csp, force_https=force_https)
     WTFormsHelpers(app)
+
+    # setup database components
+    with app.app_context():
+        # create db objects for testing else use existing database objects
+        if database_uri:
+            db.create_all()
+        else:
+            db.Model.metadata.reflect(bind=db.engine, schema="public")
 
     # Create static asset bundles
     css = Bundle(
@@ -119,8 +134,6 @@ def create_app(config_class):
         applied to routes where authentication is required for accurate behavior of
         this context processor.
 
-        Args:
-            None
 
         Returns:
             dict: A dictionary containing the `authenticated_view` variable, which is a

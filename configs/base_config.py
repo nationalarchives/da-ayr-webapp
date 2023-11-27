@@ -15,20 +15,32 @@ class BaseConfig(object):
         return self._get_config_value("AWS_REGION")
 
     @property
-    def AWS_OPEN_SEARCH_INDEX(self):
-        return self._get_config_value("AWS_OPEN_SEARCH_INDEX")
+    def AWS_RDS_DB_HOST(self):
+        return self._get_config_value("AWS_RDS_DB_HOST")
 
     @property
-    def AWS_OPEN_SEARCH_HOST(self):
-        return self._get_config_value("AWS_OPEN_SEARCH_HOST")
+    def AWS_RDS_DB_NAME(self):
+        return self._get_config_value("AWS_RDS_DB_NAME")
 
     @property
-    def AWS_OPEN_SEARCH_USERNAME(self):
-        return self._get_config_value("AWS_OPEN_SEARCH_USERNAME")
+    def AWS_RDS_DB_USERNAME(self):
+        return self._get_config_value("AWS_RDS_DB_USERNAME")
 
     @property
-    def AWS_OPEN_SEARCH_PASSWORD(self):
-        return self._get_config_value("AWS_OPEN_SEARCH_PASSWORD")
+    def AWS_RDS_DB_PASSWORD(self):
+        return self._get_config_value("AWS_RDS_DB_PASSWORD")
+
+    @property
+    def AWS_RDS_DB_PORT(self):
+        return self._get_config_value("AWS_RDS_DB_PORT")
+
+    @property
+    def SQLALCHEMY_DATABASE_URI(self):
+        return (
+            f'postgresql+psycopg2://{self._get_config_value("AWS_RDS_DB_USERNAME")}:'
+            f'{self._get_config_value("AWS_RDS_DB_PASSWORD")}@{self._get_config_value("AWS_RDS_DB_HOST")}'
+            f':{self._get_config_value("AWS_RDS_DB_PORT")}/{self._get_config_value("AWS_RDS_DB_NAME")}'
+        )
 
     @property
     def KEYCLOAK_BASE_URI(self):

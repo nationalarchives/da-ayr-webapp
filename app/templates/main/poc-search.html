@@ -6,7 +6,7 @@
 {% block pageTitle %}Dashboard – {{config['SERVICE_NAME']}} – GOV.UK{% endblock %}
 
 {% block beforeContent %}
-  {{ super() }}
+{{ super() }}
 
 {% endblock %}
 
@@ -22,46 +22,47 @@
             <h3 class="govuk-heading-s govuk-!-font-weight-bold">Search for digital records</h3>
             <form method="POST">
               {{ form.csrf_token }}
-              <div class="govuk-form-group govuk-form-group--poc-search">
+              <div class="govuk-form-group">
+                <label for="searchInput"></label>
                 <input class="govuk-input govuk-!-width-three-quarters" id="searchInput" name="query" type="text">
               </div>
-              <button class="govuk-button govuk-button--poc-search" data-module="govuk-button" type="submit">Search</button>
+              <button class="govuk-button" data-module="govuk-button" type="submit">Search</button>
             </form>
           </div>
         </div>
-        {% if num_records_found > 0 %}
         <div class="govuk-grid-row">
-          <div class="govuk-grid-column-full govuk-grid-column-full--poc-search">
-            <h2 class="govuk-heading-m">{{ num_records_found }} records found</h2>
+          <div class="govuk-grid-column-full">
+            {% if query|length >0 %}
+            <h2 class="govuk-heading-m">{{ num_records_found }} record(s) found</h2>
+            {% if num_records_found > 0 %}
             <table class="govuk-table">
               <thead class="govuk-table__head">
-                <tr class="govuk-table__row govuk-!-font-size-14">
-                  <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Title</th>
-                  <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Description</th>
-                  <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Last modified</th>
-                  <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Status</th>
-                  <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Closure period (years)</th>
-                </tr>
+              <tr class="govuk-table__row govuk-!-font-size-14">
+                <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Transferring Body</th>
+                <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Series</th>
+                <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Consignment Reference</th>
+                <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">File Name</th>
+              </tr>
               </thead>
               <tbody class="govuk-table__body">
-                {% for record in results %}
-                <tr class="govuk-table__row">
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14"><a href="{{ url_for('main.record', record_id=record._source.id) }}">{{ record._source.file_name }}</a></td>
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record._source.description }}</td>
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record._source.date_last_modified }}</td>
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record._source.legal_status }}</td>
-                  <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record._source.closure_period }}</td>
-                </tr>
-                {% endfor %}
+              {% for record in results %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record["TransferringBody"] }}</td>
+                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record["Series"] }}</td>
+                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record["ConsignmentReference"] }}</td>
+                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record["FileName"] }}</td>
+              </tr>
+              {% endfor %}
               </tbody>
             </table>
+            {% endif %}
+            {% endif %}
           </div>
         </div>
-        {% endif %}
       </main>
     </div>
   </div>
 </div>
 
 
-  {% endblock %}
+{% endblock %}

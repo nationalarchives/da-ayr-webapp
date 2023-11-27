@@ -17,8 +17,8 @@ from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
+from app.main.db.queries import fuzzy_search
 from app.main.forms import CookiesForm
-from app.main.search import search_logic
 
 from .forms import SearchForm
 
@@ -109,24 +109,20 @@ def results():
 @access_token_sign_in_required
 def poc_search():
     form = SearchForm()
-    results = []
+    search_results = []
     query = request.form.get("query", "").lower()
 
     if query:
-        open_search_response = (
-            search_logic.generate_open_search_client_and_make_poc_search(
-                query, current_app.config["AWS_OPEN_SEARCH_INDEX"]
-            )
-        )
-        results = open_search_response["hits"]["hits"]
-        session["search_results"] = results
+        search_results = fuzzy_search(query)
+        session["search_results"] = search_results
 
-    num_records_found = len(results)
+    num_records_found = len(search_results)
 
     return render_template(
         "poc-search.html",
         form=form,
-        results=results,
+        query=query,
+        results=search_results,
         num_records_found=num_records_found,
     )
 
