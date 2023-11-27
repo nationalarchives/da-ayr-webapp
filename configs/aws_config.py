@@ -27,30 +27,6 @@ class AWSConfig(Config):
         )
 
     @property
-    def AWS_OPEN_SEARCH_INDEX(self):
-        return get_parameter_store_key_value(
-            self._AWS_ENVIRONMENT_PREFIX + "AWS_OPEN_SEARCH_INDEX"
-        )
-
-    @property
-    def AWS_OPEN_SEARCH_HOST(self):
-        return get_parameter_store_key_value(
-            self._AWS_ENVIRONMENT_PREFIX + "AWS_OPEN_SEARCH_HOST"
-        )
-
-    @property
-    def AWS_OPEN_SEARCH_USERNAME(self):
-        return get_parameter_store_key_value(
-            self._AWS_ENVIRONMENT_PREFIX + "AWS_OPEN_SEARCH_USERNAME"
-        )
-
-    @property
-    def AWS_OPEN_SEARCH_PASSWORD(self):
-        return get_parameter_store_key_value(
-            self._AWS_ENVIRONMENT_PREFIX + "AWS_OPEN_SEARCH_PASSWORD"
-        )
-
-    @property
     def KEYCLOAK_BASE_URI(self):
         return get_parameter_store_key_value(
             self._AWS_ENVIRONMENT_PREFIX + "KEYCLOAK_BASE_URI"
@@ -78,4 +54,34 @@ class AWSConfig(Config):
     def KEYCLOAK_AYR_USER_GROUP(self):
         return get_parameter_store_key_value(
             self._AWS_ENVIRONMENT_PREFIX + "KEYCLOAK_AYR_USER_GROUP"
+        )
+
+    @property
+    def AWS_RDS_DB_HOST(self):
+        return get_parameter_store_key_value(
+            self._AWS_ENVIRONMENT_PREFIX + "AWS_RDS_DB_HOST"
+        )
+
+    @property
+    def AWS_RDS_DB_NAME(self):
+        return get_parameter_store_key_value(
+            self._AWS_ENVIRONMENT_PREFIX + "AWS_RDS_DB_NAME"
+        )
+
+    @property
+    def AWS_RDS_DB_USERNAME(self):
+        return get_parameter_store_key_value(
+            self._AWS_ENVIRONMENT_PREFIX + "AWS_RDS_DB_USERNAME"
+        )
+
+    @property
+    def AWS_RDS_DB_PASSWORD(self):
+        return get_parameter_store_key_value(
+            self._AWS_ENVIRONMENT_PREFIX + "AWS_RDS_DB_PASSWORD"
+        )
+
+    @property
+    def AWS_RDS_DB_PORT(self):
+        return get_parameter_store_key_value(
+            self._AWS_ENVIRONMENT_PREFIX + "AWS_RDS_DB_PORT"
         )

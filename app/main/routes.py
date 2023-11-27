@@ -20,8 +20,13 @@ from app.main.authorize.keycloak_login_required_decorator import (
 from app.main.authorize.keycloak_manager import (
     get_user_transferring_body_groups,
 )
+from app.main.db.queries import (
+    browse_view,
+    browse_view_series,
+    fuzzy_search,
+    get_full_list_of_transferring_bodies,
+)
 from app.main.forms import CookiesForm
-from app.main.search import search_logic
 
 from .forms import SearchForm
 
@@ -99,43 +104,53 @@ def poc_search():
     form = SearchForm()
     search_results = []
     query = request.form.get("query", "").lower()
-
     if query:
-        open_search_response = (
-            search_logic.generate_open_search_client_and_make_poc_search(
-                query, current_app.config["AWS_OPEN_SEARCH_INDEX"]
-            )
-        )
-        search_results = open_search_response["hits"]["hits"]
+        search_results = fuzzy_search(query)
         session["search_results"] = search_results
 
     num_records_found = len(search_results)
-
+    # print(num_records_found)
     return render_template(
         "poc-search.html",
+        form=form,
+        query=query,
+        results=search_results,
+        num_records_found=num_records_found,
+    )
+
+
+@bp.route("/poc-browse-view", methods=["POST", "GET"])
+@access_token_login_required
+def poc_browse():
+    form = SearchForm()
+
+    search_results = browse_view()
+    session["search_results"] = search_results
+
+    num_records_found = len(search_results)
+    # print(num_records_found)
+    return render_template(
+        "poc-browse-view.html",
         form=form,
         results=search_results,
         num_records_found=num_records_found,
     )
 
 
-@bp.route("/poc-transferring-bodies", methods=["POST", "GET"])
+@bp.route("/poc-browse-view-tbody", methods=["POST", "GET"])
 @access_token_login_required
-def poc_transferring_bodies():
+def poc_browse_transferring_body():
     form = SearchForm()
-    field_name = "Source_Organization.keyword"
 
+    #  get list of transferring bodies user has access to
     user_transferring_body_groups = get_user_transferring_body_groups()
 
-    unique_response = (
-        search_logic.generate_open_search_client_and_unique_values(
-            current_app.config["AWS_OPEN_SEARCH_INDEX"], field_name
-        )
-    )
-    unique_values = unique_response["aggregations"]["unique_values"]["buckets"]
+    master_list_of_transferring_bodies = get_full_list_of_transferring_bodies()
+
     unique_transferring_bodies = []
-    for value in unique_values:
-        group_name = value["key"]
+
+    for body in master_list_of_transferring_bodies:
+        group_name = body.Name  # body["Name"]
         if len(user_transferring_body_groups) > 0:
             for user_group in user_transferring_body_groups:
                 if (
@@ -144,10 +159,49 @@ def poc_transferring_bodies():
                 ):
                     unique_transferring_bodies.append(group_name)
 
+    transferring_body = request.form.get("transferring-body", "").lower()
+    # print(transferring_body)
+    search_results = []
+    if len(transferring_body) > 0:
+        search_results = browse_view(transferring_body)
+    else:
+        if len(unique_transferring_bodies) > 0:
+            search_results = browse_view(unique_transferring_bodies[0])
+    session["search_results"] = search_results
+
+    num_records_found = len(search_results)
+    # print(num_records_found)
     return render_template(
-        "poc-transferring-bodies.html",
+        "poc-browse-view-tbody.html",
         form=form,
+        transferring_body=transferring_body,
         transferring_bodies=unique_transferring_bodies,
+        results=search_results,
+        num_records_found=num_records_found,
+    )
+
+
+@bp.route("/poc-browse-view-series", methods=["POST", "GET"])
+@access_token_login_required
+def poc_browse_series():
+    form = SearchForm()
+    search_results = []
+    series = request.form.get("series", "").lower()
+    # print(series)
+
+    if series:
+        search_results = browse_view_series(series)
+
+    session["search_results"] = search_results
+
+    num_records_found = len(search_results)
+    # print(num_records_found)
+    return render_template(
+        "poc-browse-view-series.html",
+        form=form,
+        series=series,
+        results=search_results,
+        num_records_found=num_records_found,
     )
 
 

@@ -16,7 +16,6 @@ def test_decode_token(mock_decode_keycloak_access_token, app):
         "active": True,
         "groups": ["application_1/foo", "application_2/bar"],
     }
-    print(mock_decode_keycloak_access_token.return_value["active"])
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
     with app.test_client() as client:
         with client.session_transaction() as session:
@@ -103,7 +102,7 @@ def test_get_user_transferring_body_groups_active_access_token_invalid_transferr
 @patch(
     "app.main.authorize.keycloak_login_required_decorator.keycloak.KeycloakOpenID.introspect"
 )
-def test_get_user_transferring_body_groups_active_access_token_valid_transferring_body(
+def test_get_user_transferring_body_groups_multiple_transferring_body(
     mock_decode_keycloak_access_token, app
 ):
     """
@@ -133,7 +132,7 @@ def test_get_user_transferring_body_groups_active_access_token_valid_transferrin
 @patch(
     "app.main.authorize.keycloak_login_required_decorator.keycloak.KeycloakOpenID.introspect"
 )
-def test_get_user_transferring_body_groups_active_access_token_multiple_transferring_body(
+def test_get_user_transferring_body_groups_return_multiple_transferring_body(
     mock_decode_keycloak_access_token, app
 ):
     """

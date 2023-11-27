@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
+
+
+
+{% block pageTitle %}Dashboard – {{config['SERVICE_NAME']}} – GOV.UK{% endblock %}
+
+{% block beforeContent %}
+{{ super() }}
+
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {{ super() }}
+    <div class="govuk-width-container">
+      <main class="govuk-main-wrapper">
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+            <h2 class="govuk-heading-l">Browse View</h2>
+            <form method="POST">
+              {{ form.csrf_token }}
+              <div class="govuk-form-group">
+                <label class="govuk-heading-s govuk-!-font-weight-bold">Everything available to you</label>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-full">
+            <h2 class="govuk-heading-m">{{ num_records_found }} record(s) found</h2>
+            {% if num_records_found > 0 %}
+              <table class="govuk-table">
+              <thead class="govuk-table__head">
+              <tr class="govuk-table__row govuk-!-font-size-14">
+                <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Transferring Body</th>
+                <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Series</th>
+                <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Last Record Transferred</th>
+                <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Records held</th>
+                <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Consignment in Series</th>
+
+              </tr>
+              </thead>
+              <tbody class="govuk-table__body">
+              {% for record in results %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record["TransferringBody"] }}</td>
+                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record["Series"] }}</td>
+                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record["Last_Record_Transferred"] }}</td>
+                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record["Records_Held"] }}</td>
+                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record["Consignment_in_Series"] }}</td>
+
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+            {% endif %}
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
