@@ -32,7 +32,7 @@ botocore = "1.31.85"
 opensearch-py = "2.3.2"
 bs4 = "^0.0.1"
 pytest-cov = "^4.1.0"
-moto = "^4.2.8"
+moto = "^4.2.10"
 
 [tool.poetry.group.dev.dependencies]
 pyopenssl = "^23"
