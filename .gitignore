@@ -2,6 +2,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,git,venv,macos,linux,windows,python,flask,jetbrains+all
 
 # Zappa config
+apigateway_policy.json
 zappa_settings.json
 
 ### GOV.UK Frontend ###
