@@ -1,4 +1,4 @@
-from sqlalchemy import Text, and_, func, or_
+from sqlalchemy import Text, and_, exc, func, or_
 
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 
@@ -67,6 +67,6 @@ def fuzzy_search(query_string):
                 "FileName": r.FileName,
             }
             results.append(record)
-    except Exception as e:
+    except exc.SQLAlchemyError as e:
         print("Failed to return results from database with error : " + str(e))
     return results
