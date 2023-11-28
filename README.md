@@ -139,7 +139,7 @@ Hardcoded values:
 Properties configurable at runtime:
 
 - `AWS_REGION`: The AWS region used for AWS services.
-- `SQLALCHEMY_DATABASE_URI`: The PostgreSQL database URI includes (username, password, hostname, dbname and dbport).
+- `SQLALCHEMY_DATABASE_URI`: The PostgreSQL database URI with format postgresql+psycopg2://<<db_username>>:<<db_password>>@<<db_host>>:<<db_port>>/<<db_name>>.
 - `KEYCLOAK_BASE_URI`: The base URI of the Keycloak authentication service.
 - `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
 - `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.
