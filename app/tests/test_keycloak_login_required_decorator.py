@@ -2,11 +2,9 @@ from unittest.mock import patch
 
 from flask import Flask, render_template, url_for
 
-from app import create_app
 from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
-from configs.testing_config import TestingConfig
 
 
 def test_access_token_sign_in_required_decorator_no_token(app):
@@ -152,7 +150,9 @@ def test_access_token_sign_in_required_decorator_valid_token(
     assert response.data.decode() == "Access granted"
 
 
-def test_expected_unprotected_routes_decorated_by_access_token_sign_in_required():
+def test_expected_unprotected_routes_decorated_by_access_token_sign_in_required(
+    app,
+):
     """
     Given a Flask application created by create_app,
     When checking which routes are protected or unprotected by the 'access_token_sign_in_required' decorator,
@@ -184,7 +184,6 @@ def test_expected_unprotected_routes_decorated_by_access_token_sign_in_required(
         "main.terms_of_use",
     ]
 
-    app = create_app(TestingConfig)
     (
         protected_routes,
         unprotected_routes,

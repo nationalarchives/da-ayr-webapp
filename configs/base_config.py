@@ -15,20 +15,8 @@ class BaseConfig(object):
         return self._get_config_value("AWS_REGION")
 
     @property
-    def AWS_OPEN_SEARCH_INDEX(self):
-        return self._get_config_value("AWS_OPEN_SEARCH_INDEX")
-
-    @property
-    def AWS_OPEN_SEARCH_HOST(self):
-        return self._get_config_value("AWS_OPEN_SEARCH_HOST")
-
-    @property
-    def AWS_OPEN_SEARCH_USERNAME(self):
-        return self._get_config_value("AWS_OPEN_SEARCH_USERNAME")
-
-    @property
-    def AWS_OPEN_SEARCH_PASSWORD(self):
-        return self._get_config_value("AWS_OPEN_SEARCH_PASSWORD")
+    def SQLALCHEMY_DATABASE_URI(self):
+        return self._get_config_value("SQLALCHEMY_DATABASE_URI")
 
     @property
     def KEYCLOAK_BASE_URI(self):

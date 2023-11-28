@@ -139,10 +139,7 @@ Hardcoded values:
 Properties configurable at runtime:
 
 - `AWS_REGION`: The AWS region used for AWS services.
-- `AWS_OPEN_SEARCH_INDEX`: The OpenSearch index used for your application.
-- `AWS_OPEN_SEARCH_HOST`: The hostname of the OpenSearch service.
-- `AWS_OPEN_SEARCH_USERNAME`: The username for OpenSearch authentication.
-- `AWS_OPEN_SEARCH_PASSWORD`: The password for OpenSearch authentication.
+- `SQLALCHEMY_DATABASE_URI`: The PostgreSQL database URI with format postgresql+psycopg2://<<db_username>>:<<db_password>>@<<db_host>>:<<db_port>>/<<db_name>>.
 - `KEYCLOAK_BASE_URI`: The base URI of the Keycloak authentication service.
 - `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
 - `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.

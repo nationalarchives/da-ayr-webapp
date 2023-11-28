@@ -11,13 +11,8 @@ def test_local_env_vars_config_initialized(monkeypatch):
     WHEN Config is initialized
     THEN it should have attributes with the expected environment variables
     """
-    monkeypatch.setenv("AWS_OPEN_SEARCH_INDEX", "test_aws_open_search_index")
-    monkeypatch.setenv("AWS_OPEN_SEARCH_HOST", "test_aws_open_search_host")
     monkeypatch.setenv(
-        "AWS_OPEN_SEARCH_USERNAME", "test_aws_open_search_username"
-    )
-    monkeypatch.setenv(
-        "AWS_OPEN_SEARCH_PASSWORD", "test_aws_open_search_password"
+        "SQLALCHEMY_DATABASE_URI", "test_sqlalchemy_database_uri"
     )
     monkeypatch.setenv("KEYCLOAK_BASE_URI", "test_keycloak_base_uri")
     monkeypatch.setenv("KEYCLOAK_CLIENT_ID", "test_keycloak_client_id")
@@ -35,14 +30,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
 
     config = EnvConfig()
 
-    assert config.AWS_OPEN_SEARCH_INDEX == "test_aws_open_search_index"
-    assert config.AWS_OPEN_SEARCH_HOST == "test_aws_open_search_host"
-    assert config.AWS_OPEN_SEARCH_USERNAME == "test_aws_open_search_username"
-    assert (
-        config.AWS_OPEN_SEARCH_PASSWORD
-        == "test_aws_open_search_password"  # pragma: allowlist secret
-    )
-
+    assert config.SQLALCHEMY_DATABASE_URI == "test_sqlalchemy_database_uri"
     assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
     assert config.KEYCLOAK_CLIENT_ID == "test_keycloak_client_id"
     assert config.KEYCLOAK_REALM_NAME == "test_keycloak_realm_name"
@@ -79,26 +67,8 @@ def test_aws_params_config_initialized(monkeypatch):
         Overwrite=True,
     )
     ssm_client.put_parameter(
-        Name="/test_env/AWS_OPEN_SEARCH_INDEX",
-        Value="test_aws_open_search_index",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/AWS_OPEN_SEARCH_HOST",
-        Value="test_aws_open_search_host",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/AWS_OPEN_SEARCH_USERNAME",
-        Value="test_aws_open_search_username",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/AWS_OPEN_SEARCH_PASSWORD",
-        Value="test_aws_open_search_password",
+        Name="/test_env/SQLALCHEMY_DATABASE_URI",
+        Value="test_sqlalchemy_database_uri",
         Type="String",
         Overwrite=True,
     )
@@ -147,13 +117,7 @@ def test_aws_params_config_initialized(monkeypatch):
 
     config = AWSParameterStoreConfig()
 
-    assert config.AWS_OPEN_SEARCH_INDEX == "test_aws_open_search_index"
-    assert config.AWS_OPEN_SEARCH_HOST == "test_aws_open_search_host"
-    assert config.AWS_OPEN_SEARCH_USERNAME == "test_aws_open_search_username"
-    assert (
-        config.AWS_OPEN_SEARCH_PASSWORD
-        == "test_aws_open_search_password"  # pragma: allowlist secret
-    )
+    assert config.SQLALCHEMY_DATABASE_URI == "test_sqlalchemy_database_uri"
     assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
     assert config.KEYCLOAK_CLIENT_ID == "test_keycloak_client_id"
     assert config.KEYCLOAK_REALM_NAME == "test_keycloak_realm_name"
