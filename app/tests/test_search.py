@@ -1,6 +1,10 @@
+from unittest.mock import patch
+
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
+from sqlalchemy import exc
 
+from app.main.db.queries import fuzzy_search
 from app.tests.mock_database import create_two_test_records
 
 
@@ -79,3 +83,23 @@ def test_search_results_displayed(client: FlaskClient):
         assert [
             result.text for result in row.find_all("td")
         ] == expected_results_table[row_index + 1]
+
+
+@patch("app.main.db.queries.db")
+def test_fuzzy_search_exception_raised(db, capsys):
+    """
+    Given a fuzzy search function
+    When a call made to fuzzy search , when database execution failed with error
+    Then list should be empty and should raise an exception
+    """
+
+    def mock_execute(_):
+        raise exc.SQLAlchemyError("foo bar")
+
+    db.session.execute.side_effect = mock_execute
+    results = fuzzy_search("junk")
+    assert results == []
+    assert (
+        "Failed to return results from database with error : foo bar"
+        in capsys.readouterr().out
+    )
