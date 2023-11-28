@@ -17,7 +17,7 @@ from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
-from app.main.db.queries import fuzzy_search
+from app.main.db.queries import browse_view, fuzzy_search
 from app.main.forms import CookiesForm
 
 from .forms import SearchForm
@@ -122,6 +122,24 @@ def poc_search():
         "poc-search.html",
         form=form,
         query=query,
+        results=search_results,
+        num_records_found=num_records_found,
+    )
+
+
+@bp.route("/poc-browse", methods=["POST", "GET"])
+@access_token_sign_in_required
+def poc_browse():
+    form = SearchForm()
+
+    search_results = browse_view()
+    session["search_results"] = search_results
+
+    num_records_found = len(search_results)
+    # print(num_records_found)
+    return render_template(
+        "poc-browse.html",
+        form=form,
         results=search_results,
         num_records_found=num_records_found,
     )

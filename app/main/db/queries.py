@@ -70,3 +70,42 @@ def fuzzy_search(query_string):
     except exc.SQLAlchemyError as e:
         print("Failed to return results from database with error : " + str(e))
     return results
+
+
+def browse_view():
+    results = []
+
+    query = (
+        db.select(
+            Body.Name.label("TransferringBody"),
+            Series.Name.label("Series"),
+            func.max(Consignment.TransferCompleteDatetime).label(
+                "Last_Record_Transferred"
+            ),
+            func.count(func.distinct(Consignment.ConsignmentReference)).label(
+                "Consignment_in_Series"
+            ),
+            func.count(func.distinct(File.FileId)).label("Records_Held"),
+        )
+        .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
+        .join(Body, Body.BodyId == Consignment.BodyId)
+        .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .group_by(Body.BodyId, Series.SeriesId)
+        .order_by(Body.Name, Series.Name)
+    )
+
+    try:
+        query_results = db.session.execute(query)
+
+        for r in query_results:
+            record = {
+                "TransferringBody": r.TransferringBody,
+                "Series": r.Series,
+                "Consignment_in_Series": r.Consignment_in_Series,
+                "Last_Record_Transferred": r.Last_Record_Transferred,
+                "Records_Held": r.Records_Held,
+            }
+            results.append(record)
+    except exc.SQLAlchemyError as e:
+        print("Failed to return results from database with error : " + str(e))
+    return results
