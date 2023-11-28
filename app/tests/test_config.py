@@ -11,11 +11,9 @@ def test_local_env_vars_config_initialized(monkeypatch):
     WHEN Config is initialized
     THEN it should have attributes with the expected environment variables
     """
-    monkeypatch.setenv("AWS_RDS_DB_HOST", "test_aws_rds_db_host")
-    monkeypatch.setenv("AWS_RDS_DB_NAME", "test_aws_rds_db_name")
-    monkeypatch.setenv("AWS_RDS_DB_USERNAME", "test_aws_rds_db_username")
-    monkeypatch.setenv("AWS_RDS_DB_PASSWORD", "test_aws_rds_db_password")
-    monkeypatch.setenv("AWS_RDS_DB_PORT", "test_aws_rds_db_port")
+    monkeypatch.setenv(
+        "SQLALCHEMY_DATABASE_URI", "test_sqlalchemy_database_uri"
+    )
     monkeypatch.setenv("KEYCLOAK_BASE_URI", "test_keycloak_base_uri")
     monkeypatch.setenv("KEYCLOAK_CLIENT_ID", "test_keycloak_client_id")
     monkeypatch.setenv("KEYCLOAK_REALM_NAME", "test_keycloak_realm_name")
@@ -32,14 +30,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
 
     config = EnvConfig()
 
-    assert config.AWS_RDS_DB_HOST == "test_aws_rds_db_host"
-    assert config.AWS_RDS_DB_NAME == "test_aws_rds_db_name"
-    assert config.AWS_RDS_DB_USERNAME == "test_aws_rds_db_username"
-    assert (
-        config.AWS_RDS_DB_PASSWORD
-        == "test_aws_rds_db_password"  # pragma: allowlist secret
-    )
-    assert config.AWS_RDS_DB_PORT == "test_aws_rds_db_port"
+    assert config.SQLALCHEMY_DATABASE_URI == "test_sqlalchemy_database_uri"
     assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
     assert config.KEYCLOAK_CLIENT_ID == "test_keycloak_client_id"
     assert config.KEYCLOAK_REALM_NAME == "test_keycloak_realm_name"
@@ -76,32 +67,8 @@ def test_aws_params_config_initialized(monkeypatch):
         Overwrite=True,
     )
     ssm_client.put_parameter(
-        Name="/test_env/AWS_RDS_DB_HOST",
-        Value="test_aws_rds_db_host",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/AWS_RDS_DB_NAME",
-        Value="test_aws_rds_db_name",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/AWS_RDS_DB_USERNAME",
-        Value="test_aws_rds_db_username",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/AWS_RDS_DB_PASSWORD",
-        Value="test_aws_rds_db_password",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/AWS_RDS_DB_PORT",
-        Value="test_aws_rds_db_port",
+        Name="/test_env/SQLALCHEMY_DATABASE_URI",
+        Value="test_sqlalchemy_database_uri",
         Type="String",
         Overwrite=True,
     )
@@ -150,14 +117,7 @@ def test_aws_params_config_initialized(monkeypatch):
 
     config = AWSParameterStoreConfig()
 
-    assert config.AWS_RDS_DB_HOST == "test_aws_rds_db_host"
-    assert config.AWS_RDS_DB_NAME == "test_aws_rds_db_name"
-    assert config.AWS_RDS_DB_USERNAME == "test_aws_rds_db_username"
-    assert (
-        config.AWS_RDS_DB_PASSWORD
-        == "test_aws_rds_db_password"  # pragma: allowlist secret
-    )
-    assert config.AWS_RDS_DB_PORT == "test_aws_rds_db_port"
+    assert config.SQLALCHEMY_DATABASE_URI == "test_sqlalchemy_database_uri"
     assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
     assert config.KEYCLOAK_CLIENT_ID == "test_keycloak_client_id"
     assert config.KEYCLOAK_REALM_NAME == "test_keycloak_realm_name"

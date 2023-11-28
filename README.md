@@ -139,11 +139,7 @@ Hardcoded values:
 Properties configurable at runtime:
 
 - `AWS_REGION`: The AWS region used for AWS services.
-- `AWS_RDS_DB_HOST`: The PostgreSQL database hostname used for your application.
-- `AWS_RDS_DB_NAME`: The PostgreSQL database name.
-- `AWS_RDS_DB_USERNAME`: The PostgreSQL database username.
-- `AWS_RDS_DB_PASSWORD`: The PostgreSQL database password.
-- `AWS_RDS_DB_PORT`: The PostgreSQL database port.
+- `SQLALCHEMY_DATABASE_URI`: The PostgreSQL database URI includes (username, password, hostname, dbname and dbport).
 - `KEYCLOAK_BASE_URI`: The base URI of the Keycloak authentication service.
 - `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
 - `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.
