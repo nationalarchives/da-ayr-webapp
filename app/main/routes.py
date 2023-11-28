@@ -105,7 +105,7 @@ def results():
     return render_template("results.html")
 
 
-@bp.route("/poc-search-view", methods=["POST", "GET"])
+@bp.route("/poc-search", methods=["POST", "GET"])
 @access_token_sign_in_required
 def poc_search():
     form = SearchForm()

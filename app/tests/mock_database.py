@@ -3,7 +3,7 @@ import uuid
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 
 
-def generate_mock_data():
+def create_two_test_records():
     # first record
     new_body = Body(
         BodyId=uuid.uuid4(), Name="test body1", Description="test body1"

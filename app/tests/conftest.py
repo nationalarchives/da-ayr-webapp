@@ -16,7 +16,12 @@ def client(app):
     yield app.test_client()
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
+def browser_context_args(browser_context_args):
+    return {**browser_context_args, "ignore_https_errors": True}
+
+
+@pytest.fixture(scope="session")
 def database(request):
     # Launch new PostgreSQL server
     postgresql = PostgresqlFactory(cache_initialized_db=True)()
