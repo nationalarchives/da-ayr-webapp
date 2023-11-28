@@ -49,24 +49,24 @@ def fuzzy_search(query_string):
                     func.lower(Series.Description).like(filter_value),
                     func.lower(File.FileName).like(filter_value),
                     func.lower(File.FileReference).like(filter_value),
-                    # func.lower(FileMetadata.PropertyName).like(filter_value),
                     func.lower(FileMetadata.Value).like(filter_value),
                 ),
             )
         )
         .distinct()
     )
-    # print(str(query))
-    result = db.session.execute(query)
 
-    for r in result:
-        # print(r)
-        record = {
-            "TransferringBody": r.TransferringBody,
-            "Series": r.Series,
-            "ConsignmentReference": r.ConsignmentReference,
-            "FileName": r.FileName,
-        }
-        # print(record)
-        results.append(record)
+    try:
+        result = db.session.execute(query)
+
+        for r in result:
+            record = {
+                "TransferringBody": r.TransferringBody,
+                "Series": r.Series,
+                "ConsignmentReference": r.ConsignmentReference,
+                "FileName": r.FileName,
+            }
+            results.append(record)
+    except Exception as e:
+        print("Failed to return results from database with error : " + str(e))
     return results
