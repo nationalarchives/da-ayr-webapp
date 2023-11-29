@@ -1,205 +1,188 @@
-/* Available Records */
 .browse-available__text {
-    height: 1rem;
-    background-color: #fff;
-    font-weight: 700;
+  height: 1rem;
+  background-color: #fff;
+  font-weight: 700;
 }
 
-/* Pagination */
 .browse-pagination--centered {
-    justify-content: center;
+  justify-content: center;
 }
 
-/* Browse Grid */
 .browse-grid--two-thirds {
-    padding: 0;
+  padding: 0;
 }
 
 .browse-grid__list {
-    font-size: 1rem !important;
+  font-size: 1rem !important;
 }
 
 .browse-grid__key {
-    width: auto;
+  width: auto;
 }
 
-/* .govuk-summary-list__row:nth-child(3) {
-    text-align: right;
-} */
-
-
-/* Sort By */
 .browse-sort-container {
-    margin-top: 2rem;
+  margin-top: 2rem;
 }
-
 
 .sort-container {
-    align-items: center;
+  align-items: center;
 }
 
 .sort-container__select {
-    margin-right: 0.25rem;
+  margin-right: 0.25rem;
 }
 
-/* Filters */
 .filters-form {
-    float: right;
-    font-size: 1rem !important;
+  float: right;
+  font-size: 1rem !important;
 }
 
 .browse-filters__form-group {
-    margin: 0.5rem 0 !important;
+  margin: 0.5rem 0 !important;
 }
 
 .browse-body {
-    margin-bottom: 0 !important;
-    font-size: 1rem;
+  margin-bottom: 0 !important;
+  font-size: 1rem;
 }
 
 .browse-date__label {
-    font-size: 1rem;
+  font-size: 1rem;
 }
 
 .filters-form__title {
-    font-weight: 700;
-    font-size: 1.5rem;
+  font-weight: 700;
+  font-size: 1.5rem;
 }
 
 .browse-filter-container {
-    background-color: #f3f2f1;
-    padding: 0.5rem;
-    margin: 0.5rem;
-    min-width: 100%;
+  background-color: #f3f2f1;
+  padding: 0.5rem;
+  min-width: 100%;
+  margin-bottom: 1.5rem;
 }
 
 .browse-filter__header {
-    display: flex;
+  display: flex;
 }
 
 .browse-filter__icon {
-    justify-content: space-between;
-    width: 2rem;
-    margin-left: auto;
+  justify-content: space-between;
+  width: 2rem;
+  margin-left: auto;
 }
 
 .browse-series-container {
-    background-color: #f3f2f1;
-    padding: 0.5rem;
-    margin: 0.5rem;
-    min-width: 100%;
+  background-color: #f3f2f1;
+  padding: 0.5rem;
+  min-width: 100%;
+  margin-bottom: 1.5rem;
 }
 
 .browse-consignment-ref-container {
-    background-color: #f3f2f1;
-    padding: 0.5rem;
-    margin: 0.5rem;
-    min-width: 100%;
+  background-color: #f3f2f1;
+  padding: 0.5rem;
+  min-width: 100%;
+  margin-bottom: 1.5rem;
 }
 
 .browse-date-container {
-    background-color: #f3f2f1;
-    padding: 0.5rem;
-    margin: 0.5rem;
-    min-width: 100%;
+  background-color: #f3f2f1;
+  padding: 0.5rem;
+  min-width: 100%;
 }
 
-/* Filter Groups */
 .filters-form__transferring-body-group {
-    display: flex !important;
-    align-items: baseline;
+  display: flex !important;
+  align-items: baseline;
 }
 
 .filters-form__series-group {
-    display: flex;
+  display: flex;
 }
 
 .filters-form__consignment-ref-group {
-    display: flex;
+  display: flex;
 }
 
 .filters-form__date-from-group {
-    display: flex;
-    justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
 }
 
 .filters-form__date-to-group {
-    display: flex;
-    justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
 }
 
-
-
-/* Filter Inputs */
 .filters-form__transferring-body--select {
-    width: 100%;
-    min-width: auto;
-    font-size: 1rem;
+  width: 100%;
+  min-width: auto;
+  font-size: 1rem;
 }
 
 .filters-form__series--input {
-    flex-grow: 1;
-    width: 100%;
+  flex-grow: 1;
+  width: 100%;
 }
 
 .filters-form__consignment-ref--input {
-    flex-grow: 1;
-    width: 100%;
+  flex-grow: 1;
+  width: 100%;
 }
 
-
-/* Filter Buttons */
 .filters-form__buttons {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: auto;
-    margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: auto;
+  margin-top: 1rem;
 }
 
 .filters-form__apply--button {
-    align-self: flex-start;
-    margin-left: 1rem;
-    font-size: 1rem;
+  align-self: flex-start;
+  margin-left: 1rem;
+  font-size: 1rem;
 }
 
 .filters-form__clear--button {
-    margin-right: 1rem;
-    font-size: 1rem;
+  margin-right: 1rem;
+  font-size: 1rem;
 }
 
 .filters-form__transferring-body--button {
-    display: block;
-
+  display: block;
 }
 
 .filters-form__series--button {
-    align-self: flex-end;
-    justify-content: flex-end !important;
-    margin-right: 0.5rem !important;
-    margin-left: auto;
+  align-self: flex-end;
+  justify-content: flex-end !important;
+  margin-right: 0.5rem !important;
+  margin-left: auto;
 }
 
 .filters-form__consignment-ref--button {
-    align-self: flex-end;
-    justify-content: flex-end !important;
-    margin-right: 0.5rem !important;
+  align-self: flex-end;
+  justify-content: flex-end !important;
+  margin-right: 0.5rem !important;
 }
 
 .filters-form__date--button {
-    align-self: flex-end;
-    margin-right: 0.5rem !important;
+  align-self: flex-end;
+  margin-right: 0.5rem !important;
 }
 
 .filter-update-button {
-    align-self: flex-end;
-    justify-content: flex-end !important;
-    margin-right: 0.5rem !important;
+  align-self: flex-end;
+  justify-content: flex-end !important;
+  margin-right: 0.5rem !important;
 }
 
-
-/* Filter Text */
 .filters-form__body-date {
-    max-width: 2.4rem;
-    font-size: 1rem;
+  max-width: 2.4rem;
+  font-size: 1rem;
 }
+
+
+
+/*# sourceMappingURL=browse.css.map */
