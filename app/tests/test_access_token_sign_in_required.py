@@ -29,9 +29,7 @@ def test_access_token_sign_in_required_decorator_no_token(app):
         assert response.headers["Location"] == url_for("main.sign_in")
 
 
-@patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
-)
+@patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect")
 def test_access_token_sign_in_required_decorator_inactive_token(
     mock_decode_keycloak_access_token, app
 ):
@@ -64,9 +62,7 @@ def test_access_token_sign_in_required_decorator_inactive_token(
             assert cleared_session == {}
 
 
-@patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
-)
+@patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect")
 def test_access_token_sign_in_required_decorator_active_without_ayr_access(
     mock_decode_keycloak_access_token,
     app,
@@ -112,9 +108,7 @@ def test_access_token_sign_in_required_decorator_active_without_ayr_access(
         assert response.headers["Location"] == url_for("main.index")
 
 
-@patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
-)
+@patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect")
 def test_access_token_sign_in_required_decorator_valid_token(
     mock_decode_keycloak_access_token,
     app,
@@ -164,6 +158,7 @@ def test_expected_unprotected_routes_decorated_by_access_token_sign_in_required(
         "main.record",
         "main.sign_out",
         "main.poc_browse",
+        "main.poc_browse_transferring_body",
     ]
     expected_unprotected_routes = [
         "static",
@@ -252,9 +247,7 @@ def test_get_expected_routes_separated_by_protection():
     assert set(unprotected_routes) == {"static", "unprotected_view"}
 
 
-@patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
-)
+@patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect")
 def test_sign_out_button_on_protected_view_that_uses_base_template(
     mock_decode_keycloak_access_token, app
 ):
