@@ -70,3 +70,50 @@ def fuzzy_search(query_string):
     except exc.SQLAlchemyError as e:
         print("Failed to return results from database with error : " + str(e))
     return results
+
+
+def browse_view_series(series):
+    results = []
+    query = (
+        db.select(
+            Body.Name.label("TransferringBody"),
+            Series.Name.label("Series"),
+            func.max(Consignment.TransferCompleteDatetime).label(
+                "Last_Record_Transferred"
+            ),
+            func.count(func.distinct(File.FileId)).label("Records_Held"),
+            Consignment.ConsignmentReference.label("Consignment_Reference"),
+        )
+        .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
+        .join(Body, Body.BodyId == Consignment.BodyId)
+        .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .where(func.lower(Series.Name) == func.lower(series))
+        .group_by(
+            Body.BodyId, Series.SeriesId, Consignment.ConsignmentReference
+        )
+        .order_by(Body.Name, Series.Name)
+    )
+    try:
+        query_results = db.session.execute(query)
+
+        for r in query_results:
+            record = {
+                "TransferringBody": r.TransferringBody,
+                "Series": r.Series,
+                "Last_Record_Transferred": r.Last_Record_Transferred,
+                "Records_Held": r.Records_Held,
+                "ConsignmentReference": r.Consignment_Reference,
+            }
+            results.append(record)
+    except exc.SQLAlchemyError as e:
+        print("Failed to return results from database with error : " + str(e))
+    return results
+
+
+def get_full_list_of_series():
+    series = []
+    try:
+        series = Series.query.all()
+    except exc.SQLAlchemyError as e:
+        print("Failed to return results from database with error : " + str(e))
+    return series
