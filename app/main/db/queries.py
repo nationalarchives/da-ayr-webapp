@@ -72,20 +72,20 @@ def fuzzy_search(query_string):
     return results
 
 
-def browse_view():
+def get_file_data_grouped_by_transferring_body_and_series():
     results = []
 
     query = (
         db.select(
-            Body.Name.label("TransferringBody"),
-            Series.Name.label("Series"),
+            Body.Name.label("transferring_body"),
+            Series.Name.label("series"),
             func.max(Consignment.TransferCompleteDatetime).label(
-                "Last_Record_Transferred"
+                "last_record_transferred"
             ),
             func.count(func.distinct(Consignment.ConsignmentReference)).label(
-                "Consignment_in_Series"
+                "consignment_in_series"
             ),
-            func.count(func.distinct(File.FileId)).label("Records_Held"),
+            func.count(func.distinct(File.FileId)).label("records_held"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
         .join(Body, Body.BodyId == Consignment.BodyId)
@@ -93,19 +93,20 @@ def browse_view():
         .group_by(Body.BodyId, Series.SeriesId)
         .order_by(Body.Name, Series.Name)
     )
-
+    query_results = None
     try:
         query_results = db.session.execute(query)
-
-        for r in query_results:
-            record = {
-                "TransferringBody": r.TransferringBody,
-                "Series": r.Series,
-                "Consignment_in_Series": r.Consignment_in_Series,
-                "Last_Record_Transferred": r.Last_Record_Transferred,
-                "Records_Held": r.Records_Held,
-            }
-            results.append(record)
     except exc.SQLAlchemyError as e:
         print("Failed to return results from database with error : " + str(e))
+
+    if query_results is not None:
+        for r in query_results:
+            record = {
+                "transferring_body": r.transferring_body,
+                "series": r.series,
+                "consignment_in_series": r.consignment_in_series,
+                "last_record_transferred": r.last_record_transferred,
+                "records_held": r.records_held,
+            }
+            results.append(record)
     return results

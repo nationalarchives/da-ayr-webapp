@@ -139,5 +139,3 @@ def create_two_test_records():
     )
     db.session.add(new_file_metadata)
     db.session.commit()
-
-    # third record

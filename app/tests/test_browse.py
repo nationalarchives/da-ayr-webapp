@@ -4,7 +4,9 @@ from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 from sqlalchemy import exc
 
-from app.main.db.queries import browse_view
+from app.main.db.queries import (
+    get_file_data_grouped_by_transferring_body_and_series,
+)
 from app.tests.mock_database import create_two_test_records
 
 
@@ -82,14 +84,14 @@ def test_fuzzy_search_exception_raised(db, capsys):
     """
     Given a fuzzy search function
     When a call made to fuzzy search , when database execution failed with error
-    Then list should be empty and should raise an exception
+    Then list should be empty and should log a message detailing the exception
     """
 
     def mock_execute(_):
         raise exc.SQLAlchemyError("foo bar")
 
     db.session.execute.side_effect = mock_execute
-    results = browse_view()
+    results = get_file_data_grouped_by_transferring_body_and_series()
     assert results == []
     assert (
         "Failed to return results from database with error : foo bar"
