@@ -159,7 +159,9 @@ def poc_browse():
 def poc_browse_transferring_body():
     form = SearchForm()
 
-    user_transferring_body_groups = get_user_transferring_body_groups()
+    user_transferring_body_groups = get_user_transferring_body_groups(
+        session["access_token"]
+    )
 
     master_list_of_transferring_bodies = get_full_list_of_transferring_bodies()
 

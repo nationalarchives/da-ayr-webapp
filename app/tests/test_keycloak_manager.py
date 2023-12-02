@@ -1,5 +1,9 @@
 from unittest.mock import patch
 
+from app.main.authorize.keycloak_manager import (
+    get_user_transferring_body_groups,
+)
+
 
 @patch(
     "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
@@ -19,11 +23,20 @@ def test_decode_token(mock_decode_keycloak_access_token, app):
         with client.session_transaction() as session:
             session["access_token"] = "valid_token"
 
-        assert mock_decode_keycloak_access_token.return_value["active"]
-        assert (
-            mock_decode_keycloak_access_token.return_value["groups"][0]
-            == "application_1/foo"
-        )
+        assert mock_decode_keycloak_access_token.return_value == {
+            "active": True,
+            "groups": ["application_1/foo", "application_2/bar"],
+        }
+
+
+def test_get_user_transferring_body_groups_with_no_token():
+    """
+    Given no access token in the session,
+    Then it should not return user groups
+    """
+    access_token = None
+    user_groups_list = get_user_transferring_body_groups(access_token)
+    assert len(user_groups_list) == 0
 
 
 @patch(
@@ -37,13 +50,14 @@ def test_get_user_transferring_body_groups_invalid_access_token(
     When access token given
     Then it should not return user groups
     """
-    mock_decode_keycloak_access_token.return_value = {}
-    user_groups_list = []
-    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
-    with app.test_client() as client:
-        with client.session_transaction() as session:
-            session["access_token"] = None
-
+    mock_decode_keycloak_access_token.return_value = {
+        "active": True,
+        "groups": ["application_1/foo", "application_2/bar"],
+    }
+    with app.app_context():
+        user_groups_list = get_user_transferring_body_groups(
+            mock_decode_keycloak_access_token
+        )
         assert len(user_groups_list) == 0
 
 
@@ -62,13 +76,12 @@ def test_get_user_transferring_body_groups_inactive_access_token(
         "active": False,
         "groups": ["application_1/foo", "application_2/bar"],
     }
-    user_groups_list = []
-    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
-    with app.test_client() as client:
-        with client.session_transaction() as session:
-            session["access_token"] = "valid_token"
 
-        assert len(user_groups_list) == 0
+    with app.app_context():
+        user_groups_list = get_user_transferring_body_groups(
+            mock_decode_keycloak_access_token
+        )
+    assert len(user_groups_list) == 0
 
 
 @patch(

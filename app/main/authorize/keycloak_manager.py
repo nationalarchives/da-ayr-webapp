@@ -1,7 +1,7 @@
 import os
 
 import keycloak
-from flask import current_app, session
+from flask import current_app
 
 
 def decode_token(access_token):
@@ -17,7 +17,7 @@ def decode_token(access_token):
     return decoded_token
 
 
-def get_user_transferring_body_groups():
+def get_user_transferring_body_groups(access_token):
     """
     function that returns list of transferring body group names based on assignment of user group in keycloak for a user
 
@@ -28,7 +28,6 @@ def get_user_transferring_body_groups():
         List[str]: return list of transferring bodies
     """
 
-    access_token = session.get("access_token")
     if not access_token:
         return []
     decoded_token = decode_token(access_token)
