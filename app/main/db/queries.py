@@ -72,6 +72,46 @@ def fuzzy_search(query_string):
     return results
 
 
+  def get_file_data_grouped_by_transferring_body_and_series():
+    results = []
+
+    query = (
+        db.select(
+            Body.Name.label("transferring_body"),
+            Series.Name.label("series"),
+            func.max(Consignment.TransferCompleteDatetime).label(
+                "last_record_transferred"
+            ),
+            func.count(func.distinct(Consignment.ConsignmentReference)).label(
+                "consignment_in_series"
+            ),
+            func.count(func.distinct(File.FileId)).label("records_held"),
+        )
+        .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
+        .join(Body, Body.BodyId == Consignment.BodyId)
+        .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .group_by(Body.BodyId, Series.SeriesId)
+        .order_by(Body.Name, Series.Name)
+    )
+    query_results = None
+    try:
+        query_results = db.session.execute(query)
+    except exc.SQLAlchemyError as e:
+        print("Failed to return results from database with error : " + str(e))
+
+    if query_results is not None:
+        for r in query_results:
+            record = {
+                "transferring_body": r.transferring_body,
+                "series": r.series,
+                "consignment_in_series": r.consignment_in_series,
+                "last_record_transferred": r.last_record_transferred,
+                "records_held": r.records_held,
+            }
+            results.append(record)
+    return results
+  
+  
 def get_file_data_using_series_filter(series):
     results = []
     query = (
@@ -110,3 +150,4 @@ def get_file_data_using_series_filter(series):
             }
             results.append(record)
     return results
+

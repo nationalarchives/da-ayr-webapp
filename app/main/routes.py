@@ -17,7 +17,11 @@ from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
-from app.main.db.queries import fuzzy_search, get_file_data_using_series_filter
+from app.main.db.queries import (
+    fuzzy_search,
+    get_file_data_grouped_by_transferring_body_and_series,
+    get_file_data_using_series_filter
+)
 from app.main.forms import CookiesForm
 
 from .forms import SearchForm
@@ -127,6 +131,24 @@ def poc_search():
     )
 
 
+@bp.route("/poc-browse", methods=["POST", "GET"])
+@access_token_sign_in_required
+def poc_browse():
+    form = SearchForm()
+
+    search_results = get_file_data_grouped_by_transferring_body_and_series()
+    session["search_results"] = search_results
+
+    num_records_found = len(search_results)
+
+    return render_template(
+        "poc-browse.html",
+        form=form,
+        results=search_results,
+        num_records_found=num_records_found,
+    )
+  
+  
 @bp.route("/poc-browse-series", methods=["POST", "GET"])
 @access_token_sign_in_required
 def poc_browse_series():
