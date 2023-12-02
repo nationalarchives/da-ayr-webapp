@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 from sqlalchemy import exc
 
-from app.main.db.queries import browse_view_series
+from app.main.db.queries import get_file_data_using_series_filter
 from app.tests.mock_database import create_two_test_records
 
 
@@ -116,7 +116,7 @@ def test_browse_series_exception_raised(db, capsys):
         raise exc.SQLAlchemyError("foo bar")
 
     db.session.execute.side_effect = mock_execute
-    results = browse_view_series("")
+    results = get_file_data_using_series_filter("")
     assert results == []
     assert (
         "Failed to return results from database with error : foo bar"

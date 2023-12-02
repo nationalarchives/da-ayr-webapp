@@ -17,7 +17,7 @@ from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
-from app.main.db.queries import browse_view_series, fuzzy_search
+from app.main.db.queries import fuzzy_search, get_file_data_using_series_filter
 from app.main.forms import CookiesForm
 
 from .forms import SearchForm
@@ -136,7 +136,7 @@ def poc_browse_series():
     # print(series)
 
     if series:
-        search_results = browse_view_series(series)
+        search_results = get_file_data_using_series_filter(series)
 
     session["search_results"] = search_results
 

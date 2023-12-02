@@ -72,7 +72,7 @@ def fuzzy_search(query_string):
     return results
 
 
-def browse_view_series(series):
+def get_file_data_using_series_filter(series):
     results = []
     query = (
         db.select(
@@ -93,9 +93,13 @@ def browse_view_series(series):
         )
         .order_by(Body.Name, Series.Name)
     )
+    query_results = None
     try:
         query_results = db.session.execute(query)
+    except exc.SQLAlchemyError as e:
+        print("Failed to return results from database with error : " + str(e))
 
+    if query_results is not None:
         for r in query_results:
             record = {
                 "TransferringBody": r.TransferringBody,
@@ -105,15 +109,4 @@ def browse_view_series(series):
                 "ConsignmentReference": r.Consignment_Reference,
             }
             results.append(record)
-    except exc.SQLAlchemyError as e:
-        print("Failed to return results from database with error : " + str(e))
     return results
-
-
-def get_full_list_of_series():
-    series = []
-    try:
-        series = Series.query.all()
-    except exc.SQLAlchemyError as e:
-        print("Failed to return results from database with error : " + str(e))
-    return series
