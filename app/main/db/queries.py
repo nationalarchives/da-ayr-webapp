@@ -55,11 +55,14 @@ def fuzzy_search(query_string):
         )
         .distinct()
     )
-
+    query_results = []
     try:
-        result = db.session.execute(query)
+        query_results = db.session.execute(query)
+    except exc.SQLAlchemyError as e:
+        print("Failed to return results from database with error : " + str(e))
 
-        for r in result:
+    if query_results is not None:
+        for r in query_results:
             record = {
                 "TransferringBody": r.TransferringBody,
                 "Series": r.Series,
@@ -67,12 +70,10 @@ def fuzzy_search(query_string):
                 "FileName": r.FileName,
             }
             results.append(record)
-    except exc.SQLAlchemyError as e:
-        print("Failed to return results from database with error : " + str(e))
     return results
 
 
-  def get_file_data_grouped_by_transferring_body_and_series():
+def get_file_data_grouped_by_transferring_body_and_series():
     results = []
 
     query = (
@@ -110,8 +111,8 @@ def fuzzy_search(query_string):
             }
             results.append(record)
     return results
-  
-  
+
+
 def get_file_data_using_series_filter(series):
     results = []
     query = (
@@ -150,4 +151,3 @@ def get_file_data_using_series_filter(series):
             }
             results.append(record)
     return results
-

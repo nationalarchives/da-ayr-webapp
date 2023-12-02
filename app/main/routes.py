@@ -20,7 +20,7 @@ from app.main.authorize.access_token_sign_in_required import (
 from app.main.db.queries import (
     fuzzy_search,
     get_file_data_grouped_by_transferring_body_and_series,
-    get_file_data_using_series_filter
+    get_file_data_using_series_filter,
 )
 from app.main.forms import CookiesForm
 
@@ -147,8 +147,8 @@ def poc_browse():
         results=search_results,
         num_records_found=num_records_found,
     )
-  
-  
+
+
 @bp.route("/poc-browse-series", methods=["POST", "GET"])
 @access_token_sign_in_required
 def poc_browse_series():
