@@ -8,7 +8,7 @@ def browser_context_args(browser_context_args):
 
     This fixture is used to customize browser context arguments for Playwright
     browser instances. It sets the 'ignore_https_errors' option to True, which
-    allows ignoring HTTPS errors, To disbale JS set 'java_script_enabled' to False, which
+    allows ignoring HTTPS errors, To disable JS set 'java_script_enabled' to False, which
     disables JavaScript in the browser context.
 
     Parameters:
