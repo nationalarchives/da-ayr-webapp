@@ -63,7 +63,7 @@ def test_browse_series_results_displayed(client: FlaskClient):
     response = client.post("/poc-browse-series", data=form_data)
 
     assert response.status_code == 200
-    assert b"2 record(s) found" in response.data
+    assert b"1 record(s) found" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
     table = soup.find("table", class_="govuk-table")
@@ -80,13 +80,6 @@ def test_browse_series_results_displayed(client: FlaskClient):
             "Last Record Transferred",
             "Records held",
             "Consignment Reference",
-        ],
-        [
-            "test body1",
-            "test series1",
-            "2023-01-01 00:00:00",
-            "1",
-            "test consignment1",
         ],
         [
             "test body1",

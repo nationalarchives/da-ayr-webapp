@@ -2,17 +2,21 @@ import pytest
 from testing.postgresql import PostgresqlFactory
 
 from app import create_app
+from app.main.db.models import db
 from configs.testing_config import TestingConfig
 
 
-@pytest.fixture
+@pytest.fixture()
 def app(database):
     app = create_app(TestingConfig, database.url())
     yield app
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def client(app):
+    db.session.remove()
+    db.drop_all()
+    db.create_all()
     yield app.test_client()
 
 
