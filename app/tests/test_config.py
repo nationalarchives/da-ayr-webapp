@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import boto3
 from moto import mock_ssm
 
@@ -14,6 +16,11 @@ def test_local_env_vars_config_initialized(monkeypatch):
     monkeypatch.setenv(
         "SQLALCHEMY_DATABASE_URI", "test_sqlalchemy_database_uri"
     )
+    monkeypatch.setenv("DB_PORT", "5432")
+    monkeypatch.setenv("DB_HOST", "test_db_host")
+    monkeypatch.setenv("DB_USER", "test_db_user")
+    monkeypatch.setenv("DB_PASSWORD", "test_db_password")
+    monkeypatch.setenv("DB_NAME", "test_db_name")
     monkeypatch.setenv("KEYCLOAK_BASE_URI", "test_keycloak_base_uri")
     monkeypatch.setenv("KEYCLOAK_CLIENT_ID", "test_keycloak_client_id")
     monkeypatch.setenv("KEYCLOAK_REALM_NAME", "test_keycloak_realm_name")
@@ -30,7 +37,10 @@ def test_local_env_vars_config_initialized(monkeypatch):
 
     config = EnvConfig()
 
-    assert config.SQLALCHEMY_DATABASE_URI == "test_sqlalchemy_database_uri"
+    assert (
+        config.SQLALCHEMY_DATABASE_URI == "postgresql+psycopg2://test_db_user:"
+        "test_db_password@test_db_host:5432/test_db_name?sslmode=require"
+    )
     assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
     assert config.KEYCLOAK_CLIENT_ID == "test_keycloak_client_id"
     assert config.KEYCLOAK_REALM_NAME == "test_keycloak_realm_name"
@@ -43,13 +53,18 @@ def test_local_env_vars_config_initialized(monkeypatch):
     assert config.RATELIMIT_STORAGE_URI == "test_ratelimit_storage_uri"
 
 
+@patch("configs.aws_parameter_store_config.boto3")
 @mock_ssm
-def test_aws_params_config_initialized(monkeypatch):
+def test_aws_params_config_initialized(mock_boto3, monkeypatch):
     """
     GIVEN DEFAULT_AWS_PROFILE env var is set and AWS SSM parameters are set
     WHEN Config is initialized
     THEN it should have attributes with the expected values from the AWS SSM
     """
+    # Mock RDS client and generate_db_auth_token method
+    mock_boto3.client.return_value.generate_db_auth_token.return_value = (
+        "mocked_unescaped_%F4_/rds@_:token"
+    )
     monkeypatch.setenv("DEFAULT_AWS_PROFILE", "test_default_aws_profile")
 
     ssm_client = boto3.client("ssm")
@@ -67,8 +82,26 @@ def test_aws_params_config_initialized(monkeypatch):
         Overwrite=True,
     )
     ssm_client.put_parameter(
-        Name="/test_env/SQLALCHEMY_DATABASE_URI",
-        Value="test_sqlalchemy_database_uri",
+        Name="/test_env/DB_PORT",
+        Value="5432",
+        Type="String",
+        Overwrite=True,
+    )
+    ssm_client.put_parameter(
+        Name="/test_env/DB_HOST",
+        Value="test_db_host",
+        Type="String",
+        Overwrite=True,
+    )
+    ssm_client.put_parameter(
+        Name="/test_env/DB_USER",
+        Value="test_db_user",
+        Type="String",
+        Overwrite=True,
+    )
+    ssm_client.put_parameter(
+        Name="/test_env/DB_NAME",
+        Value="test_db_name",
         Type="String",
         Overwrite=True,
     )
@@ -117,7 +150,11 @@ def test_aws_params_config_initialized(monkeypatch):
 
     config = AWSParameterStoreConfig()
 
-    assert config.SQLALCHEMY_DATABASE_URI == "test_sqlalchemy_database_uri"
+    assert (
+        config.SQLALCHEMY_DATABASE_URI == "postgresql+psycopg2://test_db_user:"
+        "mocked_unescaped_%25F4_%2Frds%40_%3Atoken@test_db_host:5432/"
+        "test_db_name?sslmode=require"
+    )
     assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
     assert config.KEYCLOAK_CLIENT_ID == "test_keycloak_client_id"
     assert config.KEYCLOAK_REALM_NAME == "test_keycloak_realm_name"
