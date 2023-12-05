@@ -1,5 +1,8 @@
 from sqlalchemy import Text, and_, exc, func, or_
 
+from app.main.authorize.keycloak_manager import (
+    get_user_transferring_body_groups,
+)
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 
 
@@ -9,9 +12,11 @@ def fuzzy_search(query_string):
 
     query = (
         db.select(
+            Body.BodyId.label("BodyId"),
             Body.Name.label("TransferringBody"),
+            Series.SeriesId.label("SeriesId"),
             Series.Name.label("Series"),
-            Consignment.ConsignmentReference,
+            Consignment.ConsignmentReference.label("ConsignmentReference"),
             File.FileName.label("FileName"),
         )
         .join(Series, Series.BodyId == Body.BodyId)
@@ -54,21 +59,256 @@ def fuzzy_search(query_string):
             )
         )
         .distinct()
+        .order_by(Body.Name, Series.Name)
     )
-
+    query_results = None
     try:
-        result = db.session.execute(query)
-
-        for r in result:
-            record = {
-                "TransferringBody": r.TransferringBody,
-                "Series": r.Series,
-                "ConsignmentReference": r.ConsignmentReference,
-                "FileName": r.FileName,
-            }
-            results.append(record)
+        query_results = db.session.execute(query)
     except exc.SQLAlchemyError as e:
         print("Failed to return results from database with error : " + str(e))
+
+    if query_results is not None:
+        for r in query_results:
+            record = {
+                "transferring_body_id": r.BodyId,
+                "transferring_body": r.TransferringBody,
+                "series_id": r.SeriesId,
+                "series": r.Series,
+                "consignment_reference": r.ConsignmentReference,
+                "file_name": r.FileName,
+            }
+            results.append(record)
+    return results
+
+
+def browse_data(transferring_body_id=None, series_id=None, consignment_id=None):
+    results = []
+    if transferring_body_id is not None:
+        query = generate_transferring_body_filter_query(transferring_body_id)
+    elif series_id is not None:
+        query = generate_series_filter_query(series_id)
+    elif consignment_id is not None:
+        query = generate_consignment_reference_filter_query(consignment_id)
+    else:
+        query = generate_browse_everything_query()
+
+    # print(query)
+    query_results = None
+    try:
+        query_results = db.session.execute(query)
+    except exc.SQLAlchemyError as e:
+        print("Failed to return results from database with error : " + str(e))
+
+    if query_results is not None:
+        results = process_result(
+            query_results, transferring_body_id, series_id, consignment_id
+        )
+    return results
+
+
+def generate_browse_everything_query():
+    query = (
+        db.select(
+            Body.BodyId.label("BodyId"),
+            Body.Name.label("TransferringBody"),
+            Series.SeriesId.label("SeriesId"),
+            Series.Name.label("Series"),
+            func.max(Consignment.TransferCompleteDatetime).label(
+                "Last_Record_Transferred"
+            ),
+            func.count(func.distinct(Consignment.ConsignmentReference)).label(
+                "Consignment_in_Series"
+            ),
+            func.count(func.distinct(File.FileId)).label("Records_Held"),
+        )
+        .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
+        .join(Body, Body.BodyId == Consignment.BodyId)
+        .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .where(func.lower(File.FileType) == "file")
+        .group_by(Body.BodyId, Series.SeriesId)
+        .order_by(Body.Name, Series.Name)
+    )
+
+    return query
+
+
+def generate_transferring_body_filter_query(transferring_body_id):
+    query = (
+        db.select(
+            Body.BodyId.label("BodyId"),
+            Body.Name.label("TransferringBody"),
+            Series.SeriesId.label("SeriesId"),
+            Series.Name.label("Series"),
+            func.max(Consignment.TransferCompleteDatetime).label(
+                "Last_Record_Transferred"
+            ),
+            func.count(func.distinct(Consignment.ConsignmentReference)).label(
+                "Consignment_in_Series"
+            ),
+            func.count(func.distinct(File.FileId)).label("Records_Held"),
+        )
+        .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
+        .join(Body, Body.BodyId == Consignment.BodyId)
+        .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .where(
+            (func.lower(File.FileType) == "file")
+            & (Body.BodyId == transferring_body_id)
+        )
+        .group_by(Body.BodyId, Series.SeriesId)
+        .order_by(Body.Name, Series.Name)
+    )
+
+    return query
+
+
+def generate_series_filter_query(series_id):
+    query = (
+        db.select(
+            Body.BodyId.label("BodyId"),
+            Body.Name.label("TransferringBody"),
+            Series.SeriesId.label("SeriesId"),
+            Series.Name.label("Series"),
+            func.max(Consignment.TransferCompleteDatetime).label(
+                "Last_Record_Transferred"
+            ),
+            func.count(func.distinct(File.FileId)).label("Records_Held"),
+            Consignment.ConsignmentId.label("ConsignmentId"),
+            Consignment.ConsignmentReference.label("Consignment_Reference"),
+        )
+        .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
+        .join(Body, Body.BodyId == Consignment.BodyId)
+        .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .where(
+            (func.lower(File.FileType) == "file")
+            & (Series.SeriesId == series_id)
+        )
+        .group_by(Body.BodyId, Series.SeriesId, Consignment.ConsignmentId)
+        .order_by(Body.Name, Series.Name)
+    )
+
+    return query
+
+
+def generate_consignment_reference_filter_query(consignment_id):
+    query = (
+        db.select(
+            func.max(FileMetadata.Value).label("LastModified"),
+            File.FileId.label("FileId"),
+            File.FileName.label("FileName"),
+            func.max(FileMetadata.Value).label("Status"),
+            Consignment.ConsignmentId.label("ConsignmentId"),
+            Consignment.ConsignmentReference.label("Consignment_Reference"),
+        )
+        .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
+        .join(Body, Body.BodyId == Consignment.BodyId)
+        .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .join(FileMetadata, FileMetadata.FileId == File.FileId)
+        .where(
+            (func.lower(File.FileType) == "file")
+            & (Consignment.ConsignmentId == consignment_id)
+        )
+        .group_by(File.FileId, File.FileName, Consignment.ConsignmentId)
+        .order_by(File.FileName)
+    )
+
+    return query
+
+
+def get_user_accessible_transferring_bodies(access_token):
+    unique_transferring_bodies = []
+    bodies = None
+    try:
+        bodies = Body.query.all()
+    except exc.SQLAlchemyError as e:
+        print("Failed to return results from database with error : " + str(e))
+
+    # get transferring bodies for which user has access to
+    user_transferring_body_groups = get_user_transferring_body_groups(
+        access_token
+    )
+
+    if bodies is not None and user_transferring_body_groups is not None:
+        for body in bodies:
+            group_name = body.Name
+            if len(user_transferring_body_groups) > 0:
+                for user_group in user_transferring_body_groups:
+                    if (
+                        user_group.strip().replace(" ", "").lower()
+                        == group_name.strip().replace(" ", "").lower()
+                    ):
+                        unique_transferring_bodies.append(group_name)
+    return unique_transferring_bodies
+
+
+def process_result(
+    query_results,
+    transferring_body_id=None,
+    series_id=None,
+    consignment_id=None,
+):
+    results = []
+    for r in query_results:
+        if transferring_body_id is not None:
+            record = {
+                "transferring_body_id": r.BodyId,
+                "transferring_body": r.TransferringBody,
+                "series_id": r.SeriesId,
+                "series": r.Series,
+                "consignment_in_series": r.Consignment_in_Series,
+                "last_record_transferred": r.Last_Record_Transferred,
+                "records_held": r.Records_Held,
+            }
+        elif series_id is not None:
+            record = {
+                "transferring_body_id": r.BodyId,
+                "transferring_body": r.TransferringBody,
+                "series_id": r.SeriesId,
+                "series": r.Series,
+                "last_record_transferred": r.Last_Record_Transferred,
+                "records_held": r.Records_Held,
+                "consignment_id": r.ConsignmentId,
+                "consignment_reference": r.Consignment_Reference,
+            }
+        elif consignment_id is not None:
+            record = {
+                "last_modified": r.LastModified,
+                "file_id": r.FileId,
+                "file_name": r.FileName,
+                "status": r.Status,
+                "consignment_id": r.ConsignmentId,
+                "consignment_reference": r.Consignment_Reference,
+            }
+        else:
+            record = {
+                "transferring_body_id": r.BodyId,
+                "transferring_body": r.TransferringBody,
+                "series_id": r.SeriesId,
+                "series": r.Series,
+                "consignment_in_series": r.Consignment_in_Series,
+                "last_record_transferred": r.Last_Record_Transferred,
+                "records_held": r.Records_Held,
+            }
+        results.append(record)
+    return results
+
+
+def get_file_meta_data(file_id):
+    results = []
+    query = (
+        db.select(FileMetadata.PropertyName, FileMetadata.Value)
+        .join(File, FileMetadata.FileId == File.FileId)
+        .where((func.lower(File.FileType) == "file") & (File.FileId == file_id))
+    )
+    query_results = None
+    try:
+        query_results = db.session.execute(query)
+    except exc.SQLAlchemyError as e:
+        print("Failed to return results from database with error : " + str(e))
+
+    if query_results is not None:
+        for r in query_results:
+            record = {"PropertyName": r.PropertyName, "PropertyValue": r.Value}
+            results.append(record)
     return results
 
 
