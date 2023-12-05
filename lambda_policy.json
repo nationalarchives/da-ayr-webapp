@@ -20,12 +20,12 @@
                 "*"
             ]
         },
-		{
-			"Effect": "Allow",
-			"Action": [
-				"ssm:GetParameter"
-			],
-			"Resource": "arn:aws:ssm:*:parameter/*"
-		}
+        {
+                "Effect": "Allow",
+                "Action": [
+                    "ssm:GetParameter"
+                ],
+                "Resource": "arn:aws:ssm:*:*"
+        }
     ]
 }
