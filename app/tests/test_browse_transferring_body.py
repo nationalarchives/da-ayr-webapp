@@ -8,9 +8,7 @@ from app.main.db.queries import browse_view_transferring_body
 from app.tests.mock_database import create_two_test_records
 
 
-@patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
-)
+@patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect")
 def test_browse_transferring_body_get(
     mock_decode_keycloak_access_token, app, client: FlaskClient
 ):
@@ -35,9 +33,7 @@ def test_browse_transferring_body_get(
     assert b"Transferring Body :" in response.data
 
 
-@patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
-)
+@patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect")
 def test_browse_transferring_body_with_no_results(
     mock_decode_keycloak_access_token, app, client: FlaskClient
 ):
@@ -62,9 +58,7 @@ def test_browse_transferring_body_with_no_results(
     assert b"0 record(s) found"
 
 
-@patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
-)
+@patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect")
 def test_browse_transferring_body_results_displayed(
     mock_decode_keycloak_access_token, app, client: FlaskClient
 ):

@@ -39,7 +39,7 @@ def test_decode_token(mock_keycloak_open_id, app):
 
 
 class TestGetUserTransferringBodyGroups:
-    def test_no_token_returns_empty_list():
+    def test_no_token_returns_empty_list(self):
         """
         Given no access token,
         When calling the get_user_transferring_body_groups
@@ -51,7 +51,7 @@ class TestGetUserTransferringBodyGroups:
         "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
     )
     def test_inactive_token_returns_empty_list(
-        mock_decode_keycloak_access_token, app
+        self, mock_decode_keycloak_access_token, app
     ):
         """
         Given an inactive access token
@@ -70,7 +70,7 @@ class TestGetUserTransferringBodyGroups:
         "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
     )
     def test_no_transferring_body_user_groups_returns_empty_list(
-        mock_decode_keycloak_access_token, app
+        self, mock_decode_keycloak_access_token, app
     ):
         """
         Given an active access token which has no transferring_body_user groups
@@ -88,7 +88,7 @@ class TestGetUserTransferringBodyGroups:
         "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
     )
     def test_multiple_transferring_body_user_groups_returns_corresponding_list(
-        mock_decode_keycloak_access_token, app
+        self, mock_decode_keycloak_access_token, app
     ):
         """
         Given an active access token which has 2 transferring_body_user groups
