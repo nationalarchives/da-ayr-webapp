@@ -20,6 +20,7 @@ from app.main.authorize.access_token_sign_in_required import (
 from app.main.db.queries import (
     browse_view_transferring_body,
     fuzzy_search,
+    get_file_data_grouped_by_transferring_body_and_series,
     get_full_list_of_transferring_bodies,
     get_file_data_grouped_by_transferring_body_and_series,
 )
