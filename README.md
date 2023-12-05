@@ -139,7 +139,11 @@ Hardcoded values:
 Properties configurable at runtime:
 
 - `AWS_REGION`: The AWS region used for AWS services.
-- `SQLALCHEMY_DATABASE_URI`: The PostgreSQL database URI with format postgresql+psycopg2://<<db_username>>:<<db_password>>@<<db_host>>:<<db_port>>/<<db_name>>.
+- `DB_PORT`: The port of the database to connect to.
+- `DB_HOST`: The host of the database to connect to.
+- `DB_USER`: The username of the database to connect to.
+- `DB_PASSWORD`: The password of the database to connect to.
+- `DB_NAME`: The name of the database to connect to.
 - `KEYCLOAK_BASE_URI`: The base URI of the Keycloak authentication service.
 - `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
 - `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.
@@ -147,6 +151,10 @@ Properties configurable at runtime:
 - `KEYCLOAK_AYR_USER_GROUP`: The Keycloak user group used to check user access.
 - `RATELIMIT_STORAGE_URI`: The URI for the Redis storage used for rate limiting.
 - `SECRET_KEY`: Secret key used for Flask session and security.
+
+Calculated values:
+
+- `SQLALCHEMY_DATABASE_URI`: The PostgreSQL database URI with format `postgresql+psycopg2://<DB_USER>:<DB_PASSWORD>@<DB_HOST>:<DB_PORT>/<DB_NAME>`.
 
 We have two usable configs which extend `BaseConfig` for running the application:
 
