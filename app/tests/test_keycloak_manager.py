@@ -1,173 +1,111 @@
 from unittest.mock import patch
 
 from app.main.authorize.keycloak_manager import (
+    decode_token,
     get_user_transferring_body_groups,
 )
 
 
-@patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
-)
-def test_decode_token(mock_decode_keycloak_access_token, app):
+@patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID")
+def test_decode_token(mock_keycloak_open_id, app):
     """
-    Given an active access token in the session,
-    When access token given
-    Then it should decode token
+    Given a valid access token,
+    When decoding the token using the decode_token function,
+    Then it should return the decoded token,
+    And it should make the correct calls to KeycloakOpenID for token introspection.
     """
-    mock_decode_keycloak_access_token.return_value = {
+    mock_keycloak_open_id.return_value.introspect.return_value = {
         "active": True,
         "groups": ["application_1/foo", "application_2/bar"],
     }
-    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
-    with app.test_client() as client:
-        with client.session_transaction() as session:
-            session["access_token"] = "valid_token"
 
-        assert mock_decode_keycloak_access_token.return_value == {
-            "active": True,
+    app.config["KEYCLOAK_BASE_URI"] = "a"
+    app.config["KEYCLOAK_CLIENT_ID"] = "b"
+    app.config["KEYCLOAK_REALM_NAME"] = "c"
+    app.config["KEYCLOAK_CLIENT_SECRET"] = "d"
+
+    with app.app_context():
+        decoded_token = decode_token("valid_token")
+
+    assert decoded_token == {
+        "active": True,
+        "groups": ["application_1/foo", "application_2/bar"],
+    }
+
+    mock_keycloak_open_id.assert_called_once_with(
+        server_url="a", client_id="b", realm_name="c", client_secret_key="d"
+    )
+    mock_keycloak_open_id.return_value.introspect.assert_called_once()
+
+
+class TestGetUserTransferringBodyGroups:
+    def test_no_token_returns_empty_list():
+        """
+        Given no access token,
+        When calling the get_user_transferring_body_groups
+        Then it should return an empty list of user groups.
+        """
+        assert get_user_transferring_body_groups(None) == []
+
+    @patch(
+        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
+    )
+    def test_inactive_token_returns_empty_list(
+        mock_decode_keycloak_access_token, app
+    ):
+        """
+        Given an inactive access token
+        When calling get_user_transferring_body_groups with it
+        Then it should return an empty list
+        """
+        mock_decode_keycloak_access_token.return_value = {
+            "active": False,
             "groups": ["application_1/foo", "application_2/bar"],
         }
 
+        with app.app_context():
+            assert get_user_transferring_body_groups("some_token_string") == []
 
-def test_get_user_transferring_body_groups_with_no_token():
-    """
-    Given no access token in the session,
-    Then it should not return user groups
-    """
-    access_token = None
-    user_groups_list = get_user_transferring_body_groups(access_token)
-    assert len(user_groups_list) == 0
+    @patch(
+        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
+    )
+    def test_no_transferring_body_user_groups_returns_empty_list(
+        mock_decode_keycloak_access_token, app
+    ):
+        """
+        Given an active access token which has no transferring_body_user groups
+        When calling get_user_transferring_body_groups with it
+        Then it should return an empty list
+        """
+        mock_decode_keycloak_access_token.return_value = {
+            "active": True,
+            "groups": ["application_1/foo", "application_2/bar"],
+        }
+        with app.app_context():
+            assert get_user_transferring_body_groups("some_token_string") == []
 
+    @patch(
+        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
+    )
+    def test_multiple_transferring_body_user_groups_returns_corresponding_list(
+        mock_decode_keycloak_access_token, app
+    ):
+        """
+        Given an active access token which has 2 transferring_body_user groups
+        When calling get_user_transferring_body_groups with it
+        Then it should return the 2 corresponding strings in a list
+        """
+        mock_decode_keycloak_access_token.return_value = {
+            "active": True,
+            "groups": [
+                "/transferring_body_user/foo",
+                "/transferring_body_user/bar",
+                "/ayr_user/abc",
+            ],
+        }
 
-@patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
-)
-def test_get_user_transferring_body_groups_invalid_access_token(
-    mock_decode_keycloak_access_token, app
-):
-    """
-    Given an active access token in the session,
-    When access token given
-    Then it should not return user groups
-    """
-    mock_decode_keycloak_access_token.return_value = {
-        "active": True,
-        "groups": ["application_1/foo", "application_2/bar"],
-    }
-    with app.app_context():
-        user_groups_list = get_user_transferring_body_groups(
-            mock_decode_keycloak_access_token
-        )
-        assert len(user_groups_list) == 0
-
-
-@patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
-)
-def test_get_user_transferring_body_groups_inactive_access_token(
-    mock_decode_keycloak_access_token, app
-):
-    """
-    Given an active access token in the session,
-    When access token given
-    Then it should not return user groups list
-    """
-    mock_decode_keycloak_access_token.return_value = {
-        "active": False,
-        "groups": ["application_1/foo", "application_2/bar"],
-    }
-
-    with app.app_context():
-        user_groups_list = get_user_transferring_body_groups(
-            mock_decode_keycloak_access_token
-        )
-    assert len(user_groups_list) == 0
-
-
-@patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
-)
-def test_get_user_transferring_body_groups_active_access_token_invalid_transferring_body(
-    mock_decode_keycloak_access_token, app
-):
-    """
-    Given an active access token in the session,
-    When access token given
-    Then it should not return user group list
-    """
-    mock_decode_keycloak_access_token.return_value = {
-        "active": True,
-        "groups": ["/application_1/foo", "/application_2/bar"],
-    }
-    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
-    with app.test_client() as client:
-        with client.session_transaction() as session:
-            session["access_token"] = "valid_token"
-
-        for group in mock_decode_keycloak_access_token.return_value["groups"]:
-            index = group.find("transferring_body")
-
-        assert index == -1
-
-
-@patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
-)
-def test_get_user_transferring_body_groups_multiple_transferring_body(
-    mock_decode_keycloak_access_token, app
-):
-    """
-    Given an active access token in the session,
-    When access token given
-    Then it should return 2 items in user group list
-    """
-    mock_decode_keycloak_access_token.return_value = {
-        "active": True,
-        "groups": ["/transferring_body/foo", "/transferring_body/bar"],
-    }
-    user_groups_list = []
-    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
-    with app.test_client() as client:
-        with client.session_transaction() as session:
-            session["access_token"] = "valid_token"
-
-        for group in mock_decode_keycloak_access_token.return_value["groups"]:
-            index = group.find("transferring_body")
-            print(index)
-            if index != -1:
-                user_groups_list.append(group[2])
-
-        assert len(user_groups_list) == 2
-
-
-@patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
-)
-def test_get_user_transferring_body_groups_return_multiple_transferring_body(
-    mock_decode_keycloak_access_token, app
-):
-    """
-    Given an active access token in the session,
-    When access token given
-    Then it should return 2 items in user group list
-    """
-    mock_decode_keycloak_access_token.return_value = {
-        "active": True,
-        "groups": [
-            "/transferring_body/foo",
-            "/transferring_body/bar",
-            "/ayr_user/bar",
-        ],
-    }
-    user_groups_list = []
-    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
-    with app.test_client() as client:
-        with client.session_transaction() as session:
-            session["access_token"] = "valid_token"
-
-        for group in mock_decode_keycloak_access_token.return_value["groups"]:
-            index = group.find("transferring_body")
-            if index != -1:
-                user_groups_list.append(group[2])
-
-        assert len(user_groups_list) == 2
+        with app.app_context():
+            assert get_user_transferring_body_groups("some_token_string") == [
+                "foo",
+                "bar",
+            ]
