@@ -1,0 +1,18 @@
+{
+    "sandbox": {
+        "app_function": "main_app.app",
+        "memory_size": 512,
+        "keep_warm": false,
+        "timeout_seconds": 7,
+        "aws_region": "eu-west-2",
+        "project_name": "da-ayr-beta-webapp",
+        "attach_policy": "lambda_policy.json",
+        "apigateway_policy": "apigateway_policy.json",
+        "runtime": "python3.11",
+        "environment_variables": {
+            "CONFIG_SOURCE": "AWS_PARAMETER_STORE"
+        },
+        "aws_environment_variables": {"INSTANTIATE_LAMBDA_HANDLER_ON_IMPORT": "True"},
+        "profile_name": $ZAPPA_DEPLOYMENT_PROFILE_NAME
+    }
+}
