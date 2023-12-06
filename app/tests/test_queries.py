@@ -7,7 +7,7 @@ from app.main.db.models import Body, Consignment, File, Series
 from app.main.db.queries import (
     browse_data,
     fuzzy_search,
-    get_file_meta_data,
+    get_file_metadata,
     get_user_accessible_transferring_bodies,
 )
 from app.tests.mock_database import create_two_test_records
@@ -138,19 +138,19 @@ def test_browse_data_exception_raised(db, capsys):
     )
 
 
-def test_get_file_meta_data_no_results(client: FlaskClient):
+def test_get_file_metadata_no_results(client: FlaskClient):
     """
     Given a user with a search query
     When they make a request on the browse view series page, and no results are found
     Then they should see no records found.
     """
     file_id = "junk"
-    search_results = get_file_meta_data(file_id)
+    search_results = get_file_metadata(file_id)
 
     assert len(search_results) == 0
 
 
-def test_get_file_meta_data_with_results(client: FlaskClient):
+def test_get_file_metadata_with_results(client: FlaskClient):
     """
     Given a user with a search query which should return n results
     When they make a request on the browse series page
@@ -161,12 +161,12 @@ def test_get_file_meta_data_with_results(client: FlaskClient):
 
     if len(files) > 0:
         file_id = files[0].FileId
-        search_results = get_file_meta_data(file_id=file_id)
+        search_results = get_file_metadata(file_id=file_id)
         assert len(search_results) == 3
 
 
 @patch("app.main.db.queries.db")
-def test_get_file_meta_data_exception_raised(db, capsys):
+def test_get_file_metadata_exception_raised(db, capsys):
     """
     Given a file metadata query
     When a call made to file metadata , when database execution failed with error
@@ -177,7 +177,7 @@ def test_get_file_meta_data_exception_raised(db, capsys):
         raise exc.SQLAlchemyError("foo bar")
 
     db.session.execute.side_effect = mock_execute
-    results = get_file_meta_data("")
+    results = get_file_metadata("")
     assert results == []
     assert (
         "Failed to return results from database with error : foo bar"
@@ -208,3 +208,24 @@ def test_get_user_accessible_transferring_bodies(
     )
     assert len(results) == 2
     assert results[0] == "test body1"
+
+
+@patch("app.main.db.queries.db")
+def test_get_user_accessible_transferring_bodies_exception_raised(db, capsys):
+    """
+    Given a get user accessible transferring bodies query
+    When a call made to get user accessible transferring bodies , when database execution failed with error
+    Then list should be empty and should raise an exception
+    """
+
+    def mock_execute(_):
+        raise exc.SQLAlchemyError("foo bar")
+
+    db.session.execute.side_effect = mock_execute
+
+    results = get_user_accessible_transferring_bodies("")
+    assert results == []
+    assert (
+        "Failed to return results from database with error : foo bar"
+        in capsys.readouterr().out
+    )
