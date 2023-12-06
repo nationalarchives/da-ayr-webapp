@@ -3,6 +3,11 @@
     "Statement": [
         {
             "Effect": "Allow",
+            "Action": ["rds-db:connect"],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
             "Action": [
                  "logs:CreateLogGroup",
                  "logs:CreateLogStream",
@@ -21,11 +26,11 @@
             ]
         },
         {
-                "Effect": "Allow",
-                "Action": [
-                    "ssm:GetParameter"
-                ],
-                "Resource": "arn:aws:ssm:*:*"
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetParameter"
+            ],
+            "Resource": "arn:aws:ssm:*:*"
         }
     ]
 }
