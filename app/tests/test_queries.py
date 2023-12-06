@@ -19,7 +19,6 @@ def test_fuzzy_search_no_results(client: FlaskClient):
     When they make a request, and no results are found
     Then they should see no records found.
     """
-    # create_two_test_records()
 
     query = "junk"
     search_results = fuzzy_search(query)
