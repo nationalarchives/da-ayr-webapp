@@ -203,7 +203,7 @@ def test_get_user_accessible_transferring_bodies(
         mock_decode_keycloak_access_token
     )
     assert len(results) == 2
-    assert results[0] == "test body1"
+    assert results == ["test body1", "test body2"]
 
 
 @patch("app.main.db.queries.db")
