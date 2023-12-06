@@ -12,12 +12,12 @@ def fuzzy_search(query_string):
 
     query = (
         db.select(
-            Body.BodyId.label("BodyId"),
-            Body.Name.label("TransferringBody"),
-            Series.SeriesId.label("SeriesId"),
-            Series.Name.label("Series"),
-            Consignment.ConsignmentReference.label("ConsignmentReference"),
-            File.FileName.label("FileName"),
+            Body.BodyId.label("body_id"),
+            Body.Name.label("transferring_body"),
+            Series.SeriesId.label("series_id"),
+            Series.Name.label("series"),
+            Consignment.ConsignmentReference.label("consignment_reference"),
+            File.FileName.label("file_name"),
         )
         .join(Series, Series.BodyId == Body.BodyId)
         .join(
@@ -70,12 +70,12 @@ def fuzzy_search(query_string):
     if query_results is not None:
         for r in query_results:
             record = {
-                "transferring_body_id": r.BodyId,
-                "transferring_body": r.TransferringBody,
-                "series_id": r.SeriesId,
-                "series": r.Series,
-                "consignment_reference": r.ConsignmentReference,
-                "file_name": r.FileName,
+                "transferring_body_id": r.body_id,
+                "transferring_body": r.transferring_body,
+                "series_id": r.series_id,
+                "series": r.series,
+                "consignment_reference": r.consignment_reference,
+                "file_name": r.file_name,
             }
             results.append(record)
     return results
@@ -90,13 +90,13 @@ def browse_data(transferring_body_id=None, series_id=None, consignment_id=None):
             )
             results = [
                 {
-                    "transferring_body_id": r.BodyId,
-                    "transferring_body": r.TransferringBody,
-                    "series_id": r.SeriesId,
-                    "series": r.Series,
-                    "consignment_in_series": r.Consignment_in_Series,
-                    "last_record_transferred": r.Last_Record_Transferred,
-                    "records_held": r.Records_Held,
+                    "transferring_body_id": r.body_id,
+                    "transferring_body": r.transferring_body,
+                    "series_id": r.series_id,
+                    "series": r.series,
+                    "consignment_in_series": r.consignment_in_series,
+                    "last_record_transferred": r.last_record_transferred,
+                    "records_held": r.records_held,
                 }
                 for r in query_results
             ]
@@ -106,14 +106,14 @@ def browse_data(transferring_body_id=None, series_id=None, consignment_id=None):
             )
             results = [
                 {
-                    "transferring_body_id": r.BodyId,
-                    "transferring_body": r.TransferringBody,
-                    "series_id": r.SeriesId,
-                    "series": r.Series,
-                    "last_record_transferred": r.Last_Record_Transferred,
-                    "records_held": r.Records_Held,
-                    "consignment_id": r.ConsignmentId,
-                    "consignment_reference": r.Consignment_Reference,
+                    "transferring_body_id": r.body_id,
+                    "transferring_body": r.transferring_body,
+                    "series_id": r.series_id,
+                    "series": r.series,
+                    "last_record_transferred": r.last_record_transferred,
+                    "records_held": r.records_held,
+                    "consignment_id": r.consignment_id,
+                    "consignment_reference": r.consignment_reference,
                 }
                 for r in query_results
             ]
@@ -123,12 +123,12 @@ def browse_data(transferring_body_id=None, series_id=None, consignment_id=None):
             )
             results = [
                 {
-                    "last_modified": r.LastModified,
-                    "file_id": r.FileId,
-                    "file_name": r.FileName,
-                    "status": r.Status,
-                    "consignment_id": r.ConsignmentId,
-                    "consignment_reference": r.Consignment_Reference,
+                    "last_modified": r.last_modified,
+                    "file_id": r.file_id,
+                    "file_name": r.file_name,
+                    "status": r.status,
+                    "consignment_id": r.consignment_id,
+                    "consignment_reference": r.consignment_reference,
                 }
                 for r in query_results
             ]
@@ -138,13 +138,13 @@ def browse_data(transferring_body_id=None, series_id=None, consignment_id=None):
             )
             results = [
                 {
-                    "transferring_body_id": r.BodyId,
-                    "transferring_body": r.TransferringBody,
-                    "series_id": r.SeriesId,
-                    "series": r.Series,
-                    "consignment_in_series": r.Consignment_in_Series,
-                    "last_record_transferred": r.Last_Record_Transferred,
-                    "records_held": r.Records_Held,
+                    "transferring_body_id": r.body_id,
+                    "transferring_body": r.transferring_body,
+                    "series_id": r.series_id,
+                    "series": r.series,
+                    "consignment_in_series": r.consignment_in_series,
+                    "last_record_transferred": r.last_record_transferred,
+                    "records_held": r.records_held,
                 }
                 for r in query_results
             ]
@@ -183,7 +183,10 @@ def get_user_accessible_transferring_bodies(access_token):
 def get_file_metadata(file_id):
     results = []
     query = (
-        db.select(FileMetadata.PropertyName, FileMetadata.Value)
+        db.select(
+            FileMetadata.PropertyName.label("property_name"),
+            FileMetadata.Value.label("property_value"),
+        )
         .join(File, FileMetadata.FileId == File.FileId)
         .where((func.lower(File.FileType) == "file") & (File.FileId == file_id))
     )
@@ -196,8 +199,8 @@ def get_file_metadata(file_id):
     if query_results is not None:
         for r in query_results:
             record = {
-                "property_name": r.PropertyName,
-                "property_value": r.Value,
+                "property_name": r.property_name,
+                "property_value": r.property_value,
             }
             results.append(record)
     return results
@@ -206,17 +209,17 @@ def get_file_metadata(file_id):
 def generate_browse_everything_query():
     query = (
         db.select(
-            Body.BodyId.label("BodyId"),
-            Body.Name.label("TransferringBody"),
-            Series.SeriesId.label("SeriesId"),
-            Series.Name.label("Series"),
+            Body.BodyId.label("body_id"),
+            Body.Name.label("transferring_body"),
+            Series.SeriesId.label("series_id"),
+            Series.Name.label("series"),
             func.max(Consignment.TransferCompleteDatetime).label(
-                "Last_Record_Transferred"
+                "last_record_transferred"
             ),
             func.count(func.distinct(Consignment.ConsignmentReference)).label(
-                "Consignment_in_Series"
+                "consignment_in_series"
             ),
-            func.count(func.distinct(File.FileId)).label("Records_Held"),
+            func.count(func.distinct(File.FileId)).label("records_held"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
         .join(Body, Body.BodyId == Consignment.BodyId)
@@ -232,17 +235,17 @@ def generate_browse_everything_query():
 def generate_transferring_body_filter_query(transferring_body_id):
     query = (
         db.select(
-            Body.BodyId.label("BodyId"),
-            Body.Name.label("TransferringBody"),
-            Series.SeriesId.label("SeriesId"),
-            Series.Name.label("Series"),
+            Body.BodyId.label("body_id"),
+            Body.Name.label("transferring_body"),
+            Series.SeriesId.label("series_id"),
+            Series.Name.label("series"),
             func.max(Consignment.TransferCompleteDatetime).label(
-                "Last_Record_Transferred"
+                "last_record_transferred"
             ),
             func.count(func.distinct(Consignment.ConsignmentReference)).label(
-                "Consignment_in_Series"
+                "consignment_in_series"
             ),
-            func.count(func.distinct(File.FileId)).label("Records_Held"),
+            func.count(func.distinct(File.FileId)).label("records_held"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
         .join(Body, Body.BodyId == Consignment.BodyId)
@@ -261,16 +264,16 @@ def generate_transferring_body_filter_query(transferring_body_id):
 def generate_series_filter_query(series_id):
     query = (
         db.select(
-            Body.BodyId.label("BodyId"),
-            Body.Name.label("TransferringBody"),
-            Series.SeriesId.label("SeriesId"),
-            Series.Name.label("Series"),
+            Body.BodyId.label("body_id"),
+            Body.Name.label("transferring_body"),
+            Series.SeriesId.label("series_id"),
+            Series.Name.label("series"),
             func.max(Consignment.TransferCompleteDatetime).label(
-                "Last_Record_Transferred"
+                "last_record_transferred"
             ),
-            func.count(func.distinct(File.FileId)).label("Records_Held"),
-            Consignment.ConsignmentId.label("ConsignmentId"),
-            Consignment.ConsignmentReference.label("Consignment_Reference"),
+            func.count(func.distinct(File.FileId)).label("records_held"),
+            Consignment.ConsignmentId.label("consignment_id"),
+            Consignment.ConsignmentReference.label("consignment_reference"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
         .join(Body, Body.BodyId == Consignment.BodyId)
@@ -289,12 +292,12 @@ def generate_series_filter_query(series_id):
 def generate_consignment_reference_filter_query(consignment_id):
     query = (
         db.select(
-            func.max(FileMetadata.Value).label("LastModified"),
-            File.FileId.label("FileId"),
-            File.FileName.label("FileName"),
-            func.max(FileMetadata.Value).label("Status"),
-            Consignment.ConsignmentId.label("ConsignmentId"),
-            Consignment.ConsignmentReference.label("Consignment_Reference"),
+            func.max(FileMetadata.Value).label("last_modified"),
+            File.FileId.label("file_id"),
+            File.FileName.label("file_name"),
+            func.max(FileMetadata.Value).label("status"),
+            Consignment.ConsignmentId.label("consignment_id"),
+            Consignment.ConsignmentReference.label("consignment_reference"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
         .join(Body, Body.BodyId == Consignment.BodyId)
