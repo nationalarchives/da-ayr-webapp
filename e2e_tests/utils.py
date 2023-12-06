@@ -1,26 +1,37 @@
-def block_resource_requests(route, block_css=True):
-    """
-    Intercepts and blocks CSS resource requests if block_css is True.
+import functools
 
-    This function is used as a callback for Playwright's route method to intercept
-    and block CSS resource requests when the block_css flag is set to True. When
-    a CSS request is intercepted, it will print a message and abort the request,
-    effectively blocking CSS resources.
+
+def block_css_decorator(func):
+    """
+    Decorator to intercept and block CSS resource requests.
+
+    This decorator is designed to be applied to functions that receive a 'page'
+    object as their first argument. It will intercept and block stylesheet resource
+    requests.
 
     Parameters:
-        route (Route): The intercepted route object.
-        block_css (bool): Flag to control CSS blocking (default is True).
+        func (function): The function to be wrapped.
 
     Returns:
-        Route: The route object after intercepting and possibly blocking the request.
-    """
-    try:
-        if route is None:
-            raise ValueError("Route object is None")
+        function: The wrapped function.
 
-        if block_css and route.request.resource_type == "stylesheet":
-            print(f"Blocking the CSS request to: {route.request.url}")
-            return route.abort()
-        return route.continue_()
-    except Exception as e:
-        print(f"Error in block_css_requests: {e}")
+    """
+
+    @functools.wraps(func)
+    def wrapper(page, *args, **kwargs):
+        try:
+            if page is None:
+                raise ValueError("Page object is None")
+
+            def route_intercept(route):
+                if route.request.resource_type == "stylesheet":
+                    return route.abort()
+                return route.continue_()
+
+            page.route("**/*", route_intercept)
+
+            return func(page, *args, **kwargs)
+        except Exception as e:
+            print(f"Error in block_css_decorator: {e}")
+
+    return wrapper
