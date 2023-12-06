@@ -82,10 +82,9 @@ def test_browse_data_with_transferring_body_filter(client: FlaskClient):
     create_two_test_records()
     bodies = Body.query.all()
 
-    if len(bodies) > 0:
-        transferring_body = bodies[0].BodyId
-        search_results = browse_data(transferring_body_id=transferring_body)
-        assert len(search_results) == 1
+    transferring_body = bodies[0].BodyId
+    search_results = browse_data(transferring_body_id=transferring_body)
+    assert len(search_results) == 1
 
 
 def test_browse_data_with_series_filter(client: FlaskClient):
@@ -97,10 +96,9 @@ def test_browse_data_with_series_filter(client: FlaskClient):
     create_two_test_records()
     series = Series.query.all()
 
-    if len(series) > 0:
-        series_id = series[0].SeriesId
-        search_results = browse_data(series_id=series_id)
-        assert len(search_results) == 1
+    series_id = series[0].SeriesId
+    search_results = browse_data(series_id=series_id)
+    assert len(search_results) == 1
 
 
 def test_browse_data_with_consignment_reference_filter(client: FlaskClient):
@@ -112,10 +110,9 @@ def test_browse_data_with_consignment_reference_filter(client: FlaskClient):
     create_two_test_records()
     consignments = Consignment.query.all()
 
-    if len(consignments) > 0:
-        consignment_id = consignments[0].ConsignmentId
-        search_results = browse_data(consignment_id=consignment_id)
-        assert len(search_results) == 1
+    consignment_id = consignments[0].ConsignmentId
+    search_results = browse_data(consignment_id=consignment_id)
+    assert len(search_results) == 1
 
 
 @patch("app.main.db.queries.db")
@@ -159,10 +156,9 @@ def test_get_file_metadata_with_results(client: FlaskClient):
     create_two_test_records()
     files = File.query.all()
 
-    if len(files) > 0:
-        file_id = files[0].FileId
-        search_results = get_file_metadata(file_id=file_id)
-        assert len(search_results) == 3
+    file_id = files[0].FileId
+    search_results = get_file_metadata(file_id=file_id)
+    assert len(search_results) == 3
 
 
 @patch("app.main.db.queries.db")
