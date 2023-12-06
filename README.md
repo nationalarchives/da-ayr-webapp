@@ -202,6 +202,12 @@ To enable this flexibility we suggest any Playwright tests added to the repo use
 
 In addition, we recommend that any tests that have dependencies on data, do not make assumptions about any particular database or instance involved, and instead do the test data set up and teardown as part of the test suite.
 
+### E2E Tests (Progressive Enhancement Support)
+
+E2E Tests by default run without JavaScript. To also disable CSS within tests the decorator `block_css_decorator` should be used which will block all css stylesheets from being loaded on the page. 
+
+To enable JavaScript to run during E2E Tests the flag `java_script_enabled` should be set to True within conftest.py.
+
 ## Features
 
 Please refer to the specific packages documentation for more details.
