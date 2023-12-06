@@ -2,7 +2,10 @@ import re
 
 from playwright.sync_api import Page, expect
 
+from e2e_tests.utils import block_css_decorator
 
+
+@block_css_decorator
 def test_has_title(page: Page):
     page.goto("/")
 

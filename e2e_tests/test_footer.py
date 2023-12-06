@@ -1,6 +1,8 @@
 import pytest
 from playwright.sync_api import Page, expect
 
+from e2e_tests.utils import block_css_decorator
+
 # Define list of footer links and their expected URLS
 
 footer_links = [
@@ -28,9 +30,10 @@ footer_links = [
 
 
 @pytest.fixture
+@block_css_decorator
 def setup_page(page: Page):
     page.goto("/")
-    yield page
+    return page
 
 
 @pytest.mark.parametrize(
