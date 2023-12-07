@@ -272,28 +272,3 @@ def generate_series_filter_query(series_id):
     )
 
     return query
-
-
-def generate_consignment_reference_filter_query(consignment_id):
-    query = (
-        db.select(
-            func.max(FileMetadata.Value).label("last_modified"),
-            File.FileId.label("file_id"),
-            File.FileName.label("file_name"),
-            func.max(FileMetadata.Value).label("status"),
-            Consignment.ConsignmentId.label("consignment_id"),
-            Consignment.ConsignmentReference.label("consignment_reference"),
-        )
-        .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Body, Body.BodyId == Consignment.BodyId)
-        .join(Series, Series.SeriesId == Consignment.SeriesId)
-        .join(FileMetadata, FileMetadata.FileId == File.FileId)
-        .where(
-            (func.lower(File.FileType) == "file")
-            & (Consignment.ConsignmentId == consignment_id)
-        )
-        .group_by(File.FileId, File.FileName, Consignment.ConsignmentId)
-        .order_by(File.FileName)
-    )
-    print(query)
-    return query
