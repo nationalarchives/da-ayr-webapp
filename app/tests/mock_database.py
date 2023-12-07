@@ -3,7 +3,7 @@ import uuid
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 
 
-def create_file_with_test_in_fields():
+def create_test_file():
     new_body = Body(
         BodyId=uuid.uuid4(), Name="test body1", Description="test body1"
     )
