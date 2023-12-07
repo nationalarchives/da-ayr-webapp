@@ -81,7 +81,7 @@ def fuzzy_search(query_string):
     return results
 
 
-def browse_data(transferring_body_id=None, series_id=None, consignment_id=None):
+def browse_data(transferring_body_id=None, series_id=None):
     results = []
     try:
         if transferring_body_id is not None:
@@ -112,21 +112,6 @@ def browse_data(transferring_body_id=None, series_id=None, consignment_id=None):
                     "series": r.series,
                     "last_record_transferred": r.last_record_transferred,
                     "records_held": r.records_held,
-                    "consignment_id": r.consignment_id,
-                    "consignment_reference": r.consignment_reference,
-                }
-                for r in query_results
-            ]
-        elif consignment_id is not None:
-            query_results = db.session.execute(
-                generate_consignment_reference_filter_query(consignment_id)
-            )
-            results = [
-                {
-                    "last_modified": r.last_modified,
-                    "file_id": r.file_id,
-                    "file_name": r.file_name,
-                    "status": r.status,
                     "consignment_id": r.consignment_id,
                     "consignment_reference": r.consignment_reference,
                 }
@@ -310,5 +295,5 @@ def generate_consignment_reference_filter_query(consignment_id):
         .group_by(File.FileId, File.FileName, Consignment.ConsignmentId)
         .order_by(File.FileName)
     )
-
+    print(query)
     return query

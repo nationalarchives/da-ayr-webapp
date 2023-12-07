@@ -1,9 +1,10 @@
+from datetime import datetime
 from unittest.mock import patch
 
 from flask.testing import FlaskClient
 from sqlalchemy import exc
 
-from app.main.db.models import Body, Consignment, File, Series
+from app.main.db.models import Body, File, Series
 from app.main.db.queries import (
     browse_data,
     fuzzy_search,
@@ -29,7 +30,8 @@ def test_fuzzy_search_no_results(client: FlaskClient):
 def test_fuzzy_search_with_results(client: FlaskClient):
     """
     Given a user with a search query
-    Then it should return n results
+    When they make a request, and no results are found
+    Then they should see no records found.
     """
     create_two_test_records()
 
@@ -37,6 +39,10 @@ def test_fuzzy_search_with_results(client: FlaskClient):
     search_results = fuzzy_search(query)
 
     assert len(search_results) == 1
+    assert search_results[0]["transferring_body"] == "test body1"
+    assert search_results[0]["series"] == "test series1"
+    assert search_results[0]["consignment_reference"] == "test consignment1"
+    assert search_results[0]["file_name"] == "test_file1.pdf"
 
 
 @patch("app.main.db.queries.db")
@@ -68,9 +74,21 @@ def test_browse_data_without_filters(client: FlaskClient):
     create_two_test_records()
 
     search_results = browse_data()
-    for result in search_results:
-        print(result)
     assert len(search_results) == 2
+    assert search_results[0]["transferring_body"] == "test body1"
+    assert search_results[0]["series"] == "test series1"
+    assert search_results[0]["consignment_in_series"] == 1
+    assert search_results[0]["last_record_transferred"] == datetime(
+        2023, 1, 1, 0, 0
+    )
+    assert search_results[0]["records_held"] == 1
+    assert search_results[1]["transferring_body"] == "test body2"
+    assert search_results[1]["series"] == "test series2"
+    assert search_results[1]["consignment_in_series"] == 1
+    assert search_results[1]["last_record_transferred"] == datetime(
+        2023, 1, 1, 0, 0
+    )
+    assert search_results[1]["records_held"] == 1
 
 
 def test_browse_data_with_transferring_body_filter(client: FlaskClient):
@@ -85,6 +103,13 @@ def test_browse_data_with_transferring_body_filter(client: FlaskClient):
     transferring_body = bodies[0].BodyId
     search_results = browse_data(transferring_body_id=transferring_body)
     assert len(search_results) == 1
+    assert search_results[0]["transferring_body"] == "test body1"
+    assert search_results[0]["series"] == "test series1"
+    assert search_results[0]["consignment_in_series"] == 1
+    assert search_results[0]["last_record_transferred"] == datetime(
+        2023, 1, 1, 0, 0
+    )
+    assert search_results[0]["records_held"] == 1
 
 
 def test_browse_data_with_series_filter(client: FlaskClient):
@@ -99,20 +124,13 @@ def test_browse_data_with_series_filter(client: FlaskClient):
     series_id = series[0].SeriesId
     search_results = browse_data(series_id=series_id)
     assert len(search_results) == 1
-
-
-def test_browse_data_with_consignment_reference_filter(client: FlaskClient):
-    """
-    Given a user accessing the browse view query
-    When they make a POST request with a consignment reference filter
-    Then it should return records matched to consignment reference filter.
-    """
-    create_two_test_records()
-    consignments = Consignment.query.all()
-
-    consignment_id = consignments[0].ConsignmentId
-    search_results = browse_data(consignment_id=consignment_id)
-    assert len(search_results) == 1
+    assert search_results[0]["transferring_body"] == "test body1"
+    assert search_results[0]["series"] == "test series1"
+    assert search_results[0]["last_record_transferred"] == datetime(
+        2023, 1, 1, 0, 0
+    )
+    assert search_results[0]["records_held"] == 1
+    assert search_results[0]["consignment_reference"] == "test consignment1"
 
 
 @patch("app.main.db.queries.db")
