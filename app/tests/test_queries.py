@@ -4,14 +4,14 @@ from unittest.mock import patch
 from flask.testing import FlaskClient
 from sqlalchemy import exc
 
-from app.main.db.models import Body, File, Series
+from app.main.db.models import Body, Series
 from app.main.db.queries import (
     browse_data,
     fuzzy_search,
     get_file_metadata,
     get_user_accessible_transferring_bodies,
 )
-from app.tests.mock_database import create_two_test_records
+from app.tests.mock_database import create_test_file, create_two_test_records
 
 
 def test_fuzzy_search_no_results(client: FlaskClient):
@@ -165,18 +165,22 @@ def test_get_file_metadata_no_results(client: FlaskClient):
     assert len(search_results) == 0
 
 
-def test_get_file_metadata_with_results(client: FlaskClient):
+def test_get_file_metadata(client: FlaskClient):
     """
-    Given a user with a search query which should return n results
-    When they make a request on the browse series page
-    Then a table is populated with the n results with metadata fields.
+    Given a file with 3 related file metadata objects
+    When get_file_metadata is called with the file's FileId
+    Then a list of dicts is returned with the property name-value pair in each dict
     """
-    create_two_test_records()
-    files = File.query.all()
+    file = create_test_file()
 
-    file_id = files[0].FileId
-    search_results = get_file_metadata(file_id=file_id)
-    assert len(search_results) == 3
+    search_results = get_file_metadata(file_id=file.FileId)
+
+    expected_search_results = [
+        {"property_name": "file_name", "property_value": "test_file1.pdf"},
+        {"property_name": "closure_type", "property_value": "open"},
+        {"property_name": "file_type", "property_value": "pdf"},
+    ]
+    assert search_results == expected_search_results
 
 
 @patch("app.main.db.queries.db")
