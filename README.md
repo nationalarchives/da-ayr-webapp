@@ -208,7 +208,7 @@ E2E Tests by default run without JavaScript & CSS.
 
 To enable JavaScript to run during E2E Tests the flag `java_script_enabled` should be set to True within conftest.py.
 
-To enable a test to run with CSS ensure each test is prefixed with with the term `test_css_test_name`. 
+To enable a test to run with CSS ensure each test is prefixed with with the term `test_css_test_name`.
 
 e.g.:
 
