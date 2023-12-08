@@ -90,21 +90,6 @@ def accessibility():
     return render_template("accessibility.html")
 
 
-@bp.route("/dashboard", methods=["GET"])
-def dashboard():
-    return render_template("dashboard.html")
-
-
-@bp.route("/search", methods=["GET"])
-def search():
-    return render_template("search.html")
-
-
-@bp.route("/results", methods=["GET"])
-def results():
-    return render_template("results.html")
-
-
 @bp.route("/poc-search", methods=["POST", "GET"])
 @access_token_sign_in_required
 def poc_search():
@@ -171,21 +156,6 @@ def start_page():
 @bp.route("/signed-out", methods=["GET"])
 def signed_out():
     return render_template("signed-out.html")
-
-
-@bp.route("/browse", methods=["GET"])
-def browse():
-    return render_template("browse.html")
-
-
-@bp.route("/quick-access", methods=["GET"])
-def quick_access():
-    return render_template("quick-access.html")
-
-
-@bp.route("/all-departments", methods=["GET"])
-def departments():
-    return render_template("departments.html")
 
 
 @bp.route("/cookies", methods=["GET", "POST"])
