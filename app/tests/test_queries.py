@@ -5,24 +5,24 @@ from unittest.mock import patch
 from flask.testing import FlaskClient
 from sqlalchemy import exc
 
-from app.main.db.models import Body, Series
 from app.main.db.queries import (
     browse_data,
     fuzzy_search,
     get_file_metadata,
     get_user_accessible_transferring_bodies,
 )
-from app.tests.mock_database import create_test_file, create_two_test_records
+from app.tests.mock_database import create_test_file, create_two_test_files
 
 
 class TestFuzzySearch:
     def test_fuzzy_search_no_results(self, client: FlaskClient):
         """
-        Given a query string that does not match any field in any file object in the database
+        Given a query string that does not match any field in any file object
+            in the database
         When fuzzy_search is called with it
         Then an empty list is returned
         """
-        create_two_test_records()
+        create_two_test_files()
 
         query = "junk"
         assert fuzzy_search(query) == []
@@ -32,18 +32,26 @@ class TestFuzzySearch:
         Given 2 File objects in the database
             and a query string that matches some fields in only 1 of them
         When fuzzy_search is called with the query
-        Then a list containing 1 dictionary with information for the corresponding file is returned
+        Then a list containing 1 dictionary with information for the corresponding
+            file is returned
         """
-        create_two_test_records()
+        files = create_two_test_files()
 
         query = "test body1"
-        search_results = fuzzy_search(query)
-
-        assert len(search_results) == 1
-        assert search_results[0]["transferring_body"] == "test body1"
-        assert search_results[0]["series"] == "test series1"
-        assert search_results[0]["consignment_reference"] == "test consignment1"
-        assert search_results[0]["file_name"] == "test_file1.pdf"
+        assert fuzzy_search(query) == [
+            {
+                "transferring_body_id": files[
+                    0
+                ].file_consignments.consignment_bodies.BodyId,
+                "transferring_body": "test body1",
+                "series_id": files[
+                    0
+                ].file_consignments.consignment_series.SeriesId,
+                "series": "test series1",
+                "consignment_reference": "test consignment1",
+                "file_name": "test_file1.pdf",
+            }
+        ]
 
     @patch("app.main.db.queries.db")
     def test_fuzzy_search_exception_raised(self, db, capsys):
@@ -71,27 +79,38 @@ class TestBrowseData:
         Given 2 File objects in the database
         When browse_data is called without any arguments
         Then it returns a list containing dictionaries for each record with
-            transferring_body, series, consignment_in_series,
-            last_record_transferred, records_held
+            expected fields
         """
-        create_two_test_records()
+        files = create_two_test_files()
 
-        search_results = browse_data()
-        assert len(search_results) == 2
-        assert search_results[0]["transferring_body"] == "test body1"
-        assert search_results[0]["series"] == "test series1"
-        assert search_results[0]["consignment_in_series"] == 1
-        assert search_results[0]["last_record_transferred"] == datetime(
-            2023, 1, 1, 0, 0
-        )
-        assert search_results[0]["records_held"] == 1
-        assert search_results[1]["transferring_body"] == "test body2"
-        assert search_results[1]["series"] == "test series2"
-        assert search_results[1]["consignment_in_series"] == 1
-        assert search_results[1]["last_record_transferred"] == datetime(
-            2023, 1, 1, 0, 0
-        )
-        assert search_results[1]["records_held"] == 1
+        assert browse_data() == [
+            {
+                "transferring_body_id": files[
+                    0
+                ].file_consignments.consignment_bodies.BodyId,
+                "transferring_body": "test body1",
+                "series_id": files[
+                    0
+                ].file_consignments.consignment_series.SeriesId,
+                "series": "test series1",
+                "consignment_in_series": 1,
+                "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                "records_held": 1,
+            },
+            {
+                "transferring_body_id": files[
+                    1
+                ].file_consignments.consignment_bodies.BodyId,
+                "transferring_body": "test body2",
+                "series_id": files[
+                    1
+                ].file_consignments.consignment_series.SeriesId,
+                "series": "test series2",
+                "consignment_in_series": 1,
+                "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                "records_held": 1,
+            },
+        ]
 
     def test_browse_data_with_transferring_body_filter(
         self, client: FlaskClient
@@ -101,22 +120,26 @@ class TestBrowseData:
             that matches only one of them
         When browse_data is called with transferring_body_id
         Then it returns a list containing 1 dictionary for the matching record with
-            transferring_body, series, consignment_in_series,
-            last_record_transferred, records_held
+            expected fields
         """
-        create_two_test_records()
-        bodies = Body.query.all()
+        files = create_two_test_files()
 
-        transferring_body = bodies[0].BodyId
-        search_results = browse_data(transferring_body_id=transferring_body)
-        assert len(search_results) == 1
-        assert search_results[0]["transferring_body"] == "test body1"
-        assert search_results[0]["series"] == "test series1"
-        assert search_results[0]["consignment_in_series"] == 1
-        assert search_results[0]["last_record_transferred"] == datetime(
-            2023, 1, 1, 0, 0
-        )
-        assert search_results[0]["records_held"] == 1
+        file = files[0]
+
+        transferring_body_id = file.file_consignments.consignment_bodies.BodyId
+        series_id = file.file_consignments.consignment_series.SeriesId
+
+        assert browse_data(transferring_body_id=transferring_body_id) == [
+            {
+                "transferring_body_id": transferring_body_id,
+                "transferring_body": "test body1",
+                "series_id": series_id,
+                "series": "test series1",
+                "consignment_in_series": 1,
+                "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                "records_held": 1,
+            }
+        ]
 
     def test_browse_data_with_series_filter(self, client: FlaskClient):
         """
@@ -124,22 +147,28 @@ class TestBrowseData:
             that matches only one of them
         When browse_data is called with series_id
         Then it returns a list containing 1 dictionary for the matching record with
-            transferring_body, series, consignment_in_series,
-            last_record_transferred, records_held
+            expected fields
         """
-        create_two_test_records()
-        series = Series.query.all()
+        files = create_two_test_files()
 
-        series_id = series[0].SeriesId
-        search_results = browse_data(series_id=series_id)
-        assert len(search_results) == 1
-        assert search_results[0]["transferring_body"] == "test body1"
-        assert search_results[0]["series"] == "test series1"
-        assert search_results[0]["last_record_transferred"] == datetime(
-            2023, 1, 1, 0, 0
-        )
-        assert search_results[0]["records_held"] == 1
-        assert search_results[0]["consignment_reference"] == "test consignment1"
+        file = files[0]
+
+        transferring_body_id = file.file_consignments.consignment_bodies.BodyId
+        series_id = file.file_consignments.consignment_series.SeriesId
+        consignment_id = file.file_consignments.ConsignmentId
+
+        assert browse_data(series_id=series_id) == [
+            {
+                "consignment_id": consignment_id,
+                "consignment_reference": "test consignment1",
+                "transferring_body_id": transferring_body_id,
+                "transferring_body": "test body1",
+                "series_id": series_id,
+                "series": "test series1",
+                "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                "records_held": 1,
+            }
+        ]
 
     @patch("app.main.db.queries.db")
     def test_browse_data_exception_raised(self, db, capsys):
@@ -192,7 +221,7 @@ class TestGetFileMetadata:
     def test_get_file_metadata_exception_raised(self, db, capsys):
         """
         Given a database execution error
-        When get_file_metadata is called
+        When get_file_metadata itransferring_body_ids called
         Then it returns an empty list and logs an error message
         """
 
@@ -274,7 +303,7 @@ class TestGetUserAccessibleTransferringBodies:
         When get_user_accessible_transferring_bodies is called with it
         Then it should return a list with the 2 corresponding body names
         """
-        create_two_test_records()
+        create_two_test_files()
         mock_decode_keycloak_access_token.return_value = {
             "active": True,
             "groups": [

@@ -5,7 +5,7 @@ from flask.testing import FlaskClient
 from sqlalchemy import exc
 
 from app.main.db.queries import fuzzy_search
-from app.tests.mock_database import create_two_test_records
+from app.tests.mock_database import create_two_test_files
 
 
 def test_search_get(client: FlaskClient):
@@ -41,7 +41,7 @@ def test_search_with_no_results(client: FlaskClient):
     When they make a request on the search page, and no results are found
     Then they should see no records found.
     """
-    create_two_test_records()
+    create_two_test_files()
 
     form_data = {"query": "junk"}
     response = client.post("/poc-search", data=form_data)
@@ -56,7 +56,7 @@ def test_search_results_displayed(client: FlaskClient):
     When they make a request on the search page
     Then a table is populated with the n results with metadata fields.
     """
-    create_two_test_records()
+    create_two_test_files()
 
     form_data = {"query": "test"}
     response = client.post("/poc-search", data=form_data)

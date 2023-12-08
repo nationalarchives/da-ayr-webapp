@@ -33,7 +33,7 @@ def create_test_file():
     db.session.add(new_consignment)
     db.session.commit()
 
-    new_file = File(
+    file_1 = File(
         FileId=uuid.uuid4(),
         ConsignmentId=new_consignment.ConsignmentId,
         FileName="test_file1.pdf",
@@ -41,40 +41,40 @@ def create_test_file():
         FileReference="test_file1.pdf",
         FilePath="/data/test_file1.pdf",
     )
-    db.session.add(new_file)
+    db.session.add(file_1)
     db.session.commit()
 
-    new_file_metadata = FileMetadata(
+    file_1_metadata = FileMetadata(
         MetadataId=uuid.uuid4(),
-        FileId=new_file.FileId,
+        FileId=file_1.FileId,
         PropertyName="file_name",
         Value="test_file1.pdf",
     )
-    db.session.add(new_file_metadata)
+    db.session.add(file_1_metadata)
     db.session.commit()
 
-    new_file_metadata = FileMetadata(
+    file_1_metadata = FileMetadata(
         MetadataId=uuid.uuid4(),
-        FileId=new_file.FileId,
+        FileId=file_1.FileId,
         PropertyName="closure_type",
         Value="open",
     )
-    db.session.add(new_file_metadata)
+    db.session.add(file_1_metadata)
     db.session.commit()
 
-    new_file_metadata = FileMetadata(
+    file_1_metadata = FileMetadata(
         MetadataId=uuid.uuid4(),
-        FileId=new_file.FileId,
+        FileId=file_1.FileId,
         PropertyName="file_type",
         Value="pdf",
     )
-    db.session.add(new_file_metadata)
+    db.session.add(file_1_metadata)
     db.session.commit()
 
-    return new_file
+    return file_1
 
 
-def create_two_test_records():
+def create_two_test_files():
     # first record
     new_body = Body(
         BodyId=uuid.uuid4(), Name="test body1", Description="test body1"
@@ -105,7 +105,7 @@ def create_two_test_records():
     db.session.add(new_consignment)
     db.session.commit()
 
-    new_file = File(
+    file_1 = File(
         FileId=uuid.uuid4(),
         ConsignmentId=new_consignment.ConsignmentId,
         FileName="test_file1.pdf",
@@ -113,34 +113,34 @@ def create_two_test_records():
         FileReference="test_file1.pdf",
         FilePath="/data/test_file1.pdf",
     )
-    db.session.add(new_file)
+    db.session.add(file_1)
     db.session.commit()
 
-    new_file_metadata = FileMetadata(
+    file_1_metadata = FileMetadata(
         MetadataId=uuid.uuid4(),
-        FileId=new_file.FileId,
+        FileId=file_1.FileId,
         PropertyName="file_name",
         Value="test_file1.pdf",
     )
-    db.session.add(new_file_metadata)
+    db.session.add(file_1_metadata)
     db.session.commit()
 
-    new_file_metadata = FileMetadata(
+    file_1_metadata = FileMetadata(
         MetadataId=uuid.uuid4(),
-        FileId=new_file.FileId,
+        FileId=file_1.FileId,
         PropertyName="closure_type",
         Value="open",
     )
-    db.session.add(new_file_metadata)
+    db.session.add(file_1_metadata)
     db.session.commit()
 
-    new_file_metadata = FileMetadata(
+    file_1_metadata = FileMetadata(
         MetadataId=uuid.uuid4(),
-        FileId=new_file.FileId,
+        FileId=file_1.FileId,
         PropertyName="file_type",
         Value="pdf",
     )
-    db.session.add(new_file_metadata)
+    db.session.add(file_1_metadata)
     db.session.commit()
 
     # second record
@@ -173,7 +173,7 @@ def create_two_test_records():
     db.session.add(new_consignment)
     db.session.commit()
 
-    new_file = File(
+    file_2 = File(
         FileId=uuid.uuid4(),
         ConsignmentId=new_consignment.ConsignmentId,
         FileName="test_file2.txt",
@@ -181,32 +181,34 @@ def create_two_test_records():
         FileReference="test_file2.txt",
         FilePath="/data/test_file2.txt",
     )
-    db.session.add(new_file)
+    db.session.add(file_2)
     db.session.commit()
 
-    new_file_metadata = FileMetadata(
+    file_2_metadata = FileMetadata(
         MetadataId=uuid.uuid4(),
-        FileId=new_file.FileId,
+        FileId=file_2.FileId,
         PropertyName="file_name",
         Value="test_file2.pdf",
     )
-    db.session.add(new_file_metadata)
+    db.session.add(file_2_metadata)
     db.session.commit()
 
-    new_file_metadata = FileMetadata(
+    file_2_metadata = FileMetadata(
         MetadataId=uuid.uuid4(),
-        FileId=new_file.FileId,
+        FileId=file_2.FileId,
         PropertyName="closure_type",
         Value="closed",
     )
-    db.session.add(new_file_metadata)
+    db.session.add(file_2_metadata)
     db.session.commit()
 
-    new_file_metadata = FileMetadata(
+    file_2_metadata = FileMetadata(
         MetadataId=uuid.uuid4(),
-        FileId=new_file.FileId,
+        FileId=file_2.FileId,
         PropertyName="file_type",
         Value="txt",
     )
-    db.session.add(new_file_metadata)
+    db.session.add(file_2_metadata)
     db.session.commit()
+
+    return [file_1, file_2]
