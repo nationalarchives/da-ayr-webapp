@@ -11,7 +11,7 @@ def test_start_page(client):
         in response.data
     )
     assert (
-        b'<a href="#" role="button" draggable="false" '
+        b'<a href="/sign-in" role="button" draggable="false" '
         b'class="govuk-button govuk-button--start" '
         b'data-module="govuk-button">Start now'
     ) in response.data
