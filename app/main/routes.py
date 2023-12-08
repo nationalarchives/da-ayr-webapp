@@ -113,6 +113,7 @@ def browse():
         num_records_found=num_records_found,
     )
 
+
 @bp.route("/poc-search", methods=["POST", "GET"])
 @access_token_sign_in_required
 def poc_search():
