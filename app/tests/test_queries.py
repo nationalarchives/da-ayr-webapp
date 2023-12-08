@@ -1,5 +1,6 @@
 from datetime import datetime
 from unittest.mock import patch
+import uuid
 
 from flask.testing import FlaskClient
 from sqlalchemy import exc
@@ -158,14 +159,13 @@ class TestBrowseData:
 class TestGetFileMetadata:
     def test_get_file_metadata_no_results(self, client: FlaskClient):
         """
-        Given a user with a search query
-        When they make a request on the browse view series page, and no results are found
-        Then they should see no records found.
+        Given n UUID not corresponding to the id of a File in the database
+        When get_file_metadata is called with it
+        Then an empty list is returned
         """
-        file_id = "junk"
-        search_results = get_file_metadata(file_id)
+        non_existent_file_id = uuid.uuid4()
+        assert get_file_metadata(non_existent_file_id) == []
 
-        assert len(search_results) == 0
 
 
     def test_get_file_metadata(self, client: FlaskClient):
