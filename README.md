@@ -204,9 +204,18 @@ In addition, we recommend that any tests that have dependencies on data, do not 
 
 ### E2E Tests (Progressive Enhancement Support)
 
-E2E Tests by default run without JavaScript. To also disable CSS within tests the decorator `block_css_decorator` should be used which will block all css stylesheets from being loaded on the page.
+E2E Tests by default run without JavaScript & CSS.
 
 To enable JavaScript to run during E2E Tests the flag `java_script_enabled` should be set to True within conftest.py.
+
+To enable a test to run with CSS ensure each test is prefixed with with the term `test_css_test_name`. 
+
+e.g.:
+
+`
+def test_css_has_title(page: Page):
+`
+
 
 ## Features
 
