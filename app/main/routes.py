@@ -17,15 +17,7 @@ from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
-from app.main.authorize.keycloak_manager import (
-    get_user_transferring_body_groups,
-)
-from app.main.db.queries import (
-    browse_view_transferring_body,
-    fuzzy_search,
-    get_file_data_grouped_by_transferring_body_and_series,
-    get_full_list_of_transferring_bodies,
-)
+from app.main.db.queries import fuzzy_search
 from app.main.forms import CookiesForm
 
 from .forms import SearchForm
@@ -130,71 +122,6 @@ def poc_search():
         "poc-search.html",
         form=form,
         query=query,
-        results=search_results,
-        num_records_found=num_records_found,
-    )
-
-
-@bp.route("/poc-browse", methods=["POST", "GET"])
-@access_token_sign_in_required
-def poc_browse():
-    form = SearchForm()
-
-    search_results = get_file_data_grouped_by_transferring_body_and_series()
-    session["search_results"] = search_results
-
-    num_records_found = len(search_results)
-
-    return render_template(
-        "poc-browse.html",
-        form=form,
-        results=search_results,
-        num_records_found=num_records_found,
-    )
-
-
-@bp.route("/poc-browse-transferring-body", methods=["POST", "GET"])
-@access_token_sign_in_required
-def poc_browse_transferring_body():
-    form = SearchForm()
-
-    user_transferring_body_groups = get_user_transferring_body_groups(
-        session["access_token"]
-    )
-
-    master_list_of_transferring_bodies = get_full_list_of_transferring_bodies()
-
-    unique_transferring_bodies = []
-
-    for body in master_list_of_transferring_bodies:
-        group_name = body.Name
-        if len(user_transferring_body_groups) > 0:
-            for user_group in user_transferring_body_groups:
-                if (
-                    user_group.strip().replace(" ", "").lower()
-                    == group_name.strip().replace(" ", "").lower()
-                ):
-                    unique_transferring_bodies.append(group_name)
-
-    transferring_body = request.form.get("transferring-body", "").lower()
-
-    search_results = []
-    if len(transferring_body) > 0:
-        search_results = browse_view_transferring_body(transferring_body)
-    else:
-        if len(unique_transferring_bodies) > 0:
-            search_results = browse_view_transferring_body(
-                unique_transferring_bodies[0]
-            )
-    session["search_results"] = search_results
-
-    num_records_found = len(search_results)
-
-    return render_template(
-        "poc-browse-transferring-body.html",
-        form=form,
-        transferring_body=transferring_body,
-        transferring_bodies=unique_transferring_bodies,
         results=search_results,
         num_records_found=num_records_found,
     )
