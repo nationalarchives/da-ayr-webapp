@@ -17,6 +17,17 @@ if os.environ.get("DEFAULT_AWS_PROFILE"):
 
 class AWSParameterStoreConfig(BaseConfig):
     @property
+    def DB_PASSWORD(self):
+        client = boto3.client("rds")
+        token = client.generate_db_auth_token(
+            DBHostname=self.DB_HOST,
+            Port=self.DB_PORT,
+            DBUsername=self.DB_USER,
+            Region=self.AWS_REGION,
+        )
+        return token
+
+    @property
     def _AWS_ENVIRONMENT_PREFIX(self):
         return get_aws_environment_prefix()
 

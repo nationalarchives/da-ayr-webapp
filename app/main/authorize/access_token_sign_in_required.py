@@ -1,7 +1,8 @@
 from functools import wraps
 
-import keycloak
 from flask import current_app, flash, g, redirect, session, url_for
+
+from app.main.authorize import keycloak_manager
 
 
 def access_token_sign_in_required(view_func):
@@ -47,14 +48,7 @@ def access_token_sign_in_required(view_func):
             if not access_token:
                 return redirect(url_for("main.sign_in"))
 
-            keycloak_openid = keycloak.KeycloakOpenID(
-                server_url=current_app.config["KEYCLOAK_BASE_URI"],
-                client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
-                realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
-                client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
-            )
-
-            decoded_token = keycloak_openid.introspect(access_token)
+            decoded_token = keycloak_manager.decode_token(access_token)
 
             if not decoded_token["active"]:
                 session.clear()

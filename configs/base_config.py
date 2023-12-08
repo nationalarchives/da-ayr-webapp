@@ -1,3 +1,6 @@
+from urllib.parse import quote_plus
+
+
 class BaseConfig(object):
     RATELIMIT_HEADERS_ENABLED = True
     SESSION_COOKIE_HTTPONLY = True
@@ -15,8 +18,33 @@ class BaseConfig(object):
         return self._get_config_value("AWS_REGION")
 
     @property
+    def DB_HOST(self):
+        return self._get_config_value("DB_HOST")
+
+    @property
+    def DB_PORT(self):
+        return self._get_config_value("DB_PORT")
+
+    @property
+    def DB_USER(self):
+        return self._get_config_value("DB_USER")
+
+    @property
+    def DB_PASSWORD(self):
+        return self._get_config_value("DB_PASSWORD")
+
+    @property
+    def DB_NAME(self):
+        return self._get_config_value("DB_NAME")
+
+    @property
     def SQLALCHEMY_DATABASE_URI(self):
-        return self._get_config_value("SQLALCHEMY_DATABASE_URI")
+        return (
+            "postgresql+psycopg2://"
+            f"{self.DB_USER}:{quote_plus(self.DB_PASSWORD)}"
+            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+            "?sslmode=require"
+        )
 
     @property
     def KEYCLOAK_BASE_URI(self):

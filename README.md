@@ -139,7 +139,11 @@ Hardcoded values:
 Properties configurable at runtime:
 
 - `AWS_REGION`: The AWS region used for AWS services.
-- `SQLALCHEMY_DATABASE_URI`: The PostgreSQL database URI with format postgresql+psycopg2://<<db_username>>:<<db_password>>@<<db_host>>:<<db_port>>/<<db_name>>.
+- `DB_PORT`: The port of the database to connect to.
+- `DB_HOST`: The host of the database to connect to.
+- `DB_USER`: The username of the database to connect to.
+- `DB_PASSWORD`: The password of the database to connect to. Note: When using `CONFIG_SOURCE=AWS_PARAMETER_STORE` then this does not need to be set in Parameter store and instead this is generated using an AWS API in the config.
+- `DB_NAME`: The name of the database to connect to.
 - `KEYCLOAK_BASE_URI`: The base URI of the Keycloak authentication service.
 - `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
 - `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.
@@ -147,6 +151,10 @@ Properties configurable at runtime:
 - `KEYCLOAK_AYR_USER_GROUP`: The Keycloak user group used to check user access.
 - `RATELIMIT_STORAGE_URI`: The URI for the Redis storage used for rate limiting.
 - `SECRET_KEY`: Secret key used for Flask session and security.
+
+Calculated values:
+
+- `SQLALCHEMY_DATABASE_URI`: The PostgreSQL database URI with format `postgresql+psycopg2://<DB_USER>:<DB_PASSWORD>@<DB_HOST>:<DB_PORT>/<DB_NAME>`.
 
 We have two usable configs which extend `BaseConfig` for running the application:
 
@@ -169,6 +177,84 @@ In addition to the `.env` file discussed above, which can be created from templa
 ### Environment loading
 
 Both the `.env` and `.flask_env` are loaded automatically when we run the flask application as outlined in the following section, thanks to the use of `python-dotenv`. More information on Flask environment variable hierarchies can be found [here](https://flask.palletsprojects.com/en/2.3.x/cli/#environment-variables-from-dotenv).
+
+## Deployment
+
+Here we detail a way to run the server-side rendered Flask webapp via a "serverless" AWS Lambda-API Gateway setup.
+
+Specific details on how this architecture works can be found in our service diagram that can be shared upon request to a maintainer of this repo.
+
+To implement this we are currently using [Zappa](https://github.com/zappa/Zappa), as defined in our poetry depedencies. Note this is required to be part of the main dependencies group since it is not just a CLI tool but in fact has it's own code which is run in the Lambda once the application code is packaged and deployed to AWS.
+
+### Zappa Configuration
+
+Zappa is configurable, and can be configured differently for different deployment stages. In particular, each deployment stage's configuration is separated  by the top level environment key in the `zappa_settings.json` file.
+
+In this repo we provide a `zappa_settings.json.template` which provides all the configuration variables except for the `profile_name` that we want to use to update each deployment stage with.
+
+Configure the `profile_name` field for the sandbox deployment stage by setting the `ZAPPA_DEPLOYMENT_PROFILE_NAME` environment variable and then create a `zappa_settings.json` from environment variables by running:
+
+  ```shell
+  envsubst < zappa_settings.json.template > zappa_settings.json
+  ```
+
+Note 1: the name of each deployment stage we want to deploy to is defined as a top-level key in the `zappa_settings.json` e.g. `sandbox`.
+
+Note 2: As part of our template, we refer to `lambda_policy.json` which defines the IAM Policy for the Lambda execution role so that it can access certain AWS resources such as SSM Parameter Store.
+
+Note 3: As part of our template, we refer to `apigateway_policy.json` which defines the IAM Policy for the APIGateway resource created, but we only define a template file, `apigateway_policy.json.template`, so that we do not commit any IPs to source control. Details on filling out the whitelist from an environment variable is detailed below.
+
+### Zappa deployments
+
+Zappa packages the active virtual environment, in our case our poetry environment, into a zipfile package which will be pushed to run on AWS Lambda.
+AWS Lambda has a size limit of 250MB for the unzipped code so we want to make sure we make the package as lean as possible.
+
+Before running a zappa deployment, make sure you clean out the environment so that it is as lean as possible:
+
+- remove all files unnecessary for running the application. We recommend stashing any files that aren't committed to the repo.
+- remove all dependencies unneeded for running the application, you can do that with: `poetry install --without dev --sync`
+
+#### Initial Deployments
+
+Fill out the IP Whitelist in the APIGateway Policy from the environment variable `APIGATEWAY_WHITELISTED_IPS` to allow these IP addresses access to the webapp via the APIGateway with:
+
+```shell
+envsubst < apigateway_policy.json.template > apigateway_policy.json
+```
+
+Note: make sure `APIGATEWAY_WHITELISTED_IPS` is exported as an environment variable in your current terminal like: `export APIGATEWAY_WHITELISTED_IPS='["IP_1/32","IP_2/32","IP_3/32"]'`
+
+Once your settings are configured, you can package and deploy your application to a deployment stage with a single command:
+
+```shell
+zappa deploy <DEPLOYMENT_STAGE>
+```
+
+Note: Once the application has been deployed once to a particular stage, then it can't be deployed again. You will need to run `zappa undeploy <DEPLOYMENT_STAGE` first. However, more often than not, you will only need to update the deployment, as detailed below.
+
+#### Only Update Flask Code
+
+If your application has already been deployed and you only need to upload new Python code, but not touch the underlying routes, you can simply run:
+
+```shell
+zappa update <DEPLOYMENT_STAGE>
+```
+
+This creates a new archive, uploads it to S3 and updates the Lambda function to use the new code, but doesn't touch the API Gateway routes.
+
+#### Debugging a deployment
+
+You can watch the logs of a deployment by calling the tail management command:
+
+```shell
+zappa tail <DEPLOYMENT_STAGE>
+```
+
+This is especially useful if a deployment fails.
+
+### CI/CD
+
+We do not currently update any deployment automatically in our CI/CD pipeline, but we will soon.
 
 ## Testing
 
@@ -201,6 +287,21 @@ You can swap out the base-url for another if you want to run the tests against a
 To enable this flexibility we suggest any Playwright tests added to the repo use relative paths when referring to urls of the application itself.
 
 In addition, we recommend that any tests that have dependencies on data, do not make assumptions about any particular database or instance involved, and instead do the test data set up and teardown as part of the test suite.
+
+### E2E Tests (Progressive Enhancement Support)
+
+E2E Tests by default run without JavaScript & CSS.
+
+To enable JavaScript to run during E2E Tests the flag `java_script_enabled` should be set to True within conftest.py.
+
+To enable a test to run with CSS ensure each test is prefixed with with the term `test_css_test_name`.
+
+e.g.:
+
+`
+def test_css_has_title(page: Page):
+`
+
 
 ## Features
 
