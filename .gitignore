@@ -17,6 +17,9 @@ node_modules
 # Keys and Certificate
 *.pem
 
+# Credentials
+*config.json
+
 ### Flask ###
 instance/*
 !instance/.gitignore

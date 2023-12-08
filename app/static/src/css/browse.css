@@ -1,7 +1,18 @@
+.browse__page {
+  margin-right: 0;
+  margin-left: 0;
+  margin-top: -2rem;
+}
+
+.browse_records-found_text {
+  margin-bottom: 1rem;
+}
+
 .browse-available__text {
   height: 1rem;
   background-color: #fff;
   font-weight: 700;
+  font-size: 1.5rem !important;
 }
 
 .browse-pagination--centered {
@@ -20,12 +31,55 @@
   width: auto;
 }
 
+.browse-grid__key__transferring-body {
+  width: 30%;
+}
+
+.browse__table__right-align {
+  text-align: right;
+}
+
+.browse__table__large-width {
+  width: 30% !important;
+}
+
+.search__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f3f2f1;
+  margin-bottom: 3rem;
+}
+
+.search__container__content {
+  margin: 0 auto;
+}
+
+.search__heading {
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+.search__form {
+  margin-bottom: 0;
+}
+
+.search__button {
+  margin-bottom: 0.5rem;
+}
+
 .browse-sort-container {
-  margin-top: 2rem;
+  margin-top: 3rem;
 }
 
 .sort-container {
   align-items: center;
+}
+
+.sort-container__form {
+  margin-bottom: 0.5rem;
 }
 
 .sort-container__select {
@@ -59,7 +113,7 @@
   background-color: #f3f2f1;
   padding: 0.5rem;
   min-width: 100%;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .browse-filter__header {
@@ -76,14 +130,14 @@
   background-color: #f3f2f1;
   padding: 0.5rem;
   min-width: 100%;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .browse-consignment-ref-container {
   background-color: #f3f2f1;
   padding: 0.5rem;
   min-width: 100%;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .browse-date-container {
@@ -170,6 +224,10 @@
 .filters-form__date--button {
   align-self: flex-end;
   margin-right: 0.5rem !important;
+}
+
+.update-button {
+  margin-bottom: 0;
 }
 
 .filter-update-button {

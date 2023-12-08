@@ -1,5 +1,4 @@
 import re
-import time
 
 from playwright.sync_api import Page, expect
 
@@ -51,7 +50,6 @@ def test_searched_record_metadata(authenticated_page: Page):
     Then the table should display the relevant metadata for the record such as
         "Source organisation" and "Consignment ID,"
     """
-    time.sleep(10)
     authenticated_page.goto("/poc-search-view")
     authenticated_page.locator("#searchInput").click()
     authenticated_page.locator("#searchInput").fill("public record")

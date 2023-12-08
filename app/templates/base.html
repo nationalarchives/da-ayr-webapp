@@ -27,92 +27,95 @@
 {% endblock %}
 
 {% block bodyStart %}
-  {% if "cookies_policy" not in request.cookies %}
-    {% set html %}
-      <p class="govuk-body">We use some essential cookies to make this service work.</p>
-      <p class="govuk-body">We’d like to set additional cookies so we can remember your settings, understand how people use the service and make improvements.</p>
-    {% endset %}
+{% if "cookies_policy" not in request.cookies %}
+{% set html %}
+<p class="govuk-body">We use some essential cookies to make this service work.</p>
+<p class="govuk-body">We’d like to set additional cookies so we can remember your settings, understand how people use
+  the service and make improvements.</p>
+{% endset %}
 
-    {% set acceptHtml %}
-      <p class="govuk-body">You’ve accepted additional cookies. You can <a class="govuk-link" href="{{ url_for('main.cookies') }}">change your cookie settings</a> at any time.</p>
-    {% endset %}
+{% set acceptHtml %}
+<p class="govuk-body">You’ve accepted additional cookies. You can <a class="govuk-link"
+    href="{{ url_for('main.cookies') }}">change your cookie settings</a> at any time.</p>
+{% endset %}
 
-    {% set rejectHtml %}
-      <p class="govuk-body">You’ve rejected additional cookies. You can <a class="govuk-link" href="{{ url_for('main.cookies') }}">change your cookie settings</a> at any time.</p>
-    {% endset %}
+{% set rejectHtml %}
+<p class="govuk-body">You’ve rejected additional cookies. You can <a class="govuk-link"
+    href="{{ url_for('main.cookies') }}">change your cookie settings</a> at any time.</p>
+{% endset %}
 
-    {{ govukCookieBanner({
-      'ariaLabel': "Cookies on " + config['SERVICE_NAME'],
-      'attributes': {
-        'id': "cookie-banner"
-      },
-      'messages': [
-        {
-          'attributes': {
-            'id': "default-message"
-          },
-          'headingText': "Cookies on " + config['SERVICE_NAME'],
-          'html': html,
-          'actions': [
-            {
-              'attributes': {
-                'id': "accept-cookies"
-              },
-              'text': "Accept additional cookies",
-              'type': "button",
-              'name': "cookies",
-              'value': "accept"
-            },
-            {
-              'attributes': {
-                'id': "reject-cookies"
-              },
-              'text': "Reject additional cookies",
-              'type': "button",
-              'name': "cookies",
-              'value': "reject"
-            },
-            {
-              'text': "View cookies",
-              'href': url_for('main.cookies')
-            }
-          ]
-        },
-        {
-          'attributes': {
-            'id': "accepted-message"
-          },
-          'html': acceptHtml,
-          'role': "alert",
-          'hidden': true,
-          'actions': [
-            {
-              'attributes': {
-                'id': "accepted-hide"
-              },
-              'text': "Hide this message"
-            }
-          ]
-        },
-        {
-          'attributes': {
-            'id': "rejected-message"
-          },
-          'html': rejectHtml,
-          'role': "alert",
-          'hidden': true,
-          'actions': [
-            {
-              'attributes': {
-                'id': "rejected-hide"
-              },
-              'text': "Hide this message"
-            }
-          ]
-        }
-      ]
-    }) }}
-  {% endif %}
+{{ govukCookieBanner({
+'ariaLabel': "Cookies on " + config['SERVICE_NAME'],
+'attributes': {
+'id': "cookie-banner"
+},
+'messages': [
+{
+'attributes': {
+'id': "default-message"
+},
+'headingText': "Cookies on " + config['SERVICE_NAME'],
+'html': html,
+'actions': [
+{
+'attributes': {
+'id': "accept-cookies"
+},
+'text': "Accept additional cookies",
+'type': "button",
+'name': "cookies",
+'value': "accept"
+},
+{
+'attributes': {
+'id': "reject-cookies"
+},
+'text': "Reject additional cookies",
+'type': "button",
+'name': "cookies",
+'value': "reject"
+},
+{
+'text': "View cookies",
+'href': url_for('main.cookies')
+}
+]
+},
+{
+'attributes': {
+'id': "accepted-message"
+},
+'html': acceptHtml,
+'role': "alert",
+'hidden': true,
+'actions': [
+{
+'attributes': {
+'id': "accepted-hide"
+},
+'text': "Hide this message"
+}
+]
+},
+{
+'attributes': {
+'id': "rejected-message"
+},
+'html': rejectHtml,
+'role': "alert",
+'hidden': true,
+'actions': [
+{
+'attributes': {
+'id': "rejected-hide"
+},
+'text': "Hide this message"
+}
+]
+}
+]
+}) }}
+{% endif %}
 {% endblock %}
 
 {% block header %}
@@ -121,10 +124,10 @@
     <div class="govuk-header__logo">
       <a href="/" class="govuk-header__link govuk-header__link--homepage">
         <span class="govuk-header__logotype-text govuk-header__logotype--ayr">Access Your Records (AYR)</span>
-        </a>
-      </div>
-      <div class="govuk-header__content govuk-header__content--tna">
-       Delivered by
+      </a>
+    </div>
+    <div class="govuk-header__content govuk-header__content--tna">
+      Delivered by
       <a href="https://www.nationalarchives.gov.uk/" class="govuk-header__link
       govuk-header__link--tna"> The National Archives</a>
     </div>
@@ -135,47 +138,47 @@
 {% block beforeContent %}
 
 <div class="govuk-phase-banner banner__container">
-  <div>
-    <p class="govuk-phase-banner__content">
-      <strong class="govuk-tag govuk-phase-banner__content__tag">
-        Beta
-      </strong>
-      <span class="govuk-phase-banner__text">
-       Help us to improve this service by completing our <a class="govuk-link" target="blank" href="#">feedback survey (opens in a new tab)</a>
-      </span>
-    </p>
-  </div>
+  <p class="govuk-phase-banner__content">
+    <strong class="govuk-tag govuk-phase-banner__content__tag">
+      Beta
+    </strong>
+    <span class="govuk-phase-banner__text">
+      Help us to improve this service by completing our <a class="govuk-link" target="blank" href="#">feedback survey
+        (opens in a new tab)</a>
+    </span>
+  </p>
+
   {% if authenticated_view %}
-    <div class="sign-out">
-      <a class="govuk-body govuk-!-font-weight-bold govuk-!-font-size-19" href="/sign-out">Sign out</a>
-    </div>
+  <div class="sign-out">
+    <a class="govuk-body govuk-!-font-weight-bold govuk-!-font-size-19" href="/sign-out">Sign out</a>
+  </div>
   {% endif %}
 </div>
 
 {% endblock %}
 
 {% block content %}
-  {% if form and form.errors %}
-    {{ govukErrorSummary(wtforms_errors(form)) }}
-  {% endif %}
+{% if form and form.errors %}
+{{ govukErrorSummary(wtforms_errors(form)) }}
+{% endif %}
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-          {{ govukNotificationBanner({'type': category, 'html': message}) }}
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+{{ govukNotificationBanner({'type': category, 'html': message}) }}
+{% endfor %}
+{% endif %}
+{% endwith %}
 {% endblock %}
 
 {% block footer %}
 <footer class="govuk-footer" role="contentinfo">
-<div class="govuk-width-container">
+  <div class="govuk-width-container">
     <div class="govuk-footer__meta">
       <div class="govuk-footer__link">
-        <img class="govuk-footer__tna-logo"
-        src="{{url_for('static', filename='image/the-national-archives-logo.svg')}}" alt="The National Archives Logo">
-    </div>
+        <img class="govuk-footer__tna-logo" src="{{url_for('static', filename='image/the-national-archives-logo.svg')}}"
+          alt="The National Archives Logo">
+      </div>
       <div class="govuk-footer__meta-item govuk-footer__meta-item--grow">
         <h2 class="govuk-visually-hidden">Support links</h2>
         <ul class="govuk-footer__inline-list">
@@ -205,37 +208,30 @@
             </a>
           </li>
         </ul>
-        <svg
-          aria-hidden="true"
-          focusable="false"
-          class="govuk-footer__licence-logo"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 483.2 195.7"
-          height="17"
-          width="41">
-          <path
-            fill="currentColor"
+        <svg aria-hidden="true" focusable="false" class="govuk-footer__licence-logo" xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 483.2 195.7" height="17" width="41">
+          <path fill="currentColor"
             d="M421.5 142.8V.1l-50.7 32.3v161.1h112.4v-50.7zm-122.3-9.6A47.12 47.12 0 0 1 221 97.8c0-26 21.1-47.1 47.1-47.1 16.7 0 31.4 8.7 39.7 21.8l42.7-27.2A97.63 97.63 0 0 0 268.1 0c-36.5 0-68.3 20.1-85.1 49.7A98 98 0 0 0 97.8 0C43.9 0 0 43.9 0 97.8s43.9 97.8 97.8 97.8c36.5 0 68.3-20.1 85.1-49.7a97.76 97.76 0 0 0 149.6 25.4l19.4 22.2h3v-87.8h-80l24.3 27.5zM97.8 145c-26 0-47.1-21.1-47.1-47.1s21.1-47.1 47.1-47.1 47.2 21 47.2 47S123.8 145 97.8 145" />
         </svg>
         <span class="govuk-footer__licence-description">
           All content is available under the
-          <a
-            class="govuk-footer__link"
-            href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
-            rel="license">Open Government Licence v3.0</a>, except where otherwise stated
+          <a class="govuk-footer__link"
+            href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" rel="license">Open
+            Government Licence v3.0</a>, except where otherwise stated
         </span>
       </div>
 
     </div>
 
-   </div>
+  </div>
 </footer>
 {% endblock %}
 
 {% block bodyEnd %}
-  <!--[if gt IE 8]><!-->
-  <script src="{{ url_for('static', filename='govuk-frontend-4.7.0.min.js') }}"> </script>
-  <script>window.GOVUKFrontend.initAll()</script>
-  <!--<![endif]-->
-  {% assets "js" %}<script type="text/javascript" src="{{ ASSET_URL }}"></script>{% endassets %}
+<!--[if gt IE 8]><!-->
+<script src="{{ url_for('static', filename='govuk-frontend-4.7.0.min.js') }}"> </script>
+<script>window.GOVUKFrontend.initAll()</script>
+<!--<![endif]-->
+{% assets "js" %}
+<script type="text/javascript" src="{{ ASSET_URL }}"></script>{% endassets %}
 {% endblock %}

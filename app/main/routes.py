@@ -17,7 +17,7 @@ from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
-from app.main.db.queries import fuzzy_search
+from app.main.db.queries import browse_data, fuzzy_search
 from app.main.forms import CookiesForm
 
 from .forms import SearchForm
@@ -82,13 +82,36 @@ def callback():
     session["token_scope"] = access_token_response["scope"]
     session["session_state"] = access_token_response["session_state"]
 
-    return redirect(url_for("main.poc_search"))
+    return redirect(url_for("main.browse"))
 
 
 @bp.route("/accessibility", methods=["GET"])
 def accessibility():
     return render_template("accessibility.html")
 
+
+@bp.route("/browse", methods=["POST", "GET"])
+@access_token_sign_in_required
+def browse():
+    form = SearchForm()
+    search_results = []
+    query = request.form.get("query", "").lower()
+
+    if query:
+        search_results = fuzzy_search(query)
+    else:
+        search_results = browse_data()
+    session["search_results"] = search_results
+
+    num_records_found = len(search_results)
+
+    return render_template(
+        "browse.html",
+        form=form,
+        query=query,
+        results=search_results,
+        num_records_found=num_records_found,
+    )
 
 @bp.route("/poc-search", methods=["POST", "GET"])
 @access_token_sign_in_required
