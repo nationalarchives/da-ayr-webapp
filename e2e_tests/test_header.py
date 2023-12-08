@@ -14,7 +14,6 @@ header_link = [
 
 
 @pytest.fixture
-@block_css_decorator
 def setup_page(page: Page):
     page.goto("/")
     return page
