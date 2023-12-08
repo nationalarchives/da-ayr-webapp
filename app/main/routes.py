@@ -23,9 +23,14 @@ from app.main.forms import CookiesForm
 from .forms import SearchForm
 
 
-@bp.route("/", methods=["GET"])
+@bp.route("/index", methods=["GET"])
 def index():
     return render_template("index.html")
+
+
+@bp.route("/", methods=["GET"])
+def start_page():
+    return render_template("start-page.html")
 
 
 @bp.route("/sign-out", methods=["GET"])
