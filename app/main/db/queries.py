@@ -1,7 +1,8 @@
 from sqlalchemy import Text, and_, exc, func, or_
 
 from app.main.authorize.keycloak_manager import (
-    get_user_transferring_body_groups,
+    decode_token,
+    get_user_transferring_body_keycloak_groups,
 )
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 
@@ -139,30 +140,49 @@ def browse_data(transferring_body_id=None, series_id=None):
 
 
 def get_user_accessible_transferring_bodies(access_token):
-    unique_transferring_bodies = []
-    bodies = None
+    if not access_token:
+        return []
+    decoded_token = decode_token(access_token)
+    if not decoded_token["active"]:
+        return []
+
+    user_groups = decoded_token["groups"]
+
+    user_transferring_body_keycloak_groups = (
+        get_user_transferring_body_keycloak_groups(user_groups)
+    )
+
+    if not user_transferring_body_keycloak_groups:
+        return []
+
     try:
-        query = db.select(Body.BodyId, Body.Name, Body.Description)
+        query = db.select(Body.Name)
         bodies = db.session.execute(query)
     except exc.SQLAlchemyError as e:
         print("Failed to return results from database with error : " + str(e))
+        return []
 
-    # get transferring bodies for which user has access to
-    user_transferring_body_groups = get_user_transferring_body_groups(
-        access_token
-    )
+    user_accessible_transferring_bodies = []
 
-    if bodies is not None and user_transferring_body_groups is not None:
-        for body in bodies:
-            group_name = body.Name
-            if len(user_transferring_body_groups) > 0:
-                for user_group in user_transferring_body_groups:
-                    if (
-                        user_group.strip().replace(" ", "").lower()
-                        == group_name.strip().replace(" ", "").lower()
-                    ):
-                        unique_transferring_bodies.append(group_name)
-    return unique_transferring_bodies
+    for body in bodies:
+        body_name = body.Name
+        if _body_in_users_groups(
+            body_name, user_transferring_body_keycloak_groups
+        ):
+            user_accessible_transferring_bodies.append(body_name)
+
+    return user_accessible_transferring_bodies
+
+
+def _body_in_users_groups(body, user_transferring_body_keycloak_groups):
+    for user_group in user_transferring_body_keycloak_groups:
+        if (
+            user_group.strip().replace(" ", "").lower()
+            == body.strip().replace(" ", "").lower()
+        ):
+            return True
+
+    return False
 
 
 def get_file_metadata(file_id):

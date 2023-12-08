@@ -206,17 +206,72 @@ class TestGetFileMetadata:
         )
 
 class TestGetUserAccessibleTransferringBodies:
-
-    @patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect")
-    def test_get_user_accessible_transferring_bodies(
+    @patch(
+        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
+    )
+    def test_no_token_returns_empty_list(
         self, mock_decode_keycloak_access_token, client: FlaskClient
     ):
         """
-        Given a user calling get user accessible transferring bodies function
-        Then it should return list of transferring bodies which user has access to
+        Given no access token,
+        When calling the get_user_transferring_body_keycloak_groups
+        Then it should return an empty list
+        """
+        results = get_user_accessible_transferring_bodies("access_token")
+        assert results == []
+
+    @patch(
+        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
+    )
+    def test_inactive_token_returns_empty_list(
+        self, mock_decode_keycloak_access_token, app
+    ):
+        """
+        Given an inactive access token
+        When calling get_user_transferring_body_keycloak_groups with it
+        Then it should return an empty list
+        """
+        mock_decode_keycloak_access_token.return_value = {
+            "active": False,
+        }
+        with app.app_context():
+            assert get_user_accessible_transferring_bodies("access_token") == []
+
+    @patch(
+        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
+    )
+    def test_no_transferring_bodies_returns_empty_list(
+        self, mock_decode_keycloak_access_token, client: FlaskClient
+    ):
+        """
+        Given an access token which once decoded contains 2 transferring body groups
+        When I call get_user_accessible_transferring_bodies with it
+        Then it should return a list with the 2 corresponding body names
+        """
+
+        mock_decode_keycloak_access_token.return_value = {
+            "active": True,
+            "groups": [
+                "/something_else/test body1",
+                "/something_else/test body2",
+                "/ayr_user/bar",
+            ],
+        }
+        results = get_user_accessible_transferring_bodies("access_token")
+        assert results == []
+
+    @patch(
+        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
+    )
+    def test_transferring_bodies_in_groups_returns_corresponding_body_names(
+        self, mock_decode_keycloak_access_token, client: FlaskClient
+    ):
+        """
+        Given an access token which once decoded contains 2 transferring body groups
+        When get_user_accessible_transferring_bodies is called with it
+        Then it should return a list with the 2 corresponding body names
         """
         create_two_test_records()
-
         mock_decode_keycloak_access_token.return_value = {
             "active": True,
             "groups": [
@@ -225,27 +280,37 @@ class TestGetUserAccessibleTransferringBodies:
                 "/ayr_user/bar",
             ],
         }
-        results = get_user_accessible_transferring_bodies(
-            mock_decode_keycloak_access_token
-        )
-        assert len(results) == 2
+        results = get_user_accessible_transferring_bodies("access_token")
         assert results == ["test body1", "test body2"]
 
 
     @patch("app.main.db.queries.db")
-    def test_get_user_accessible_transferring_bodies_exception_raised(self, db, capsys):
+    @patch(
+        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
+    )
+    def test_db_raised_exception_returns_empty_list_and_log_message(
+        self, mock_decode_keycloak_access_token, db, capsys, client
+    ):
         """
-        Given a get user accessible transferring bodies query
-        When a call made to get user accessible transferring bodies , when database execution failed with error
-        Then list should be empty and should raise an exception
+        Given a db execution error
+        When get_user_accessible_transferring_bodies is called
+        Then the list should be empty and an error message is logged
         """
+        mock_decode_keycloak_access_token.return_value = {
+            "active": True,
+            "groups": [
+                "/transferring_body_user/test body1",
+                "/transferring_body_user/test body2",
+                "/ayr_user/bar",
+            ],
+        }
 
         def mock_execute(_):
             raise exc.SQLAlchemyError("foo bar")
 
         db.session.execute.side_effect = mock_execute
 
-        results = get_user_accessible_transferring_bodies("")
+        results = get_user_accessible_transferring_bodies("access_token")
         assert results == []
         assert (
             "Failed to return results from database with error : foo bar"

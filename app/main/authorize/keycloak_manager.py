@@ -17,24 +17,14 @@ def decode_token(access_token):
     return decoded_token
 
 
-def get_user_transferring_body_groups(access_token):
+def get_user_transferring_body_keycloak_groups(groups):
     """
-    function that returns list of transferring body group names based on assignment of user group in keycloak for a user
-
-    User has user group assigned in keycloak, keycloak user groups are linked to transferring bodies
-    Based on active access token of user, user groups are extracted and list of user groups details retrieved
+    Returns a list of transferring body group names based on a list of keycloak
+    user group names
 
     Returns:
         List[str]: return list of transferring bodies
     """
-
-    if not access_token:
-        return []
-    decoded_token = decode_token(access_token)
-    if not decoded_token["active"]:
-        return []
-
-    groups = decoded_token["groups"]
     users_transferring_bodies = []
     for group in groups:
         if not group.startswith("/transferring_body_user/"):
