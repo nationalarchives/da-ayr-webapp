@@ -1,6 +1,6 @@
+import uuid
 from datetime import datetime
 from unittest.mock import patch
-import uuid
 
 from flask.testing import FlaskClient
 from sqlalchemy import exc
@@ -18,22 +18,21 @@ from app.tests.mock_database import create_test_file, create_two_test_records
 class TestFuzzySearch:
     def test_fuzzy_search_no_results(self, client: FlaskClient):
         """
-        Given a user with a search query
-        When they make a request, and no results are found
-        Then they should see no records found.
+        Given a query string that does not match any field in any file object in the database
+        When fuzzy_search is called with it
+        Then an empty list is returned
         """
+        create_two_test_records()
 
         query = "junk"
-        search_results = fuzzy_search(query)
-
-        assert len(search_results) == 0
-
+        assert fuzzy_search(query) == []
 
     def test_fuzzy_search_with_results(self, client: FlaskClient):
         """
-        Given a user with a search query
-        When they make a request, and no results are found
-        Then they should see no records found.
+        Given 2 File objects in the database
+            and a query string that matches some fields in only 1 of them
+        When fuzzy_search is called with the query
+        Then a list containing 1 dictionary with information for the corresponding file is returned
         """
         create_two_test_records()
 
@@ -46,13 +45,12 @@ class TestFuzzySearch:
         assert search_results[0]["consignment_reference"] == "test consignment1"
         assert search_results[0]["file_name"] == "test_file1.pdf"
 
-
     @patch("app.main.db.queries.db")
     def test_fuzzy_search_exception_raised(self, db, capsys):
         """
-        Given a fuzzy search function
-        When a call made to fuzzy search , when database execution failed with error
-        Then list should be empty and should raise an exception
+        Given a database execution error
+        When fuzzy_search is called
+        Then it returns an empty list and logs an error message
         """
 
         def mock_execute(_):
@@ -70,9 +68,11 @@ class TestFuzzySearch:
 class TestBrowseData:
     def test_browse_data_without_filters(self, client: FlaskClient):
         """
-        Given a user accessing the browse view query
-        When they make a POST request without a filter
-        Then it should return all the records.
+        Given 2 File objects in the database
+        When browse_data is called without any arguments
+        Then it returns a list containing dictionaries for each record with
+            transferring_body, series, consignment_in_series,
+            last_record_transferred, records_held
         """
         create_two_test_records()
 
@@ -93,12 +93,16 @@ class TestBrowseData:
         )
         assert search_results[1]["records_held"] == 1
 
-
-    def test_browse_data_with_transferring_body_filter(self, client: FlaskClient):
+    def test_browse_data_with_transferring_body_filter(
+        self, client: FlaskClient
+    ):
         """
-        Given a user accessing the browse view query
-        When they make a POST request with a transferring body filter
-        Then it should return records matched to transferring body filter.
+        Given 2 File objects in the database and a transferring_body_id
+            that matches only one of them
+        When browse_data is called with transferring_body_id
+        Then it returns a list containing 1 dictionary for the matching record with
+            transferring_body, series, consignment_in_series,
+            last_record_transferred, records_held
         """
         create_two_test_records()
         bodies = Body.query.all()
@@ -114,12 +118,14 @@ class TestBrowseData:
         )
         assert search_results[0]["records_held"] == 1
 
-
     def test_browse_data_with_series_filter(self, client: FlaskClient):
         """
-        Given a user accessing the browse view query
-        When they make a POST request with a series filter
-        Then it should return records matched to series filter.
+        Given 2 File objects in the database and a series_id
+            that matches only one of them
+        When browse_data is called with series_id
+        Then it returns a list containing 1 dictionary for the matching record with
+            transferring_body, series, consignment_in_series,
+            last_record_transferred, records_held
         """
         create_two_test_records()
         series = Series.query.all()
@@ -135,13 +141,12 @@ class TestBrowseData:
         assert search_results[0]["records_held"] == 1
         assert search_results[0]["consignment_reference"] == "test consignment1"
 
-
     @patch("app.main.db.queries.db")
     def test_browse_data_exception_raised(self, db, capsys):
         """
-        Given a browse data query
-        When a call made to browse data , when database execution failed with error
-        Then list should be empty and should raise an exception
+        Given a database execution error
+        When browse_data is called
+        Then it returns an empty list and logs an error message
         """
 
         def mock_execute(_):
@@ -166,8 +171,6 @@ class TestGetFileMetadata:
         non_existent_file_id = uuid.uuid4()
         assert get_file_metadata(non_existent_file_id) == []
 
-
-
     def test_get_file_metadata(self, client: FlaskClient):
         """
         Given a file with 3 related file metadata objects
@@ -185,13 +188,12 @@ class TestGetFileMetadata:
         ]
         assert search_results == expected_search_results
 
-
     @patch("app.main.db.queries.db")
     def test_get_file_metadata_exception_raised(self, db, capsys):
         """
-        Given a file metadata query
-        When a call made to file metadata , when database execution failed with error
-        Then list should be empty and should raise an exception
+        Given a database execution error
+        When get_file_metadata is called
+        Then it returns an empty list and logs an error message
         """
 
         def mock_execute(_):
@@ -204,6 +206,7 @@ class TestGetFileMetadata:
             "Failed to return results from database with error : foo bar"
             in capsys.readouterr().out
         )
+
 
 class TestGetUserAccessibleTransferringBodies:
     @patch(
@@ -282,7 +285,6 @@ class TestGetUserAccessibleTransferringBodies:
         }
         results = get_user_accessible_transferring_bodies("access_token")
         assert results == ["test body1", "test body2"]
-
 
     @patch("app.main.db.queries.db")
     @patch(
