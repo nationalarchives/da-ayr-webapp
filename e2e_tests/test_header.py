@@ -1,8 +1,6 @@
 import pytest
 from playwright.sync_api import Page, expect
 
-from e2e_tests.utils import block_css_decorator
-
 # Define header link and URL
 
 header_link = [
@@ -16,7 +14,7 @@ header_link = [
 @pytest.fixture
 def setup_page(page: Page):
     page.goto("/")
-    return page
+    yield page
 
 
 @pytest.mark.parametrize("link_text, expected_url", header_link)
