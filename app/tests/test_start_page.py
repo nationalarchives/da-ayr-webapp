@@ -1,5 +1,5 @@
 def test_start_page(client):
-    response = client.get("/start-page")
+    response = client.get("/")
 
     assert response.status_code == 200
     assert (

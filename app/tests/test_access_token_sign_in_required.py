@@ -161,7 +161,6 @@ def test_expected_unprotected_routes_decorated_by_access_token_sign_in_required(
     expected_unprotected_routes = [
         "static",
         "main.index",
-        "main.start_page",
         "main.sign_in",
         "main.signed_out",
         "main.callback",
