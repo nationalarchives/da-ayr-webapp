@@ -23,14 +23,9 @@ from app.main.forms import CookiesForm
 from .forms import SearchForm
 
 
-@bp.route("/index", methods=["GET"])
+@bp.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
-
-
-@bp.route("/", methods=["GET"])
-def start_page():
-    return render_template("start-page.html")
 
 
 @bp.route("/sign-out", methods=["GET"])
@@ -166,6 +161,11 @@ def record():
         return render_template("404.html")
 
     return render_template("record.html", consignment_files=record_details)
+
+
+@bp.route("/start-page", methods=["GET"])
+def start_page():
+    return render_template("start-page.html")
 
 
 @bp.route("/signed-out", methods=["GET"])
