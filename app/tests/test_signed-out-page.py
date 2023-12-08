@@ -12,6 +12,6 @@ def test_signed_out_page(client):
     )
 
     assert (
-        b'<a href="/login" role="button" class="govuk-button govuk-button--sign-in-again" '
+        b'<a href="/sign-in" role="button" class="govuk-button govuk-button--sign-in-again" '
         b'data-module="govuk-button">Sign back in'
     ) in response.data
