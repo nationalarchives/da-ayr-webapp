@@ -168,11 +168,6 @@ def record():
     return render_template("record.html", consignment_files=record_details)
 
 
-@bp.route("/start-page", methods=["GET"])
-def start_page():
-    return render_template("start-page.html")
-
-
 @bp.route("/signed-out", methods=["GET"])
 def signed_out():
     return render_template("signed-out.html")
