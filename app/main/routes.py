@@ -127,10 +127,10 @@ def record():
     """
     # Retrieve the search results from the session
     results = session.get("search_results", [])
-    print(results, session)
+
     # Get the record_id from the query parameters
     record_id = request.args.get("record_id")
-    print(record_id, request)
+
     if not record_id:
         return render_template("404.html")
 
@@ -146,6 +146,11 @@ def record():
         return render_template("404.html")
 
     return render_template("record.html", consignment_files=record_details)
+
+
+@bp.route("/record1", methods=["GET"])
+def record_one():
+    return render_template("record1.html")
 
 
 @bp.route("/signed-out", methods=["GET"])
@@ -201,11 +206,6 @@ def how_to_use():
 @bp.route("/terms-of-use", methods=["GET"])
 def terms_of_use():
     return render_template("terms-of-use.html")
-
-
-@bp.route("/record1", methods=["GET"])
-def record_1():
-    return render_template("record1.html")
 
 
 @bp.app_errorhandler(HTTPException)

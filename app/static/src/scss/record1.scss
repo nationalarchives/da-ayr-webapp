@@ -1,0 +1,170 @@
+.govuk-width-container {
+    &--record {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
+}
+
+.govuk-grid-column-one-third {
+    &--record {
+        padding-top: 11rem;
+        margin-top: 0.8rem;
+    }
+}
+
+.govuk-grid-column-two-thirds {
+    &--record-search {
+        padding: 0;
+    }
+}
+
+.search-records {
+    background-color: #f0f0f0;
+    height: 9rem;
+    padding-top: 1.5rem;
+
+}
+
+.govuk-button {
+    &--record-search {
+
+        margin-right: auto;
+    }
+
+    &__download--record {
+
+        align-self: center;
+        justify-content: center !important;
+        margin-bottom: 0.8rem;
+        width:auto;
+    }
+}
+
+.govuk-form-group {
+    &--record-search {
+        margin-left:6rem;
+    }
+}
+
+.govuk-\!-width-three-quarters {
+    &--record-search {
+        width:80% !important;
+    }
+}
+
+.govuk-breadcrumbs {
+    &__link--record {
+        color:#1d70b8;
+        font-size: 1.1rem;
+        font-weight: 400;
+        margin-top:0;
+    }
+
+    &--record {
+       display: flex;
+    }
+}
+
+.govuk-heading-m {
+    &__rights-header {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+        margin-bottom: 0.5rem;
+    }
+
+    &__record-details {
+        margin-bottom: 0.5rem;
+    }
+
+    &__record-header {
+        padding-top: 10px;
+        display: flex;
+        justify-content: center;
+    }
+
+    &__search-records {
+        margin-bottom:0;
+
+    }
+
+    &__record-view {
+        margin-top: 2rem;
+        margin-bottom: 0;
+    }
+}
+
+.govuk-body-s {
+    &__search-records {
+        margin-top: 0;
+        padding-top:0;
+    }
+}
+
+.govuk-summary-list {
+    &__key--record-table {
+
+        font-size: 1rem;
+       text-align: right;
+       padding-right: 10rem;
+    }
+
+    &__value--record {
+
+        text-align: left;
+    }
+
+    &--record {
+
+        flex: 1;
+    }
+
+    &:last-child {
+
+        border-bottom: 2px solid black;
+    }
+}
+
+.rights-container {
+    background-color: #f0f0f0;
+    width: 280px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.record-container {
+    background-color: #f0f0f0;
+    width: 300px;
+    height: 200px;
+    margin-top: 20px;
+    padding-bottom: 6rem;
+
+}
+
+.govuk-body  {
+    &--terms-of-use {
+
+        align-self: center;
+        justify-content: center !important;
+        font-size: 15px;
+    }
+
+    &__record-arrangement-list {
+
+        font-size: 15px;
+        font-family: arial,sans-serif;
+        color: black;
+    }
+}
+
+.govuk-link:visited {
+    color:black;
+}
+
+.search-terms {
+    text-align: left;
+
+}
