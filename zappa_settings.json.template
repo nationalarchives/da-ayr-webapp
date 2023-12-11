@@ -14,6 +14,10 @@
             "CONFIG_SOURCE": "AWS_PARAMETER_STORE"
         },
         "aws_environment_variables": {"INSTANTIATE_LAMBDA_HANDLER_ON_IMPORT": "True"},
-        "profile_name": $ZAPPA_DEPLOYMENT_PROFILE_NAME
+        "vpc_config": {
+            "SubnetIds": [$ZAPPA_SANDBOX_LAMBDA_VPC_PRIVATE_SUBNET_ID],
+            "SecurityGroupIds": [$ZAPPA_SANDBOX_LAMBDA_VPC_SECURITY_GROUP_ID]
+        }
+        "profile_name": $ZAPPA_SANDBOX_DEPLOYMENT_PROFILE_NAME
     }
 }

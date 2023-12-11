@@ -190,9 +190,13 @@ To implement this we are currently using [Zappa](https://github.com/zappa/Zappa)
 
 Zappa is configurable, and can be configured differently for different deployment stages. In particular, each deployment stage's configuration is separated  by the top level environment key in the `zappa_settings.json` file.
 
-In this repo we provide a `zappa_settings.json.template` which provides all the configuration variables except for the `profile_name` that we want to use to update each deployment stage with.
+In this repo we provide a `zappa_settings.json.template` which provides all the configuration variables except for a few values which we need to set as environment variables first so that we can use them to create our custom config from the template:
 
-Configure the `profile_name` field for the sandbox deployment stage by setting the `ZAPPA_DEPLOYMENT_PROFILE_NAME` environment variable and then create a `zappa_settings.json` from environment variables by running:
+- `ZAPPA_SANDBOX_DEPLOYMENT_PROFILE_NAME` specifies the profile name we want to use to update the sandbox deployment stage with.
+- `ZAPPA_SANDBOX_LAMBDA_VPC_PRIVATE_SUBNET_ID` specifies the VPC private subnet we want our lambda to use in the sandbox deployment
+- `ZAPPA_SANDBOX_LAMBDA_VPC_SECURITY_GROUP_ID` specifies the VPC security group we want to our lambda to use in the sandbox deployment
+
+Once all of these environment variables are set, create a `zappa_settings.json` from them by running:
 
   ```shell
   envsubst < zappa_settings.json.template > zappa_settings.json
