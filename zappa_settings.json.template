@@ -4,6 +4,7 @@
         "memory_size": 512,
         "keep_warm": false,
         "timeout_seconds": 7,
+        "s3_bucket": "zappa-ayr-beta-webapp-sandbox",
         "aws_region": "eu-west-2",
         "project_name": "da-ayr-beta-webapp",
         "attach_policy": "lambda_policy.json",
