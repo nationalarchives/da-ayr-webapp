@@ -9,6 +9,9 @@
         "project_name": "da-ayr-beta-webapp",
         "attach_policy": "lambda_policy.json",
         "apigateway_policy": "apigateway_policy.json",
+        "route53_enabled": true,
+        "certificate_arn": $ZAPPA_SANDBOX_CERTIFICATE_ARN,
+        "domain": $ZAPPA_SANDBOX_WEBAPP_DOMAIN,
         "runtime": "python3.11",
         "environment_variables": {
             "CONFIG_SOURCE": "AWS_PARAMETER_STORE"

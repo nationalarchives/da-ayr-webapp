@@ -195,6 +195,8 @@ In this repo we provide a `zappa_settings.json.template` which provides all the 
 - `ZAPPA_SANDBOX_DEPLOYMENT_PROFILE_NAME` specifies the profile name we want to use to update the sandbox deployment stage with.
 - `ZAPPA_SANDBOX_LAMBDA_VPC_PRIVATE_SUBNET_ID` specifies the VPC private subnet we want our lambda to use in the sandbox deployment
 - `ZAPPA_SANDBOX_LAMBDA_VPC_SECURITY_GROUP_ID` specifies the VPC security group we want to our lambda to use in the sandbox deployment
+- `ZAPPA_SANDBOX_CERTIFICATE_ARN` specifies the AWS  certificate we want to certify our domain with
+- `ZAPPA_SANDBOX_WEBAPP_DOMAIN` specifies the domain we want to deploy the webapp to
 
 Once all of these environment variables are set, create a `zappa_settings.json` from them by running:
 
@@ -233,6 +235,14 @@ Once your settings are configured, you can package and deploy your application t
 ```shell
 zappa deploy <DEPLOYMENT_STAGE>
 ```
+
+We then need to run
+
+```shell
+zappa certify
+```
+
+to certify the domains used in each deployment utilising the certificate specified in each section.
 
 Note: Once the application has been deployed once to a particular stage, then it can't be deployed again. You will need to run `zappa undeploy <DEPLOYMENT_STAGE` first. However, more often than not, you will only need to update the deployment, as detailed below.
 
