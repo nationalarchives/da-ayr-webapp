@@ -4,6 +4,11 @@
   margin-top: -2rem;
 }
 
+.browse__body {
+  margin-bottom: 0 !important;
+  font-size: 1rem;
+}
+
 .browse__records-found__text {
   margin-bottom: 1rem;
 }
@@ -86,19 +91,6 @@
   margin-bottom: 0;
 }
 
-.browse-filters__form-group {
-  margin: 0.5rem 0 !important;
-}
-
-.browse-body {
-  margin-bottom: 0 !important;
-  font-size: 1rem;
-}
-
-.browse-date__label {
-  font-size: 1rem;
-}
-
 .browse-filter-container {
   background-color: #f3f2f1;
   padding: 0.5rem;
@@ -121,6 +113,10 @@
   font-size: 1rem !important;
 }
 
+.filters-form__group {
+  margin: 0.5rem 0 !important;
+}
+
 .filters-form__title {
   font-weight: 700;
   font-size: 1.5rem;
@@ -137,6 +133,10 @@
 
 .filters-form__consignment-ref-group {
   display: flex;
+}
+
+.filters-form__date__label {
+  font-size: 1rem;
 }
 
 .filters-form__date-from-group {

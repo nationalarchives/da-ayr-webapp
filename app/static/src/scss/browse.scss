@@ -5,6 +5,11 @@
     margin-top: -2rem;
   }
 
+  &__body {
+    margin-bottom: 0 !important;
+    font-size: 1rem;
+  }
+
   &__records-found__text {
     margin-bottom: 1rem;
   }
@@ -100,19 +105,6 @@
 }
 
 
-.browse-filters__form-group {
-  margin: 0.5rem 0 !important;
-}
-
-.browse-body {
-  margin-bottom: 0 !important;
-  font-size: 1rem;
-}
-
-.browse-date__label {
-  font-size: 1rem;
-}
-
 .browse-filter {
   &-container {
     background-color: #f3f2f1;
@@ -136,6 +128,10 @@
   float: right;
   font-size: 1rem !important;
 
+  &__group {
+    margin: 0.5rem 0 !important;
+  }
+
   &__title {
     font-weight: 700;
     font-size: 1.5rem;
@@ -152,6 +148,10 @@
 
   &__consignment-ref-group {
     display: flex;
+  }
+
+  &__date__label {
+    font-size: 1rem;
   }
 
   &__date-from-group {

@@ -28,8 +28,8 @@
   </div>
   {% if results %}
   <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
-  <p class="govuk-body browse-body">You are viewing</p>
-  <p class="govuk-body-m browse-body browse__available__text">Everything available to you</p>
+  <p class="govuk-body browse__body">You are viewing</p>
+  <p class="govuk-body-m browse__body browse__available__text">Everything available to you</p>
   <div class="govuk-form-group sort-container__form">
     <div class="browse__sort-container">
       <label class="govuk-label" for="sort">
@@ -56,12 +56,12 @@
 
       <div class="browse-filter-container">
         <div class="browse-filter__header">
-          <p class="govuk-body-l browse-body filters-form__title">Filter within browse</p>
+          <p class="govuk-body-l browse__body filters-form__title">Filter within browse</p>
           <img src="{{ url_for('static', filename='image/filter-icon.svg') }}" class="browse-filter__icon"
             alt="filter-icon">
         </div>
-        <p class="govuk-body browse-body">Transferring body</p>
-        <div class="govuk-form-group browse-filters__form-group filters-form__transferring-body-group">
+        <p class="govuk-body browse__body">Transferring body</p>
+        <div class="govuk-form-group filters-form__group filters-form__transferring-body-group">
           <select class="govuk-select filters-form__transferring-body--select" id="sort" name="sort">
             <option value="published" selected>Choose one...</option>
             <option value="updated">Arts Council England</option>
@@ -72,29 +72,29 @@
       </div>
 
       <div class="filters-form__series__container">
-        <p class="govuk-body browse-body">Series</p>
-        <div class="govuk-form-group browse-filters__form-group filters-form__series-group">
+        <p class="govuk-body browse__body">Series</p>
+        <div class="govuk-form-group filters-form__group filters-form__series-group">
           <input class="govuk-input filters-form__series--input" id="width-5" name="width10" type="text">
         </div>
       </div>
 
       <div class="filters-form__consignment-ref__container">
-        <p class="govuk-body browse-body">Consignment ref</p>
-        <div class="govuk-form-group browse-filters__form-group filters-form__consignment-ref-group">
+        <p class="govuk-body browse__body">Consignment ref</p>
+        <div class="govuk-form-group filters-form__group filters-form__consignment-ref-group">
           <input class="govuk-input filters-form__consignment-ref--input" id="width-5" name="width10" type="text">
         </div>
       </div>
 
       <div class="filters-form__date__container">
-        <div class="govuk-form-group date-form browse-filters__form-group filters-form__date-from-group">
-          <p class="govuk-body date-form browse-body filters-form__body-date">Date from</p>
+        <div class="govuk-form-group date-form filters-form__group filters-form__date-from-group">
+          <p class="govuk-body date-form browse__body filters-form__body-date">Date from</p>
           <fieldset class="govuk-fieldset" role="group" aria-describedby="date-from">
             <div class="govuk-date-input" id="date-to">
               <div class="govuk-date-input__item">
                 <div class="govuk-form-group">
                   <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-from-day"
                     name="date-from-day" type="text" inputmode="numeric">
-                  <label class="govuk-label govuk-date-input__label browse-date__label" for="date-from-day">
+                  <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-from-day">
                     (DD)
                   </label>
                 </div>
@@ -103,7 +103,7 @@
                 <div class="govuk-form-group">
                   <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-from-month"
                     name="date-from-month" type="text" inputmode="numeric">
-                  <label class="govuk-label govuk-date-input__label browse-date__label" for="date-from-month">
+                  <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-from-month">
                     (MM)
                   </label>
                 </div>
@@ -112,7 +112,7 @@
                 <div class="govuk-form-group">
                   <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="date-from-year"
                     name="date-from-year" type="text" inputmode="numeric">
-                  <label class="govuk-label govuk-date-input__label browse-date__label" for="date-from-year">
+                  <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-from-year">
                     (YYYY)
                   </label>
                 </div>
@@ -121,15 +121,15 @@
           </fieldset>
         </div>
 
-        <div class="govuk-form-group date-form browse-filters__form-group filters-form__date-to-group">
-          <p class="govuk-body-m date-form browse-body filters-form__body-date">To date</p>
+        <div class="govuk-form-group date-form filters-form__group filters-form__date-to-group">
+          <p class="govuk-body-m date-form browse__body filters-form__body-date">To date</p>
           <fieldset class="govuk-fieldset" role="group" aria-describedby="date-to">
             <div class="govuk-date-input" id="date-to">
               <div class="govuk-date-input__item">
                 <div class="govuk-form-group">
                   <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-to-day"
                     name="date-to-day" type="text" inputmode="numeric">
-                  <label class="govuk-label govuk-date-input__label browse-date__label" for="date-to-day">
+                  <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-to-day">
                     (DD)
                   </label>
                 </div>
@@ -138,7 +138,7 @@
                 <div class="govuk-form-group">
                   <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-to-month"
                     name="date-to-month" type="text" inputmode="numeric">
-                  <label class="govuk-label govuk-date-input__label browse-date__label" for="date-to-month">
+                  <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-to-month">
                     (MM)
                   </label>
                 </div>
@@ -147,7 +147,7 @@
                 <div class="govuk-form-group">
                   <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="date-to-year"
                     name="date-to-year" type="text" inputmode="numeric">
-                  <label class="govuk-label govuk-date-input__label browse-date__label" for="date-to-year">
+                  <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-to-year">
                     (YYYY)
                   </label>
                 </div>
@@ -201,18 +201,18 @@
             </a>
             </dt>
           <dd class="govuk-summary-list__value">
-            <p class="govuk-body browse-body"><a href="#">
+            <p class="govuk-body browse__body"><a href="#">
                 {{ record["series"] }}
               </a></p>
           </dd>
           <dd class="govuk-summary-list__value">
-            <p class="govuk-body browse-body browse__table__right-align">{{ record["last_record_transferred"] }}</p>
+            <p class="govuk-body browse__body browse__table__right-align">{{ record["last_record_transferred"] }}</p>
           </dd>
           <dd class="govuk-summary-list__value">
-            <p class="govuk-body browse-body browse__table__right-align">{{ record["records_held"] }}</p>
+            <p class="govuk-body browse__body browse__table__right-align">{{ record["records_held"] }}</p>
           </dd>
           <dd class="govuk-summary-list__value">
-            <p class="govuk-body browse-body browse__table__right-align">{{ record["consignment_in_series"] }}</p>
+            <p class="govuk-body browse__body browse__table__right-align">{{ record["consignment_in_series"] }}</p>
           </dd>
         </div>
         {% endfor %}
