@@ -1,12 +1,11 @@
 import os
 
 import pytest
-
-from e2e_tests.utils import block_css_decorator
+from playwright.sync_api import Page
 
 
 @pytest.fixture()
-def authenticated_page(page):
+def authenticated_page(page) -> Page:
     page.goto("/sign-in")
     page.get_by_label("Email address").fill(os.environ.get("AYR_TEST_USERNAME"))
     page.get_by_label("Password").fill(os.environ.get("AYR_TEST_PASSWORD"))
@@ -35,7 +34,14 @@ def browser_context_args(browser_context_args):
     }
 
 
-@pytest.fixture(autouse=True)
-def apply_block_css_decorator(request, page):
+@pytest.fixture()
+def page(request, page) -> Page:
     if "test_css_" not in request.node.name and callable(request.node.obj):
-        request.node.obj = block_css_decorator(request.node.obj)(page)
+
+        def route_intercept(route):
+            if route.request.resource_type == "stylesheet":
+                return route.abort()
+            return route.continue_()
+
+        page.route("**/*", route_intercept)
+    return page
