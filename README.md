@@ -190,7 +190,18 @@ To implement this we are currently using [Zappa](https://github.com/zappa/Zappa)
 
 Zappa is configurable, and can be configured differently for different deployment stages. In particular, each deployment stage's configuration is separated  by the top level environment key in the `zappa_settings.json` file.
 
-In this repo we provide a `zappa_settings.json.template` which provides all the configuration variables except for a few values which we need to set as environment variables first so that we can use them to create our custom config from the template:
+In this repo we provide a `zappa_settings.json.template` which provides all the configuration variables except for a few values which we need to set as environment variables first so that we can use them to create our custom config from the template.
+
+This config makes a few assumptions about each AWS account being deployed to:
+
+- The SSM Parameter Store has been populated with all needed configuration values as detailed in [the flask configuration section above](#flask-app-configuration-details).
+- An RDS database and proxy exists.
+- A VPC exists which contains a private subnet connected to the internet via a NAT Gateway and a security group exists with outbound rules to the the RDS database proxy.
+- A valid certificate exists in the AWS account for the domain we want to use for the deployment.
+
+You could decide to set up this infrastructure through terraform or cloudformation to make things easier to reproduce.
+
+Set these environment variables:
 
 - `ZAPPA_SANDBOX_DEPLOYMENT_PROFILE_NAME` specifies the profile name we want to use to update the sandbox deployment stage with.
 - `ZAPPA_SANDBOX_LAMBDA_VPC_PRIVATE_SUBNET_ID` specifies the VPC private subnet we want our lambda to use in the sandbox deployment
