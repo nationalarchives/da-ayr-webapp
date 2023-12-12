@@ -110,10 +110,14 @@ def results():
 def poc_search():
     form = SearchForm()
     search_results = []
+    pages = 0
+    total_records = 0
     query = request.form.get("query", "").lower()
-
     if query:
-        search_results = fuzzy_search(query)
+        query_result = fuzzy_search(query)
+        search_results = query_result["records"]
+        total_records = query_result["total_records"]
+        pages = query_result["pages"]
         session["search_results"] = search_results
 
     num_records_found = len(search_results)
@@ -123,6 +127,8 @@ def poc_search():
         form=form,
         query=query,
         results=search_results,
+        total_records=total_records,
+        pages=pages,
         num_records_found=num_records_found,
     )
 

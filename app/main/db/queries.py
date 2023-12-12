@@ -7,7 +7,24 @@ from app.main.authorize.keycloak_manager import (
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 
 
-def fuzzy_search(query_string):
+def paginate(query, record_count, page, per_page):
+    pages = 1
+    if record_count > per_page:
+        page_mod = record_count % per_page
+        page_cnt = record_count / per_page
+        if page_mod >= 0:
+            pages = int(round(page_cnt, 0))
+        else:
+            pages = int(round(page_cnt, 0) + 1)
+        results = db.session.execute(
+            query.limit(per_page).offset(page)
+        ).fetchall()
+    else:
+        results = db.session.execute(query.limit(per_page).offset(0)).fetchall()
+    return {"results": results, "pages": pages, "total_records": record_count}
+
+
+def fuzzy_search(query_string, current_page=1, per_page=5, total_records=0):
     results = []
     filter_value = str(f"%{query_string}%").lower()
 
@@ -62,81 +79,117 @@ def fuzzy_search(query_string):
         .distinct()
         .order_by(Body.Name, Series.Name)
     )
-    query_results = None
+    search_results = None
+    pages = 0
     try:
-        query_results = db.session.execute(query)
+        if total_records == 0:
+            query_results = db.session.execute(query)
+            total_records = len(query_results.all())
+
+        if total_records > 0:
+            json_result = paginate(
+                query,
+                record_count=total_records,
+                page=current_page,
+                per_page=per_page,
+            )
+            pages = json_result["pages"]
+            search_results = json_result["results"]
+
     except exc.SQLAlchemyError as e:
         print("Failed to return results from database with error : " + str(e))
 
-    if query_results is not None:
-        for r in query_results:
+    if search_results is not None:
+        for r in search_results:
             record = {
-                "transferring_body_id": r.body_id,
-                "transferring_body": r.transferring_body,
-                "series_id": r.series_id,
-                "series": r.series,
-                "consignment_reference": r.consignment_reference,
-                "file_name": r.file_name,
+                "transferring_body_id": r[0],
+                "transferring_body": r[1],
+                "series_id": r[2],
+                "series": r[3],
+                "consignment_reference": r[4],
+                "file_name": r[5],
             }
             results.append(record)
-    return results
+
+    result_json = {
+        "records": results,
+        "pages": pages,
+        "total_records": total_records,
+    }
+    return result_json
 
 
-def browse_data(transferring_body_id=None, series_id=None):
+def browse_data(
+    transferring_body_id=None,
+    series_id=None,
+    current_page=1,
+    per_page=5,
+    total_records=0,
+):
     results = []
+    search_results = None
+    pages = 0
     try:
-        if transferring_body_id is not None:
-            query_results = db.session.execute(
-                generate_transferring_body_filter_query(transferring_body_id)
+        if series_id is not None:
+            query = generate_series_filter_query(series_id)
+        else:
+            if transferring_body_id is not None:
+                query = generate_transferring_body_filter_query(
+                    transferring_body_id
+                )
+            else:
+                query = generate_browse_everything_query()
+
+        if total_records == 0:
+            query_results = db.session.execute(query)
+            total_records = len(query_results.all())
+
+        if total_records > 0:
+            json_result = paginate(
+                query,
+                record_count=total_records,
+                page=current_page,
+                per_page=per_page,
             )
+            pages = json_result["pages"]
+            search_results = json_result["results"]
+
+        if series_id is not None:
             results = [
                 {
-                    "transferring_body_id": r.body_id,
-                    "transferring_body": r.transferring_body,
-                    "series_id": r.series_id,
-                    "series": r.series,
-                    "consignment_in_series": r.consignment_in_series,
-                    "last_record_transferred": r.last_record_transferred,
-                    "records_held": r.records_held,
+                    "transferring_body_id": r[0],
+                    "transferring_body": r[1],
+                    "series_id": r[2],
+                    "series": r[3],
+                    "last_record_transferred": r[4],
+                    "records_held": r[5],
+                    "consignment_id": r[6],
+                    "consignment_reference": r[7],
                 }
-                for r in query_results
-            ]
-        elif series_id is not None:
-            query_results = db.session.execute(
-                generate_series_filter_query(series_id)
-            )
-            results = [
-                {
-                    "transferring_body_id": r.body_id,
-                    "transferring_body": r.transferring_body,
-                    "series_id": r.series_id,
-                    "series": r.series,
-                    "last_record_transferred": r.last_record_transferred,
-                    "records_held": r.records_held,
-                    "consignment_id": r.consignment_id,
-                    "consignment_reference": r.consignment_reference,
-                }
-                for r in query_results
+                for r in search_results
             ]
         else:
-            query_results = db.session.execute(
-                generate_browse_everything_query()
-            )
             results = [
                 {
-                    "transferring_body_id": r.body_id,
-                    "transferring_body": r.transferring_body,
-                    "series_id": r.series_id,
-                    "series": r.series,
-                    "consignment_in_series": r.consignment_in_series,
-                    "last_record_transferred": r.last_record_transferred,
-                    "records_held": r.records_held,
+                    "transferring_body_id": r[0],
+                    "transferring_body": r[1],
+                    "series_id": r[2],
+                    "series": r[3],
+                    "last_record_transferred": r[4],
+                    "consignment_in_series": r[5],
+                    "records_held": r[6],
                 }
-                for r in query_results
+                for r in search_results
             ]
     except exc.SQLAlchemyError as e:
         print("Failed to return results from database with error : " + str(e))
-    return results
+
+    result_json = {
+        "records": results,
+        "pages": pages,
+        "total_records": total_records,
+    }
+    return result_json
 
 
 def get_user_accessible_transferring_bodies(access_token):

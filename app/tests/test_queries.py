@@ -12,47 +12,241 @@ from app.main.db.queries import (
     get_file_metadata,
     get_user_accessible_transferring_bodies,
 )
-from app.tests.mock_database import create_test_file, create_two_test_files
+from app.tests.mock_database import create_multiple_test_records
 
 
 class TestFuzzySearch:
-    def test_fuzzy_search_no_results(self, client: FlaskClient):
+    def test_fuzzy_search_no_results(self, client: FlaskClient, app):
         """
         Given a query string that does not match any field in any file object
             in the database
         When fuzzy_search is called with it
         Then an empty list is returned
         """
-        create_two_test_files()
+        app.config["DEFAULT_PAGE_SIZE"] = 5
+        create_multiple_test_records()
 
         query = "junk"
-        assert fuzzy_search(query) == []
+        assert fuzzy_search(query) == {
+            "records": [],
+            "pages": 0,
+            "total_records": 0,
+        }
 
-    def test_fuzzy_search_with_results(self, client: FlaskClient):
+    def test_fuzzy_search_with_single_record_result(self, client: FlaskClient):
         """
-        Given 2 File objects in the database
+        Given multiple File objects in the database
             and a query string that matches some fields in only 1 of them
         When fuzzy_search is called with the query
         Then a list containing 1 dictionary with information for the corresponding
             file is returned
         """
-        files = create_two_test_files()
+        files = create_multiple_test_records()
 
-        query = "test body1"
-        assert fuzzy_search(query) == [
-            {
-                "transferring_body_id": files[
-                    0
-                ].file_consignments.consignment_bodies.BodyId,
-                "transferring_body": "test body1",
-                "series_id": files[
-                    0
-                ].file_consignments.consignment_series.SeriesId,
-                "series": "test series1",
-                "consignment_reference": "test consignment1",
-                "file_name": "test_file1.pdf",
-            }
-        ]
+        query = "test body2"
+        assert fuzzy_search(query) == {
+            "records": [
+                {
+                    "transferring_body_id": files[
+                        1
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "test body2",
+                    "series_id": files[
+                        1
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series2",
+                    "consignment_reference": "test consignment2",
+                    "file_name": "test_file2.txt",
+                }
+            ],
+            "pages": 1,
+            "total_records": 1,
+        }
+
+    def test_fuzzy_search_with_pagination_single_page(
+        self, client: FlaskClient
+    ):
+        """
+        Given multiple File objects in the database
+            and a query string that matches some fields in only 1 of them
+        When fuzzy_search is called with the query
+        Then a list containing 1 dictionary item, 1 page and 1 total_records with information for the corresponding
+            file is returned
+        """
+        files = create_multiple_test_records()
+
+        query = "test body"
+        assert fuzzy_search(query, current_page=1, per_page=3) == {
+            "records": [
+                {
+                    "transferring_body_id": files[
+                        0
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "test body1",
+                    "series_id": files[
+                        0
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series1",
+                    "consignment_reference": "test consignment1",
+                    "file_name": "test_file1.pdf",
+                },
+                {
+                    "transferring_body_id": files[
+                        1
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "test body2",
+                    "series_id": files[
+                        1
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series2",
+                    "consignment_reference": "test consignment2",
+                    "file_name": "test_file2.txt",
+                },
+                {
+                    "transferring_body_id": files[
+                        10
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "testing body11",
+                    "series_id": files[
+                        10
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series11",
+                    "consignment_reference": "test consignment11",
+                    "file_name": "test_file11.txt",
+                },
+            ],
+            "pages": 1,
+            "total_records": 3,
+        }
+
+    def test_fuzzy_search_with_pagination_multiple_page(
+        self, client: FlaskClient
+    ):
+        """
+        Given multiple data objects in the database
+            and a query string that matches some fields in only 1 of them
+        When fuzzy_search is called with the query
+        Then a list containing 3 dictionary items based on per page value set to 3, 3 pages
+            and 9 total_records with information for the corresponding
+            file is returned
+        """
+        create_multiple_test_records()
+
+        query = "testing body"
+        result = fuzzy_search(query, current_page=1, per_page=3)
+        assert len(result["records"]) == 3
+        assert result["pages"] == 3
+        assert result["total_records"] == 9
+
+    def test_fuzzy_search_with_pagination_get_specific_page_result(
+        self, client: FlaskClient
+    ):
+        """
+        Given multiple data objects in the database
+            and a query string that matches some fields in only 1 of them
+        When fuzzy_search is called with the query
+        Then a list containing 3 dictionary items based on per page value set to 3, 3 pages
+            and 9 total_records with information for the corresponding
+            file is returned
+        """
+        files = create_multiple_test_records()
+
+        query = "testing body"
+        search_result = fuzzy_search(query, current_page=2, per_page=3)
+
+        result = {
+            "records": [
+                {
+                    "transferring_body_id": files[
+                        2
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "testing body3",
+                    "series_id": files[
+                        2
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series3",
+                    "consignment_reference": "test consignment3",
+                    "file_name": "test_file3.pdf",
+                },
+                {
+                    "transferring_body_id": files[
+                        3
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "testing body4",
+                    "series_id": files[
+                        3
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series4",
+                    "consignment_reference": "test consignment4",
+                    "file_name": "test_file4.txt",
+                },
+                {
+                    "transferring_body_id": files[
+                        4
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "testing body5",
+                    "series_id": files[
+                        4
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series5",
+                    "consignment_reference": "test consignment5",
+                    "file_name": "test_file5.txt",
+                },
+            ],
+            "pages": 3,
+            "total_records": 9,
+        }
+
+        assert search_result == result
+        assert len(result["records"]) == 3
+        assert result["pages"] == 3
+        assert result["total_records"] == 9
+
+    def test_fuzzy_search_with_pagination_total_records_passed(
+        self, client: FlaskClient
+    ):
+        """
+        Given multiple data objects in the database
+            and a query string that matches some fields in only 1 of them
+        When fuzzy_search is called with the query
+        Then a list containing 3 dictionary items based on per page value set to 3, 3 pages
+            and 9 total_records with information for the corresponding
+            file is returned
+        """
+        create_multiple_test_records()
+
+        query = "testing body"
+        result = fuzzy_search(query, current_page=1, per_page=3)
+        assert len(result["records"]) == 3
+        assert result["pages"] == 3
+        assert result["total_records"] == 9
+
+        #  new check
+        result = fuzzy_search(
+            query, current_page=1, per_page=3, total_records=9
+        )
+        assert len(result["records"]) == 3
+        assert result["pages"] == 3
+        assert result["total_records"] == 9
+
+    def test_fuzzy_search_with_pagination_odd_records_count(
+        self, client: FlaskClient
+    ):
+        """
+        Given multiple data objects in the database
+            and a query string that matches some fields in only 1 of them
+        When fuzzy_search is called with the query
+        Then a list containing 3 dictionary items based on per page value,
+        4 pages and 11 total records with information for the corresponding
+            file is returned
+        """
+        create_multiple_test_records()
+
+        query = "test series"
+        result = fuzzy_search(query, current_page=1, per_page=3)
+        assert len(result["records"]) == 3
+        assert result["pages"] == 4
+        assert result["total_records"] == 11
 
     @patch("app.main.db.queries.db")
     def test_fuzzy_search_exception_raised(self, db, capsys):
@@ -67,7 +261,7 @@ class TestFuzzySearch:
 
         db.session.execute.side_effect = mock_execute
         results = fuzzy_search("")
-        assert results == []
+        assert results == {"records": [], "pages": 0, "total_records": 0}
         assert (
             "Failed to return results from database with error : foo bar"
             in capsys.readouterr().out
@@ -75,82 +269,252 @@ class TestFuzzySearch:
 
 
 class TestBrowseData:
+    def test_browse_data_with_pagination(self, client: FlaskClient):
+        """
+        Given multiple File objects in the database
+            and a query string that matches some fields in only 1 of them
+        When fuzzy_search is called with the query
+        Then a list containing 1 dictionary with information for the corresponding
+            file is returned
+        """
+        create_multiple_test_records()
+
+        result = browse_data(current_page=1, per_page=5)
+        assert len(result) == 3
+        assert result["pages"] == 2
+        assert result["total_records"] == 11
+
+    def test_browse_data_with_pagination_total_records_passed(
+        self, client: FlaskClient
+    ):
+        """
+        Given multiple data objects in the database
+            and a query string that matches some fields in only 1 of them
+        When browse_data is called with the query
+        Then a list containing 3 dictionary items based on per page value set to 3, 3 pages
+            and 9 total_records with information for the corresponding
+            file is returned
+        """
+        create_multiple_test_records()
+
+        result = browse_data(current_page=1, per_page=3)
+        assert len(result["records"]) == 3
+        assert result["pages"] == 4
+        assert result["total_records"] == 11
+
+        #  new check
+        result = browse_data(current_page=1, per_page=3, total_records=9)
+        assert len(result["records"]) == 3
+        assert result["pages"] == 3
+        assert result["total_records"] == 9
+
+    def test_browse_data_with_pagination_get_specific_page_result(
+        self, client: FlaskClient
+    ):
+        """
+        Given multiple data objects in the database
+            and a query string that matches some fields in only 1 of them
+        When browse_data is called with the query
+        Then a list containing 3 dictionary items based on per page value set to 3, 3 pages
+            and 9 total_records with information for the corresponding
+            file is returned
+        """
+        files = create_multiple_test_records()
+
+        search_result = browse_data(current_page=2, per_page=3)
+
+        result = {
+            "records": [
+                {
+                    "transferring_body_id": files[
+                        9
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "testing body10",
+                    "series_id": files[
+                        9
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series10",
+                    "consignment_in_series": 1,
+                    "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                    "records_held": 1,
+                },
+                {
+                    "transferring_body_id": files[
+                        10
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "testing body11",
+                    "series_id": files[
+                        10
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series11",
+                    "consignment_in_series": 1,
+                    "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                    "records_held": 1,
+                },
+                {
+                    "transferring_body_id": files[
+                        2
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "testing body3",
+                    "series_id": files[
+                        2
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series3",
+                    "consignment_in_series": 1,
+                    "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                    "records_held": 1,
+                },
+            ],
+            "pages": 4,
+            "total_records": 11,
+        }
+
+        assert search_result == result
+        assert len(result["records"]) == 3
+        assert result["pages"] == 4
+        assert result["total_records"] == 11
+
+    def test_browse_data_with_pagination_odd_records_count(
+        self, client: FlaskClient
+    ):
+        """
+        Given multiple data objects in the database
+            and a query string that matches some fields in only 1 of them
+        When browse data is called with the query
+        Then a list containing 1 dictionary with information for the corresponding
+            file is returned
+        """
+        create_multiple_test_records()
+
+        result = browse_data(current_page=1, per_page=3)
+        assert len(result) == 3
+        assert result["pages"] == 4
+        assert result["total_records"] == 11
+
     def test_browse_data_without_filters(self, client: FlaskClient):
         """
-        Given 2 File objects in the database
+        Given multiple File objects in the database
         When browse_data is called without any arguments
         Then it returns a list containing dictionaries for each record with
             expected fields
         """
-        files = create_two_test_files()
-
-        assert browse_data() == [
-            {
-                "transferring_body_id": files[
-                    0
-                ].file_consignments.consignment_bodies.BodyId,
-                "transferring_body": "test body1",
-                "series_id": files[
-                    0
-                ].file_consignments.consignment_series.SeriesId,
-                "series": "test series1",
-                "consignment_in_series": 1,
-                "last_record_transferred": datetime(2023, 1, 1, 0, 0),
-                "records_held": 1,
-            },
-            {
-                "transferring_body_id": files[
-                    1
-                ].file_consignments.consignment_bodies.BodyId,
-                "transferring_body": "test body2",
-                "series_id": files[
-                    1
-                ].file_consignments.consignment_series.SeriesId,
-                "series": "test series2",
-                "consignment_in_series": 1,
-                "last_record_transferred": datetime(2023, 1, 1, 0, 0),
-                "records_held": 1,
-            },
-        ]
+        files = create_multiple_test_records()
+        result = browse_data()
+        print(result)
+        assert result == {
+            "records": [
+                {
+                    "transferring_body_id": files[
+                        1
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "test body2",
+                    "series_id": files[
+                        1
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series2",
+                    "consignment_in_series": 1,
+                    "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                    "records_held": 1,
+                },
+                {
+                    "transferring_body_id": files[
+                        9
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "testing body10",
+                    "series_id": files[
+                        9
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series10",
+                    "consignment_in_series": 1,
+                    "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                    "records_held": 1,
+                },
+                {
+                    "transferring_body_id": files[
+                        10
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "testing body11",
+                    "series_id": files[
+                        10
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series11",
+                    "consignment_in_series": 1,
+                    "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                    "records_held": 1,
+                },
+                {
+                    "transferring_body_id": files[
+                        2
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "testing body3",
+                    "series_id": files[
+                        2
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series3",
+                    "consignment_in_series": 1,
+                    "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                    "records_held": 1,
+                },
+                {
+                    "transferring_body_id": files[
+                        3
+                    ].file_consignments.consignment_bodies.BodyId,
+                    "transferring_body": "testing body4",
+                    "series_id": files[
+                        3
+                    ].file_consignments.consignment_series.SeriesId,
+                    "series": "test series4",
+                    "consignment_in_series": 1,
+                    "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                    "records_held": 1,
+                },
+            ],
+            "pages": 2,
+            "total_records": 11,
+        }
 
     def test_browse_data_with_transferring_body_filter(
         self, client: FlaskClient
     ):
         """
-        Given 2 File objects in the database and a transferring_body_id
+        Given multiple File objects in the database and a transferring_body_id
             that matches only one of them
         When browse_data is called with transferring_body_id
         Then it returns a list containing 1 dictionary for the matching record with
             expected fields
         """
-        files = create_two_test_files()
+        files = create_multiple_test_records()
 
         file = files[0]
 
         transferring_body_id = file.file_consignments.consignment_bodies.BodyId
         series_id = file.file_consignments.consignment_series.SeriesId
 
-        assert browse_data(transferring_body_id=transferring_body_id) == [
-            {
-                "transferring_body_id": transferring_body_id,
-                "transferring_body": "test body1",
-                "series_id": series_id,
-                "series": "test series1",
-                "consignment_in_series": 1,
-                "last_record_transferred": datetime(2023, 1, 1, 0, 0),
-                "records_held": 1,
-            }
-        ]
+        assert browse_data(transferring_body_id=transferring_body_id) == {
+            "records": [
+                {
+                    "transferring_body_id": transferring_body_id,
+                    "transferring_body": "test body1",
+                    "series_id": series_id,
+                    "series": "test series1",
+                    "consignment_in_series": 1,
+                    "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                    "records_held": 1,
+                }
+            ],
+            "pages": 1,
+            "total_records": 1,
+        }
 
     def test_browse_data_with_series_filter(self, client: FlaskClient):
         """
-        Given 2 File objects in the database and a series_id
+        Given multiple File objects in the database and a series_id
             that matches only one of them
         When browse_data is called with series_id
         Then it returns a list containing 1 dictionary for the matching record with
             expected fields
         """
-        files = create_two_test_files()
+        files = create_multiple_test_records()
 
         file = files[0]
 
@@ -158,18 +522,22 @@ class TestBrowseData:
         series_id = file.file_consignments.consignment_series.SeriesId
         consignment_id = file.file_consignments.ConsignmentId
 
-        assert browse_data(series_id=series_id) == [
-            {
-                "consignment_id": consignment_id,
-                "consignment_reference": "test consignment1",
-                "transferring_body_id": transferring_body_id,
-                "transferring_body": "test body1",
-                "series_id": series_id,
-                "series": "test series1",
-                "last_record_transferred": datetime(2023, 1, 1, 0, 0),
-                "records_held": 1,
-            }
-        ]
+        assert browse_data(series_id=series_id) == {
+            "records": [
+                {
+                    "consignment_id": consignment_id,
+                    "consignment_reference": "test consignment1",
+                    "transferring_body_id": transferring_body_id,
+                    "transferring_body": "test body1",
+                    "series_id": series_id,
+                    "series": "test series1",
+                    "last_record_transferred": datetime(2023, 1, 1, 0, 0),
+                    "records_held": 1,
+                }
+            ],
+            "pages": 1,
+            "total_records": 1,
+        }
 
     @patch("app.main.db.queries.db")
     def test_browse_data_exception_raised(self, db, capsys):
@@ -184,7 +552,7 @@ class TestBrowseData:
 
         db.session.execute.side_effect = mock_execute
         results = browse_data()
-        assert results == []
+        assert results == {"records": [], "pages": 0, "total_records": 0}
         assert (
             "Failed to return results from database with error : foo bar"
             in capsys.readouterr().out
@@ -207,9 +575,9 @@ class TestGetFileMetadata:
         When get_file_metadata is called with the file's FileId
         Then a list of dicts is returned with the property name-value pair in each dict
         """
-        file = create_test_file()
+        files = create_multiple_test_records()
 
-        search_results = get_file_metadata(file_id=file.FileId)
+        search_results = get_file_metadata(file_id=files[0].FileId)
 
         expected_search_results = [
             {"property_name": "file_name", "property_value": "test_file1.pdf"},
