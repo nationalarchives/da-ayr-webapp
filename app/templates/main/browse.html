@@ -27,11 +27,11 @@
     </div>
   </div>
   {% if results %}
-  <h1 class="govuk-heading-l browse_records-found_text">Records found {{ num_records_found }}</h1>
+  <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
   <p class="govuk-body browse-body">You are viewing</p>
-  <p class="govuk-body-m browse-body browse-available__text">Everything available to you</p>
+  <p class="govuk-body-m browse-body browse__available__text">Everything available to you</p>
   <div class="govuk-form-group sort-container__form">
-    <div class="browse-sort-container">
+    <div class="browse__sort-container">
       <label class="govuk-label" for="sort">
         Sort by
       </label>
@@ -43,7 +43,7 @@
         <option value="date-first">Date record transferred (most recent first)</option>
         <option value="date-last">Date record transferred (oldest first)</option>
       </select>
-      <button class="govuk-button update-button" id="sort-update-button" data-module="govuk-button">
+      <button class="govuk-button sort-container__update-button" id="sort-update-button" data-module="govuk-button">
         Apply
       </button>
     </div>
@@ -71,21 +71,21 @@
         </div>
       </div>
 
-      <div class="browse-series-container">
+      <div class="filters-form__series__container">
         <p class="govuk-body browse-body">Series</p>
         <div class="govuk-form-group browse-filters__form-group filters-form__series-group">
           <input class="govuk-input filters-form__series--input" id="width-5" name="width10" type="text">
         </div>
       </div>
 
-      <div class="browse-consignment-ref-container">
+      <div class="filters-form__consignment-ref__container">
         <p class="govuk-body browse-body">Consignment ref</p>
         <div class="govuk-form-group browse-filters__form-group filters-form__consignment-ref-group">
           <input class="govuk-input filters-form__consignment-ref--input" id="width-5" name="width10" type="text">
         </div>
       </div>
 
-      <div class="browse-date-container">
+      <div class="filters-form__date__container">
         <div class="govuk-form-group date-form browse-filters__form-group filters-form__date-from-group">
           <p class="govuk-body date-form browse-body filters-form__body-date">Date from</p>
           <fieldset class="govuk-fieldset" role="group" aria-describedby="date-from">
@@ -223,7 +223,7 @@
       <!-- PAGINATION -->
 
       {% if results %}
-      <nav class="govuk-pagination browse-pagination--centered" role="navigation" aria-label="results">
+      <nav class="govuk-pagination browse__pagination__centered" role="navigation" aria-label="results">
         <div class="govuk-pagination__prev">
           <a class="govuk-link govuk-pagination__link" href="#" rel="prev">
             <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg"
