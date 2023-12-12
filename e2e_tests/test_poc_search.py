@@ -44,23 +44,15 @@ def test_poc_search_end_to_end(authenticated_page: Page):
     cell_texts = table.evaluate(
         '(table) => Array.from(table.querySelectorAll("td")).map(td => td.textContent)'
     )
-    # List of expected entry values
+
     expected_entries = [
-        "",
-        "",
-        "",
-        "",
-        "",
+        "Testing A",
+        "TSTA 1",
+        "TDR-2023-H2QS",
         "file-a1.txt",
-        "Test description",
-        "2023-02-27T12:28:08",
-        "Public Record(s)",
-        "50",
+        "Testing A",
+        "TSTA 1",
+        "TDR-2023-H2QS",
         "file-a2.txt",
-        "Test description 2",
-        "2023-02-27T12:28:13",
-        "Public Record(s)",
-        "100",
     ]
-    for expected_entry in expected_entries:
-        assert expected_entry in cell_texts
+    assert expected_entries == cell_texts
