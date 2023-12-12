@@ -7,7 +7,7 @@ def test_poc_search_end_to_end(authenticated_page: Page):
     When they interact with the search form and submit a query
     Then the table should contain the expected headers and entries.
     """
-    authenticated_page.goto("/poc-search-view")
+    authenticated_page.goto("/poc-search")
 
     expect(authenticated_page.get_by_text("Search design PoC")).to_be_visible()
     expect(
@@ -32,11 +32,10 @@ def test_poc_search_end_to_end(authenticated_page: Page):
     )
     # List of expected header values
     expected_headers = [
-        "Title",
-        "Description",
-        "Last modified",
-        "Status",
-        "Closure period (years)",
+        "Transferring Body",
+        "Series",
+        "Consignment Reference",
+        "File Name",
     ]
     for expected_header in expected_headers:
         assert expected_header in header_texts

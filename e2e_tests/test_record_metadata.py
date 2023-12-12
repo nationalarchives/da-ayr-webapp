@@ -1,5 +1,4 @@
 import re
-import time
 
 from playwright.sync_api import Page, expect
 
@@ -33,14 +32,14 @@ def test_back_link(authenticated_page: Page):
     When the user selects the back button / breadcrumb
     Then the user should be navigated back to the the results page
     """
-    authenticated_page.goto("/poc-search-view")
+    authenticated_page.goto("/poc-search")
     authenticated_page.locator("#searchInput").click()
     authenticated_page.locator("#searchInput").fill("public record")
     authenticated_page.get_by_role("button", name="Search").click()
-    expect(authenticated_page.get_by_text("records found")).to_be_visible()
+    expect(authenticated_page.get_by_text("record(s) found")).to_be_visible()
     authenticated_page.get_by_role("link", name="file-b2.txt").click()
     authenticated_page.get_by_role("link", name="Back", exact=True).click()
-    authenticated_page.wait_for_url("/poc-search-view")
+    authenticated_page.wait_for_url("/poc-search")
     authenticated_page.close()
 
 
@@ -51,12 +50,11 @@ def test_searched_record_metadata(authenticated_page: Page):
     Then the table should display the relevant metadata for the record such as
         "Source organisation" and "Consignment ID,"
     """
-    time.sleep(10)
-    authenticated_page.goto("/poc-search-view")
+    authenticated_page.goto("/poc-search")
     authenticated_page.locator("#searchInput").click()
     authenticated_page.locator("#searchInput").fill("public record")
     authenticated_page.get_by_role("button", name="Search").click()
-    expect(authenticated_page.get_by_text("records found")).to_be_visible()
+    expect(authenticated_page.get_by_text("record(s) found")).to_be_visible()
     authenticated_page.get_by_role("link", name="file-b2.txt").click()
 
     # Verify if the expected metadata is visible on the record page

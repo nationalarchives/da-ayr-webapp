@@ -8,13 +8,13 @@ def test_sign_in_succeeds_when_valid_credentials(page: Page):
     Given a user is on the sign in page,
     When they provide valid credentials and click the "Sign in" button,
     Then they should see a success message indicating they are logged in with access to AYR.
-    And they should be on the '/poc-search-view' page.
+    And they should be on the '/poc-search' page.
     """
     page.goto("/sign-in")
     page.get_by_label("Email address").fill(os.environ.get("AYR_TEST_USERNAME"))
     page.get_by_label("Password").fill(os.environ.get("AYR_TEST_PASSWORD"))
     page.get_by_role("button", name="Sign in").click()
-    expect(page).to_have_url("/poc-search-view")
+    expect(page).to_have_url("/poc-search")
 
 
 def test_sign_in_fails_when_invalid_credentials(page: Page):
