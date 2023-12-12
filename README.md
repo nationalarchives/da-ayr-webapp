@@ -281,6 +281,32 @@ This is especially useful if a deployment fails.
 
 We do not currently update any deployment automatically in our CI/CD pipeline, but we will soon.
 
+## Metadata Store Postgres Database
+
+The webapp is set up to read data from an externally defined postgres database referred to as the Metadata Store.
+
+We currently use the python package, Flask-SQLAlchemy to leverage some benefits of the ORM (Object Relationship Mapping) it provides, making our queries using the python classes we create as opposed to explicit SQL queries.
+
+The database connection is configured with the `SQLALCHEMY_DATABASE_URI` variable built up in the Flask Config.
+
+### Database Infrastructure and Connection
+
+The database is assumed to be a PostgreSQL database.
+
+This could be spun up by PostgreSQL or from Amazon RDS, for example.
+
+When choosing the configuration choice `AWS_PARAMETER_STORE`, we assume the database is an RDS database with an RDS proxy sitting in front, in the same AWS account as the SSM Parameter Store and lambda and resides in a VPC which the lambda is in so that the webapp hosted in the lambda can communicate with it securely, as mentioned in the [Zappa configuration section](#zappa-configuration).
+
+### Database Tables, Schema and Data
+
+We do not define the database tables ourselves, nor write any information to the database, both of which are assumed to be handled externally. To leverage the use of the ORM we reflect the tables from the existing database with the following line in our Flask app setup.
+
+`db.Model.metadata.reflect(bind=db.engine, schema="public")`
+
+More info on relecting database tables can be found [here](https://flask-sqlalchemy.palletsprojects.com/en/3.1.x/models/#reflecting-tables).
+
+Further, to this, we do define models and columns from the corresponding tables we do use in our queries we use so that when developing we will know what attributes are available but this has to be manually kept in sync with the externally determined schema through discussion with the maintainers of the Metadata Store database.
+
 ## Testing
 
 ### Unit and Integration tests
