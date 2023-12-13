@@ -4,15 +4,23 @@
         "memory_size": 512,
         "keep_warm": false,
         "timeout_seconds": 7,
+        "s3_bucket": "zappa-ayr-beta-webapp-sandbox",
         "aws_region": "eu-west-2",
         "project_name": "da-ayr-beta-webapp",
         "attach_policy": "lambda_policy.json",
         "apigateway_policy": "apigateway_policy.json",
+        "route53_enabled": true,
+        "certificate_arn": $ZAPPA_SANDBOX_CERTIFICATE_ARN,
+        "domain": $ZAPPA_SANDBOX_WEBAPP_DOMAIN,
         "runtime": "python3.11",
         "environment_variables": {
             "CONFIG_SOURCE": "AWS_PARAMETER_STORE"
         },
         "aws_environment_variables": {"INSTANTIATE_LAMBDA_HANDLER_ON_IMPORT": "True"},
-        "profile_name": $ZAPPA_DEPLOYMENT_PROFILE_NAME
+        "vpc_config": {
+            "SubnetIds": [$ZAPPA_SANDBOX_LAMBDA_VPC_PRIVATE_SUBNET_ID],
+            "SecurityGroupIds": [$ZAPPA_SANDBOX_LAMBDA_VPC_SECURITY_GROUP_ID]
+        }
+        "profile_name": $ZAPPA_SANDBOX_DEPLOYMENT_PROFILE_NAME
     }
 }
