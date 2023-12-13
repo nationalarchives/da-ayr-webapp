@@ -15,10 +15,10 @@
       <p class="govuk-body search__heading">Search for digital records</p>
       <form method="POST">
         {{ form.csrf_token }}
-        <div class="govuk-form-group govuk-form-group__search--form">
+        <div class="govuk-form-group govuk-form-group__search-form">
           <label for="searchInput"></label>
           <input class="govuk-input govuk-!-width-three-quarters" id="searchInput" name="query" type="text">
-          <button class="govuk-button govuk-button__search--button" data-module="govuk-button" type="submit">Search</button>
+          <button class="govuk-button govuk-button__search-button" data-module="govuk-button" type="submit">Search</button>
         </div>
         <p class="govuk-body-s">Search using a record metadata term, for example – transferring body, series,
           consignment
@@ -35,7 +35,7 @@
       <label class="govuk-label" for="sort">
         Sort by
       </label>
-      <select class="govuk-select sort-container__select" id="sort" name="sort">
+      <select class="govuk-select govuk-select__sort-container-select" id="sort" name="sort">
         <option value="body-a">Transferring body (A to Z)</option>
         <option value="body-b" selected>Transferring body (Z to A)</option>
         <option value="series-a">Series (A to Z)</option>
@@ -43,7 +43,7 @@
         <option value="date-first">Date record transferred (most recent first)</option>
         <option value="date-last">Date record transferred (oldest first)</option>
       </select>
-      <button class="govuk-button sort-container__update-button" id="sort-update-button" data-module="govuk-button">
+      <button class="govuk-button govuk-button__sort-container-update-button" id="sort-update-button" data-module="govuk-button">
         Apply
       </button>
     </div>
@@ -62,7 +62,7 @@
         </div>
         <p class="govuk-body browse__body">Transferring body</p>
         <div class="govuk-form-group filters-form__group filters-form__transferring-body-group">
-          <select class="govuk-select filters-form__transferring-body--select" id="sort" name="sort">
+          <select class="govuk-select govuk-select__filters-form-transferring-body-select" id="sort" name="sort">
             <option value="published" selected>Choose one...</option>
             <option value="updated">Arts Council England</option>
             <option value="views">Food Standards Agency</option>
@@ -158,7 +158,7 @@
 
 
         <div class="filters-form__buttons">
-          <button type="button" class="govuk-button filters-form__apply--button" data-module="govuk-button">
+          <button type="button" class="govuk-button govuk-button__filters-form-apply-button" data-module="govuk-button">
             Apply filters
           </button>
           <p class="govuk-body-m filters-form__clear--button"><a href="#">Clear all filters</a></p>

@@ -1,15 +1,39 @@
 .govuk {
   &-form-group {
-    &__search--form {
-        margin-bottom: 0;
+    &__search-form {
+      margin-bottom: 0;
     }
   }
 
   &-button {
-    &__search--button {
+    &__search-button {
       margin-bottom: 0.5rem;
     }
+
+    &__sort-container-update-button {
+      margin-bottom: 0;
+    }
+
+    &__filters-form-apply-button {
+      align-self: flex-start;
+      margin-left: 1rem;
+      font-size: 1rem;
+    }
   }
+
+  &-select {
+    &__sort-container-select {
+      margin-right: 0.25rem;
+    }
+
+    &__filters-form-transferring-body-select {
+      width: 100%;
+      min-width: auto;
+      font-size: 1rem;
+    }
+
+  }
+
 }
 
 .browse {
@@ -102,13 +126,6 @@
     margin-bottom: 0.5rem;
   }
 
-  &__select {
-    margin-right: 0.25rem;
-  }
-
-  &__update-button {
-    margin-bottom: 0;
-  }
 }
 
 
@@ -191,12 +208,6 @@
     min-width: 100%;
   }
 
-  &__transferring-body--select {
-    width: 100%;
-    min-width: auto;
-    font-size: 1rem;
-  }
-
   &__series--input {
     flex-grow: 1;
     width: 100%;
@@ -213,12 +224,6 @@
     align-items: center;
     width: auto;
     margin-top: 1rem;
-  }
-
-  &__apply--button {
-    align-self: flex-start;
-    margin-left: 1rem;
-    font-size: 1rem;
   }
 
   &__clear--button {
