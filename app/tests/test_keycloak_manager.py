@@ -42,9 +42,7 @@ class TestGetUserTransferringBodyGroups:
     @patch(
         "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
     )
-    def test_no_transferring_body_user_groups_returns_empty_list(
-        self, mock_decode_keycloak_access_token, app
-    ):
+    def test_no_transferring_body_user_groups_returns_empty_list(self, app):
         """
         Given a list of keycloak groups which has no transferring_body_user groups
         When calling get_user_transferring_body_keycloak_groups with it
@@ -62,7 +60,7 @@ class TestGetUserTransferringBodyGroups:
         "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
     )
     def test_multiple_transferring_body_user_groups_returns_corresponding_bodies(
-        self, mock_decode_keycloak_access_token, app
+        self, app
     ):
         """
         Given a list of keycloak groups including 2 transferring bodies
@@ -79,4 +77,25 @@ class TestGetUserTransferringBodyGroups:
             ) == [
                 "foo",
                 "bar",
+            ]
+
+    @patch(
+        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
+    )
+    def test_transferring_body_user_groups_one_invalid_valid_group(self, app):
+        """
+        Given a list of keycloak groups including 2 transferring bodies
+        When calling get_user_transferring_body_keycloak_groups with it
+        Then it should return the 2 corresponding bodies in a list
+        """
+
+        with app.app_context():
+            assert get_user_transferring_body_keycloak_groups(
+                [
+                    "/transferring_body_user/foo",
+                    "/ayr_user/abc",
+                    "/transferring_body_user/",
+                ]
+            ) == [
+                "foo",
             ]

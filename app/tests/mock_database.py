@@ -459,7 +459,7 @@ def create_multiple_test_records():
         MetadataId=uuid.uuid4(),
         FileId=file_7.FileId,
         PropertyName="closure_type",
-        Value="closed",
+        Value="open",
     )
     db.session.add(file_7_metadata)
     db.session.commit()
@@ -526,7 +526,7 @@ def create_multiple_test_records():
         MetadataId=uuid.uuid4(),
         FileId=file_8.FileId,
         PropertyName="closure_type",
-        Value="closed",
+        Value="open",
     )
     db.session.add(file_8_metadata)
     db.session.commit()
@@ -593,7 +593,7 @@ def create_multiple_test_records():
         MetadataId=uuid.uuid4(),
         FileId=file_9.FileId,
         PropertyName="closure_type",
-        Value="closed",
+        Value="open",
     )
     db.session.add(file_9_metadata)
     db.session.commit()

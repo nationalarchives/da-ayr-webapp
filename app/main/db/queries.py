@@ -11,11 +11,11 @@ def paginate(query, record_count, page, per_page):
     pages = 1
     if record_count > per_page:
         page_mod = record_count % per_page
-        page_cnt = record_count / per_page
-        if page_mod >= 0:
-            pages = int(round(page_cnt, 0))
-        else:
+        page_cnt = int(record_count / per_page)
+        if page_mod > 0:
             pages = int(round(page_cnt, 0) + 1)
+        else:
+            pages = int(round(page_cnt, 0))
         results = db.session.execute(
             query.limit(per_page).offset(page)
         ).fetchall()

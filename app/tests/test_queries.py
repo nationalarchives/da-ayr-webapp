@@ -248,6 +248,26 @@ class TestFuzzySearch:
         assert result["pages"] == 4
         assert result["total_records"] == 11
 
+    def test_fuzzy_search_with_pagination_check_records_returned_exact_match_to_per_page(
+        self, client: FlaskClient
+    ):
+        """
+        Given multiple data objects in the database
+            and a query string that matches some fields in only 1 of them
+        When fuzzy_search is called with the query
+        Then a list containing 3 dictionary items based on per page value,
+        4 pages and 11 total records with information for the corresponding
+            file is returned
+        """
+        create_multiple_test_records()
+
+        query = "closed"
+        result = fuzzy_search(query, current_page=1, per_page=2)
+        print(result)
+        assert len(result["records"]) == 2
+        assert result["pages"] == 3
+        assert result["total_records"] == 6
+
     @patch("app.main.db.queries.db")
     def test_fuzzy_search_exception_raised(self, db, capsys):
         """
@@ -281,7 +301,7 @@ class TestBrowseData:
 
         result = browse_data(current_page=1, per_page=5)
         assert len(result) == 3
-        assert result["pages"] == 2
+        assert result["pages"] == 3
         assert result["total_records"] == 11
 
     def test_browse_data_with_pagination_total_records_passed(
@@ -303,10 +323,10 @@ class TestBrowseData:
         assert result["total_records"] == 11
 
         #  new check
-        result = browse_data(current_page=1, per_page=3, total_records=9)
+        result = browse_data(current_page=1, per_page=3, total_records=11)
         assert len(result["records"]) == 3
-        assert result["pages"] == 3
-        assert result["total_records"] == 9
+        assert result["pages"] == 4
+        assert result["total_records"] == 11
 
     def test_browse_data_with_pagination_get_specific_page_result(
         self, client: FlaskClient
@@ -400,7 +420,7 @@ class TestBrowseData:
         """
         files = create_multiple_test_records()
         result = browse_data()
-        print(result)
+
         assert result == {
             "records": [
                 {
@@ -469,7 +489,7 @@ class TestBrowseData:
                     "records_held": 1,
                 },
             ],
-            "pages": 2,
+            "pages": 3,
             "total_records": 11,
         }
 
