@@ -44,7 +44,7 @@
   }
 
   &__body {
-    margin-bottom: 0 !important;
+    margin-bottom: 0;
     font-size: 1rem;
   }
 
@@ -56,7 +56,7 @@
     height: 1rem;
     background-color: #fff;
     font-weight: 700;
-    font-size: 1.5rem !important;
+    font-size: 1.5rem;
   }
 
   &__pagination__centered {
@@ -69,7 +69,7 @@
     }
 
     &__large-width {
-      width: 30% !important;
+      width: 30%;
     }
   }
 
@@ -86,7 +86,7 @@
   }
 
   &__list {
-    font-size: 1rem !important;
+    font-size: 1rem;
   }
 
   &__key {
@@ -150,10 +150,10 @@
 
 .filters-form {
   float: right;
-  font-size: 1rem !important;
+  font-size: 1rem;
 
   &__group {
-    margin: 0.5rem 0 !important;
+    margin: 0.5rem 0;
   }
 
   &__title {
@@ -162,7 +162,7 @@
   }
 
   &__transferring-body-group {
-    display: flex !important;
+    display: flex;
     align-items: baseline;
   }
 
@@ -231,26 +231,9 @@
     font-size: 1rem;
   }
 
-  &__transferring-body--button {
-    display: block;
-  }
-
-  &__series--button {
-    align-self: flex-end;
-    justify-content: flex-end !important;
-    margin-right: 0.5rem !important;
-    margin-left: auto;
-  }
-
-  &__consignment-ref--button {
-    align-self: flex-end;
-    justify-content: flex-end !important;
-    margin-right: 0.5rem !important;
-  }
-
   &__date--button {
     align-self: flex-end;
-    margin-right: 0.5rem !important;
+    margin-right: 0.5rem;
   }
 
   &__body-date {
