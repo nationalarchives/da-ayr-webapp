@@ -1,3 +1,17 @@
+.govuk {
+  &-form-group {
+    &__search--form {
+        margin-bottom: 0;
+    }
+  }
+
+  &-button {
+    &__search--button {
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
 .browse {
   &__page {
     margin-right: 0;
@@ -81,13 +95,6 @@
     margin-bottom: 0;
   }
 
-  &__form {
-    margin-bottom: 0;
-  }
-
-  &__button {
-    margin-bottom: 0.5rem;
-  }
 }
 
 .sort-container {
