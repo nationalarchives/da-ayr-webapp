@@ -72,61 +72,19 @@ def _build_fuzzy_search_query(query_string: str) -> Query:
     return query
 
 
-def browse_data(transferring_body_id=None, series_id=None):
-    results = []
-    try:
-        if transferring_body_id is not None:
-            query_results = db.session.execute(
-                generate_transferring_body_filter_query(transferring_body_id)
-            )
-            results = [
-                {
-                    "transferring_body_id": r.body_id,
-                    "transferring_body": r.transferring_body,
-                    "series_id": r.series_id,
-                    "series": r.series,
-                    "consignment_in_series": r.consignment_in_series,
-                    "last_record_transferred": r.last_record_transferred,
-                    "records_held": r.records_held,
-                }
-                for r in query_results
-            ]
-        elif series_id is not None:
-            query_results = db.session.execute(
-                generate_series_filter_query(series_id)
-            )
-            results = [
-                {
-                    "transferring_body_id": r.body_id,
-                    "transferring_body": r.transferring_body,
-                    "series_id": r.series_id,
-                    "series": r.series,
-                    "last_record_transferred": r.last_record_transferred,
-                    "records_held": r.records_held,
-                    "consignment_id": r.consignment_id,
-                    "consignment_reference": r.consignment_reference,
-                }
-                for r in query_results
-            ]
-        else:
-            query_results = db.session.execute(
-                generate_browse_everything_query()
-            )
-            results = [
-                {
-                    "transferring_body_id": r.body_id,
-                    "transferring_body": r.transferring_body,
-                    "series_id": r.series_id,
-                    "series": r.series,
-                    "consignment_in_series": r.consignment_in_series,
-                    "last_record_transferred": r.last_record_transferred,
-                    "records_held": r.records_held,
-                }
-                for r in query_results
-            ]
-    except exc.SQLAlchemyError as e:
-        print("Failed to return results from database with error : " + str(e))
-    return results
+def browse_data(page, per_page, transferring_body_id=None, series_id=None):
+    if transferring_body_id:
+        browse_query = generate_transferring_body_filter_query(
+            transferring_body_id
+        )
+
+    elif series_id:
+        browse_query = generate_series_filter_query(series_id)
+
+    else:
+        browse_query = generate_browse_everything_query()
+
+    return browse_query.paginate(page=page, per_page=per_page)
 
 
 def get_user_accessible_transferring_bodies(access_token):
@@ -146,7 +104,7 @@ def get_user_accessible_transferring_bodies(access_token):
         return []
 
     try:
-        query = db.select(Body.Name)
+        query = db.session.query(Body.Name)
         bodies = db.session.execute(query)
     except exc.SQLAlchemyError as e:
         print("Failed to return results from database with error : " + str(e))
@@ -203,7 +161,7 @@ def get_file_metadata(file_id):
 
 def generate_browse_everything_query():
     query = (
-        db.select(
+        db.session.query(
             Body.BodyId.label("body_id"),
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
@@ -229,7 +187,7 @@ def generate_browse_everything_query():
 
 def generate_transferring_body_filter_query(transferring_body_id):
     query = (
-        db.select(
+        db.session.query(
             Body.BodyId.label("body_id"),
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
@@ -258,7 +216,7 @@ def generate_transferring_body_filter_query(transferring_body_id):
 
 def generate_series_filter_query(series_id):
     query = (
-        db.select(
+        db.session.query(
             Body.BodyId.label("body_id"),
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
