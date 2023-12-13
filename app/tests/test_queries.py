@@ -41,6 +41,7 @@ class TestFuzzySearch:
         query = "test body1"
         assert fuzzy_search(query) == [
             {
+                "file_id": files[0].FileId,
                 "transferring_body_id": files[
                     0
                 ].file_consignments.consignment_bodies.BodyId,

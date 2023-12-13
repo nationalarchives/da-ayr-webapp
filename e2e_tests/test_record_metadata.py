@@ -34,10 +34,12 @@ def test_back_link(authenticated_page: Page):
     """
     authenticated_page.goto("/poc-search")
     authenticated_page.locator("#searchInput").click()
-    authenticated_page.locator("#searchInput").fill("public record")
+    authenticated_page.locator("#searchInput").fill("pptx")
     authenticated_page.get_by_role("button", name="Search").click()
     expect(authenticated_page.get_by_text("record(s) found")).to_be_visible()
-    authenticated_page.get_by_role("link", name="file-b2.txt").click()
+    authenticated_page.get_by_role(
+        "link", name="Presentation.pptx"
+    ).first.click()
     authenticated_page.get_by_role("link", name="Back", exact=True).click()
     authenticated_page.wait_for_url("/poc-search")
     authenticated_page.close()
@@ -48,21 +50,20 @@ def test_searched_record_metadata(authenticated_page: Page):
     Given the user has clicked on a result displayed on the search page with results displayed.
     When the user is on the record page
     Then the table should display the relevant metadata for the record such as
-        "Source organisation" and "Consignment ID,"
+        "File name"
     """
     authenticated_page.goto("/poc-search")
     authenticated_page.locator("#searchInput").click()
-    authenticated_page.locator("#searchInput").fill("public record")
+    authenticated_page.locator("#searchInput").fill("pptx")
     authenticated_page.get_by_role("button", name="Search").click()
     expect(authenticated_page.get_by_text("record(s) found")).to_be_visible()
-    authenticated_page.get_by_role("link", name="file-b2.txt").click()
+    authenticated_page.get_by_role(
+        "link", name="Presentation.pptx"
+    ).first.click()
 
     # Verify if the expected metadata is visible on the record page
     assert authenticated_page.locator(
-        "dt:has-text('Source organisation') + dd"
-    ).is_visible()
-    assert authenticated_page.locator(
-        "dt:has-text('Consignment ID') + dd"
+        "dt:has-text('File name') + dd"
     ).is_visible()
 
     # Close the page
