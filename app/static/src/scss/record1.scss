@@ -6,10 +6,9 @@
     }
 }
 
-.govuk-grid-column-one-third {
-    &--record {
-        padding-top: 11rem;
-        margin-top: 0.8rem;
+.govuk-grid-column-full {
+    &__page-nav {
+        margin-bottom: 3rem;
     }
 }
 
@@ -54,11 +53,37 @@
 }
 
 .govuk-breadcrumbs {
+
+    margin-top: 0;
+
+
     &__link--record {
         color:#1d70b8;
         font-size: 1.1rem;
         font-weight: 400;
         margin-top:0;
+    }
+
+    &__list-item {
+        &:last-child {
+            text-decoration: none;
+            font-weight:bold;
+            color: black;
+            font-size: 1.625;
+            padding-left: 0;
+            margin-left: 0;
+
+            &::before {
+                content: none;
+                }
+
+        a {
+            text-decoration: none;
+            font-weight:bold;
+            color: black;
+            font-size: 30px;
+        }
+        }
     }
 
     &--record {
@@ -89,9 +114,13 @@
 
     }
 
-    &__record-view {
+    &__record-view  {
         margin-top: 2rem;
         margin-bottom: 0;
+
+    p {
+        margin-bottom: 0;
+    }
     }
 }
 
@@ -128,8 +157,7 @@
 
 .rights-container {
     background-color: #f0f0f0;
-    width: 280px;
-    padding: 10px;
+    padding-top: 10px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -137,10 +165,10 @@
 
 .record-container {
     background-color: #f0f0f0;
-    width: 300px;
     height: 200px;
     margin-top: 20px;
-    padding-bottom: 6rem;
+    padding-top: 10px;
+    padding-bottom: 6.5rem;
 
 }
 
@@ -150,6 +178,7 @@
         align-self: center;
         justify-content: center !important;
         font-size: 15px;
+        font-weight:200;
     }
 
     &__record-arrangement-list {
@@ -157,7 +186,15 @@
         font-size: 15px;
         font-family: arial,sans-serif;
         color: black;
+
+
+        &:last-child {
+
+            font-weight: bold;
+        }
     }
+
+
 }
 
 .govuk-link:visited {
@@ -167,4 +204,11 @@
 .search-terms {
     text-align: left;
 
+}
+
+
+.govuk-body-m {
+    &__record-view {
+        margin-bottom: 0;
+    }
 }
