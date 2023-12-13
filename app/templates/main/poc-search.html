@@ -20,7 +20,7 @@
           <div class="govuk-grid-column-two-thirds">
             <h2 class="govuk-heading-l">Search design PoC</h2>
             <h3 class="govuk-heading-s govuk-!-font-weight-bold">Search for digital records</h3>
-            <form method="POST">
+            <form action="{{ url_for('main.poc_search') }}" method="POST">
               {{ form.csrf_token }}
               <div class="govuk-form-group">
                 <label for="searchInput"></label>
@@ -45,16 +45,32 @@
               </tr>
               </thead>
               <tbody class="govuk-table__body">
-              {% for record in results %}
+              {% for row in pagination %}
               <tr class="govuk-table__row">
-                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record["transferring_body"] }}</td>
-                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record["series"] }}</td>
-                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record["consignment_reference"] }}</td>
-                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record["file_name"] }}</td>
+                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ row[0] }}</td>
+                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ row[1] }}</td>
+                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ row[2] }}</td>
+                <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ row[3] }}</td>
               </tr>
               {% endfor %}
               </tbody>
             </table>
+            <div class=page-items>
+              {{ pagination.first }} - {{ pagination.last }} of {{ pagination.total }}
+            </div>
+            <div class=pagination>
+              {% for page in pagination.iter_pages() %}
+                {% if page %}
+                  {% if page != pagination.page %}
+                    <a href="{{ url_for('main.poc_search', page=page, query=query) }}">{{ page }}</a>
+                  {% else %}
+                    <strong>{{ page }}</strong>
+                  {% endif %}
+                {% else %}
+                  <span class=ellipsis>…</span>
+                {% endif %}
+                {% endfor %}
+              </div>
             {% endif %}
             {% endif %}
           </div>

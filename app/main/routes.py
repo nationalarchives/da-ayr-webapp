@@ -95,19 +95,27 @@ def accessibility():
 def poc_search():
     form = SearchForm()
     search_results = []
-    query = request.form.get("query", "").lower()
+    query = (
+        request.form.get("query", "").lower()
+        or request.args.get("query", "").lower()
+    )
+    page = int(request.args.get("page", 1))
+
+    per_page = 5
+
+    pagination = None
+    num_records_found = 0
 
     if query:
-        search_results = fuzzy_search(query)
-        session["search_results"] = search_results
-
-    num_records_found = len(search_results)
+        pagination = fuzzy_search(query, page, per_page)
+        num_records_found = len(pagination.items)
 
     return render_template(
         "poc-search.html",
         form=form,
         query=query,
         results=search_results,
+        pagination=pagination,
         num_records_found=num_records_found,
     )
 

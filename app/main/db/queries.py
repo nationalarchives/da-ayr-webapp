@@ -1,4 +1,6 @@
+from flask_sqlalchemy.pagination import QueryPagination
 from sqlalchemy import Text, and_, exc, func, or_
+from sqlalchemy.orm import Query
 
 from app.main.authorize.keycloak_manager import (
     decode_token,
@@ -7,18 +9,22 @@ from app.main.authorize.keycloak_manager import (
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 
 
-def fuzzy_search(query_string):
-    results = []
+def fuzzy_search(query: str, page: int, per_page: int) -> QueryPagination:
+    fuzzy_search_query = _build_fuzzy_search_query(query)
+    return fuzzy_search_query.paginate(page=page, per_page=per_page)
+
+
+def _build_fuzzy_search_query(query_string: str) -> Query:
     filter_value = str(f"%{query_string}%").lower()
 
     query = (
-        db.select(
-            Body.BodyId.label("body_id"),
+        db.session.query(
             Body.Name.label("transferring_body"),
-            Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
             Consignment.ConsignmentReference.label("consignment_reference"),
             File.FileName.label("file_name"),
+            Body.BodyId.label("body_id"),
+            Series.SeriesId.label("series_id"),
         )
         .join(Series, Series.BodyId == Body.BodyId)
         .join(
@@ -62,24 +68,8 @@ def fuzzy_search(query_string):
         .distinct()
         .order_by(Body.Name, Series.Name)
     )
-    query_results = None
-    try:
-        query_results = db.session.execute(query)
-    except exc.SQLAlchemyError as e:
-        print("Failed to return results from database with error : " + str(e))
 
-    if query_results is not None:
-        for r in query_results:
-            record = {
-                "transferring_body_id": r.body_id,
-                "transferring_body": r.transferring_body,
-                "series_id": r.series_id,
-                "series": r.series,
-                "consignment_reference": r.consignment_reference,
-                "file_name": r.file_name,
-            }
-            results.append(record)
-    return results
+    return query
 
 
 def browse_data(transferring_body_id=None, series_id=None):
