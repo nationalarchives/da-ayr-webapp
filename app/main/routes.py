@@ -93,15 +93,40 @@ def accessibility():
 @bp.route("/browse", methods=["POST", "GET"])
 @access_token_sign_in_required
 def browse():
+    transferring_body_id = request.args.get("transferring_body", None)
+    series_id = request.args.get("series", None)
+    consignment_id = request.args.get("consignment_id", None)
+    query = request.form.get("query", None)
+
     form = SearchForm()
     search_results = []
-    query = request.form.get("query", "").lower()
+    search_type = "browse"
 
+    # Create a list to accumulate filter conditions
+    filters = []
+
+    if transferring_body_id:
+        filters.append({"transferring_body_id": transferring_body_id})
+        search_type = "transferring_body"
+    if series_id:
+        filters.append({"series_id": series_id})
+        search_type = "series"
+    if consignment_id:
+        filters.append({"consignment_id": consignment_id})
+        search_type = "consignment"
     if query:
+        filters.append({"query": query})
+        search_type = "browse"
+
+    # Apply filters to browse_data or call fuzzy_search based on search_type
+    if search_type == "browse" and query:
         search_results = fuzzy_search(query)
+    elif filters:
+        search_results = browse_data(
+            **{k: v for d in filters for k, v in d.items()}
+        )
     else:
         search_results = browse_data()
-    session["search_results"] = search_results
 
     num_records_found = len(search_results)
 
@@ -109,6 +134,7 @@ def browse():
         "browse.html",
         form=form,
         query=query,
+        search_type=search_type,
         results=search_results,
         num_records_found=num_records_found,
     )

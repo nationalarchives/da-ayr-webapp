@@ -97,7 +97,12 @@
     width: 30%;
   }
 
+  &__list > div:first-child,
+  &__list > div:last-child {
+    border-bottom: 2px solid black;
+  }
 }
+
 
 .search {
   &__container {
