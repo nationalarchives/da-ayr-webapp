@@ -7,7 +7,7 @@ def test_poc_search_end_to_end(authenticated_page: Page):
     When they interact with the search form and submit a query
     Then the table should contain the expected headers and entries.
     """
-    authenticated_page.goto("/poc-search-view")
+    authenticated_page.goto("/poc-search")
 
     expect(authenticated_page.get_by_text("Search design PoC")).to_be_visible()
     expect(
@@ -32,11 +32,10 @@ def test_poc_search_end_to_end(authenticated_page: Page):
     )
     # List of expected header values
     expected_headers = [
-        "Title",
-        "Description",
-        "Last modified",
-        "Status",
-        "Closure period (years)",
+        "Transferring Body",
+        "Series",
+        "Consignment Reference",
+        "File Name",
     ]
     for expected_header in expected_headers:
         assert expected_header in header_texts
@@ -45,23 +44,15 @@ def test_poc_search_end_to_end(authenticated_page: Page):
     cell_texts = table.evaluate(
         '(table) => Array.from(table.querySelectorAll("td")).map(td => td.textContent)'
     )
-    # List of expected entry values
+
     expected_entries = [
-        "",
-        "",
-        "",
-        "",
-        "",
+        "Testing A",
+        "TSTA 1",
+        "TDR-2023-H2QS",
         "file-a1.txt",
-        "Test description",
-        "2023-02-27T12:28:08",
-        "Public Record(s)",
-        "50",
+        "Testing A",
+        "TSTA 1",
+        "TDR-2023-H2QS",
         "file-a2.txt",
-        "Test description 2",
-        "2023-02-27T12:28:13",
-        "Public Record(s)",
-        "100",
     ]
-    for expected_entry in expected_entries:
-        assert expected_entry in cell_texts
+    assert expected_entries == cell_texts
