@@ -1,4 +1,3 @@
-from flask_sqlalchemy.pagination import QueryPagination
 from sqlalchemy import Text, and_, exc, func, or_
 
 from app.main.authorize.keycloak_manager import (
@@ -8,7 +7,7 @@ from app.main.authorize.keycloak_manager import (
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 
 
-def fuzzy_search(query: str, page: int, per_page: int) -> QueryPagination:
+def fuzzy_search(query: str, page: int, per_page: int):
     if len(query) > 0:
         fuzzy_search_query = _build_fuzzy_search_query(query)
         return fuzzy_search_query.paginate(page=page, per_page=per_page)
