@@ -89,7 +89,7 @@
         <div class="govuk-form-group date-form filters-form__group filters-form__date-from-group">
           <p class="govuk-body date-form browse__body filters-form__body-date">Date from</p>
           <fieldset class="govuk-fieldset" role="group" aria-describedby="date-from">
-            <div class="govuk-date-input" id="date-to">
+            <div class="govuk-date-input" id="date-from">
               <div class="govuk-date-input__item">
                 <div class="govuk-form-group">
                   <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-from-day"
@@ -318,7 +318,9 @@
             <p class="govuk-body browse__body browse__table__right-align">{{ record["records_held"] }}</p>
           </dd>
           <dd class="govuk-summary-list__value">
-            <p class="govuk-body browse__body browse__table__right-align">{{ record["consignment_in_series"] }}</p>
+            <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">
+            <p class="govuk-body browse__body browse__table__right-align">{{ record["consignment_reference"] }}</p>
+          </a>
           </dd>
         </div>
         {% endfor %}
