@@ -21,7 +21,10 @@ node_modules
 instance/*
 !instance/.gitignore
 .webassets-cache
+
+# .env files
 .env
+.env.e2e_tests
 
 ### Flask.Python Stack ###
 # Byte-compiled / optimized / DLL files
