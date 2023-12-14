@@ -31,9 +31,7 @@ def get_user_transferring_body_keycloak_groups(groups):
             continue
         split_str = os.path.split(group)
 
-        if len(split_str) == 1:
-            continue
-
         transferring_body = split_str[1].strip()
-        users_transferring_bodies.append(transferring_body)
+        if len(transferring_body) > 0:
+            users_transferring_bodies.append(transferring_body)
     return users_transferring_bodies
