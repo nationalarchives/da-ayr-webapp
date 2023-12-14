@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import keycloak
 from flask import (
     current_app,
@@ -188,8 +190,8 @@ def record():
     record_details = None
 
     for result in results:
-        if result["_source"]["id"] == record_id:
-            record_details = result["_source"]
+        if result["file_id"] == UUID(record_id):
+            record_details = result
             break
 
     if not record_details:
