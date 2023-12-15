@@ -103,26 +103,17 @@ def browse():
     browse_results = []
     browse_type = "browse"
 
-    # Create a list to accumulate filter conditions
-    filters = []
-
     if transferring_body_id:
-        filters.append({"transferring_body_id": transferring_body_id})
         browse_type = "transferring_body"
-    if series_id:
-        filters.append({"series_id": series_id})
+        browse_results = browse_data(transferring_body_id=transferring_body_id)
+    elif series_id:
         browse_type = "series"
-    if consignment_id:
-        filters.append({"consignment_id": consignment_id})
+        browse_results = browse_data(series_id=series_id)
+    elif consignment_id:
         browse_type = "consignment"
-
-    # Check browse type
-    if browse_type == "browse":
-        browse_results = browse_data()
+        browse_results = browse_data(consignment_id=consignment_id)
     else:
-        browse_results = browse_data(
-            **{k: v for d in filters for k, v in d.items()}
-        )
+        browse_results = browse_data()
 
     num_records_found = len(browse_results)
 
