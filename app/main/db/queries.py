@@ -84,7 +84,7 @@ def fuzzy_search(query_string):
     return results
 
 
-def browse_data(transferring_body_id=None, series_id=None):
+def browse_data(transferring_body_id=None, series_id=None, consignment_id=None):
     results = []
     try:
         if transferring_body_id is not None:

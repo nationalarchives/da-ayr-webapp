@@ -1,0 +1,260 @@
+.govuk {
+  &-form-group {
+    &__search-form {
+      margin-bottom: 0;
+    }
+  }
+
+  &-button {
+    &__search-button {
+      margin-bottom: 0.5rem;
+    }
+
+    &__sort-container-update-button {
+      margin-bottom: 0;
+    }
+
+    &__filters-form-apply-button {
+      align-self: flex-start;
+      margin-left: 1rem;
+      font-size: 1rem;
+    }
+
+    &__filters-form-clear-button {
+      align-self: flex-start;
+      margin-right: 1rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0;
+      font-size: 1rem;
+      border: none;
+      background:none;
+    }
+  }
+
+  &-select {
+    &__sort-container-select {
+      margin-right: 0.25rem;
+    }
+
+    &__filters-form-transferring-body-select {
+      width: 100%;
+      min-width: auto;
+      font-size: 1rem;
+    }
+
+  }
+
+}
+
+.browse {
+  &__page {
+    margin-right: 0;
+    margin-left: 0;
+    margin-top: -2rem;
+  }
+
+  &__body {
+    margin-bottom: 0;
+    font-size: 1rem;
+  }
+
+  &__records-found__text {
+    margin-bottom: 1rem;
+  }
+
+  &__available__text {
+    height: 1rem;
+    background-color: #fff;
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+
+  &__pagination__centered {
+    justify-content: center;
+  }
+
+  &__table {
+    &__right-align {
+      text-align: right;
+    }
+
+    &__large-width {
+      width: 30%;
+    }
+  }
+
+  &__sort-container {
+    margin-top: 3rem;
+  }
+
+}
+
+
+.browse-grid {
+  &--two-thirds {
+    padding: 0;
+  }
+
+  &__list {
+    font-size: 1rem;
+  }
+
+  &__key {
+    width: auto;
+  }
+
+  &__key__transferring-body {
+    width: 30%;
+  }
+
+  &__list > div:first-child,
+  &__list > div:last-child {
+    border-bottom: 2px solid black;
+  }
+}
+
+
+.search {
+  &__container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f3f2f1;
+    margin-bottom: 3rem;
+
+    &__content {
+      margin: 0 auto;
+    }
+  }
+
+  &__heading {
+    font-weight: 700;
+    margin-top: 1rem;
+    margin-bottom: 0;
+  }
+
+}
+
+.sort-container {
+  &__form {
+    margin-bottom: 0.5rem;
+  }
+
+}
+
+
+.browse-filter {
+  &-container {
+    background-color: #f3f2f1;
+    padding: 0.5rem;
+    min-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  &__header {
+    display: flex;
+  }
+
+  &__icon {
+    justify-content: space-between;
+    width: 2rem;
+    margin-left: auto;
+  }
+}
+
+.filters-form {
+  float: right;
+  font-size: 1rem;
+
+  &__group {
+    margin: 0.5rem 0;
+  }
+
+  &__title {
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+
+  &__transferring-body-group {
+    display: flex;
+    align-items: baseline;
+  }
+
+  &__series-group {
+    display: flex;
+  }
+
+  &__consignment-ref-group {
+    display: flex;
+  }
+
+  &__date__label {
+    font-size: 1rem;
+  }
+
+  &__date-from-group {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__date-to-group {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__series__container {
+    background-color: #f3f2f1;
+    padding: 0.5rem;
+    min-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  &__consignment-ref__container {
+    background-color: #f3f2f1;
+    padding: 0.5rem;
+    min-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  &__date__container {
+    background-color: #f3f2f1;
+    padding: 0.5rem;
+    min-width: 100%;
+  }
+
+  &__series--input {
+    flex-grow: 1;
+    width: 100%;
+  }
+
+  &__consignment-ref--input {
+    flex-grow: 1;
+    width: 100%;
+  }
+
+  &__buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: auto;
+    margin-top: 1rem;
+  }
+
+  &__clear--button {
+    margin-right: 1rem;
+    font-size: 1rem;
+  }
+
+  &__date--button {
+    align-self: flex-end;
+    margin-right: 0.5rem;
+  }
+
+  &__body-date {
+    max-width: 2.4rem;
+    font-size: 1rem;
+  }
+}
+
+/*# sourceMappingURL=browse.css.map */
