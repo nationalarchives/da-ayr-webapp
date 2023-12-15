@@ -148,9 +148,23 @@ def record():
     return render_template("record.html", consignment_files=record_details)
 
 
+record_1 = {
+    "file_name": "file-b2.txt",
+    "status": "open",
+    "transferring_body": "Electoral Commission",
+    "consignment_id": "TDR-2023-H2QS",
+    "description": "Test description",
+    "date_last_modified": "2023-02-27",
+    "held_by": "The National Archives, Kew",
+    "legal_status": "Public Record(s)",
+    "rights_copyright": "Crown Copyright",
+    "language": "English",
+}
+
+
 @bp.route("/record1", methods=["GET"])
 def record_one():
-    return render_template("record1.html")
+    return render_template("record1.html", record=record_1)
 
 
 @bp.route("/signed-out", methods=["GET"])
