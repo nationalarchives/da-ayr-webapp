@@ -144,6 +144,12 @@
     &__value {
         font-size: 1rem;
     }
+
+    &__row {
+        &:last-child {
+            border-bottom: 2px solid #000;
+        }
+    }
 }
 
 
