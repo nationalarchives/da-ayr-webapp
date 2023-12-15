@@ -8,6 +8,7 @@ from flask_wtf.csrf import CSRFProtect
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
+from app.logger_config import setup_logging
 from app.main.db.models import db
 
 assets = Environment()
@@ -61,6 +62,7 @@ def create_app(config_class, database_uri=None):
         app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 
     # Initialise app extensions
+    setup_logging(app)
     db.init_app(app)
     assets.init_app(app)
     compress.init_app(app)
