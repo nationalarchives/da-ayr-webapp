@@ -32,9 +32,9 @@ def test_poc_search_end_to_end(authenticated_page: Page):
     )
     # List of expected header values
     expected_headers = [
-        "Transferring Body",
+        "Transferring body",
         "Series",
-        "Consignment Reference",
+        "Consignment reference",
         "File Name",
     ]
     for expected_header in expected_headers:
