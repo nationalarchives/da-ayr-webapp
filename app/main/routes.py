@@ -125,46 +125,20 @@ def record():
     Returns:
         A rendered HTML page with record details.
     """
-    # Retrieve the search results from the session
-    results = session.get("search_results", [])
+    record_1 = {
+        "file_name": "file-b2.txt",
+        "status": "open",
+        "transferring_body": "Electoral Commission",
+        "consignment_id": "TDR-2023-H2QS",
+        "description": "Test description",
+        "date_last_modified": "2023-02-27",
+        "held_by": "The National Archives, Kew",
+        "legal_status": "Public Record(s)",
+        "rights_copyright": "Crown Copyright",
+        "language": "English",
+    }
 
-    # Get the record_id from the query parameters
-    record_id = request.args.get("record_id")
-
-    if not record_id:
-        return render_template("404.html")
-
-    # Find the specific record in the search results
-    record_details = None
-
-    for result in results:
-        if result["_source"]["id"] == record_id:
-            record_details = result["_source"]
-            break
-
-    if not record_details:
-        return render_template("404.html")
-
-    return render_template("record.html", consignment_files=record_details)
-
-
-record_1 = {
-    "file_name": "file-b2.txt",
-    "status": "open",
-    "transferring_body": "Electoral Commission",
-    "consignment_id": "TDR-2023-H2QS",
-    "description": "Test description",
-    "date_last_modified": "2023-02-27",
-    "held_by": "The National Archives, Kew",
-    "legal_status": "Public Record(s)",
-    "rights_copyright": "Crown Copyright",
-    "language": "English",
-}
-
-
-@bp.route("/record1", methods=["GET"])
-def record_one():
-    return render_template("record1.html", record=record_1)
+    return render_template("record.html", record=record_1)
 
 
 @bp.route("/signed-out", methods=["GET"])
