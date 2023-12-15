@@ -44,7 +44,7 @@ def test_browse_series(client: FlaskClient):
     file = files[0]
     series_id = file.file_consignments.SeriesId
 
-    response = client.get(f"/browse?series={series_id}")
+    response = client.get(f"/browse?series_id={series_id}")
 
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
@@ -80,7 +80,9 @@ def test_browse_transferring_body(client: FlaskClient):
     file = files[0]
     transferring_body_id = file.file_consignments.consignment_bodies.BodyId
 
-    response = client.get(f"/browse?transferring_body={transferring_body_id}")
+    response = client.get(
+        f"/browse?transferring_body_id={transferring_body_id}"
+    )
 
     assert response.status_code == 200
     assert b"Search for digital records" in response.data

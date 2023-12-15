@@ -13,7 +13,7 @@
   <div class="search__container govuk-grid-column-full">
     <div class="search__container__content">
       <p class="govuk-body search__heading">Search for digital records</p>
-      <form method="POST">
+      <form method="POST" action="{{ url_for('main.poc_search') }}">
         {{ form.csrf_token }}
         <div class="govuk-form-group govuk-form-group__search-form">
           <label for="searchInput"></label>
@@ -173,7 +173,7 @@
 
     <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
       <!-- Table Heading -->
-      {% if search_type == "browse" %}
+      {% if browse_type == "browse" %}
       {% if results %}
       {% if num_records_found > 0 %}
       <dl class="govuk-summary-list browse-grid__list">
@@ -199,13 +199,13 @@
         {% for record in results %}
         <div class="govuk-summary-list__row">
           <dd class="govuk-summary-list__value browse__table__large-width">
-            <a href="{{url_for('main.browse', transferring_body=record['transferring_body_id']) }}">
+            <a href="{{url_for('main.browse', transferring_body_id=record['transferring_body_id']) }}">
               {{ record["transferring_body"] }}
             </a>
             </dt>
           <dd class="govuk-summary-list__value">
             <p class="govuk-body browse__body">
-              <a href="{{ url_for('main.browse', series=record['series_id']) }}">
+              <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">
                 {{ record["series"] }}
               </a></p>
           </dd>
@@ -225,7 +225,7 @@
       {% endif %}
       {% endif %}
 
-      {% if search_type == "transferring_body" %}
+      {% if browse_type == "transferring_body" %}
       {% if results %}
       {% if num_records_found > 0 %}
       <dl class="govuk-summary-list browse-grid__list">
@@ -257,7 +257,7 @@
             </dt>
           <dd class="govuk-summary-list__value">
             <p class="govuk-body browse__body">
-              <a href="{{ url_for('main.browse', series=record['series_id']) }}">
+              <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">
                 {{ record["series"] }}
               </a></p>
           </dd>
@@ -278,7 +278,7 @@
       {% endif %}
 
 
-      {% if search_type == "series" %}
+      {% if browse_type == "series" %}
       {% if results %}
       {% if num_records_found > 0 %}
       <dl class="govuk-summary-list browse-grid__list">
@@ -331,7 +331,7 @@
       {% endif %}
       {% endif %}
 
-      {% if search_type == "consignment" %}
+      {% if browse_type == "consignment" %}
       {% if results %}
       {% if num_records_found > 0 %}
       <dl class="govuk-summary-list browse-grid__list">
@@ -357,13 +357,13 @@
         {% for record in results %}
         <div class="govuk-summary-list__row">
           <dd class="govuk-summary-list__value browse__table__large-width">
-            <a href="{{url_for('main.browse', transferring_body=record['transferring_body_id']) }}">
+            <a href="{{url_for('main.browse', transferring_body_id=record['transferring_body_id']) }}">
               {{ record["transferring_body"] }}
             </a>
             </dt>
           <dd class="govuk-summary-list__value">
             <p class="govuk-body browse__body">
-              <a href="{{ url_for('main.browse', series=record['series_id']) }}">
+              <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">
                 {{ record["series"] }}
               </a></p>
           </dd>
