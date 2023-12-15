@@ -19,7 +19,7 @@ from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
-from app.main.db.queries import fuzzy_search
+from app.main.db.queries import browse_data, fuzzy_search
 from app.main.forms import CookiesForm
 
 from .forms import SearchForm
@@ -84,12 +84,46 @@ def callback():
     session["token_scope"] = access_token_response["scope"]
     session["session_state"] = access_token_response["session_state"]
 
-    return redirect(url_for("main.poc_search"))
+    return redirect(url_for("main.browse"))
 
 
 @bp.route("/accessibility", methods=["GET"])
 def accessibility():
     return render_template("accessibility.html")
+
+
+@bp.route("/browse", methods=["POST", "GET"])
+@access_token_sign_in_required
+def browse():
+    transferring_body_id = request.args.get("transferring_body_id", None)
+    series_id = request.args.get("series_id", None)
+    consignment_id = request.args.get("consignment_id", None)
+
+    form = SearchForm()
+    browse_results = []
+    browse_type = "browse"
+
+    if transferring_body_id:
+        browse_type = "transferring_body"
+        browse_results = browse_data(transferring_body_id=transferring_body_id)
+    elif series_id:
+        browse_type = "series"
+        browse_results = browse_data(series_id=series_id)
+    elif consignment_id:
+        browse_type = "consignment"
+        browse_results = browse_data(consignment_id=consignment_id)
+    else:
+        browse_results = browse_data()
+
+    num_records_found = len(browse_results)
+
+    return render_template(
+        "browse.html",
+        form=form,
+        browse_type=browse_type,
+        results=browse_results,
+        num_records_found=num_records_found,
+    )
 
 
 @bp.route("/poc-search", methods=["POST", "GET"])

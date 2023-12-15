@@ -327,7 +327,16 @@ We have a separate End To End suite of [Playwright](https://playwright.dev/pytho
 
 In addition to installing the package, before you run the tests for the first time on your machine, you will need to run `playwright install` to install the required browsers for the end to end tests.
 
-You can then run all of our Playwright tests against localhost with:
+Before running our Playwright tests,
+
+- `AYR_TEST_USERNAME`
+- `AYR_TEST_PASSWORD`
+
+with appropriate test user credentials for the instance you want to test
+
+Note: a `.env.e2e_tests.template` file has been provided, which you can then `cp .env.e2e_tests.template .env.e2e_tests`, then fill, and then source `source .env.e2e_tests`
+
+You can then run all of our Playwright tests against an instance, localhost for example, by running:
 
 ```shell
 pytest e2e_tests/ --base-url=https://localhost:5000
@@ -338,6 +347,48 @@ You can swap out the base-url for another if you want to run the tests against a
 To enable this flexibility we suggest any Playwright tests added to the repo use relative paths when referring to urls of the application itself.
 
 In addition, we recommend that any tests that have dependencies on data, do not make assumptions about any particular database or instance involved, and instead do the test data set up and teardown as part of the test suite.
+
+### Useful playwright pytest run modes
+
+#### slowmo
+
+- Since our webapp has rate limiting, you may need to run playwright with --slowmo flag, e.g.
+`pytest e2e_tests/ --base-url=https://localhost:5000 --slowmo 200`
+
+#### headed
+
+- To view the browser when the tests are running, you can add the `--headed` flag, e.g.
+
+`pytest e2e_tests/ --base-url=https://localhost:5000 --headed`
+
+#### PWDEBUG
+
+- To utilise the playwright debugger, you can set the `PWDEBUG=1` environment variable, e.g.
+
+`PWDEBUG=1 poetry run pytest e2e_tests/test_poc_search.py --base-url=http://localhost:5000 --headed`
+
+1. individual tests in file with multiple tests (use -k):
+poetry run pytest e2e_tests/test_record_metadata.py -k test_page_title_and_header --base-url=http://localhost:5000 --headed --slowmo 2000
+
+### Generate playwright tests using GUI
+
+Run `poetry run playwright codegen https://localhost:5000` to spin up a browser instance which you can interact with, where each interaction will be captured as a pytest playwright line, which builds out a test skeleton file for you to add assertions to.
+
+### When to add an E2E Tests?
+
+End to end tests have prod and cons, such as the following:
+
+Pros:
+
+- Testing Real User Flows
+- Complex User Scenarios (such as sign in flows)
+
+Cons:
+
+- Execution Time
+- Harder to debug errors
+
+Therefore we should try to add them sparingly on critical workflows.
 
 ### E2E Tests (Progressive Enhancement Support)
 
