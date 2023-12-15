@@ -132,31 +132,23 @@
 }
 
 .govuk-summary-list {
-    &__key--record-table {
+    table-layout: auto;
+
+    &__key {
         white-space: nowrap;
+        width:0;
+        text-align:right;
         font-size: 1rem;
-        text-align: right;
-        padding-right: 12rem;
-        margin-left: 0;
     }
 
-    &__value--record {
-
-        text-align: left;
+    &__value {
         font-size: 1rem;
-
-    }
-
-    &--record {
-
-        flex: 1;
-    }
-
-    &:last-child {
-
-        border-bottom: 2px solid black;
     }
 }
+
+
+
+
 
 .rights-container {
     background-color: #f0f0f0;
