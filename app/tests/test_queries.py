@@ -414,26 +414,39 @@ class TestBrowseData:
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="Last Modified", Value="foo"
+            file_metadata=file_1,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="Status", Value="Closed"
+            file_metadata=file_1, PropertyName="closure_start_date", Value="1"
         )
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="Closure Period", Value="50"
+            file_metadata=file_1,
+            PropertyName="closure_period",
+            Value="2023-02-25T11:14:34",
         )
 
         file_2 = FileFactory(
             file_consignments=consignment, FileName="file_2", FileType="file"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="Last Modified", Value="bar"
+            file_metadata=file_2,
+            PropertyName="date_last_modified",
+            Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="Status", Value="Open"
+            file_metadata=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="Closure Period", Value=None
+            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_period", Value=None
         )
 
         FileFactory(file_consignments=consignment, FileType="folder")
@@ -447,8 +460,22 @@ class TestBrowseData:
         assert pagination_object.total == 2
 
         expected_results = [
-            (file_1.FileId, "file_1", "foo", "Closed", "50"),
-            (file_2.FileId, "file_2", "bar", "Open", None),
+            (
+                file_1.FileId,
+                "file_1",
+                "2023-02-25T10:12:47",
+                "Closed",
+                "1",
+                "2023-02-25T11:14:34",
+            ),
+            (
+                file_2.FileId,
+                "file_2",
+                "2023-02-27T12:28:08",
+                "Open",
+                None,
+                None,
+            ),
         ]
 
         results = pagination_object.items

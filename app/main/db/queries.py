@@ -256,27 +256,39 @@ def _build_consignment_filter_query(consignment_id: uuid.UUID):
         func.max(
             db.case(
                 (
-                    FileMetadata.PropertyName == "Last Modified",
+                    FileMetadata.PropertyName == "date_last_modified",
                     FileMetadata.Value,
                 ),
                 else_=None,
             )
-        ).label("last_modified"),
-        func.max(
-            db.case(
-                (FileMetadata.PropertyName == "Status", FileMetadata.Value),
-                else_=None,
-            )
-        ).label("status"),
+        ),
         func.max(
             db.case(
                 (
-                    FileMetadata.PropertyName == "Closure Period",
+                    FileMetadata.PropertyName == "closure_type",
                     FileMetadata.Value,
                 ),
                 else_=None,
             )
-        ).label("closure_period"),
+        ),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "closure_start_date",
+                    FileMetadata.Value,
+                ),
+                else_=None,
+            ),
+        ),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "closure_period",
+                    FileMetadata.Value,
+                ),
+                else_=None,
+            ),
+        ),
     )
 
     filters = [
