@@ -28,3 +28,13 @@ def test_record_page(client):
         b"political parties panel - notes of meeting 1 - 12 September 2003.doc</li>"
         in response.data
     )
+
+    assert (
+        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table">'
+        b"Filename</dt>" in response.data
+    )
+
+    assert (
+        b'<dd class="govuk-summary-list__value govuk-summary-list__value--record">'
+        in response.data
+    )
