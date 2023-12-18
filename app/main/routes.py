@@ -1,5 +1,3 @@
-from uuid import UUID
-
 import keycloak
 from flask import (
     current_app,
