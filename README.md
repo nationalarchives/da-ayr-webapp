@@ -447,9 +447,13 @@ ERROR in routes: Some error
 
 Some of the Flask extensions used,as detailed in the Features section below, may produce their own logs and may have their own configuration and format different to the above.
 
+### Testing logs
+
+With pytest we can assert the logs we expect to be written by utilising pytest's inbuilt `caplog` fixture.
+
 ## Features
 
-Please refer to the specific packages documentation for more details.
+Please refer to the specific packages documentation for more details. Details can be found in the [pytest logging documentation](https://docs.pytest.org/en/7.1.x/how-to/logging.html#how-to-manage-logging).
 
 ### Asset management
 
