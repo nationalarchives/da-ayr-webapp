@@ -95,31 +95,32 @@ def accessibility():
 @bp.route("/browse", methods=["POST", "GET"])
 @access_token_sign_in_required
 def browse():
+    form = SearchForm()
+    page = int(request.args.get("page", 1))
+    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
+
     transferring_body_id = request.args.get("transferring_body_id", None)
     series_id = request.args.get("series_id", None)
-    consignment_id = request.args.get("consignment_id", None)
 
-    form = SearchForm()
-    browse_results = []
     browse_type = "browse"
 
     if transferring_body_id:
         browse_type = "transferring_body"
-        browse_results = browse_data(transferring_body_id=transferring_body_id)
+        browse_results = browse_data(
+            page, per_page, transferring_body_id=transferring_body_id
+        )
     elif series_id:
         browse_type = "series"
-        browse_results = browse_data(series_id=series_id)
-    elif consignment_id:
-        browse_type = "consignment"
-        browse_results = browse_data(consignment_id=consignment_id)
+        browse_results = browse_data(page, per_page, series_id=series_id)
     else:
-        browse_results = browse_data()
+        browse_results = browse_data(page, per_page)
 
-    num_records_found = len(browse_results)
+    num_records_found = len(browse_results.items)
 
     return render_template(
         "browse.html",
         form=form,
+        current_page=page,
         browse_type=browse_type,
         results=browse_results,
         num_records_found=num_records_found,
@@ -130,28 +131,25 @@ def browse():
 @access_token_sign_in_required
 def poc_search():
     form = SearchForm()
-    search_results = []
+    search_results = None
+    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
+    num_records_found = 0
     query = (
         request.form.get("query", "").lower()
         or request.args.get("query", "").lower()
     )
     page = int(request.args.get("page", 1))
 
-    per_page = 5
-
-    pagination = None
-    num_records_found = 0
-
     if query:
-        pagination = fuzzy_search(query, page, per_page)
-        num_records_found = len(pagination.items)
+        search_results = fuzzy_search(query, page, per_page)
+        num_records_found = len(search_results.items)
 
     return render_template(
         "poc-search.html",
         form=form,
+        current_page=page,
         query=query,
         results=search_results,
-        pagination=pagination,
         num_records_found=num_records_found,
     )
 

@@ -4,12 +4,14 @@ from flask.testing import FlaskClient
 from app.tests.mock_database import create_multiple_test_records
 
 
-def test_search_get(client: FlaskClient):
+def test_search_get(client: FlaskClient, app):
     """
     Given a user accessing the search page
     When they make a GET request
     Then they should see the search form and page content.
     """
+    app.config["DEFAULT_PAGE_SIZE"] = 5
+
     response = client.get("/poc-search")
 
     assert response.status_code == 200
@@ -18,12 +20,13 @@ def test_search_get(client: FlaskClient):
     assert b"Search" in response.data
 
 
-def test_search_no_query(client: FlaskClient):
+def test_search_no_query(client: FlaskClient, app):
     """
     Given a user accessing the search page
     When they make a POST request without a query
     Then they should not see any records found.
     """
+    app.config["DEFAULT_PAGE_SIZE"] = 5
     form_data = {"foo": "bar"}
     response = client.post("/poc-search", data=form_data)
 
@@ -31,14 +34,14 @@ def test_search_no_query(client: FlaskClient):
     assert b"records found" not in response.data
 
 
-def test_search_with_no_results(client: FlaskClient):
+def test_search_with_no_results(client: FlaskClient, app):
     """
     Given a user with a search query
     When they make a request on the search page, and no results are found
     Then they should see no records found.
     """
     create_multiple_test_records()
-
+    app.config["DEFAULT_PAGE_SIZE"] = 5
     form_data = {"query": "junk"}
     response = client.post("/poc-search", data=form_data)
 
@@ -46,14 +49,14 @@ def test_search_with_no_results(client: FlaskClient):
     assert b"0 record(s) found"
 
 
-def test_search_results_displayed_single_page(client: FlaskClient):
+def test_search_results_displayed_single_page(client: FlaskClient, app):
     """
     Given a user with a search query which should return n results
     When they make a request on the search page
     Then a table is populated with the n results with metadata fields.
     """
     create_multiple_test_records()
-
+    app.config["DEFAULT_PAGE_SIZE"] = 5
     form_data = {"query": "test body"}
     response = client.post("/poc-search", data=form_data)
 
@@ -69,7 +72,7 @@ def test_search_results_displayed_single_page(client: FlaskClient):
     headers = header_row.find_all("th")
 
     expected_results_table = [
-        ["Transferring body", "Series", "Consignment reference", "File Name"],
+        ["Transferring body", "Series", "Consignment reference", "File name"],
         ["test body1", "test series1", "test consignment1", "test_file1.pdf"],
         ["test body2", "test series2", "test consignment2", "test_file2.txt"],
         [
@@ -85,16 +88,18 @@ def test_search_results_displayed_single_page(client: FlaskClient):
         assert [
             result.text for result in row.find_all("td")
         ] == expected_results_table[row_index + 1]
+    # check pagination
+    assert b'aria-label="Page 1"' in response.data
 
 
-def test_search_results_displayed_multiple_pages(client: FlaskClient):
+def test_search_results_displayed_multiple_pages(client: FlaskClient, app):
     """
     Given a user with a search query which should return n results
     When they make a request on the search page
     Then a table is populated with the n results with metadata fields.
     """
     create_multiple_test_records()
-
+    app.config["DEFAULT_PAGE_SIZE"] = 5
     form_data = {"query": "testing body"}
     response = client.post("/poc-search", data=form_data)
 
@@ -110,7 +115,7 @@ def test_search_results_displayed_multiple_pages(client: FlaskClient):
     headers = header_row.find_all("th")
 
     expected_results_table = [
-        ["Transferring Body", "Series", "Consignment Reference", "File Name"],
+        ["Transferring body", "Series", "Consignment reference", "File name"],
         [
             "testing body10",
             "test series10",
@@ -148,3 +153,6 @@ def test_search_results_displayed_multiple_pages(client: FlaskClient):
         assert [
             result.text for result in row.find_all("td")
         ] == expected_results_table[row_index + 1]
+    # check pagination
+    assert b'aria-label="Page 1"' in response.data
+    assert b'aria-label="Page 2"' in response.data

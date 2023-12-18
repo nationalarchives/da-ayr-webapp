@@ -1,27 +1,33 @@
+from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
-from app.tests.mock_database import create_two_test_files
+from app.tests.mock_database import create_multiple_test_records
 
 
-def test_load_browse_page(client: FlaskClient):
+def test_browse_get(client: FlaskClient, app):
     """
-    Given a user accessing the search page
+    Given a user accessing the browse page
     When they make a GET request
-    Then they should see the search form and page content.
+    Then they should see the browse page content.
     """
+    app.config["DEFAULT_PAGE_SIZE"] = 5
+
     response = client.get("/browse")
 
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
 
 
-def test_submit_search_query(client: FlaskClient):
+def test_browse_submit_search_query(client: FlaskClient, app):
     """
-    Given a user accessing the search page
+    Given a user accessing the browse page
     When they make a POST request
-    Then they should see the search form and page content.
+    Then they should see results in content.
     """
-    create_two_test_files()
+    create_multiple_test_records()
+    app.config["DEFAULT_PAGE_SIZE"] = 5
 
     response = client.get("/browse")
     query = "test"
@@ -29,56 +35,227 @@ def test_submit_search_query(client: FlaskClient):
 
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
-    assert b"Records found 2" in response.data
-    assert b"test series1" in response.data
-    assert b"test series2" in response.data
+    assert b"Records found 5" in response.data
 
 
-def test_browse_series(client: FlaskClient):
+def test_browse_get_with_data(client: FlaskClient, app):
     """
-    Given a user accessing the search page
-    When they make a GET request with a series id
-    Then they should see the series page content.
+    Given a user accessing the browse page
+    When they make a GET request with page as a query string parameter
+    Then they should see first five records on browse page content.
     """
-    files = create_two_test_files()
-    file = files[0]
-    series_id = file.file_consignments.SeriesId
+    create_multiple_test_records()
+    app.config["DEFAULT_PAGE_SIZE"] = 5
 
-    response = client.get(f"/browse?series_id={series_id}")
+    response = client.get("/browse")
 
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
-    assert b"Records found 1" in response.data
-    assert b"test body1" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("dl", {"id": "browse_dl"})
+    headers = table.find_all("dt")
+    rows = table.find_all("dd")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        [
+            "'test body1', 'test series1', '2023-01-01 00:00:00', '1', '1', "
+            "'test body2', 'test series2', '2023-01-01 00:00:00', '1', '1', "
+            "'testing body10', 'test series10', '2023-01-01 00:00:00', '1', '1', "
+            "'testing body11', 'test series11', '2023-01-01 00:00:00', '1', '1', "
+            "'testing body3', 'test series3', '2023-01-01 00:00:00', '1', '1'"
+        ],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
 
 
-def test_browse_consignment(client: FlaskClient):
+def test_browse_display_first_page(client: FlaskClient, app):
     """
-    Given a user accessing the search page
-    When they make a GET request with a consignment id
-    Then they should see the consignment page content.
+    Given a user accessing the browse page
+    When they make a GET request with page as a query string parameter
+    Then they should see first page with five records on browse page content
+    (excluding previous and incl. next page option).
     """
-    files = create_two_test_files()
-    file = files[0]
-    consignment_id = file.file_consignments.ConsignmentId
+    create_multiple_test_records()
+    app.config["DEFAULT_PAGE_SIZE"] = 5
 
-    response = client.get(f"/browse?consignment_id={consignment_id}")
+    response = client.get("/browse?page=1")
 
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
-    assert b"Records found 2" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+    assert b'aria-label="Page 1"' in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("dl", {"id": "browse_dl"})
+    headers = table.find_all("dt")
+    rows = table.find_all("dd")
+    previous_option = soup.find("div", {"class": "govuk-pagination__prev"})
+    next_option = soup.find("div", {"class": "govuk-pagination__next"})
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        [
+            "'test body1', 'test series1', '2023-01-01 00:00:00', '1', '1', "
+            "'test body2', 'test series2', '2023-01-01 00:00:00', '1', '1', "
+            "'testing body10', 'test series10', '2023-01-01 00:00:00', '1', '1', "
+            "'testing body11', 'test series11', '2023-01-01 00:00:00', '1', '1', "
+            "'testing body3', 'test series3', '2023-01-01 00:00:00', '1', '1'"
+        ],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+    assert len(previous_option.text.replace("\n", "").strip("")) == 0
+    assert next_option.text.replace("\n", "").strip("") == "Next page"
 
 
-def test_browse_transferring_body(client: FlaskClient):
+def test_browse_display_middle_page(client: FlaskClient, app):
     """
-    Given a user accessing the search page
+    Given a user accessing the browse page
+    When they make a GET request with page as a query string parameter
+    Then they should see first page with five records on browse page content (incl. previous and next page options).
+    """
+    create_multiple_test_records()
+    app.config["DEFAULT_PAGE_SIZE"] = 5
+
+    response = client.get("/browse?page=2")
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+    assert b'aria-label="Page 2"' in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("dl", {"id": "browse_dl"})
+    headers = table.find_all("dt")
+    rows = table.find_all("dd")
+    previous_option = soup.find("a", {"id": "prev"})
+    next_option = soup.find("a", {"id": "next"})
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        [
+            "'testing body4', 'test series4', '2023-01-01 00:00:00', '1', '1', "
+            "'testing body5', 'test series5', '2023-01-01 00:00:00', '1', '1', "
+            "'testing body6', 'test series6', '2023-01-01 00:00:00', '1', '1', "
+            "'testing body7', 'test series7', '2023-01-01 00:00:00', '1', '1', "
+            "'testing body8', 'test series8', '2023-01-01 00:00:00', '1', '1'"
+        ],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+    assert previous_option.text.replace("\n", "").strip("") == "Previous page"
+    assert next_option.text.replace("\n", "").strip("") == "Next page"
+
+
+def test_browse_display_last_page(client: FlaskClient, app):
+    """
+    Given a user accessing the browse page
+    When they make a GET request with page as a query string parameter
+    Then they should see last page with n records on browse page content
+    (incl. previous and excluding next page option).
+    """
+    create_multiple_test_records()
+    app.config["DEFAULT_PAGE_SIZE"] = 5
+
+    response = client.get("/browse?page=3")
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+    assert b'aria-label="Page 3"' in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("dl", {"id": "browse_dl"})
+    headers = table.find_all("dt")
+    rows = table.find_all("dd")
+    previous_option = soup.find("div", {"class": "govuk-pagination__prev"})
+    next_option = soup.find("div", {"class": "govuk-pagination__next"})
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        ["'testing body9', 'test series9', '2023-01-01 00:00:00', '1', '1'"],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+    assert previous_option.text.replace("\n", "").strip("") == "Previous page"
+    assert len(next_option.text.replace("\n", "").strip("")) == 0
+
+
+def test_browse_transferring_body(client: FlaskClient, app):
+    """
+    Given a user accessing the browse page
     When they make a GET request with a transferring body id
-    Then they should see the transferring body page content.
+    Then they should see results based on transferring body filter on browse page content.
     """
-
-    files = create_two_test_files()
+    files = create_multiple_test_records()
     file = files[0]
     transferring_body_id = file.file_consignments.consignment_bodies.BodyId
+
+    app.config["DEFAULT_PAGE_SIZE"] = 5
 
     response = client.get(
         f"/browse?transferring_body_id={transferring_body_id}"
@@ -86,5 +263,115 @@ def test_browse_transferring_body(client: FlaskClient):
 
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
     assert b"Records found 1" in response.data
-    assert b"test body1" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("dl", {"id": "transferring_body_dl"})
+    headers = table.find_all("dt")
+    rows = table.find_all("dd")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        ["'test body1', 'test series1', '2023-01-01 00:00:00', '1', '1'"],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_series(client: FlaskClient, app):
+    """
+    Given a user accessing the browse page
+    When they make a GET request with a series id
+    Then they should see results based on series filter on browse page content.
+    """
+    files = create_multiple_test_records()
+    file = files[0]
+    series_id = file.file_consignments.SeriesId
+
+    app.config["DEFAULT_PAGE_SIZE"] = 5
+
+    response = client.get(f"/browse?series_id={series_id}")
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Records found 1" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("dl", {"id": "series_dl"})
+    headers = table.find_all("dt")
+    rows = table.find_all("dd")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Consignment transferred",
+            "Records in consignment",
+            "Consignment reference",
+        ],
+        [
+            "'test body1', 'test series1', '2023-01-01 00:00:00', '1', 'test consignment1'"
+        ],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_consignment(client: FlaskClient, app):
+    """
+    Given a user accessing the browse page
+    When they make a GET request with a consignment id
+    Then they should see results based on consignment filter on browse page content.
+    """
+    files = create_multiple_test_records()
+    file = files[0]
+    consignment_id = file.file_consignments.ConsignmentId
+
+    app.config["DEFAULT_PAGE_SIZE"] = 5
+
+    response = client.get(f"/browse?consignment_id={consignment_id}")
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+
+    # soup = BeautifulSoup(response.data, "html.parser")
+    # table = soup.find("dl", {"id": "consignment_dl"})
+    # headers = table.find_all("dt")
+    # rows = table.find_all("dd")
+
+    # expected_results_table = [
+    #    ["Last modified", "Filename", "Status", "Closure start date", "Closure period"],
+    # ]
+
+    # assert [header.text.replace('\n', ' ').strip(' ') for header in headers] == expected_results_table[0]
+    # row_data = ''
+    # for row_index, row in enumerate(rows):
+    #    row_data = row_data + "'" + row.text.replace('\n', ' ').strip(' ') + "'"
+    #    if row_index < len(rows) - 1:
+    #        row_data = row_data + ", "
+    # assert [row_data] == expected_results_table[1]
