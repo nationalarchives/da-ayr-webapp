@@ -364,7 +364,9 @@
                     </a>
                 </dd>
                 <dd class="govuk-summary-list__value">
-                  {{ record[3] }}
+                  <strong class="govuk-tag {{ 'govuk-tag--green' if record[3] == 'Open' else 'govuk-tag--red' }}">
+                    {{ record[3] }}
+                  </strong>
                 </dd>
                 <dd class="govuk-summary-list__value">
                   {{ record[4]|format_datetime}}
