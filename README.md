@@ -404,10 +404,56 @@ e.g.:
 def test_css_has_title(page: Page):
 `
 
+## Logging
+
+### Configuration
+
+The application logger configuration is detailed in `setup_logging` in `app/logger_config.py`.
+
+This config includes:
+
+- a formatter specifying request-specific information such as the remote address and URL when a request context is available
+- setting the logging level to `INFO`.
+
+`setup_logging` is called during the initialization of the Flask app.
+
+### Usage
+
+We can utilise the Flask logger by accessing Flask's `app.logger`. Since we define our routes with blueprints rather than the app directly, we can call access app through
+
+```python
+from flask import current_app
+```
+
+for example:
+
+```python
+current_app.logger.info('Some info message')
+current_app.logger.debug('Some debug message')
+current_app.logger.warning('Some warning message')
+current_app.logger.error('Some error message')
+```
+
+### Output
+
+The logs from the webapp, when used as above are output as a stream to stdout in the following format:
+
+```sh
+[2023-12-15 15:40:14,119] 127.0.0.1 requested https://localhost:5000/logger_test?log_level=error
+ERROR in routes: Some error
+```
+
+### Extensions and package logs
+
+Some of the Flask extensions used,as detailed in the Features section below, may produce their own logs and may have their own configuration and format different to the above.
+
+### Testing logs
+
+With pytest we can assert the logs we expect to be written by utilising pytest's inbuilt `caplog` fixture.
 
 ## Features
 
-Please refer to the specific packages documentation for more details.
+Please refer to the specific packages documentation for more details. Details can be found in the [pytest logging documentation](https://docs.pytest.org/en/7.1.x/how-to/logging.html#how-to-manage-logging).
 
 ### Asset management
 
