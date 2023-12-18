@@ -399,16 +399,19 @@ class TestBrowseData:
 
     def test_browse_data_with_consignment_filter(self, app):
         """
-        Given two files with associated metadata part of 1 consignment and another
-            file  and metadata associated with a different consignment
+        Given three file objects with associated metadata part of 1 consignment,
+            where 2 file types is 'file', another file 'folder', and another file of
+            type 'file' and metadata associated with a different consignment
         When I call the 'browse_data' function with the consignment id
-            of the first 2 files
-        Then it return a Pagination object with 2 total results corresponding to the
+            of the first 3 file objects
+        Then it returns a Pagination object with 2 total results corresponding to the
             first 2 files, ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
 
-        file_1 = FileFactory(file_consignments=consignment, FileName="file_1")
+        file_1 = FileFactory(
+            file_consignments=consignment, FileName="file_1", FileType="file"
+        )
 
         FileMetadataFactory(
             file_metadata=file_1, PropertyName="Last Modified", Value="foo"
@@ -420,7 +423,9 @@ class TestBrowseData:
             file_metadata=file_1, PropertyName="Closure Period", Value="50"
         )
 
-        file_2 = FileFactory(file_consignments=consignment, FileName="file_2")
+        file_2 = FileFactory(
+            file_consignments=consignment, FileName="file_2", FileType="file"
+        )
         FileMetadataFactory(
             file_metadata=file_2, PropertyName="Last Modified", Value="bar"
         )
@@ -431,7 +436,9 @@ class TestBrowseData:
             file_metadata=file_2, PropertyName="Closure Period", Value=None
         )
 
-        FileFactory()
+        FileFactory(file_consignments=consignment, FileType="folder")
+
+        FileFactory(FileType="file")
 
         pagination_object = browse_data(
             page=1, per_page=per_page, consignment_id=consignment.ConsignmentId

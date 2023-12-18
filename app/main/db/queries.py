@@ -279,7 +279,10 @@ def _build_consignment_filter_query(consignment_id: uuid.UUID):
         ).label("closure_period"),
     )
 
-    filters = [File.ConsignmentId == consignment_id]
+    filters = [
+        File.ConsignmentId == consignment_id,
+        func.lower(File.FileType) == "file",
+    ]
 
     query = (
         select.join(FileMetadata, File.FileId == FileMetadata.FileId)
