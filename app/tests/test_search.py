@@ -73,7 +73,7 @@ def test_search_results_displayed(client: FlaskClient):
     headers = header_row.find_all("th")
 
     expected_results_table = [
-        ["Transferring Body", "Series", "Consignment Reference", "File Name"],
+        ["Transferring body", "Series", "Consignment reference", "File Name"],
         ["test body1", "test series1", "test consignment1", "test_file1.pdf"],
         ["test body2", "test series2", "test consignment2", "test_file2.txt"],
     ]

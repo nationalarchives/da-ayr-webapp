@@ -19,6 +19,7 @@ def fuzzy_search(query_string):
             Series.Name.label("series"),
             Consignment.ConsignmentReference.label("consignment_reference"),
             File.FileName.label("file_name"),
+            File.FileId.label("file_id"),
         )
         .join(Series, Series.BodyId == Body.BodyId)
         .join(
@@ -77,12 +78,13 @@ def fuzzy_search(query_string):
                 "series": r.series,
                 "consignment_reference": r.consignment_reference,
                 "file_name": r.file_name,
+                "file_id": r.file_id,
             }
             results.append(record)
     return results
 
 
-def browse_data(transferring_body_id=None, series_id=None):
+def browse_data(transferring_body_id=None, series_id=None, consignment_id=None):
     results = []
     try:
         if transferring_body_id is not None:

@@ -190,9 +190,26 @@ To implement this we are currently using [Zappa](https://github.com/zappa/Zappa)
 
 Zappa is configurable, and can be configured differently for different deployment stages. In particular, each deployment stage's configuration is separated  by the top level environment key in the `zappa_settings.json` file.
 
-In this repo we provide a `zappa_settings.json.template` which provides all the configuration variables except for the `profile_name` that we want to use to update each deployment stage with.
+In this repo we provide a `zappa_settings.json.template` which provides all the configuration variables except for a few values which we need to set as environment variables first so that we can use them to create our custom config from the template.
 
-Configure the `profile_name` field for the sandbox deployment stage by setting the `ZAPPA_DEPLOYMENT_PROFILE_NAME` environment variable and then create a `zappa_settings.json` from environment variables by running:
+This config makes a few assumptions about each AWS account being deployed to:
+
+- The SSM Parameter Store has been populated with all needed configuration values as detailed in [the flask configuration section above](#flask-app-configuration-details).
+- An RDS database and proxy exists.
+- A VPC exists which contains a private subnet connected to the internet via a NAT Gateway and a security group exists with outbound rules to the the RDS database proxy.
+- A valid certificate exists in the AWS account for the domain we want to use for the deployment.
+
+You could decide to set up this infrastructure through terraform or cloudformation to make things easier to reproduce.
+
+Set these environment variables:
+
+- `ZAPPA_SANDBOX_DEPLOYMENT_PROFILE_NAME` specifies the profile name we want to use to update the sandbox deployment stage with.
+- `ZAPPA_SANDBOX_LAMBDA_VPC_PRIVATE_SUBNET_ID` specifies the VPC private subnet we want our lambda to use in the sandbox deployment
+- `ZAPPA_SANDBOX_LAMBDA_VPC_SECURITY_GROUP_ID` specifies the VPC security group we want to our lambda to use in the sandbox deployment
+- `ZAPPA_SANDBOX_CERTIFICATE_ARN` specifies the AWS  certificate we want to certify our domain with
+- `ZAPPA_SANDBOX_WEBAPP_DOMAIN` specifies the domain we want to deploy the webapp to
+
+Once all of these environment variables are set, create a `zappa_settings.json` from them by running:
 
   ```shell
   envsubst < zappa_settings.json.template > zappa_settings.json
@@ -230,6 +247,14 @@ Once your settings are configured, you can package and deploy your application t
 zappa deploy <DEPLOYMENT_STAGE>
 ```
 
+We then need to run
+
+```shell
+zappa certify
+```
+
+to certify the domains used in each deployment utilising the certificate specified in each section.
+
 Note: Once the application has been deployed once to a particular stage, then it can't be deployed again. You will need to run `zappa undeploy <DEPLOYMENT_STAGE` first. However, more often than not, you will only need to update the deployment, as detailed below.
 
 #### Only Update Flask Code
@@ -256,6 +281,32 @@ This is especially useful if a deployment fails.
 
 We do not currently update any deployment automatically in our CI/CD pipeline, but we will soon.
 
+## Metadata Store Postgres Database
+
+The webapp is set up to read data from an externally defined postgres database referred to as the Metadata Store.
+
+We currently use the python package, Flask-SQLAlchemy to leverage some benefits of the ORM (Object Relationship Mapping) it provides, making our queries using the python classes we create as opposed to explicit SQL queries.
+
+The database connection is configured with the `SQLALCHEMY_DATABASE_URI` variable built up in the Flask Config.
+
+### Database Infrastructure and Connection
+
+The database is assumed to be a PostgreSQL database.
+
+This could be spun up by PostgreSQL or from Amazon RDS, for example.
+
+When choosing the configuration choice `AWS_PARAMETER_STORE`, we assume the database is an RDS database with an RDS proxy sitting in front, in the same AWS account as the SSM Parameter Store and lambda and resides in a VPC which the lambda is in so that the webapp hosted in the lambda can communicate with it securely, as mentioned in the [Zappa configuration section](#zappa-configuration).
+
+### Database Tables, Schema and Data
+
+We do not define the database tables ourselves, nor write any information to the database, both of which are assumed to be handled externally. To leverage the use of the ORM we reflect the tables from the existing database with the following line in our Flask app setup.
+
+`db.Model.metadata.reflect(bind=db.engine, schema="public")`
+
+More info on relecting database tables can be found [here](https://flask-sqlalchemy.palletsprojects.com/en/3.1.x/models/#reflecting-tables).
+
+Further, to this, we do define models and columns from the corresponding tables we do use in our queries we use so that when developing we will know what attributes are available but this has to be manually kept in sync with the externally determined schema through discussion with the maintainers of the Metadata Store database.
+
 ## Testing
 
 ### Unit and Integration tests
@@ -276,7 +327,16 @@ We have a separate End To End suite of [Playwright](https://playwright.dev/pytho
 
 In addition to installing the package, before you run the tests for the first time on your machine, you will need to run `playwright install` to install the required browsers for the end to end tests.
 
-You can then run all of our Playwright tests against localhost with:
+Before running our Playwright tests,
+
+- `AYR_TEST_USERNAME`
+- `AYR_TEST_PASSWORD`
+
+with appropriate test user credentials for the instance you want to test
+
+Note: a `.env.e2e_tests.template` file has been provided, which you can then `cp .env.e2e_tests.template .env.e2e_tests`, then fill, and then source `source .env.e2e_tests`
+
+You can then run all of our Playwright tests against an instance, localhost for example, by running:
 
 ```shell
 pytest e2e_tests/ --base-url=https://localhost:5000
@@ -287,6 +347,48 @@ You can swap out the base-url for another if you want to run the tests against a
 To enable this flexibility we suggest any Playwright tests added to the repo use relative paths when referring to urls of the application itself.
 
 In addition, we recommend that any tests that have dependencies on data, do not make assumptions about any particular database or instance involved, and instead do the test data set up and teardown as part of the test suite.
+
+### Useful playwright pytest run modes
+
+#### slowmo
+
+- Since our webapp has rate limiting, you may need to run playwright with --slowmo flag, e.g.
+`pytest e2e_tests/ --base-url=https://localhost:5000 --slowmo 200`
+
+#### headed
+
+- To view the browser when the tests are running, you can add the `--headed` flag, e.g.
+
+`pytest e2e_tests/ --base-url=https://localhost:5000 --headed`
+
+#### PWDEBUG
+
+- To utilise the playwright debugger, you can set the `PWDEBUG=1` environment variable, e.g.
+
+`PWDEBUG=1 poetry run pytest e2e_tests/test_poc_search.py --base-url=http://localhost:5000 --headed`
+
+1. individual tests in file with multiple tests (use -k):
+poetry run pytest e2e_tests/test_record_metadata.py -k test_page_title_and_header --base-url=http://localhost:5000 --headed --slowmo 2000
+
+### Generate playwright tests using GUI
+
+Run `poetry run playwright codegen https://localhost:5000` to spin up a browser instance which you can interact with, where each interaction will be captured as a pytest playwright line, which builds out a test skeleton file for you to add assertions to.
+
+### When to add an E2E Tests?
+
+End to end tests have prod and cons, such as the following:
+
+Pros:
+
+- Testing Real User Flows
+- Complex User Scenarios (such as sign in flows)
+
+Cons:
+
+- Execution Time
+- Harder to debug errors
+
+Therefore we should try to add them sparingly on critical workflows.
 
 ### E2E Tests (Progressive Enhancement Support)
 

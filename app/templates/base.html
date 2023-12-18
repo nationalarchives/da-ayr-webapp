@@ -22,6 +22,7 @@
    <link rel="stylesheet" type="text/css" src="{{ url_for('static', filename='footer.css') }}" />
    <link rel="stylesheet" type="text/css" src="{{ url_for('static', filename='header.css') }}" />
    <link rel="stylesheet" type="text/css" src="{{ url_for('static', filename='record.css') }}" />
+   <link rel="stylesheet" type="text/css" src="{{ url_for('static', filename='browse.css') }}" />
    <!-- custom css stylesheet end -->
   {% assets "css" %}<link href="{{ ASSET_URL }}" rel="stylesheet">{% endassets %}
 {% endblock %}
@@ -141,7 +142,7 @@
         Beta
       </strong>
       <span class="govuk-phase-banner__text">
-       Help us to improve this service by completing our <a class="govuk-link" target="blank" href="#">feedback survey (opens in a new tab)<</a>
+       Help us to improve this service by completing our <a class="govuk-link" target="blank" href="#">feedback survey (opens in a new tab)</a>
       </span>
     </p>
   </div>
@@ -174,7 +175,7 @@
     <div class="govuk-footer__meta">
       <div class="govuk-footer__link">
         <img class="govuk-footer__tna-logo"
-        src="{{url_for('static', filename='logos/the-national-archives-logo.svg')}}" alt="The National Archives Logo">
+        src="{{url_for('static', filename='image/the-national-archives-logo.svg')}}" alt="The National Archives Logo">
     </div>
       <div class="govuk-footer__meta-item govuk-footer__meta-item--grow">
         <h2 class="govuk-visually-hidden">Support links</h2>

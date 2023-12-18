@@ -17,11 +17,17 @@ node_modules
 # Keys and Certificate
 *.pem
 
+# Credentials
+*config.json
+
 ### Flask ###
 instance/*
 !instance/.gitignore
 .webassets-cache
+
+# .env files
 .env
+.env.e2e_tests
 
 ### Flask.Python Stack ###
 # Byte-compiled / optimized / DLL files
