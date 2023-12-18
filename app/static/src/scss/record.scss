@@ -139,6 +139,10 @@
         width:0;
         text-align:right;
         font-size: 1rem;
+
+        &__left {
+            text-align:left;
+        }
     }
 
     &__value {

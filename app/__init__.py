@@ -1,3 +1,5 @@
+import datetime
+
 from flask import Flask, g
 from flask_assets import Bundle, Environment
 from flask_compress import Compress
@@ -99,6 +101,17 @@ def create_app(config_class, database_uri=None):
     from app.main import bp as main_bp
 
     app.register_blueprint(main_bp)
+
+    @app.template_filter()
+    def format_datetime(value):
+        if not value:
+            return "-"
+
+        datetime_object = datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+
+        formatted_date = datetime_object.strftime("%d/%m/%Y")
+
+        return formatted_date
 
     @app.context_processor
     def inject_authenticated_view_status():
