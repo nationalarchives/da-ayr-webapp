@@ -12,6 +12,11 @@ from app.main.db.queries import (
     get_file_metadata,
     get_user_accessible_transferring_bodies,
 )
+from app.tests.factories import (
+    ConsignmentFactory,
+    FileFactory,
+    FileMetadataFactory,
+)
 from app.tests.mock_database import create_multiple_test_records
 
 per_page = 5
@@ -391,6 +396,57 @@ class TestBrowseData:
                 "test consignment1",
             )
         ]
+
+    def test_browse_data_with_consignment_filter(self, app):
+        """
+        Given two files with associated metadata part of 1 consignment and another
+            file  and metadata associated with a different consignment
+        When I call the 'browse_data' function with the consignment id
+            of the first 2 files
+        Then it return a Pagination object with 2 total results corresponding to the
+            first 2 files, ordered by their names and with the expected metadata values
+        """
+        consignment = ConsignmentFactory()
+
+        file_1 = FileFactory(file_consignments=consignment, FileName="file_1")
+
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="Last Modified", Value="foo"
+        )
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="Status", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="Closure Period", Value="50"
+        )
+
+        file_2 = FileFactory(file_consignments=consignment, FileName="file_2")
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="Last Modified", Value="bar"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="Status", Value="Open"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="Closure Period", Value=None
+        )
+
+        FileFactory()
+
+        pagination_object = browse_data(
+            page=1, per_page=per_page, consignment_id=consignment.ConsignmentId
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (file_1.FileId, "file_1", "foo", "Closed", "50"),
+            (file_2.FileId, "file_2", "bar", "Open", None),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
 
 
 class TestGetFileMetadata:
