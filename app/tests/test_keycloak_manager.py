@@ -86,7 +86,8 @@ class TestGetUserTransferringBodyGroups:
         """
         Given a list of keycloak groups including 2 transferring bodies
         When calling get_user_transferring_body_keycloak_groups with it
-        Then it should return the 2 corresponding bodies in a list
+        Then it should return the 1 corresponding bodies in a list and
+        should not include a group which has string length 0
         """
 
         with app.app_context():

@@ -4,13 +4,12 @@ from flask.testing import FlaskClient
 from app.tests.mock_database import create_multiple_test_records
 
 
-def test_search_get(client: FlaskClient, app):
+def test_search_get(client: FlaskClient):
     """
     Given a user accessing the search page
     When they make a GET request
     Then they should see the search form and page content.
     """
-    app.config["DEFAULT_PAGE_SIZE"] = 5
 
     response = client.get("/poc-search")
 
@@ -20,13 +19,12 @@ def test_search_get(client: FlaskClient, app):
     assert b"Search" in response.data
 
 
-def test_search_no_query(client: FlaskClient, app):
+def test_search_no_query(client: FlaskClient):
     """
     Given a user accessing the search page
     When they make a POST request without a query
     Then they should not see any records found.
     """
-    app.config["DEFAULT_PAGE_SIZE"] = 5
     form_data = {"foo": "bar"}
     response = client.post("/poc-search", data=form_data)
 
@@ -34,14 +32,14 @@ def test_search_no_query(client: FlaskClient, app):
     assert b"records found" not in response.data
 
 
-def test_search_with_no_results(client: FlaskClient, app):
+def test_search_with_no_results(client: FlaskClient):
     """
     Given a user with a search query
     When they make a request on the search page, and no results are found
     Then they should see no records found.
     """
     create_multiple_test_records()
-    app.config["DEFAULT_PAGE_SIZE"] = 5
+
     form_data = {"query": "junk"}
     response = client.post("/poc-search", data=form_data)
 

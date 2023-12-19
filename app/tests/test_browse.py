@@ -4,13 +4,12 @@ from flask.testing import FlaskClient
 from app.tests.mock_database import create_multiple_test_records
 
 
-def test_browse_get(client: FlaskClient, app):
+def test_browse_get(client: FlaskClient):
     """
     Given a user accessing the browse page
     When they make a GET request
     Then they should see the browse page content.
     """
-    app.config["DEFAULT_PAGE_SIZE"] = 5
 
     response = client.get("/browse")
 
@@ -20,14 +19,13 @@ def test_browse_get(client: FlaskClient, app):
     assert b"Everything available to you" in response.data
 
 
-def test_browse_submit_search_query(client: FlaskClient, app):
+def test_browse_submit_search_query(client: FlaskClient):
     """
     Given a user accessing the browse page
     When they make a POST request
     Then they should see results in content.
     """
     create_multiple_test_records()
-    app.config["DEFAULT_PAGE_SIZE"] = 5
 
     response = client.get("/browse")
     query = "test"
@@ -38,14 +36,13 @@ def test_browse_submit_search_query(client: FlaskClient, app):
     assert b"Records found 5" in response.data
 
 
-def test_browse_get_with_data(client: FlaskClient, app):
+def test_browse_get_with_data(client: FlaskClient):
     """
     Given a user accessing the browse page
     When they make a GET request with page as a query string parameter
     Then they should see first five records on browse page content.
     """
     create_multiple_test_records()
-    app.config["DEFAULT_PAGE_SIZE"] = 5
 
     response = client.get("/browse")
 
@@ -245,7 +242,7 @@ def test_browse_display_last_page(client: FlaskClient, app):
     assert len(next_option.text.replace("\n", "").strip("")) == 0
 
 
-def test_browse_transferring_body(client: FlaskClient, app):
+def test_browse_transferring_body(client: FlaskClient):
     """
     Given a user accessing the browse page
     When they make a GET request with a transferring body id
@@ -254,8 +251,6 @@ def test_browse_transferring_body(client: FlaskClient, app):
     files = create_multiple_test_records()
     file = files[0]
     transferring_body_id = file.file_consignments.consignment_bodies.BodyId
-
-    app.config["DEFAULT_PAGE_SIZE"] = 5
 
     response = client.get(
         f"/browse?transferring_body_id={transferring_body_id}"
@@ -293,7 +288,7 @@ def test_browse_transferring_body(client: FlaskClient, app):
     assert [row_data] == expected_results_table[1]
 
 
-def test_browse_series(client: FlaskClient, app):
+def test_browse_series(client: FlaskClient):
     """
     Given a user accessing the browse page
     When they make a GET request with a series id
@@ -302,8 +297,6 @@ def test_browse_series(client: FlaskClient, app):
     files = create_multiple_test_records()
     file = files[0]
     series_id = file.file_consignments.SeriesId
-
-    app.config["DEFAULT_PAGE_SIZE"] = 5
 
     response = client.get(f"/browse?series_id={series_id}")
 
@@ -341,7 +334,7 @@ def test_browse_series(client: FlaskClient, app):
     assert [row_data] == expected_results_table[1]
 
 
-def test_browse_consignment(client: FlaskClient, app):
+def test_browse_consignment(client: FlaskClient):
     """
     Given a user accessing the browse page
     When they make a GET request with a consignment id
@@ -350,8 +343,6 @@ def test_browse_consignment(client: FlaskClient, app):
     files = create_multiple_test_records()
     file = files[0]
     consignment_id = file.file_consignments.ConsignmentId
-
-    app.config["DEFAULT_PAGE_SIZE"] = 5
 
     response = client.get(f"/browse?consignment_id={consignment_id}")
 
