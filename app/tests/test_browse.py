@@ -52,7 +52,7 @@ def test_browse_get_with_data(client: FlaskClient):
     assert b"Everything available to you" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl", {"id": "browse_dl"})
+    table = soup.find("dl")
     headers = table.find_all("dt")
     rows = table.find_all("dd")
 
@@ -103,7 +103,7 @@ def test_browse_display_first_page(client: FlaskClient, app):
     assert b'aria-label="Page 1"' in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl", {"id": "browse_dl"})
+    table = soup.find("dl")
     headers = table.find_all("dt")
     rows = table.find_all("dd")
     previous_option = soup.find("div", {"class": "govuk-pagination__prev"})
@@ -157,11 +157,10 @@ def test_browse_display_middle_page(client: FlaskClient, app):
     assert b'aria-label="Page 2"' in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl", {"id": "browse_dl"})
+    table = soup.find("dl")
     headers = table.find_all("dt")
     rows = table.find_all("dd")
-    previous_option = soup.find("a", {"id": "prev"})
-    next_option = soup.find("a", {"id": "next"})
+    page_options = soup.find_all("span", class_="govuk-pagination__link-title")
 
     expected_results_table = [
         [
@@ -189,8 +188,8 @@ def test_browse_display_middle_page(client: FlaskClient, app):
         if row_index < len(rows) - 1:
             row_data = row_data + ", "
     assert [row_data] == expected_results_table[1]
-    assert previous_option.text.replace("\n", "").strip("") == "Previous page"
-    assert next_option.text.replace("\n", "").strip("") == "Next page"
+    assert page_options[0].text.replace("\n", "").strip("") == "Previous page"
+    assert page_options[1].text.replace("\n", "").strip("") == "Next page"
 
 
 def test_browse_display_last_page(client: FlaskClient, app):
@@ -212,7 +211,7 @@ def test_browse_display_last_page(client: FlaskClient, app):
     assert b'aria-label="Page 3"' in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl", {"id": "browse_dl"})
+    table = soup.find("dl")
     headers = table.find_all("dt")
     rows = table.find_all("dd")
     previous_option = soup.find("div", {"class": "govuk-pagination__prev"})
@@ -262,7 +261,7 @@ def test_browse_transferring_body(client: FlaskClient):
     assert b"Records found 1" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl", {"id": "transferring_body_dl"})
+    table = soup.find("dl")
     headers = table.find_all("dt")
     rows = table.find_all("dd")
 
@@ -306,7 +305,7 @@ def test_browse_series(client: FlaskClient):
     assert b"Records found 1" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl", {"id": "series_dl"})
+    table = soup.find("dl")
     headers = table.find_all("dt")
     rows = table.find_all("dd")
 
@@ -351,7 +350,7 @@ def test_browse_consignment(client: FlaskClient):
     assert b"You are viewing" in response.data
 
     # soup = BeautifulSoup(response.data, "html.parser")
-    # table = soup.find("dl", {"id": "consignment_dl"})
+    # table = soup.find("dl")
     # headers = table.find_all("dt")
     # rows = table.find_all("dd")
 

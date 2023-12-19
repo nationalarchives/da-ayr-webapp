@@ -178,7 +178,7 @@
       {% if browse_type == "browse" %}
         {% if results %}
           {% if num_records_found > 0 %}
-            <dl class="govuk-summary-list browse-grid__list" id="browse_dl">
+            <dl class="govuk-summary-list browse-grid__list">
               <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
                 <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">
                   Transferring body
@@ -229,7 +229,7 @@
       {% if browse_type == "transferring_body" %}
         {% if results %}
           {% if num_records_found > 0 %}
-            <dl class="govuk-summary-list browse-grid__list" id="transferring_body_dl">
+            <dl class="govuk-summary-list browse-grid__list">
               <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
                 <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">
                   Transferring body
@@ -280,7 +280,7 @@
       {% if browse_type == "series" %}
         {% if results %}
           {% if num_records_found > 0 %}
-            <dl class="govuk-summary-list browse-grid__list" id="series_dl">
+            <dl class="govuk-summary-list browse-grid__list">
               <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
                 <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">
                   Transferring body
@@ -333,7 +333,7 @@
       {% if browse_type == "consignment" %}
         {% if results %}
           {% if num_records_found > 0 %}
-            <dl class="govuk-summary-list browse-grid__list" id="consignment_dl">
+            <dl class="govuk-summary-list browse-grid__list">
               <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
                 <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">
                   Last modified
@@ -382,50 +382,11 @@
         {% endif %}
       {% endif %}
 
-      <!-- PAGINATION -->
-
       {% if num_records_found > 0 %}
-        <nav class="govuk-pagination" role="navigation" aria-label="Pagination">
-          <div class="govuk-pagination__prev">
-            {% if results.has_prev == True %}
-              <a class="govuk-link govuk-pagination__link" href="{{ url_for('main.browse', page=current_page-1) }}" rel="prev" id="prev">
-              <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
-                <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
-              </svg>
-              <span class="govuk-pagination__link-title">Previous<span class="govuk-visually-hidden"> page</span></span></a>
-            {% endif %}
-          </div>
-          <ul class="govuk-pagination__list">
-            {% for page in results.iter_pages(left_edge=1, left_current=1, right_current=1, right_edge=1) %}
-              {% if page %}
-                {% if page != current_page %}
-                <li class="govuk-pagination__item">
-                  <a class="govuk-link govuk-pagination__link" href="{{ url_for('main.browse', page=page) }}" aria-label="Page {{page}}">
-                    {{ page }}
-                  </a>
-                </li>
-                {% else %}
-                <li class="govuk-pagination__item govuk-pagination__item--current">
-                  <a class="govuk-link govuk-pagination__link" href="{{ url_for('main.browse', page=page) }}" aria-label="Page {{page}}" aria-current="page">
-                    {{ page }}
-                  </a>
-                </li>
-                {% endif %}
-              {% else %}
-                <li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>
-              {% endif %}
-            {% endfor %}
-          </ul>
-          <div class="govuk-pagination__next">
-            {% if results.has_next == True %}
-            <a class="govuk-link govuk-pagination__link" href="{{ url_for('main.browse', page=current_page+1) }}" rel="next" id="next">
-              <span class="govuk-pagination__link-title">Next<span class="govuk-visually-hidden"> page</span></span>
-              <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
-                <path d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
-              </svg></a>
-            {% endif %}
-          </div>
-        </nav>
+        <!-- PAGINATION -->
+        {% with view_name='main.browse' %}
+          {% include "pagination.html" %}
+        {% endwith %}
       {% endif %}
     </div>
   </div>

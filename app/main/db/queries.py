@@ -159,7 +159,7 @@ def _build_fuzzy_search_query(query_string: str):
 def _build_browse_everything_query():
     query = (
         db.session.query(
-            Body.BodyId.label("body_id"),
+            Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
@@ -185,7 +185,7 @@ def _build_browse_everything_query():
 def _build_transferring_body_filter_query(transferring_body_id):
     query = (
         db.session.query(
-            Body.BodyId.label("body_id"),
+            Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
@@ -214,7 +214,7 @@ def _build_transferring_body_filter_query(transferring_body_id):
 def _build_series_filter_query(series_id):
     query = (
         db.session.query(
-            Body.BodyId.label("body_id"),
+            Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
