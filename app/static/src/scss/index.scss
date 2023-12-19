@@ -1,8 +1,11 @@
-.govuk-button--start {
-  position: relative;
-  padding: 8px 10px 7px 7px;
-  text-align: center;
-  border: 2px solid transparent;
+/* SCSS for Index page */
+
+.govuk-button {
+  &--start {
+    position: relative;
+    padding: 8px 10px 7px 7px;
+    text-align: center;
+    border: 2px solid transparent;
 
     margin-left: 3px;
     font-weight: 700;
@@ -11,21 +14,25 @@
     min-height: auto;
     margin-top: 20px;
     margin-bottom: 30px;
-
+  }
 }
 
-p.govuk-body--start {
+p.govuk-body {
+  &--start {
   margin-bottom: -40px;
   display: inline-block;
+  }
 }
 
-.govuk-heading-l--start {
+.govuk-heading {
+  &-l--start {
   margin-bottom: 30px;
   margin-top: -40px;
   font-weight: 700;
-}
+  }
 
-.govuk-heading-m--start {
+  &-m--start {
   margin-bottom: 20px;
   font-weight: 700;
+  }
 }
