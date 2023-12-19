@@ -38,3 +38,48 @@ def test_record_page(client):
         b'<dd class="govuk-summary-list__value govuk-summary-list__value--record">'
         in response.data
     )
+
+    assert (
+        b' <dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
+        b">Status</dt>" in response.data
+    )
+
+    assert (
+        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
+        b">Transferring body</dt>" in response.data
+    )
+
+    assert (
+        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
+        b">Consignment ID</dt>" in response.data
+    )
+
+    assert (
+        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
+        b">Description</dt>" in response.data
+    )
+
+    assert (
+        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
+        b">Date last modified</dt>" in response.data
+    )
+
+    assert (
+        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
+        b">Held by</dt>" in response.data
+    )
+
+    assert (
+        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
+        b">Legal status</dt>" in response.data
+    )
+
+    assert (
+        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
+        b">Rights copyright</dt>" in response.data
+    )
+
+    assert (
+        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
+        b">Language</dt>" in response.data
+    )
