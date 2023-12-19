@@ -44,10 +44,19 @@
               <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Filename</dt>
               <dd class="govuk-summary-list__value govuk-summary-list__value--record">{{record['file_name']}}</dd>
               </div>
+
+
               <div class="govuk-summary-list__row govuk-summary-list__row--record">
               <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
-              <dd class="govuk-summary-list__value govuk-summary-list__value--record">{{record['status']}}</dd>
+              {% if record['status'] | lower == 'closed' %}
+              <dd class="govuk-summary-list__value govuk-summary-list__value--record"><span class="govuk-tag govuk-tag--red">{{record['status']}}</span>
+              </dd>
+             {% else %}
+              <dd class="govuk-summary-list__value govuk-summary-list__value--record"><span class="govuk-tag govuk-tag--green">{{record['status']}}</span>
+              </dd>
+             {% endif %}
               </div>
+
               <div class="govuk-summary-list__row govuk-summary-list__row--record">
               <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Transferring body</dt>
               <dd class="govuk-summary-list__value govuk-summary-list__value--record">{{record['transferring_body']}}</dd>
