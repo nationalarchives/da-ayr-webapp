@@ -35,7 +35,7 @@ def test_poc_search_end_to_end(authenticated_page: Page):
         "Transferring body",
         "Series",
         "Consignment reference",
-        "File Name",
+        "File name",
     ]
     for expected_header in expected_headers:
         assert expected_header in header_texts

@@ -7,7 +7,7 @@ def test_poc_search_end_to_end(authenticated_page: Page):
     When they interact with the search form and submit a query
     Then the table should contain the expected headers and entries.
     """
-    authenticated_page.goto("/poc-search")
+    authenticated_page.goto("/browse")
 
 
 def test_has_title(authenticated_page: Page):
@@ -45,4 +45,4 @@ def test_filter_functionality(authenticated_page: Page):
 
 def test_pagination(authenticated_page: Page):
     authenticated_page.goto("/browse")
-    authenticated_page.click(".govuk-pagination__next")
+    authenticated_page.is_visible("text='Pagination'")

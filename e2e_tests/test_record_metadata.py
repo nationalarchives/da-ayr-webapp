@@ -30,7 +30,7 @@ def test_back_link(authenticated_page: Page):
     """
     Given a user is on the record page
     When the user selects the back button / breadcrumb
-    Then the user should be navigated back to the the results page
+    Then the user should be navigated back to the results page
     """
     authenticated_page.goto("/poc-search")
     authenticated_page.locator("#searchInput").click()
