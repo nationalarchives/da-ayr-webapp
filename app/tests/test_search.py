@@ -88,7 +88,7 @@ def test_search_results_displayed_single_page(client: FlaskClient, app):
         ] == expected_results_table[row_index + 1]
 
     assert (
-        b'<nav class="govuk-pagination" role="navigation" aria-label="Pagination">'
+        b'<nav class="govuk-pagination govuk-pagination--centred" role="navigation" aria-label="Pagination">'
         not in response.data
     )
 
