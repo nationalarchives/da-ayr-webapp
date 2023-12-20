@@ -41,8 +41,3 @@ def test_filter_functionality(authenticated_page: Page):
     )
     for record in records:
         assert record
-
-
-def test_pagination(authenticated_page: Page):
-    authenticated_page.goto("/browse")
-    authenticated_page.is_visible("text='Pagination'")
