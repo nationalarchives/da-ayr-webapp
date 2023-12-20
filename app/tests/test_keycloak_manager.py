@@ -39,9 +39,6 @@ def test_decode_token(mock_keycloak_open_id, app):
 
 
 class TestGetUserTransferringBodyGroups:
-    @patch(
-        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
-    )
     def test_no_transferring_body_user_groups_returns_empty_list(self, app):
         """
         Given a list of keycloak groups which has no transferring_body_user groups
@@ -56,9 +53,6 @@ class TestGetUserTransferringBodyGroups:
                 == []
             )
 
-    @patch(
-        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
-    )
     def test_multiple_transferring_body_user_groups_returns_corresponding_bodies(
         self, app
     ):
@@ -79,15 +73,14 @@ class TestGetUserTransferringBodyGroups:
                 "bar",
             ]
 
-    @patch(
-        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
-    )
-    def test_transferring_body_user_groups_one_invalid_valid_group(self, app):
+    def test_group_with_transferring_body_group_prefix_without_suffix_not_returned(
+        self, app
+    ):
         """
-        Given a list of keycloak groups including 2 transferring bodies
+        Given a list of keycloak groups including 2 with
+            `/transferring_body_user/` prefix but only has a suffix
         When calling get_user_transferring_body_keycloak_groups with it
-        Then it should return the 1 corresponding bodies in a list and
-        should not include a group which has string length 0
+        Then it should return a list including 1 element corresponding to the suffix
         """
 
         with app.app_context():
