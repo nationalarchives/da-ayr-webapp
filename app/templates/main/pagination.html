@@ -1,3 +1,4 @@
+{% if results.pages > 1 %}
 <nav class="govuk-pagination" role="navigation" aria-label="Pagination">
     {% if results.has_prev == True %}
     <div class="govuk-pagination__prev">
@@ -50,3 +51,4 @@
         </div>
         {% endif %}
 </nav>
+{% endif%}
