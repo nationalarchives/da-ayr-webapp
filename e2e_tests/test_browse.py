@@ -1,15 +1,6 @@
 from playwright.sync_api import Page
 
 
-def test_poc_search_end_to_end(authenticated_page: Page):
-    """
-    Given a user on the search page
-    When they interact with the search form and submit a query
-    Then the table should contain the expected headers and entries.
-    """
-    authenticated_page.goto("/poc-search")
-
-
 def test_has_title(authenticated_page: Page):
     authenticated_page.goto("/browse")
 
@@ -41,8 +32,3 @@ def test_filter_functionality(authenticated_page: Page):
     )
     for record in records:
         assert record
-
-
-def test_pagination(authenticated_page: Page):
-    authenticated_page.goto("/browse")
-    authenticated_page.click(".govuk-pagination__next")

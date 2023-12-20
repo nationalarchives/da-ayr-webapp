@@ -7,138 +7,23 @@ from app.main.authorize.keycloak_manager import (
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 
 
-def fuzzy_search(query_string):
-    results = []
-    filter_value = str(f"%{query_string}%").lower()
+def fuzzy_search(query: str, page: int, per_page: int):
+    if len(query) > 0:
+        fuzzy_search_query = _build_fuzzy_search_query(query)
+        return fuzzy_search_query.paginate(page=page, per_page=per_page)
 
-    query = (
-        db.select(
-            Body.BodyId.label("body_id"),
-            Body.Name.label("transferring_body"),
-            Series.SeriesId.label("series_id"),
-            Series.Name.label("series"),
-            Consignment.ConsignmentReference.label("consignment_reference"),
-            File.FileName.label("file_name"),
-            File.FileId.label("file_id"),
+
+def browse_data(page, per_page, transferring_body_id=None, series_id=None):
+    if transferring_body_id:
+        browse_query = _build_transferring_body_filter_query(
+            transferring_body_id
         )
-        .join(Series, Series.BodyId == Body.BodyId)
-        .join(
-            Consignment,
-            and_(
-                Consignment.BodyId == Body.BodyId,
-                Consignment.SeriesId == Series.SeriesId,
-            ),
-        )
-        .join(File, File.ConsignmentId == Consignment.ConsignmentId)
-        .join(FileMetadata, FileMetadata.FileId == File.FileId)
-        .where(
-            and_(
-                func.lower(File.FileType) == "file",
-                or_(
-                    func.lower(Consignment.ConsignmentReference).like(
-                        filter_value
-                    ),
-                    func.lower(Consignment.ConsignmentType).like(filter_value),
-                    func.lower(Consignment.ContactName).like(filter_value),
-                    func.lower(Consignment.ContactEmail).like(filter_value),
-                    func.cast(Consignment.TransferStartDatetime, Text).like(
-                        filter_value
-                    ),
-                    func.cast(Consignment.TransferCompleteDatetime, Text).like(
-                        filter_value
-                    ),
-                    func.cast(Consignment.ExportDatetime, Text).like(
-                        filter_value
-                    ),
-                    func.lower(Body.Name).like(filter_value),
-                    func.lower(Body.Description).like(filter_value),
-                    func.lower(Series.Name).like(filter_value),
-                    func.lower(Series.Description).like(filter_value),
-                    func.lower(File.FileName).like(filter_value),
-                    func.lower(File.FileReference).like(filter_value),
-                    func.lower(FileMetadata.Value).like(filter_value),
-                ),
-            )
-        )
-        .distinct()
-        .order_by(Body.Name, Series.Name)
-    )
-    query_results = None
-    try:
-        query_results = db.session.execute(query)
-    except exc.SQLAlchemyError as e:
-        print("Failed to return results from database with error : " + str(e))
+    elif series_id:
+        browse_query = _build_series_filter_query(series_id)
+    else:
+        browse_query = _build_browse_everything_query()
 
-    if query_results is not None:
-        for r in query_results:
-            record = {
-                "transferring_body_id": r.body_id,
-                "transferring_body": r.transferring_body,
-                "series_id": r.series_id,
-                "series": r.series,
-                "consignment_reference": r.consignment_reference,
-                "file_name": r.file_name,
-                "file_id": r.file_id,
-            }
-            results.append(record)
-    return results
-
-
-def browse_data(transferring_body_id=None, series_id=None, consignment_id=None):
-    results = []
-    try:
-        if transferring_body_id is not None:
-            query_results = db.session.execute(
-                generate_transferring_body_filter_query(transferring_body_id)
-            )
-            results = [
-                {
-                    "transferring_body_id": r.body_id,
-                    "transferring_body": r.transferring_body,
-                    "series_id": r.series_id,
-                    "series": r.series,
-                    "consignment_in_series": r.consignment_in_series,
-                    "last_record_transferred": r.last_record_transferred,
-                    "records_held": r.records_held,
-                }
-                for r in query_results
-            ]
-        elif series_id is not None:
-            query_results = db.session.execute(
-                generate_series_filter_query(series_id)
-            )
-            results = [
-                {
-                    "transferring_body_id": r.body_id,
-                    "transferring_body": r.transferring_body,
-                    "series_id": r.series_id,
-                    "series": r.series,
-                    "last_record_transferred": r.last_record_transferred,
-                    "records_held": r.records_held,
-                    "consignment_id": r.consignment_id,
-                    "consignment_reference": r.consignment_reference,
-                }
-                for r in query_results
-            ]
-        else:
-            query_results = db.session.execute(
-                generate_browse_everything_query()
-            )
-            results = [
-                {
-                    "transferring_body_id": r.body_id,
-                    "transferring_body": r.transferring_body,
-                    "series_id": r.series_id,
-                    "series": r.series,
-                    "consignment_in_series": r.consignment_in_series,
-                    "last_record_transferred": r.last_record_transferred,
-                    "records_held": r.records_held,
-                }
-                for r in query_results
-            ]
-    except exc.SQLAlchemyError as e:
-        print("Failed to return results from database with error : " + str(e))
-    return results
+    return browse_query.paginate(page=page, per_page=per_page)
 
 
 def get_user_accessible_transferring_bodies(access_token):
@@ -158,7 +43,7 @@ def get_user_accessible_transferring_bodies(access_token):
         return []
 
     try:
-        query = db.select(Body.Name)
+        query = db.session.query(Body.Name)
         bodies = db.session.execute(query)
     except exc.SQLAlchemyError as e:
         print("Failed to return results from database with error : " + str(e))
@@ -213,10 +98,68 @@ def get_file_metadata(file_id):
     return results
 
 
-def generate_browse_everything_query():
+def _build_fuzzy_search_query(query_string: str):
+    filter_value = str(f"%{query_string}%").lower()
+
     query = (
-        db.select(
+        db.session.query(
+            Body.Name.label("transferring_body"),
+            Series.Name.label("series"),
+            Consignment.ConsignmentReference.label("consignment_reference"),
+            File.FileName.label("file_name"),
             Body.BodyId.label("body_id"),
+            Series.SeriesId.label("series_id"),
+        )
+        .join(Series, Series.BodyId == Body.BodyId)
+        .join(
+            Consignment,
+            and_(
+                Consignment.BodyId == Body.BodyId,
+                Consignment.SeriesId == Series.SeriesId,
+            ),
+        )
+        .join(File, File.ConsignmentId == Consignment.ConsignmentId)
+        .join(FileMetadata, FileMetadata.FileId == File.FileId)
+        .where(
+            and_(
+                func.lower(File.FileType) == "file",
+                or_(
+                    func.lower(Consignment.ConsignmentReference).like(
+                        filter_value
+                    ),
+                    func.lower(Consignment.ConsignmentType).like(filter_value),
+                    func.lower(Consignment.ContactName).like(filter_value),
+                    func.lower(Consignment.ContactEmail).like(filter_value),
+                    func.cast(Consignment.TransferStartDatetime, Text).like(
+                        filter_value
+                    ),
+                    func.cast(Consignment.TransferCompleteDatetime, Text).like(
+                        filter_value
+                    ),
+                    func.cast(Consignment.ExportDatetime, Text).like(
+                        filter_value
+                    ),
+                    func.lower(Body.Name).like(filter_value),
+                    func.lower(Body.Description).like(filter_value),
+                    func.lower(Series.Name).like(filter_value),
+                    func.lower(Series.Description).like(filter_value),
+                    func.lower(File.FileName).like(filter_value),
+                    func.lower(File.FileReference).like(filter_value),
+                    func.lower(FileMetadata.Value).like(filter_value),
+                ),
+            )
+        )
+        .distinct()
+        .order_by(Body.Name, Series.Name)
+    )
+
+    return query
+
+
+def _build_browse_everything_query():
+    query = (
+        db.session.query(
+            Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
@@ -239,10 +182,10 @@ def generate_browse_everything_query():
     return query
 
 
-def generate_transferring_body_filter_query(transferring_body_id):
+def _build_transferring_body_filter_query(transferring_body_id):
     query = (
-        db.select(
-            Body.BodyId.label("body_id"),
+        db.session.query(
+            Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
@@ -268,10 +211,10 @@ def generate_transferring_body_filter_query(transferring_body_id):
     return query
 
 
-def generate_series_filter_query(series_id):
+def _build_series_filter_query(series_id):
     query = (
-        db.select(
-            Body.BodyId.label("body_id"),
+        db.session.query(
+            Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),

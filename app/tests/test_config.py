@@ -33,6 +33,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
     monkeypatch.setenv(
         "SECRET_KEY", "test_secret_key"  # pragma: allowlist secret
     )
+    monkeypatch.setenv("DEFAULT_PAGE_SIZE", "test_default_page_size")
     monkeypatch.setenv("RATELIMIT_STORAGE_URI", "test_ratelimit_storage_uri")
 
     config = EnvConfig()
@@ -50,6 +51,9 @@ def test_local_env_vars_config_initialized(monkeypatch):
     )
     assert config.KEYCLOAK_AYR_USER_GROUP == "test_keycloak_ayr_user_group"
     assert config.SECRET_KEY == "test_secret_key"  # pragma: allowlist secret
+    assert (
+        config.DEFAULT_PAGE_SIZE == "test_default_page_size"
+    )  # pragma: allowlist secret
     assert config.RATELIMIT_STORAGE_URI == "test_ratelimit_storage_uri"
 
 
@@ -142,6 +146,12 @@ def test_aws_params_config_initialized(mock_boto3, monkeypatch):
         Overwrite=True,
     )
     ssm_client.put_parameter(
+        Name="/test_env/DEFAULT_PAGE_SIZE",
+        Value="test_default_page_size",
+        Type="String",
+        Overwrite=True,
+    )
+    ssm_client.put_parameter(
         Name="/test_env/RATELIMIT_STORAGE_URI",
         Value="test_ratelimit_storage_uri",
         Type="String",
@@ -164,4 +174,5 @@ def test_aws_params_config_initialized(mock_boto3, monkeypatch):
     )
     assert config.KEYCLOAK_AYR_USER_GROUP == "test_keycloak_ayr_user_group"
     assert config.SECRET_KEY == "test_secret_key"  # pragma: allowlist secret
+    assert config.DEFAULT_PAGE_SIZE == "test_default_page_size"
     assert config.RATELIMIT_STORAGE_URI == "test_ratelimit_storage_uri"

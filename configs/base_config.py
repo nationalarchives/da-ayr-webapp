@@ -74,5 +74,9 @@ class BaseConfig(object):
     def SECRET_KEY(self):
         return self._get_config_value("SECRET_KEY")
 
+    @property
+    def DEFAULT_PAGE_SIZE(self):
+        return self._get_config_value("DEFAULT_PAGE_SIZE")
+
     def _get_config_value(self, variable_name):
         pass

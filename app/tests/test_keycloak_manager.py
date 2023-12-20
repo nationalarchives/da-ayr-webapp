@@ -39,12 +39,7 @@ def test_decode_token(mock_keycloak_open_id, app):
 
 
 class TestGetUserTransferringBodyGroups:
-    @patch(
-        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
-    )
-    def test_no_transferring_body_user_groups_returns_empty_list(
-        self, mock_decode_keycloak_access_token, app
-    ):
+    def test_no_transferring_body_user_groups_returns_empty_list(self, app):
         """
         Given a list of keycloak groups which has no transferring_body_user groups
         When calling get_user_transferring_body_keycloak_groups with it
@@ -58,11 +53,8 @@ class TestGetUserTransferringBodyGroups:
                 == []
             )
 
-    @patch(
-        "app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect"
-    )
     def test_multiple_transferring_body_user_groups_returns_corresponding_bodies(
-        self, mock_decode_keycloak_access_token, app
+        self, app
     ):
         """
         Given a list of keycloak groups including 2 transferring bodies
@@ -79,4 +71,25 @@ class TestGetUserTransferringBodyGroups:
             ) == [
                 "foo",
                 "bar",
+            ]
+
+    def test_group_with_transferring_body_group_prefix_without_suffix_not_returned(
+        self, app
+    ):
+        """
+        Given a list of keycloak groups including 2 with
+            `/transferring_body_user/` prefix but only has a suffix
+        When calling get_user_transferring_body_keycloak_groups with it
+        Then it should return a list including 1 element corresponding to the suffix
+        """
+
+        with app.app_context():
+            assert get_user_transferring_body_keycloak_groups(
+                [
+                    "/transferring_body_user/foo",
+                    "/ayr_user/abc",
+                    "/transferring_body_user/",
+                ]
+            ) == [
+                "foo",
             ]
