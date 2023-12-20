@@ -115,7 +115,7 @@ def browse():
     else:
         browse_results = browse_data(page, per_page)
 
-    num_records_found = len(browse_results.items)
+    num_records_found = browse_results.total
 
     return render_template(
         "browse.html",
@@ -142,7 +142,7 @@ def poc_search():
 
     if query:
         search_results = fuzzy_search(query, page, per_page)
-        num_records_found = len(search_results.items)
+        num_records_found = search_results.total
 
     return render_template(
         "poc-search.html",

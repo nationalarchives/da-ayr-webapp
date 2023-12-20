@@ -86,8 +86,11 @@ def test_search_results_displayed_single_page(client: FlaskClient, app):
         assert [
             result.text for result in row.find_all("td")
         ] == expected_results_table[row_index + 1]
-    # check pagination
-    assert b'aria-label="Page 1"' in response.data
+
+    assert (
+        b'<nav class="govuk-pagination" role="navigation" aria-label="Pagination">'
+        not in response.data
+    )
 
 
 def test_search_results_displayed_multiple_pages(client: FlaskClient, app):
@@ -102,7 +105,7 @@ def test_search_results_displayed_multiple_pages(client: FlaskClient, app):
     response = client.post("/poc-search", data=form_data)
 
     assert response.status_code == 200
-    assert b"5 record(s) found" in response.data
+    assert b"9 record(s) found" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
     table = soup.find("table", class_="govuk-table")

@@ -213,12 +213,12 @@ class TestBrowseData:
     def test_browse_data_without_filters(self, client: FlaskClient):
         """
         Given multiple File objects in the database
-        When browse_data is called without any arguments
-        Then it returns 5 (per_page) a list containing dictionaries for each record with
-            expected fields
+        When browse_data is called with page=2, per_page=5
+        Then it returns a Paginate object returning the first 5 items
+            ordered by Body name then Series name
         """
         files = create_multiple_test_records()
-        result = browse_data(page=1, per_page=per_page)
+        result = browse_data(page=1, per_page=5)
 
         assert result.items == [
             (
@@ -271,9 +271,9 @@ class TestBrowseData:
     def test_browse_data_get_specific_page_results(self, client: FlaskClient):
         """
         Given multiple File objects in the database
-        When browse_data is called without any arguments
-        Then it returns 5 (per_page) a list containing dictionaries for each record with
-            expected fields for page 2
+        When browse_data is called with page=2, per_page=5
+        Then it returns a Paginate object returning the second 5 items
+            ordered by Body name then Series name
         """
         files = create_multiple_test_records()
 

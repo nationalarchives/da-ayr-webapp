@@ -33,7 +33,7 @@ def test_browse_submit_search_query(client: FlaskClient):
 
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
-    assert b"Records found 5" in response.data
+    assert b"Records found 11" in response.data
 
 
 def test_browse_get_with_data(client: FlaskClient):
@@ -135,7 +135,7 @@ def test_browse_display_first_page(client: FlaskClient, app):
         if row_index < len(rows) - 1:
             row_data = row_data + ", "
     assert [row_data] == expected_results_table[1]
-    assert len(previous_option.text.replace("\n", "").strip("")) == 0
+    assert not previous_option
     assert next_option.text.replace("\n", "").strip("") == "Next page"
 
 
@@ -188,8 +188,13 @@ def test_browse_display_middle_page(client: FlaskClient, app):
         if row_index < len(rows) - 1:
             row_data = row_data + ", "
     assert [row_data] == expected_results_table[1]
-    assert page_options[0].text.replace("\n", "").strip("") == "Previous page"
-    assert page_options[1].text.replace("\n", "").strip("") == "Next page"
+    assert (
+        " ".join(page_options[0].text.replace("\n", "").split())
+        == "Previous page"
+    )
+    assert (
+        " ".join(page_options[1].text.replace("\n", "").split()) == "Next page"
+    )
 
 
 def test_browse_display_last_page(client: FlaskClient, app):
@@ -237,8 +242,11 @@ def test_browse_display_last_page(client: FlaskClient, app):
         if row_index < len(rows) - 1:
             row_data = row_data + ", "
     assert [row_data] == expected_results_table[1]
-    assert previous_option.text.replace("\n", "").strip("") == "Previous page"
-    assert len(next_option.text.replace("\n", "").strip("")) == 0
+    assert (
+        " ".join(previous_option.text.replace("\n", "").split())
+        == "Previous page"
+    )
+    assert not next_option
 
 
 def test_browse_transferring_body(client: FlaskClient):
