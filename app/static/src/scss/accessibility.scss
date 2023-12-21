@@ -1,0 +1,15 @@
+.govuk-accessibility {
+    &--red {
+        color: red;
+    }
+}
+
+.placeholder {
+    color: red;
+}
+
+.govuk-body {
+    &--accessibility-placeholder {
+        color: red;
+    }
+}
