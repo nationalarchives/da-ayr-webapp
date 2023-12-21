@@ -1,3 +1,5 @@
+import uuid
+
 import keycloak
 from flask import (
     current_app,
@@ -17,7 +19,7 @@ from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
-from app.main.db.queries import browse_data, fuzzy_search
+from app.main.db.queries import browse_data, fuzzy_search, get_file_metadata
 from app.main.forms import CookiesForm
 
 from .forms import SearchForm
@@ -156,9 +158,9 @@ def poc_search():
     )
 
 
-@bp.route("/record", methods=["GET"])
+@bp.route("/record/<uuid:record_id>", methods=["GET"])
 @access_token_sign_in_required
-def record():
+def record(record_id: uuid.UUID):
     """
     Render the record details page.
 
@@ -169,20 +171,22 @@ def record():
     Returns:
         A rendered HTML page with record details.
     """
-    record_1 = {
-        "file_name": "file-b2.txt",
-        "status": "open",
-        "transferring_body": "Electoral Commission",
-        "consignment_id": "TDR-2023-H2QS",
-        "description": "Test description",
-        "date_last_modified": "2023-02-27",
-        "held_by": "The National Archives, Kew",
-        "legal_status": "Public Record(s)",
-        "rights_copyright": "Crown Copyright",
-        "language": "English",
+    record_metadata = get_file_metadata(record_id)
+
+    record_dict = {
+        "file_name": record_metadata[1],
+        "status": record_metadata[2],
+        "description": record_metadata[3],
+        "date_last_modified": record_metadata[4],
+        "held_by": record_metadata[5],
+        "legal_status": record_metadata[6],
+        "rights_copyright": record_metadata[7],
+        "language": record_metadata[8],
+        "consignment_id": record_metadata[9],
+        "transferring_body": record_metadata[10],
     }
 
-    return render_template("record.html", record=record_1)
+    return render_template("record.html", record=record_dict)
 
 
 @bp.route("/signed-out", methods=["GET"])

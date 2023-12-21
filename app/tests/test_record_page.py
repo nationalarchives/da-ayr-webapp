@@ -1,5 +1,59 @@
-def test_record_page(client):
-    response = client.get("/record")
+from app.tests.factories import FileFactory, FileMetadataFactory
+
+
+def test_invalid_id_raises_404(client):
+    """
+    Given a UUID, `invalid_file_id`, not corresponding to the id
+        of a file in the database
+    When a GET request is made to `/record/invalid_file_id`
+    Then a 404 http response is returned
+    """
+    response = client.get("/record/some-id")
+
+    assert response.status_code == 404
+
+
+def test_valid_id_returns_expected_html(client):
+    """
+    Given a file with id, file_id, and associated metadata,
+    When a GET request is made to `record/file_id`
+    Then the response contains html including the record's expected metadata
+    """
+    file = FileFactory(FileType="file")
+
+    FileMetadataFactory(
+        file_metadata=file,
+        PropertyName="date_last_modified",
+        Value="2023-02-25T10:12:47",
+    )
+    FileMetadataFactory(
+        file_metadata=file, PropertyName="closure_type", Value="Closed"
+    )
+    FileMetadataFactory(
+        file_metadata=file, PropertyName="description", Value="Test description"
+    )
+    FileMetadataFactory(
+        file_metadata=file,
+        PropertyName="held_by",
+        Value="Test holder",
+    )
+    FileMetadataFactory(
+        file_metadata=file,
+        PropertyName="legal_status",
+        Value="Test legal status",
+    )
+    FileMetadataFactory(
+        file_metadata=file,
+        PropertyName="rights_copyright",
+        Value="Test copyright",
+    )
+    FileMetadataFactory(
+        file_metadata=file,
+        PropertyName="language",
+        Value="English",
+    )
+
+    response = client.get(f"/record/{file.FileId}")
 
     assert response.status_code == 200
 

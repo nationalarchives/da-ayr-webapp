@@ -2,6 +2,8 @@ import uuid
 from datetime import datetime
 from unittest.mock import patch
 
+import pytest
+import werkzeug
 from flask.testing import FlaskClient
 from sqlalchemy import exc
 
@@ -484,49 +486,70 @@ class TestBrowseData:
 
 
 class TestGetFileMetadata:
-    def test_get_file_metadata_no_results(self, client: FlaskClient):
+    def test_invalid_uuid_raises_not_found_error(self, client: FlaskClient):
         """
-        Given n UUID not corresponding to the id of a File in the database
+        Given a UUID not corresponding to the id of a file in the database
         When get_file_metadata is called with it
-        Then an empty list is returned
+        Then werkzeug.exceptions.NotFound is raised
         """
         non_existent_file_id = uuid.uuid4()
-        assert get_file_metadata(non_existent_file_id) == []
+        with pytest.raises(werkzeug.exceptions.NotFound):
+            get_file_metadata(non_existent_file_id)
 
-    def test_get_file_metadata_with_results(self, client: FlaskClient):
+    def test_valid_uuid_returns_metadata(self, client: FlaskClient):
         """
-        Given a file with 3 related file metadata objects
-        When get_file_metadata is called with the file's FileId
-        Then a list of dicts is returned with the property name-value pair in each dict
+        Given a file with associated metadata,
+        When get_file_metadata is called with its UUID,
+        Then a tuple of specific metadata for the file is returned
         """
-        files = create_multiple_test_records()
+        file = FileFactory(FileName="test_file.txt", FileType="file")
 
-        search_results = get_file_metadata(file_id=files[0].FileId)
+        FileMetadataFactory(
+            file_metadata=file,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+        FileMetadataFactory(
+            file_metadata=file, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file,
+            PropertyName="description",
+            Value="Test description",
+        )
+        FileMetadataFactory(
+            file_metadata=file,
+            PropertyName="held_by",
+            Value="Test holder",
+        )
+        FileMetadataFactory(
+            file_metadata=file,
+            PropertyName="legal_status",
+            Value="Test legal status",
+        )
+        FileMetadataFactory(
+            file_metadata=file,
+            PropertyName="rights_copyright",
+            Value="Test copyright",
+        )
+        FileMetadataFactory(
+            file_metadata=file,
+            PropertyName="language",
+            Value="English",
+        )
 
-        expected_search_results = [
-            {"property_name": "file_name", "property_value": "test_file1.pdf"},
-            {"property_name": "closure_type", "property_value": "open"},
-            {"property_name": "file_type", "property_value": "pdf"},
-        ]
-        assert search_results == expected_search_results
-
-    @patch("app.main.db.queries.db")
-    def test_get_file_metadata_exception_raised(self, database, capsys):
-        """
-        Given a database execution error
-        When get_file_metadata itransferring_body_ids called
-        Then it returns an empty list and logs an error message
-        """
-
-        def mock_execute(_):
-            raise exc.SQLAlchemyError("foo bar")
-
-        database.session.execute.side_effect = mock_execute
-        results = get_file_metadata("")
-        assert results == []
-        assert (
-            "Failed to return results from database with error : foo bar"
-            in capsys.readouterr().out
+        assert get_file_metadata(file_id=file.FileId) == (
+            file.FileId,
+            "test_file.txt",
+            "Closed",
+            "Test description",
+            "2023-02-25T10:12:47",
+            "Test holder",
+            "Test legal status",
+            "Test copyright",
+            "English",
+            file.ConsignmentId,
+            file.file_consignments.consignment_bodies.Name,
         )
 
 
