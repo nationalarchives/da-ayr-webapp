@@ -99,19 +99,23 @@ def browse():
 
     transferring_body_id = request.args.get("transferring_body_id", None)
     series_id = request.args.get("series_id", None)
+    consignment_id = request.args.get("consignment_id", None)
 
     browse_type = "browse"
 
     if transferring_body_id:
         browse_type = "transferring_body"
-        browse_results = browse_data(
-            page, per_page, transferring_body_id=transferring_body_id
-        )
+        filters = {"transferring_body_id": transferring_body_id}
     elif series_id:
         browse_type = "series"
-        browse_results = browse_data(page, per_page, series_id=series_id)
+        filters = {"series_id": series_id}
+    elif consignment_id:
+        browse_type = "consignment"
+        filters = {"consignment_id": consignment_id}
     else:
-        browse_results = browse_data(page, per_page)
+        filters = {}
+
+    browse_results = browse_data(page=page, per_page=per_page, **filters)
 
     num_records_found = browse_results.total
 

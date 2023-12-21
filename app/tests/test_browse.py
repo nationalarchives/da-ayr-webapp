@@ -357,19 +357,28 @@ def test_browse_consignment(client: FlaskClient):
     assert b"Search for digital records" in response.data
     assert b"You are viewing" in response.data
 
-    # soup = BeautifulSoup(response.data, "html.parser")
-    # table = soup.find("dl")
-    # headers = table.find_all("dt")
-    # rows = table.find_all("dd")
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("dl")
+    headers = table.find_all("dt")
+    rows = table.find_all("govuk-summary-list__row")
 
-    # expected_results_table = [
-    #    ["Last modified", "Filename", "Status", "Closure start date", "Closure period"],
-    # ]
+    expected_results_table = [
+        [
+            "Last modified",
+            "Filename",
+            "Status",
+            "Closure start date",
+            "Closure period",
+        ],
+        ["-", "test_file1.pdf", "open", "-", "-"],
+    ]
 
-    # assert [header.text.replace('\n', ' ').strip(' ') for header in headers] == expected_results_table[0]
-    # row_data = ''
-    # for row_index, row in enumerate(rows):
-    #    row_data = row_data + "'" + row.text.replace('\n', ' ').strip(' ') + "'"
-    #    if row_index < len(rows) - 1:
-    #        row_data = row_data + ", "
-    # assert [row_data] == expected_results_table[1]
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+
+    for index, row in enumerate(rows):
+        values = row.find_all("dd")
+        assert [
+            value.text.replace("\n", " ").strip(" ") for value in values
+        ] == expected_results_table[index + 1]

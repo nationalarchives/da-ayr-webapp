@@ -335,59 +335,56 @@
           {% if num_records_found > 0 %}
             <dl class="govuk-summary-list browse-grid__list">
               <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
-                <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">
+                <dt class="govuk-summary-list__key govuk-summary-list__key__left">
                   Last modified
                 </dt>
-                <dt class="govuk-summary-list__key browse-grid__key">
+                <dt class="govuk-summary-list__key govuk-summary-list__key__left">
                   Filename
                 </dt>
-                <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">
+                <dt class="govuk-summary-list__key govuk-summary-list__key__left">
                   Status
                 </dt>
-                <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">
+                <dt class="govuk-summary-list__key govuk-summary-list__key__left">
                   Closure start date
                 </dt>
-                <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">
+                <dt class="govuk-summary-list__key govuk-summary-list__key__left">
                   Closure period
                 </dt>
               </div>
 
               <!-- Table Content -->
               {% for record in results %}
-                <div class="govuk-summary-list__row">
-                  <dd class="govuk-summary-list__value browse__table__large-width">
-                    <a href="{{url_for('main.browse', transferring_body_id=record['transferring_body_id']) }}">
-                      {{ record["transferring_body"] }}
+              <div class="govuk-summary-list__row">
+                <dd class="govuk-summary-list__value">
+                    {{ record[2]|format_datetime}}
+                </dd>
+                <dd class="govuk-summary-list__value">
+                    <a href="{{ url_for('main.record', record_id=record[0]) }}">
+                      {{ record[1] }}
                     </a>
-                  </dd>
-                  <dd class="govuk-summary-list__value">
-                    <p class="govuk-body browse__body">
-                      <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">
-                        {{ record["series"] }}
-                      </a></p>
-                  </dd>
-                  <dd class="govuk-summary-list__value">
-                    <p class="govuk-body browse__body browse__table__right-align">{{ record["last_record_transferred"] }}</p>
-                  </dd>
-                  <dd class="govuk-summary-list__value">
-                    <p class="govuk-body browse__body browse__table__right-align">{{ record["records_held"] }}</p>
-                  </dd>
-                  <dd class="govuk-summary-list__value">
-                    <p class="govuk-body browse__body browse__table__right-align">{{ record["consignment_in_series"] }}</p>
-                  </dd>
-                </div>
+                </dd>
+                <dd class="govuk-summary-list__value">
+                  <strong class="govuk-tag {{ 'govuk-tag--green' if record[3] == 'Open' else 'govuk-tag--red' }}">
+                    {{ record[3] }}
+                  </strong>
+                </dd>
+                <dd class="govuk-summary-list__value">
+                  {{ record[4]|format_datetime}}
+                </dd>
+                <dd class="govuk-summary-list__value">
+                  <p class="govuk-body browse__body">{% if record[5] %} {{ record[5] }} years {% else %} - {% endif %}</p>
+                </dd>
+              </div>
               {% endfor %}
-          </dl>
+            </dl>
           {% endif %}
         {% endif %}
       {% endif %}
 
-      {% if num_records_found > 0 %}
-        <!-- PAGINATION -->
-        {% with view_name='main.browse' %}
-          {% include "pagination.html" %}
-        {% endwith %}
-      {% endif %}
+      <!-- PAGINATION -->
+      {% with view_name='main.browse' %}
+        {% include "pagination.html" %}
+      {% endwith %}
     </div>
   </div>
 </div>

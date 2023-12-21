@@ -12,6 +12,11 @@ from app.main.db.queries import (
     get_file_metadata,
     get_user_accessible_transferring_bodies,
 )
+from app.tests.factories import (
+    ConsignmentFactory,
+    FileFactory,
+    FileMetadataFactory,
+)
 from app.tests.mock_database import create_multiple_test_records
 
 per_page = 5
@@ -391,6 +396,91 @@ class TestBrowseData:
                 "test consignment1",
             )
         ]
+
+    def test_browse_data_with_consignment_filter(self, app):
+        """
+        Given three file objects with associated metadata part of 1 consignment,
+            where 2 file types is 'file', another file 'folder', and another file of
+            type 'file' and metadata associated with a different consignment
+        When I call the 'browse_data' function with the consignment id
+            of the first 3 file objects
+        Then it returns a Pagination object with 2 total results corresponding to the
+            first 2 files, ordered by their names and with the expected metadata values
+        """
+        consignment = ConsignmentFactory()
+
+        file_1 = FileFactory(
+            file_consignments=consignment, FileName="file_1", FileType="file"
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="closure_start_date", Value="1"
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_period",
+            Value="2023-02-25T11:14:34",
+        )
+
+        file_2 = FileFactory(
+            file_consignments=consignment, FileName="file_2", FileType="file"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2,
+            PropertyName="date_last_modified",
+            Value="2023-02-27T12:28:08",
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_period", Value=None
+        )
+
+        FileFactory(file_consignments=consignment, FileType="folder")
+
+        FileFactory(FileType="file")
+
+        pagination_object = browse_data(
+            page=1, per_page=per_page, consignment_id=consignment.ConsignmentId
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (
+                file_1.FileId,
+                "file_1",
+                "2023-02-25T10:12:47",
+                "Closed",
+                "1",
+                "2023-02-25T11:14:34",
+            ),
+            (
+                file_2.FileId,
+                "file_2",
+                "2023-02-27T12:28:08",
+                "Open",
+                None,
+                None,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
 
 
 class TestGetFileMetadata:
