@@ -1,5 +1,3 @@
-import datetime
-
 from flask import Flask, g
 from flask_assets import Bundle, Environment
 from flask_compress import Compress
@@ -12,6 +10,7 @@ from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
 from app.logger_config import setup_logging
 from app.main.db.models import db
+from app.template_filters import format_datetime
 
 assets = Environment()
 compress = Compress()
@@ -102,16 +101,7 @@ def create_app(config_class, database_uri=None):
 
     app.register_blueprint(main_bp)
 
-    @app.template_filter()
-    def format_datetime(value):
-        if not value:
-            return "-"
-
-        datetime_object = datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
-
-        formatted_date = datetime_object.strftime("%d/%m/%Y")
-
-        return formatted_date
+    app.jinja_env.filters["format_datetime"] = format_datetime
 
     @app.context_processor
     def inject_authenticated_view_status():
