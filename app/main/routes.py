@@ -171,22 +171,9 @@ def record(record_id: uuid.UUID):
     Returns:
         A rendered HTML page with record details.
     """
-    record_metadata = get_file_metadata(record_id)
+    file_metadata = get_file_metadata(record_id)
 
-    record_dict = {
-        "file_name": record_metadata[1],
-        "status": record_metadata[2],
-        "description": record_metadata[3],
-        "date_last_modified": record_metadata[4],
-        "held_by": record_metadata[5],
-        "legal_status": record_metadata[6],
-        "rights_copyright": record_metadata[7],
-        "language": record_metadata[8],
-        "consignment_id": record_metadata[9],
-        "transferring_body": record_metadata[10],
-    }
-
-    return render_template("record.html", record=record_dict)
+    return render_template("record.html", record=file_metadata)
 
 
 @bp.route("/signed-out", methods=["GET"])

@@ -282,13 +282,14 @@ def _build_consignment_filter_query(consignment_id: uuid.UUID):
 
 def get_file_metadata(file_id: uuid.UUID):
     query = _get_file_metadata_query(file_id)
-    return query.first_or_404()
+    row = query.first_or_404()
+    return dict(row._mapping)
 
 
 def _get_file_metadata_query(file_id: uuid.UUID):
     query = db.session.query(
-        File.FileId,
-        File.FileName,
+        File.FileId.label("file_id"),
+        File.FileName.label("file_name"),
         func.max(
             db.case(
                 (
@@ -297,7 +298,7 @@ def _get_file_metadata_query(file_id: uuid.UUID):
                 ),
                 else_=None,
             )
-        ),
+        ).label("status"),
         func.max(
             db.case(
                 (
@@ -306,7 +307,7 @@ def _get_file_metadata_query(file_id: uuid.UUID):
                 ),
                 else_=None,
             ),
-        ),
+        ).label("description"),
         func.max(
             db.case(
                 (
@@ -315,7 +316,7 @@ def _get_file_metadata_query(file_id: uuid.UUID):
                 ),
                 else_=None,
             )
-        ),
+        ).label("date_last_modified"),
         func.max(
             db.case(
                 (
@@ -324,7 +325,7 @@ def _get_file_metadata_query(file_id: uuid.UUID):
                 ),
                 else_=None,
             ),
-        ),
+        ).label("held_by"),
         func.max(
             db.case(
                 (
@@ -333,7 +334,7 @@ def _get_file_metadata_query(file_id: uuid.UUID):
                 ),
                 else_=None,
             ),
-        ),
+        ).label("legal_status"),
         func.max(
             db.case(
                 (
@@ -342,7 +343,7 @@ def _get_file_metadata_query(file_id: uuid.UUID):
                 ),
                 else_=None,
             ),
-        ),
+        ).label("rights_copyright"),
         func.max(
             db.case(
                 (
@@ -351,7 +352,7 @@ def _get_file_metadata_query(file_id: uuid.UUID):
                 ),
                 else_=None,
             ),
-        ),
+        ).label("language"),
         Consignment.ConsignmentId.label("consignment_id"),
         Body.Name.label("transferring_body"),
     )

@@ -538,19 +538,19 @@ class TestGetFileMetadata:
             Value="English",
         )
 
-        assert get_file_metadata(file_id=file.FileId) == (
-            file.FileId,
-            "test_file.txt",
-            "Closed",
-            "Test description",
-            "2023-02-25T10:12:47",
-            "Test holder",
-            "Test legal status",
-            "Test copyright",
-            "English",
-            file.ConsignmentId,
-            file.file_consignments.consignment_bodies.Name,
-        )
+        assert get_file_metadata(file_id=file.FileId) == {
+            "file_id": file.FileId,
+            "file_name": "test_file.txt",
+            "status": "Closed",
+            "description": "Test description",
+            "date_last_modified": "2023-02-25T10:12:47",
+            "held_by": "Test holder",
+            "legal_status": "Test legal status",
+            "rights_copyright": "Test copyright",
+            "language": "English",
+            "consignment_id": file.ConsignmentId,
+            "transferring_body": file.file_consignments.consignment_bodies.Name,
+        }
 
 
 class TestGetUserAccessibleTransferringBodies:
