@@ -6,10 +6,21 @@
 
 .placeholder {
     color: red;
+    font-size: 1.18rem;
 }
 
 .govuk-body {
     &--accessibility-placeholder {
         color: red;
+    }
+}
+
+.govuk-link {
+    &__terms-of-use {
+        color: blue;
+    }
+
+    &__terms-of-use a:visited {
+        color:purple;
     }
 }
