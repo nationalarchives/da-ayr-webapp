@@ -48,6 +48,8 @@ def test_valid_id_returns_expected_html(client):
 
     html = response.data.decode()
 
+    soup = BeautifulSoup(html, "html.parser")
+
     expected_breadcrumbs_html = f"""
     <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
     <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
@@ -76,17 +78,80 @@ def test_valid_id_returns_expected_html(client):
     </div>
     """
 
-    soup = BeautifulSoup(html, "html.parser")
     breadcrumbs_soup = soup.find(
         "div",
         {"class": "govuk-grid-column-full govuk-grid-column-full__page-nav"},
     )
-    expected_soup = BeautifulSoup(expected_breadcrumbs_html, "html.parser")
-    assert expected_soup.prettify() == breadcrumbs_soup.prettify()
+    expected_breadcrumbs_soup = BeautifulSoup(
+        expected_breadcrumbs_html, "html.parser"
+    )
+
+    assert expected_breadcrumbs_soup.prettify() == breadcrumbs_soup.prettify()
+
+    expected_record_summary_html = f"""
+    <dl class="govuk-summary-list govuk-summary-list--record">
+        <div class="govuk-summary-list__row"></div>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Filename</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">test_file.txt</dd>
+        </div>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                <span class="govuk-tag govuk-tag--red">Closed</span>
+            </dd>
+        </div>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Transferring body</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                {file.file_consignments.consignment_bodies.Name}
+            </dd>
+        </div>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Consignment ID</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                {file.file_consignments.ConsignmentId}
+            </dd>
+        </div>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Description</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">Test description</dd>
+        </div>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Date last modified</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">2023-02-25T10:12:47</dd>
+        </div>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">Test holder</dd>
+        </div>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Legal status</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">Test legal status</dd>
+        </div>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Rights copyright</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">Test copyright</dd>
+        </div>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Language</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">English</dd>
+        </div>
+    </dl>
+    """
+
+    expected_record_summary_soup = BeautifulSoup(
+        expected_record_summary_html, "html.parser"
+    )
+
+    record_summary_soup = soup.find(
+        "dl",
+        {"class": "govuk-summary-list govuk-summary-list--record"},
+    )
 
     assert (
-        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Consignment ID</dt>'
-        in response.data
+        expected_record_summary_soup.prettify()
+        == record_summary_soup.prettify()
     )
 
     assert (
@@ -104,59 +169,4 @@ def test_valid_id_returns_expected_html(client):
         b'<li class="govuk-body govuk-body__record-arrangement-list">'
         b"political parties panel - notes of meeting 1 - 12 September 2003.doc</li>"
         in response.data
-    )
-
-    assert (
-        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table">'
-        b"Filename</dt>" in response.data
-    )
-
-    assert (
-        b'<dd class="govuk-summary-list__value govuk-summary-list__value--record">'
-        in response.data
-    )
-
-    assert (
-        b' <dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
-        b">Status</dt>" in response.data
-    )
-
-    assert (
-        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
-        b">Transferring body</dt>" in response.data
-    )
-
-    assert (
-        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
-        b">Consignment ID</dt>" in response.data
-    )
-
-    assert (
-        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
-        b">Description</dt>" in response.data
-    )
-
-    assert (
-        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
-        b">Date last modified</dt>" in response.data
-    )
-
-    assert (
-        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
-        b">Held by</dt>" in response.data
-    )
-
-    assert (
-        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
-        b">Legal status</dt>" in response.data
-    )
-
-    assert (
-        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
-        b">Rights copyright</dt>" in response.data
-    )
-
-    assert (
-        b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table"'
-        b">Language</dt>" in response.data
     )
