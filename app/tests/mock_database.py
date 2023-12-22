@@ -305,7 +305,7 @@ def create_multiple_test_records():
         ContactEmail="test5@test.com",
         ConsignmentType="standard",
         TransferStartDatetime="2023-01-01",
-        TransferCompleteDatetime="2023-01-01",
+        TransferCompleteDatetime="2023-02-15",
     )
     db.session.add(new_consignment)
     db.session.commit()
@@ -372,7 +372,7 @@ def create_multiple_test_records():
         ContactEmail="test6@test.com",
         ConsignmentType="standard",
         TransferStartDatetime="2023-01-01",
-        TransferCompleteDatetime="2023-01-01",
+        TransferCompleteDatetime="2023-02-15",
     )
     db.session.add(new_consignment)
     db.session.commit()
@@ -439,7 +439,7 @@ def create_multiple_test_records():
         ContactEmail="test7@test.com",
         ConsignmentType="standard",
         TransferStartDatetime="2023-01-01",
-        TransferCompleteDatetime="2023-01-01",
+        TransferCompleteDatetime="2023-02-15",
     )
     db.session.add(new_consignment)
     db.session.commit()
@@ -506,7 +506,7 @@ def create_multiple_test_records():
         ContactEmail="test8@test.com",
         ConsignmentType="standard",
         TransferStartDatetime="2023-01-01",
-        TransferCompleteDatetime="2023-01-01",
+        TransferCompleteDatetime="2023-02-15",
     )
     db.session.add(new_consignment)
     db.session.commit()
@@ -573,7 +573,7 @@ def create_multiple_test_records():
         ContactEmail="test9@test.com",
         ConsignmentType="standard",
         TransferStartDatetime="2023-01-01",
-        TransferCompleteDatetime="2023-01-01",
+        TransferCompleteDatetime="2023-02-15",
     )
     db.session.add(new_consignment)
     db.session.commit()
@@ -873,7 +873,7 @@ def create_multiple_files_for_consignment(consignment_id):
         MetadataId=uuid.uuid4(),
         FileId=file_3.FileId,
         PropertyName="closure_start_date",
-        Value="",
+        Value=None,
     )
     db.session.add(file_3_metadata)
     db.session.commit()
@@ -882,7 +882,7 @@ def create_multiple_files_for_consignment(consignment_id):
         MetadataId=uuid.uuid4(),
         FileId=file_3.FileId,
         PropertyName="closure_expiry",
-        Value="",
+        Value=None,
     )
     db.session.add(file_3_metadata)
     db.session.commit()
@@ -938,7 +938,7 @@ def create_multiple_files_for_consignment(consignment_id):
         MetadataId=uuid.uuid4(),
         FileId=file_4.FileId,
         PropertyName="closure_start_date",
-        Value="",
+        Value=None,
     )
     db.session.add(file_4_metadata)
     db.session.commit()
@@ -1003,7 +1003,7 @@ def create_multiple_files_for_consignment(consignment_id):
         MetadataId=uuid.uuid4(),
         FileId=file_5.FileId,
         PropertyName="closure_start_date",
-        Value="",
+        Value=None,
     )
     db.session.add(file_5_metadata)
     db.session.commit()
@@ -1012,7 +1012,7 @@ def create_multiple_files_for_consignment(consignment_id):
         MetadataId=uuid.uuid4(),
         FileId=file_5.FileId,
         PropertyName="closure_expiry",
-        Value="",
+        Value=None,
     )
     db.session.add(file_5_metadata)
     db.session.commit()

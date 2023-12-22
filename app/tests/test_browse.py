@@ -69,11 +69,11 @@ def test_browse_get_with_data(client: FlaskClient):
             "Consignments within series",
         ],
         [
-            "'test body1', 'test series1', '2023-01-01 00:00:00', '1', '1', "
-            "'test body2', 'test series2', '2023-01-01 00:00:00', '1', '1', "
-            "'testing body10', 'test series10', '2023-01-01 00:00:00', '1', '1', "
-            "'testing body11', 'test series11', '2023-01-01 00:00:00', '1', '1', "
-            "'testing body3', 'test series3', '2023-01-01 00:00:00', '1', '1'"
+            "'test body1', 'test series1', '01/01/2023', '1', '1', "
+            "'test body2', 'test series2', '01/01/2023', '1', '1', "
+            "'testing body10', 'test series10', '01/01/2023', '1', '1', "
+            "'testing body11', 'test series11', '01/01/2023', '1', '1', "
+            "'testing body3', 'test series3', '01/01/2023', '1', '1'"
         ],
     ]
 
@@ -122,11 +122,11 @@ def test_browse_display_first_page(client: FlaskClient, app):
             "Consignments within series",
         ],
         [
-            "'test body1', 'test series1', '2023-01-01 00:00:00', '1', '1', "
-            "'test body2', 'test series2', '2023-01-01 00:00:00', '1', '1', "
-            "'testing body10', 'test series10', '2023-01-01 00:00:00', '1', '1', "
-            "'testing body11', 'test series11', '2023-01-01 00:00:00', '1', '1', "
-            "'testing body3', 'test series3', '2023-01-01 00:00:00', '1', '1'"
+            "'test body1', 'test series1', '01/01/2023', '1', '1', "
+            "'test body2', 'test series2', '01/01/2023', '1', '1', "
+            "'testing body10', 'test series10', '01/01/2023', '1', '1', "
+            "'testing body11', 'test series11', '01/01/2023', '1', '1', "
+            "'testing body3', 'test series3', '01/01/2023', '1', '1'"
         ],
     ]
 
@@ -175,11 +175,11 @@ def test_browse_display_middle_page(client: FlaskClient, app):
             "Consignments within series",
         ],
         [
-            "'testing body4', 'test series4', '2023-01-01 00:00:00', '1', '1', "
-            "'testing body5', 'test series5', '2023-01-01 00:00:00', '1', '1', "
-            "'testing body6', 'test series6', '2023-01-01 00:00:00', '1', '1', "
-            "'testing body7', 'test series7', '2023-01-01 00:00:00', '1', '1', "
-            "'testing body8', 'test series8', '2023-01-01 00:00:00', '1', '1'"
+            "'testing body4', 'test series4', '01/01/2023', '1', '1', "
+            "'testing body5', 'test series5', '15/02/2023', '1', '1', "
+            "'testing body6', 'test series6', '15/02/2023', '1', '1', "
+            "'testing body7', 'test series7', '15/02/2023', '1', '1', "
+            "'testing body8', 'test series8', '15/02/2023', '1', '1'"
         ],
     ]
 
@@ -234,7 +234,7 @@ def test_browse_display_last_page(client: FlaskClient, app):
             "Records held",
             "Consignments within series",
         ],
-        ["'testing body9', 'test series9', '2023-01-01 00:00:00', '1', '1'"],
+        ["'testing body9', 'test series9', '15/02/2023', '1', '1'"],
     ]
 
     assert [
@@ -287,11 +287,11 @@ def test_browse_display_multiple_pages(client: FlaskClient, app):
             "Consignments within series",
         ],
         [
-            "'test body1', 'test series1', '2023-01-01 00:00:00', '1', '1', "
-            "'test body2', 'test series2', '2023-01-01 00:00:00', '1', '1', "
-            "'testing body10', 'test series10', '2023-01-01 00:00:00', '1', '1', "
-            "'testing body11', 'test series11', '2023-01-01 00:00:00', '1', '1', "
-            "'testing body3', 'test series3', '2023-01-01 00:00:00', '1', '1'"
+            "'test body1', 'test series1', '01/01/2023', '1', '1', "
+            "'test body2', 'test series2', '01/01/2023', '1', '1', "
+            "'testing body10', 'test series10', '01/01/2023', '1', '1', "
+            "'testing body11', 'test series11', '01/01/2023', '1', '1', "
+            "'testing body3', 'test series3', '01/01/2023', '1', '1'"
         ],
     ]
 
@@ -342,7 +342,7 @@ def test_browse_transferring_body(client: FlaskClient):
             "Records held",
             "Consignments within series",
         ],
-        ["'test body1', 'test series1', '2023-01-01 00:00:00', '1', '1'"],
+        ["'test body1', 'test series1', '01/01/2023', '1', '1'"],
     ]
 
     assert [
@@ -389,7 +389,7 @@ def test_browse_series(client: FlaskClient):
             "Consignment reference",
         ],
         [
-            "'test body1', 'test series1', '2023-01-01 00:00:00', '1', 'test consignment1'"
+            "'test body1', 'test series1', '01/01/2023', '1', 'test consignment1'"
         ],
     ]
 

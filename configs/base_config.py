@@ -74,5 +74,9 @@ class BaseConfig(object):
     def DEFAULT_PAGE_SIZE(self):
         return self._get_config_value("DEFAULT_PAGE_SIZE")
 
+    @property
+    def DEFAULT_DATE_FORMAT(self):
+        return self._get_config_value("DEFAULT_DATE_FORMAT")
+
     def _get_config_value(self, variable_name):
         pass

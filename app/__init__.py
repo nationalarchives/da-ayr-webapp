@@ -10,7 +10,6 @@ from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
 from app.logger_config import setup_logging
 from app.main.db.models import db
-from app.template_filters import format_datetime
 
 assets = Environment()
 compress = Compress()
@@ -100,8 +99,6 @@ def create_app(config_class, database_uri=None):
     from app.main import bp as main_bp
 
     app.register_blueprint(main_bp)
-
-    app.jinja_env.filters["format_datetime"] = format_datetime
 
     @app.context_processor
     def inject_authenticated_view_status():

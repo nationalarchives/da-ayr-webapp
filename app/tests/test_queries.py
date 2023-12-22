@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 import pytest
 import werkzeug
@@ -225,7 +224,7 @@ class TestBrowseData:
                 "test body1",
                 files[0].file_consignments.consignment_series.SeriesId,
                 "test series1",
-                datetime(2023, 1, 1, 0, 0),
+                "01/01/2023",
                 1,
                 1,
             ),
@@ -234,7 +233,7 @@ class TestBrowseData:
                 "test body2",
                 files[1].file_consignments.consignment_series.SeriesId,
                 "test series2",
-                datetime(2023, 1, 1, 0, 0),
+                "01/01/2023",
                 1,
                 1,
             ),
@@ -243,7 +242,7 @@ class TestBrowseData:
                 "testing body10",
                 files[9].file_consignments.consignment_series.SeriesId,
                 "test series10",
-                datetime(2023, 1, 1, 0, 0),
+                "01/01/2023",
                 1,
                 1,
             ),
@@ -252,7 +251,7 @@ class TestBrowseData:
                 "testing body11",
                 files[10].file_consignments.consignment_series.SeriesId,
                 "test series11",
-                datetime(2023, 1, 1, 0, 0),
+                "01/01/2023",
                 1,
                 1,
             ),
@@ -261,7 +260,7 @@ class TestBrowseData:
                 "testing body3",
                 files[2].file_consignments.consignment_series.SeriesId,
                 "test series3",
-                datetime(2023, 1, 1, 0, 0),
+                "01/01/2023",
                 1,
                 1,
             ),
@@ -283,7 +282,7 @@ class TestBrowseData:
                 "testing body4",
                 files[3].file_consignments.consignment_series.SeriesId,
                 "test series4",
-                datetime(2023, 1, 1, 0, 0),
+                "01/01/2023",
                 1,
                 1,
             ),
@@ -292,7 +291,7 @@ class TestBrowseData:
                 "testing body5",
                 files[4].file_consignments.consignment_series.SeriesId,
                 "test series5",
-                datetime(2023, 1, 1, 0, 0),
+                "15/02/2023",
                 1,
                 1,
             ),
@@ -301,7 +300,7 @@ class TestBrowseData:
                 "testing body6",
                 files[5].file_consignments.consignment_series.SeriesId,
                 "test series6",
-                datetime(2023, 1, 1, 0, 0),
+                "15/02/2023",
                 1,
                 1,
             ),
@@ -310,7 +309,7 @@ class TestBrowseData:
                 "testing body7",
                 files[6].file_consignments.consignment_series.SeriesId,
                 "test series7",
-                datetime(2023, 1, 1, 0, 0),
+                "15/02/2023",
                 1,
                 1,
             ),
@@ -319,7 +318,7 @@ class TestBrowseData:
                 "testing body8",
                 files[7].file_consignments.consignment_series.SeriesId,
                 "test series8",
-                datetime(2023, 1, 1, 0, 0),
+                "15/02/2023",
                 1,
                 1,
             ),
@@ -354,7 +353,7 @@ class TestBrowseData:
                 "test body1",
                 series_id,
                 "test series1",
-                datetime(2023, 1, 1, 0, 0),
+                "01/01/2023",
                 1,
                 1,
             )
@@ -384,7 +383,7 @@ class TestBrowseData:
                 "test body1",
                 series_id,
                 "test series1",
-                datetime(2023, 1, 1, 0, 0),
+                "01/01/2023",
                 1,
                 consignment_id,
                 "test consignment1",
@@ -457,15 +456,15 @@ class TestBrowseData:
             (
                 file_1.FileId,
                 "file_1",
-                "2023-02-25T10:12:47",
+                "25/02/2023",
                 "Closed",
-                "2023-02-25T11:14:34",
+                "25/02/2023",
                 "50",
             ),
             (
                 file_2.FileId,
                 "file_2",
-                "2023-02-27T12:28:08",
+                "27/02/2023",
                 "Open",
                 None,
                 None,
@@ -475,6 +474,478 @@ class TestBrowseData:
         results = pagination_object.items
 
         assert results == expected_results
+
+    def test_browse_data_with_consignment_and_date_from_filter(self, app):
+        """
+        Given three file objects with associated metadata part of 1 consignment,
+            where 2 file types is 'file', another file 'folder', and another file of
+            type 'file' and metadata associated with a different consignment
+        When I call the 'browse_data' function with the consignment id and date_from filter
+            of the first 3 file objects
+        Then it returns a Pagination object with 2 total results corresponding to the
+            date_last_modified greater than or equal date_from filter value ( 2 files),
+            ordered by their names and with the expected metadata values
+        """
+        consignment = ConsignmentFactory()
+
+        file_1 = FileFactory(
+            file_consignments=consignment, FileName="file_1", FileType="file"
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_start_date",
+            Value="2023-02-25T11:14:34",
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        file_2 = FileFactory(
+            file_consignments=consignment, FileName="file_2", FileType="file"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2,
+            PropertyName="date_last_modified",
+            Value="2023-02-27T12:28:08",
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_period", Value=None
+        )
+
+        FileFactory(file_consignments=consignment, FileType="folder")
+
+        FileFactory(FileType="file")
+
+        date_range = {"date_from": "25/02/2023"}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            consignment_id=consignment.ConsignmentId,
+            date_range=date_range,
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (
+                file_1.FileId,
+                "file_1",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "1",
+            ),
+            (
+                file_2.FileId,
+                "file_2",
+                "27/02/2023",
+                "Open",
+                None,
+                None,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_data_with_consignment_and_date_to_filter(self, app):
+        """
+        Given three file objects with associated metadata part of 1 consignment,
+            where 2 file types is 'file', another file 'folder', and another file of
+            type 'file' and metadata associated with a different consignment
+        When I call the 'browse_data' function with the consignment id and date_to filter
+            of the first 3 file objects
+        Then it returns a Pagination object with 1 total results corresponding to the
+            date_last_modified less than or equal date_to filter value ( 1 file),
+            ordered by their names and with the expected metadata values
+        """
+        consignment = ConsignmentFactory()
+
+        file_1 = FileFactory(
+            file_consignments=consignment, FileName="file_1", FileType="file"
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_start_date",
+            Value="2023-02-25T11:14:34",
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        file_2 = FileFactory(
+            file_consignments=consignment, FileName="file_2", FileType="file"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2,
+            PropertyName="date_last_modified",
+            Value="2023-02-27T12:28:08",
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_period", Value=None
+        )
+
+        FileFactory(file_consignments=consignment, FileType="folder")
+
+        FileFactory(FileType="file")
+
+        date_range = {"date_to": "26/02/2023"}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            consignment_id=consignment.ConsignmentId,
+            date_range=date_range,
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                file_1.FileId,
+                "file_1",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "1",
+            )
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_data_with_consignment_and_date_from_and_to_filter(
+        self, app
+    ):
+        """
+        Given three file objects with associated metadata part of 1 consignment,
+            where 2 file types is 'file', another file 'folder', and another file of
+            type 'file' and metadata associated with a different consignment
+        When I call the 'browse_data' function with the consignment id and date_from and date_to filter
+            of the first 3 file objects
+        Then it returns a Pagination object with 2 total results corresponding to the
+            date_last_modified greater than or equal to date_from filter value and
+            date_last_modified less than or equal date_to filter value ( 2 file),
+            ordered by their names and with the expected metadata values
+        """
+        consignment = ConsignmentFactory()
+
+        file_1 = FileFactory(
+            file_consignments=consignment, FileName="file_1", FileType="file"
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_start_date",
+            Value="2023-02-25T11:14:34",
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        file_2 = FileFactory(
+            file_consignments=consignment, FileName="file_2", FileType="file"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2,
+            PropertyName="date_last_modified",
+            Value="2023-02-27T12:28:08",
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_period", Value=None
+        )
+
+        FileFactory(file_consignments=consignment, FileType="folder")
+
+        FileFactory(FileType="file")
+
+        date_range = {"date_from": "01/02/2023", "date_to": "28/02/2023"}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            consignment_id=consignment.ConsignmentId,
+            date_range=date_range,
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (
+                file_1.FileId,
+                "file_1",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "1",
+            ),
+            (
+                file_2.FileId,
+                "file_2",
+                "27/02/2023",
+                "Open",
+                None,
+                None,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_data_with_date_from_filter(self, client: FlaskClient):
+        """
+        Given multiple File objects in the database and consignment transfer complete date
+            that matches all of them
+        When browse_data is called with date_from
+        Then it returns a list containing multiple dictionary for the matching record with
+            expected fields
+        """
+        files = create_multiple_test_records()
+
+        date_range = {"date_from": "12/02/2023"}
+        result = browse_data(page=1, per_page=per_page, date_range=date_range)
+
+        assert result.items == [
+            (
+                files[4].file_consignments.consignment_bodies.BodyId,
+                "testing body5",
+                files[4].file_consignments.consignment_series.SeriesId,
+                "test series5",
+                "15/02/2023",
+                1,
+                1,
+            ),
+            (
+                files[5].file_consignments.consignment_bodies.BodyId,
+                "testing body6",
+                files[5].file_consignments.consignment_series.SeriesId,
+                "test series6",
+                "15/02/2023",
+                1,
+                1,
+            ),
+            (
+                files[6].file_consignments.consignment_bodies.BodyId,
+                "testing body7",
+                files[6].file_consignments.consignment_series.SeriesId,
+                "test series7",
+                "15/02/2023",
+                1,
+                1,
+            ),
+            (
+                files[7].file_consignments.consignment_bodies.BodyId,
+                "testing body8",
+                files[7].file_consignments.consignment_series.SeriesId,
+                "test series8",
+                "15/02/2023",
+                1,
+                1,
+            ),
+            (
+                files[8].file_consignments.consignment_bodies.BodyId,
+                "testing body9",
+                files[8].file_consignments.consignment_series.SeriesId,
+                "test series9",
+                "15/02/2023",
+                1,
+                1,
+            ),
+        ]
+
+    def test_browse_data_with_date_to_filter(self, client: FlaskClient):
+        """
+        Given multiple File objects in the database and consignment transfer complete date
+            that matches all of them
+        When browse_data is called with date_to
+        Then it returns a list containing multiple dictionary for the matching record with
+            expected fields
+        """
+        files = create_multiple_test_records()
+
+        date_range = {"date_to": "28/02/2023"}
+        result = browse_data(page=1, per_page=per_page, date_range=date_range)
+
+        assert result.items == [
+            (
+                files[0].file_consignments.consignment_bodies.BodyId,
+                "test body1",
+                files[0].file_consignments.consignment_series.SeriesId,
+                "test series1",
+                "01/01/2023",
+                1,
+                1,
+            ),
+            (
+                files[1].file_consignments.consignment_bodies.BodyId,
+                "test body2",
+                files[1].file_consignments.consignment_series.SeriesId,
+                "test series2",
+                "01/01/2023",
+                1,
+                1,
+            ),
+            (
+                files[9].file_consignments.consignment_bodies.BodyId,
+                "testing body10",
+                files[9].file_consignments.consignment_series.SeriesId,
+                "test series10",
+                "01/01/2023",
+                1,
+                1,
+            ),
+            (
+                files[10].file_consignments.consignment_bodies.BodyId,
+                "testing body11",
+                files[10].file_consignments.consignment_series.SeriesId,
+                "test series11",
+                "01/01/2023",
+                1,
+                1,
+            ),
+            (
+                files[2].file_consignments.consignment_bodies.BodyId,
+                "testing body3",
+                files[2].file_consignments.consignment_series.SeriesId,
+                "test series3",
+                "01/01/2023",
+                1,
+                1,
+            ),
+        ]
+
+    def test_browse_data_with_date_from_and_to_filter(
+        self, client: FlaskClient
+    ):
+        """
+        Given multiple File objects in the database and consignment transfer complete date
+            that matches all of them
+        When browse_data is called with date_from and date_to
+        Then it returns a list containing multiple dictionary for the matching record with
+            date in between the range
+        """
+        files = create_multiple_test_records()
+
+        date_range = {"date_from": "01/02/2023", "date_to": "28/02/2023"}
+        result = browse_data(page=1, per_page=per_page, date_range=date_range)
+
+        assert result.items == [
+            (
+                files[4].file_consignments.consignment_bodies.BodyId,
+                "testing body5",
+                files[4].file_consignments.consignment_series.SeriesId,
+                "test series5",
+                "15/02/2023",
+                1,
+                1,
+            ),
+            (
+                files[5].file_consignments.consignment_bodies.BodyId,
+                "testing body6",
+                files[5].file_consignments.consignment_series.SeriesId,
+                "test series6",
+                "15/02/2023",
+                1,
+                1,
+            ),
+            (
+                files[6].file_consignments.consignment_bodies.BodyId,
+                "testing body7",
+                files[6].file_consignments.consignment_series.SeriesId,
+                "test series7",
+                "15/02/2023",
+                1,
+                1,
+            ),
+            (
+                files[7].file_consignments.consignment_bodies.BodyId,
+                "testing body8",
+                files[7].file_consignments.consignment_series.SeriesId,
+                "test series8",
+                "15/02/2023",
+                1,
+                1,
+            ),
+            (
+                files[8].file_consignments.consignment_bodies.BodyId,
+                "testing body9",
+                files[8].file_consignments.consignment_series.SeriesId,
+                "test series9",
+                "15/02/2023",
+                1,
+                1,
+            ),
+        ]
+
+    def test_browse_data_with_date_from_and_to_filter_no_result(
+        self, client: FlaskClient
+    ):
+        """
+        Given multiple File objects in the database and consignment transfer complete date
+            that matches all of them
+        When browse_data is called with date_from and date_to
+        Then if date range not matched it returns empty list containing multiple dictionary
+        """
+        create_multiple_test_records()
+
+        date_range = {"date_from": "01/03/2023", "date_to": "31/05/2023"}
+        result = browse_data(page=1, per_page=per_page, date_range=date_range)
+
+        assert result.items == []
 
 
 class TestGetFileMetadata:

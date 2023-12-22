@@ -151,6 +151,7 @@ Properties configurable at runtime:
 - `RATELIMIT_STORAGE_URI`: The URI for the Redis storage used for rate limiting.
 - `SECRET_KEY`: Secret key used for Flask session and security.
 - `DEFAULT_PAGE_SIZE`: set value for no. of records to show on browse/search view.
+- `DEFAULT_DATE_FORMAT`: set value to show date in specific format cross the application. i.e. "DD/MM/YYYY"
 
 Calculated values:
 

@@ -1,6 +1,8 @@
 import uuid
+from datetime import datetime
 
-from sqlalchemy import Text, and_, func, or_
+from flask import current_app
+from sqlalchemy import DATE, Text, and_, func, or_
 
 from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
@@ -20,6 +22,7 @@ def browse_data(
     transferring_body_id=None,
     series_id=None,
     consignment_id=None,
+    date_range=None,
 ):
     if transferring_body_id:
         body = Body.query.get_or_404(transferring_body_id)
@@ -34,9 +37,18 @@ def browse_data(
     elif consignment_id:
         consignment = Consignment.query.get_or_404(consignment_id)
         validate_body_user_groups_or_404(consignment.consignment_bodies.Name)
-        browse_query = _build_consignment_filter_query(consignment_id)
+
+        if date_range is not None and len(date_range) > 0:
+            browse_query = _build_consignment_filter_query(
+                consignment_id, date_range
+            )
+        else:
+            browse_query = _build_consignment_filter_query(consignment_id)
     else:
         browse_query = _build_browse_everything_query()
+
+    if not consignment_id and date_range is not None and len(date_range) > 0:
+        browse_query = _build_date_range_filter_query(browse_query, date_range)
 
     return browse_query.paginate(page=page, per_page=per_page)
 
@@ -106,9 +118,10 @@ def _build_browse_everything_query():
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
-            func.max(Consignment.TransferCompleteDatetime).label(
-                "last_record_transferred"
-            ),
+            func.to_char(
+                func.cast(func.max(Consignment.TransferCompleteDatetime), DATE),
+                current_app.config["DEFAULT_DATE_FORMAT"],
+            ).label("last_record_transferred"),
             func.count(func.distinct(Consignment.ConsignmentReference)).label(
                 "consignment_in_series"
             ),
@@ -132,9 +145,10 @@ def _build_transferring_body_filter_query(transferring_body_id):
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
-            func.max(Consignment.TransferCompleteDatetime).label(
-                "last_record_transferred"
-            ),
+            func.to_char(
+                func.cast(func.max(Consignment.TransferCompleteDatetime), DATE),
+                current_app.config["DEFAULT_DATE_FORMAT"],
+            ).label("last_record_transferred"),
             func.count(func.distinct(Consignment.ConsignmentReference)).label(
                 "consignment_in_series"
             ),
@@ -161,9 +175,10 @@ def _build_series_filter_query(series_id):
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
-            func.max(Consignment.TransferCompleteDatetime).label(
-                "last_record_transferred"
-            ),
+            func.to_char(
+                func.cast(func.max(Consignment.TransferCompleteDatetime), DATE),
+                current_app.config["DEFAULT_DATE_FORMAT"],
+            ).label("last_record_transferred"),
             func.count(func.distinct(File.FileId)).label("records_held"),
             Consignment.ConsignmentId.label("consignment_id"),
             Consignment.ConsignmentReference.label("consignment_reference"),
@@ -182,19 +197,19 @@ def _build_series_filter_query(series_id):
     return query
 
 
-def _build_consignment_filter_query(consignment_id: uuid.UUID):
+def _build_consignment_filter_query(consignment_id: uuid.UUID, date_range=None):
     select = db.session.query(
-        File.FileId,
-        File.FileName,
+        File.FileId.label("file_id"),
+        File.FileName.label("file_name"),
         func.max(
             db.case(
                 (
                     FileMetadata.PropertyName == "date_last_modified",
-                    FileMetadata.Value,
+                    func.cast(FileMetadata.Value, DATE),
                 ),
                 else_=None,
             )
-        ),
+        ).label("date_last_modified"),
         func.max(
             db.case(
                 (
@@ -203,16 +218,16 @@ def _build_consignment_filter_query(consignment_id: uuid.UUID):
                 ),
                 else_=None,
             )
-        ),
+        ).label("closure_type"),
         func.max(
             db.case(
                 (
                     FileMetadata.PropertyName == "closure_start_date",
-                    FileMetadata.Value,
+                    func.cast(FileMetadata.Value, DATE),
                 ),
                 else_=None,
             ),
-        ),
+        ).label("closure_start_date"),
         func.max(
             db.case(
                 (
@@ -221,7 +236,7 @@ def _build_consignment_filter_query(consignment_id: uuid.UUID):
                 ),
                 else_=None,
             ),
-        ),
+        ).label("closure_period"),
     )
 
     filters = [
@@ -229,12 +244,48 @@ def _build_consignment_filter_query(consignment_id: uuid.UUID):
         func.lower(File.FileType) == "file",
     ]
 
-    query = (
+    sub_query = (
         select.join(FileMetadata, File.FileId == FileMetadata.FileId)
         .filter(*filters)
         .group_by(File.FileId)
         .order_by(File.FileName)
+    ).subquery()
+
+    query = db.session.query(
+        sub_query.c.file_id,
+        sub_query.c.file_name,
+        func.to_char(
+            sub_query.c.date_last_modified,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("date_last_modified"),
+        sub_query.c.closure_type,
+        func.to_char(
+            sub_query.c.closure_start_date,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("closure_start_date"),
+        sub_query.c.closure_period,
     )
+
+    dt_range = get_date_range(date_range)
+    if dt_range["date_from"] is not None and dt_range["date_to"] is not None:
+        query = query.filter(
+            and_(
+                func.to_char(sub_query.c.date_last_modified, "YYYY-MM-DD")
+                >= dt_range["date_from"],
+                func.to_char(sub_query.c.date_last_modified, "YYYY-MM-DD")
+                <= dt_range["date_to"],
+            )
+        )
+    elif dt_range["date_from"] is not None:
+        query = query.filter(
+            func.to_char(sub_query.c.date_last_modified, "YYYY-MM-DD")
+            >= dt_range["date_from"]
+        )
+    elif dt_range["date_to"] is not None:
+        query = query.filter(
+            func.to_char(sub_query.c.date_last_modified, "YYYY-MM-DD")
+            <= dt_range["date_to"]
+        )
 
     return query
 
@@ -340,3 +391,51 @@ def _get_file_metadata_query(file_id: uuid.UUID):
     )
 
     return query
+
+
+def _build_date_range_filter_query(query, date_range):
+    dt_range = get_date_range(date_range)
+
+    if dt_range["date_from"] is not None and dt_range["date_to"] is not None:
+        query = query.filter(
+            and_(
+                func.to_char(Consignment.TransferCompleteDatetime, "YYYY-MM-DD")
+                >= dt_range["date_from"],
+                func.to_char(Consignment.TransferCompleteDatetime, "YYYY-MM-DD")
+                <= dt_range["date_to"],
+            )
+        )
+    elif dt_range["date_from"] is not None:
+        query = query.filter(
+            Consignment.TransferCompleteDatetime >= dt_range["date_from"]
+        )
+    elif dt_range["date_to"] is not None:
+        query = query.filter(
+            Consignment.TransferCompleteDatetime <= dt_range["date_to"]
+        )
+    return query
+
+
+def get_date_range(date_range):
+    date_from = None
+    date_to = None
+    try:
+        if date_range is not None:
+            if "date_from" in date_range:
+                dt_from = datetime.strptime(
+                    str(date_range["date_from"]), "%d/%m/%Y"
+                )
+                date_from = dt_from.strftime("%Y-%m-%d")
+    except ValueError:
+        print("Invalid [date from] value being passed in date range")
+    try:
+        if date_range is not None:
+            if "date_to" in date_range:
+                dt_to = datetime.strptime(
+                    str(date_range["date_to"]), "%d/%m/%Y"
+                )
+                date_to = dt_to.strftime("%Y-%m-%d")
+    except ValueError:
+        print("Invalid [date to] value being passed in date range")
+
+    return {"date_from": date_from, "date_to": date_to}
