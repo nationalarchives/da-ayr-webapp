@@ -502,7 +502,11 @@ class TestGetFileMetadata:
         When get_file_metadata is called with its UUID,
         Then a tuple of specific metadata for the file is returned
         """
-        file = FileFactory(FileName="test_file.txt", FileType="file")
+        file = FileFactory(
+            FileName="test_file.txt",
+            FilePath="data/content/test_file.txt",
+            FileType="file",
+        )
 
         metadata = {
             "date_last_modified": "2023-02-25T10:12:47",
@@ -526,6 +530,7 @@ class TestGetFileMetadata:
         assert get_file_metadata(file_id=file.FileId) == {
             "file_id": file.FileId,
             "file_name": "test_file.txt",
+            "file_path": "data/content/test_file.txt",
             "status": "Closed",
             "description": "Test description",
             "date_last_modified": "2023-02-25T10:12:47",

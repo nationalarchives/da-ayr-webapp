@@ -21,7 +21,11 @@ def test_valid_id_returns_expected_html(client):
     When a GET request is made to `record/file_id`
     Then the response contains html including the record's expected metadata
     """
-    file = FileFactory(FileName="test_file.txt", FileType="file")
+    file = FileFactory(
+        FileName="test_file.txt",
+        FilePath="data/content/folder_a/test_file.txt",
+        FileType="file",
+    )
 
     metadata = {
         "date_last_modified": "2023-02-25T10:12:47",
@@ -164,12 +168,10 @@ def test_valid_id_returns_expected_html(client):
     <div class="record-container">
         <h3 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h3>
         <ol>
-            <li class="govuk-body govuk-body__record-arrangement-list">Electoral commission meeting notes</li>
-            <li class=" govuk-body govuk-body__record-arrangement-list">2003</li>
-            <li class="govuk-body govuk-body__record-arrangement-list">September</li>
-            <li class="govuk-body govuk-body__record-arrangement-list">
-                political parties panel - notes of meeting 1 - 12 September 2003.doc
-            </li>
+            <li class="govuk-body govuk-body__record-arrangement-list">data</li>
+            <li class=" govuk-body govuk-body__record-arrangement-list">content</li>
+            <li class="govuk-body govuk-body__record-arrangement-list">folder_a</li>
+            <li class="govuk-body govuk-body__record-arrangement-list">test_file.txt</li>
         </ol>
     </div>
     """

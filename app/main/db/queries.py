@@ -290,6 +290,7 @@ def _get_file_metadata_query(file_id: uuid.UUID):
     query = db.session.query(
         File.FileId.label("file_id"),
         File.FileName.label("file_name"),
+        File.FilePath.label("file_path"),
         func.max(
             db.case(
                 (
