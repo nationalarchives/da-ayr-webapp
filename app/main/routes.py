@@ -109,8 +109,6 @@ def browse():
 
     browse_type = "browse"
     filters = {}
-    date_from = None
-    date_to = None
 
     if transferring_body_id:
         browse_type = "transferring_body"
@@ -121,21 +119,6 @@ def browse():
     elif consignment_id:
         browse_type = "consignment"
         filters["consignment_id"] = consignment_id
-        # date_from = request.args.get("date_from", '01/02/2023')
-        # date_to = request.args.get("date_to", '27/02/2023')
-    # else:
-    # for browse
-    # date_from = request.args.get("date_from", '01/10/2023')  #
-    # date_to = request.args.get("date_to", '31/10/2023')  #
-
-    date_range = {}
-    if date_from is not None:
-        date_range["date_from"] = date_from
-    if date_to is not None:
-        date_range["date_to"] = date_to
-
-    if date_range is not None and len(date_range) > 0:
-        filters["date_range"] = date_range
 
     browse_results = browse_data(page=page, per_page=per_page, **filters)
 
