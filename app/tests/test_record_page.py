@@ -178,14 +178,27 @@ def test_valid_id_returns_expected_html(client):
 
     assert expected_download_soup.prettify() == download_soup.prettify()
 
-    assert (
-        b'<p class="govuk-body govuk-body--terms-of-use">'
-        b'Refer to <a href="/terms-of-use" class="govuk-link">Terms of use.</a></p>'
-        in response.data
+    expected_arrangement_html = """
+    <div class="record-container">
+        <h3 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h3>
+        <ol>
+            <li class="govuk-body govuk-body__record-arrangement-list">Electoral commission meeting notes</li>
+            <li class=" govuk-body govuk-body__record-arrangement-list">2003</li>
+            <li class="govuk-body govuk-body__record-arrangement-list">September</li>
+            <li class="govuk-body govuk-body__record-arrangement-list">
+                political parties panel - notes of meeting 1 - 12 September 2003.doc
+            </li>
+        </ol>
+    </div>
+    """
+
+    expected_arrangement_soup = BeautifulSoup(
+        expected_arrangement_html, "html.parser"
     )
 
-    assert (
-        b'<li class="govuk-body govuk-body__record-arrangement-list">'
-        b"political parties panel - notes of meeting 1 - 12 September 2003.doc</li>"
-        in response.data
+    arrangement_soup = soup.find(
+        "div",
+        {"class": "record-container"},
     )
+
+    assert expected_arrangement_soup.prettify() == arrangement_soup.prettify()
