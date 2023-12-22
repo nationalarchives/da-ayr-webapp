@@ -415,41 +415,41 @@ class TestBrowseData:
             file_consignments=consignment, FileName="file_1", FileType="file"
         )
 
-        FileMetadataFactory(
-            file_metadata=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
+        file_1_metadata = {
+            "date_last_modified": "2023-02-25T10:12:47",
+            "closure_type": "Closed",
+            "closure_start_date": "2023-02-25T11:14:34",
+            "closure_period": "50",
+        }
 
-        FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_start_date", Value="1"
-        )
-        FileMetadataFactory(
-            file_metadata=file_1,
-            PropertyName="closure_period",
-            Value="2023-02-25T11:14:34",
-        )
+        [
+            FileMetadataFactory(
+                file_metadata=file_1,
+                PropertyName=property_name,
+                Value=value,
+            )
+            for property_name, value in file_1_metadata.items()
+        ]
 
         file_2 = FileFactory(
             file_consignments=consignment, FileName="file_2", FileType="file"
         )
-        FileMetadataFactory(
-            file_metadata=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
-        )
+
+        file_2_metadata = {
+            "date_last_modified": "2023-02-27T12:28:08",
+            "closure_type": "Open",
+            "closure_start_date": None,
+            "closure_period": None,
+        }
+
+        [
+            FileMetadataFactory(
+                file_metadata=file_2,
+                PropertyName=property_name,
+                Value=value,
+            )
+            for property_name, value in file_2_metadata.items()
+        ]
 
         FileFactory(file_consignments=consignment, FileType="folder")
 
@@ -467,8 +467,8 @@ class TestBrowseData:
                 "file_1",
                 "2023-02-25T10:12:47",
                 "Closed",
-                "1",
                 "2023-02-25T11:14:34",
+                "50",
             ),
             (
                 file_2.FileId,
@@ -504,39 +504,24 @@ class TestGetFileMetadata:
         """
         file = FileFactory(FileName="test_file.txt", FileType="file")
 
-        FileMetadataFactory(
-            file_metadata=file,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-        FileMetadataFactory(
-            file_metadata=file, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file_metadata=file,
-            PropertyName="description",
-            Value="Test description",
-        )
-        FileMetadataFactory(
-            file_metadata=file,
-            PropertyName="held_by",
-            Value="Test holder",
-        )
-        FileMetadataFactory(
-            file_metadata=file,
-            PropertyName="legal_status",
-            Value="Test legal status",
-        )
-        FileMetadataFactory(
-            file_metadata=file,
-            PropertyName="rights_copyright",
-            Value="Test copyright",
-        )
-        FileMetadataFactory(
-            file_metadata=file,
-            PropertyName="language",
-            Value="English",
-        )
+        metadata = {
+            "date_last_modified": "2023-02-25T10:12:47",
+            "closure_type": "Closed",
+            "description": "Test description",
+            "held_by": "Test holder",
+            "legal_status": "Test legal status",
+            "rights_copyright": "Test copyright",
+            "language": "English",
+        }
+
+        [
+            FileMetadataFactory(
+                file_metadata=file,
+                PropertyName=property_name,
+                Value=value,
+            )
+            for property_name, value in metadata.items()
+        ]
 
         assert get_file_metadata(file_id=file.FileId) == {
             "file_id": file.FileId,
