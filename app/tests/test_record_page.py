@@ -78,12 +78,13 @@ def test_valid_id_returns_expected_html(client):
     </div>
     """
 
+    expected_breadcrumbs_soup = BeautifulSoup(
+        expected_breadcrumbs_html, "html.parser"
+    )
+
     breadcrumbs_soup = soup.find(
         "div",
         {"class": "govuk-grid-column-full govuk-grid-column-full__page-nav"},
-    )
-    expected_breadcrumbs_soup = BeautifulSoup(
-        expected_breadcrumbs_html, "html.parser"
     )
 
     assert expected_breadcrumbs_soup.prettify() == breadcrumbs_soup.prettify()
@@ -154,10 +155,28 @@ def test_valid_id_returns_expected_html(client):
         == record_summary_soup.prettify()
     )
 
-    assert (
-        b'<button class="govuk-button govuk-button__download--record" data-module="govuk-button">'
-        b"Download record</button>" in response.data
+    expected_download_html = """
+    <div class="rights-container">
+        <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
+        <button class="govuk-button govuk-button__download--record" data-module="govuk-button">
+            Download record
+        </button>
+        <p class="govuk-body govuk-body--terms-of-use">
+            Refer to <a href="/terms-of-use" class="govuk-link">Terms of use.</a>
+        </p>
+    </div>
+    """
+
+    expected_download_soup = BeautifulSoup(
+        expected_download_html, "html.parser"
     )
+
+    download_soup = soup.find(
+        "div",
+        {"class": "rights-container"},
+    )
+
+    assert expected_download_soup.prettify() == download_soup.prettify()
 
     assert (
         b'<p class="govuk-body govuk-body--terms-of-use">'
