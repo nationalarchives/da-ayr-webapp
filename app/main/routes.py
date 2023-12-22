@@ -133,6 +133,7 @@ def browse():
         date_range["date_from"] = date_from
     if date_to is not None:
         date_range["date_to"] = date_to
+
     if date_range is not None and len(date_range) > 0:
         filters["date_range"] = date_range
 

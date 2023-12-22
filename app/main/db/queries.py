@@ -427,7 +427,10 @@ def get_date_range(date_range):
                 )
                 date_from = dt_from.strftime("%Y-%m-%d")
     except ValueError:
-        print("Invalid [date from] value being passed in date range")
+        current_app.logger.error(
+            "Invalid [date from] value being passed in date range"
+        )
+
     try:
         if date_range is not None:
             if "date_to" in date_range:
@@ -436,6 +439,8 @@ def get_date_range(date_range):
                 )
                 date_to = dt_to.strftime("%Y-%m-%d")
     except ValueError:
-        print("Invalid [date to] value being passed in date range")
+        current_app.logger.error(
+            "Invalid [date to] value being passed in date range"
+        )
 
     return {"date_from": date_from, "date_to": date_to}
