@@ -56,6 +56,15 @@ def create_multiple_test_records():
     file_1_metadata = FileMetadata(
         MetadataId=uuid.uuid4(),
         FileId=file_1.FileId,
+        PropertyName="date_last_modified",
+        Value="2023-12-15",
+    )
+    db.session.add(file_1_metadata)
+    db.session.commit()
+
+    file_1_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_1.FileId,
         PropertyName="closure_type",
         Value="open",
     )
@@ -753,4 +762,407 @@ def create_multiple_test_records():
         file_9,
         file_10,
         file_11,
+    ]
+
+
+def create_multiple_files_for_consignment(consignment_id):
+    file_2 = File(
+        FileId=uuid.uuid4(),
+        ConsignmentId=consignment_id,
+        FileName="test_file2.txt",
+        FileType="file",
+        FileReference="test_file2.txt",
+        FilePath="/data/test_file2.txt",
+    )
+    db.session.add(file_2)
+    db.session.commit()
+
+    file_2_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_2.FileId,
+        PropertyName="file_name",
+        Value="test_file2.txt",
+    )
+    db.session.add(file_2_metadata)
+    db.session.commit()
+
+    file_2_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_2.FileId,
+        PropertyName="date_last_modified",
+        Value="2023-12-15",
+    )
+    db.session.add(file_2_metadata)
+    db.session.commit()
+
+    file_2_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_2.FileId,
+        PropertyName="closure_type",
+        Value="closed",
+    )
+    db.session.add(file_2_metadata)
+    db.session.commit()
+
+    file_2_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_2.FileId,
+        PropertyName="closure_start_date",
+        Value="2023-12-15",
+    )
+    db.session.add(file_2_metadata)
+    db.session.commit()
+
+    file_2_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_2.FileId,
+        PropertyName="closure_expiry",
+        Value="50",
+    )
+    db.session.add(file_2_metadata)
+    db.session.commit()
+
+    file_2_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_2.FileId,
+        PropertyName="file_type",
+        Value="txt",
+    )
+    db.session.add(file_2_metadata)
+    db.session.commit()
+
+    file_3 = File(
+        FileId=uuid.uuid4(),
+        ConsignmentId=consignment_id,
+        FileName="test_file3.pdf",
+        FileType="file",
+        FileReference="test_file3.pdf",
+        FilePath="/data/test_file3.pdf",
+    )
+    db.session.add(file_3)
+    db.session.commit()
+
+    file_3_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_3.FileId,
+        PropertyName="file_name",
+        Value="test_file3.pdf",
+    )
+    db.session.add(file_3_metadata)
+    db.session.commit()
+
+    file_3_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_3.FileId,
+        PropertyName="date_last_modified",
+        Value="2023-12-15",
+    )
+    db.session.add(file_3_metadata)
+    db.session.commit()
+
+    file_3_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_3.FileId,
+        PropertyName="closure_type",
+        Value="open",
+    )
+    db.session.add(file_3_metadata)
+    db.session.commit()
+
+    file_3_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_3.FileId,
+        PropertyName="closure_start_date",
+        Value="",
+    )
+    db.session.add(file_3_metadata)
+    db.session.commit()
+
+    file_3_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_3.FileId,
+        PropertyName="closure_expiry",
+        Value="",
+    )
+    db.session.add(file_3_metadata)
+    db.session.commit()
+
+    file_3_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_3.FileId,
+        PropertyName="file_type",
+        Value="pdf",
+    )
+    db.session.add(file_3_metadata)
+    db.session.commit()
+
+    file_4 = File(
+        FileId=uuid.uuid4(),
+        ConsignmentId=consignment_id,
+        FileName="test_file4.doc",
+        FileType="file",
+        FileReference="test_file4.doc",
+        FilePath="/data/test_file4.doc",
+    )
+    db.session.add(file_4)
+    db.session.commit()
+
+    file_4_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_4.FileId,
+        PropertyName="file_name",
+        Value="test_file4.doc",
+    )
+    db.session.add(file_4_metadata)
+    db.session.commit()
+
+    file_4_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_4.FileId,
+        PropertyName="date_last_modified",
+        Value="2023-12-15",
+    )
+    db.session.add(file_4_metadata)
+    db.session.commit()
+
+    file_4_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_4.FileId,
+        PropertyName="closure_type",
+        Value="closed",
+    )
+    db.session.add(file_4_metadata)
+    db.session.commit()
+
+    file_4_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_4.FileId,
+        PropertyName="closure_start_date",
+        Value="",
+    )
+    db.session.add(file_4_metadata)
+    db.session.commit()
+
+    file_4_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_4.FileId,
+        PropertyName="closure_expiry",
+        Value="100",
+    )
+    db.session.add(file_4_metadata)
+    db.session.commit()
+
+    file_4_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_4.FileId,
+        PropertyName="file_type",
+        Value="doc",
+    )
+    db.session.add(file_4_metadata)
+    db.session.commit()
+
+    file_5 = File(
+        FileId=uuid.uuid4(),
+        ConsignmentId=consignment_id,
+        FileName="test_file5.pdf",
+        FileType="file",
+        FileReference="test_file5.pdf",
+        FilePath="/data/test_file5.pdf",
+    )
+    db.session.add(file_5)
+    db.session.commit()
+
+    file_5_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_5.FileId,
+        PropertyName="file_name",
+        Value="test_file5.pdf",
+    )
+    db.session.add(file_5_metadata)
+    db.session.commit()
+
+    file_5_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_5.FileId,
+        PropertyName="date_last_modified",
+        Value="2023-12-15",
+    )
+    db.session.add(file_5_metadata)
+    db.session.commit()
+
+    file_5_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_5.FileId,
+        PropertyName="closure_type",
+        Value="open",
+    )
+    db.session.add(file_5_metadata)
+    db.session.commit()
+
+    file_5_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_5.FileId,
+        PropertyName="closure_start_date",
+        Value="",
+    )
+    db.session.add(file_5_metadata)
+    db.session.commit()
+
+    file_5_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_5.FileId,
+        PropertyName="closure_expiry",
+        Value="",
+    )
+    db.session.add(file_5_metadata)
+    db.session.commit()
+
+    file_5_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_5.FileId,
+        PropertyName="file_type",
+        Value="pdf",
+    )
+    db.session.add(file_5_metadata)
+    db.session.commit()
+
+    file_6 = File(
+        FileId=uuid.uuid4(),
+        ConsignmentId=consignment_id,
+        FileName="test_file6.txt",
+        FileType="file",
+        FileReference="test_file6.txt",
+        FilePath="/data/test_file6.txt",
+    )
+    db.session.add(file_6)
+    db.session.commit()
+
+    file_6_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_6.FileId,
+        PropertyName="file_name",
+        Value="test_file6.txt",
+    )
+    db.session.add(file_6_metadata)
+    db.session.commit()
+
+    file_6_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_6.FileId,
+        PropertyName="date_last_modified",
+        Value="2023-12-15",
+    )
+    db.session.add(file_6_metadata)
+    db.session.commit()
+
+    file_6_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_6.FileId,
+        PropertyName="closure_type",
+        Value="closed",
+    )
+    db.session.add(file_6_metadata)
+    db.session.commit()
+
+    file_6_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_6.FileId,
+        PropertyName="closure_start_date",
+        Value="2023-11-05",
+    )
+    db.session.add(file_6_metadata)
+    db.session.commit()
+
+    file_6_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_6.FileId,
+        PropertyName="closure_expiry",
+        Value="70",
+    )
+    db.session.add(file_6_metadata)
+    db.session.commit()
+
+    file_6_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_6.FileId,
+        PropertyName="file_type",
+        Value="txt",
+    )
+
+    db.session.add(file_6_metadata)
+    db.session.commit()
+
+    file_7 = File(
+        FileId=uuid.uuid4(),
+        ConsignmentId=consignment_id,
+        FileName="test_file7.png",
+        FileType="file",
+        FileReference="test_file7.png",
+        FilePath="/data/test_file7.png",
+    )
+    db.session.add(file_7)
+    db.session.commit()
+
+    file_7_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_7.FileId,
+        PropertyName="file_name",
+        Value="test_file7.png",
+    )
+    db.session.add(file_7_metadata)
+    db.session.commit()
+
+    file_7_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_7.FileId,
+        PropertyName="date_last_modified",
+        Value="2023-12-15",
+    )
+    db.session.add(file_7_metadata)
+    db.session.commit()
+
+    file_7_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_7.FileId,
+        PropertyName="closure_type",
+        Value="closed",
+    )
+    db.session.add(file_7_metadata)
+    db.session.commit()
+
+    file_7_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_7.FileId,
+        PropertyName="closure_start_date",
+        Value="2023-11-05",
+    )
+    db.session.add(file_7_metadata)
+    db.session.commit()
+
+    file_7_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_7.FileId,
+        PropertyName="closure_expiry",
+        Value="10",
+    )
+    db.session.add(file_7_metadata)
+    db.session.commit()
+
+    file_7_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_7.FileId,
+        PropertyName="file_type",
+        Value="png",
+    )
+
+    db.session.add(file_7_metadata)
+    db.session.commit()
+
+    return [
+        file_2,
+        file_3,
+        file_4,
+        file_5,
+        file_6,
+        file_7,
     ]

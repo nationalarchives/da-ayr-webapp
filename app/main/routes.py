@@ -123,6 +123,7 @@ def browse():
         "browse.html",
         form=form,
         current_page=page,
+        filters=filters,
         browse_type=browse_type,
         results=browse_results,
         num_records_found=num_records_found,
@@ -141,6 +142,7 @@ def poc_search():
         or request.args.get("query", "").lower()
     )
     page = int(request.args.get("page", 1))
+    filters = {"query": query}
 
     if query:
         search_results = fuzzy_search(query, page, per_page)
@@ -150,7 +152,7 @@ def poc_search():
         "poc-search.html",
         form=form,
         current_page=page,
-        query=query,
+        filters=filters,
         results=search_results,
         num_records_found=num_records_found,
     )

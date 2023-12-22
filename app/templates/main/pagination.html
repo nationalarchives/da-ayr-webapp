@@ -2,7 +2,7 @@
 <nav class="govuk-pagination govuk-pagination--centred" role="navigation" aria-label="Pagination">
     {% if results.has_prev == True %}
     <div class="govuk-pagination__prev">
-        <a class="govuk-link govuk-pagination__link" href="{{ url_for(view_name, page=current_page-1, query=query) }}"
+        <a class="govuk-link govuk-pagination__link" href="{{ url_for(view_name, page=current_page-1, **filters) }}"
             rel="prev">
             <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg"
                 height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
@@ -19,14 +19,14 @@
         {% if page %}
         {% if page != current_page %}
         <li class="govuk-pagination__item">
-            <a class="govuk-link govuk-pagination__link" href="{{ url_for(view_name, page=page, query=query) }}"
+            <a class="govuk-link govuk-pagination__link" href="{{ url_for(view_name, page=page, **filters) }}"
                 aria-label="Page {{page}}">
                 {{ page }}
             </a>
         </li>
         {% else %}
         <li class="govuk-pagination__item govuk-pagination__item--current">
-            <a class="govuk-link govuk-pagination__link" href="{{ url_for(view_name, page=page, query=query) }}"
+            <a class="govuk-link govuk-pagination__link" href="{{ url_for(view_name, page=page, **filters) }}"
                 aria-label="Page {{page}}" aria-current="page">
                 {{ page }}
             </a>
@@ -39,7 +39,7 @@
     </ul>
     {% if results.has_next == True %}
     <div class="govuk-pagination__next">
-        <a class="govuk-link govuk-pagination__link" href="{{ url_for(view_name, page=current_page+1, query=query) }}"
+        <a class="govuk-link govuk-pagination__link" href="{{ url_for(view_name, page=current_page+1, **filters) }}"
             rel="next">
             <span class="govuk-pagination__link-title">Next<span class="govuk-visually-hidden"> page</span></span>
             <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg"

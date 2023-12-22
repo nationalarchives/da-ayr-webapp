@@ -505,6 +505,10 @@ class TestGetFileMetadata:
 
         expected_search_results = [
             {"property_name": "file_name", "property_value": "test_file1.pdf"},
+            {
+                "property_name": "date_last_modified",
+                "property_value": "2023-12-15",
+            },
             {"property_name": "closure_type", "property_value": "open"},
             {"property_name": "file_type", "property_value": "pdf"},
         ]

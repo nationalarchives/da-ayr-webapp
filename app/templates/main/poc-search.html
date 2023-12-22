@@ -32,7 +32,7 @@
           </div>
           <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
-              {% if query|length >0 %}
+              {% if filters["query"]|length >0 %}
                 <h2 class="govuk-heading-m">{{ num_records_found }} record(s) found</h2>
                 {% if num_records_found > 0 %}
                   <table class="govuk-table">
