@@ -354,7 +354,11 @@ def _get_file_metadata_query(file_id: uuid.UUID):
             ),
         ).label("language"),
         Consignment.ConsignmentId.label("consignment_id"),
+        Consignment.ConsignmentReference.label("consignment"),
         Body.Name.label("transferring_body"),
+        Body.BodyId.label("transferring_body_id"),
+        Series.SeriesId.label("series_id"),
+        Series.Name.label("series"),
     )
 
     filters = [
@@ -370,7 +374,9 @@ def _get_file_metadata_query(file_id: uuid.UUID):
             Body.BodyId == Consignment.BodyId,
         )
         .filter(*filters)
-        .group_by(File.FileId, Body.Name, Consignment.ConsignmentId)
+        .group_by(
+            File.FileId, Body.BodyId, Series.SeriesId, Consignment.ConsignmentId
+        )
     )
 
     return query

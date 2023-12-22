@@ -533,8 +533,12 @@ class TestGetFileMetadata:
             "legal_status": "Test legal status",
             "rights_copyright": "Test copyright",
             "language": "English",
+            "consignment": file.file_consignments.ConsignmentReference,
             "consignment_id": file.ConsignmentId,
             "transferring_body": file.file_consignments.consignment_bodies.Name,
+            "transferring_body_id": file.file_consignments.consignment_bodies.BodyId,
+            "series": file.file_consignments.consignment_series.Name,
+            "series_id": file.file_consignments.consignment_series.SeriesId,
         }
 
 

@@ -1,3 +1,5 @@
+from bs4 import BeautifulSoup
+
 from app.tests.factories import FileFactory, FileMetadataFactory
 
 
@@ -19,7 +21,7 @@ def test_valid_id_returns_expected_html(client):
     When a GET request is made to `record/file_id`
     Then the response contains html including the record's expected metadata
     """
-    file = FileFactory(FileType="file")
+    file = FileFactory(FileName="test_file.txt", FileType="file")
 
     metadata = {
         "date_last_modified": "2023-02-25T10:12:47",
@@ -44,10 +46,44 @@ def test_valid_id_returns_expected_html(client):
 
     assert response.status_code == 200
 
-    assert (
-        b'<a class="govuk-breadcrumbs__link--record" href="#">Electoral Commision</a>'
-        in response.data
+    html = response.data.decode()
+
+    expected_breadcrumbs_html = f"""
+    <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
+    <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
+    <div class="govuk-breadcrumbs govuk-breadcrumbs--record">
+        <ol class="govuk-breadcrumbs__list">
+            <li class="govuk-breadcrumbs__list-item">
+            <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
+            </li>
+            <li class="govuk-breadcrumbs__list-item">
+            <a class="govuk-breadcrumbs__link--record"
+                href="/browse?transferring_body_id={file.file_consignments.consignment_bodies.BodyId}">{file.file_consignments.consignment_bodies.Name}</a>
+            </li>
+            <li class="govuk-breadcrumbs__list-item">
+            <a class="govuk-breadcrumbs__link--record"
+                href="/browse?series_id={file.file_consignments.consignment_series.SeriesId}">{file.file_consignments.consignment_series.Name}</a>
+            </li>
+            <li class="govuk-breadcrumbs__list-item">
+            <a class="govuk-breadcrumbs__link--record"
+                href="/browse?consignment_id={file.ConsignmentId}">{file.file_consignments.ConsignmentReference}</a>
+            </li>
+            <li class="govuk-breadcrumbs__list-item">
+            <a class="govuk-breadcrumbs__link--record">test_file.txt</a>
+            </li>
+        </ol>
+        </div>
+    </div>
+    """
+
+    soup = BeautifulSoup(html, "html.parser")
+    breadcrumbs_soup = soup.find(
+        "div",
+        {"class": "govuk-grid-column-full govuk-grid-column-full__page-nav"},
     )
+    expected_soup = BeautifulSoup(expected_breadcrumbs_html, "html.parser")
+    assert expected_soup.prettify() == breadcrumbs_soup.prettify()
+
     assert (
         b'<dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Consignment ID</dt>'
         in response.data
