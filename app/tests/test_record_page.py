@@ -78,16 +78,12 @@ def test_valid_id_returns_expected_html(client):
     </div>
     """
 
-    expected_breadcrumbs_soup = BeautifulSoup(
-        expected_breadcrumbs_html, "html.parser"
-    )
-
-    breadcrumbs_soup = soup.find(
+    assert_contains_html(
+        expected_breadcrumbs_html,
+        soup,
         "div",
         {"class": "govuk-grid-column-full govuk-grid-column-full__page-nav"},
     )
-
-    assert expected_breadcrumbs_soup.prettify() == breadcrumbs_soup.prettify()
 
     expected_record_summary_html = f"""
     <dl class="govuk-summary-list govuk-summary-list--record">
@@ -141,18 +137,11 @@ def test_valid_id_returns_expected_html(client):
     </dl>
     """
 
-    expected_record_summary_soup = BeautifulSoup(
-        expected_record_summary_html, "html.parser"
-    )
-
-    record_summary_soup = soup.find(
+    assert_contains_html(
+        expected_record_summary_html,
+        soup,
         "dl",
         {"class": "govuk-summary-list govuk-summary-list--record"},
-    )
-
-    assert (
-        expected_record_summary_soup.prettify()
-        == record_summary_soup.prettify()
     )
 
     expected_download_html = """
@@ -167,16 +156,9 @@ def test_valid_id_returns_expected_html(client):
     </div>
     """
 
-    expected_download_soup = BeautifulSoup(
-        expected_download_html, "html.parser"
+    assert_contains_html(
+        expected_download_html, soup, "div", {"class": "rights-container"}
     )
-
-    download_soup = soup.find(
-        "div",
-        {"class": "rights-container"},
-    )
-
-    assert expected_download_soup.prettify() == download_soup.prettify()
 
     expected_arrangement_html = """
     <div class="record-container">
@@ -192,13 +174,16 @@ def test_valid_id_returns_expected_html(client):
     </div>
     """
 
-    expected_arrangement_soup = BeautifulSoup(
-        expected_arrangement_html, "html.parser"
+    assert_contains_html(
+        expected_arrangement_html, soup, "div", {"class": "record-container"}
     )
 
-    arrangement_soup = soup.find(
-        "div",
-        {"class": "record-container"},
-    )
 
-    assert expected_arrangement_soup.prettify() == arrangement_soup.prettify()
+def assert_contains_html(
+    expected_html_subset, soup, sub_element_type, sub_element_filter
+):
+    expected_subset_soup = BeautifulSoup(expected_html_subset, "html.parser")
+
+    subset_soup = soup.find(sub_element_type, sub_element_filter)
+
+    assert expected_subset_soup.prettify() == subset_soup.prettify()
