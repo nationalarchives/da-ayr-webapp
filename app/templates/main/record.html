@@ -1,119 +1,129 @@
 {% extends "base.html" %}
-
 {%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
-
-{% block pageTitle %}Record – {{config['SERVICE_NAME']}} – GOV.UK{% endblock %}
-
-
-
+{% block pageTitle %}Record – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block content %}
-
-<div class="govuk-width-container govuk-width-container--record">
-  <main class="govuk-main-wrapper">
-    <div class="govuk-grid-row">
-<div class="govuk-grid-row">
-<div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
-  <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
-  <div class="govuk-breadcrumbs govuk-breadcrumbs--record">
-      <ol class="govuk-breadcrumbs__list">
-        <li class="govuk-breadcrumbs__list-item">
-          <a class="govuk-breadcrumbs__link--record" href="#">Everything</a>
-        </li>
-        <li class="govuk-breadcrumbs__list-item">
-          <a class="govuk-breadcrumbs__link--record" href="#">Electoral Commision</a>
-        </li>
-        <li class="govuk-breadcrumbs__list-item">
-          <a class="govuk-breadcrumbs__link--record" href="#">EC9</a>
-        </li>
-        <li class="govuk-breadcrumbs__list-item">
-          <a class="govuk-breadcrumbs__link--record" href="#">TDR-2023-HHA</a>
-        </li>
-        <li class="govuk-breadcrumbs__list-item">
-          <a class="govuk-breadcrumbs__link--record" href="#">political parties panel - notes of meeting 1 - 12 September 2003.doc</a>
-        </li>
-      </ol>
+    <div class="govuk-width-container govuk-width-container--record">
+        <main class="govuk-main-wrapper">
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-row">
+                    <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
+                        <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
+                        <div class="govuk-breadcrumbs govuk-breadcrumbs--record">
+                            <ol class="govuk-breadcrumbs__list">
+                                <li class="govuk-breadcrumbs__list-item">
+                                    <a class="govuk-breadcrumbs__link--record" href="#">Everything</a>
+                                </li>
+                                <li class="govuk-breadcrumbs__list-item">
+                                    <a class="govuk-breadcrumbs__link--record" href="#">Electoral Commision</a>
+                                </li>
+                                <li class="govuk-breadcrumbs__list-item">
+                                    <a class="govuk-breadcrumbs__link--record" href="#">EC9</a>
+                                </li>
+                                <li class="govuk-breadcrumbs__list-item">
+                                    <a class="govuk-breadcrumbs__link--record" href="#">TDR-2023-HHA</a>
+                                </li>
+                                <li class="govuk-breadcrumbs__list-item">
+                                    <a class="govuk-breadcrumbs__link--record" href="#">political parties panel - notes of meeting 1 - 12 September 2003.doc</a>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--record-search">
+                    <h1 class="govuk-heading-m govuk-heading-m__record-details">Record details</h1>
+                    <dl class="govuk-summary-list govuk-summary-list--record">
+                        <div class="govuk-summary-list__row"></div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Filename</dt>
+                            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                                {{ record['file_name'] }}
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
+                            {% if record['status'] | lower == 'closed' %}
+                                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                                    <span class="govuk-tag govuk-tag--red">{{ record['status'] }}</span>
+                                </dd>
+                            {% else %}
+                                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                                    <span class="govuk-tag govuk-tag--green">{{ record['status'] }}</span>
+                                </dd>
+                            {% endif %}
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Transferring body</dt>
+                            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                                {{ record['transferring_body'] }}
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Consignment ID</dt>
+                            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                                {{ record['consignment_id'] }}
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Description</dt>
+                            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                                {{ record['description'] }}
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Date last modified</dt>
+                            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                                {{ record['date_last_modified'] }}
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
+                            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                                {{ record['held_by'] }}
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Legal status</dt>
+                            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                                {{ record['legal_status'] }}
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Rights copyright</dt>
+                            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                                {{ record['rights_copyright'] }}
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Language</dt>
+                            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                                {{ record['language'] }}
+                            </dd>
+                        </div>
+                    </div>
+                </dl>
+                <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record">
+                    <div class="rights-container">
+                        <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
+                        <button class="govuk-button govuk-button__download--record"
+                                data-module="govuk-button">Download record</button>
+                        <p class="govuk-body govuk-body--terms-of-use">
+                            Refer to <a href="/terms-of-use" class="govuk-link">Terms of use.</a>
+                        </p>
+                    </div>
+                    <div class="record-container">
+                        <h3 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h3>
+                        <ol>
+                            <li class="govuk-body govuk-body__record-arrangement-list">Electoral commission meeting notes</li>
+                            <li class=" govuk-body govuk-body__record-arrangement-list">2003</li>
+                            <li class="govuk-body govuk-body__record-arrangement-list">September</li>
+                            <li class="govuk-body govuk-body__record-arrangement-list">
+                                political parties panel - notes of meeting 1 - 12 September 2003.doc
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
-</div>
-</div>
-      <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--record-search">
-        <h1 class="govuk-heading-m govuk-heading-m__record-details">Record details</h1>
-          <dl class="govuk-summary-list govuk-summary-list--record">
-            <div class="govuk-summary-list__row"></div>
-              <div class="govuk-summary-list__row govuk-summary-list__row--record">
-              <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Filename</dt>
-              <dd class="govuk-summary-list__value govuk-summary-list__value--record">{{record['file_name']}}</dd>
-              </div>
-
-
-              <div class="govuk-summary-list__row govuk-summary-list__row--record">
-              <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
-              {% if record['status'] | lower == 'closed' %}
-              <dd class="govuk-summary-list__value govuk-summary-list__value--record"><span class="govuk-tag govuk-tag--red">{{record['status']}}</span>
-              </dd>
-             {% else %}
-              <dd class="govuk-summary-list__value govuk-summary-list__value--record"><span class="govuk-tag govuk-tag--green">{{record['status']}}</span>
-              </dd>
-             {% endif %}
-              </div>
-
-              <div class="govuk-summary-list__row govuk-summary-list__row--record">
-              <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Transferring body</dt>
-              <dd class="govuk-summary-list__value govuk-summary-list__value--record">{{record['transferring_body']}}</dd>
-              </div>
-              <div class="govuk-summary-list__row govuk-summary-list__row--record">
-              <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Consignment ID</dt>
-              <dd class="govuk-summary-list__value govuk-summary-list__value--record">{{record['consignment_id']}}</dd>
-              </div>
-              <div class="govuk-summary-list__row govuk-summary-list__row--record">
-              <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Description</dt>
-              <dd class="govuk-summary-list__value govuk-summary-list__value--record">{{record['description']}}</dd>
-              </div>
-              <div class="govuk-summary-list__row govuk-summary-list__row--record">
-              <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Date last modified</dt>
-              <dd class="govuk-summary-list__value govuk-summary-list__value--record">{{record['date_last_modified']}}</dd>
-              </div>
-              <div class="govuk-summary-list__row govuk-summary-list__row--record">
-              <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
-              <dd class="govuk-summary-list__value govuk-summary-list__value--record">{{record['held_by']}}</dd>
-              </div>
-              <div class="govuk-summary-list__row govuk-summary-list__row--record">
-              <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Legal status</dt>
-              <dd class="govuk-summary-list__value govuk-summary-list__value--record">{{record['legal_status']}}</dd>
-              </div>
-              <div class="govuk-summary-list__row govuk-summary-list__row--record">
-              <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Rights copyright</dt>
-              <dd class="govuk-summary-list__value govuk-summary-list__value--record">{{record['rights_copyright']}}</dd>
-              </div>
-              <div class="govuk-summary-list__row govuk-summary-list__row--record">
-              <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Language</dt>
-               <dd class="govuk-summary-list__value govuk-summary-list__value--record">{{record['language']}}</dd>
-              </div>
-              </div>
-              </dl>
-
-
-      <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record">
-          <div class="rights-container">
-          <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-          <button class="govuk-button govuk-button__download--record" data-module="govuk-button">Download record</button>
-          <p class="govuk-body govuk-body--terms-of-use">Refer to <a href="/terms-of-use" class="govuk-link">Terms of use.</a></p>
-          </div>
-
-
-          <div class="record-container">
-              <h3 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h3>
-
-<ol>
-  <li class="govuk-body govuk-body__record-arrangement-list">Electoral commission meeting notes</li>
-  <li class=" govuk-body govuk-body__record-arrangement-list">2003</li>
-  <li class="govuk-body govuk-body__record-arrangement-list">September</li>
-  <li class="govuk-body govuk-body__record-arrangement-list">political parties panel - notes of meeting 1 - 12 September 2003.doc</li>
-  </ol>
-  </div>
-  </div>
-  </div>
-  </main>
- </div>
-
- {% endblock %}
+{% endblock %}

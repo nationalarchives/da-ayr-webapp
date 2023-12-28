@@ -11,6 +11,12 @@ repos:
     -   id: check-added-large-files
     -   id: check-merge-conflict
 
+- repo: https://github.com/Riverside-Healthcare/djLint
+  rev: v1.33.0
+  hooks:
+    - id: djlint-reformat
+      args: ["--no-function-formatting"]
+
 -   repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0
     hooks:
