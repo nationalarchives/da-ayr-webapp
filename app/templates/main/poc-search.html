@@ -12,7 +12,7 @@
                         <div class="govuk-grid-column-two-thirds">
                             <h2 class="govuk-heading-l">Search design PoC</h2>
                             <h3 class="govuk-heading-s govuk-!-font-weight-bold">Search for digital records</h3>
-                            <form action="{{ url_for('main.poc_search') }}" method="POST">
+                            <form action="{{ url_for('main.poc_search') }}" method="post">
                                 {{ form.csrf_token }}
                                 <div class="govuk-form-group">
                                     <label for="searchInput"></label>

@@ -16,6 +16,7 @@ repos:
   hooks:
     - id: djlint-reformat
       args: ["--no-function-formatting"]
+    - id: djlint
 
 -   repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0
