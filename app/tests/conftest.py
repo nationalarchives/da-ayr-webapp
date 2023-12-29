@@ -1,9 +1,35 @@
+from unittest.mock import patch
+
 import pytest
+from flask.testing import FlaskClient
 from testing.postgresql import PostgresqlFactory
 
 from app import create_app
 from app.main.db.models import db
 from configs.testing_config import TestingConfig
+
+
+def mock_standard_user(client: FlaskClient, body: str):
+    with client.session_transaction() as session:
+        session["access_token"] = "valid_token"
+
+    groups = [
+        "/ayr_user_type/view_department",
+        f"/transferring_body_user/{body}",
+    ]
+
+    patcher = patch("app.main.authorize.permissions_helpers.get_user_groups")
+    mock_get_user_groups = patcher.start()
+    mock_get_user_groups.return_value = groups
+
+
+def mock_superuser(client: FlaskClient):
+    with client.session_transaction() as session:
+        session["access_token"] = "valid_token"
+
+    patcher = patch("app.main.authorize.permissions_helpers.get_user_groups")
+    mock_get_user_groups = patcher.start()
+    mock_get_user_groups.return_value = "/ayr_user_type/view_all"
 
 
 @pytest.fixture
