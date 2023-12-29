@@ -63,10 +63,6 @@ class BaseConfig(object):
         return self._get_config_value("KEYCLOAK_CLIENT_SECRET")
 
     @property
-    def KEYCLOAK_AYR_USER_GROUP(self):
-        return self._get_config_value("KEYCLOAK_AYR_USER_GROUP")
-
-    @property
     def RATELIMIT_STORAGE_URI(self):
         return self._get_config_value("RATELIMIT_STORAGE_URI")
 

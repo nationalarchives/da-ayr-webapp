@@ -75,11 +75,13 @@ def test_access_token_sign_in_required_decorator_active_without_ayr_access(
     """
     mock_decode_keycloak_access_token.return_value = {
         "active": True,
-        "groups": ["application_1/foo", "application_2/bar"],
+        "groups": [
+            "/transferring_body_user/foo",
+            "/transferring_body_user/bar",
+        ],
     }
 
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
-    app.config["KEYCLOAK_AYR_USER_GROUP"] = "application_3"
 
     view_name = "/protected_view"
     with app.test_client() as client:
@@ -121,11 +123,14 @@ def test_access_token_sign_in_required_decorator_valid_token(
     """
     mock_decode_keycloak_access_token.return_value = {
         "active": True,
-        "groups": ["application_1/foo", "application_2/bar"],
+        "groups": [
+            "/ayr_user_type/view_department",
+            "/transferring_body_user/foo",
+            "transferring_body_user/bar",
+        ],
     }
 
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
-    app.config["KEYCLOAK_AYR_USER_GROUP"] = "application_1"
 
     view_name = "/protected_view"
     with app.test_client() as client:
