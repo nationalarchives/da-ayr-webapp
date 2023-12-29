@@ -20,6 +20,10 @@ from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
 from app.main.db.queries import browse_data, fuzzy_search, get_file_metadata
+from app.main.authorize.permissions_helpers import (
+    validate_body_user_groups_or_404,
+)
+from app.main.db.models import File
 from app.main.forms import CookiesForm
 
 from .forms import SearchForm
@@ -173,6 +177,12 @@ def record(record_id: uuid.UUID):
     Returns:
         A rendered HTML page with record details.
     """
+    file = File.query.one_or_404(record_id)
+
+    validate_body_user_groups_or_404(
+        file.file_consignments.consignment_bodies.Name
+    )
+
     file_metadata = get_file_metadata(record_id)
 
     return render_template("record.html", record=file_metadata)
