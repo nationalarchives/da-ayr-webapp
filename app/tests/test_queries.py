@@ -531,56 +531,39 @@ class TestGetFileMetadata:
 
 
 class TestGetUserAccessibleTransferringBodies:
-    def test_no_token_returns_empty_list(
+    def test_no_groups_returns_empty_list(
         self,
     ):
         """
-        Given no access token,
-        When calling the get_user_transferring_body_keycloak_groups
+        Given an empty list,
+        When calling get_user_accessible_transferring_bodies with it
         Then it should return an empty list
         """
-        results = get_user_accessible_transferring_bodies(None)
+        results = get_user_accessible_transferring_bodies([])
         assert results == []
 
-    @patch("app.main.db.queries.decode_token")
-    def test_inactive_token_returns_empty_list(self, mock_decode_token):
-        """
-        Given an inactive access token
-        When calling get_user_transferring_body_keycloak_groups with it
-        Then it should return an empty list
-        """
-        mock_decode_token.return_value = {
-            "active": False,
-        }
-        assert get_user_accessible_transferring_bodies("access_token") == []
-
-    @patch("app.main.db.queries.decode_token")
     def test_no_transferring_bodies_returns_empty_list(
         self,
-        mock_decode_token,
     ):
         """
-        Given an access token which once decoded contains 2 transferring body groups
+        Given a list of groups not containing any /transferring_body_user/ groups
         When I call get_user_accessible_transferring_bodies with it
-        Then it should return a list with the 2 corresponding body names
+        Then it should return an empty list
         """
-        mock_decode_token.return_value = {
-            "active": True,
-            "groups": [
+        results = get_user_accessible_transferring_bodies(
+            [
                 "/something_else/test body1",
                 "/something_else/test body2",
-                "/ayr_user/bar",
-            ],
-        }
-        results = get_user_accessible_transferring_bodies("access_token")
+                "/ayr_user_type/bar",
+            ]
+        )
         assert results == []
 
-    @patch("app.main.db.queries.decode_token")
     def test_transferring_bodies_in_groups_returns_corresponding_body_names(
-        self, mock_decode_token, client: FlaskClient
+        self, client: FlaskClient
     ):
         """
-        Given an access token which once decoded contains 2 groups prefixed with
+        Given a list of groups including 2 prefixed with
             /transferring_body_user/
             and another group
             and 2 corresponding bodies in the database
@@ -606,42 +589,37 @@ class TestGetUserAccessibleTransferringBodies:
         db.session.add(body_3)
         db.session.commit()
 
-        mock_decode_token.return_value = {
-            "active": True,
-            "groups": [
+        results = get_user_accessible_transferring_bodies(
+            [
                 "/transferring_body_user/test body1",
                 "/transferring_body_user/test body2",
                 "/foo/bar",
-            ],
-        }
-        results = get_user_accessible_transferring_bodies("access_token")
+            ]
+        )
         assert results == ["test body1", "test body2"]
 
     @patch("app.main.db.queries.db")
-    @patch("app.main.db.queries.decode_token")
     def test_db_raised_exception_returns_empty_list_and_log_message(
-        self, mock_decode_token, database, capsys, client
+        self, database, capsys, client
     ):
         """
         Given a db execution error
         When get_user_accessible_transferring_bodies is called
-        Then the list should be empty and an error message is logged
+        Then it should return an empty list and an error message is logged
         """
-        mock_decode_token.return_value = {
-            "active": True,
-            "groups": [
-                "/transferring_body_user/test body1",
-                "/transferring_body_user/test body2",
-                "/ayr_user/bar",
-            ],
-        }
 
         def mock_execute(_):
             raise exc.SQLAlchemyError("foo bar")
 
         database.session.execute.side_effect = mock_execute
 
-        results = get_user_accessible_transferring_bodies("access_token")
+        results = get_user_accessible_transferring_bodies(
+            [
+                "/transferring_body_user/test body1",
+                "/transferring_body_user/test body2",
+                "/ayr_user_type/bar",
+            ]
+        )
         assert results == []
         assert (
             "Failed to return results from database with error : foo bar"
