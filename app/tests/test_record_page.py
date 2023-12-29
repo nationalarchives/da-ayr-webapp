@@ -1,8 +1,24 @@
 from app.tests.assertions import assert_contains_html
+from app.tests.conftest import mock_standard_user, mock_superuser
+from app.tests.factories import FileFactory
 
 
-def test_record_page(client):
-    response = client.get("/record")
+def test_returns_record_page_for_user_with_access_to_files_transferring_body(
+    client,
+):
+    """
+    Given a File in the database
+    When a standard user with access to the file's transferring body makes a
+        request to view the record page
+    Then the response status code should be 200
+    And the HTML content should contain specific elements
+        related to the record
+    """
+    file = FileFactory()
+
+    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+
+    response = client.get(f"/record/{file.FileId}")
 
     assert response.status_code == 200
 
@@ -49,3 +65,35 @@ def test_record_page(client):
     assert_contains_html(
         expected_arrangement_html, html, "div", {"class": "record-container"}
     )
+
+
+def test_raises_404_for_user_without_access_to_files_transferring_body(client):
+    """
+    Given a File in the database
+    When a standard user without access to the file's consignment body makes a
+        request to view the record page
+    Then the response status code should be 404
+    """
+    file = FileFactory()
+
+    mock_standard_user(client, "different_body")
+
+    response = client.get(f"/record/{file.FileId}")
+
+    assert response.status_code == 404
+
+
+def test_returns_record_page_for_superuser(client):
+    """
+    Given a File in the database
+    And a superuser
+    When the superuser makes a request to view the record page
+    Then the response status code should be 200
+    """
+    mock_superuser(client)
+
+    file = FileFactory()
+
+    response = client.get(f"/record/{file.FileId}")
+
+    assert response.status_code == 200

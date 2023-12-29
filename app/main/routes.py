@@ -1,3 +1,5 @@
+import uuid
+
 import keycloak
 from flask import (
     current_app,
@@ -17,6 +19,10 @@ from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
+from app.main.authorize.permission_helpers import (
+    check_transferring_body_user_groups_or_raises_404,
+)
+from app.main.db.models import File
 from app.main.db.queries import browse_data, fuzzy_search
 from app.main.forms import CookiesForm
 
@@ -156,9 +162,9 @@ def poc_search():
     )
 
 
-@bp.route("/record", methods=["GET"])
+@bp.route("/record/<uuid:record_id>", methods=["GET"])
 @access_token_sign_in_required
-def record():
+def record(record_id: uuid.UUID):
     """
     Render the record details page.
 
@@ -169,6 +175,12 @@ def record():
     Returns:
         A rendered HTML page with record details.
     """
+    file = File.query.one_or_404(record_id)
+
+    check_transferring_body_user_groups_or_raises_404(
+        file.file_consignments.consignment_bodies.Name
+    )
+
     record_1 = {
         "file_name": "file-b2.txt",
         "status": "open",
