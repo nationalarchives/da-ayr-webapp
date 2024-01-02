@@ -7,7 +7,6 @@ from flask.testing import FlaskClient
 from app.main.db.queries import (
     browse_data,
     fuzzy_search,
-    get_date_range,
     get_file_metadata,
 )
 from app.tests.factories import (
@@ -545,6 +544,7 @@ class TestBrowseData:
             per_page=per_page,
             consignment_id=consignment.ConsignmentId,
             date_range=date_range,
+            date_filter_field="date_last_modified",
         )
 
         assert pagination_object.total == 2
@@ -637,6 +637,7 @@ class TestBrowseData:
             per_page=per_page,
             consignment_id=consignment.ConsignmentId,
             date_range=date_range,
+            date_filter_field="date_last_modified",
         )
 
         assert pagination_object.total == 1
@@ -724,6 +725,7 @@ class TestBrowseData:
             per_page=per_page,
             consignment_id=consignment.ConsignmentId,
             date_range=date_range,
+            date_filter_field="date_last_modified",
         )
 
         assert pagination_object.total == 2
@@ -951,52 +953,6 @@ class TestBrowseData:
         result = browse_data(page=1, per_page=per_page, date_range=date_range)
 
         assert result.items == []
-
-    def test_browse_data_date_from_filter_exception_raised(self, app, caplog):
-        """
-        Given a date_from value error
-        When get_date_range function is called
-        Then it returns and empty date range and logs an error message
-        """
-        dt_range = {"date_from": "junk"}
-        results = get_date_range(date_range=dt_range)
-        assert (
-            "Invalid [date from] value being passed in date range"
-            in caplog.text
-        )
-        assert results == {"date_from": None, "date_to": None}
-
-    def test_browse_data_date_to_filter_exception_raised(self, app, caplog):
-        """
-        Given a date_to value error
-        When get_date_range function is called
-        Then it returns and empty date range and logs an error message
-        """
-        dt_range = {"date_to": "junk"}
-        results = get_date_range(date_range=dt_range)
-        assert (
-            "Invalid [date to] value being passed in date range" in caplog.text
-        )
-        assert results == {"date_from": None, "date_to": None}
-
-    def test_browse_data_date_from_and_to_filter_exception_raised(
-        self, app, caplog
-    ):
-        """
-        Given a date_from and date_to value error
-        When get_date_range function is called
-        Then it returns and empty date range and logs an error message
-        """
-        dt_range = {"date_from": "junk", "date_to": "junk"}
-        results = get_date_range(date_range=dt_range)
-        assert (
-            "Invalid [date from] value being passed in date range"
-            in caplog.text
-        )
-        assert (
-            "Invalid [date to] value being passed in date range" in caplog.text
-        )
-        assert results == {"date_from": None, "date_to": None}
 
 
 class TestGetFileMetadata:

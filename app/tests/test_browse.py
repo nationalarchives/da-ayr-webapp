@@ -31,7 +31,7 @@ def test_browse_submit_search_query(client: FlaskClient):
     """
     create_multiple_test_records()
 
-    response = client.get("/browse")
+    client.get("/browse")
     query = "test"
     response = client.post("/browse", data={"query": query})
 

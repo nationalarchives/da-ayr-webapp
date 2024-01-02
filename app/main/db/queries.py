@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 from flask import current_app
 from sqlalchemy import DATE, Text, and_, func, or_
@@ -8,6 +7,7 @@ from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
 )
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
+from app.main.util.date_formatter import get_date_range
 
 
 def fuzzy_search(query: str, page: int, per_page: int):
@@ -23,7 +23,9 @@ def browse_data(
     series_id=None,
     consignment_id=None,
     date_range=None,
+    date_filter_field=None,
 ):
+    browse_query = None
     if transferring_body_id:
         body = Body.query.get_or_404(transferring_body_id)
         validate_body_user_groups_or_404(body.Name)
@@ -39,16 +41,27 @@ def browse_data(
         validate_body_user_groups_or_404(consignment.consignment_bodies.Name)
 
         if date_range is not None and len(date_range) > 0:
-            browse_query = _build_consignment_filter_query(
-                consignment_id, date_range
-            )
+            if date_filter_field is not None:
+                if date_filter_field.lower() == "date_last_modified":
+                    browse_query = _build_consignment_filter_query(
+                        consignment_id,
+                        date_range,
+                        date_filter_field="date_last_modified",
+                    )
         else:
             browse_query = _build_consignment_filter_query(consignment_id)
     else:
         browse_query = _build_browse_everything_query()
 
     if not consignment_id and date_range is not None and len(date_range) > 0:
-        browse_query = _build_date_range_filter_query(browse_query, date_range)
+        dt_range = get_date_range(date_range)
+
+        date_filter = _build_date_range_filter(
+            Consignment.TransferCompleteDatetime,
+            dt_range["date_from"],
+            dt_range["date_to"],
+        )
+        browse_query = browse_query.filter(date_filter)
 
     return browse_query.paginate(page=page, per_page=per_page)
 
@@ -197,7 +210,9 @@ def _build_series_filter_query(series_id):
     return query
 
 
-def _build_consignment_filter_query(consignment_id: uuid.UUID, date_range=None):
+def _build_consignment_filter_query(
+    consignment_id: uuid.UUID, date_range=None, date_filter_field=None
+):
     select = db.session.query(
         File.FileId.label("file_id"),
         File.FileName.label("file_name"),
@@ -267,25 +282,14 @@ def _build_consignment_filter_query(consignment_id: uuid.UUID, date_range=None):
     )
 
     dt_range = get_date_range(date_range)
-    if dt_range["date_from"] is not None and dt_range["date_to"] is not None:
-        query = query.filter(
-            and_(
-                func.to_char(sub_query.c.date_last_modified, "YYYY-MM-DD")
-                >= dt_range["date_from"],
-                func.to_char(sub_query.c.date_last_modified, "YYYY-MM-DD")
-                <= dt_range["date_to"],
+    if date_filter_field is not None:
+        if date_filter_field.lower() == "date_last_modified":
+            date_filter = _build_date_range_filter(
+                sub_query.c.date_last_modified,
+                dt_range["date_from"],
+                dt_range["date_to"],
             )
-        )
-    elif dt_range["date_from"] is not None:
-        query = query.filter(
-            func.to_char(sub_query.c.date_last_modified, "YYYY-MM-DD")
-            >= dt_range["date_from"]
-        )
-    elif dt_range["date_to"] is not None:
-        query = query.filter(
-            func.to_char(sub_query.c.date_last_modified, "YYYY-MM-DD")
-            <= dt_range["date_to"]
-        )
+            query = query.filter(date_filter)
 
     return query
 
@@ -393,54 +397,16 @@ def _get_file_metadata_query(file_id: uuid.UUID):
     return query
 
 
-def _build_date_range_filter_query(query, date_range):
-    dt_range = get_date_range(date_range)
-
-    if dt_range["date_from"] is not None and dt_range["date_to"] is not None:
-        query = query.filter(
-            and_(
-                func.to_char(Consignment.TransferCompleteDatetime, "YYYY-MM-DD")
-                >= dt_range["date_from"],
-                func.to_char(Consignment.TransferCompleteDatetime, "YYYY-MM-DD")
-                <= dt_range["date_to"],
-            )
+def _build_date_range_filter(date_field, date_from, date_to):
+    date_filter = None
+    if date_from and date_to:
+        date_filter = and_(
+            func.to_char(date_field, "YYYY-MM-DD") >= date_from,
+            func.to_char(date_field, "YYYY-MM-DD") <= date_to,
         )
-    elif dt_range["date_from"] is not None:
-        query = query.filter(
-            Consignment.TransferCompleteDatetime >= dt_range["date_from"]
-        )
-    elif dt_range["date_to"] is not None:
-        query = query.filter(
-            Consignment.TransferCompleteDatetime <= dt_range["date_to"]
-        )
-    return query
+    elif date_from:
+        date_filter = func.to_char(date_field, "YYYY-MM-DD") >= date_from
+    elif date_to:
+        date_filter = func.to_char(date_field, "YYYY-MM-DD") <= date_to
 
-
-def get_date_range(date_range):
-    date_from = None
-    date_to = None
-    try:
-        if date_range is not None:
-            if "date_from" in date_range:
-                dt_from = datetime.strptime(
-                    str(date_range["date_from"]), "%d/%m/%Y"
-                )
-                date_from = dt_from.strftime("%Y-%m-%d")
-    except ValueError:
-        current_app.logger.error(
-            "Invalid [date from] value being passed in date range"
-        )
-
-    try:
-        if date_range is not None:
-            if "date_to" in date_range:
-                dt_to = datetime.strptime(
-                    str(date_range["date_to"]), "%d/%m/%Y"
-                )
-                date_to = dt_to.strftime("%Y-%m-%d")
-    except ValueError:
-        current_app.logger.error(
-            "Invalid [date to] value being passed in date range"
-        )
-
-    return {"date_from": date_from, "date_to": date_to}
+    return date_filter
