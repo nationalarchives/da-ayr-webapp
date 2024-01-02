@@ -62,9 +62,9 @@ def test_access_token_sign_in_required_decorator_inactive_token(
             assert cleared_session == {}
 
 
-@patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect")
+@patch("app.main.authorize.access_token_sign_in_required.get_user_groups")
 def test_access_token_sign_in_required_decorator_active_without_ayr_access(
-    mock_decode_keycloak_access_token,
+    mock_get_user_groups,
     app,
 ):
     """
@@ -73,13 +73,12 @@ def test_access_token_sign_in_required_decorator_active_without_ayr_access(
     When accessing a route protected by the 'access_token_sign_in_required' decorator,
     Then it should redirect to the index page with a flashed message.
     """
-    mock_decode_keycloak_access_token.return_value = {
-        "active": True,
-        "groups": ["application_1/foo", "application_2/bar"],
-    }
+    mock_get_user_groups.return_value = [
+        "/transferring_body_user/foo",
+        "/transferring_body_user/bar",
+    ]
 
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
-    app.config["KEYCLOAK_AYR_USER_GROUP"] = "application_3"
 
     view_name = "/protected_view"
     with app.test_client() as client:
@@ -108,9 +107,9 @@ def test_access_token_sign_in_required_decorator_active_without_ayr_access(
         assert response.headers["Location"] == url_for("main.index")
 
 
-@patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect")
+@patch("app.main.authorize.access_token_sign_in_required.get_user_groups")
 def test_access_token_sign_in_required_decorator_valid_token(
-    mock_decode_keycloak_access_token,
+    mock_get_user_groups,
     app,
 ):
     """
@@ -119,13 +118,13 @@ def test_access_token_sign_in_required_decorator_valid_token(
     When accessing a route protected by the 'access_token_sign_in_required' decorator,
     Then it should grant access
     """
-    mock_decode_keycloak_access_token.return_value = {
-        "active": True,
-        "groups": ["application_1/foo", "application_2/bar"],
-    }
+    mock_get_user_groups.return_value = [
+        "/ayr_user_type/view_department",
+        "/transferring_body_user/foo",
+        "/transferring_body_user/bar",
+    ]
 
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
-    app.config["KEYCLOAK_AYR_USER_GROUP"] = "application_1"
 
     view_name = "/protected_view"
     with app.test_client() as client:
