@@ -1,19 +1,11 @@
 import uuid
 from datetime import datetime
-from unittest.mock import patch
 
 import pytest
 import werkzeug
 from flask.testing import FlaskClient
-from sqlalchemy import exc
 
-from app.main.db.models import Body, db
-from app.main.db.queries import (
-    browse_data,
-    fuzzy_search,
-    get_file_metadata,
-    get_user_accessible_transferring_bodies,
-)
+from app.main.db.queries import browse_data, fuzzy_search, get_file_metadata
 from app.tests.factories import (
     ConsignmentFactory,
     FileFactory,
@@ -545,100 +537,3 @@ class TestGetFileMetadata:
             "series": file.file_consignments.consignment_series.Name,
             "series_id": file.file_consignments.consignment_series.SeriesId,
         }
-
-
-class TestGetUserAccessibleTransferringBodies:
-    def test_no_groups_returns_empty_list(
-        self,
-    ):
-        """
-        Given an empty list,
-        When calling get_user_accessible_transferring_bodies with it
-        Then it should return an empty list
-        """
-        results = get_user_accessible_transferring_bodies([])
-        assert results == []
-
-    def test_no_transferring_bodies_returns_empty_list(
-        self,
-    ):
-        """
-        Given a list of groups not containing any /transferring_body_user/ groups
-        When I call get_user_accessible_transferring_bodies with it
-        Then it should return an empty list
-        """
-        results = get_user_accessible_transferring_bodies(
-            [
-                "/something_else/test body1",
-                "/something_else/test body2",
-                "/ayr_user_type/bar",
-            ]
-        )
-        assert results == []
-
-    def test_transferring_bodies_in_groups_returns_corresponding_body_names(
-        self, client: FlaskClient
-    ):
-        """
-        Given a list of groups including 2 prefixed with
-            /transferring_body_user/
-            and another group
-            and 2 corresponding bodies in the database
-            and an extra body in the database
-        When get_user_accessible_transferring_bodies is called with it
-        Then it should return a list with the 2 corresponding body names
-        """
-        body_1 = Body(
-            BodyId=uuid.uuid4(), Name="test body1", Description="test body1"
-        )
-        db.session.add(body_1)
-        db.session.commit()
-
-        body_2 = Body(
-            BodyId=uuid.uuid4(), Name="test body2", Description="test body2"
-        )
-        db.session.add(body_2)
-        db.session.commit()
-
-        body_3 = Body(
-            BodyId=uuid.uuid4(), Name="test body3", Description="test body3"
-        )
-        db.session.add(body_3)
-        db.session.commit()
-
-        results = get_user_accessible_transferring_bodies(
-            [
-                "/transferring_body_user/test body1",
-                "/transferring_body_user/test body2",
-                "/foo/bar",
-            ]
-        )
-        assert results == ["test body1", "test body2"]
-
-    @patch("app.main.db.queries.db")
-    def test_db_raised_exception_returns_empty_list_and_log_message(
-        self, database, capsys, client
-    ):
-        """
-        Given a db execution error
-        When get_user_accessible_transferring_bodies is called
-        Then it should return an empty list and an error message is logged
-        """
-
-        def mock_execute(_):
-            raise exc.SQLAlchemyError("foo bar")
-
-        database.session.execute.side_effect = mock_execute
-
-        results = get_user_accessible_transferring_bodies(
-            [
-                "/transferring_body_user/test body1",
-                "/transferring_body_user/test body2",
-                "/ayr_user_type/bar",
-            ]
-        )
-        assert results == []
-        assert (
-            "Failed to return results from database with error : foo bar"
-            in capsys.readouterr().out
-        )

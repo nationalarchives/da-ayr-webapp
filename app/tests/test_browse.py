@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
+from app.tests.conftest import mock_standard_user
 from app.tests.mock_database import (
     create_multiple_files_for_consignment,
     create_multiple_test_records,
@@ -317,6 +318,8 @@ def test_browse_transferring_body(client: FlaskClient):
     file = files[0]
     transferring_body_id = file.file_consignments.consignment_bodies.BodyId
 
+    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+
     response = client.get(
         f"/browse?transferring_body_id={transferring_body_id}"
     )
@@ -363,6 +366,8 @@ def test_browse_series(client: FlaskClient):
     file = files[0]
     series_id = file.file_consignments.SeriesId
 
+    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+
     response = client.get(f"/browse?series_id={series_id}")
 
     assert response.status_code == 200
@@ -408,6 +413,8 @@ def test_browse_consignment(client: FlaskClient):
     files = create_multiple_test_records()
     file = files[0]
     consignment_id = file.file_consignments.ConsignmentId
+
+    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
 
     response = client.get(f"/browse?consignment_id={consignment_id}")
 
@@ -457,6 +464,8 @@ def test_browse_consignment_filter_display_multiple_pages(
     consignment_id = file.file_consignments.ConsignmentId
 
     create_multiple_files_for_consignment(consignment_id)
+
+    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
 
     response = client.get(f"/browse?page=2&consignment_id={consignment_id}")
     assert response.status_code == 200
