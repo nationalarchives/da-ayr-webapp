@@ -177,7 +177,7 @@ def record(record_id: uuid.UUID):
     Returns:
         A rendered HTML page with record details.
     """
-    file = File.query.one_or_404(record_id)
+    file = File.query.get_or_404(record_id)
 
     validate_body_user_groups_or_404(
         file.file_consignments.consignment_bodies.Name
