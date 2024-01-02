@@ -1,7 +1,10 @@
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
-from app.tests.mock_database import create_multiple_test_records
+from app.tests.mock_database import (
+    create_multiple_files_for_consignment,
+    create_multiple_test_records,
+)
 
 
 def test_browse_get(client: FlaskClient):
@@ -136,7 +139,7 @@ def test_browse_display_first_page(client: FlaskClient, app):
             row_data = row_data + ", "
     assert [row_data] == expected_results_table[1]
     assert not previous_option
-    assert next_option.text.replace("\n", "").strip("") == "Next page"
+    assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
 
 def test_browse_display_middle_page(client: FlaskClient, app):
@@ -190,10 +193,10 @@ def test_browse_display_middle_page(client: FlaskClient, app):
     assert [row_data] == expected_results_table[1]
     assert (
         " ".join(page_options[0].text.replace("\n", "").split())
-        == "Previous page"
+        == "Previouspage"
     )
     assert (
-        " ".join(page_options[1].text.replace("\n", "").split()) == "Next page"
+        " ".join(page_options[1].text.replace("\n", "").split()) == "Nextpage"
     )
 
 
@@ -244,9 +247,64 @@ def test_browse_display_last_page(client: FlaskClient, app):
     assert [row_data] == expected_results_table[1]
     assert (
         " ".join(previous_option.text.replace("\n", "").split())
-        == "Previous page"
+        == "Previouspage"
     )
     assert not next_option
+
+
+def test_browse_display_multiple_pages(client: FlaskClient, app):
+    """
+    Given a user accessing the browse page
+    When they make a GET request with page as a query string parameter
+    Then they should see first page with five records on browse page content (incl. previous and next page options).
+    """
+    create_multiple_test_records()
+    app.config["DEFAULT_PAGE_SIZE"] = 5
+
+    response = client.get("/browse?page=1")
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+    assert b'aria-label="Page 1"' in response.data
+    assert b'aria-label="Page 2"' in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("dl")
+    headers = table.find_all("dt")
+    rows = table.find_all("dd")
+    # page_options = soup.find_all("span", class_="govuk-pagination__link-title")
+    previous_option = soup.find("div", {"class": "govuk-pagination__prev"})
+    next_option = soup.find("div", {"class": "govuk-pagination__next"})
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        [
+            "'test body1', 'test series1', '2023-01-01 00:00:00', '1', '1', "
+            "'test body2', 'test series2', '2023-01-01 00:00:00', '1', '1', "
+            "'testing body10', 'test series10', '2023-01-01 00:00:00', '1', '1', "
+            "'testing body11', 'test series11', '2023-01-01 00:00:00', '1', '1', "
+            "'testing body3', 'test series3', '2023-01-01 00:00:00', '1', '1'"
+        ],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+    assert not previous_option
+    assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
 
 def test_browse_transferring_body(client: FlaskClient):
@@ -382,3 +440,61 @@ def test_browse_consignment(client: FlaskClient):
         assert [
             value.text.replace("\n", " ").strip(" ") for value in values
         ] == expected_results_table[index + 1]
+
+
+def test_browse_consignment_filter_display_multiple_pages(
+    client: FlaskClient, app
+):
+    """
+    Given a user accessing the browse page
+    When they make a GET request with a consignment id
+    Then they should see results based on consignment filter on browse page content.
+    """
+    app.config["DEFAULT_PAGE_SIZE"] = 5
+
+    files = create_multiple_test_records()
+    file = files[0]
+    consignment_id = file.file_consignments.ConsignmentId
+
+    create_multiple_files_for_consignment(consignment_id)
+
+    response = client.get(f"/browse?page=2&consignment_id={consignment_id}")
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+    assert b"Records found 7" in response.data
+    assert b'aria-label="Page 1"' in response.data
+    assert b'aria-label="Page 2"' in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("dl")
+    headers = table.find_all("dt")
+    rows = table.find_all("govuk-summary-list__row")
+    page_options = soup.find_all("span", class_="govuk-pagination__link-title")
+
+    expected_results_table = [
+        [
+            "Last modified",
+            "Filename",
+            "Status",
+            "Closure start date",
+            "Closure period",
+        ],
+        ["-", "test_file6.txt", "closed", "-", "-"],
+        ["-", "test_file7.png", "closed", "-", "-"],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+
+    for index, row in enumerate(rows):
+        values = row.find_all("dd")
+        assert [
+            value.text.replace("\n", " ").strip(" ") for value in values
+        ] == expected_results_table[index + 1]
+    assert (
+        " ".join(page_options[0].text.replace("\n", "").split())
+        == "Previouspage"
+    )
