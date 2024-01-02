@@ -12,19 +12,22 @@
                         <div class="govuk-breadcrumbs govuk-breadcrumbs--record">
                             <ol class="govuk-breadcrumbs__list">
                                 <li class="govuk-breadcrumbs__list-item">
-                                    <a class="govuk-breadcrumbs__link--record" href="#">Everything</a>
+                                    <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
                                 </li>
                                 <li class="govuk-breadcrumbs__list-item">
-                                    <a class="govuk-breadcrumbs__link--record" href="#">Electoral Commision</a>
+                                    <a class="govuk-breadcrumbs__link--record"
+                                       href="/browse?transferring_body_id={{ record['transferring_body_id'] }}">{{ record['transferring_body'] }}</a>
                                 </li>
                                 <li class="govuk-breadcrumbs__list-item">
-                                    <a class="govuk-breadcrumbs__link--record" href="#">EC9</a>
+                                    <a class="govuk-breadcrumbs__link--record"
+                                       href="/browse?series_id={{ record['series_id'] }}">{{ record['series'] }}</a>
                                 </li>
                                 <li class="govuk-breadcrumbs__list-item">
-                                    <a class="govuk-breadcrumbs__link--record" href="#">TDR-2023-HHA</a>
+                                    <a class="govuk-breadcrumbs__link--record"
+                                       href="/browse?consignment_id={{ record['consignment_id'] }}">{{ record['consignment'] }}</a>
                                 </li>
                                 <li class="govuk-breadcrumbs__list-item">
-                                    <a class="govuk-breadcrumbs__link--record" href="#">political parties panel - notes of meeting 1 - 12 September 2003.doc</a>
+                                    <a class="govuk-breadcrumbs__link--record">{{ record['file_name'] }}</a>
                                 </li>
                             </ol>
                         </div>
@@ -114,12 +117,9 @@
                     <div class="record-container">
                         <h3 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h3>
                         <ol>
-                            <li class="govuk-body govuk-body__record-arrangement-list">Electoral commission meeting notes</li>
-                            <li class=" govuk-body govuk-body__record-arrangement-list">2003</li>
-                            <li class="govuk-body govuk-body__record-arrangement-list">September</li>
-                            <li class="govuk-body govuk-body__record-arrangement-list">
-                                political parties panel - notes of meeting 1 - 12 September 2003.doc
-                            </li>
+                            {% for file_level in record["file_path"].split("/") %}
+                                <li class="govuk-body govuk-body__record-arrangement-list">{{ file_level }}</li>
+                            {% endfor %}
                         </ol>
                     </div>
                 </div>

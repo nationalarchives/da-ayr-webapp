@@ -2,6 +2,8 @@ import uuid
 from datetime import datetime
 from unittest.mock import patch
 
+import pytest
+import werkzeug
 from flask.testing import FlaskClient
 from sqlalchemy import exc
 
@@ -413,41 +415,41 @@ class TestBrowseData:
             file_consignments=consignment, FileName="file_1", FileType="file"
         )
 
-        FileMetadataFactory(
-            file_metadata=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
+        file_1_metadata = {
+            "date_last_modified": "2023-02-25T10:12:47",
+            "closure_type": "Closed",
+            "closure_start_date": "2023-02-25T11:14:34",
+            "closure_period": "50",
+        }
 
-        FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_start_date", Value="1"
-        )
-        FileMetadataFactory(
-            file_metadata=file_1,
-            PropertyName="closure_period",
-            Value="2023-02-25T11:14:34",
-        )
+        [
+            FileMetadataFactory(
+                file_metadata=file_1,
+                PropertyName=property_name,
+                Value=value,
+            )
+            for property_name, value in file_1_metadata.items()
+        ]
 
         file_2 = FileFactory(
             file_consignments=consignment, FileName="file_2", FileType="file"
         )
-        FileMetadataFactory(
-            file_metadata=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
-        )
+
+        file_2_metadata = {
+            "date_last_modified": "2023-02-27T12:28:08",
+            "closure_type": "Open",
+            "closure_start_date": None,
+            "closure_period": None,
+        }
+
+        [
+            FileMetadataFactory(
+                file_metadata=file_2,
+                PropertyName=property_name,
+                Value=value,
+            )
+            for property_name, value in file_2_metadata.items()
+        ]
 
         FileFactory(file_consignments=consignment, FileType="folder")
 
@@ -465,8 +467,8 @@ class TestBrowseData:
                 "file_1",
                 "2023-02-25T10:12:47",
                 "Closed",
-                "1",
                 "2023-02-25T11:14:34",
+                "50",
             ),
             (
                 file_2.FileId,
@@ -484,50 +486,65 @@ class TestBrowseData:
 
 
 class TestGetFileMetadata:
-    def test_get_file_metadata_no_results(self, client: FlaskClient):
+    def test_invalid_uuid_raises_not_found_error(self, client: FlaskClient):
         """
-        Given n UUID not corresponding to the id of a File in the database
+        Given a UUID not corresponding to the id of a file in the database
         When get_file_metadata is called with it
-        Then an empty list is returned
+        Then werkzeug.exceptions.NotFound is raised
         """
         non_existent_file_id = uuid.uuid4()
-        assert get_file_metadata(non_existent_file_id) == []
+        with pytest.raises(werkzeug.exceptions.NotFound):
+            get_file_metadata(non_existent_file_id)
 
-    def test_get_file_metadata_with_results(self, client: FlaskClient):
+    def test_valid_uuid_returns_metadata(self, client: FlaskClient):
         """
-        Given a file with 3 related file metadata objects
-        When get_file_metadata is called with the file's FileId
-        Then a list of dicts is returned with the property name-value pair in each dict
+        Given a file with associated metadata,
+        When get_file_metadata is called with its UUID,
+        Then a tuple of specific metadata for the file is returned
         """
-        files = create_multiple_test_records()
-
-        search_results = get_file_metadata(file_id=files[0].FileId)
-
-        expected_search_results = [
-            {"property_name": "file_name", "property_value": "test_file1.pdf"},
-            {"property_name": "closure_type", "property_value": "open"},
-            {"property_name": "file_type", "property_value": "pdf"},
-        ]
-        assert search_results == expected_search_results
-
-    @patch("app.main.db.queries.db")
-    def test_get_file_metadata_exception_raised(self, database, capsys):
-        """
-        Given a database execution error
-        When get_file_metadata itransferring_body_ids called
-        Then it returns an empty list and logs an error message
-        """
-
-        def mock_execute(_):
-            raise exc.SQLAlchemyError("foo bar")
-
-        database.session.execute.side_effect = mock_execute
-        results = get_file_metadata("")
-        assert results == []
-        assert (
-            "Failed to return results from database with error : foo bar"
-            in capsys.readouterr().out
+        file = FileFactory(
+            FileName="test_file.txt",
+            FilePath="data/content/test_file.txt",
+            FileType="file",
         )
+
+        metadata = {
+            "date_last_modified": "2023-02-25T10:12:47",
+            "closure_type": "Closed",
+            "description": "Test description",
+            "held_by": "Test holder",
+            "legal_status": "Test legal status",
+            "rights_copyright": "Test copyright",
+            "language": "English",
+        }
+
+        [
+            FileMetadataFactory(
+                file_metadata=file,
+                PropertyName=property_name,
+                Value=value,
+            )
+            for property_name, value in metadata.items()
+        ]
+
+        assert get_file_metadata(file_id=file.FileId) == {
+            "file_id": file.FileId,
+            "file_name": "test_file.txt",
+            "file_path": "data/content/test_file.txt",
+            "status": "Closed",
+            "description": "Test description",
+            "date_last_modified": "2023-02-25T10:12:47",
+            "held_by": "Test holder",
+            "legal_status": "Test legal status",
+            "rights_copyright": "Test copyright",
+            "language": "English",
+            "consignment": file.file_consignments.ConsignmentReference,
+            "consignment_id": file.ConsignmentId,
+            "transferring_body": file.file_consignments.consignment_bodies.Name,
+            "transferring_body_id": file.file_consignments.consignment_bodies.BodyId,
+            "series": file.file_consignments.consignment_series.Name,
+            "series_id": file.file_consignments.consignment_series.SeriesId,
+        }
 
 
 class TestGetUserAccessibleTransferringBodies:
