@@ -1,10 +1,9 @@
 import uuid
-from typing import List
 
-from sqlalchemy import Text, and_, exc, func, or_
+from sqlalchemy import Text, and_, func, or_
 
-from app.main.authorize.keycloak_manager import (
-    get_user_transferring_body_keycloak_groups,
+from app.main.authorize.permissions_helpers import (
+    validate_body_user_groups_or_404,
 )
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 
@@ -23,53 +22,23 @@ def browse_data(
     consignment_id=None,
 ):
     if transferring_body_id:
+        body = Body.query.get_or_404(transferring_body_id)
+        validate_body_user_groups_or_404(body.Name)
         browse_query = _build_transferring_body_filter_query(
             transferring_body_id
         )
     elif series_id:
+        series = Series.query.get_or_404(series_id)
+        validate_body_user_groups_or_404(series.body_series.Name)
         browse_query = _build_series_filter_query(series_id)
     elif consignment_id:
+        consignment = Consignment.query.get_or_404(consignment_id)
+        validate_body_user_groups_or_404(consignment.consignment_bodies.Name)
         browse_query = _build_consignment_filter_query(consignment_id)
     else:
         browse_query = _build_browse_everything_query()
 
     return browse_query.paginate(page=page, per_page=per_page)
-
-
-def get_user_accessible_transferring_bodies(groups: List[str]) -> List[str]:
-    user_transferring_bodies = get_user_transferring_body_keycloak_groups(
-        groups
-    )
-
-    if not user_transferring_bodies:
-        return []
-
-    try:
-        query = db.session.query(Body.Name)
-        bodies = db.session.execute(query)
-    except exc.SQLAlchemyError as e:
-        print("Failed to return results from database with error : " + str(e))
-        return []
-
-    user_accessible_transferring_bodies = []
-
-    for body in bodies:
-        body_name = body.Name
-        if _body_in_users_groups(body_name, user_transferring_bodies):
-            user_accessible_transferring_bodies.append(body_name)
-
-    return user_accessible_transferring_bodies
-
-
-def _body_in_users_groups(body, user_transferring_body_keycloak_groups):
-    for user_group in user_transferring_body_keycloak_groups:
-        if (
-            user_group.strip().replace(" ", "").lower()
-            == body.strip().replace(" ", "").lower()
-        ):
-            return True
-
-    return False
 
 
 def _build_fuzzy_search_query(query_string: str):
