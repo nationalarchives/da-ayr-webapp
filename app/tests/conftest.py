@@ -29,7 +29,7 @@ def mock_superuser(client: FlaskClient):
 
     patcher = patch("app.main.authorize.permissions_helpers.get_user_groups")
     mock_get_user_groups = patcher.start()
-    mock_get_user_groups.return_value = "/ayr_user_type/view_all"
+    mock_get_user_groups.return_value = ["/ayr_user_type/view_all"]
 
 
 @pytest.fixture
