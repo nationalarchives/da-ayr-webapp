@@ -1,9 +1,9 @@
 import uuid
+from typing import List
 
 from sqlalchemy import Text, and_, exc, func, or_
 
 from app.main.authorize.keycloak_manager import (
-    decode_token,
     get_user_transferring_body_keycloak_groups,
 )
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
@@ -36,20 +36,12 @@ def browse_data(
     return browse_query.paginate(page=page, per_page=per_page)
 
 
-def get_user_accessible_transferring_bodies(access_token):
-    if not access_token:
-        return []
-    decoded_token = decode_token(access_token)
-    if not decoded_token["active"]:
-        return []
-
-    user_groups = decoded_token["groups"]
-
-    user_transferring_body_keycloak_groups = (
-        get_user_transferring_body_keycloak_groups(user_groups)
+def get_user_accessible_transferring_bodies(groups: List[str]) -> List[str]:
+    user_transferring_bodies = get_user_transferring_body_keycloak_groups(
+        groups
     )
 
-    if not user_transferring_body_keycloak_groups:
+    if not user_transferring_bodies:
         return []
 
     try:
@@ -63,9 +55,7 @@ def get_user_accessible_transferring_bodies(access_token):
 
     for body in bodies:
         body_name = body.Name
-        if _body_in_users_groups(
-            body_name, user_transferring_body_keycloak_groups
-        ):
+        if _body_in_users_groups(body_name, user_transferring_bodies):
             user_accessible_transferring_bodies.append(body_name)
 
     return user_accessible_transferring_bodies

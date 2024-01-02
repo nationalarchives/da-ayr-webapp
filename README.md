@@ -148,7 +148,6 @@ Properties configurable at runtime:
 - `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
 - `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.
 - `KEYCLOAK_CLIENT_SECRET`: The client secret used for Keycloak authentication.
-- `KEYCLOAK_AYR_USER_GROUP`: The Keycloak user group used to check user access.
 - `RATELIMIT_STORAGE_URI`: The URI for the Redis storage used for rate limiting.
 - `SECRET_KEY`: Secret key used for Flask session and security.
 - `DEFAULT_PAGE_SIZE`: set value for no. of records to show on browse/search view.

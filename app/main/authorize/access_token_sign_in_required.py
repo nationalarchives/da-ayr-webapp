@@ -2,7 +2,7 @@ from functools import wraps
 
 from flask import current_app, flash, g, redirect, session, url_for
 
-from app.main.authorize import keycloak_manager
+from app.main.authorize.keycloak_manager import get_user_groups
 
 
 def access_token_sign_in_required(view_func):
@@ -45,24 +45,17 @@ def access_token_sign_in_required(view_func):
                 return view_func(*args, **kwargs)
 
             access_token = session.get("access_token")
-            if not access_token:
-                return redirect(url_for("main.sign_in"))
 
-            decoded_token = keycloak_manager.decode_token(access_token)
+            groups = get_user_groups(access_token)
 
-            if not decoded_token["active"]:
+            if not groups:
                 session.clear()
                 return redirect(url_for("main.sign_in"))
 
-            keycloak_ayr_user_group = current_app.config[
-                "KEYCLOAK_AYR_USER_GROUP"
-            ]
-            if not _check_if_user_has_access_to_ayr(
-                keycloak_ayr_user_group, decoded_token
-            ):
+            if not _check_if_user_has_access_to_ayr(groups):
                 flash(
                     "TNA User is logged in but does not have access to AYR. Please contact your admin."
-                )
+                )  # FIXME: this flash doesn't currently show when first redirected, only on a new page load
                 return redirect(url_for("main.index"))
 
             return view_func(*args, **kwargs)
@@ -76,10 +69,10 @@ def access_token_sign_in_required(view_func):
     return decorated_view
 
 
-def _check_if_user_has_access_to_ayr(keycloak_ayr_user_group, decoded_token):
-    groups = decoded_token["groups"]
+def _check_if_user_has_access_to_ayr(groups):
     group_exists = False
     for group in groups:
-        if keycloak_ayr_user_group in group:
+        if group.startswith("/ayr_user_type/"):
             group_exists = True
+            break
     return group_exists
