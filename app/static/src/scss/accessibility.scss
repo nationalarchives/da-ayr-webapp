@@ -1,26 +1,48 @@
 .govuk-accessibility {
     &--red {
-        color: red;
+        color:#C00;
     }
 }
 
 .placeholder {
-    color: red;
+    color:#C00;
     font-size: 1.18rem;
 }
 
 .govuk-body {
     &--accessibility-placeholder {
-        color: red;
+        color:#C00;
     }
 }
 
+.anchor-link-list-ayr {
+    margin-bottom: 1rem;
+}
+
 .govuk-link {
-    &__terms-of-use {
-        color: blue;
+    font-size: 1rem;
+
+    &__ayr {
+        margin-bottom: 1rem;
     }
 
-    &__terms-of-use a:visited {
-        color:purple;
+    &__ayr--link {
+        font-size: 1.1875rem;
     }
+
+    &:visited {
+        color: #1d70b8;
+    }
+
+    &:active {
+        color:#1d70b8;
+    }
+
+    color:#1d70b8;
+}
+
+
+
+.govuk-accessibility--list {
+    margin-bottom: 1rem;
 }
