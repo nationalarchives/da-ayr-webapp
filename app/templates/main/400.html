@@ -1,15 +1,12 @@
 {% extends "base.html" %}
-
-{% block pageTitle %}Server Error – {{config['SERVICE_NAME']}} – GOV.UK{% endblock %}
-
+{% block pageTitle %}Server Error – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% set mainClasses = "govuk-main-wrapper--l" %}
-
 {% block content %}
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l">Server Error</h1>
-        <p class="govuk-body">If you typed the web address, check it is correct.</p>
-        <p class="govuk-body">If you pasted the web address, check you copied the entire address.</p>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-l">Server Error</h1>
+            <p class="govuk-body">If you typed the web address, check it is correct.</p>
+            <p class="govuk-body">If you pasted the web address, check you copied the entire address.</p>
+        </div>
     </div>
-</div>
 {% endblock %}

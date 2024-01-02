@@ -1,5 +1,4 @@
-from bs4 import BeautifulSoup
-
+from app.tests.assertions import assert_contains_html
 from app.tests.factories import FileFactory, FileMetadataFactory
 
 
@@ -52,8 +51,6 @@ def test_valid_id_returns_expected_html(client):
 
     html = response.data.decode()
 
-    soup = BeautifulSoup(html, "html.parser")
-
     expected_breadcrumbs_html = f"""
     <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
     <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
@@ -84,7 +81,7 @@ def test_valid_id_returns_expected_html(client):
 
     assert_contains_html(
         expected_breadcrumbs_html,
-        soup,
+        html,
         "div",
         {"class": "govuk-grid-column-full govuk-grid-column-full__page-nav"},
     )
@@ -143,25 +140,9 @@ def test_valid_id_returns_expected_html(client):
 
     assert_contains_html(
         expected_record_summary_html,
-        soup,
+        html,
         "dl",
         {"class": "govuk-summary-list govuk-summary-list--record"},
-    )
-
-    expected_download_html = """
-    <div class="rights-container">
-        <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-        <button class="govuk-button govuk-button__download--record" data-module="govuk-button">
-            Download record
-        </button>
-        <p class="govuk-body govuk-body--terms-of-use">
-            Refer to <a href="/terms-of-use" class="govuk-link">Terms of use.</a>
-        </p>
-    </div>
-    """
-
-    assert_contains_html(
-        expected_download_html, soup, "div", {"class": "rights-container"}
     )
 
     expected_arrangement_html = """
@@ -177,15 +158,21 @@ def test_valid_id_returns_expected_html(client):
     """
 
     assert_contains_html(
-        expected_arrangement_html, soup, "div", {"class": "record-container"}
+        expected_arrangement_html, html, "div", {"class": "record-container"}
     )
 
+    expected_download_html = """
+    <div class="rights-container">
+        <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
+        <button class="govuk-button govuk-button__download--record" data-module="govuk-button">
+            Download record
+        </button>
+        <p class="govuk-body govuk-body--terms-of-use">
+            Refer to <a href="/terms-of-use" class="govuk-link">Terms of use.</a>
+        </p>
+    </div>
+    """
 
-def assert_contains_html(
-    expected_html_subset, soup, sub_element_type, sub_element_filter
-):
-    expected_subset_soup = BeautifulSoup(expected_html_subset, "html.parser")
-
-    subset_soup = soup.find(sub_element_type, sub_element_filter)
-
-    assert expected_subset_soup.prettify() == subset_soup.prettify()
+    assert_contains_html(
+        expected_download_html, html, "div", {"class": "rights-container"}
+    )
