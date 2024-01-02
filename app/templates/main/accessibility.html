@@ -1,102 +1,124 @@
 {% extends "base.html" %}
-
 {%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
-
-{% block pageTitle %}Accessibility statement – {{config['SERVICE_NAME']}} – GOV.UK{% endblock %}
-
+{% block pageTitle %}Accessibility statement – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block content %}
-<main class="govuk-main-wrapper govuk-main-wrapper--terms-of-use">
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-one-third govuk-grid-column-one-third--terms-of-use">
-    <div class="anchor-link-list-ayr">
-      <h3 class="govuk-heading-s govuk-heading-s--terms-of-use">Contents</h3>
-      <ul class="govuk-list">
-        <li>
-        <a class="govuk-link govuk-link" href="#top">Accessibility statement for Access Your Records</a>
-        </li>
-        <ol class="govuk-list govuk-list--number">
-          <li>
-          <a class="govuk-link" href="#top">How accessibile this website is</a>
-        </li>
-        <li>
-          <a class="govuk-link" href="#top">Feedback and contact information</a>
-        </li>
-        <li>
-          <a class="govuk-link" href="#top">Enforcement procedure</a>
-        </li>
-        </ol>
-        <li class="govuk-list__terms-of-use">
-          <a class="govuk-link" href="#">Technical information about this websites' accessibility</a>
-        </li>
-        <ol>
-          <li class="govuk-accessibility--list">
-          <a class="govuk-link" href="#top">Compliance status</a>
-        </li>
-        <li class="govuk-accessibility--list">
-          <a class="govuk-link" href="#top">Non-accessible content</a>
-        </li>
-        </ol>
-        <li class="govuk-list__terms-of-use">
-          <a class="govuk-link" href="#">What we're doing to improve accessiblity</a>
-        </li>
-        <li class="govuk-list__terms-of-use">
-          <a class="govuk-link" href="#">Preparation of this accessibility statement</a>
-        </li>
-      </ul>
-    </div>
-    </div>
-    <div class="govuk-grid-column-two-thirds">
-      <h1 class="govuk-heading-l">Accessibility statement for Access Your Records</h1>
-      <p class="govuk-body-m">Last updated on<span class="placeholder"> Date </span>.</p>
-      <p class="govuk-body">This accessibility statement applies to https://www.ayr-nationalarchives.gov.uk</p>
-      <p class="govuk-body">This website is run by The National Archives. We want as many people as possible to be able to use this website. For example, that means you should be able to:</p>
-      <ul class="govuk-list govuk-list--bullet">
-        <li>change colours, contrast levels and fonts using browser or device settings</li>
-        <li>zoom in up to 400% without the text spilling off the screen</li>
-        <li>navigate most of the website using a keyboard or speech recognition software</li>
-        <li>listen to most of the website using a screen reader (including the most recent versions of JAWS, NVDA and VoiceOver)</li>
-      </ul>
-      <p class="govuk-body">We've also made the website text as simple as possible to understand.</p>
-      <p class="govuk-body"><a rel="external" href="https://mcmw.abilitynet.org.uk/" class="govuk-link">AbilityNet</a> has advice on making your device easier to use if you have a disability.</p>
-      <h1 class="govuk-heading-m">How accessible this website is</h1>
-      <p class="govuk-body">We know some parts of this website are not fully accessible:</p>
-      <ul class="govuk-list govuk-list--bullet">
-        <li class="govuk-accessibility--red">you cannot modify the line height or spacing of text</li>
-        <li class="govuk-accessibility--red">most older PDF documents are not fully accessible to screen reader software</li>
-        <li class="govuk-accessibility--red">live video streams do not have captions</li>
-        <li class="govuk-accessibility--red">there's a limit to how far you can magnify the map on our 'contact us' page</li>
-      </ul>
-      <h3 class="govuk-heading-m">Feedback and contact information</h3>
-      <p class="govuk-body-s">If you find any problems not listed on this page or think we're not meeting accessibility requirements, contact: [provide both details of how to report these issues to your organisation, and contact details for the unit or person responsible for dealing with these reports].</p>
-      <ul class="govuk-list govuk-list--bullet">
-      <p class="govuk-body">If you need information on this website in a different format like accessible PDF, large print, easy read, audio recording or braille:</p>
-      <li class="govuk-accessibility--red">email [email address]</li>
-      <li class="govuk-accessibility--red">call [phone number]</li>
-      <li class="govuk-accessibility--red">[add any other contact details]</li>
-      </ul>
-      <p class="govuk-body">We'll consider your request and get back to you in<span class="placeholder"> XX </span> days.</p>
-      <p class="govuk-body govuk-body--accessibility-placeholder">Example - If you cannot view the map on our 'contact us' page, call or email us [add link to contact details page] for directions.</p>
-      <h3 class="govuk-heading-m">Enforcement procedure</h3>
-      <p class="govuk-body">The Equality and Human Rights Commission (EHRC) is responsible for enforcing the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018 (the 'accessibility regulations'). If you're not happy with how we respond to your complaint, contact the Equality Advisory and Support Service (EASS).</p>
-      <h2 class="govuk-heading-l">Technical information about this website's accessibility</h2>
-      <p class="govuk-body">The National Archives is committed to making its website accessible, in accordance with the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018.</p>
-      <h3 class="govuk-heading-m">Compliance status</h3>
-      <p class="govuk-body">This website is partially compliant with the <a rel="external" href="https://www.w3.org/TR/WCAG22/" class="govuk-link">Web Content Accessibility Guidelines version 2.2</a> AA standard, due to the non-compliances and exemptions listed below.</p>
-      <h3 class="govuk-heading-m">Non-accessible content</h3>
-      <p class="govuk-body">The content listed below is non-accessible for the following reasons.</p>
-      <h3 class="govuk-heading-s">Non-compliance with the accessibility regulations</h3>
-      <p class="govuk-body govuk-body--accessibility-placeholder">In this subsection, list:</p>
-      <ul class="govuk-list govuk-list--bullet">
-        <li class="govuk-accessibility--red">accessibility problems</li>
-        <li class="govuk-accessibility--red">which of the WCAG 2.2 AA success criteria the problem fails on</li>
-        <li class="govuk-accessibility--red">when you plan to fix the problem</li>
-        </ul>
-
-
-      <div class="terms-of-use-back-to-top"><a href="#top" class="govuk-link govuk-link__back-to-top">Back to top</a></div>
-    </div>
-  </div>
-</main>
-</div>
+    <main class="govuk-main-wrapper govuk-main-wrapper--terms-of-use">
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-one-third govuk-grid-column-one-third--terms-of-use">
+                <div class="anchor-link-list-ayr">
+                    <h3 class="govuk-heading-s govuk-heading-s--terms-of-use">Contents</h3>
+                    <ul class="govuk-list">
+                        <li>
+                            <a class="govuk-link govuk-link" href="#top">Accessibility statement for Access Your Records</a>
+                        </li>
+                        <ol class="govuk-list govuk-list--number">
+                            <li>
+                                <a class="govuk-link" href="#top">How accessibile this website is</a>
+                            </li>
+                            <li>
+                                <a class="govuk-link" href="#top">Feedback and contact information</a>
+                            </li>
+                            <li>
+                                <a class="govuk-link" href="#top">Enforcement procedure</a>
+                            </li>
+                        </ol>
+                        <li class="govuk-list__terms-of-use">
+                            <a class="govuk-link" href="#">Technical information about this websites' accessibility</a>
+                        </li>
+                        <ol>
+                            <li class="govuk-accessibility--list">
+                                <a class="govuk-link" href="#top">Compliance status</a>
+                            </li>
+                            <li class="govuk-accessibility--list">
+                                <a class="govuk-link" href="#top">Non-accessible content</a>
+                            </li>
+                        </ol>
+                        <li class="govuk-list__terms-of-use">
+                            <a class="govuk-link" href="#">What we're doing to improve accessiblity</a>
+                        </li>
+                        <li class="govuk-list__terms-of-use">
+                            <a class="govuk-link" href="#">Preparation of this accessibility statement</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="govuk-grid-column-two-thirds">
+                <h1 class="govuk-heading-l">Accessibility statement for Access Your Records</h1>
+                <p class="govuk-body-m">
+                    Last updated on<span class="placeholder">Date</span>.
+                </p>
+                <p class="govuk-body">This accessibility statement applies to https://www.ayr-nationalarchives.gov.uk</p>
+                <p class="govuk-body">
+                    This website is run by The National Archives. We want as many people as possible to be able to use this website. For example, that means you should be able to:
+                </p>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li>change colours, contrast levels and fonts using browser or device settings</li>
+                    <li>zoom in up to 400% without the text spilling off the screen</li>
+                    <li>navigate most of the website using a keyboard or speech recognition software</li>
+                    <li>
+                        listen to most of the website using a screen reader (including the most recent versions of JAWS, NVDA and VoiceOver)
+                    </li>
+                </ul>
+                <p class="govuk-body">We've also made the website text as simple as possible to understand.</p>
+                <p class="govuk-body">
+                    <a rel="external"
+                       href="https://mcmw.abilitynet.org.uk/"
+                       class="govuk-link">AbilityNet</a> has advice on making your device easier to use if you have a disability.
+                </p>
+                <h1 class="govuk-heading-m">How accessible this website is</h1>
+                <p class="govuk-body">We know some parts of this website are not fully accessible:</p>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li class="govuk-accessibility--red">you cannot modify the line height or spacing of text</li>
+                    <li class="govuk-accessibility--red">most older PDF documents are not fully accessible to screen reader software</li>
+                    <li class="govuk-accessibility--red">live video streams do not have captions</li>
+                    <li class="govuk-accessibility--red">there's a limit to how far you can magnify the map on our 'contact us' page</li>
+                </ul>
+                <h3 class="govuk-heading-m">Feedback and contact information</h3>
+                <p class="govuk-body-s">
+                    If you find any problems not listed on this page or think we're not meeting accessibility requirements, contact: [provide both details of how to report these issues to your organisation, and contact details for the unit or person responsible for dealing with these reports].
+                </p>
+                <ul class="govuk-list govuk-list--bullet">
+                    <p class="govuk-body">
+                        If you need information on this website in a different format like accessible PDF, large print, easy read, audio recording or braille:
+                    </p>
+                    <li class="govuk-accessibility--red">email [email address]</li>
+                    <li class="govuk-accessibility--red">call [phone number]</li>
+                    <li class="govuk-accessibility--red">[add any other contact details]</li>
+                </ul>
+                <p class="govuk-body">
+                    We'll consider your request and get back to you in<span class="placeholder">XX</span> days.
+                </p>
+                <p class="govuk-body govuk-body--accessibility-placeholder">
+                    Example - If you cannot view the map on our 'contact us' page, call or email us [add link to contact details page] for directions.
+                </p>
+                <h3 class="govuk-heading-m">Enforcement procedure</h3>
+                <p class="govuk-body">
+                    The Equality and Human Rights Commission (EHRC) is responsible for enforcing the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018 (the 'accessibility regulations'). If you're not happy with how we respond to your complaint, contact the Equality Advisory and Support Service (EASS).
+                </p>
+                <h2 class="govuk-heading-l">Technical information about this website's accessibility</h2>
+                <p class="govuk-body">
+                    The National Archives is committed to making its website accessible, in accordance with the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018.
+                </p>
+                <h3 class="govuk-heading-m">Compliance status</h3>
+                <p class="govuk-body">
+                    This website is partially compliant with the <a rel="external"
+    href="https://www.w3.org/TR/WCAG22/"
+    class="govuk-link">Web Content Accessibility Guidelines version 2.2</a> AA standard, due to the non-compliances and exemptions listed below.
+                </p>
+                <h3 class="govuk-heading-m">Non-accessible content</h3>
+                <p class="govuk-body">The content listed below is non-accessible for the following reasons.</p>
+                <h3 class="govuk-heading-s">Non-compliance with the accessibility regulations</h3>
+                <p class="govuk-body govuk-body--accessibility-placeholder">In this subsection, list:</p>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li class="govuk-accessibility--red">accessibility problems</li>
+                    <li class="govuk-accessibility--red">which of the WCAG 2.2 AA success criteria the problem fails on</li>
+                    <li class="govuk-accessibility--red">when you plan to fix the problem</li>
+                </ul>
+                <div class="terms-of-use-back-to-top">
+                    <a href="#top" class="govuk-link govuk-link__back-to-top">Back to top</a>
+                </div>
+            </div>
+        </div>
+    </main>
 {% endblock %}

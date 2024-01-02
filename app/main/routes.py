@@ -1,3 +1,5 @@
+import uuid
+
 import keycloak
 from flask import (
     current_app,
@@ -17,7 +19,7 @@ from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
-from app.main.db.queries import browse_data, fuzzy_search
+from app.main.db.queries import browse_data, fuzzy_search, get_file_metadata
 from app.main.forms import CookiesForm
 
 from .forms import SearchForm
@@ -99,19 +101,23 @@ def browse():
 
     transferring_body_id = request.args.get("transferring_body_id", None)
     series_id = request.args.get("series_id", None)
+    consignment_id = request.args.get("consignment_id", None)
 
     browse_type = "browse"
 
     if transferring_body_id:
         browse_type = "transferring_body"
-        browse_results = browse_data(
-            page, per_page, transferring_body_id=transferring_body_id
-        )
+        filters = {"transferring_body_id": transferring_body_id}
     elif series_id:
         browse_type = "series"
-        browse_results = browse_data(page, per_page, series_id=series_id)
+        filters = {"series_id": series_id}
+    elif consignment_id:
+        browse_type = "consignment"
+        filters = {"consignment_id": consignment_id}
     else:
-        browse_results = browse_data(page, per_page)
+        filters = {}
+
+    browse_results = browse_data(page=page, per_page=per_page, **filters)
 
     num_records_found = browse_results.total
 
@@ -152,9 +158,9 @@ def poc_search():
     )
 
 
-@bp.route("/record", methods=["GET"])
+@bp.route("/record/<uuid:record_id>", methods=["GET"])
 @access_token_sign_in_required
-def record():
+def record(record_id: uuid.UUID):
     """
     Render the record details page.
 
@@ -165,20 +171,9 @@ def record():
     Returns:
         A rendered HTML page with record details.
     """
-    record_1 = {
-        "file_name": "file-b2.txt",
-        "status": "open",
-        "transferring_body": "Electoral Commission",
-        "consignment_id": "TDR-2023-H2QS",
-        "description": "Test description",
-        "date_last_modified": "2023-02-27",
-        "held_by": "The National Archives, Kew",
-        "legal_status": "Public Record(s)",
-        "rights_copyright": "Crown Copyright",
-        "language": "English",
-    }
+    file_metadata = get_file_metadata(record_id)
 
-    return render_template("record.html", record=record_1)
+    return render_template("record.html", record=file_metadata)
 
 
 @bp.route("/signed-out", methods=["GET"])
