@@ -1,4 +1,5 @@
 from app.tests.assertions import assert_contains_html
+from app.tests.conftest import mock_standard_user, mock_superuser
 from app.tests.factories import FileFactory, FileMetadataFactory
 
 
@@ -14,17 +15,24 @@ def test_invalid_id_raises_404(client):
     assert response.status_code == 404
 
 
-def test_valid_id_returns_expected_html(client):
+def test_returns_record_page_for_user_with_access_to_files_transferring_body(
+    client,
+):
     """
-    Given a file with id, file_id, and associated metadata,
-    When a GET request is made to `record/file_id`
-    Then the response contains html including the record's expected metadata
+    Given a File in the database
+    When a standard user with access to the file's transferring body makes a
+        request to view the record page
+    Then the response status code should be 200
+    And the HTML content should contain specific elements
+        related to the record
     """
     file = FileFactory(
         FileName="test_file.txt",
         FilePath="data/content/folder_a/test_file.txt",
         FileType="file",
     )
+
+    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
 
     metadata = {
         "date_last_modified": "2023-02-25T10:12:47",
@@ -176,3 +184,82 @@ def test_valid_id_returns_expected_html(client):
     assert_contains_html(
         expected_download_html, html, "div", {"class": "rights-container"}
     )
+
+
+def test_raises_404_for_user_without_access_to_files_transferring_body(client):
+    """
+    Given a File in the database
+    When a standard user without access to the file's consignment body makes a
+        request to view the record page
+    Then the response status code should be 404
+    """
+
+    file = FileFactory(
+        FileName="test_file.txt",
+        FilePath="data/content/folder_a/test_file.txt",
+        FileType="file",
+    )
+
+    metadata = {
+        "date_last_modified": "2023-02-25T10:12:47",
+        "closure_type": "Closed",
+        "description": "Test description",
+        "held_by": "Test holder",
+        "legal_status": "Test legal status",
+        "rights_copyright": "Test copyright",
+        "language": "English",
+    }
+
+    [
+        FileMetadataFactory(
+            file_metadata=file,
+            PropertyName=property_name,
+            Value=value,
+        )
+        for property_name, value in metadata.items()
+    ]
+
+    mock_standard_user(client, "different_body")
+
+    response = client.get(f"/record/{file.FileId}")
+
+    assert response.status_code == 404
+
+
+def test_returns_record_page_for_superuser(client):
+    """
+    Given a File in the database
+    And a superuser
+    When the superuser makes a request to view the record page
+    Then the response status code should be 200
+    """
+    mock_superuser(client)
+
+    file = FileFactory(
+        FileName="test_file.txt",
+        FilePath="data/content/folder_a/test_file.txt",
+        FileType="file",
+    )
+
+    metadata = {
+        "date_last_modified": "2023-02-25T10:12:47",
+        "closure_type": "Closed",
+        "description": "Test description",
+        "held_by": "Test holder",
+        "legal_status": "Test legal status",
+        "rights_copyright": "Test copyright",
+        "language": "English",
+    }
+
+    [
+        FileMetadataFactory(
+            file_metadata=file,
+            PropertyName=property_name,
+            Value=value,
+        )
+        for property_name, value in metadata.items()
+    ]
+
+    response = client.get(f"/record/{file.FileId}")
+
+    assert response.status_code == 200
