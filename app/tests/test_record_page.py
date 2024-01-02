@@ -15,7 +15,6 @@ def test_invalid_id_raises_404(client):
     assert response.status_code == 404
 
 
-
 def test_returns_record_page_for_user_with_access_to_files_transferring_body(
     client,
 ):
@@ -34,7 +33,6 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
     )
 
     mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
-
 
     metadata = {
         "date_last_modified": "2023-02-25T10:12:47",
@@ -195,7 +193,31 @@ def test_raises_404_for_user_without_access_to_files_transferring_body(client):
         request to view the record page
     Then the response status code should be 404
     """
-    file = FileFactory()
+
+    file = FileFactory(
+        FileName="test_file.txt",
+        FilePath="data/content/folder_a/test_file.txt",
+        FileType="file",
+    )
+
+    metadata = {
+        "date_last_modified": "2023-02-25T10:12:47",
+        "closure_type": "Closed",
+        "description": "Test description",
+        "held_by": "Test holder",
+        "legal_status": "Test legal status",
+        "rights_copyright": "Test copyright",
+        "language": "English",
+    }
+
+    [
+        FileMetadataFactory(
+            file_metadata=file,
+            PropertyName=property_name,
+            Value=value,
+        )
+        for property_name, value in metadata.items()
+    ]
 
     mock_standard_user(client, "different_body")
 
@@ -213,7 +235,30 @@ def test_returns_record_page_for_superuser(client):
     """
     mock_superuser(client)
 
-    file = FileFactory()
+    file = FileFactory(
+        FileName="test_file.txt",
+        FilePath="data/content/folder_a/test_file.txt",
+        FileType="file",
+    )
+
+    metadata = {
+        "date_last_modified": "2023-02-25T10:12:47",
+        "closure_type": "Closed",
+        "description": "Test description",
+        "held_by": "Test holder",
+        "legal_status": "Test legal status",
+        "rights_copyright": "Test copyright",
+        "language": "English",
+    }
+
+    [
+        FileMetadataFactory(
+            file_metadata=file,
+            PropertyName=property_name,
+            Value=value,
+        )
+        for property_name, value in metadata.items()
+    ]
 
     response = client.get(f"/record/{file.FileId}")
 
