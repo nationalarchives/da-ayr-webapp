@@ -143,7 +143,7 @@ class TestGetUserAccessibleTransferringBodies:
         )
         assert results == ["test body1", "test body2"]
 
-    @patch("app.main.db.queries.db")
+    @patch("app.main.authorize.permissions_helpers.db")
     def test_db_raised_exception_returns_empty_list_and_log_message(
         self, database, capsys, client
     ):
