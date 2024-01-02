@@ -19,7 +19,9 @@ from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
+from app.main.authorize.keycloak_manager import get_user_groups
 from app.main.authorize.permissions_helpers import (
+    get_user_accessible_transferring_bodies,
     validate_body_user_groups_or_404,
 )
 from app.main.db.models import File
@@ -110,6 +112,8 @@ def browse():
     browse_type = "browse"
     filters = {}
 
+    filters = {}
+
     if transferring_body_id:
         browse_type = "transferring_body"
         filters["transferring_body_id"] = transferring_body_id
@@ -119,6 +123,16 @@ def browse():
     elif consignment_id:
         browse_type = "consignment"
         filters["consignment_id"] = consignment_id
+    else:
+        groups = get_user_groups(session.get("access_token"))
+        is_superuser = "/ayr_user_type/view_all" in groups
+        if not is_superuser:
+            user_accessible_transferring_bodies = (
+                get_user_accessible_transferring_bodies(groups)
+            )
+            filters[
+                "user_transferring_body"
+            ] = user_accessible_transferring_bodies[0]
 
     browse_results = browse_data(page=page, per_page=per_page, **filters)
 

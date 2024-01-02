@@ -24,6 +24,7 @@ def browse_data(
     consignment_id=None,
     date_range=None,
     date_filter_field=None,
+    user_transferring_body=None,
 ):
     if transferring_body_id:
         body = Body.query.get_or_404(transferring_body_id)
@@ -45,7 +46,7 @@ def browse_data(
             date_filter_field=date_filter_field,
         )
     else:
-        browse_query = _build_browse_everything_query()
+        browse_query = _build_browse_everything_query(user_transferring_body)
 
     if not consignment_id and date_range:
         dt_range = validate_date_range(date_range)
@@ -118,7 +119,7 @@ def _build_fuzzy_search_query(query_string: str):
     return query
 
 
-def _build_browse_everything_query():
+def _build_browse_everything_query(user_transferring_body=None):
     query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
@@ -138,8 +139,13 @@ def _build_browse_everything_query():
         .join(Body, Body.BodyId == Consignment.BodyId)
         .join(Series, Series.SeriesId == Consignment.SeriesId)
         .where(func.lower(File.FileType) == "file")
-        .group_by(Body.BodyId, Series.SeriesId)
-        .order_by(Body.Name, Series.Name)
+    )
+
+    if user_transferring_body:
+        query = query.where(Body.Name == user_transferring_body)
+
+    query = query.group_by(Body.BodyId, Series.SeriesId).order_by(
+        Body.Name, Series.Name
     )
 
     return query
