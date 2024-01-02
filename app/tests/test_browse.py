@@ -139,7 +139,7 @@ def test_browse_display_first_page(client: FlaskClient, app):
             row_data = row_data + ", "
     assert [row_data] == expected_results_table[1]
     assert not previous_option
-    assert next_option.text.replace("\n", "").strip("") == "Next page"
+    assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
 
 def test_browse_display_middle_page(client: FlaskClient, app):
@@ -193,10 +193,10 @@ def test_browse_display_middle_page(client: FlaskClient, app):
     assert [row_data] == expected_results_table[1]
     assert (
         " ".join(page_options[0].text.replace("\n", "").split())
-        == "Previous page"
+        == "Previouspage"
     )
     assert (
-        " ".join(page_options[1].text.replace("\n", "").split()) == "Next page"
+        " ".join(page_options[1].text.replace("\n", "").split()) == "Nextpage"
     )
 
 
@@ -247,7 +247,7 @@ def test_browse_display_last_page(client: FlaskClient, app):
     assert [row_data] == expected_results_table[1]
     assert (
         " ".join(previous_option.text.replace("\n", "").split())
-        == "Previous page"
+        == "Previouspage"
     )
     assert not next_option
 
@@ -304,7 +304,7 @@ def test_browse_display_multiple_pages(client: FlaskClient, app):
             row_data = row_data + ", "
     assert [row_data] == expected_results_table[1]
     assert not previous_option
-    assert next_option.text.replace("\n", "").strip("") == "Next page"
+    assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
 
 def test_browse_transferring_body(client: FlaskClient):
@@ -496,5 +496,5 @@ def test_browse_consignment_filter_display_multiple_pages(
         ] == expected_results_table[index + 1]
     assert (
         " ".join(page_options[0].text.replace("\n", "").split())
-        == "Previous page"
+        == "Previouspage"
     )

@@ -546,6 +546,7 @@ class TestGetFileMetadata:
             "series_id": file.file_consignments.consignment_series.SeriesId,
         }
 
+
 class TestGetUserAccessibleTransferringBodies:
     def test_no_token_returns_empty_list(
         self,
