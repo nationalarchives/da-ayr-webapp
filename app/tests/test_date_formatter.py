@@ -27,7 +27,7 @@ def test_logs_message_and_returns_none_date_when_invalid_to_date(app, caplog):
 
 def test_logs_messages_and_returns_none_dates_when_invalid_dates(app, caplog):
     """
-    Given an invalid date_from and date_to value
+    Given an invalid date_from and date_to values
     When validate_date_range function is called
     Then it returns an empty date range and logs error messages
     """
