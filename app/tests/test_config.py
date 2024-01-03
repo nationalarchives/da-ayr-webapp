@@ -31,6 +31,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
         "SECRET_KEY", "test_secret_key"  # pragma: allowlist secret
     )
     monkeypatch.setenv("DEFAULT_PAGE_SIZE", "test_default_page_size")
+    monkeypatch.setenv("DEFAULT_DATE_FORMAT", "test_default_date_format")
     monkeypatch.setenv("RATELIMIT_STORAGE_URI", "test_ratelimit_storage_uri")
 
     config = EnvConfig()
@@ -47,9 +48,8 @@ def test_local_env_vars_config_initialized(monkeypatch):
         == "test_keycloak_client_secret"  # pragma: allowlist secret
     )
     assert config.SECRET_KEY == "test_secret_key"  # pragma: allowlist secret
-    assert (
-        config.DEFAULT_PAGE_SIZE == "test_default_page_size"
-    )  # pragma: allowlist secret
+    assert config.DEFAULT_PAGE_SIZE == "test_default_page_size"
+    assert config.DEFAULT_DATE_FORMAT == "test_default_date_format"
     assert config.RATELIMIT_STORAGE_URI == "test_ratelimit_storage_uri"
 
 
@@ -142,6 +142,12 @@ def test_aws_params_config_initialized(mock_boto3, monkeypatch):
         Overwrite=True,
     )
     ssm_client.put_parameter(
+        Name="/test_env/DEFAULT_DATE_FORMAT",
+        Value="test_default_date_format",
+        Type="String",
+        Overwrite=True,
+    )
+    ssm_client.put_parameter(
         Name="/test_env/RATELIMIT_STORAGE_URI",
         Value="test_ratelimit_storage_uri",
         Type="String",
@@ -164,4 +170,5 @@ def test_aws_params_config_initialized(mock_boto3, monkeypatch):
     )
     assert config.SECRET_KEY == "test_secret_key"  # pragma: allowlist secret
     assert config.DEFAULT_PAGE_SIZE == "test_default_page_size"
+    assert config.DEFAULT_DATE_FORMAT == "test_default_date_format"
     assert config.RATELIMIT_STORAGE_URI == "test_ratelimit_storage_uri"

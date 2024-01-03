@@ -1,11 +1,13 @@
 import uuid
 
-from sqlalchemy import Text, and_, func, or_
+from flask import current_app
+from sqlalchemy import DATE, Text, and_, func, or_
 
 from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
 )
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
+from app.main.util.date_formatter import validate_date_range
 
 
 def fuzzy_search(query: str, page: int, per_page: int):
@@ -20,6 +22,8 @@ def browse_data(
     transferring_body_id=None,
     series_id=None,
     consignment_id=None,
+    date_range=None,
+    date_filter_field=None,
 ):
     if transferring_body_id:
         body = Body.query.get_or_404(transferring_body_id)
@@ -34,9 +38,24 @@ def browse_data(
     elif consignment_id:
         consignment = Consignment.query.get_or_404(consignment_id)
         validate_body_user_groups_or_404(consignment.consignment_bodies.Name)
-        browse_query = _build_consignment_filter_query(consignment_id)
+
+        browse_query = _build_consignment_filter_query(
+            consignment_id,
+            date_range,
+            date_filter_field=date_filter_field,
+        )
     else:
         browse_query = _build_browse_everything_query()
+
+    if not consignment_id and date_range:
+        dt_range = validate_date_range(date_range)
+
+        date_filter = _build_date_range_filter(
+            Consignment.TransferCompleteDatetime,
+            dt_range["date_from"],
+            dt_range["date_to"],
+        )
+        browse_query = browse_query.filter(date_filter)
 
     return browse_query.paginate(page=page, per_page=per_page)
 
@@ -106,9 +125,10 @@ def _build_browse_everything_query():
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
-            func.max(Consignment.TransferCompleteDatetime).label(
-                "last_record_transferred"
-            ),
+            func.to_char(
+                func.cast(func.max(Consignment.TransferCompleteDatetime), DATE),
+                current_app.config["DEFAULT_DATE_FORMAT"],
+            ).label("last_record_transferred"),
             func.count(func.distinct(Consignment.ConsignmentReference)).label(
                 "consignment_in_series"
             ),
@@ -132,9 +152,10 @@ def _build_transferring_body_filter_query(transferring_body_id):
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
-            func.max(Consignment.TransferCompleteDatetime).label(
-                "last_record_transferred"
-            ),
+            func.to_char(
+                func.cast(func.max(Consignment.TransferCompleteDatetime), DATE),
+                current_app.config["DEFAULT_DATE_FORMAT"],
+            ).label("last_record_transferred"),
             func.count(func.distinct(Consignment.ConsignmentReference)).label(
                 "consignment_in_series"
             ),
@@ -161,9 +182,10 @@ def _build_series_filter_query(series_id):
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
-            func.max(Consignment.TransferCompleteDatetime).label(
-                "last_record_transferred"
-            ),
+            func.to_char(
+                func.cast(func.max(Consignment.TransferCompleteDatetime), DATE),
+                current_app.config["DEFAULT_DATE_FORMAT"],
+            ).label("last_record_transferred"),
             func.count(func.distinct(File.FileId)).label("records_held"),
             Consignment.ConsignmentId.label("consignment_id"),
             Consignment.ConsignmentReference.label("consignment_reference"),
@@ -182,19 +204,21 @@ def _build_series_filter_query(series_id):
     return query
 
 
-def _build_consignment_filter_query(consignment_id: uuid.UUID):
+def _build_consignment_filter_query(
+    consignment_id: uuid.UUID, date_range=None, date_filter_field=None
+):
     select = db.session.query(
-        File.FileId,
-        File.FileName,
+        File.FileId.label("file_id"),
+        File.FileName.label("file_name"),
         func.max(
             db.case(
                 (
                     FileMetadata.PropertyName == "date_last_modified",
-                    FileMetadata.Value,
+                    func.cast(FileMetadata.Value, DATE),
                 ),
                 else_=None,
             )
-        ),
+        ).label("date_last_modified"),
         func.max(
             db.case(
                 (
@@ -203,16 +227,16 @@ def _build_consignment_filter_query(consignment_id: uuid.UUID):
                 ),
                 else_=None,
             )
-        ),
+        ).label("closure_type"),
         func.max(
             db.case(
                 (
                     FileMetadata.PropertyName == "closure_start_date",
-                    FileMetadata.Value,
+                    func.cast(FileMetadata.Value, DATE),
                 ),
                 else_=None,
             ),
-        ),
+        ).label("closure_start_date"),
         func.max(
             db.case(
                 (
@@ -221,7 +245,7 @@ def _build_consignment_filter_query(consignment_id: uuid.UUID):
                 ),
                 else_=None,
             ),
-        ),
+        ).label("closure_period"),
     )
 
     filters = [
@@ -229,12 +253,37 @@ def _build_consignment_filter_query(consignment_id: uuid.UUID):
         func.lower(File.FileType) == "file",
     ]
 
-    query = (
+    sub_query = (
         select.join(FileMetadata, File.FileId == FileMetadata.FileId)
         .filter(*filters)
         .group_by(File.FileId)
         .order_by(File.FileName)
+    ).subquery()
+
+    query = db.session.query(
+        sub_query.c.file_id,
+        sub_query.c.file_name,
+        func.to_char(
+            sub_query.c.date_last_modified,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("date_last_modified"),
+        sub_query.c.closure_type,
+        func.to_char(
+            sub_query.c.closure_start_date,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("closure_start_date"),
+        sub_query.c.closure_period,
     )
+
+    if date_range and date_filter_field is not None:
+        dt_range = validate_date_range(date_range)
+        if date_filter_field.lower() == "date_last_modified":
+            date_filter = _build_date_range_filter(
+                sub_query.c.date_last_modified,
+                dt_range["date_from"],
+                dt_range["date_to"],
+            )
+            query = query.filter(date_filter)
 
     return query
 
@@ -340,3 +389,18 @@ def _get_file_metadata_query(file_id: uuid.UUID):
     )
 
     return query
+
+
+def _build_date_range_filter(date_field, date_from, date_to):
+    date_filter = None
+    if date_from and date_to:
+        date_filter = and_(
+            func.to_char(date_field, "YYYY-MM-DD") >= date_from,
+            func.to_char(date_field, "YYYY-MM-DD") <= date_to,
+        )
+    elif date_from:
+        date_filter = func.to_char(date_field, "YYYY-MM-DD") >= date_from
+    elif date_to:
+        date_filter = func.to_char(date_field, "YYYY-MM-DD") <= date_to
+
+    return date_filter

@@ -295,9 +295,11 @@
                                             <p class="govuk-body browse__body browse__table__right-align">{{ record["records_held"] }}</p>
                                         </dd>
                                         <dd class="govuk-summary-list__value">
-                                            <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">
-                                                <p class="govuk-body browse__body browse__table__right-align">{{ record["consignment_reference"] }}</p>
-                                            </a>
+                                            <p class="govuk-body browse__body">
+                                                <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">
+                                                    {{ record["consignment_reference"] }}
+                                                </a>
+                                            </p>
                                         </dd>
                                     </div>
                                 {% endfor %}
@@ -320,23 +322,23 @@
                                 {% for record in results %}
                                     <div class="govuk-summary-list__row">
                                         <dd class="govuk-summary-list__value">
-                                            {{ record[2]|format_datetime }}
+                                            {{ record['date_last_modified'] }}
                                         </dd>
                                         <dd class="govuk-summary-list__value">
-                                            <a href="{{ url_for('main.record', record_id=record[0]) }}">{{ record[1] }}</a>
+                                            <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record['file_name'] }}</a>
                                         </dd>
                                         <dd class="govuk-summary-list__value">
-                                            <strong class="govuk-tag {{ 'govuk-tag--green' if record[3] == 'Open' else 'govuk-tag--red' }}">
-                                                {{ record[3] }}
+                                            <strong class="govuk-tag {{ 'govuk-tag--green' if record['closure_type'] == 'Open' else 'govuk-tag--red' }}">
+                                                {{ record['closure_type'] }}
                                             </strong>
                                         </dd>
                                         <dd class="govuk-summary-list__value">
-                                            {{ record[4]|format_datetime }}
+                                            {{ record['closure_start_date'] }}
                                         </dd>
                                         <dd class="govuk-summary-list__value">
                                             <p class="govuk-body browse__body">
-                                                {% if record[5] %}
-                                                    {{ record[5] }} years
+                                                {% if record['closure_period'] %}
+                                                    {{ record['closure_period'] }} years
                                                 {% else %}
                                                     -
                                                 {% endif %}
