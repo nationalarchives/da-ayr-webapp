@@ -5,14 +5,19 @@ from playwright.sync_api import Page, expect
 
 footer_links = [
     (
+        "How to use this service",
+        "/how-to-use-this-service",
+        "How to use this service – AYR - Access Your Records – GOV.UK",
+    ),
+    (
         "Terms of use",
         "/terms-of-use",
-        "Terms of use – AYR - Access Your Records – GOV.UK ",
+        "Terms of use – AYR - Access Your Records – GOV.UK",
     ),
     (
         "Privacy",
         "/privacy",
-        "Privacy notice – AYR - Access Your Records – GOV.UK ",
+        "Privacy notice – AYR - Access Your Records – GOV.UK",
     ),
     (
         "Cookies policy",
