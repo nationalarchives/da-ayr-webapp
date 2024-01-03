@@ -108,15 +108,14 @@
                 <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record">
                     <div class="rights-container">
                         <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-                        <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
+                        <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}">
                             <button class="govuk-button govuk-button__download--record"
-                                data-module="govuk-button">Download record</button>
+                                    data-module="govuk-button">Download record</button>
                         </a>
                         <p class="govuk-body govuk-body--terms-of-use">
                             Refer to <a href="/terms-of-use" class="govuk-link">Terms of use.</a>
                         </p>
                     </div>
-                   
                     <div class="record-container">
                         <h3 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h3>
                         <ol>
