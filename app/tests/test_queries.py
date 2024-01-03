@@ -4,11 +4,7 @@ import pytest
 import werkzeug
 from flask.testing import FlaskClient
 
-from app.main.db.queries import (
-    browse_data,
-    fuzzy_search,
-    get_file_metadata,
-)
+from app.main.db.queries import browse_data, fuzzy_search, get_file_metadata
 from app.tests.factories import (
     ConsignmentFactory,
     FileFactory,
