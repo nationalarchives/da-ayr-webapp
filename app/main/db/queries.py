@@ -47,7 +47,7 @@ def browse_data(
     else:
         browse_query = _build_browse_everything_query()
 
-    if not consignment_id and date_range is not None and len(date_range) > 0:
+    if not consignment_id and date_range:
         dt_range = validate_date_range(date_range)
 
         date_filter = _build_date_range_filter(
@@ -275,11 +275,7 @@ def _build_consignment_filter_query(
         sub_query.c.closure_period,
     )
 
-    if (
-        date_range is not None
-        and len(date_range) > 0
-        and date_filter_field is not None
-    ):
+    if date_range and date_filter_field is not None:
         dt_range = validate_date_range(date_range)
         if date_filter_field.lower() == "date_last_modified":
             date_filter = _build_date_range_filter(
