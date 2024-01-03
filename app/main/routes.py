@@ -108,18 +108,17 @@ def browse():
     consignment_id = request.args.get("consignment_id", None)
 
     browse_type = "browse"
+    filters = {}
 
     if transferring_body_id:
         browse_type = "transferring_body"
-        filters = {"transferring_body_id": transferring_body_id}
+        filters["transferring_body_id"] = transferring_body_id
     elif series_id:
         browse_type = "series"
-        filters = {"series_id": series_id}
+        filters["series_id"] = series_id
     elif consignment_id:
         browse_type = "consignment"
-        filters = {"consignment_id": consignment_id}
-    else:
-        filters = {}
+        filters["consignment_id"] = consignment_id
 
     browse_results = browse_data(page=page, per_page=per_page, **filters)
 
