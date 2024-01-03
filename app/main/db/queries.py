@@ -7,7 +7,7 @@ from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
 )
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
-from app.main.util.date_formatter import get_date_range
+from app.main.util.date_formatter import validate_date_range
 
 
 def fuzzy_search(query: str, page: int, per_page: int):
@@ -25,7 +25,6 @@ def browse_data(
     date_range=None,
     date_filter_field=None,
 ):
-    browse_query = None
     if transferring_body_id:
         body = Body.query.get_or_404(transferring_body_id)
         validate_body_user_groups_or_404(body.Name)
@@ -40,21 +39,16 @@ def browse_data(
         consignment = Consignment.query.get_or_404(consignment_id)
         validate_body_user_groups_or_404(consignment.consignment_bodies.Name)
 
-        if date_range is not None and len(date_range) > 0:
-            if date_filter_field is not None:
-                if date_filter_field.lower() == "date_last_modified":
-                    browse_query = _build_consignment_filter_query(
-                        consignment_id,
-                        date_range,
-                        date_filter_field="date_last_modified",
-                    )
-        else:
-            browse_query = _build_consignment_filter_query(consignment_id)
+        browse_query = _build_consignment_filter_query(
+            consignment_id,
+            date_range,
+            date_filter_field=date_filter_field,
+        )
     else:
         browse_query = _build_browse_everything_query()
 
     if not consignment_id and date_range is not None and len(date_range) > 0:
-        dt_range = get_date_range(date_range)
+        dt_range = validate_date_range(date_range)
 
         date_filter = _build_date_range_filter(
             Consignment.TransferCompleteDatetime,
@@ -281,8 +275,12 @@ def _build_consignment_filter_query(
         sub_query.c.closure_period,
     )
 
-    dt_range = get_date_range(date_range)
-    if date_filter_field is not None:
+    if (
+        date_range is not None
+        and len(date_range) > 0
+        and date_filter_field is not None
+    ):
+        dt_range = validate_date_range(date_range)
         if date_filter_field.lower() == "date_last_modified":
             date_filter = _build_date_range_filter(
                 sub_query.c.date_last_modified,
