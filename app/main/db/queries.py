@@ -254,7 +254,9 @@ def _build_consignment_filter_query(
     ]
 
     sub_query = (
-        select.join(FileMetadata, File.FileId == FileMetadata.FileId)
+        select.join(
+            FileMetadata, File.FileId == FileMetadata.FileId, isouter=True
+        )
         .filter(*filters)
         .group_by(File.FileId)
         .order_by(File.FileName)

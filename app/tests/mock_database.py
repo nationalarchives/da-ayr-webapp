@@ -750,6 +750,18 @@ def create_multiple_test_records():
     db.session.add(file_11_metadata)
     db.session.commit()
 
+    # create a file object without metadata
+    file_12 = File(
+        FileId=uuid.uuid4(),
+        ConsignmentId=new_consignment.ConsignmentId,
+        FileName="test_file12.txt",
+        FileType="file",
+        FileReference="test_file12.txt",
+        FilePath="/data/test_file12.txt",
+    )
+    db.session.add(file_12)
+    db.session.commit()
+
     return [
         file_1,
         file_2,
@@ -762,6 +774,7 @@ def create_multiple_test_records():
         file_9,
         file_10,
         file_11,
+        file_12,
     ]
 
 
