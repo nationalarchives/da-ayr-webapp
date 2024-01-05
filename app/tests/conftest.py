@@ -14,7 +14,7 @@ def mock_standard_user(client: FlaskClient, body: str):
         session["access_token"] = "valid_token"
 
     groups = [
-        "/ayr_user_type/view_department",
+        "/ayr_user_type/view_dept",
         f"/transferring_body_user/{body}",
     ]
 
