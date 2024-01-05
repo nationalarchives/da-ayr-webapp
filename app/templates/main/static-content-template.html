@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
-{% block pageTitle %}Static content template – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block content %}
     <main class="govuk-main-wrapper govuk-main-wrapper--ayr-content">
         <div class="govuk-grid-row">
@@ -8,63 +7,12 @@
                 <div class="anchor-link-list-ayr">
                     <h3 class="govuk-heading-s govuk-heading-s--ayr-content">Contents</h3>
                     <ul class="govuk-list">
-                        <li class="govuk-list__ayr-content">
-                            <a class="govuk-link govuk-link__ayr-content" href="#">Anchor link one</a>
-                        </li>
-                        <li class="govuk-list__ayr-content">
-                            <a class="govuk-link govuk-link__ayr-content" href="#">Anchor link two this is a really long link test</a>
-                        </li>
-                        <li class="govuk-list__ayr-content">
-                            <a class="govuk-link govuk-link__ayr-content" href="#">Anchor link three</a>
-                        </li>
-                        <li class="govuk-list__ayr-content">
-                            <a class="govuk-link govuk-link__ayr-content" href="#">Anchor link four</a>
-                        </li>
+                        {% block content_list %}{% endblock %}
                     </ul>
                 </div>
             </div>
             <div class="govuk-grid-column-two-thirds">
-                <h1 class="govuk-heading-l">Add content page title here</h1>
-                <p class="govuk-body-s">
-                    Last updated on <time datetime="YYYY-MM-DD">XX Month 2024.</time>
-                </p>
-                <h2 class="govuk-heading-m">Anchor link one heading</h2>
-                <p class="govuk-body">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-                </p>
-                <p class="govuk-body">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Facilisis sed odio morbi quis commodo odio aenean. Id diam maecenas ultricies mi eget mauris pharetra. Sit amet aliquam id diam maecenas ultricies mi eget mauris. Penatibus et magnis dis parturient montes nascetur. Vivamus at augue eget arcu dictum varius. Lectus arcu bibendum at varius vel pharetra vel turpis. Consectetur lorem donec massa sapien faucibus et molestie.
-                </p>
-                <h2 class="govuk-heading-m">Anchor link two heading</h2>
-                <p class="govuk-body">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Vel turpis nunc eget lorem dolor sed. In mollis nunc sed id semper risus in hendrerit gravida. Praesent elementum facilisis leo vel fringilla. Amet consectetur adipiscing elit duis tristique sollicitudin nibh sit.
-                </p>
-                <p class="govuk-body">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Dolor sit amet consectetur adipiscing elit duis. Ac feugiat sed lectus vestibulum mattis ullamcorper velit. Sodales ut eu sem integer vitae. Gravida dictum fusce ut placerat orci nulla pellentesque. Dui vivamus arcu felis bibendum ut tristique et. Sed egestas egestas fringilla phasellus faucibus. Tristique sollicitudin nibh sit amet. Fringilla urna porttitor rhoncus dolor purus non enim praesent elementum. Condimentum id venenatis a condimentum.
-                </p>
-                <h2 class="govuk-heading-m">Anchor link three heading</h2>
-                <p class="govuk-body">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Amet est placerat in egestas erat imperdiet sed euismod. Aenean pharetra magna ac placerat vestibulum.
-                </p>
-                <p class="govuk-body">
-                    Arcu non sodales neque sodales. Donec adipiscing tristique risus nec feugiat. Ac placerat vestibulum lectus mauris ultrices eros in cursus turpis. Volutpat est velit egestas dui id ornare arcu odio. Risus in hendrerit gravida rutrum quisque non tellus orci ac. Et malesuada fames ac turpis egestas integer eget aliquet. Adipiscing commodo elit at imperdiet. Habitasse platea dictumst quisque sagittis. Sit amet tellus cras adipiscing enim eu. Ut eu sem integer vitae. Elit ullamcorper dignissim cras tincidunt lobortis feugiat. Velit egestas dui id ornare arcu. Quam lacus suspendisse faucibus interdum posuere lorem ipsum dolor sit.
-                </p>
-                <p class="govuk-body">
-                    Egestas maecenas pharetra convallis posuere morbi leo urna molestie. Dui faucibus in ornare quam viverra orci sagittis eu. Egestas erat imperdiet sed euismod nisi porta lorem mollis. Integer enim neque volutpat ac tincidunt. Vitae congue mauris rhoncus aenean. Tincidunt arcu non sodales neque sodales ut etiam. Blandit massa enim nec dui nunc mattis enim ut tellus. Sit amet mauris commodo quis imperdiet massa tincidunt nunc pulvinar. Euismod elementum nisi quis eleifend quam. Cursus sit amet dictum sit amet justo donec. Urna molestie at elementum eu facilisis sed odio.
-                </p>
-                <h2 class="govuk-heading-m">Anchor link four heading</h2>
-                <p class="govuk-body">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Pharetra convallis posuere morbi leo urna. Egestas tellus rutrum tellus pellentesque eu tincidunt. Euismod lacinia at quis risus sed vulputate odio ut enim. Feugiat nisl pretium fusce id velit. Enim sit amet venenatis urna cursus eget nunc.
-                </p>
-                <p class="govuk-body">
-                    Tincidunt ornare massa eget egestas purus viverra accumsan. Non arcu risus quis varius. Purus faucibus ornare suspendisse sed. Pellentesque adipiscing commodo elit at imperdiet dui accumsan sit. Elementum sagittis vitae et leo duis ut diam. Nulla at volutpat diam ut venenatis tellus in. Tempus imperdiet nulla malesuada pellentesque elit. Morbi blandit cursus risus at ultrices mi. Rhoncus dolor purus non enim praesent elementum facilisis leo vel. Maecenas volutpat blandit aliquam etiam. Nulla facilisi cras fermentum odio eu feugiat. Lorem sed risus ultricies tristique nulla aliquet enim.
-                </p>
-                <p class="govuk-body">
-                    Odio aenean sed adipiscing diam donec adipiscing tristique risus nec. Donec massa sapien faucibus et molestie ac. Faucibus ornare suspendisse sed nisi lacus sed viverra tellus in. A lacus vestibulum sed arcu non odio. Pharetra convallis posuere morbi leo urna molestie at elementum eu. Malesuada nunc vel risus commodo viverra maecenas. Sollicitudin nibh sit amet commodo nulla facilisi nullam. In egestas erat imperdiet sed euismod nisi porta lorem. Nisi porta lorem mollis aliquam ut porttitor leo a diam. Etiam non quam lacus suspendisse faucibus. Morbi tristique senectus et netus. Bibendum arcu vitae elementum curabitur vitae. Scelerisque eu ultrices vitae auctor eu augue ut lectus arcu. Lacus luctus accumsan tortor posuere ac ut consequat.
-                </p>
-                <div>
-                    <a href="#top" class="govuk-link govuk-link--ayr">Back to top</a>
-                </div>
+                {% block static_content %}{% endblock %}
             </div>
         </div>
     </main>
