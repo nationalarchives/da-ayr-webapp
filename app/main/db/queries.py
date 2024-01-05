@@ -37,7 +37,6 @@ def browse_data(
     elif browse_type == "consignment":
         consignment = Consignment.query.get_or_404(consignment_id)
         validate_body_user_groups_or_404(consignment.consignment_bodies.Name)
-
         browse_query = _build_consignment_view_query(
             consignment_id,
             filters,
@@ -47,17 +46,20 @@ def browse_data(
         browse_query = _build_browse_everything_query()
 
     if not browse_type == "consignment":
+        if transferring_body_id:
+            browse_query = browse_query.filter(
+                Body.BodyId == transferring_body_id
+            )
+        if series_id:
+            browse_query = browse_query.filter(Series.SeriesId == series_id)
+        if consignment_id:
+            browse_query = browse_query.filter(
+                Consignment.ConsignmentId == consignment_id
+            )
         if filters:
-            if "date_range" in filters:
-                dt_range = validate_date_range(filters["date_range"])
+            browse_query = _build_browse_filters(browse_query, filters)
 
-                date_filter = _build_date_range_filter(
-                    Consignment.TransferCompleteDatetime,
-                    dt_range["date_from"],
-                    dt_range["date_to"],
-                )
-                browse_query = browse_query.filter(date_filter)
-
+    print("browse_query_after_filter :", browse_query)
     return browse_query.paginate(page=page, per_page=per_page)
 
 
@@ -201,6 +203,28 @@ def _build_series_view_query(series_id):
         .group_by(Body.BodyId, Series.SeriesId, Consignment.ConsignmentId)
         .order_by(Body.Name, Series.Name)
     )
+
+    return query
+
+
+def _build_browse_filters(query, filters):
+    if "transferring_body" in filters:
+        transferring_body = filters["transferring_body"]
+        filter_value = str(f"{transferring_body}%").lower()
+        query = query.filter(func.lower(Body.Name).like(filter_value))
+    if "series" in filters:
+        series = filters["series"]
+        filter_value = str(f"{series}%").lower()
+        query = query.filter(func.lower(Series.Name).like(filter_value))
+    if "date_range" in filters:
+        dt_range = validate_date_range(filters["date_range"])
+
+        date_filter = _build_date_range_filter(
+            Consignment.TransferCompleteDatetime,
+            dt_range["date_from"],
+            dt_range["date_to"],
+        )
+        query = query.filter(date_filter)
 
     return query
 
