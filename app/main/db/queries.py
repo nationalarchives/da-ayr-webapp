@@ -14,7 +14,10 @@ from app.main.util.date_formatter import validate_date_range
 
 def fuzzy_search(query: str, page: int, per_page: int):
     if len(query) > 0:
-        fuzzy_search_query = _build_fuzzy_search_query(query)
+        ayr_user = AYRUser(get_user_groups(session.get("access_token")))
+        fuzzy_search_query = _build_fuzzy_search_query(
+            query, ayr_user.transferring_body
+        )
         return fuzzy_search_query.paginate(page=page, per_page=per_page)
 
 
@@ -65,7 +68,7 @@ def browse_data(
     return browse_query.paginate(page=page, per_page=per_page)
 
 
-def _build_fuzzy_search_query(query_string: str):
+def _build_fuzzy_search_query(query_string: str, user_transferring_body: str):
     filter_value = str(f"%{query_string}%").lower()
 
     query = (
@@ -119,6 +122,9 @@ def _build_fuzzy_search_query(query_string: str):
         .distinct()
         .order_by(Body.Name, Series.Name)
     )
+
+    if user_transferring_body:
+        query = query.where(Body.Name == user_transferring_body)
 
     return query
 
