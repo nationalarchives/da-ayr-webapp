@@ -31,6 +31,18 @@
           src="{{ url_for('static', filename='footer.css') }}" />
     <link rel="stylesheet"
           type="text/css"
+          src="{{ url_for('static', filename='terms-of-use.css') }}" />
+    <link rel="stylesheet"
+          type="text/css"
+          src="{{ url_for('static', filename='accessibility.css') }}" />
+    <link rel="stylesheet"
+          type="text/css"
+          src="{{ url_for('static', filename='privacy.css') }}" />
+    <link rel="stylesheet"
+          type="text/css"
+          src="{{ url_for('static', filename='how-to-use.css') }}" />
+    <link rel="stylesheet"
+          type="text/css"
           src="{{ url_for('static', filename='header.css') }}" />
     <link rel="stylesheet"
           type="text/css"
@@ -199,7 +211,7 @@
                     <h2 class="govuk-visually-hidden">Support links</h2>
                     <ul class="govuk-footer__inline-list">
                         <li class="govuk-footer__inline-list-item">
-                            <a class="govuk-footer__link" href="#">How to use this service</a>
+                            <a class="govuk-footer__link" href="{{ url_for('main.how_to_use') }}">How to use this service</a>
                         </li>
                         <li class="govuk-footer__inline-list-item">
                             <a class="govuk-footer__link" href="{{ url_for('main.terms_of_use') }}">Terms of use</a>
