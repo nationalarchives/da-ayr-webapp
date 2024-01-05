@@ -71,7 +71,7 @@ def test_browse_get_with_data(client: FlaskClient):
             "'test body1', 'test series1', '01/01/2023', '1', '1', "
             "'test body2', 'test series2', '01/01/2023', '1', '1', "
             "'testing body10', 'test series10', '01/01/2023', '1', '1', "
-            "'testing body11', 'test series11', '01/01/2023', '1', '1', "
+            "'testing body11', 'test series11', '01/01/2023', '2', '1', "
             "'testing body3', 'test series3', '01/01/2023', '1', '1'"
         ],
     ]
@@ -124,7 +124,7 @@ def test_browse_display_first_page(client: FlaskClient, app):
             "'test body1', 'test series1', '01/01/2023', '1', '1', "
             "'test body2', 'test series2', '01/01/2023', '1', '1', "
             "'testing body10', 'test series10', '01/01/2023', '1', '1', "
-            "'testing body11', 'test series11', '01/01/2023', '1', '1', "
+            "'testing body11', 'test series11', '01/01/2023', '2', '1', "
             "'testing body3', 'test series3', '01/01/2023', '1', '1'"
         ],
     ]
@@ -289,7 +289,7 @@ def test_browse_display_multiple_pages(client: FlaskClient, app):
             "'test body1', 'test series1', '01/01/2023', '1', '1', "
             "'test body2', 'test series2', '01/01/2023', '1', '1', "
             "'testing body10', 'test series10', '01/01/2023', '1', '1', "
-            "'testing body11', 'test series11', '01/01/2023', '1', '1', "
+            "'testing body11', 'test series11', '01/01/2023', '2', '1', "
             "'testing body3', 'test series3', '01/01/2023', '1', '1'"
         ],
     ]
@@ -435,6 +435,53 @@ def test_browse_consignment(client: FlaskClient):
             "Closure period",
         ],
         ["-", "test_file1.pdf", "open", "-", "-"],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+
+    for index, row in enumerate(rows):
+        values = row.find_all("dd")
+        assert [
+            value.text.replace("\n", " ").strip(" ") for value in values
+        ] == expected_results_table[index + 1]
+
+
+def test_browse_consignment_with_missing_file_metadata(client: FlaskClient):
+    """
+    Given a user accessing the browse page
+    When they make a GET request with a consignment id
+    and if file metadata not available for the corresponding file(s)
+    Then they should see results based on consignment filter on browse page content
+    (including file_name field and rest of the field values as 'None').
+    """
+    files = create_multiple_test_records()
+    file = files[10]
+    consignment_id = file.file_consignments.ConsignmentId
+
+    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+
+    response = client.get(f"/browse?consignment_id={consignment_id}")
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("dl")
+    headers = table.find_all("dt")
+    rows = table.find_all("govuk-summary-list__row")
+
+    expected_results_table = [
+        [
+            "Last modified",
+            "Filename",
+            "Status",
+            "Closure start date",
+            "Closure period",
+        ],
+        ["None", "test_file12.txt", "None", "None", "None"],
     ]
 
     assert [
