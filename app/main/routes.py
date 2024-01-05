@@ -205,14 +205,13 @@ def download_record(record_id: uuid.UUID):
     file_path = file_metadata["file_path"]
     key = f'{consignment_reference}/{file_path.rstrip("/")}'
     file_name = file_metadata["file_name"]
-    try:
-        response = Response(
-            s3.get_object(Bucket=bucket, Key=key)["Body"].read(),
-            headers={"Content-Disposition": "attachment;filename=" + file_name},
-        )
-        return response
-    except Exception as e:
-        raise e
+    file = s3.get_object(Bucket=bucket, Key=key)
+
+    response = Response(
+        file["Body"].read(),
+        headers={"Content-Disposition": "attachment;filename=" + file_name},
+    )
+    return response
 
 
 @bp.route("/signed-out", methods=["GET"])
