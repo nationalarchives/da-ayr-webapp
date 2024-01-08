@@ -211,6 +211,8 @@ def download_record(record_id: uuid.UUID):
         file["Body"].read(),
         headers={"Content-Disposition": "attachment;filename=" + file_name},
     )
+    if response.status_code == 200:
+        print("ok")  # success message will go here
     return response
 
 
