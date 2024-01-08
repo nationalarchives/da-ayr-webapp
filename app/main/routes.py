@@ -121,6 +121,7 @@ def browse():
     elif consignment_id:
         browse_type = "consignment"
         browse_parameters["consignment_id"] = consignment_id
+        # e.g. please use example below to pass filter values
         # filters["record_status"] = "open"
         # filters["file_type"] = "docx"
         # filters["date_range"] = {"date_from": "01/08/2022", "date_to": "31/08/2022"}

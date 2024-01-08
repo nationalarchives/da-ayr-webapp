@@ -24,20 +24,18 @@ def browse_data(
     transferring_body_id=None,
     series_id=None,
     consignment_id=None,
-    # date_range=None,
-    # date_filter_field=None,
 ):
-    if browse_type == "transferring_body":  # transferring_body_id:
+    if browse_type == "transferring_body":
         body = Body.query.get_or_404(transferring_body_id)
         validate_body_user_groups_or_404(body.Name)
         browse_query = _build_transferring_body_filter_query(
             transferring_body_id
         )
-    elif browse_type == "series":  # series_id:
+    elif browse_type == "series":
         series = Series.query.get_or_404(series_id)
         validate_body_user_groups_or_404(series.body_series.Name)
         browse_query = _build_series_filter_query(series_id)
-    elif browse_type == "consignment":  # consignment_id:
+    elif browse_type == "consignment":
         consignment = Consignment.query.get_or_404(consignment_id)
         validate_body_user_groups_or_404(consignment.consignment_bodies.Name)
 
@@ -59,7 +57,7 @@ def browse_data(
                     dt_range["date_to"],
                 )
                 browse_query = browse_query.filter(date_filter)
-    print(browse_query)
+
     return browse_query.paginate(page=page, per_page=per_page)
 
 
