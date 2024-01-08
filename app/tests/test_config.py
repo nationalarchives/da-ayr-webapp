@@ -33,6 +33,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
     monkeypatch.setenv("DEFAULT_PAGE_SIZE", "test_default_page_size")
     monkeypatch.setenv("DEFAULT_DATE_FORMAT", "test_default_date_format")
     monkeypatch.setenv("RATELIMIT_STORAGE_URI", "test_ratelimit_storage_uri")
+    monkeypatch.setenv("RECORD_BUCKET_NAME", "test-bucket")
 
     config = EnvConfig()
 
