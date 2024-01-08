@@ -27,7 +27,6 @@ def browse_data(
     # date_range=None,
     # date_filter_field=None,
 ):
-    date_range = None
     if browse_type == "transferring_body":  # transferring_body_id:
         body = Body.query.get_or_404(transferring_body_id)
         validate_body_user_groups_or_404(body.Name)
@@ -52,17 +51,14 @@ def browse_data(
     if not browse_type == "consignment":
         if filters:
             if "date_range" in filters:
-                date_range = filters["date_range"]
+                dt_range = validate_date_range(filters["date_range"])
 
-        if date_range:
-            dt_range = validate_date_range(date_range)
-
-            date_filter = _build_date_range_filter(
-                Consignment.TransferCompleteDatetime,
-                dt_range["date_from"],
-                dt_range["date_to"],
-            )
-            browse_query = browse_query.filter(date_filter)
+                date_filter = _build_date_range_filter(
+                    Consignment.TransferCompleteDatetime,
+                    dt_range["date_from"],
+                    dt_range["date_to"],
+                )
+                browse_query = browse_query.filter(date_filter)
     print(browse_query)
     return browse_query.paginate(page=page, per_page=per_page)
 
