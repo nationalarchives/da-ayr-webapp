@@ -172,9 +172,9 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
     expected_download_html = """
     <div class="rights-container">
         <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-        <button class="govuk-button govuk-button__download--record" data-module="govuk-button">
+        <a class="govuk-button govuk-button__download--record" data-module="govuk-button">
             Download record
-        </button>
+        </a>
         <p class="govuk-body govuk-body--terms-of-use">
             Refer to <a href="/terms-of-use" class="govuk-link">Terms of use.</a>
         </p>
