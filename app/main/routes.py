@@ -108,19 +108,29 @@ def browse():
     consignment_id = request.args.get("consignment_id", None)
 
     browse_type = "browse"
+    browse_parameters = {}
     filters = {}
-
     if transferring_body_id:
         browse_type = "transferring_body"
-        filters["transferring_body_id"] = transferring_body_id
+        browse_parameters["transferring_body_id"] = transferring_body_id
     elif series_id:
         browse_type = "series"
-        filters["series_id"] = series_id
+        browse_parameters["series_id"] = series_id
     elif consignment_id:
         browse_type = "consignment"
-        filters["consignment_id"] = consignment_id
+        browse_parameters["consignment_id"] = consignment_id
+        # filters["record_status"] = "open"
+        # filters["file_type"] = "docx"
+        # filters["date_range"] = {"date_from": "01/08/2022", "date_to": "31/08/2022"}
+        # filters["date_filter_field"] = "date_last_modified"
 
-    browse_results = browse_data(page=page, per_page=per_page, **filters)
+    browse_results = browse_data(
+        page=page,
+        per_page=per_page,
+        browse_type=browse_type,
+        filters=filters,
+        **browse_parameters,
+    )
 
     num_records_found = browse_results.total
 
@@ -128,7 +138,7 @@ def browse():
         "browse.html",
         form=form,
         current_page=page,
-        filters=filters,
+        filters=browse_parameters,
         browse_type=browse_type,
         results=browse_results,
         num_records_found=num_records_found,
