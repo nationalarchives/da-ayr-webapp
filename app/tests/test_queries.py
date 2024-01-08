@@ -253,7 +253,7 @@ class TestBrowseData:
                 "test series11",
                 "01/01/2023",
                 1,
-                1,
+                2,
             ),
             (
                 files[2].file_consignments.consignment_bodies.BodyId,
@@ -858,7 +858,7 @@ class TestBrowseData:
                 "test series11",
                 "01/01/2023",
                 1,
-                1,
+                2,
             ),
             (
                 files[2].file_consignments.consignment_bodies.BodyId,
