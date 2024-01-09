@@ -79,10 +79,9 @@ def test_downloads_record_successfully_for_user_with_access_to_files_transferrin
     """
     Given a File in the database
     When a standard user with access to the file's transferring body makes a
-        request to view the record page
+        request to download record
     Then the response status code should be 200
-    And the HTML content should contain specific elements
-        related to the record
+    And the file should contain the expected content
     """
     create_mock_s3_bucket_with_object()
     app.config["RECORD_BUCKET_NAME"] = BUCKET
@@ -124,7 +123,7 @@ def test_downloads_record_successfully_for_superuser(
     """
     Given a File in the database
     And a superuser
-    When the superuser makes a request to download the record
+    When the superuser makes a request to download record
     Then the response status code should be 200
     """
     create_mock_s3_bucket_with_object()
