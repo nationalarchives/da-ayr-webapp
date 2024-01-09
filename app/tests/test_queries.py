@@ -680,7 +680,7 @@ class TestBrowseConsignment:
 <<<<<<< HEAD
 =======
         mock_standard_user(
-            client, file_1.file_consignments.consignment_bodies.Name
+            client, [file_1.file_consignments.consignment_bodies.Name]
         )
 >>>>>>> e004f98 (modified queries.py to support consignment filters, set example usage in routes.py, updated test cases in test_queries.py)
         pagination_object = browse_data(
@@ -780,7 +780,7 @@ class TestBrowseConsignment:
         FileFactory(FileType="file")
 
         mock_standard_user(
-            client, file_1.file_consignments.consignment_bodies.Name
+            client, [file_1.file_consignments.consignment_bodies.Name]
         )
         filters = {
             "record_status": "Open",
@@ -872,7 +872,7 @@ class TestBrowseConsignment:
         FileFactory(FileType="file")
 
         mock_standard_user(
-            client, file_1.file_consignments.consignment_bodies.Name
+            client, [file_1.file_consignments.consignment_bodies.Name]
         )
         filters = {
             "record_status": "Closed",
@@ -964,7 +964,7 @@ class TestBrowseConsignment:
         FileFactory(FileType="file")
 
         mock_standard_user(
-            client, file_1.file_consignments.consignment_bodies.Name
+            client, [file_1.file_consignments.consignment_bodies.Name]
         )
         filters = {
             "record_status": "all",
@@ -1094,7 +1094,7 @@ class TestBrowseConsignment:
         FileFactory(FileType="file")
 
         mock_standard_user(
-            client, file_1.file_consignments.consignment_bodies.Name
+            client, [file_1.file_consignments.consignment_bodies.Name]
         )
         filters = {
             "file_type": ".docx",
@@ -1226,7 +1226,7 @@ class TestBrowseConsignment:
         FileFactory(FileType="file")
 
         mock_standard_user(
-            client, file_1.file_consignments.consignment_bodies.Name
+            client, [file_1.file_consignments.consignment_bodies.Name]
         )
         filters = {
             "record_status": "Closed",
@@ -1351,7 +1351,7 @@ class TestBrowseConsignment:
         FileFactory(FileType="file")
 
         mock_standard_user(
-            client, file_1.file_consignments.consignment_bodies.Name
+            client, [file_1.file_consignments.consignment_bodies.Name]
         )
         filters = {
             "record_status": "Closed",
@@ -1477,7 +1477,7 @@ class TestBrowseConsignment:
         FileFactory(FileType="file")
 
         mock_standard_user(
-            client, file_1.file_consignments.consignment_bodies.Name
+            client, [file_1.file_consignments.consignment_bodies.Name]
         )
         filters = {
             "file_type": ".docx",
@@ -2366,7 +2366,7 @@ class TestBrowseConsignment:
         FileFactory(FileType="file")
 
         mock_standard_user(
-            client, file_1.file_consignments.consignment_bodies.Name
+            client, [file_1.file_consignments.consignment_bodies.Name]
         )
         filters = {
             "date_range": {"date_from": "25/02/2023"},
@@ -2474,7 +2474,7 @@ class TestBrowseConsignment:
         FileFactory(FileType="file")
 
         mock_standard_user(
-            client, file_1.file_consignments.consignment_bodies.Name
+            client, [file_1.file_consignments.consignment_bodies.Name]
         )
 
         filters = {
@@ -2576,7 +2576,7 @@ class TestBrowseConsignment:
         FileFactory(FileType="file")
 
         mock_standard_user(
-            client, file_1.file_consignments.consignment_bodies.Name
+            client, [file_1.file_consignments.consignment_bodies.Name]
         )
         filters = {
             "date_range": {"date_from": "01/02/2023", "date_to": "28/02/2023"},
