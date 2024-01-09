@@ -48,19 +48,6 @@ def mock_record():
     return file
 
 
-def test_invalid_id_raises_404(client):
-    """
-    Given a UUID, `invalid_file_id`, not corresponding to the id
-        of a file in the database
-    When a GET request is made to `/download/invalid_file_id`
-    Then a 404 http response is returned
-    """
-    response = client.get("/download/some-id")
-
-    assert response.status_code == 404
-
-
-@mock_s3
 def create_mock_s3_bucket_with_object():
     """
     Creates a dummy bucket to be used by tests
@@ -72,6 +59,18 @@ def create_mock_s3_bucket_with_object():
     object = s3.Object(BUCKET, f"{CONSIGNMENT_REF}/{FILE_PATH}")
     object.put(Body="record")
     return bucket
+
+
+def test_invalid_id_raises_404(client):
+    """
+    Given a UUID, `invalid_file_id`, not corresponding to the id
+        of a file in the database
+    When a GET request is made to `/download/invalid_file_id`
+    Then a 404 http response is returned
+    """
+    response = client.get("/download/some-id")
+
+    assert response.status_code == 404
 
 
 @mock_s3
