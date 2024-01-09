@@ -328,11 +328,13 @@ class TestBrowseData:
         assert result.has_prev is True
 
     def test_browse_data_with_transferring_body_filter(
-        self, client: FlaskClient
+        self, client: FlaskClient, mock_standard_user
     ):
         """
         Given multiple File objects in the database and a transferring_body_id
             that matches only one of them
+        And the session contains user info for a standard user with access to the
+            transferring body
         When browse_data is called with transferring_body_id
         Then it returns a list containing 1 dictionary for the matching record with
             expected fields
@@ -340,6 +342,10 @@ class TestBrowseData:
         files = create_multiple_test_records()
 
         file = files[0]
+
+        mock_standard_user(
+            client, [file.file_consignments.consignment_bodies.Name]
+        )
 
         transferring_body_id = file.file_consignments.consignment_bodies.BodyId
         series_id = file.file_consignments.consignment_series.SeriesId
@@ -359,10 +365,14 @@ class TestBrowseData:
             )
         ]
 
-    def test_browse_data_with_series_filter(self, client: FlaskClient):
+    def test_browse_data_with_series_filter(
+        self, client: FlaskClient, mock_standard_user
+    ):
         """
         Given multiple File objects in the database and a series_id
             that matches only one of them
+        And the session contains user info for a standard user with access to the series'
+            associated transferring body
         When browse_data is called with series_id
         Then it returns a list containing 1 dictionary for the matching record with
             expected fields
@@ -370,6 +380,10 @@ class TestBrowseData:
         files = create_multiple_test_records()
 
         file = files[0]
+
+        mock_standard_user(
+            client, [file.file_consignments.consignment_bodies.Name]
+        )
 
         transferring_body_id = file.file_consignments.consignment_bodies.BodyId
         series_id = file.file_consignments.consignment_series.SeriesId
@@ -390,17 +404,23 @@ class TestBrowseData:
             )
         ]
 
-    def test_browse_data_with_consignment_filter(self, app):
+    def test_browse_data_with_consignment_filter(
+        self, client, mock_standard_user
+    ):
         """
         Given three file objects with associated metadata part of 1 consignment,
             where 2 file types is 'file', another file 'folder', and another file of
             type 'file' and metadata associated with a different consignment
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
         When I call the 'browse_data' function with the consignment id
             of the first 3 file objects
         Then it returns a Pagination object with 2 total results corresponding to the
             first 2 files, ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
+
+        mock_standard_user(client, [consignment.consignment_bodies.Name])
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -475,11 +495,15 @@ class TestBrowseData:
 
         assert results == expected_results
 
-    def test_browse_data_with_consignment_and_date_from_filter(self, app):
+    def test_browse_data_with_consignment_and_date_from_filter(
+        self, client, mock_standard_user
+    ):
         """
         Given three file objects with associated metadata part of 1 consignment,
             where 2 file types is 'file', another file 'folder', and another file of
             type 'file' and metadata associated with a different consignment
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
         When I call the 'browse_data' function with the consignment id and date_from filter
             of the first 3 file objects
         Then it returns a Pagination object with 2 total results corresponding to the
@@ -487,6 +511,8 @@ class TestBrowseData:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
+
+        mock_standard_user(client, [consignment.consignment_bodies.Name])
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -568,11 +594,15 @@ class TestBrowseData:
 
         assert results == expected_results
 
-    def test_browse_data_with_consignment_and_date_to_filter(self, app):
+    def test_browse_data_with_consignment_and_date_to_filter(
+        self, client, mock_standard_user
+    ):
         """
         Given three file objects with associated metadata part of 1 consignment,
             where 2 file types is 'file', another file 'folder', and another file of
             type 'file' and metadata associated with a different consignment
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
         When I call the 'browse_data' function with the consignment id and date_to filter
             of the first 3 file objects
         Then it returns a Pagination object with 1 total results corresponding to the
@@ -580,6 +610,8 @@ class TestBrowseData:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
+
+        mock_standard_user(client, [consignment.consignment_bodies.Name])
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -654,12 +686,14 @@ class TestBrowseData:
         assert results == expected_results
 
     def test_browse_data_with_consignment_and_date_from_and_to_filter(
-        self, app
+        self, client, mock_standard_user
     ):
         """
         Given three file objects with associated metadata part of 1 consignment,
             where 2 file types is 'file', another file 'folder', and another file of
             type 'file' and metadata associated with a different consignment
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
         When I call the 'browse_data' function with the consignment id and date_from and date_to filter
             of the first 3 file objects
         Then it returns a Pagination object with 2 total results corresponding to the
@@ -668,6 +702,8 @@ class TestBrowseData:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
+
+        mock_standard_user(client, [consignment.consignment_bodies.Name])
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"

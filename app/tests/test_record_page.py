@@ -1,5 +1,4 @@
 from app.tests.assertions import assert_contains_html
-from app.tests.conftest import mock_standard_user, mock_superuser
 from app.tests.factories import FileFactory, FileMetadataFactory
 
 
@@ -16,7 +15,7 @@ def test_invalid_id_raises_404(client):
 
 
 def test_returns_record_page_for_user_with_access_to_files_transferring_body(
-    client,
+    client, mock_standard_user
 ):
     """
     Given a File in the database
@@ -32,7 +31,7 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
         FileType="file",
     )
 
-    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+    mock_standard_user(client, [file.file_consignments.consignment_bodies.Name])
 
     metadata = {
         "date_last_modified": "2023-02-25T10:12:47",
@@ -186,7 +185,9 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
     )
 
 
-def test_raises_404_for_user_without_access_to_files_transferring_body(client):
+def test_raises_404_for_user_without_access_to_files_transferring_body(
+    client, mock_standard_user
+):
     """
     Given a File in the database
     When a standard user without access to the file's consignment body makes a
@@ -219,14 +220,14 @@ def test_raises_404_for_user_without_access_to_files_transferring_body(client):
         for property_name, value in metadata.items()
     ]
 
-    mock_standard_user(client, "different_body")
+    mock_standard_user(client, ["different_body"])
 
     response = client.get(f"/record/{file.FileId}")
 
     assert response.status_code == 404
 
 
-def test_returns_record_page_for_superuser(client):
+def test_returns_record_page_for_superuser(client, mock_superuser):
     """
     Given a File in the database
     And a superuser
