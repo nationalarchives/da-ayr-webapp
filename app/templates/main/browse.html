@@ -52,394 +52,309 @@
             </div>
             <div class="govuk-width-container">
                 <!-- FILTERS -->
-                <form method="post" action="{{ url_for('main.browse') }}">
-                    {{ form.csrf_token }}
-                    <div class="govuk-grid-column-one-third filters-form">
-                        {% if browse_type == "consignment" %}
-                            <div class="browse-filter-container">
-                                <div class="browse-filter__header">
-                                    <p class="govuk-body-l browse__body filters-form__title">Filter within browse</p>
-                                    <img src="{{ url_for('static', filename='image/filter-icon.svg') }}"
-                                         height="32px"
-                                         width="32px"
-                                         class="browse-filter__icon"
-                                         alt="filter-icon">
-                                </div>
-                                <p class="govuk-body browse__body">Record status</p>
-                                <div class="govuk-form-group filters-form__group filters-form__record-status-group">
-                                    <fieldset class="govuk-fieldset">
-                                        <div class="govuk-radios" data-module="govuk-radios">
-                                            <div class="govuk-radios__item">
-                                                <input class="govuk-radios__input"
-                                                       id="closed_option"
-                                                       name="closed_option"
-                                                       type="radio"
-                                                       value="closed">
-                                                <label class="govuk-label govuk-radios__label" for="closed_option">Closed only</label>
-                                            </div>
-                                            <div class="govuk-radios__item">
-                                                <input class="govuk-radios__input"
-                                                       id="open_option"
-                                                       name="open_option"
-                                                       type="radio"
-                                                       value="open">
-                                                <label class="govuk-label govuk-radios__label" for="open_option">Open only</label>
-                                            </div>
-                                            <div class="govuk-radios__item">
-                                                <input class="govuk-radios__input"
-                                                       id="all_option"
-                                                       name="all_option"
-                                                       type="radio"
-                                                       value="all">
-                                                <label class="govuk-label govuk-radios__label" for="all_option">All records</label>
-                                            </div>
-                                        </div>
-                                    </fieldset>
-                                </div>
-                            </div>
-                            <div class="filters-form__series__container">
-                                <p class="govuk-body browse__body">File type</p>
-                                <div class="govuk-form-group filters-form__group filters-form__series-group">
-                                    <label class="govuk-label" for="file_type"></label>
-                                    <input class="govuk-input filters-form__series--input"
-                                           id="file_type"
-                                           name="file_type"
-                                           type="text">
-                                </div>
-                            </div>
-                        {% else %}
-                            <div class="browse-filter-container">
-                                <div class="browse-filter__header">
-                                    <p class="govuk-body-l browse__body filters-form__title">Filter within browse</p>
-                                    <img src="{{ url_for('static', filename='image/filter-icon.svg') }}"
-                                         height="32px"
-                                         width="32px"
-                                         class="browse-filter__icon"
-                                         alt="filter-icon">
-                                </div>
-                                <p class="govuk-body browse__body">Transferring body</p>
-                                <div class="govuk-form-group filters-form__group filters-form__transferring-body-group">
-                                    <label class="govuk-label" for="browse_filter_transferring_body"></label>
-                                    <select class="govuk-select govuk-select__filters-form-transferring-body-select"
-                                            id="browse_filter_transferring_body"
-                                            name="browse_filter_transferring_body">
-                                        <option value="all" selected>Choose one...</option>
-                                        {% if transferring_bodies | length > 0 %}
-                                            {% for body in transferring_bodies %}<option value="{{ body }}">{{ body }}</option>{% endfor %}
-                                        {% endif %}
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="filters-form__series__container">
-                                <p class="govuk-body browse__body">Series</p>
-                                <div class="govuk-form-group filters-form__group filters-form__series-group">
-                                    <label class="govuk-label" for="browse_filter_series"></label>
-                                    <input class="govuk-input filters-form__series--input"
-                                           id="browse_filter_series"
-                                           name="browse_filter_series"
-                                           type="text">
-                                </div>
-                            </div>
-                            <div class="filters-form__consignment-ref__container">
-                                <p class="govuk-body browse__body">
-                                    Consignment <abbr title="reference">ref</abbr>
-                                </p>
-                                <div class="govuk-form-group filters-form__group filters-form__consignment-ref-group">
-                                    <label class="govuk-label" for="browse_filter_consignment-ref"></label>
-                                    <input class="govuk-input filters-form__consignment-ref--input"
-                                           id="browse_filter_consignment-ref"
-                                           name="browse_filter_consignment-ref"
-                                           type="text">
-                                </div>
-                            </div>
-                        {% endif %}
-                        <div class="filters-form__date__container">
-                            {% if browse_type == "consignment" %}
-                                <fieldset class="govuk-fieldset">
-                                    <div class="govuk-radios" data-module="govuk-radios">
-                                        <div class="govuk-radios__item">
-                                            <input class="govuk-radios__input"
-                                                   id="closure_expiry"
-                                                   name="closure_expiry"
-                                                   type="radio"
-                                                   value="closure_expiry">
-                                            <label class="govuk-label govuk-radios__label" for="closure_expiry">Closure expiry</label>
-                                        </div>
-                                        <div class="govuk-radios__item">
-                                            <input class="govuk-radios__input"
-                                                   id="file_last_modified"
-                                                   name="file_last_modified"
-                                                   type="radio"
-                                                   value="file_last_modified">
-                                            <label class="govuk-label govuk-radios__label" for="file_last_modified">File last modified</label>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            {% endif %}
-                            <div class="govuk-form-group date-form filters-form__group filters-form__date-from-group">
-                                <p class="govuk-body date-form browse__body filters-form__body-date">Date from</p>
-                                <fieldset class="govuk-fieldset" role="group" aria-describedby="date-from">
-                                    <div class="govuk-date-input" id="date-from">
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-2"
-                                                       id="date-from-day"
-                                                       name="date-from-day"
-                                                       type="text"
-                                                       inputmode="numeric"
-                                                       maxlength="2">
-                                                <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                                                       for="date-from-day">(DD)</label>
-                                            </div>
-                                        </div>
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-2"
-                                                       id="date-from-month"
-                                                       name="date-from-month"
-                                                       type="text"
-                                                       inputmode="numeric"
-                                                       maxlength="2">
-                                                <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                                                       for="date-from-month">(MM)</label>
-                                            </div>
-                                        </div>
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-4"
-                                                       id="date-from-year"
-                                                       name="date-from-year"
-                                                       type="text"
-                                                       inputmode="numeric"
-                                                       maxlength="4">
-                                                <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                                                       for="date-from-year">(YYYY)</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </div>
-                            <div class="govuk-form-group date-form filters-form__group filters-form__date-to-group">
-                                <p class="govuk-body-m date-form browse__body filters-form__body-date">To date</p>
-                                <fieldset class="govuk-fieldset" role="group" aria-describedby="date-to">
-                                    <div class="govuk-date-input" id="date-to">
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-2"
-                                                       id="date-to-day"
-                                                       name="date-to-day"
-                                                       type="text"
-                                                       inputmode="numeric"
-                                                       maxlength="2">
-                                                <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                                                       for="date-to-day">(DD)</label>
-                                            </div>
-                                        </div>
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-2"
-                                                       id="date-to-month"
-                                                       name="date-to-month"
-                                                       type="text"
-                                                       inputmode="numeric"
-                                                       maxlength="2">
-                                                <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                                                       for="date-to-month">(MM)</label>
-                                            </div>
-                                        </div>
-                                        <div class="govuk-date-input__item">
-                                            <div class="govuk-form-group">
-                                                <input class="govuk-input govuk-date-input__input govuk-input--width-4"
-                                                       id="date-to-year"
-                                                       name="date-to-year"
-                                                       type="text"
-                                                       inputmode="numeric"
-                                                       maxlength="4">
-                                                <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                                                       for="date-to-year">(YYYY)</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </div>
-                            <div class="filters-form__buttons">
-                                <button type="submit"
-                                        class="govuk-button govuk-button__filters-form-apply-button"
-                                        data-module="govuk-button">Apply filters</button>
-                                <button type="button"
-                                        class="govuk-button__filters-form-clear-button"
-                                        data-module="govuk-button">Clear all filters</button>
-                            </div>
+                <div class="govuk-grid-column-one-third filters-form">
+                    <div class="browse-filter-container">
+                        <div class="browse-filter__header">
+                            <p class="govuk-body-l browse__body filters-form__title">Filter within browse</p>
+                            <img src="{{ url_for('static', filename='image/filter-icon.svg') }}"
+                                 height="32px"
+                                 width="32px"
+                                 class="browse-filter__icon"
+                                 alt="filter-icon">
+                        </div>
+                        <p class="govuk-body browse__body">Transferring body</p>
+                        <div class="govuk-form-group filters-form__group filters-form__transferring-body-group">
+                            <label class="govuk-label" for="browse_filter_transferring_body"></label>
+                            <select class="govuk-select govuk-select__filters-form-transferring-body-select"
+                                    id="browse_filter_transferring_body"
+                                    name="sort">
+                                <option value="all" selected>Choose one...</option>
+                                <option value="arts">Arts Council England</option>
+                                <option value="food_standards_agency">Food Standards Agency</option>
+                                <option value="foreign_office">Foreign Office</option>
+                            </select>
                         </div>
                     </div>
-                </form>
-                <!-- END FILTERS -->
-                <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
-                    <!-- Table Heading -->
-                    {% if browse_type == "browse" %}
-                        {% if results %}
-                            {% if num_records_found > 0 %}
-                                <dl class="govuk-summary-list browse-grid__list">
-                                    <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
-                                        <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">Transferring body</dt>
-                                        <dt class="govuk-summary-list__key browse-grid__key">Series</dt>
-                                        <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Last record transferred</dt>
-                                        <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Records held</dt>
-                                        <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Consignments within series</dt>
-                                    </div>
-                                    <!-- Table Content -->
-                                    {% for record in results %}
-                                        <div class="govuk-summary-list__row">
-                                            <dd class="govuk-summary-list__value browse__table__large-width">
-                                                <a href="{{ url_for('main.browse', transferring_body_id=record['transferring_body_id']) }}">
-                                                    {{ record["transferring_body"] }}
-                                                </a>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <p class="govuk-body browse__body">
-                                                    <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">{{ record["series"] }}</a>
-                                                </p>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <p class="govuk-body browse__body browse__table__right-align">{{ record["last_record_transferred"] }}</p>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <p class="govuk-body browse__body browse__table__right-align">{{ record["records_held"] }}</p>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <p class="govuk-body browse__body browse__table__right-align">{{ record["consignment_in_series"] }}</p>
-                                            </dd>
+                    <div class="filters-form__series__container">
+                        <p class="govuk-body browse__body">Series</p>
+                        <div class="govuk-form-group filters-form__group filters-form__series-group">
+                            <label class="govuk-label" for="browse_filter_series"></label>
+                            <input class="govuk-input filters-form__series--input"
+                                   id="browse_filter_series"
+                                   name="width10"
+                                   type="text">
+                        </div>
+                    </div>
+                    <div class="filters-form__consignment-ref__container">
+                        <p class="govuk-body browse__body">
+                            Consignment <abbr title="reference">ref</abbr>
+                        </p>
+                        <div class="govuk-form-group filters-form__group filters-form__consignment-ref-group">
+                            <label class="govuk-label" for="browse_filter_consignment-ref"></label>
+                            <input class="govuk-input filters-form__consignment-ref--input"
+                                   id="browse_filter_consignment-ref"
+                                   name="width10"
+                                   type="text">
+                        </div>
+                    </div>
+                    <div class="filters-form__date__container">
+                        <div class="govuk-form-group date-form filters-form__group filters-form__date-from-group">
+                            <p class="govuk-body date-form browse__body filters-form__body-date">Date from</p>
+                            <fieldset class="govuk-fieldset" role="group" aria-describedby="date-from">
+                                <div class="govuk-date-input" id="date-from">
+                                    <div class="govuk-date-input__item">
+                                        <div class="govuk-form-group">
+                                            <input class="govuk-input govuk-date-input__input govuk-input--width-2"
+                                                   id="date-from-day"
+                                                   name="date-from-day"
+                                                   type="text"
+                                                   inputmode="numeric">
+                                            <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                                                   for="date-from-day">(DD)</label>
                                         </div>
-                                    {% endfor %}
-                                </dl>
-                            {% endif %}
-                        {% endif %}
-                    {% endif %}
-                    {% if browse_type == "transferring_body" %}
-                        {% if results %}
-                            {% if num_records_found > 0 %}
-                                <dl class="govuk-summary-list browse-grid__list">
-                                    <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
-                                        <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">Transferring body</dt>
-                                        <dt class="govuk-summary-list__key browse-grid__key">Series</dt>
-                                        <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Last record transferred</dt>
-                                        <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Records held</dt>
-                                        <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Consignments within series</dt>
                                     </div>
-                                    <!-- Table Content -->
-                                    {% for record in results %}
-                                        <div class="govuk-summary-list__row">
-                                            <dd class="govuk-summary-list__value browse__table__large-width">
-                                                <p class="govuk-body browse__body">{{ record["transferring_body"] }}</p>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <p class="govuk-body browse__body">
-                                                    <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">{{ record["series"] }}</a>
-                                                </p>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <p class="govuk-body browse__body browse__table__right-align">{{ record["last_record_transferred"] }}</p>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <p class="govuk-body browse__body browse__table__right-align">{{ record["records_held"] }}</p>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <p class="govuk-body browse__body browse__table__right-align">{{ record["consignment_in_series"] }}</p>
-                                            </dd>
+                                    <div class="govuk-date-input__item">
+                                        <div class="govuk-form-group">
+                                            <input class="govuk-input govuk-date-input__input govuk-input--width-2"
+                                                   id="date-from-month"
+                                                   name="date-from-month"
+                                                   type="text"
+                                                   inputmode="numeric">
+                                            <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                                                   for="date-from-month">(MM)</label>
                                         </div>
-                                    {% endfor %}
-                                </dl>
-                            {% endif %}
-                        {% endif %}
-                    {% endif %}
-                    {% if browse_type == "series" %}
-                        {% if results %}
-                            {% if num_records_found > 0 %}
-                                <dl class="govuk-summary-list browse-grid__list">
-                                    <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
-                                        <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">Transferring body</dt>
-                                        <dt class="govuk-summary-list__key browse-grid__key">Series</dt>
-                                        <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Consignment transferred</dt>
-                                        <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Records in consignment</dt>
-                                        <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Consignment reference</dt>
                                     </div>
-                                    <!-- Table Content -->
-                                    {% for record in results %}
-                                        <div class="govuk-summary-list__row">
-                                            <dd class="govuk-summary-list__value browse__table__large-width">
-                                                <p class="govuk-body browse__body">{{ record["transferring_body"] }}</p>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <p class="govuk-body browse__body">{{ record["series"] }}</p>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <p class="govuk-body browse__body browse__table__right-align">{{ record["last_record_transferred"] }}</p>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <p class="govuk-body browse__body browse__table__right-align">{{ record["records_held"] }}</p>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <p class="govuk-body browse__body">
-                                                    <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">
-                                                        {{ record["consignment_reference"] }}
-                                                    </a>
-                                                </p>
-                                            </dd>
+                                    <div class="govuk-date-input__item">
+                                        <div class="govuk-form-group">
+                                            <input class="govuk-input govuk-date-input__input govuk-input--width-4"
+                                                   id="date-from-year"
+                                                   name="date-from-year"
+                                                   type="text"
+                                                   inputmode="numeric">
+                                            <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                                                   for="date-from-year">(YYYY)</label>
                                         </div>
-                                    {% endfor %}
-                                </dl>
-                            {% endif %}
-                        {% endif %}
-                    {% endif %}
-                    {% if browse_type == "consignment" %}
-                        {% if results %}
-                            {% if num_records_found > 0 %}
-                                <dl class="govuk-summary-list browse-grid__list">
-                                    <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
-                                        <dt class="govuk-summary-list__key govuk-summary-list__key__left">Last modified</dt>
-                                        <dt class="govuk-summary-list__key govuk-summary-list__key__left">Filename</dt>
-                                        <dt class="govuk-summary-list__key govuk-summary-list__key__left">Status</dt>
-                                        <dt class="govuk-summary-list__key govuk-summary-list__key__left">Closure start date</dt>
-                                        <dt class="govuk-summary-list__key govuk-summary-list__key__left">Closure period</dt>
                                     </div>
-                                    <!-- Table Content -->
-                                    {% for record in results %}
-                                        <div class="govuk-summary-list__row">
-                                            <dd class="govuk-summary-list__value">
-                                                {{ record['date_last_modified'] }}
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record['file_name'] }}</a>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <strong class="govuk-tag {{ 'govuk-tag--green' if record['closure_type'] == 'Open' else 'govuk-tag--red' }}">
-                                                    {{ record['closure_type'] }}
-                                                </strong>
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                {{ record['closure_start_date'] }}
-                                            </dd>
-                                            <dd class="govuk-summary-list__value">
-                                                <p class="govuk-body browse__body">
-                                                    {% if record['closure_period'] %}
-                                                        {{ record['closure_period'] }} years
-                                                    {% else %}
-                                                        -
-                                                    {% endif %}
-                                                </p>
-                                            </dd>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="govuk-form-group date-form filters-form__group filters-form__date-to-group">
+                            <p class="govuk-body-m date-form browse__body filters-form__body-date">To date</p>
+                            <fieldset class="govuk-fieldset" role="group" aria-describedby="date-to">
+                                <div class="govuk-date-input" id="date-to">
+                                    <div class="govuk-date-input__item">
+                                        <div class="govuk-form-group">
+                                            <input class="govuk-input govuk-date-input__input govuk-input--width-2"
+                                                   id="date-to-day"
+                                                   name="date-to-day"
+                                                   type="text"
+                                                   inputmode="numeric">
+                                            <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                                                   for="date-to-day">(DD)</label>
                                         </div>
-                                    {% endfor %}
-                                </dl>
-                            {% endif %}
-                        {% endif %}
-                    {% endif %}
-                    <!-- PAGINATION -->
-                    {% with view_name='main.browse' %}
-                        {% include "pagination.html" %}
-                    {% endwith %}
+                                    </div>
+                                    <div class="govuk-date-input__item">
+                                        <div class="govuk-form-group">
+                                            <input class="govuk-input govuk-date-input__input govuk-input--width-2"
+                                                   id="date-to-month"
+                                                   name="date-to-month"
+                                                   type="text"
+                                                   inputmode="numeric">
+                                            <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                                                   for="date-to-month">(MM)</label>
+                                        </div>
+                                    </div>
+                                    <div class="govuk-date-input__item">
+                                        <div class="govuk-form-group">
+                                            <input class="govuk-input govuk-date-input__input govuk-input--width-4"
+                                                   id="date-to-year"
+                                                   name="date-to-year"
+                                                   type="text"
+                                                   inputmode="numeric">
+                                            <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                                                   for="date-to-year">(YYYY)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="filters-form__buttons">
+                            <button type="button"
+                                    class="govuk-button govuk-button__filters-form-apply-button"
+                                    data-module="govuk-button">Apply filters</button>
+                            <button type="button"
+                                    class="govuk-button__filters-form-clear-button"
+                                    data-module="govuk-button">Clear all filters</button>
+                        </div>
+                    </div>
                 </div>
+                <!-- END FILTERS -->
+            {% endif %}
+            <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
+                <!-- Table Heading -->
+                {% if browse_type == "browse" %}
+                    {% if results %}
+                        {% if num_records_found > 0 %}
+                            <dl class="govuk-summary-list browse-grid__list">
+                                <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
+                                    <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">Transferring body</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key">Series</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Last record transferred</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Records held</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Consignments within series</dt>
+                                </div>
+                                <!-- Table Content -->
+                                {% for record in results %}
+                                    <div class="govuk-summary-list__row">
+                                        <dd class="govuk-summary-list__value browse__table__large-width">
+                                            <a href="{{ url_for('main.browse', transferring_body_id=record['transferring_body_id']) }}">
+                                                {{ record["transferring_body"] }}
+                                            </a>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <p class="govuk-body browse__body">
+                                                <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">{{ record["series"] }}</a>
+                                            </p>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <p class="govuk-body browse__body browse__table__right-align">{{ record["last_record_transferred"] }}</p>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <p class="govuk-body browse__body browse__table__right-align">{{ record["records_held"] }}</p>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <p class="govuk-body browse__body browse__table__right-align">{{ record["consignment_in_series"] }}</p>
+                                        </dd>
+                                    </div>
+                                {% endfor %}
+                            </dl>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+                {% if browse_type == "transferring_body" %}
+                    {% if results %}
+                        {% if num_records_found > 0 %}
+                            <dl class="govuk-summary-list browse-grid__list">
+                                <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
+                                    <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">Transferring body</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key">Series</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Last record transferred</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Records held</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Consignments within series</dt>
+                                </div>
+                                <!-- Table Content -->
+                                {% for record in results %}
+                                    <div class="govuk-summary-list__row">
+                                        <dd class="govuk-summary-list__value browse__table__large-width">
+                                            <p class="govuk-body browse__body">{{ record["transferring_body"] }}</p>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <p class="govuk-body browse__body">
+                                                <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">{{ record["series"] }}</a>
+                                            </p>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <p class="govuk-body browse__body browse__table__right-align">{{ record["last_record_transferred"] }}</p>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <p class="govuk-body browse__body browse__table__right-align">{{ record["records_held"] }}</p>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <p class="govuk-body browse__body browse__table__right-align">{{ record["consignment_in_series"] }}</p>
+                                        </dd>
+                                    </div>
+                                {% endfor %}
+                            </dl>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+                {% if browse_type == "series" %}
+                    {% if results %}
+                        {% if num_records_found > 0 %}
+                            <dl class="govuk-summary-list browse-grid__list">
+                                <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
+                                    <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">Transferring body</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key">Series</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Consignment transferred</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Records in consignment</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Consignment reference</dt>
+                                </div>
+                                <!-- Table Content -->
+                                {% for record in results %}
+                                    <div class="govuk-summary-list__row">
+                                        <dd class="govuk-summary-list__value browse__table__large-width">
+                                            <p class="govuk-body browse__body">{{ record["transferring_body"] }}</p>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <p class="govuk-body browse__body">{{ record["series"] }}</p>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <p class="govuk-body browse__body browse__table__right-align">{{ record["last_record_transferred"] }}</p>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <p class="govuk-body browse__body browse__table__right-align">{{ record["records_held"] }}</p>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <p class="govuk-body browse__body">
+                                                <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">
+                                                    {{ record["consignment_reference"] }}
+                                                </a>
+                                            </p>
+                                        </dd>
+                                    </div>
+                                {% endfor %}
+                            </dl>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+                {% if browse_type == "consignment" %}
+                    {% if results %}
+                        {% if num_records_found > 0 %}
+                            <dl class="govuk-summary-list browse-grid__list">
+                                <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
+                                    <dt class="govuk-summary-list__key govuk-summary-list__key__left">Last modified</dt>
+                                    <dt class="govuk-summary-list__key govuk-summary-list__key__left">Filename</dt>
+                                    <dt class="govuk-summary-list__key govuk-summary-list__key__left">Status</dt>
+                                    <dt class="govuk-summary-list__key govuk-summary-list__key__left">Closure start date</dt>
+                                    <dt class="govuk-summary-list__key govuk-summary-list__key__left">Closure period</dt>
+                                </div>
+                                <!-- Table Content -->
+                                {% for record in results %}
+                                    <div class="govuk-summary-list__row">
+                                        <dd class="govuk-summary-list__value">
+                                            {{ record['date_last_modified'] }}
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record['file_name'] }}</a>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <strong class="govuk-tag {{ 'govuk-tag--green' if record['closure_type'] == 'Open' else 'govuk-tag--red' }}">
+                                                {{ record['closure_type'] }}
+                                            </strong>
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            {{ record['closure_start_date'] }}
+                                        </dd>
+                                        <dd class="govuk-summary-list__value">
+                                            <p class="govuk-body browse__body">
+                                                {% if record['closure_period'] %}
+                                                    {{ record['closure_period'] }} years
+                                                {% else %}
+                                                    None
+                                                {% endif %}
+                                            </p>
+                                        </dd>
+                                    </div>
+                                {% endfor %}
+                            </dl>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+                <!-- PAGINATION -->
+                {% with view_name='main.browse' %}
+                    {% include "pagination.html" %}
+                {% endwith %}
             </div>
-        {% endif %}
+        </div>
     </div>
 {% endblock %}
