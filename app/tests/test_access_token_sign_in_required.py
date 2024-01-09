@@ -119,7 +119,7 @@ def test_access_token_sign_in_required_decorator_valid_token(
     Then it should grant access
     """
     mock_get_user_groups.return_value = [
-        "/ayr_user_type/view_department",
+        "/ayr_user_type/view_dept",
         "/transferring_body_user/foo",
         "/transferring_body_user/bar",
     ]
