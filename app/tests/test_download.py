@@ -1,7 +1,6 @@
 import boto3
 from moto import mock_s3
 
-from app.tests.conftest import mock_standard_user, mock_superuser
 from app.tests.factories import (
     ConsignmentFactory,
     FileFactory,
@@ -75,7 +74,7 @@ def test_invalid_id_raises_404(client):
 
 @mock_s3
 def test_downloads_record_successfully_for_user_with_access_to_files_transferring_body(
-    app, client
+    app, client, mock_standard_user
 ):
     """
     Given a File in the database
@@ -88,7 +87,7 @@ def test_downloads_record_successfully_for_user_with_access_to_files_transferrin
     create_mock_s3_bucket_with_object()
     app.config["RECORD_BUCKET_NAME"] = BUCKET
     file = mock_record()
-    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+    mock_standard_user(client, [file.file_consignments.consignment_bodies.Name])
     response = client.get(f"/download/{file.FileId}")
 
     assert response.status_code == 200
@@ -101,7 +100,7 @@ def test_downloads_record_successfully_for_user_with_access_to_files_transferrin
 
 @mock_s3
 def test_raises_404_for_user_without_access_to_files_transferring_body(
-    app, client
+    app, client, mock_standard_user
 ):
     """
     Given a File in the database
@@ -119,7 +118,9 @@ def test_raises_404_for_user_without_access_to_files_transferring_body(
 
 
 @mock_s3
-def test_downloads_record_successfully_for_superuser(app, client):
+def test_downloads_record_successfully_for_superuser(
+    app, client, mock_superuser
+):
     """
     Given a File in the database
     And a superuser
