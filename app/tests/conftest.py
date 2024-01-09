@@ -1,3 +1,4 @@
+from typing import List
 from unittest.mock import patch
 
 import pytest
@@ -9,14 +10,12 @@ from app.main.db.models import db
 from configs.testing_config import TestingConfig
 
 
-def mock_standard_user(client: FlaskClient, body: str):
+def mock_standard_user(client: FlaskClient, bodies: List[str]):
     with client.session_transaction() as session:
         session["access_token"] = "valid_token"
 
-    groups = [
-        "/ayr_user_type/view_department",
-        f"/transferring_body_user/{body}",
-    ]
+    groups = [f"/transferring_body_user/{body}" for body in bodies]
+    groups.append("/ayr_user_type/view_dept")
 
     patcher = patch("app.main.authorize.permissions_helpers.get_user_groups")
     mock_get_user_groups = patcher.start()

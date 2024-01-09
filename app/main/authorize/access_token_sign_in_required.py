@@ -2,6 +2,7 @@ from functools import wraps
 
 from flask import current_app, flash, g, redirect, session, url_for
 
+from app.main.authorize.ayr_user import AYRUser
 from app.main.authorize.keycloak_manager import get_user_groups
 
 
@@ -52,7 +53,8 @@ def access_token_sign_in_required(view_func):
                 session.clear()
                 return redirect(url_for("main.sign_in"))
 
-            if not _check_if_user_has_access_to_ayr(groups):
+            ayr_user = AYRUser(groups)
+            if not ayr_user.can_access_ayr:
                 flash(
                     "TNA User is logged in but does not have access to AYR. Please contact your admin."
                 )  # FIXME: this flash doesn't currently show when first redirected, only on a new page load
@@ -67,12 +69,3 @@ def access_token_sign_in_required(view_func):
     decorated_view.access_token_sign_in_required = True
 
     return decorated_view
-
-
-def _check_if_user_has_access_to_ayr(groups):
-    group_exists = False
-    for group in groups:
-        if group.startswith("/ayr_user_type/"):
-            group_exists = True
-            break
-    return group_exists

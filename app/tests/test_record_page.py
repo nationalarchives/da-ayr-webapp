@@ -32,7 +32,7 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
         FileType="file",
     )
 
-    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+    mock_standard_user(client, [file.file_consignments.consignment_bodies.Name])
 
     metadata = {
         "date_last_modified": "2023-02-25T10:12:47",
@@ -219,7 +219,7 @@ def test_raises_404_for_user_without_access_to_files_transferring_body(client):
         for property_name, value in metadata.items()
     ]
 
-    mock_standard_user(client, "different_body")
+    mock_standard_user(client, ["different_body"])
 
     response = client.get(f"/record/{file.FileId}")
 
