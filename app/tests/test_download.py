@@ -11,6 +11,7 @@ from app.tests.factories import (
 BUCKET = "test-download"
 CONSIGNMENT_REF = "TDR-123-TEST"
 FILE_PATH = "data/content/folder_a/test_file.txt"
+FILE_NAME = "test_file.txt"
 
 
 def mock_record():
@@ -20,7 +21,7 @@ def mock_record():
     consignment = ConsignmentFactory(ConsignmentReference=CONSIGNMENT_REF)
     file = FileFactory(
         file_consignments=consignment,
-        FileName="test_file.txt",
+        FileName=FILE_NAME,
         FilePath=FILE_PATH,
         FileType="file",
     )
@@ -56,7 +57,7 @@ def create_mock_s3_bucket_with_object():
     bucket = s3.create_bucket(Bucket=BUCKET)
 
     object = s3.Object(BUCKET, f"{CONSIGNMENT_REF}/{FILE_PATH}")
-    object.put(Body="foobar")
+    object.put(Body="record")
     return bucket
 
 
@@ -93,9 +94,9 @@ def test_downloads_record_successfully_for_user_with_access_to_files_transferrin
     assert response.status_code == 200
     assert (
         response.headers["Content-Disposition"]
-        == "attachment;filename=test_file.txt"
+        == f"attachment;filename={FILE_NAME}"
     )
-    assert response.data == b"foobar"
+    assert response.data == b"record"
 
 
 @mock_s3
