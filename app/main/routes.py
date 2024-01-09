@@ -1,7 +1,9 @@
 import uuid
 
+import boto3
 import keycloak
 from flask import (
+    Response,
     current_app,
     flash,
     json,
@@ -185,6 +187,32 @@ def record(record_id: uuid.UUID):
     file_metadata = get_file_metadata(record_id)
 
     return render_template("record.html", record=file_metadata)
+
+
+@bp.route("/download/<uuid:record_id>")
+@access_token_sign_in_required
+def download_record(record_id: uuid.UUID):
+    file = File.query.get_or_404(record_id)
+
+    validate_body_user_groups_or_404(
+        file.file_consignments.consignment_bodies.Name
+    )
+
+    s3 = boto3.client("s3")
+    bucket = current_app.config["RECORD_BUCKET_NAME"]
+    file_metadata = get_file_metadata(record_id)
+    consignment_reference = file_metadata["consignment"]
+    file_path = file_metadata["file_path"]
+    key = f'{consignment_reference}/{file_path.rstrip("/")}'
+    file_name = file_metadata["file_name"]
+    file = s3.get_object(Bucket=bucket, Key=key)
+
+    response = Response(
+        file["Body"].read(),
+        headers={"Content-Disposition": "attachment;filename=" + file_name},
+    )
+
+    return response
 
 
 @bp.route("/signed-out", methods=["GET"])

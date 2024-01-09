@@ -78,5 +78,9 @@ class BaseConfig(object):
     def DEFAULT_DATE_FORMAT(self):
         return self._get_config_value("DEFAULT_DATE_FORMAT")
 
+    @property
+    def RECORD_BUCKET_NAME(self):
+        return self._get_config_value("RECORD_BUCKET_NAME")
+
     def _get_config_value(self, variable_name):
         pass

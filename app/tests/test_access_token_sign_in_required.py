@@ -155,6 +155,7 @@ def test_expected_unprotected_routes_decorated_by_access_token_sign_in_required(
     expected_protected_routes = [
         "main.poc_search",
         "main.record",
+        "main.download_record",
         "main.sign_out",
         "main.browse",
     ]
