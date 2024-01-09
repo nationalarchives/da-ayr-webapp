@@ -1,7 +1,4 @@
-from unittest.mock import patch
-
 from flask.testing import FlaskClient
-from sqlalchemy import exc
 
 from app.main.authorize.ayr_user import (
     AYRUser,
@@ -104,31 +101,3 @@ class TestGetUserAccessibleTransferringBodies:
             ]
         )
         assert results == ["test body1", "test body2"]
-
-    @patch("app.main.authorize.ayr_user.db")
-    def test_db_raised_exception_returns_empty_list_and_log_message(
-        self, database, capsys, client
-    ):
-        """
-        Given a db execution error
-        When get_user_accessible_transferring_bodies is called
-        Then it should return an empty list and an error message is logged
-        """
-
-        def mock_execute(_):
-            raise exc.SQLAlchemyError("foo bar")
-
-        database.session.execute.side_effect = mock_execute
-
-        results = get_user_accessible_transferring_bodies(
-            [
-                "/transferring_body_user/test body1",
-                "/transferring_body_user/test body2",
-                "/ayr_user_type/bar",
-            ]
-        )
-        assert results == []
-        assert (
-            "Failed to return results from database with error : foo bar"
-            in capsys.readouterr().out
-        )

@@ -1,11 +1,9 @@
 from typing import List
 
-from sqlalchemy import exc
-
 from app.main.authorize.keycloak_manager import (
     get_user_transferring_body_keycloak_groups,
 )
-from app.main.db.models import Body, db
+from app.main.db.models import Body
 
 
 class AYRUser:
@@ -40,16 +38,9 @@ def get_user_accessible_transferring_bodies(groups: List[str]) -> List[str]:
     if not user_transferring_bodies:
         return []
 
-    try:
-        query = db.session.query(Body.Name)
-        bodies = db.session.execute(query)
-    except exc.SQLAlchemyError as e:
-        print("Failed to return results from database with error : " + str(e))
-        return []
-
     user_accessible_transferring_bodies = []
 
-    for body in bodies:
+    for body in Body.query.all():
         body_name = body.Name
         if _body_in_users_groups(body_name, user_transferring_bodies):
             user_accessible_transferring_bodies.append(body_name)
