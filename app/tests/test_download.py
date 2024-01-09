@@ -13,19 +13,10 @@ CONSIGNMENT_REF = "TDR-123-TEST"
 FILE_PATH = "data/content/folder_a/test_file.txt"
 
 
-def test_invalid_id_raises_404(client):
-    """
-    Given a UUID, `invalid_file_id`, not corresponding to the id
-        of a file in the database
-    When a GET request is made to `/download/invalid_file_id`
-    Then a 404 http response is returned
-    """
-    response = client.get("/download/some-id")
-
-    assert response.status_code == 404
-
-
 def mock_record():
+    """
+    Creates a dummy record to be used by tests
+    """
     consignment = ConsignmentFactory(ConsignmentReference=CONSIGNMENT_REF)
     file = FileFactory(
         file_consignments=consignment,
@@ -56,8 +47,10 @@ def mock_record():
     return file
 
 
-@mock_s3
 def create_mock_s3_bucket_with_object():
+    """
+    Creates a dummy bucket to be used by tests
+    """
     s3 = boto3.resource("s3", region_name="us-east-1")
 
     bucket = s3.create_bucket(Bucket=BUCKET)
@@ -65,6 +58,18 @@ def create_mock_s3_bucket_with_object():
     object = s3.Object(BUCKET, f"{CONSIGNMENT_REF}/{FILE_PATH}")
     object.put(Body="foobar")
     return bucket
+
+
+def test_invalid_id_raises_404(client):
+    """
+    Given a UUID, `invalid_file_id`, not corresponding to the id
+        of a file in the database
+    When a GET request is made to `/download/invalid_file_id`
+    Then a 404 http response is returned
+    """
+    response = client.get("/download/some-id")
+
+    assert response.status_code == 404
 
 
 @mock_s3
@@ -86,6 +91,11 @@ def test_downloads_record_successfully_for_user_with_access_to_files_transferrin
     response = client.get(f"/download/{file.FileId}")
 
     assert response.status_code == 200
+    assert (
+        response.headers["Content-Disposition"]
+        == "attachment;filename=test_file.txt"
+    )
+    assert response.data == b"foobar"
 
 
 @mock_s3
