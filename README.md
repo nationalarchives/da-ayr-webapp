@@ -322,6 +322,35 @@ python -m pytest --cov=app --cov-report=term-missing --cov-branch -vvv
 
 This also will generate a test coverage report.
 
+#### Mocking user permissions in tests
+
+We have 2 fixtures used for mocking a user and their permissions in our non end to end, flask tests:
+
+- `mock_standard_user`
+- `mock_superuser`
+
+which can be called like
+
+`mock_standard_user(client, ["foo", "bar"])`
+
+`mock_superuser(client)`
+
+respectively.
+
+These mock the `get_user_groups` permissions helper which abstracts away the external api call to keycloak, which we do not want to call in our non end to end tests.
+
+- `mock_standard_user` gives the user and results in an AYRUser where:
+  - `can_access_ayr`: True
+  - `is_standard_user`: True
+  - `is_superuser`: False
+  - `transferring_bodies`: same list as pass in as second arg to mock_standard_user
+
+- `mock_standard_user` gives the user and results in an AYRUser where:
+  - `can_access_ayr`: True
+  - `is_standard_user`: False
+  - `is_superuser`: True
+  - `transferring_bodies`: None
+
 ### End To End Tests
 
 We have a separate End To End suite of [Playwright](https://playwright.dev/python/docs/intro) tests in the `e2e_tests/` directory. These are also written in python and use the `pytest-playwright` `PyPi` package to run the tests as specified in the poetry dependencies.
