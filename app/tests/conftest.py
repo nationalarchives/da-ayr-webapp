@@ -10,25 +10,39 @@ from app.main.db.models import db
 from configs.testing_config import TestingConfig
 
 
-def mock_standard_user(client: FlaskClient, bodies: List[str]):
-    with client.session_transaction() as session:
-        session["access_token"] = "valid_token"
-
-    groups = [f"/transferring_body_user/{body}" for body in bodies]
-    groups.append("/ayr_user_type/view_dept")
-
+@pytest.fixture(scope="function")
+def mock_standard_user():
     patcher = patch("app.main.authorize.permissions_helpers.get_user_groups")
     mock_get_user_groups = patcher.start()
-    mock_get_user_groups.return_value = groups
+
+    def _mock_standard_user(client: FlaskClient, bodies: List[str]):
+        with client.session_transaction() as session:
+            session["access_token"] = "valid_token"
+
+        groups = [f"/transferring_body_user/{body}" for body in bodies]
+        groups.append("/ayr_user_type/view_dept")
+
+        mock_get_user_groups.return_value = groups
+
+    yield _mock_standard_user
+
+    patcher.stop()
 
 
-def mock_superuser(client: FlaskClient):
-    with client.session_transaction() as session:
-        session["access_token"] = "valid_token"
-
+@pytest.fixture(scope="function")
+def mock_superuser():
     patcher = patch("app.main.authorize.permissions_helpers.get_user_groups")
     mock_get_user_groups = patcher.start()
-    mock_get_user_groups.return_value = ["/ayr_user_type/view_all"]
+
+    def _mock_superuser(client: FlaskClient):
+        with client.session_transaction() as session:
+            session["access_token"] = "valid_token"
+
+        mock_get_user_groups.return_value = ["/ayr_user_type/view_all"]
+
+    yield _mock_superuser
+
+    patcher.stop()
 
 
 @pytest.fixture

@@ -4,12 +4,11 @@ import werkzeug
 from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
 )
-from app.tests.conftest import mock_standard_user, mock_superuser
 from app.tests.factories import BodyFactory
 
 
 def test_does_not_raise_404_for_body_name_user_has_access_to_and_is_in_database(
-    client,
+    client, mock_standard_user
 ):
     """
     Given a Body with name 'foo' in the database
@@ -24,7 +23,7 @@ def test_does_not_raise_404_for_body_name_user_has_access_to_and_is_in_database(
 
 
 def test_raises_404_for_body_name_in_database_but_user_does_not_have_access_to(
-    client,
+    client, mock_standard_user
 ):
     """
     Given a Body with name 'foo' in the database
@@ -40,7 +39,7 @@ def test_raises_404_for_body_name_in_database_but_user_does_not_have_access_to(
 
 
 def test_raises_404_for_body_name_user_has_access_to_but_is_not_in_database(
-    client,
+    client, mock_standard_user
 ):
     """
     Given a standard user with access to the body 'foo'
@@ -56,7 +55,7 @@ def test_raises_404_for_body_name_user_has_access_to_but_is_not_in_database(
 
 
 def test_does_not_raise_404_for_body_name_not_in_database_or_assigned_to_user_for_superuser(
-    client,
+    client, mock_superuser
 ):
     """
     Given a superuser
