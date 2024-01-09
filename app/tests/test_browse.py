@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
-from app.tests.conftest import mock_standard_user
 from app.tests.mock_database import (
     create_multiple_files_for_consignment,
     create_multiple_test_records,
@@ -307,7 +306,7 @@ def test_browse_display_multiple_pages(client: FlaskClient, app):
     assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
 
-def test_browse_transferring_body(client: FlaskClient):
+def test_browse_transferring_body(client: FlaskClient, mock_standard_user):
     """
     Given a user accessing the browse page
     When they make a GET request with a transferring body id
@@ -355,7 +354,7 @@ def test_browse_transferring_body(client: FlaskClient):
     assert [row_data] == expected_results_table[1]
 
 
-def test_browse_series(client: FlaskClient):
+def test_browse_series(client: FlaskClient, mock_standard_user):
     """
     Given a user accessing the browse page
     When they make a GET request with a series id
@@ -403,7 +402,7 @@ def test_browse_series(client: FlaskClient):
     assert [row_data] == expected_results_table[1]
 
 
-def test_browse_consignment(client: FlaskClient):
+def test_browse_consignment(client: FlaskClient, mock_standard_user):
     """
     Given a user accessing the browse page
     When they make a GET request with a consignment id
@@ -448,7 +447,9 @@ def test_browse_consignment(client: FlaskClient):
         ] == expected_results_table[index + 1]
 
 
-def test_browse_consignment_with_missing_file_metadata(client: FlaskClient):
+def test_browse_consignment_with_missing_file_metadata(
+    client: FlaskClient, mock_standard_user
+):
     """
     Given a user accessing the browse page
     When they make a GET request with a consignment id
@@ -496,7 +497,7 @@ def test_browse_consignment_with_missing_file_metadata(client: FlaskClient):
 
 
 def test_browse_consignment_filter_display_multiple_pages(
-    client: FlaskClient, app
+    client: FlaskClient, app, mock_standard_user
 ):
     """
     Given a user accessing the browse page

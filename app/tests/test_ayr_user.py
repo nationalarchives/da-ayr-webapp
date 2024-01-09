@@ -4,7 +4,6 @@ from app.main.authorize.ayr_user import (
     AYRUser,
     get_user_accessible_transferring_bodies,
 )
-from app.tests.conftest import mock_standard_user
 from app.tests.factories import BodyFactory
 
 
@@ -30,7 +29,9 @@ class TestAYRUser:
         assert not user.is_superuser
         assert not user.is_standard_user
 
-    def test_when_transferring_body_user_prefix_in_groups(self, client):
+    def test_when_transferring_body_user_prefix_in_groups(
+        self, client, mock_standard_user
+    ):
         BodyFactory(Name="foo")
         BodyFactory(Name="bar")
         mock_standard_user(client, ["foo", "bar"])
