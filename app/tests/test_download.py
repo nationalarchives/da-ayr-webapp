@@ -60,6 +60,7 @@ def test_invalid_id_raises_404(client):
     assert response.status_code == 404
 
 
+@mock_s3
 def create_mock_s3_bucket_with_object():
     """
     Creates a dummy bucket to be used by tests
