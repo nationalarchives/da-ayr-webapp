@@ -1,7 +1,6 @@
 import boto3
 from moto import mock_s3
 
-from app.tests.conftest import mock_standard_user
 from app.tests.factories import (
     ConsignmentFactory,
     FileFactory,
@@ -23,7 +22,7 @@ def test_invalid_id_raises_404(client):
 
 @mock_s3
 def test_returns_record_page_for_user_with_access_to_files_transferring_body(
-    app, client
+    app, client, mock_standard_user
 ):
     """
     Given a File in the database
@@ -51,7 +50,7 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
     )
     object.put(Body="foobar")
 
-    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+    mock_standard_user(client, [file.file_consignments.consignment_bodies.Name])
 
     metadata = {
         "date_last_modified": "2023-02-25T10:12:47",
