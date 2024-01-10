@@ -1,7 +1,7 @@
 import uuid
 
 from flask import current_app
-from sqlalchemy import DATE, Text, and_, func, or_
+from sqlalchemy import DATE, Text, and_, desc, func, or_
 
 from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
@@ -21,6 +21,7 @@ def browse_data(
     per_page,
     browse_type="browse",
     filters=None,
+    sorting_orders=None,
     transferring_body_id=None,
     series_id=None,
     consignment_id=None,
@@ -28,20 +29,19 @@ def browse_data(
     if browse_type == "transferring_body":
         body = Body.query.get_or_404(transferring_body_id)
         validate_body_user_groups_or_404(body.Name)
-        browse_query = _build_transferring_body_filter_query(
-            transferring_body_id
-        )
+        browse_query = _build_transferring_body_view_query(transferring_body_id)
     elif browse_type == "series":
         series = Series.query.get_or_404(series_id)
         validate_body_user_groups_or_404(series.body_series.Name)
-        browse_query = _build_series_filter_query(series_id)
+        browse_query = _build_series_view_query(series_id)
     elif browse_type == "consignment":
         consignment = Consignment.query.get_or_404(consignment_id)
         validate_body_user_groups_or_404(consignment.consignment_bodies.Name)
 
-        browse_query = _build_consignment_filter_query(
+        browse_query = _build_consignment_view_query(
             consignment_id,
             filters,
+            sorting_orders,
         )
     else:
         browse_query = _build_browse_everything_query()
@@ -146,7 +146,7 @@ def _build_browse_everything_query():
     return query
 
 
-def _build_transferring_body_filter_query(transferring_body_id):
+def _build_transferring_body_view_query(transferring_body_id):
     query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
@@ -176,7 +176,7 @@ def _build_transferring_body_filter_query(transferring_body_id):
     return query
 
 
-def _build_series_filter_query(series_id):
+def _build_series_view_query(series_id):
     query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
@@ -205,9 +205,10 @@ def _build_series_filter_query(series_id):
     return query
 
 
-def _build_consignment_filter_query(
+def _build_consignment_view_query(
     consignment_id: uuid.UUID,
     filters,
+    sorting_orders,
 ):
     select = db.session.query(
         File.FileId.label("file_id"),
@@ -280,37 +281,67 @@ def _build_consignment_filter_query(
     )
 
     if filters:
-        if "record_status" in filters:
-            record_status = filters["record_status"]
-            if record_status is not None and record_status != "all":
-                query = query.filter(
-                    func.lower(sub_query.c.closure_type)
-                    == record_status.lower()
-                )
-        if "file_type" in filters:
-            file_type = filters["file_type"]
-            filter_value = str(
-                f"%{file_type}"
-            ).lower()  # "ppt"  # None  # "docx"
+        query = _build_consignment_filters(query, sub_query, filters)
+    if sorting_orders:
+        query = _build_consignment_sorting_orders(
+            query, sub_query, sorting_orders
+        )
+
+    return query
+
+
+def _build_consignment_filters(query, sub_query, filters):
+    if "record_status" in filters:
+        record_status = filters["record_status"]
+        if record_status is not None and record_status != "all":
             query = query.filter(
-                func.lower(sub_query.c.file_name).like(filter_value)
+                func.lower(sub_query.c.closure_type) == record_status.lower()
             )
-        if "date_range" in filters:
-            date_range = filters["date_range"]
-            date_filter_field = None
-            if "date_filter_field" in filters:
-                date_filter_field = filters["date_filter_field"]
+    if "file_type" in filters:
+        file_type = filters["file_type"]
+        filter_value = str(f"%{file_type}").lower()  # "ppt"  # None  # "docx"
+        query = query.filter(
+            func.lower(sub_query.c.file_name).like(filter_value)
+        )
+    if "date_range" in filters:
+        date_range = filters["date_range"]
+        date_filter_field = None
+        if "date_filter_field" in filters:
+            date_filter_field = filters["date_filter_field"]
 
-            if date_range and date_filter_field is not None:
-                dt_range = validate_date_range(date_range)
-                if date_filter_field.lower() == "date_last_modified":
-                    date_filter = _build_date_range_filter(
-                        sub_query.c.date_last_modified,
-                        dt_range["date_from"],
-                        dt_range["date_to"],
-                    )
-                    query = query.filter(date_filter)
+        if date_range and date_filter_field is not None:
+            dt_range = validate_date_range(date_range)
+            if date_filter_field.lower() == "date_last_modified":
+                date_filter = _build_date_range_filter(
+                    sub_query.c.date_last_modified,
+                    dt_range["date_from"],
+                    dt_range["date_to"],
+                )
+                query = query.filter(date_filter)
+    return query
 
+
+def _build_consignment_sorting_orders(query, sub_query, sorting_orders):
+    if "record_status" in sorting_orders:
+        order_by = sorting_orders["record_status"]
+        if order_by == "desc":
+            query = query.order_by(desc(sub_query.c.closure_type))
+        else:
+            query = query.order_by(sub_query.c.closure_type)
+
+    if "date_last_modified" in sorting_orders:
+        order_by = sorting_orders["date_last_modified"]
+        if order_by == "desc":
+            query = query.order_by(desc(sub_query.c.date_last_modified))
+        else:
+            query = query.order_by(sub_query.c.date_last_modified)
+
+    if "file_name" in sorting_orders:
+        order_by = sorting_orders["file_name"]
+        if order_by == "desc":
+            query = query.order_by(desc(sub_query.c.file_name))
+        else:
+            query = query.order_by(sub_query.c.file_name)
     return query
 
 
