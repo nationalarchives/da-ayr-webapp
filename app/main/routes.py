@@ -110,6 +110,8 @@ def browse():
     browse_type = "browse"
     browse_parameters = {}
     filters = {}
+    sorting_orders = {}
+
     if transferring_body_id:
         browse_type = "transferring_body"
         browse_parameters["transferring_body_id"] = transferring_body_id
@@ -124,12 +126,20 @@ def browse():
         # filters["file_type"] = "docx"
         # filters["date_range"] = {"date_from": "01/08/2022", "date_to": "31/08/2022"}
         # filters["date_filter_field"] = "date_last_modified"
+        # e.g. please usd example below to pass sorting order
+        # sorting_orders["file_name"] = "asc"  # A to Z
+        # sorting_orders["file_name"] = "desc"  # Z to A
+        # sorting_orders["record_status"] = "asc"  # A to Z
+        # sorting_orders["record_status"] = "desc"  # Z to A
+        # sorting_orders["date_last_modified"] = "asc"  # oldest first
+        # sorting_orders["date_last_modified"] = "desc"  # most recent first
 
     browse_results = browse_data(
         page=page,
         per_page=per_page,
         browse_type=browse_type,
         filters=filters,
+        sorting_orders=sorting_orders,
         **browse_parameters,
     )
 

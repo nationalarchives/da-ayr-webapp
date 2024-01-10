@@ -1807,6 +1807,830 @@ class TestBrowseConsignment:
 
         assert results == expected_results
 
+    def test_browse_consignment_with_consignment_filter_and_record_status_sorting_closed_first(
+        self, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given three file objects with associated metadata part of 1 consignment,
+            where 2 file types is 'file', another file 'folder', and another file of
+            type 'file' and metadata associated with a different consignment
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with the consignment id filter and record_status as sorting in ascending
+            of the first 3 file objects
+        Then it returns a Pagination object with 3 total results
+            ordered by their closure_type 'Closed' first and then 'Open' in ascending orders
+        """
+        consignment = ConsignmentFactory()
+        mock_standard_user(client, [consignment.consignment_bodies.Name])
+
+        file_1 = FileFactory(
+            file_consignments=consignment, FileName="file_1", FileType="file"
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_start_date",
+            Value="2023-02-25T11:14:34",
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        file_2 = FileFactory(
+            file_consignments=consignment, FileName="file_2", FileType="file"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2,
+            PropertyName="date_last_modified",
+            Value="2023-02-27T12:28:08",
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_period", Value=None
+        )
+
+        file_3 = FileFactory(
+            file_consignments=consignment, FileName="file_3", FileType="file"
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="closure_start_date",
+            Value="2023-02-25T11:14:34",
+        )
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        FileFactory(file_consignments=consignment, FileType="folder")
+
+        FileFactory(FileType="file")
+
+        filters = {
+            "record_status": "all",
+        }
+        sorting_orders = {
+            "record_status": "asc",
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="consignment",
+            consignment_id=consignment.ConsignmentId,
+            filters=filters,
+            sorting_orders=sorting_orders,
+        )
+
+        assert pagination_object.total == 3
+
+        expected_results = [
+            (
+                file_1.FileId,
+                "file_1",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "1",
+            ),
+            (
+                file_3.FileId,
+                "file_3",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "1",
+            ),
+            (
+                file_2.FileId,
+                "file_2",
+                "27/02/2023",
+                "Open",
+                None,
+                None,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_consignment_with_consignment_filter_and_record_status_sorting_open_first(
+        self, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given three file objects with associated metadata part of 1 consignment,
+            where 2 file types is 'file', another file 'folder', and another file of
+            type 'file' and metadata associated with a different consignment
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with the consignment id filter and record_status as sorting in descending
+            of the first 3 file objects
+        Then it returns a Pagination object with 3 total results
+            ordered by their closure_type 'Closed' first and then 'Open' in ascending orders
+        """
+        consignment = ConsignmentFactory()
+        mock_standard_user(client, [consignment.consignment_bodies.Name])
+
+        file_1 = FileFactory(
+            file_consignments=consignment, FileName="file_1", FileType="file"
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_start_date",
+            Value="2023-02-25T11:14:34",
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        file_2 = FileFactory(
+            file_consignments=consignment, FileName="file_2", FileType="file"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2,
+            PropertyName="date_last_modified",
+            Value="2023-02-27T12:28:08",
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_period", Value=None
+        )
+
+        file_3 = FileFactory(
+            file_consignments=consignment, FileName="file_3", FileType="file"
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="closure_start_date",
+            Value="2023-02-25T11:14:34",
+        )
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        FileFactory(file_consignments=consignment, FileType="folder")
+
+        FileFactory(FileType="file")
+
+        filters = {
+            "record_status": "all",
+        }
+        sorting_orders = {
+            "record_status": "desc",
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="consignment",
+            consignment_id=consignment.ConsignmentId,
+            filters=filters,
+            sorting_orders=sorting_orders,
+        )
+
+        assert pagination_object.total == 3
+
+        expected_results = [
+            (
+                file_2.FileId,
+                "file_2",
+                "27/02/2023",
+                "Open",
+                None,
+                None,
+            ),
+            (
+                file_1.FileId,
+                "file_1",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "1",
+            ),
+            (
+                file_3.FileId,
+                "file_3",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "1",
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_consignment_with_consignment_filter_and_date_last_modified_sorting_oldest_first(
+        self, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given three file objects with associated metadata part of 1 consignment,
+            where 2 file types is 'file', another file 'folder', and another file of
+            type 'file' and metadata associated with a different consignment
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with the consignment id filter
+            and sort by date last modified as oldest first(ascending)
+            of the first 3 file objects
+        Then it returns a Pagination object with 3 total results
+            ordered by their date last modified as oldest first(ascending)
+        """
+        consignment = ConsignmentFactory()
+        mock_standard_user(client, [consignment.consignment_bodies.Name])
+
+        file_1 = FileFactory(
+            file_consignments=consignment, FileName="file_1", FileType="file"
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_start_date",
+            Value="2023-02-25T11:14:34",
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        file_2 = FileFactory(
+            file_consignments=consignment, FileName="file_2", FileType="file"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2,
+            PropertyName="date_last_modified",
+            Value="2023-02-27T12:28:08",
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_period", Value=None
+        )
+
+        file_3 = FileFactory(
+            file_consignments=consignment, FileName="file_3", FileType="file"
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="date_last_modified",
+            Value="2023-01-23T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="closure_start_date",
+            Value="2023-01-23T10:12:47",
+        )
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        FileFactory(file_consignments=consignment, FileType="folder")
+
+        FileFactory(FileType="file")
+
+        filters = {
+            "record_status": "all",
+        }
+        sorting_orders = {
+            "date_last_modified": "asc",
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="consignment",
+            consignment_id=consignment.ConsignmentId,
+            filters=filters,
+            sorting_orders=sorting_orders,
+        )
+
+        assert pagination_object.total == 3
+
+        expected_results = [
+            (
+                file_3.FileId,
+                "file_3",
+                "23/01/2023",
+                "Closed",
+                "23/01/2023",
+                "1",
+            ),
+            (
+                file_1.FileId,
+                "file_1",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "1",
+            ),
+            (
+                file_2.FileId,
+                "file_2",
+                "27/02/2023",
+                "Open",
+                None,
+                None,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_consignment_with_consignment_filter_and_date_last_modified_sorting_most_recent_first(
+        self, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given three file objects with associated metadata part of 1 consignment,
+            where 2 file types is 'file', another file 'folder', and another file of
+            type 'file' and metadata associated with a different consignment
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with the consignment id filter
+            and sort by date last modified as most recent(descending)
+            of the first 3 file objects
+        Then it returns a Pagination object with 3 total results
+            ordered by their date last modified as most recent(descending)
+        """
+        consignment = ConsignmentFactory()
+        mock_standard_user(client, [consignment.consignment_bodies.Name])
+
+        file_1 = FileFactory(
+            file_consignments=consignment, FileName="file_1", FileType="file"
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_start_date",
+            Value="2023-02-25T11:14:34",
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        file_2 = FileFactory(
+            file_consignments=consignment, FileName="file_2", FileType="file"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2,
+            PropertyName="date_last_modified",
+            Value="2023-02-27T12:28:08",
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_period", Value=None
+        )
+
+        file_3 = FileFactory(
+            file_consignments=consignment, FileName="file_3", FileType="file"
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="date_last_modified",
+            Value="2023-01-23T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="closure_start_date",
+            Value="2023-01-23T10:12:47",
+        )
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        FileFactory(file_consignments=consignment, FileType="folder")
+
+        FileFactory(FileType="file")
+
+        filters = {
+            "record_status": "all",
+        }
+        sorting_orders = {
+            "date_last_modified": "desc",
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="consignment",
+            consignment_id=consignment.ConsignmentId,
+            filters=filters,
+            sorting_orders=sorting_orders,
+        )
+
+        assert pagination_object.total == 3
+
+        expected_results = [
+            (
+                file_2.FileId,
+                "file_2",
+                "27/02/2023",
+                "Open",
+                None,
+                None,
+            ),
+            (
+                file_1.FileId,
+                "file_1",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "1",
+            ),
+            (
+                file_3.FileId,
+                "file_3",
+                "23/01/2023",
+                "Closed",
+                "23/01/2023",
+                "1",
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_consignment_with_consignment_filter_and_record_filename_sorting_a_to_z(
+        self, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given three file objects with associated metadata part of 1 consignment,
+            where 2 file types is 'file', another file 'folder', and another file of
+            type 'file' and metadata associated with a different consignment
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with the consignment id filter and file name as sorting in ascending
+            of the first 3 file objects
+        Then it returns a Pagination object with 3 total results
+            ordered by their file name in ascending orders (A to Z)
+        """
+        consignment = ConsignmentFactory()
+        mock_standard_user(client, [consignment.consignment_bodies.Name])
+
+        file_1 = FileFactory(
+            file_consignments=consignment,
+            FileName="first_file.txt",
+            FileType="file",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_start_date",
+            Value="2023-02-25T11:14:34",
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        file_2 = FileFactory(
+            file_consignments=consignment,
+            FileName="fourth_file.pdf",
+            FileType="file",
+        )
+        FileMetadataFactory(
+            file_metadata=file_2,
+            PropertyName="date_last_modified",
+            Value="2023-02-27T12:28:08",
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_period", Value=None
+        )
+
+        file_3 = FileFactory(
+            file_consignments=consignment,
+            FileName="fifth_file.docx",
+            FileType="file",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="closure_start_date",
+            Value="2023-02-25T11:14:34",
+        )
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        FileFactory(file_consignments=consignment, FileType="folder")
+
+        FileFactory(FileType="file")
+
+        filters = {
+            "record_status": "all",
+        }
+        sorting_orders = {
+            "file_name": "asc",
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="consignment",
+            consignment_id=consignment.ConsignmentId,
+            filters=filters,
+            sorting_orders=sorting_orders,
+        )
+
+        assert pagination_object.total == 3
+
+        expected_results = [
+            (
+                file_3.FileId,
+                "fifth_file.docx",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "1",
+            ),
+            (
+                file_1.FileId,
+                "first_file.txt",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "1",
+            ),
+            (
+                file_2.FileId,
+                "fourth_file.pdf",
+                "27/02/2023",
+                "Open",
+                None,
+                None,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_consignment_with_consignment_filter_and_record_filename_sorting_z_to_a(
+        self, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given three file objects with associated metadata part of 1 consignment,
+            where 2 file types is 'file', another file 'folder', and another file of
+            type 'file' and metadata associated with a different consignment
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with the consignment id filter and file name as sorting in descending
+            of the first 3 file objects
+        Then it returns a Pagination object with 3 total results
+            ordered by their file name in descending orders (Z to A)
+        """
+        consignment = ConsignmentFactory()
+        mock_standard_user(client, [consignment.consignment_bodies.Name])
+
+        file_1 = FileFactory(
+            file_consignments=consignment,
+            FileName="first_file.txt",
+            FileType="file",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_start_date",
+            Value="2023-02-25T11:14:34",
+        )
+        FileMetadataFactory(
+            file_metadata=file_1,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        file_2 = FileFactory(
+            file_consignments=consignment,
+            FileName="fourth_file.pdf",
+            FileType="file",
+        )
+        FileMetadataFactory(
+            file_metadata=file_2,
+            PropertyName="date_last_modified",
+            Value="2023-02-27T12:28:08",
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+        )
+        FileMetadataFactory(
+            file_metadata=file_2, PropertyName="closure_period", Value=None
+        )
+
+        file_3 = FileFactory(
+            file_consignments=consignment,
+            FileName="fifth_file.docx",
+            FileType="file",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="date_last_modified",
+            Value="2023-02-25T10:12:47",
+        )
+
+        FileMetadataFactory(
+            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+        )
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="closure_start_date",
+            Value="2023-02-25T11:14:34",
+        )
+        FileMetadataFactory(
+            file_metadata=file_3,
+            PropertyName="closure_period",
+            Value="1",
+        )
+
+        FileFactory(file_consignments=consignment, FileType="folder")
+
+        FileFactory(FileType="file")
+
+        filters = {
+            "record_status": "all",
+        }
+        sorting_orders = {
+            "file_name": "desc",
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="consignment",
+            consignment_id=consignment.ConsignmentId,
+            filters=filters,
+            sorting_orders=sorting_orders,
+        )
+
+        assert pagination_object.total == 3
+
+        expected_results = [
+            (
+                file_2.FileId,
+                "fourth_file.pdf",
+                "27/02/2023",
+                "Open",
+                None,
+                None,
+            ),
+            (
+                file_1.FileId,
+                "first_file.txt",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "1",
+            ),
+            (
+                file_3.FileId,
+                "fifth_file.docx",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "1",
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
 
 class TestGetFileMetadata:
     def test_invalid_uuid_raises_not_found_error(self, client: FlaskClient):
