@@ -1,13 +1,17 @@
-/* SCSS for Header */
-
-
-@mixin on-mobile{
-    @media screen and (width <= 750px){
+@mixin on-mobile {
+    @media screen and (width <= 768px) {
         @content;
     }
 }
 
 .govuk-header {
+    &__logo {
+        @include on-mobile {
+            padding: 0;
+            margin: 0;
+        }
+    }
+
     &__link--tna {
         font-weight: 700;
     }
@@ -17,31 +21,37 @@
         word-spacing: 0.2rem;
         margin-top: 0;
         margin-bottom: 0;
+
+        @include on-mobile {
+            font-size: 1.7rem;
+        }
+
     }
 
     &__content--tna {
         text-align: right;
-        width:100%;
+        width: 100%;
         padding-bottom: 0.5rem;
         margin-top: 0.75rem;
         word-spacing: 0.2rem;
-        @include on-mobile  {
+
+        @include on-mobile {
             flex-direction: column;
             align-items: center;
-            text-align:center;
+            text-align: center;
             width: 100%;
         }
     }
 
     &__container--ayr {
-       margin-bottom: 0;
-       display:flex;
-       @include on-mobile  {
-        padding-bottom: 1rem;
-       flex-direction: column;
-       align-items: center;
-       text-align:center;
-        }
+        margin-bottom: 0;
+        display: flex;
 
+        @include on-mobile {
+            padding-bottom: 1rem;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
     }
 }
