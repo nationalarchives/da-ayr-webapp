@@ -208,17 +208,19 @@ def _build_series_view_query(series_id):
 
 
 def _build_browse_filters(query, filters):
-    if "transferring_body" in filters:
-        transferring_body = filters["transferring_body"]
+    transferring_body = filters.get("transferring_body")
+    if transferring_body:
         filter_value = str(f"{transferring_body}%").lower()
         query = query.filter(func.lower(Body.Name).like(filter_value))
-    if "series" in filters:
-        series = filters["series"]
+
+    series = filters.get("series")
+    if series:
         filter_value = str(f"{series}%").lower()
         query = query.filter(func.lower(Series.Name).like(filter_value))
-    if "date_range" in filters:
-        dt_range = validate_date_range(filters["date_range"])
 
+    date_range = filters.get("date_range")
+    if date_range:
+        dt_range = validate_date_range(filters["date_range"])
         date_filter = _build_date_range_filter(
             Consignment.TransferCompleteDatetime,
             dt_range["date_from"],
