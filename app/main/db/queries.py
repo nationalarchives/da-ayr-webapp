@@ -46,20 +46,9 @@ def browse_data(
         browse_query = _build_browse_everything_query()
 
     if not browse_type == "consignment":
-        if transferring_body_id:
-            browse_query = browse_query.filter(
-                Body.BodyId == transferring_body_id
-            )
-        if series_id:
-            browse_query = browse_query.filter(Series.SeriesId == series_id)
-        if consignment_id:
-            browse_query = browse_query.filter(
-                Consignment.ConsignmentId == consignment_id
-            )
         if filters:
             browse_query = _build_browse_filters(browse_query, filters)
 
-    print("browse_query_after_filter :", browse_query)
     return browse_query.paginate(page=page, per_page=per_page)
 
 
