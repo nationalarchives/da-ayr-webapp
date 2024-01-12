@@ -114,6 +114,13 @@ def browse():
     filters = {}
     sorting_orders = {}
 
+    # e.g. examples to send filters to use with browse - all, transferring body and series view
+    # filters = {"transferring_body": "test"}
+    # filters = {"series": "123"}
+    # filters = {"date_range": {"date_from": "01/08/2023", "date_to": "20/08/2023"}}
+    # filters = {"transferring_body": "test", "series": "ts",
+    #           "date_range": {"date_from": "01/03/2023", "date_to": "30/08/2023"}}
+
     if transferring_body_id:
         browse_type = "transferring_body"
         browse_parameters["transferring_body_id"] = transferring_body_id
@@ -123,6 +130,7 @@ def browse():
     elif consignment_id:
         browse_type = "consignment"
         browse_parameters["consignment_id"] = consignment_id
+
         # e.g. please use example below to pass filter values
         # filters["record_status"] = "open"
         # filters["file_type"] = "docx"
