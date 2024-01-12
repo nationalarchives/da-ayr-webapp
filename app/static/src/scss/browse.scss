@@ -6,33 +6,14 @@
 }
 
 // DISABLE MOBILE STYLES
-.govuk-mobile-summary-list {
+.mobile {
   display: none;
 }
 
-.govuk-mobile-table {
-  display: none;
+.desktop {
+  display: block;
 }
 
-.mobile-details {
-  display: none;
-}
-
-.mobile-sort {
-  display: none;
-}
-
-.mobile-filters-form {
-  display: none;
-}
-
-.mobile-filters {
-  display: none;
-}
-
-.mobile__search__container {
-  display: none;
-}
 
 // DESKTOP STYLES
 
@@ -319,6 +300,14 @@
 // MOBILE STYLES
 
 @media screen and (width <=768px) {
+  .desktop {
+    display: none;
+  }
+
+  .mobile {
+    display: block;
+  }
+
   .browse-grid--two-thirds {
     display: none;
   }
@@ -364,11 +353,15 @@
     align-items: center;
     justify-content: center;
     background-color: #f3f2f1;
-    width: 100vw;
-    right: 9%;
-    position: relative;
-    margin-bottom: 1.5rem;
+    width: 100%;
     padding: 0;
+    position: absolute;
+    left: 0;
+    right: 0;
+  }
+
+  .mobile__search__container-block {
+    height: 13rem;
   }
 
   .mobile__search__container__content {
