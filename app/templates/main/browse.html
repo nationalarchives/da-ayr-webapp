@@ -495,15 +495,9 @@
                                 <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
                                     <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">Transferring body</dt>
                                     <dt class="govuk-summary-list__key browse-grid__key">Series</dt>
-                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">
-                                        Last record
-                                        transferred
-                                    </dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Last record transferred</dt>
                                     <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Records held</dt>
-                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">
-                                        Consignments within
-                                        series
-                                    </dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Consignments within series</dt>
                                 </div>
                                 <!-- Table Content -->
                                 {% for record in results %}
@@ -520,19 +514,13 @@
                                             </p>
                                         </dd>
                                         <dd class="govuk-summary-list__value">
-                                            <p class="govuk-body browse__body browse__table__right-align">
-                                                {{
-                                                record["last_record_transferred"] }}
-                                            </p>
+                                            <p class="govuk-body browse__body browse__table__right-align">{{ record["last_record_transferred"] }}</p>
                                         </dd>
                                         <dd class="govuk-summary-list__value">
                                             <p class="govuk-body browse__body browse__table__right-align">{{ record["records_held"] }}</p>
                                         </dd>
                                         <dd class="govuk-summary-list__value">
-                                            <p class="govuk-body browse__body browse__table__right-align">
-                                                {{ record["consignment_in_series"]
-                                                }}
-                                            </p>
+                                            <p class="govuk-body browse__body browse__table__right-align">{{ record["consignment_in_series"] }}</p>
                                         </dd>
                                     </div>
                                 {% endfor %}
@@ -547,15 +535,9 @@
                                 <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
                                     <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">Transferring body</dt>
                                     <dt class="govuk-summary-list__key browse-grid__key">Series</dt>
-                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">
-                                        Last record
-                                        transferred
-                                    </dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Last record transferred</dt>
                                     <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Records held</dt>
-                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">
-                                        Consignments within
-                                        series
-                                    </dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Consignments within series</dt>
                                 </div>
                                 <!-- Table Content -->
                                 {% for record in results %}
@@ -570,19 +552,13 @@
                                             </p>
                                         </dd>
                                         <dd class="govuk-summary-list__value">
-                                            <p class="govuk-body browse__body browse__table__right-align">
-                                                {{
-                                                record["last_record_transferred"] }}
-                                            </p>
+                                            <p class="govuk-body browse__body browse__table__right-align">{{ record["last_record_transferred"] }}</p>
                                         </dd>
                                         <dd class="govuk-summary-list__value">
                                             <p class="govuk-body browse__body browse__table__right-align">{{ record["records_held"] }}</p>
                                         </dd>
                                         <dd class="govuk-summary-list__value">
-                                            <p class="govuk-body browse__body browse__table__right-align">
-                                                {{ record["consignment_in_series"]
-                                                }}
-                                            </p>
+                                            <p class="govuk-body browse__body browse__table__right-align">{{ record["consignment_in_series"] }}</p>
                                         </dd>
                                     </div>
                                 {% endfor %}
@@ -597,18 +573,9 @@
                                 <div class="govuk-summary-list__row govuk-summary-list__row__browse-grid-list">
                                     <dt class="govuk-summary-list__key browse-grid__key browse-grid__key__transferring-body">Transferring body</dt>
                                     <dt class="govuk-summary-list__key browse-grid__key">Series</dt>
-                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">
-                                        Consignment
-                                        transferred
-                                    </dt>
-                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">
-                                        Records in
-                                        consignment
-                                    </dt>
-                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">
-                                        Consignment
-                                        reference
-                                    </dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Consignment transferred</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Records in consignment</dt>
+                                    <dt class="govuk-summary-list__key browse-grid__key browse__table__right-align">Consignment reference</dt>
                                 </div>
                                 <!-- Table Content -->
                                 {% for record in results %}
@@ -620,10 +587,7 @@
                                             <p class="govuk-body browse__body">{{ record["series"] }}</p>
                                         </dd>
                                         <dd class="govuk-summary-list__value">
-                                            <p class="govuk-body browse__body browse__table__right-align">
-                                                {{
-                                                record["last_record_transferred"] }}
-                                            </p>
+                                            <p class="govuk-body browse__body browse__table__right-align">{{ record["last_record_transferred"] }}</p>
                                         </dd>
                                         <dd class="govuk-summary-list__value">
                                             <p class="govuk-body browse__body browse__table__right-align">{{ record["records_held"] }}</p>
