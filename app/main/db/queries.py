@@ -291,57 +291,47 @@ def _build_consignment_view_query(
 
 
 def _build_consignment_filters(query, sub_query, filters):
-    if "record_status" in filters:
-        record_status = filters["record_status"]
-        if record_status is not None and record_status != "all":
+    record_status = filters.get("record_status")
+    if record_status:
+        if record_status and record_status != "all":
             query = query.filter(
                 func.lower(sub_query.c.closure_type) == record_status.lower()
             )
-    if "file_type" in filters:
-        file_type = filters["file_type"]
-        filter_value = str(f"%{file_type}").lower()  # "ppt"  # None  # "docx"
+
+    file_type = filters.get("file_type")
+    if file_type:
+        filter_value = str(f"%{file_type}").lower()
         query = query.filter(
             func.lower(sub_query.c.file_name).like(filter_value)
         )
-    if "date_range" in filters:
-        date_range = filters["date_range"]
-        date_filter_field = None
-        if "date_filter_field" in filters:
-            date_filter_field = filters["date_filter_field"]
 
-        if date_range and date_filter_field is not None:
+    date_range = filters.get("date_range")
+    if date_range:
+        date_filter_field = filters.get("date_filter_field")
+        if (
+            date_filter_field
+            and date_filter_field.lower() == "date_last_modified"
+        ):
             dt_range = validate_date_range(date_range)
-            if date_filter_field.lower() == "date_last_modified":
-                date_filter = _build_date_range_filter(
-                    sub_query.c.date_last_modified,
-                    dt_range["date_from"],
-                    dt_range["date_to"],
-                )
-                query = query.filter(date_filter)
+            date_filter = _build_date_range_filter(
+                sub_query.c.date_last_modified,
+                dt_range["date_from"],
+                dt_range["date_to"],
+            )
+            query = query.filter(date_filter)
+
     return query
 
 
 def _build_consignment_sorting_orders(query, sub_query, sorting_orders):
-    if "record_status" in sorting_orders:
-        order_by = sorting_orders["record_status"]
-        if order_by == "desc":
-            query = query.order_by(desc(sub_query.c.closure_type))
-        else:
-            query = query.order_by(sub_query.c.closure_type)
-
-    if "date_last_modified" in sorting_orders:
-        order_by = sorting_orders["date_last_modified"]
-        if order_by == "desc":
-            query = query.order_by(desc(sub_query.c.date_last_modified))
-        else:
-            query = query.order_by(sub_query.c.date_last_modified)
-
-    if "file_name" in sorting_orders:
-        order_by = sorting_orders["file_name"]
-        if order_by == "desc":
-            query = query.order_by(desc(sub_query.c.file_name))
-        else:
-            query = query.order_by(sub_query.c.file_name)
+    for field, order in sorting_orders.items():
+        column = getattr(sub_query.c, field, None)
+        if column is not None:
+            query = (
+                query.order_by(desc(column))
+                if order == "desc"
+                else query.order_by(column)
+            )
     return query
 
 

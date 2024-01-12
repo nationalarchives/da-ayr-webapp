@@ -1898,7 +1898,7 @@ class TestBrowseConsignment:
             "record_status": "all",
         }
         sorting_orders = {
-            "record_status": "asc",
+            "closure_type": "asc",
         }
         pagination_object = browse_data(
             page=1,
@@ -2033,7 +2033,7 @@ class TestBrowseConsignment:
             "record_status": "all",
         }
         sorting_orders = {
-            "record_status": "desc",
+            "closure_type": "desc",
         }
         pagination_object = browse_data(
             page=1,
