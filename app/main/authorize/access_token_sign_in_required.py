@@ -3,7 +3,6 @@ from functools import wraps
 from flask import current_app, flash, g, redirect, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
-from app.main.authorize.keycloak_manager import get_user_groups
 
 
 def access_token_sign_in_required(view_func):
@@ -45,15 +44,12 @@ def access_token_sign_in_required(view_func):
             ):
                 return view_func(*args, **kwargs)
 
-            access_token = session.get("access_token")
+            ayr_user = AYRUser.from_access_token(session.get("access_token"))
 
-            groups = get_user_groups(access_token)
-
-            if not groups:
+            if not ayr_user.groups:
                 session.clear()
                 return redirect(url_for("main.sign_in"))
 
-            ayr_user = AYRUser(groups)
             if not ayr_user.can_access_ayr:
                 flash(
                     "TNA User is logged in but does not have access to AYR. Please contact your admin."

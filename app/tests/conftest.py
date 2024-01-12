@@ -6,23 +6,26 @@ from flask.testing import FlaskClient
 from testing.postgresql import PostgresqlFactory
 
 from app import create_app
+from app.main.authorize.ayr_user import AYRUser
 from app.main.db.models import db
 from configs.testing_config import TestingConfig
 
 
 @pytest.fixture(scope="function")
 def mock_standard_user():
-    patcher = patch("app.main.authorize.permissions_helpers.get_user_groups")
-    mock_get_user_groups = patcher.start()
+    patcher = patch("app.main.authorize.ayr_user.AYRUser.from_access_token")
 
-    def _mock_standard_user(client: FlaskClient, bodies: List[str]):
+    def _mock_standard_user(
+        client: FlaskClient, bodies: List[str] = ["test_bodies_1"]
+    ):
+        mock_ayr_user_from_access_token = patcher.start()
         with client.session_transaction() as session:
             session["access_token"] = "valid_token"
 
         groups = [f"/transferring_body_user/{body}" for body in bodies]
         groups.append("/ayr_user_type/view_dept")
 
-        mock_get_user_groups.return_value = groups
+        mock_ayr_user_from_access_token.return_value = AYRUser(groups)
 
     yield _mock_standard_user
 
@@ -31,14 +34,16 @@ def mock_standard_user():
 
 @pytest.fixture(scope="function")
 def mock_superuser():
-    patcher = patch("app.main.authorize.permissions_helpers.get_user_groups")
-    mock_get_user_groups = patcher.start()
+    patcher = patch("app.main.authorize.ayr_user.AYRUser.from_access_token")
 
     def _mock_superuser(client: FlaskClient):
+        mock_ayr_user_from_access_token = patcher.start()
         with client.session_transaction() as session:
             session["access_token"] = "valid_token"
 
-        mock_get_user_groups.return_value = ["/ayr_user_type/view_all"]
+        mock_ayr_user_from_access_token.return_value = AYRUser(
+            ["/ayr_user_type/view_all"]
+        )
 
     yield _mock_superuser
 
