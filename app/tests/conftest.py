@@ -1,4 +1,3 @@
-from typing import List
 from unittest.mock import patch
 
 import pytest
@@ -7,7 +6,8 @@ from testing.postgresql import PostgresqlFactory
 
 from app import create_app
 from app.main.authorize.ayr_user import AYRUser
-from app.main.db.models import db
+from app.main.db.models import Body, db
+from app.tests.factories import BodyFactory
 from configs.testing_config import TestingConfig
 
 
@@ -15,17 +15,17 @@ from configs.testing_config import TestingConfig
 def mock_standard_user():
     patcher = patch("app.main.authorize.ayr_user.AYRUser.from_access_token")
 
-    def _mock_standard_user(
-        client: FlaskClient, bodies: List[str] = ["test_body"]
-    ):
+    def _mock_standard_user(client: FlaskClient, body: str = "test_body"):
         mock_ayr_user_from_access_token = patcher.start()
         with client.session_transaction() as session:
             session["access_token"] = "valid_token"
 
-        groups = [f"/transferring_body_user/{body}" for body in bodies]
-        groups.append("/ayr_user_type/view_dept")
+        groups = ["/ayr_user_type/view_dept", f"/transferring_body_user/{body}"]
 
         mock_ayr_user_from_access_token.return_value = AYRUser(groups)
+
+        if Body.query.filter(Body.Name == body).count() == 0:
+            BodyFactory(Name=body)
 
     yield _mock_standard_user
 

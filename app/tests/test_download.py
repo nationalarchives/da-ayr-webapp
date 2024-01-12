@@ -86,7 +86,7 @@ def test_downloads_record_successfully_for_user_with_access_to_files_transferrin
     create_mock_s3_bucket_with_object()
     app.config["RECORD_BUCKET_NAME"] = BUCKET
     file = mock_record()
-    mock_standard_user(client, [file.file_consignments.consignment_bodies.Name])
+    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
     response = client.get(f"/download/{file.FileId}")
 
     assert response.status_code == 200

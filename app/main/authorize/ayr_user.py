@@ -1,5 +1,7 @@
 from typing import List
 
+import sqlalchemy
+
 from app.main.authorize.keycloak_manager import (
     get_user_groups,
     get_user_transferring_body_keycloak_groups,
@@ -28,37 +30,20 @@ class AYRUser:
         return "/ayr_user_type/view_dept" in self.groups
 
     @property
-    def transferring_bodies(self) -> str | None:
-        if self.is_superuser or not self.is_standard_user:
+    def transferring_body(self) -> Body | None:
+        transferring_body_names = get_user_transferring_body_keycloak_groups(
+            self.groups
+        )
+
+        if not transferring_body_names:
             return None
 
-        return get_user_accessible_transferring_bodies(self.groups)
+        transferring_body_name = transferring_body_names[0]
 
-
-def get_user_accessible_transferring_bodies(groups: List[str]) -> List[str]:
-    user_transferring_bodies = get_user_transferring_body_keycloak_groups(
-        groups
-    )
-
-    if not user_transferring_bodies:
-        return []
-
-    user_accessible_transferring_bodies = []
-
-    for body in Body.query.all():
-        body_name = body.Name
-        if _body_in_users_groups(body_name, user_transferring_bodies):
-            user_accessible_transferring_bodies.append(body_name)
-
-    return user_accessible_transferring_bodies
-
-
-def _body_in_users_groups(body, user_transferring_body_keycloak_groups):
-    for user_group in user_transferring_body_keycloak_groups:
-        if (
-            user_group.strip().replace(" ", "").lower()
-            == body.strip().replace(" ", "").lower()
-        ):
-            return True
-
-    return False
+        try:
+            body = Body.query.filter(
+                Body.Name == transferring_body_name
+            ).one_or_none()
+        except sqlalchemy.orm.exc.MultipleResultsFound:
+            return None
+        return body

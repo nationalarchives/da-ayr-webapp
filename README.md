@@ -331,7 +331,7 @@ We have 2 fixtures used for mocking a user and their permissions in our non end 
 
 which can be called like
 
-`mock_standard_user(client, ["foo", "bar"])`
+`mock_standard_user(client, "foo")`
 
 `mock_superuser(client)`
 
