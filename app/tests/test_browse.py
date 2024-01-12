@@ -1,19 +1,41 @@
 from bs4 import BeautifulSoup
+from flask import url_for
 from flask.testing import FlaskClient
 
+from app.tests.factories import BodyFactory
 from app.tests.mock_database import (
     create_multiple_files_for_consignment,
     create_multiple_test_records,
 )
 
 
-def test_browse_get(client: FlaskClient, mock_standard_user):
+def test_standard_user_redirected_to_browse_transferring_body_when_accessing_browse(
+    client: FlaskClient, mock_standard_user
+):
     """
-    Given a user accessing the browse page
+    Given a standard user accessing the browse page
+    When they make a GET request
+    Then they should be redirected to the transferring_body browse page for
+        the body they have access to
+    """
+    body = BodyFactory()
+    mock_standard_user(client, body.Name)
+
+    response = client.get("/browse")
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == url_for(
+        "main.browse", transferring_body=body.BodyId
+    )
+
+
+def test_browse_get(client: FlaskClient, mock_superuser):
+    """
+    Given a superuser accessing the browse page
     When they make a GET request
     Then they should see the browse page content.
     """
-    mock_standard_user(client)
+    mock_superuser(client)
 
     response = client.get("/browse")
 
@@ -23,13 +45,13 @@ def test_browse_get(client: FlaskClient, mock_standard_user):
     assert b"Everything available to you" in response.data
 
 
-def test_browse_submit_search_query(client: FlaskClient, mock_standard_user):
+def test_browse_submit_search_query(client: FlaskClient, mock_superuser):
     """
-    Given a user accessing the browse page
+    Given a superuser accessing the browse page
     When they make a POST request
     Then they should see results in content.
     """
-    mock_standard_user(client)
+    mock_superuser(client)
     create_multiple_test_records()
 
     query = "test"
@@ -40,13 +62,13 @@ def test_browse_submit_search_query(client: FlaskClient, mock_standard_user):
     assert b"Records found 11" in response.data
 
 
-def test_browse_get_with_data(client: FlaskClient, mock_standard_user):
+def test_browse_get_with_data(client: FlaskClient, mock_superuser):
     """
-    Given a user accessing the browse page
+    Given a superuser accessing the browse page
     When they make a GET request with page as a query string parameter
     Then they should see first five records on browse page content.
     """
-    mock_standard_user(client)
+    mock_superuser(client)
     create_multiple_test_records()
 
     response = client.get("/browse")
@@ -89,16 +111,14 @@ def test_browse_get_with_data(client: FlaskClient, mock_standard_user):
     assert [row_data] == expected_results_table[1]
 
 
-def test_browse_display_first_page(
-    client: FlaskClient, app, mock_standard_user
-):
+def test_browse_display_first_page(client: FlaskClient, app, mock_superuser):
     """
-    Given a user accessing the browse page
+    Given a superuser accessing the browse page
     When they make a GET request with page as a query string parameter
     Then they should see first page with five records on browse page content
     (excluding previous and incl. next page option).
     """
-    mock_standard_user(client)
+    mock_superuser(client)
     create_multiple_test_records()
     app.config["DEFAULT_PAGE_SIZE"] = 5
 
@@ -147,15 +167,13 @@ def test_browse_display_first_page(
     assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
 
-def test_browse_display_middle_page(
-    client: FlaskClient, app, mock_standard_user
-):
+def test_browse_display_middle_page(client: FlaskClient, app, mock_superuser):
     """
-    Given a user accessing the browse page
+    Given a superuser accessing the browse page
     When they make a GET request with page as a query string parameter
     Then they should see first page with five records on browse page content (incl. previous and next page options).
     """
-    mock_standard_user(client)
+    mock_superuser(client)
     create_multiple_test_records()
     app.config["DEFAULT_PAGE_SIZE"] = 5
 
@@ -208,14 +226,14 @@ def test_browse_display_middle_page(
     )
 
 
-def test_browse_display_last_page(client: FlaskClient, app, mock_standard_user):
+def test_browse_display_last_page(client: FlaskClient, app, mock_superuser):
     """
-    Given a user accessing the browse page
+    Given a superuser accessing the browse page
     When they make a GET request with page as a query string parameter
     Then they should see last page with n records on browse page content
     (incl. previous and excluding next page option).
     """
-    mock_standard_user(client)
+    mock_superuser(client)
     create_multiple_test_records()
     app.config["DEFAULT_PAGE_SIZE"] = 5
 
@@ -262,14 +280,14 @@ def test_browse_display_last_page(client: FlaskClient, app, mock_standard_user):
 
 
 def test_browse_display_multiple_pages(
-    client: FlaskClient, app, mock_standard_user
+    client: FlaskClient, app, mock_superuser
 ):
     """
-    Given a user accessing the browse page
+    Given a superuser accessing the browse page
     When they make a GET request with page as a query string parameter
     Then they should see first page with five records on browse page content (incl. previous and next page options).
     """
-    mock_standard_user(client)
+    mock_superuser(client)
     create_multiple_test_records()
     app.config["DEFAULT_PAGE_SIZE"] = 5
 
