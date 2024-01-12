@@ -4,13 +4,13 @@ from flask.testing import FlaskClient
 from app.tests.mock_database import create_multiple_test_records
 
 
-def test_search_get(client: FlaskClient):
+def test_search_get(client: FlaskClient, mock_standard_user):
     """
     Given a user accessing the search page
     When they make a GET request
     Then they should see the search form and page content.
     """
-
+    mock_standard_user(client)
     response = client.get("/poc-search")
 
     assert response.status_code == 200
@@ -19,12 +19,13 @@ def test_search_get(client: FlaskClient):
     assert b"Search" in response.data
 
 
-def test_search_no_query(client: FlaskClient):
+def test_search_no_query(client: FlaskClient, mock_standard_user):
     """
     Given a user accessing the search page
     When they make a POST request without a query
     Then they should not see any records found.
     """
+    mock_standard_user(client)
     form_data = {"foo": "bar"}
     response = client.post("/poc-search", data=form_data)
 
@@ -32,12 +33,13 @@ def test_search_no_query(client: FlaskClient):
     assert b"records found" not in response.data
 
 
-def test_search_with_no_results(client: FlaskClient):
+def test_search_with_no_results(client: FlaskClient, mock_standard_user):
     """
     Given a user with a search query
     When they make a request on the search page, and no results are found
     Then they should see no records found.
     """
+    mock_standard_user(client)
     create_multiple_test_records()
 
     form_data = {"query": "junk"}
@@ -47,12 +49,15 @@ def test_search_with_no_results(client: FlaskClient):
     assert b"0 record(s) found"
 
 
-def test_search_results_displayed_single_page(client: FlaskClient, app):
+def test_search_results_displayed_single_page(
+    client: FlaskClient, app, mock_standard_user
+):
     """
     Given a user with a search query which should return n results
     When they make a request on the search page
     Then a table is populated with the n results with metadata fields.
     """
+    mock_standard_user(client)
     create_multiple_test_records()
     app.config["DEFAULT_PAGE_SIZE"] = 5
     form_data = {"query": "test body"}
@@ -93,12 +98,15 @@ def test_search_results_displayed_single_page(client: FlaskClient, app):
     )
 
 
-def test_search_results_displayed_multiple_pages(client: FlaskClient, app):
+def test_search_results_displayed_multiple_pages(
+    client: FlaskClient, app, mock_standard_user
+):
     """
     Given a user with a search query which should return n results
     When they make a request on the search page
     Then a table is populated with the n results with metadata fields.
     """
+    mock_standard_user(client)
     create_multiple_test_records()
     app.config["DEFAULT_PAGE_SIZE"] = 5
     form_data = {"query": "testing body"}

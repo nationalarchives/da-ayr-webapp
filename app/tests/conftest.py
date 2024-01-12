@@ -16,7 +16,7 @@ def mock_standard_user():
     patcher = patch("app.main.authorize.ayr_user.AYRUser.from_access_token")
 
     def _mock_standard_user(
-        client: FlaskClient, bodies: List[str] = ["test_bodies_1"]
+        client: FlaskClient, bodies: List[str] = ["test_body"]
     ):
         mock_ayr_user_from_access_token = patcher.start()
         with client.session_transaction() as session:
