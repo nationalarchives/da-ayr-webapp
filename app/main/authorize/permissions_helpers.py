@@ -1,7 +1,6 @@
 from flask import abort, session
 
 from app.main.authorize.ayr_user import AYRUser
-from app.main.authorize.keycloak_manager import get_user_groups
 
 
 def validate_body_user_groups_or_404(
@@ -17,7 +16,7 @@ def validate_body_user_groups_or_404(
     Raises:
         werkzeug.exceptions.NotFound: If the user does not have access to the specified transferring body.
     """
-    ayr_user = AYRUser(get_user_groups(session.get("access_token")))
+    ayr_user = AYRUser.from_access_token(session.get("access_token"))
 
     if ayr_user.is_superuser:
         return

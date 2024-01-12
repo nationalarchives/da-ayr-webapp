@@ -1,6 +1,7 @@
 from typing import List
 
 from app.main.authorize.keycloak_manager import (
+    get_user_groups,
     get_user_transferring_body_keycloak_groups,
 )
 from app.main.db.models import Body
@@ -9,6 +10,10 @@ from app.main.db.models import Body
 class AYRUser:
     def __init__(self, groups: List[str]) -> None:
         self.groups = groups
+
+    @staticmethod
+    def from_access_token(access_token):
+        return AYRUser(get_user_groups(access_token))
 
     @property
     def can_access_ayr(self):

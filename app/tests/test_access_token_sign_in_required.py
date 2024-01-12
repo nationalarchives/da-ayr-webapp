@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from flask import Flask, render_template, url_for
 
@@ -29,9 +29,11 @@ def test_access_token_sign_in_required_decorator_no_token(app):
         assert response.headers["Location"] == url_for("main.sign_in")
 
 
-@patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect")
+@patch(
+    "app.main.authorize.access_token_sign_in_required.AYRUser.from_access_token"
+)
 def test_access_token_sign_in_required_decorator_inactive_token(
-    mock_decode_keycloak_access_token, app
+    mock_ayr_user_from_access_token, app
 ):
     """
     Given an inactive access token in the session,
@@ -39,7 +41,10 @@ def test_access_token_sign_in_required_decorator_inactive_token(
     Then it should redirect to the sign in view.
     And the session should be cleared
     """
-    mock_decode_keycloak_access_token.return_value = {"active": False}
+    mock_ayr_user = Mock()
+    mock_ayr_user.groups = []
+    mock_ayr_user.can_access_ayr = False
+    mock_ayr_user_from_access_token.return_value = mock_ayr_user
 
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
     view_name = "/protected_view"
@@ -62,9 +67,11 @@ def test_access_token_sign_in_required_decorator_inactive_token(
             assert cleared_session == {}
 
 
-@patch("app.main.authorize.access_token_sign_in_required.get_user_groups")
+@patch(
+    "app.main.authorize.access_token_sign_in_required.AYRUser.from_access_token"
+)
 def test_access_token_sign_in_required_decorator_active_without_ayr_access(
-    mock_get_user_groups,
+    mock_ayr_user_from_access_token,
     app,
 ):
     """
@@ -73,11 +80,10 @@ def test_access_token_sign_in_required_decorator_active_without_ayr_access(
     When accessing a route protected by the 'access_token_sign_in_required' decorator,
     Then it should redirect to the index page with a flashed message.
     """
-    mock_get_user_groups.return_value = [
-        "/transferring_body_user/foo",
-        "/transferring_body_user/bar",
-    ]
-
+    mock_ayr_user = Mock()
+    mock_ayr_user.groups = ["not empty"]
+    mock_ayr_user.can_access_ayr = False
+    mock_ayr_user_from_access_token.return_value = mock_ayr_user
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
 
     view_name = "/protected_view"
@@ -107,10 +113,9 @@ def test_access_token_sign_in_required_decorator_active_without_ayr_access(
         assert response.headers["Location"] == url_for("main.index")
 
 
-@patch("app.main.authorize.access_token_sign_in_required.get_user_groups")
 def test_access_token_sign_in_required_decorator_valid_token(
-    mock_get_user_groups,
     app,
+    mock_standard_user,
 ):
     """
     Given an active access token in the session,
@@ -118,12 +123,6 @@ def test_access_token_sign_in_required_decorator_valid_token(
     When accessing a route protected by the 'access_token_sign_in_required' decorator,
     Then it should grant access
     """
-    mock_get_user_groups.return_value = [
-        "/ayr_user_type/view_dept",
-        "/transferring_body_user/foo",
-        "/transferring_body_user/bar",
-    ]
-
     app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
 
     view_name = "/protected_view"
@@ -137,6 +136,7 @@ def test_access_token_sign_in_required_decorator_valid_token(
         with client.session_transaction() as session:
             session["access_token"] = "valid_token"
 
+        mock_standard_user(client)
         response = client.get(view_name)
 
     assert response.status_code == 200
@@ -239,10 +239,7 @@ def test_get_expected_routes_separated_by_protection():
     assert set(unprotected_routes) == {"static", "unprotected_view"}
 
 
-@patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID.introspect")
-def test_sign_out_button_on_protected_view_that_uses_base_template(
-    mock_decode_keycloak_access_token, app
-):
+def test_sign_out_button_on_protected_view_that_uses_base_template(app):
     """
     Given a view that is protected by the 'access_token_sign_in_required' decorator,
         and renders the `base.html` template
