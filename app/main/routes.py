@@ -144,6 +144,7 @@ def browse():
         # sorting_orders["record_status"] = "desc"  # Z to A
         # sorting_orders["date_last_modified"] = "asc"  # oldest first
         # sorting_orders["date_last_modified"] = "desc"  # most recent first
+
     else:
         ayr_user = AYRUser.from_access_token(session.get("access_token"))
         if ayr_user.is_standard_user:
