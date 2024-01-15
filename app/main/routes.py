@@ -208,9 +208,7 @@ def record(record_id: uuid.UUID):
     """
     file = File.query.get_or_404(record_id)
 
-    validate_body_user_groups_or_404(
-        file.file_consignments.consignment_bodies.Name
-    )
+    validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
     file_metadata = get_file_metadata(record_id)
 
@@ -222,9 +220,7 @@ def record(record_id: uuid.UUID):
 def download_record(record_id: uuid.UUID):
     file = File.query.get_or_404(record_id)
 
-    validate_body_user_groups_or_404(
-        file.file_consignments.consignment_bodies.Name
-    )
+    validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]

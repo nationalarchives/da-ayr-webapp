@@ -32,11 +32,11 @@ def browse_data(
         browse_query = _build_transferring_body_view_query(transferring_body_id)
     elif browse_type == "series":
         series = Series.query.get_or_404(series_id)
-        validate_body_user_groups_or_404(series.body_series.Name)
+        validate_body_user_groups_or_404(series.body.Name)
         browse_query = _build_series_view_query(series_id)
     elif browse_type == "consignment":
         consignment = Consignment.query.get_or_404(consignment_id)
-        validate_body_user_groups_or_404(consignment.consignment_bodies.Name)
+        validate_body_user_groups_or_404(consignment.series.body.Name)
 
         browse_query = _build_consignment_view_query(
             consignment_id,
@@ -426,8 +426,12 @@ def _get_file_metadata_query(file_id: uuid.UUID):
         query.join(File, FileMetadata.FileId == File.FileId)
         .join(Consignment, File.ConsignmentId == Consignment.ConsignmentId)
         .join(
+            Series,
+            Series.SeriesId == Consignment.SeriesId,
+        )
+        .join(
             Body,
-            Body.BodyId == Consignment.BodyId,
+            Body.BodyId == Series.BodyId,
         )
         .filter(*filters)
         .group_by(

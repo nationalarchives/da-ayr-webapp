@@ -345,9 +345,9 @@ def test_browse_transferring_body(client: FlaskClient, mock_standard_user):
     """
     files = create_multiple_test_records()
     file = files[0]
-    transferring_body_id = file.file_consignments.consignment_bodies.BodyId
+    transferring_body_id = file.consignment.series.body.BodyId
 
-    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+    mock_standard_user(client, file.consignment.series.body.Name)
 
     response = client.get(
         f"/browse?transferring_body_id={transferring_body_id}"
@@ -393,9 +393,9 @@ def test_browse_series(client: FlaskClient, mock_standard_user):
     """
     files = create_multiple_test_records()
     file = files[0]
-    series_id = file.file_consignments.SeriesId
+    series_id = file.consignment.SeriesId
 
-    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+    mock_standard_user(client, file.consignment.series.body.Name)
 
     response = client.get(f"/browse?series_id={series_id}")
 
@@ -441,9 +441,9 @@ def test_browse_consignment(client: FlaskClient, mock_standard_user):
     """
     files = create_multiple_test_records()
     file = files[0]
-    consignment_id = file.file_consignments.ConsignmentId
+    consignment_id = file.consignment.ConsignmentId
 
-    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+    mock_standard_user(client, file.consignment.series.body.Name)
 
     response = client.get(f"/browse?consignment_id={consignment_id}")
 
@@ -478,7 +478,7 @@ def test_browse_consignment(client: FlaskClient, mock_standard_user):
         ] == expected_results_table[index + 1]
 
 
-def test_browse_consignment_with_missing_file_metadata(
+def test_browse_consignment_with_missing_file(
     client: FlaskClient, mock_standard_user
 ):
     """
@@ -490,9 +490,9 @@ def test_browse_consignment_with_missing_file_metadata(
     """
     files = create_multiple_test_records()
     file = files[10]
-    consignment_id = file.file_consignments.ConsignmentId
+    consignment_id = file.consignment.ConsignmentId
 
-    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+    mock_standard_user(client, file.consignment.series.body.Name)
 
     response = client.get(f"/browse?consignment_id={consignment_id}")
 
@@ -539,11 +539,11 @@ def test_browse_consignment_filter_display_multiple_pages(
 
     files = create_multiple_test_records()
     file = files[0]
-    consignment_id = file.file_consignments.ConsignmentId
+    consignment_id = file.consignment.ConsignmentId
 
     create_multiple_files_for_consignment(consignment_id)
 
-    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+    mock_standard_user(client, file.consignment.series.body.Name)
 
     response = client.get(f"/browse?page=2&consignment_id={consignment_id}")
     assert response.status_code == 200

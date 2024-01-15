@@ -18,7 +18,7 @@ class Series(db.Model):
     BodyId = db.Column(UUID(as_uuid=True), ForeignKey("Body.BodyId"))
     Name = db.Column(Text)
     Description = db.Column(Text)
-    body_series = db.relationship("Body", foreign_keys="Series.BodyId")
+    body = db.relationship("Body", foreign_keys="Series.BodyId")
 
 
 class Consignment(db.Model):
@@ -35,12 +35,7 @@ class Consignment(db.Model):
     TransferCompleteDatetime = db.Column(DateTime)
     ExportDatetime = db.Column(DateTime)
     CreatedDatetime = db.Column(DateTime)
-    consignment_bodies = db.relationship(
-        "Body", foreign_keys="Consignment.BodyId"
-    )
-    consignment_series = db.relationship(
-        "Series", foreign_keys="Consignment.SeriesId"
-    )
+    series = db.relationship("Series", foreign_keys="Consignment.SeriesId")
 
 
 class File(db.Model):
@@ -57,7 +52,7 @@ class File(db.Model):
     CiteableReference = db.Column(Text)
     Checksum = db.Column(Text)
     CreatedDatetime = db.Column(DateTime)
-    file_consignments = db.relationship(
+    consignment = db.relationship(
         "Consignment", foreign_keys="File.ConsignmentId"
     )
 
@@ -69,4 +64,4 @@ class FileMetadata(db.Model):
     PropertyName = db.Column(Text, nullable=False)
     Value = db.Column(Text)
     CreatedDatetime = db.Column(DateTime)
-    file_metadata = db.relationship("File", foreign_keys="FileMetadata.FileId")
+    file = db.relationship("File", foreign_keys="FileMetadata.FileId")

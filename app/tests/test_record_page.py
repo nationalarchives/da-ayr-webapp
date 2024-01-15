@@ -31,7 +31,7 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
         FileType="file",
     )
 
-    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+    mock_standard_user(client, file.consignment.series.body.Name)
 
     metadata = {
         "date_last_modified": "2023-02-25T10:12:47",
@@ -45,7 +45,7 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
 
     [
         FileMetadataFactory(
-            file_metadata=file,
+            file=file,
             PropertyName=property_name,
             Value=value,
         )
@@ -68,15 +68,15 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
             </li>
             <li class="govuk-breadcrumbs__list-item">
             <a class="govuk-breadcrumbs__link--record"
-                href="/browse?transferring_body_id={file.file_consignments.consignment_bodies.BodyId}">{file.file_consignments.consignment_bodies.Name}</a>
+                href="/browse?transferring_body_id={file.consignment.series.body.BodyId}">{file.consignment.series.body.Name}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
             <a class="govuk-breadcrumbs__link--record"
-                href="/browse?series_id={file.file_consignments.consignment_series.SeriesId}">{file.file_consignments.consignment_series.Name}</a>
+                href="/browse?series_id={file.consignment.series.SeriesId}">{file.consignment.series.Name}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
             <a class="govuk-breadcrumbs__link--record"
-                href="/browse?consignment_id={file.ConsignmentId}">{file.file_consignments.ConsignmentReference}</a>
+                href="/browse?consignment_id={file.ConsignmentId}">{file.consignment.ConsignmentReference}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
             <a class="govuk-breadcrumbs__link--record">test_file.txt</a>
@@ -109,13 +109,13 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
         <div class="govuk-summary-list__row govuk-summary-list-record__row--record">
             <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Transferring body</dt>
             <dd class="govuk-summary-list__value govuk-summary-list-record__value--record">
-                {file.file_consignments.consignment_bodies.Name}
+                {file.consignment.series.body.Name}
             </dd>
         </div>
         <div class="govuk-summary-list__row govuk-summary-list-record__row--record">
             <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Consignment ID</dt>
             <dd class="govuk-summary-list__value govuk-summary-list-record__value--record">
-                {file.file_consignments.ConsignmentId}
+                {file.consignment.ConsignmentId}
             </dd>
         </div>
         <div class="govuk-summary-list__row govuk-summary-list-record__row--record">
@@ -213,7 +213,7 @@ def test_raises_404_for_user_without_access_to_files_transferring_body(
 
     [
         FileMetadataFactory(
-            file_metadata=file,
+            file=file,
             PropertyName=property_name,
             Value=value,
         )
@@ -254,7 +254,7 @@ def test_returns_record_page_for_superuser(client, mock_superuser):
 
     [
         FileMetadataFactory(
-            file_metadata=file,
+            file=file,
             PropertyName=property_name,
             Value=value,
         )
