@@ -48,7 +48,7 @@ def test_raises_404_for_body_name_user_has_access_to_but_is_not_in_database(
     Then the function should raise a 404 exception
     """
     BodyFactory(Name="bar")
-    mock_standard_user(client, ["foo"])
+    mock_standard_user(client, ["foo"], get_or_create_body=False)
 
     with pytest.raises(werkzeug.exceptions.NotFound):
         validate_body_user_groups_or_404("foo")

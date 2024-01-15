@@ -1,6 +1,6 @@
 from functools import wraps
 
-from flask import current_app, flash, g, redirect, session, url_for
+from flask import flash, g, redirect, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
 
@@ -25,9 +25,6 @@ def access_token_sign_in_required(view_func):
     Configuration options for Keycloak, such as the client ID, realm name, base URI, and client secret,
     are expected to be set in the Flask application configuration.
 
-    When the application is running in testing mode and the 'FORCE_AUTHENTICATION_FOR_IN_TESTING' config
-    option is not set, the decorator allows unauthenticated access to facilitate testing.
-
     Example:
         @app.route('/protected')
         @access_token_sign_in_required
@@ -39,11 +36,6 @@ def access_token_sign_in_required(view_func):
     def decorated_view(*args, **kwargs):
         g.access_token_sign_in_required = True  # Set attribute on g
         try:
-            if current_app.config["TESTING"] and not current_app.config.get(
-                "FORCE_AUTHENTICATION_FOR_IN_TESTING"
-            ):
-                return view_func(*args, **kwargs)
-
             ayr_user = AYRUser.from_access_token(session.get("access_token"))
 
             if not ayr_user.groups:

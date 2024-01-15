@@ -13,7 +13,6 @@ def test_access_token_sign_in_required_decorator_no_token(app):
     When accessing a route protected by the 'access_token_sign_in_required' decorator,
     Then it should redirect to the sign in view.
     """
-    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
     view_name = "/protected_view"
     with app.test_client() as client:
 
@@ -46,7 +45,6 @@ def test_access_token_sign_in_required_decorator_inactive_token(
     mock_ayr_user.can_access_ayr = False
     mock_ayr_user_from_access_token.return_value = mock_ayr_user
 
-    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
     view_name = "/protected_view"
     with app.test_client() as client:
 
@@ -123,8 +121,6 @@ def test_access_token_sign_in_required_decorator_valid_token(
     When accessing a route protected by the 'access_token_sign_in_required' decorator,
     Then it should grant access
     """
-    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
-
     view_name = "/protected_view"
     with app.test_client() as client:
 
@@ -239,7 +235,9 @@ def test_get_expected_routes_separated_by_protection():
     assert set(unprotected_routes) == {"static", "unprotected_view"}
 
 
-def test_sign_out_button_on_protected_view_that_uses_base_template(app):
+def test_sign_out_button_on_protected_view_that_uses_base_template(
+    app, mock_standard_user
+):
     """
     Given a view that is protected by the 'access_token_sign_in_required' decorator,
         and renders the `base.html` template
@@ -256,6 +254,7 @@ def test_sign_out_button_on_protected_view_that_uses_base_template(app):
         )
 
     with app.test_client() as client:
+        mock_standard_user(client)
         response = client.get(view_name)
 
     assert response.status_code == 200
