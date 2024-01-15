@@ -11,7 +11,7 @@ def test_search_get(client: FlaskClient, mock_standard_user):
     Then they should see the search form and page content.
     """
     mock_standard_user(client)
-    response = client.get("/poc-search")
+    response = client.get("/search")
 
     assert response.status_code == 200
     assert b"Search design PoC" in response.data
@@ -27,7 +27,7 @@ def test_search_no_query(client: FlaskClient, mock_standard_user):
     """
     mock_standard_user(client)
     form_data = {"foo": "bar"}
-    response = client.post("/poc-search", data=form_data)
+    response = client.post("/search", data=form_data)
 
     assert response.status_code == 200
     assert b"records found" not in response.data
@@ -43,7 +43,7 @@ def test_search_with_no_results(client: FlaskClient, mock_standard_user):
     create_multiple_test_records()
 
     form_data = {"query": "junk"}
-    response = client.post("/poc-search", data=form_data)
+    response = client.post("/search", data=form_data)
 
     assert response.status_code == 200
     assert b"0 record(s) found"
@@ -61,7 +61,7 @@ def test_search_results_displayed_single_page(
     create_multiple_test_records()
     app.config["DEFAULT_PAGE_SIZE"] = 5
     form_data = {"query": "test body"}
-    response = client.post("/poc-search", data=form_data)
+    response = client.post("/search", data=form_data)
 
     assert response.status_code == 200
     assert b"3 record(s) found" in response.data
@@ -110,7 +110,7 @@ def test_search_results_displayed_multiple_pages(
     create_multiple_test_records()
     app.config["DEFAULT_PAGE_SIZE"] = 5
     form_data = {"query": "testing body"}
-    response = client.post("/poc-search", data=form_data)
+    response = client.post("/search", data=form_data)
 
     assert response.status_code == 200
     assert b"9 record(s) found" in response.data
