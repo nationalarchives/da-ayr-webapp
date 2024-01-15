@@ -7,7 +7,7 @@ def test_poc_search_end_to_end(authenticated_page: Page):
     When they interact with the search form and submit a query
     Then the table should contain the expected headers and entries.
     """
-    authenticated_page.goto("/poc-search")
+    authenticated_page.goto("/search")
 
     expect(authenticated_page.get_by_text("Search design PoC")).to_be_visible()
     expect(
@@ -59,7 +59,7 @@ def test_poc_search_end_to_end(authenticated_page: Page):
 
 
 def test_pagination_available(authenticated_page: Page):
-    authenticated_page.goto("/poc-search")
+    authenticated_page.goto("/search")
     authenticated_page.fill("#searchInput", "Testing A")
     authenticated_page.get_by_role("button").get_by_text("Search").click()
     assert (
@@ -71,7 +71,7 @@ def test_pagination_available(authenticated_page: Page):
 
 
 def test_pagination_check_only_one_page_returned(authenticated_page: Page):
-    authenticated_page.goto("/poc-search")
+    authenticated_page.goto("/search")
     authenticated_page.fill("#searchInput", "Test description")
     expect(authenticated_page.locator("#searchInput")).to_have_value(
         "Test description"
@@ -84,7 +84,7 @@ def test_pagination_check_only_one_page_returned(authenticated_page: Page):
 
 
 def test_pagination_get_first_page(authenticated_page: Page):
-    authenticated_page.goto("/poc-search")
+    authenticated_page.goto("/search")
     authenticated_page.fill("#searchInput", "Testing A")
     authenticated_page.get_by_role("button").get_by_text("Search").click()
     assert (
@@ -93,7 +93,7 @@ def test_pagination_get_first_page(authenticated_page: Page):
         )
         == "Pagination"
     )
-    url = "/poc-search?page=1&query=testing+a"
+    url = "/search?page=1&query=testing+a"
     assert (
         authenticated_page.locator(
             ".govuk-pagination__link"
@@ -108,7 +108,7 @@ def test_pagination_get_first_page(authenticated_page: Page):
 
 
 def test_pagination_get_previous_page(authenticated_page: Page):
-    authenticated_page.goto("/poc-search")
+    authenticated_page.goto("/search")
     authenticated_page.fill("#searchInput", "Testing A")
     authenticated_page.get_by_role("button").get_by_text("Search").click()
     page_links = authenticated_page.locator(".govuk-pagination__link").all()
@@ -126,7 +126,7 @@ def test_pagination_get_previous_page(authenticated_page: Page):
 
 
 def test_pagination_click_previous_link(authenticated_page: Page):
-    authenticated_page.goto("/poc-search")
+    authenticated_page.goto("/search")
     authenticated_page.fill("#searchInput", "Testing A")
     authenticated_page.get_by_role("button").get_by_text("Search").click()
     assert (
@@ -141,12 +141,12 @@ def test_pagination_click_previous_link(authenticated_page: Page):
     links = authenticated_page.locator(".govuk-pagination__link-title").all()
     assert links[0].inner_text() == "Previous page"
 
-    url = "/poc-search?page=1&query=testing+a"
+    url = "/search?page=1&query=testing+a"
     authenticated_page.expect_response(url)
 
 
 def test_pagination_get_next_page(authenticated_page: Page):
-    authenticated_page.goto("/poc-search")
+    authenticated_page.goto("/search")
     authenticated_page.fill("#searchInput", "Testing A")
     authenticated_page.get_by_role("button").get_by_text("Search").click()
     assert (
@@ -155,7 +155,7 @@ def test_pagination_get_next_page(authenticated_page: Page):
         )
         == "Pagination"
     )
-    url = "/poc-search?page=1&query=testing+a"
+    url = "/search?page=1&query=testing+a"
     assert (
         authenticated_page.locator(
             ".govuk-pagination__link"
@@ -170,7 +170,7 @@ def test_pagination_get_next_page(authenticated_page: Page):
 
 
 def test_pagination_get_ellipses_page(authenticated_page: Page):
-    authenticated_page.goto("/poc-search")
+    authenticated_page.goto("/search")
     authenticated_page.fill("#searchInput", "Testing A")
     authenticated_page.get_by_role("button").get_by_text("Search").click()
     assert (
@@ -193,7 +193,7 @@ def test_pagination_get_ellipses_page(authenticated_page: Page):
 
 
 def test_pagination_get_last_page(authenticated_page: Page):
-    authenticated_page.goto("/poc-search")
+    authenticated_page.goto("/search")
     authenticated_page.fill("#searchInput", "Testing A")
     authenticated_page.get_by_role("button").get_by_text("Search").click()
     assert (
