@@ -172,6 +172,7 @@ def poc_search():
     search_results = None
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     num_records_found = 0
+
     query = (
         request.form.get("query", "").lower()
         or request.args.get("query", "").lower()
