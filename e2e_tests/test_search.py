@@ -1,7 +1,7 @@
 from playwright.sync_api import Page, expect
 
 
-def test_poc_search_end_to_end(authenticated_page: Page):
+def test_search_end_to_end(authenticated_page: Page):
     """
     Given a user on the search page
     When they interact with the search form and submit a query
@@ -9,7 +9,11 @@ def test_poc_search_end_to_end(authenticated_page: Page):
     """
     authenticated_page.goto("/search")
 
-    expect(authenticated_page.get_by_text("Search design PoC")).to_be_visible()
+    expect(
+        authenticated_page.get_by_role("heading").get_by_text(
+            "Search", exact=True
+        )
+    ).to_be_visible()
     expect(
         authenticated_page.locator("text=Search for digital records")
     ).to_be_visible()
@@ -63,7 +67,7 @@ def test_pagination_available(authenticated_page: Page):
     authenticated_page.fill("#searchInput", "Testing A")
     authenticated_page.get_by_role("button").get_by_text("Search").click()
     assert (
-        authenticated_page.locator(".govuk-pagination-ayr").first.get_attribute(
+        authenticated_page.locator(".govuk-pagination").first.get_attribute(
             "aria-label"
         )
         == "Pagination"
@@ -78,7 +82,7 @@ def test_pagination_check_only_one_page_returned(authenticated_page: Page):
     )
     authenticated_page.get_by_role("button").get_by_text("Search").click()
     pagination_element = authenticated_page.query_selector(
-        "nav.govuk-pagination-ayr"
+        "nav.govuk-pagination"
     )
     assert not pagination_element
 
@@ -88,7 +92,7 @@ def test_pagination_get_first_page(authenticated_page: Page):
     authenticated_page.fill("#searchInput", "Testing A")
     authenticated_page.get_by_role("button").get_by_text("Search").click()
     assert (
-        authenticated_page.locator(".govuk-pagination-ayr").first.get_attribute(
+        authenticated_page.locator(".govuk-pagination").first.get_attribute(
             "aria-label"
         )
         == "Pagination"
@@ -101,7 +105,7 @@ def test_pagination_get_first_page(authenticated_page: Page):
         == url
     )
     links = authenticated_page.locator(".govuk-pagination__link-title").all()
-    assert links[0].inner_text() == "Next page"
+    assert links[0].inner_text() == "Nextpage"
     expect(authenticated_page.get_by_text("5 record(s) found"))
     rows = authenticated_page.locator(".govuk-table__row").all()
     assert len(rows) == 6  # including header row
@@ -116,33 +120,13 @@ def test_pagination_get_previous_page(authenticated_page: Page):
         page_links[1].inner_text()
     ).click()
     assert (
-        authenticated_page.locator(".govuk-pagination-ayr").first.get_attribute(
+        authenticated_page.locator(".govuk-pagination").first.get_attribute(
             "aria-label"
         )
         == "Pagination"
     )
     links = authenticated_page.locator(".govuk-pagination__link-title").all()
-    assert links[0].inner_text() == "Previous page"
-
-
-def test_pagination_click_previous_link(authenticated_page: Page):
-    authenticated_page.goto("/search")
-    authenticated_page.fill("#searchInput", "Testing A")
-    authenticated_page.get_by_role("button").get_by_text("Search").click()
-    assert (
-        authenticated_page.locator(".govuk-pagination-ayr").first.get_attribute(
-            "aria-label"
-        )
-        == "Pagination"
-    )
-
-    authenticated_page.get_by_role("link").get_by_text(" 2 ").click()
-
-    links = authenticated_page.locator(".govuk-pagination__link-title").all()
-    assert links[0].inner_text() == "Previous page"
-
-    url = "/search?page=1&query=testing+a"
-    authenticated_page.expect_response(url)
+    assert links[0].inner_text() == "Previouspage"
 
 
 def test_pagination_get_next_page(authenticated_page: Page):
@@ -150,7 +134,7 @@ def test_pagination_get_next_page(authenticated_page: Page):
     authenticated_page.fill("#searchInput", "Testing A")
     authenticated_page.get_by_role("button").get_by_text("Search").click()
     assert (
-        authenticated_page.locator(".govuk-pagination-ayr").first.get_attribute(
+        authenticated_page.locator(".govuk-pagination").first.get_attribute(
             "aria-label"
         )
         == "Pagination"
@@ -164,9 +148,9 @@ def test_pagination_get_next_page(authenticated_page: Page):
     )
     authenticated_page.get_by_role("link").get_by_text(" 2 ").click()
     links = authenticated_page.locator(".govuk-pagination__link-title").all()
-    assert links[0].inner_text() == "Previous page"
+    assert links[0].inner_text() == "Previouspage"
     if len(links) > 1:
-        assert links[1].inner_text() == "Next page"
+        assert links[1].inner_text() == "Nextpage"
 
 
 def test_pagination_get_ellipses_page(authenticated_page: Page):
@@ -174,7 +158,7 @@ def test_pagination_get_ellipses_page(authenticated_page: Page):
     authenticated_page.fill("#searchInput", "Testing A")
     authenticated_page.get_by_role("button").get_by_text("Search").click()
     assert (
-        authenticated_page.locator(".govuk-pagination-ayr").first.get_attribute(
+        authenticated_page.locator(".govuk-pagination").first.get_attribute(
             "aria-label"
         )
         == "Pagination"
@@ -187,9 +171,49 @@ def test_pagination_get_ellipses_page(authenticated_page: Page):
     ellipsis_link = authenticated_page.locator(
         ".govuk-pagination__item--ellipses"
     ).all()
-    assert ellipsis_link[0].inner_text() == "⋯"
+    assert ellipsis_link[0].inner_text() == "…"
     links = authenticated_page.locator(".govuk-pagination__link-title").all()
-    assert links[0].inner_text() == "Next page"
+    assert links[0].inner_text() == "Nextpage"
+
+
+def test_pagination_click_previous_link(authenticated_page: Page):
+    authenticated_page.goto("/search")
+    authenticated_page.fill("#searchInput", "Testing A")
+    authenticated_page.get_by_role("button").get_by_text("Search").click()
+    assert (
+        authenticated_page.locator(".govuk-pagination").first.get_attribute(
+            "aria-label"
+        )
+        == "Pagination"
+    )
+
+    authenticated_page.get_by_role("link").get_by_text(" 2 ").click()
+
+    links = authenticated_page.locator(".govuk-pagination__link-title").all()
+    assert links[0].inner_text() == "Previouspage"
+
+    url = "/search?page=1&query=testing+a"
+    authenticated_page.expect_response(url)
+
+
+def test_pagination_click_next_link(authenticated_page: Page):
+    authenticated_page.goto("/search")
+    authenticated_page.fill("#searchInput", "Testing A")
+    authenticated_page.get_by_role("button").get_by_text("Search").click()
+    assert (
+        authenticated_page.locator(".govuk-pagination").first.get_attribute(
+            "aria-label"
+        )
+        == "Pagination"
+    )
+
+    authenticated_page.get_by_role("link").get_by_text(" 1 ").click()
+
+    links = authenticated_page.locator(".govuk-pagination__link-title").all()
+    assert links[0].inner_text() == "Nextpage"
+
+    url = "/search?page=2&query=testing+a"
+    authenticated_page.expect_response(url)
 
 
 def test_pagination_get_last_page(authenticated_page: Page):
@@ -197,7 +221,7 @@ def test_pagination_get_last_page(authenticated_page: Page):
     authenticated_page.fill("#searchInput", "Testing A")
     authenticated_page.get_by_role("button").get_by_text("Search").click()
     assert (
-        authenticated_page.locator(".govuk-pagination-ayr").first.get_attribute(
+        authenticated_page.locator(".govuk-pagination").first.get_attribute(
             "aria-label"
         )
         == "Pagination"
@@ -206,4 +230,4 @@ def test_pagination_get_last_page(authenticated_page: Page):
     last_page = page_links[len(page_links) - 1].inner_text()
     authenticated_page.get_by_role("link").get_by_text(last_page).click()
     links = authenticated_page.locator(".govuk-pagination__link-title").all()
-    assert links[0].inner_text() == "Previous page"
+    assert links[0].inner_text() == "Previouspage"

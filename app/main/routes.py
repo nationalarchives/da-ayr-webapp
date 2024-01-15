@@ -167,7 +167,7 @@ def browse():
 
 @bp.route("/search", methods=["POST", "GET"])
 @access_token_sign_in_required
-def poc_search():
+def search():
     form = SearchForm()
     search_results = None
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])

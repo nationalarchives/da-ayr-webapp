@@ -14,7 +14,7 @@ def test_search_get(client: FlaskClient, mock_standard_user):
     response = client.get("/search")
 
     assert response.status_code == 200
-    assert b"Search design PoC" in response.data
+    assert b"Search" in response.data
     assert b"Search for digital records" in response.data
     assert b"Search" in response.data
 
