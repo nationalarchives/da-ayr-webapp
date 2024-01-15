@@ -1,68 +1,70 @@
 /* SCSS for Footer */
 
-@mixin on-mobile{
-   @media screen and (width <= 640px){
-       @content;
+@mixin on-mobile {
+   @media screen and (width <=640px) {
+      @content;
    }
 }
 
 
-.govuk-footer  {
+.govuk-footer {
    padding-bottom: 40px;
 
 
-&__tna-logo {
-   width: 100px;
-}
+   &__tna-logo {
+      width: 100px;
+   }
 
-&__meta {
-   margin: 0;
-   align-items: center;
-   gap: 40px;
-@include on-mobile {
-flex-direction: column;
-}
-}
+   &__meta {
+      margin: 0;
+      align-items: center;
+      gap: 40px;
 
-&__meta-item {
-   display: block;
-   margin: 0;
-}
+      @include on-mobile {
+         flex-direction: column;
+      }
+   }
 
-&__inline-list-item {
-   margin-bottom: 10px;
-@include on-mobile {
-       display:block;
-       margin-right: 0;
-       margin-bottom: 0;
-       text-align: center;
-       padding: 10px 0;
-}
-}
+   &__meta-item {
+      display: block;
+      margin: 0;
+   }
 
-&__link {
-@include on-mobile {
-order: 2;
-}
-}
+   &__inline-list-item {
+      margin-bottom: 10px;
 
-&__meta-item--grow  {
-@include on-mobile {
-flex-basis: auto;
-}
-}
+      @include on-mobile {
+         display: block;
+         margin-right: 0;
+         margin-bottom: 0;
+         text-align: center;
+         padding: 10px 0;
+      }
+   }
 
-&__licence-logo {
-@include on-mobile {
-margin:0 auto 10px;
-display:block;
-}
-}
+   &__link {
+      @include on-mobile {
+         order: 2;
+      }
+   }
 
-&__licence-description {
-@include on-mobile {
-text-align: center;
-}
-}
+   &__meta-item--grow {
+      @include on-mobile {
+         flex-basis: auto;
+      }
+   }
+
+   &__licence-logo {
+      @include on-mobile {
+         margin: 0 auto 10px;
+         display: block;
+      }
+   }
+
+   &__licence-description {
+      @include on-mobile {
+         text-align: center;
+      }
+   }
 
 }
