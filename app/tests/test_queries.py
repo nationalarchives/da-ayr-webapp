@@ -549,7 +549,7 @@ class TestBrowseTransferringBody:
         file = files[0]
 
         mock_standard_user(
-            client, [file.file_consignments.consignment_bodies.Name]
+            client, file.file_consignments.consignment_bodies.Name
         )
 
         transferring_body_id = file.file_consignments.consignment_bodies.BodyId
@@ -591,7 +591,7 @@ class TestBrowseSeries:
 
         file = files[0]
         mock_standard_user(
-            client, [file.file_consignments.consignment_bodies.Name]
+            client, file.file_consignments.consignment_bodies.Name
         )
         transferring_body_id = file.file_consignments.consignment_bodies.BodyId
         series_id = file.file_consignments.consignment_series.SeriesId
@@ -632,7 +632,7 @@ class TestBrowseConsignment:
         """
         consignment = ConsignmentFactory()
 
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -726,7 +726,7 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -818,7 +818,7 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -910,7 +910,7 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -1010,7 +1010,7 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment,
@@ -1142,7 +1142,7 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment,
@@ -1267,7 +1267,7 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment,
@@ -1393,7 +1393,7 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment,
@@ -1517,7 +1517,7 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -1565,9 +1565,6 @@ class TestBrowseConsignment:
 
         FileFactory(FileType="file")
 
-        mock_standard_user(
-            client, [file_1.file_consignments.consignment_bodies.Name]
-        )
         filters = {
             "date_range": {"date_from": "25/02/2023"},
             "date_filter_field": "date_last_modified",
@@ -1621,7 +1618,7 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -1668,10 +1665,6 @@ class TestBrowseConsignment:
         FileFactory(file_consignments=consignment, FileType="folder")
 
         FileFactory(FileType="file")
-
-        mock_standard_user(
-            client, [file_1.file_consignments.consignment_bodies.Name]
-        )
 
         filters = {
             "date_range": {"date_to": "26/02/2023"},
@@ -1719,7 +1712,7 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -1768,7 +1761,7 @@ class TestBrowseConsignment:
         FileFactory(FileType="file")
 
         mock_standard_user(
-            client, [file_1.file_consignments.consignment_bodies.Name]
+            client, file_1.file_consignments.consignment_bodies.Name
         )
         filters = {
             "date_range": {"date_from": "01/02/2023", "date_to": "28/02/2023"},
@@ -1822,7 +1815,7 @@ class TestBrowseConsignment:
             ordered by their closure_type 'Closed' first and then 'Open' in ascending orders
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -1957,7 +1950,7 @@ class TestBrowseConsignment:
             ordered by their closure_type 'Closed' first and then 'Open' in ascending orders
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -2093,7 +2086,7 @@ class TestBrowseConsignment:
             ordered by their date last modified as oldest first(ascending)
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -2229,7 +2222,7 @@ class TestBrowseConsignment:
             ordered by their date last modified as most recent(descending)
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment, FileName="file_1", FileType="file"
@@ -2364,7 +2357,7 @@ class TestBrowseConsignment:
             ordered by their file name in ascending orders (A to Z)
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment,
@@ -2505,7 +2498,7 @@ class TestBrowseConsignment:
             ordered by their file name in descending orders (Z to A)
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, [consignment.consignment_bodies.Name])
+        mock_standard_user(client, consignment.consignment_bodies.Name)
 
         file_1 = FileFactory(
             file_consignments=consignment,

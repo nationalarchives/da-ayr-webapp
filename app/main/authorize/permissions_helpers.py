@@ -21,5 +21,5 @@ def validate_body_user_groups_or_404(
     if ayr_user.is_superuser:
         return
 
-    if transferring_body_name not in ayr_user.transferring_bodies:
+    if transferring_body_name != ayr_user.transferring_body.Name:
         abort(404)

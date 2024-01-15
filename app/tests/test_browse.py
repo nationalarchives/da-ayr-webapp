@@ -329,7 +329,7 @@ def test_browse_transferring_body(client: FlaskClient, mock_standard_user):
     file = files[0]
     transferring_body_id = file.file_consignments.consignment_bodies.BodyId
 
-    mock_standard_user(client, [file.file_consignments.consignment_bodies.Name])
+    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
 
     response = client.get(
         f"/browse?transferring_body_id={transferring_body_id}"
@@ -377,7 +377,7 @@ def test_browse_series(client: FlaskClient, mock_standard_user):
     file = files[0]
     series_id = file.file_consignments.SeriesId
 
-    mock_standard_user(client, [file.file_consignments.consignment_bodies.Name])
+    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
 
     response = client.get(f"/browse?series_id={series_id}")
 
@@ -425,7 +425,7 @@ def test_browse_consignment(client: FlaskClient, mock_standard_user):
     file = files[0]
     consignment_id = file.file_consignments.ConsignmentId
 
-    mock_standard_user(client, [file.file_consignments.consignment_bodies.Name])
+    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
 
     response = client.get(f"/browse?consignment_id={consignment_id}")
 
@@ -474,7 +474,7 @@ def test_browse_consignment_with_missing_file_metadata(
     file = files[10]
     consignment_id = file.file_consignments.ConsignmentId
 
-    mock_standard_user(client, [file.file_consignments.consignment_bodies.Name])
+    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
 
     response = client.get(f"/browse?consignment_id={consignment_id}")
 
@@ -525,7 +525,7 @@ def test_browse_consignment_filter_display_multiple_pages(
 
     create_multiple_files_for_consignment(consignment_id)
 
-    mock_standard_user(client, [file.file_consignments.consignment_bodies.Name])
+    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
 
     response = client.get(f"/browse?page=2&consignment_id={consignment_id}")
     assert response.status_code == 200
