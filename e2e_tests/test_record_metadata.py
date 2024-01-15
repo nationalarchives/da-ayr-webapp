@@ -32,7 +32,7 @@ def test_back_link(authenticated_page: Page):
     When the user selects the back button / breadcrumb
     Then the user should be navigated back to the results page
     """
-    authenticated_page.goto("/poc-search")
+    authenticated_page.goto("/search")
     authenticated_page.locator("#searchInput").click()
     authenticated_page.locator("#searchInput").fill("pptx")
     authenticated_page.get_by_role("button", name="Search").click()
@@ -41,7 +41,7 @@ def test_back_link(authenticated_page: Page):
         "link", name="Presentation.pptx"
     ).first.click()
     authenticated_page.get_by_role("link", name="Back", exact=True).click()
-    authenticated_page.wait_for_url("/poc-search")
+    authenticated_page.wait_for_url("/search")
     authenticated_page.close()
 
 
@@ -52,7 +52,7 @@ def test_searched_record_metadata(authenticated_page: Page):
     Then the table should display the relevant metadata for the record such as
         "File name"
     """
-    authenticated_page.goto("/poc-search")
+    authenticated_page.goto("/search")
     authenticated_page.locator("#searchInput").click()
     authenticated_page.locator("#searchInput").fill("pptx")
     authenticated_page.get_by_role("button", name="Search").click()

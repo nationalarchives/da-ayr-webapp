@@ -8,7 +8,7 @@
         <div class="search__container govuk-grid-column-full">
             <div class="search__container__content">
                 <p class="govuk-body search__heading">Search for digital records</p>
-                <form method="post" action="{{ url_for('main.poc_search') }}">
+                <form method="post" action="{{ url_for('main.search') }}">
                     {{ form.csrf_token }}
                     <div class="govuk-form-group govuk-form-group__search-form">
                         <label for="searchInput"></label>
@@ -368,7 +368,7 @@
         <div class="search__container govuk-grid-column-full">
             <div class="search__container__content">
                 <p class="govuk-body search__heading">Search for digital records</p>
-                <form method="post" action="{{ url_for('main.poc_search') }}">
+                <form method="post" action="{{ url_for('main.search') }}">
                     {{ form.csrf_token }}
                     <div class="govuk-form-group govuk-form-group__search-form">
                         <label for="searchInput"></label>
@@ -418,7 +418,7 @@
             <div class="mobile__search__container govuk-grid-column-full">
                 <div class="mobile__search__container__content">
                     <p class="govuk-body search__heading">Search for digital records</p>
-                    <form method="post" action="{{ url_for('main.poc_search') }}">
+                    <form method="post" action="{{ url_for('main.search') }}">
                         {{ form.csrf_token }}
                         <div class="govuk-form-group govuk-form-group__search-form">
                             <label for="searchInput"></label>

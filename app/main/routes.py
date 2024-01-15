@@ -165,9 +165,9 @@ def browse():
     )
 
 
-@bp.route("/poc-search", methods=["POST", "GET"])
+@bp.route("/search", methods=["POST", "GET"])
 @access_token_sign_in_required
-def poc_search():
+def search():
     form = SearchForm()
     search_results = None
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
@@ -184,7 +184,7 @@ def poc_search():
         num_records_found = search_results.total
 
     return render_template(
-        "poc-search.html",
+        "search.html",
         form=form,
         current_page=page,
         filters=filters,
