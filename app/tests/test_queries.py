@@ -1,14 +1,21 @@
 import uuid
+from datetime import datetime
 
 import pytest
 import werkzeug
 from flask.testing import FlaskClient
 
-from app.main.db.queries import browse_data, fuzzy_search, get_file_metadata
+from app.main.db.queries import (
+    browse_data,
+    build_fuzzy_search_query,
+    get_file_metadata,
+)
 from app.tests.factories import (
+    BodyFactory,
     ConsignmentFactory,
     FileFactory,
     FileMetadataFactory,
+    SeriesFactory,
 )
 from app.tests.mock_database import create_multiple_test_records
 
@@ -16,195 +23,259 @@ per_page = 5
 
 
 class TestFuzzySearch:
-    def test_fuzzy_search_blank_query_parameter(self, client: FlaskClient):
+    @pytest.mark.parametrize(
+        "file_metadata_property",
+        [
+            "Value",
+        ],
+    )
+    def test_build_fuzzy_search_query_with_results_matching_file_metadata_properties(
+        self, client: FlaskClient, file_metadata_property
+    ):
         """
-        Given a query string not provided
-        When fuzzy_search is called with it
-        Then None is returned
-        """
-
-        query = ""
-        result = fuzzy_search(query, page=1, per_page=per_page)
-        assert result is None
-
-    def test_fuzzy_search_no_results(self, client: FlaskClient):
-        """
-        Given a query string that does not match any field in any file object
-            in the database
-        When fuzzy_search is called with it
-        Then an empty list is returned
-        """
-
-        query = "junk"
-        result = fuzzy_search(query, page=1, per_page=per_page)
-        assert result.items == []
-
-    def test_fuzzy_search_with_single_record_result(self, client: FlaskClient):
-        """
-        Given multiple File objects in the database
-            and a query string that matches some fields in only 1 of them
-        When fuzzy_search is called with the query
-        Then a list containing 1 dictionary with information for the corresponding
+        Given a query string that matches one of the parametrized file_metadata_property
+            on a FileMetadata object in the database
+        When build_fuzzy_search_query is called with it and is executed
+        Then a list containing 1 tuple with information for the corresponding
             file is returned
         """
-        files = create_multiple_test_records()
+        file_metadata_property_map = {file_metadata_property: "foo"}
+        file = FileFactory(FileType="file")
+        FileMetadataFactory(file=file, **file_metadata_property_map)
+        query_string = "foo"
 
-        query = "test body2"
-        result = fuzzy_search(query, page=1, per_page=per_page)
-        assert result.items == [
+        query = build_fuzzy_search_query(query_string)
+        results = query.all()
+        assert results == [
             (
-                "test body2",
-                "test series2",
-                "test consignment2",
-                "test_file2.txt",
-                files[1].consignment.series.body.BodyId,
-                files[1].consignment.series.SeriesId,
+                file.consignment.series.body.Name,
+                file.consignment.series.Name,
+                file.consignment.ConsignmentReference,
+                file.FileName,
+                file.consignment.series.body.BodyId,
+                file.consignment.series.SeriesId,
             )
         ]
 
-    def test_fuzzy_search_with_single_page_result(self, client: FlaskClient):
+    @pytest.mark.parametrize(
+        "file_property",
+        [
+            "FileName",
+            "FileReference",
+        ],
+    )
+    def test_build_fuzzy_search_query_with_results_matching_file_properties(
+        self, client: FlaskClient, file_property
+    ):
         """
-        Given multiple File objects in the database
-            and a query string that matches some fields in only 1 of them
-        When fuzzy_search is called with the query
-        Then a list containing 2 (max - per_page) dictionary with information for the corresponding
+        Given a query string that matches one of the parametrized file_property
+            on a File object in the database
+        When build_fuzzy_search_query is called with it and is executed
+        Then a list containing 1 tuple with information for the corresponding
             file is returned
-        and more than 1 page returned false
-        and has_next return false
         """
-        files = create_multiple_test_records()
+        file_property_map = {file_property: "foo"}
+        file = FileFactory(FileType="file", **file_property_map)
+        query_string = "foo"
 
-        query = "test body1"
-        result = fuzzy_search(query, page=1, per_page=per_page)
-        assert result.items == [
+        query = build_fuzzy_search_query(query_string)
+        results = query.all()
+        assert results == [
             (
-                "test body1",
-                "test series1",
-                "test consignment1",
-                "test_file1.pdf",
-                files[0].consignment.series.body.BodyId,
-                files[0].consignment.series.SeriesId,
-            ),
-            (
-                "testing body11",
-                "test series11",
-                "test consignment11",
-                "test_file11.txt",
-                files[10].consignment.series.body.BodyId,
-                files[10].consignment.series.SeriesId,
-            ),
+                file.consignment.series.body.Name,
+                file.consignment.series.Name,
+                file.consignment.ConsignmentReference,
+                file.FileName,
+                file.consignment.series.body.BodyId,
+                file.consignment.series.SeriesId,
+            )
         ]
-        assert result.pages == 1
-        assert result.has_next is False
 
-    def test_fuzzy_search_with_multiple_page_results(self, client: FlaskClient):
+    @pytest.mark.parametrize(
+        "consignment_property",
+        [
+            "ConsignmentReference",
+            "ConsignmentType",
+            "ContactName",
+            "ContactEmail",
+        ],
+    )
+    def test_build_fuzzy_search_query_with_results_matching_consignment_properties(
+        self, client: FlaskClient, consignment_property
+    ):
         """
-        Given multiple File objects in the database
-            and a query string that matches some fields in only 1 of them
-        When fuzzy_search is called with the query
-        Then a list containing 5 (per_page) dictionary with information for the corresponding
-            file is returned
-        and more than 1 page returned true
-        and has_next return true
+        Given a query string that matches one of the parametrized consignment_property
+            on a Consignment object in the database with 1 file
+        When build_fuzzy_search_query is called with it and is executed
+        Then a list containing 1 tuple with information for the corresponding
+            file in the Consignment is returned
         """
-        files = create_multiple_test_records()
+        consignment_property_map = {consignment_property: "foo"}
+        file = FileFactory(
+            FileType="file",
+            consignment=ConsignmentFactory(**consignment_property_map),
+        )
+        query_string = "foo"
 
-        query = "testing body"
-        result = fuzzy_search(query, page=1, per_page=per_page)
-        assert result.items == [
+        query = build_fuzzy_search_query(query_string)
+        results = query.all()
+        assert results == [
             (
-                "testing body10",
-                "test series10",
-                "test consignment10",
-                "test_file10.txt",
-                files[9].consignment.series.body.BodyId,
-                files[9].consignment.series.SeriesId,
-            ),
-            (
-                "testing body11",
-                "test series11",
-                "test consignment11",
-                "test_file11.txt",
-                files[10].consignment.series.body.BodyId,
-                files[10].consignment.series.SeriesId,
-            ),
-            (
-                "testing body3",
-                "test series3",
-                "test consignment3",
-                "test_file3.pdf",
-                files[2].consignment.series.body.BodyId,
-                files[2].consignment.series.SeriesId,
-            ),
-            (
-                "testing body4",
-                "test series4",
-                "test consignment4",
-                "test_file4.txt",
-                files[3].consignment.series.body.BodyId,
-                files[3].consignment.series.SeriesId,
-            ),
-            (
-                "testing body5",
-                "test series5",
-                "test consignment5",
-                "test_file5.txt",
-                files[4].consignment.series.body.BodyId,
-                files[4].consignment.series.SeriesId,
-            ),
+                file.consignment.series.body.Name,
+                file.consignment.series.Name,
+                file.consignment.ConsignmentReference,
+                file.FileName,
+                file.consignment.series.body.BodyId,
+                file.consignment.series.SeriesId,
+            )
         ]
-        assert result.pages > 0
-        assert result.has_next is True
 
-    def test_fuzzy_search_get_specific_page_results(self, client: FlaskClient):
+    @pytest.mark.parametrize(
+        "consignment_date_property",
+        [
+            "TransferStartDatetime",
+            "TransferCompleteDatetime",
+            "ExportDatetime",
+        ],
+    )
+    def test_build_fuzzy_search_query_with_results_matching_consignment_date_properties(
+        self, client: FlaskClient, consignment_date_property
+    ):
         """
-        Given multiple File objects in the database
-            and a query string that matches some fields in only 1 of them
-        When fuzzy_search is called with the query
-        Then a list containing 5 (per_page) dictionary with information for the corresponding
-            file is returned for page 2
+        Given a query string that matches one of the parametrized consignment_date_property
+            on a Consignment object in the database with 1 file
+        When build_fuzzy_search_query is called with it and is executed
+        Then a list containing 1 tuple with information for the corresponding
+            file in the Consignment is returned
         """
-        files = create_multiple_test_records()
-
-        query = "testing body"
-        result = fuzzy_search(query, page=2, per_page=per_page)
-        assert result.items == [
+        consignment_date_property_map = {
+            consignment_date_property: datetime(2022, 2, 18)
+        }
+        file = FileFactory(
+            FileType="file",
+            consignment=ConsignmentFactory(**consignment_date_property_map),
+        )
+        query_string = "18/02/2022"
+        query = build_fuzzy_search_query(query_string)
+        results = query.all()
+        assert results == [
             (
-                "testing body6",
-                "test series6",
-                "test consignment6",
-                "test_file6.txt",
-                files[5].consignment.series.body.BodyId,
-                files[5].consignment.series.SeriesId,
-            ),
-            (
-                "testing body7",
-                "test series7",
-                "test consignment7",
-                "test_file7.txt",
-                files[6].consignment.series.body.BodyId,
-                files[6].consignment.series.SeriesId,
-            ),
-            (
-                "testing body8",
-                "test series8",
-                "test consignment8",
-                "test_file8.txt",
-                files[7].consignment.series.body.BodyId,
-                files[7].consignment.series.SeriesId,
-            ),
-            (
-                "testing body9",
-                "test series9",
-                "test consignment9",
-                "test_file9.txt",
-                files[8].consignment.series.body.BodyId,
-                files[8].consignment.series.SeriesId,
-            ),
+                file.consignment.series.body.Name,
+                file.consignment.series.Name,
+                file.consignment.ConsignmentReference,
+                file.FileName,
+                file.consignment.series.body.BodyId,
+                file.consignment.series.SeriesId,
+            )
         ]
-        assert result.pages > 0
-        assert result.has_next is False
-        assert result.has_prev is True
+
+    @pytest.mark.parametrize(
+        "body_property",
+        [
+            "Name",
+            "Description",
+        ],
+    )
+    def test_build_fuzzy_search_query_with_results_matching_body_properties(
+        self, client: FlaskClient, body_property
+    ):
+        """
+        Given a query string that matches one of the parametrized body_property
+            on a Body object in the database with 1 file
+        When build_fuzzy_search_query is called with it and is executed
+        Then a list containing 1 tuple with information for the corresponding
+            file in the Body is returned
+        """
+        body_property_map = {body_property: "foo"}
+        file = FileFactory(
+            FileType="file",
+            consignment=ConsignmentFactory(
+                series=SeriesFactory(body=BodyFactory(**body_property_map))
+            ),
+        )
+        query_string = "foo"
+
+        query = build_fuzzy_search_query(query_string)
+        results = query.all()
+        assert results == [
+            (
+                file.consignment.series.body.Name,
+                file.consignment.series.Name,
+                file.consignment.ConsignmentReference,
+                file.FileName,
+                file.consignment.series.body.BodyId,
+                file.consignment.series.SeriesId,
+            )
+        ]
+
+    @pytest.mark.parametrize(
+        "series_property",
+        [
+            "Name",
+            "Description",
+        ],
+    )
+    def test_build_fuzzy_search_query_with_results_matching_series_properties(
+        self, client: FlaskClient, series_property
+    ):
+        """
+        Given a query string that matches one of the parametrized series_property
+            on a Series object in the database with 1 file
+        When build_fuzzy_search_query is called with it and is executed
+        Then a list containing 1 tuple with information for the corresponding
+            file in the Body is returned
+        """
+        series_property_map = {series_property: "foo"}
+        file = FileFactory(
+            FileType="file",
+            consignment=ConsignmentFactory(
+                series=SeriesFactory(**series_property_map)
+            ),
+        )
+        query_string = "foo"
+
+        query = build_fuzzy_search_query(query_string)
+        results = query.all()
+        assert results == [
+            (
+                file.consignment.series.body.Name,
+                file.consignment.series.Name,
+                file.consignment.ConsignmentReference,
+                file.FileName,
+                file.consignment.series.body.BodyId,
+                file.consignment.series.SeriesId,
+            )
+        ]
+
+    def test_build_fuzzy_search_query_no_results(self, client: FlaskClient):
+        """
+        Given a query string that does not match any field in any file object
+            in the database
+        When fuzzy_search is called with it and is executed
+        Then an empty list is returned
+        """
+        FileFactory(FileName="foo", FileType="file")
+        query_string = "bar"
+        query = build_fuzzy_search_query(query_string)
+        results = query.all()
+        assert results == []
+
+
+#     # def test_build_fuzzy_search_query_multiple_matches(self):
+#     #     # Test when the query string matches multiple fields
+#     #     # ...
+
+#     # def test_build_fuzzy_search_query_case_insensitivity(self):
+#     #     # Test when the query string is case-insensitive
+#     #     # ...
+
+#     # def test_build_fuzzy_search_query_distinct_results(self):
+#     #     # Test that the results are distinct
+#     #     # ...
+
+#     # def test_build_fuzzy_search_query_order_by_body_and_series(self):
+#     #     # Test that the results are ordered by Body Name and Series Name
+#     #     # ...
 
 
 class TestBrowse:

@@ -1,19 +1,13 @@
 import uuid
 
 from flask import current_app
-from sqlalchemy import DATE, Text, and_, desc, func, or_
+from sqlalchemy import DATE, and_, desc, func, or_
 
 from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
 )
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 from app.main.util.date_formatter import validate_date_range
-
-
-def fuzzy_search(query: str, page: int, per_page: int):
-    if len(query) > 0:
-        fuzzy_search_query = _build_fuzzy_search_query(query)
-        return fuzzy_search_query.paginate(page=page, per_page=per_page)
 
 
 def browse_data(
@@ -61,8 +55,34 @@ def browse_data(
     return browse_query.paginate(page=page, per_page=per_page)
 
 
-def _build_fuzzy_search_query(query_string: str):
+def build_fuzzy_search_query(query_string: str):
     filter_value = str(f"%{query_string}%").lower()
+
+    fuzzy_filters = or_(
+        func.lower(Consignment.ConsignmentReference).like(filter_value),
+        func.lower(Consignment.ConsignmentType).like(filter_value),
+        func.lower(Consignment.ContactName).like(filter_value),
+        func.lower(Consignment.ContactEmail).like(filter_value),
+        func.to_char(
+            func.cast(Consignment.TransferStartDatetime, DATE),
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).like(filter_value),
+        func.to_char(
+            func.cast(Consignment.TransferCompleteDatetime, DATE),
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).like(filter_value),
+        func.to_char(
+            func.cast(Consignment.ExportDatetime, DATE),
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).like(filter_value),
+        func.lower(Body.Name).like(filter_value),
+        func.lower(Body.Description).like(filter_value),
+        func.lower(Series.Name).like(filter_value),
+        func.lower(Series.Description).like(filter_value),
+        func.lower(File.FileName).like(filter_value),
+        func.lower(File.FileReference).like(filter_value),
+        func.lower(FileMetadata.Value).like(filter_value),
+    )
 
     query = (
         db.session.query(
@@ -76,44 +96,12 @@ def _build_fuzzy_search_query(query_string: str):
         .join(Series, Series.BodyId == Body.BodyId)
         .join(
             Consignment,
-            and_(
-                Consignment.BodyId == Body.BodyId,
-                Consignment.SeriesId == Series.SeriesId,
-            ),
+            Consignment.SeriesId == Series.SeriesId,
         )
         .join(File, File.ConsignmentId == Consignment.ConsignmentId)
-        .join(FileMetadata, FileMetadata.FileId == File.FileId)
-        .where(
-            and_(
-                func.lower(File.FileType) == "file",
-                or_(
-                    func.lower(Consignment.ConsignmentReference).like(
-                        filter_value
-                    ),
-                    func.lower(Consignment.ConsignmentType).like(filter_value),
-                    func.lower(Consignment.ContactName).like(filter_value),
-                    func.lower(Consignment.ContactEmail).like(filter_value),
-                    func.cast(Consignment.TransferStartDatetime, Text).like(
-                        filter_value
-                    ),
-                    func.cast(Consignment.TransferCompleteDatetime, Text).like(
-                        filter_value
-                    ),
-                    func.cast(Consignment.ExportDatetime, Text).like(
-                        filter_value
-                    ),
-                    func.lower(Body.Name).like(filter_value),
-                    func.lower(Body.Description).like(filter_value),
-                    func.lower(Series.Name).like(filter_value),
-                    func.lower(Series.Description).like(filter_value),
-                    func.lower(File.FileName).like(filter_value),
-                    func.lower(File.FileReference).like(filter_value),
-                    func.lower(FileMetadata.Value).like(filter_value),
-                ),
-            )
-        )
-        .distinct()
-        .order_by(Body.Name, Series.Name)
+        .join(FileMetadata, File.FileId == FileMetadata.FileId, isouter=True)
+        .where(and_(func.lower(File.FileType) == "file", fuzzy_filters))
+        .order_by(Body.Name, Series.Name, File.FileName)
     )
 
     return query

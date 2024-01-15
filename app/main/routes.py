@@ -26,7 +26,11 @@ from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
 )
 from app.main.db.models import File
-from app.main.db.queries import browse_data, fuzzy_search, get_file_metadata
+from app.main.db.queries import (
+    browse_data,
+    build_fuzzy_search_query,
+    get_file_metadata,
+)
 from app.main.forms import CookiesForm
 
 from .forms import SearchForm
@@ -180,7 +184,10 @@ def search():
     filters = {"query": query}
 
     if query:
-        search_results = fuzzy_search(query, page, per_page)
+        fuzzy_search_query = build_fuzzy_search_query(query)
+        search_results = fuzzy_search_query.paginate(
+            page=page, per_page=per_page
+        )
         num_records_found = search_results.total
 
     return render_template(
