@@ -219,7 +219,7 @@ class TestBrowse:
         Then it returns a Pagination object with 5 total results as per page option value
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         pagination_object = browse_data(
@@ -293,7 +293,7 @@ class TestBrowse:
             ordered by Body name then Series name
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         pagination_object = browse_data(
@@ -341,7 +341,7 @@ class TestBrowse:
             transferring body which match to the filter value
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         filters = {"transferring_body": "third_body"}
@@ -380,7 +380,7 @@ class TestBrowse:
             transferring body which match to the filter value
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         # use like comparison to return multiple bodies start with fi keyword e.g. first, fifth
@@ -429,7 +429,7 @@ class TestBrowse:
             series which match to the filter value
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         filters = {"series": "third_series"}
@@ -468,7 +468,7 @@ class TestBrowse:
             series which match to the filter value
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         # use like comparison to return multiple series start with fi keyword e.g. first, fifth
@@ -517,7 +517,7 @@ class TestBrowse:
             consignment transfer complete date which is greater than or equal to the date from value
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         filters = {"date_range": {"date_from": "01/11/2023"}}
@@ -556,7 +556,7 @@ class TestBrowse:
             consignment transfer complete date which is less than or equal to the date to value
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         filters = {"date_range": {"date_to": "07/02/2023"}}
@@ -595,7 +595,7 @@ class TestBrowse:
             consignment transfer complete date which is between date from and date to values
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         filters = {
@@ -636,7 +636,7 @@ class TestBrowse:
             consignment transfer complete date which is between date from and date to values
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         filters = {
@@ -686,7 +686,7 @@ class TestBrowse:
             it returns empty list containing multiple dictionary
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         filters = {
@@ -712,7 +712,7 @@ class TestBrowse:
         """
 
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         filters = {"transferring_body": "third_body", "series": "third_series"}
@@ -752,7 +752,7 @@ class TestBrowse:
             consignment transfer complete date which is between date from and date to values
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         filters = {
@@ -795,7 +795,7 @@ class TestBrowse:
             consignment transfer complete date which is between date from and date to values
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         filters = {
@@ -838,7 +838,7 @@ class TestBrowse:
             consignment transfer complete date which is between date from and date to values
         """
         mock_standard_user(
-            client, [browse_files[0].file_consignments.consignment_bodies.Name]
+            client, browse_files[0].file_consignments.consignment_bodies.Name
         )
 
         filters = {
@@ -882,7 +882,7 @@ class TestBrowseTransferringBody:
         Then it returns a Pagination object with 2 total results
         """
         mock_standard_user(
-            client, [browse_files[25].file_consignments.consignment_bodies.Name]
+            client, browse_files[25].file_consignments.consignment_bodies.Name
         )
 
         transferring_body_id = browse_files[
@@ -936,7 +936,7 @@ class TestBrowseTransferringBody:
             series which match to the filter value
         """
         mock_standard_user(
-            client, [browse_files[25].file_consignments.consignment_bodies.Name]
+            client, browse_files[25].file_consignments.consignment_bodies.Name
         )
 
         transferring_body_id = browse_files[
@@ -983,7 +983,7 @@ class TestBrowseTransferringBody:
             series which match to the filter value
         """
         mock_standard_user(
-            client, [browse_files[25].file_consignments.consignment_bodies.Name]
+            client, browse_files[25].file_consignments.consignment_bodies.Name
         )
 
         transferring_body_id = browse_files[
@@ -1040,7 +1040,7 @@ class TestBrowseTransferringBody:
             consignment transfer complete date which is greater than or equal to the date from value
         """
         mock_standard_user(
-            client, [browse_files[25].file_consignments.consignment_bodies.Name]
+            client, browse_files[25].file_consignments.consignment_bodies.Name
         )
 
         transferring_body_id = browse_files[
@@ -1087,7 +1087,7 @@ class TestBrowseTransferringBody:
             consignment transfer complete date which is less than or equal to the date to value
         """
         mock_standard_user(
-            client, [browse_files[25].file_consignments.consignment_bodies.Name]
+            client, browse_files[25].file_consignments.consignment_bodies.Name
         )
 
         transferring_body_id = browse_files[
@@ -1134,7 +1134,7 @@ class TestBrowseTransferringBody:
             consignment transfer complete date between date from and date to value
         """
         mock_standard_user(
-            client, [browse_files[25].file_consignments.consignment_bodies.Name]
+            client, browse_files[25].file_consignments.consignment_bodies.Name
         )
 
         transferring_body_id = browse_files[
@@ -1183,7 +1183,7 @@ class TestBrowseTransferringBody:
             consignment transfer complete date between date from and date to value
         """
         mock_standard_user(
-            client, [browse_files[25].file_consignments.consignment_bodies.Name]
+            client, browse_files[25].file_consignments.consignment_bodies.Name
         )
 
         transferring_body_id = browse_files[
@@ -1241,7 +1241,7 @@ class TestBrowseTransferringBody:
             consignment transfer complete date between date from and date to value
         """
         mock_standard_user(
-            client, [browse_files[25].file_consignments.consignment_bodies.Name]
+            client, browse_files[25].file_consignments.consignment_bodies.Name
         )
 
         transferring_body_id = browse_files[
@@ -1292,7 +1292,7 @@ class TestBrowseSeries:
         Then it returns a Pagination object with 1 total results
         """
         mock_standard_user(
-            client, [browse_files[25].file_consignments.consignment_bodies.Name]
+            client, browse_files[25].file_consignments.consignment_bodies.Name
         )
 
         series_id = browse_files[
@@ -1335,7 +1335,7 @@ class TestBrowseSeries:
             transferring body filter value
         """
         mock_standard_user(
-            client, [browse_files[25].file_consignments.consignment_bodies.Name]
+            client, browse_files[25].file_consignments.consignment_bodies.Name
         )
 
         series_id = browse_files[
@@ -1382,7 +1382,7 @@ class TestBrowseSeries:
             consignment transfer complete date which is greater than or equal to the date from value
         """
         mock_standard_user(
-            client, [browse_files[25].file_consignments.consignment_bodies.Name]
+            client, browse_files[25].file_consignments.consignment_bodies.Name
         )
 
         series_id = browse_files[
@@ -1429,7 +1429,7 @@ class TestBrowseSeries:
             consignment transfer complete date which is greater than or equal to the date from value
         """
         mock_standard_user(
-            client, [browse_files[25].file_consignments.consignment_bodies.Name]
+            client, browse_files[25].file_consignments.consignment_bodies.Name
         )
 
         series_id = browse_files[
@@ -1476,7 +1476,7 @@ class TestBrowseSeries:
             consignment transfer complete date between date from and date to value
         """
         mock_standard_user(
-            client, [browse_files[25].file_consignments.consignment_bodies.Name]
+            client, browse_files[25].file_consignments.consignment_bodies.Name
         )
 
         series_id = browse_files[
