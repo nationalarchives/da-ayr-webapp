@@ -21,6 +21,7 @@ from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
+from app.main.authorize.ayr_user import AYRUser
 from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
 )
@@ -135,6 +136,12 @@ def browse():
         # sorting_orders["record_status"] = "desc"  # Z to A
         # sorting_orders["date_last_modified"] = "asc"  # oldest first
         # sorting_orders["date_last_modified"] = "desc"  # most recent first
+    else:
+        ayr_user = AYRUser.from_access_token(session.get("access_token"))
+        if ayr_user.is_standard_user:
+            return redirect(
+                f"/browse?transferring_body={ayr_user.transferring_body.BodyId}"
+            )
 
     browse_results = browse_data(
         page=page,
