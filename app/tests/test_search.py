@@ -9,13 +9,13 @@ from app.tests.factories import (
 )
 
 
-def test_search_get(client: FlaskClient, mock_standard_user):
+def test_search_get(client: FlaskClient, mock_superuser):
     """
-    Given a user accessing the search page
+    Given a superuser accessing the search page
     When they make a GET request
     Then they should see the search form and page content.
     """
-    mock_standard_user(client)
+    mock_superuser(client)
     response = client.get("/search")
 
     assert response.status_code == 200
@@ -24,13 +24,13 @@ def test_search_get(client: FlaskClient, mock_standard_user):
     assert b"Search" in response.data
 
 
-def test_search_no_query(client: FlaskClient, mock_standard_user):
+def test_search_no_query(client: FlaskClient, mock_superuser):
     """
-    Given a user accessing the search page
+    Given a superuser accessing the search page
     When they make a POST request without a query
     Then they should not see any records found.
     """
-    mock_standard_user(client)
+    mock_superuser(client)
     form_data = {"foo": "bar"}
     response = client.post("/search", data=form_data)
 
@@ -38,13 +38,13 @@ def test_search_no_query(client: FlaskClient, mock_standard_user):
     assert b"records found" not in response.data
 
 
-def test_search_with_no_results(client: FlaskClient, mock_standard_user):
+def test_search_with_no_results(client: FlaskClient, mock_superuser):
     """
-    Given a user with a search query
+    Given a superuser with a search query
     When they make a request on the search page, and no results are found
     Then they should see no records found.
     """
-    mock_standard_user(client)
+    mock_superuser(client)
     FileFactory(FileType="file", FileName="foo")
 
     form_data = {"query": "bar"}
@@ -58,11 +58,13 @@ def test_search_results_displayed_single_page(
     client: FlaskClient, app, mock_standard_user
 ):
     """
-    Given a user with a search query which should return n results
-    When they make a request on the search page
-    Then a table is populated with the n results with metadata fields.
+    Given a standard user with access to a body, and there are files from that body and another body
+        and a search query which matches a property from related file data
+    When they make a request on the search page with the search term
+    Then a table is populated with the n results with metadata fields for the files from there body.
     """
-    mock_standard_user(client)
+    body = BodyFactory(Name="body_foo")
+
     [
         FileFactory(
             FileType="file",
@@ -71,19 +73,34 @@ def test_search_results_displayed_single_page(
                 ContactName="test_contact",
                 ConsignmentReference="consignment_foo",
                 series=SeriesFactory(
-                    Name="series_foo", body=BodyFactory(Name="body_foo")
+                    Name="series_bar", body=BodyFactory(Name="body_bar")
                 ),
             ),
         )
         for file_name in ["a", "b", "c"]
     ]
 
+    [
+        FileFactory(
+            FileType="file",
+            FileName=file_name,
+            consignment=ConsignmentFactory(
+                ContactName="test_contact",
+                ConsignmentReference="consignment_foo",
+                series=SeriesFactory(Name="series_foo", body=body),
+            ),
+        )
+        for file_name in ["d", "e"]
+    ]
+
+    mock_standard_user(client, body.Name)
+
     app.config["DEFAULT_PAGE_SIZE"] = 5
     form_data = {"query": "test_contact"}
     response = client.post("/search", data=form_data)
 
     assert response.status_code == 200
-    assert b"3 record(s) found" in response.data
+    assert b"2 record(s) found" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
     table = soup.find("table", class_="govuk-table")
@@ -95,9 +112,8 @@ def test_search_results_displayed_single_page(
 
     expected_results_table = [
         ["Transferring body", "Series", "Consignment reference", "File name"],
-        ["body_foo", "series_foo", "consignment_foo", "a"],
-        ["body_foo", "series_foo", "consignment_foo", "b"],
-        ["body_foo", "series_foo", "consignment_foo", "c"],
+        ["body_foo", "series_foo", "consignment_foo", "d"],
+        ["body_foo", "series_foo", "consignment_foo", "e"],
     ]
 
     assert [header.text for header in headers] == expected_results_table[0]
@@ -116,11 +132,29 @@ def test_search_results_displayed_multiple_pages(
     client: FlaskClient, app, mock_standard_user
 ):
     """
-    Given a user with a search query which should return n results
-    When they make a request on the search page
-    Then a table is populated with the n results with metadata fields.
+    Given a standard user with access to a body, and there are files from that body and another body
+        and a search query which matches a property from related file data
+        and the pagination size K is set to less than than the number of files in the body
+    When they make a request on the search page with the search term
+    Then a table is populated with the first K results with metadata fields for the files from there body.
+    And the pagination widget is displayed
     """
-    mock_standard_user(client)
+    body = BodyFactory(Name="body_foo")
+
+    [
+        FileFactory(
+            FileType="file",
+            FileName=file_name,
+            consignment=ConsignmentFactory(
+                ContactName="test_contact",
+                ConsignmentReference="consignment_bar",
+                series=SeriesFactory(
+                    Name="series_bar", body=BodyFactory(Name="body_bar")
+                ),
+            ),
+        )
+        for file_name in ["a", "b", "c"]
+    ]
 
     [
         FileFactory(
@@ -129,20 +163,20 @@ def test_search_results_displayed_multiple_pages(
             consignment=ConsignmentFactory(
                 ContactName="test_contact",
                 ConsignmentReference="consignment_foo",
-                series=SeriesFactory(
-                    Name="series_foo", body=BodyFactory(Name="body_foo")
-                ),
+                series=SeriesFactory(Name="series_foo", body=body),
             ),
         )
-        for file_name in ["a", "b", "c", "d", "e", "f", "g", "h"]
+        for file_name in ["d", "e", "f", "g", "h"]
     ]
+
+    mock_standard_user(client, body.Name)
 
     app.config["DEFAULT_PAGE_SIZE"] = 2
     form_data = {"query": "test_contact"}
     response = client.post("/search", data=form_data)
 
     assert response.status_code == 200
-    assert b"8 record(s) found" in response.data
+    assert b"5 record(s) found" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
     table = soup.find("table", class_="govuk-table")
@@ -154,8 +188,11 @@ def test_search_results_displayed_multiple_pages(
 
     expected_results_table = [
         ["Transferring body", "Series", "Consignment reference", "File name"],
-        ["body_foo", "series_foo", "consignment_foo", "a"],
-        ["body_foo", "series_foo", "consignment_foo", "b"],
+        ["body_foo", "series_foo", "consignment_foo", "d"],
+        ["body_foo", "series_foo", "consignment_foo", "e"],
+        ["body_foo", "series_foo", "consignment_foo", "f"],
+        ["body_foo", "series_foo", "consignment_foo", "g"],
+        ["body_foo", "series_foo", "consignment_foo", "h"],
     ]
 
     assert [header.text for header in headers] == expected_results_table[0]
