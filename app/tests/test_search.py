@@ -1,7 +1,12 @@
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
-from app.tests.mock_database import create_multiple_test_records
+from app.tests.factories import (
+    BodyFactory,
+    ConsignmentFactory,
+    FileFactory,
+    SeriesFactory,
+)
 
 
 def test_search_get(client: FlaskClient, mock_standard_user):
@@ -40,9 +45,9 @@ def test_search_with_no_results(client: FlaskClient, mock_standard_user):
     Then they should see no records found.
     """
     mock_standard_user(client)
-    create_multiple_test_records()
+    FileFactory(FileType="file", FileName="foo")
 
-    form_data = {"query": "junk"}
+    form_data = {"query": "bar"}
     response = client.post("/search", data=form_data)
 
     assert response.status_code == 200
@@ -58,9 +63,23 @@ def test_search_results_displayed_single_page(
     Then a table is populated with the n results with metadata fields.
     """
     mock_standard_user(client)
-    create_multiple_test_records()
+    [
+        FileFactory(
+            FileType="file",
+            FileName=file_name,
+            consignment=ConsignmentFactory(
+                ContactName="test_contact",
+                ConsignmentReference="consignment_foo",
+                series=SeriesFactory(
+                    Name="series_foo", body=BodyFactory(Name="body_foo")
+                ),
+            ),
+        )
+        for file_name in ["a", "b", "c"]
+    ]
+
     app.config["DEFAULT_PAGE_SIZE"] = 5
-    form_data = {"query": "test body"}
+    form_data = {"query": "test_contact"}
     response = client.post("/search", data=form_data)
 
     assert response.status_code == 200
@@ -76,14 +95,9 @@ def test_search_results_displayed_single_page(
 
     expected_results_table = [
         ["Transferring body", "Series", "Consignment reference", "File name"],
-        ["test body1", "test series1", "test consignment1", "test_file1.pdf"],
-        ["test body2", "test series2", "test consignment2", "test_file2.txt"],
-        [
-            "testing body11",
-            "test series11",
-            "test consignment11",
-            "test_file11.txt",
-        ],
+        ["body_foo", "series_foo", "consignment_foo", "a"],
+        ["body_foo", "series_foo", "consignment_foo", "b"],
+        ["body_foo", "series_foo", "consignment_foo", "c"],
     ]
 
     assert [header.text for header in headers] == expected_results_table[0]
@@ -107,13 +121,28 @@ def test_search_results_displayed_multiple_pages(
     Then a table is populated with the n results with metadata fields.
     """
     mock_standard_user(client)
-    create_multiple_test_records()
-    app.config["DEFAULT_PAGE_SIZE"] = 5
-    form_data = {"query": "testing body"}
+
+    [
+        FileFactory(
+            FileType="file",
+            FileName=file_name,
+            consignment=ConsignmentFactory(
+                ContactName="test_contact",
+                ConsignmentReference="consignment_foo",
+                series=SeriesFactory(
+                    Name="series_foo", body=BodyFactory(Name="body_foo")
+                ),
+            ),
+        )
+        for file_name in ["a", "b", "c", "d", "e", "f", "g", "h"]
+    ]
+
+    app.config["DEFAULT_PAGE_SIZE"] = 2
+    form_data = {"query": "test_contact"}
     response = client.post("/search", data=form_data)
 
     assert response.status_code == 200
-    assert b"9 record(s) found" in response.data
+    assert b"8 record(s) found" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
     table = soup.find("table", class_="govuk-table")
@@ -125,36 +154,8 @@ def test_search_results_displayed_multiple_pages(
 
     expected_results_table = [
         ["Transferring body", "Series", "Consignment reference", "File name"],
-        [
-            "testing body10",
-            "test series10",
-            "test consignment10",
-            "test_file10.txt",
-        ],
-        [
-            "testing body11",
-            "test series11",
-            "test consignment11",
-            "test_file11.txt",
-        ],
-        [
-            "testing body3",
-            "test series3",
-            "test consignment3",
-            "test_file3.pdf",
-        ],
-        [
-            "testing body4",
-            "test series4",
-            "test consignment4",
-            "test_file4.txt",
-        ],
-        [
-            "testing body5",
-            "test series5",
-            "test consignment5",
-            "test_file5.txt",
-        ],
+        ["body_foo", "series_foo", "consignment_foo", "a"],
+        ["body_foo", "series_foo", "consignment_foo", "b"],
     ]
 
     assert [header.text for header in headers] == expected_results_table[0]
