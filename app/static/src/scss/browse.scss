@@ -130,6 +130,16 @@
 
 
 .browse-grid {
+  &__table {
+    font-size: 1rem;
+    border-bottom: 2px solid black;
+
+    thead {
+      border-bottom: 2px solid black;
+    }
+  }
+
+
   &--two-thirds {
     padding: 0;
   }
@@ -431,6 +441,14 @@
   .mobile-filters-form {
     display: block;
     width: 100%;
+  }
+
+  .govuk-button__filters-form-apply-button {
+    width: 50%;
+  }
+
+  .govuk-button__sort-container-update-button {
+    width: 50%;
   }
 
   .sort-container__form {
