@@ -23,7 +23,7 @@ class SeriesFactory(SQLAlchemyModelFactory):
         sqlalchemy_session = db.session
 
     SeriesId = factory.LazyFunction(uuid.uuid4)
-    body_series = factory.SubFactory(BodyFactory)
+    body = factory.SubFactory(BodyFactory)
     Name = FuzzyText(length=10)
     Description = FuzzyText(length=50)
 
@@ -34,8 +34,7 @@ class ConsignmentFactory(SQLAlchemyModelFactory):
         sqlalchemy_session = db.session
 
     ConsignmentId = factory.LazyFunction(uuid.uuid4)
-    consignment_series = factory.SubFactory(SeriesFactory)
-    consignment_bodies = factory.SubFactory(BodyFactory)
+    series = factory.SubFactory(SeriesFactory)
     ConsignmentReference = FuzzyText(length=10)
     ConsignmentType = FuzzyText(length=10)
     IncludeTopLevelFolder = factory.Faker("boolean")
@@ -53,7 +52,7 @@ class FileFactory(SQLAlchemyModelFactory):
         sqlalchemy_session = db.session
 
     FileId = factory.LazyFunction(uuid.uuid4)
-    file_consignments = factory.SubFactory(ConsignmentFactory)
+    consignment = factory.SubFactory(ConsignmentFactory)
     FileReference = FuzzyText(length=10)
     FileType = FuzzyText(length=10)
     FileName = FuzzyText(length=10)
@@ -70,7 +69,7 @@ class FileMetadataFactory(SQLAlchemyModelFactory):
         sqlalchemy_session = db.session
 
     MetadataId = factory.LazyFunction(uuid.uuid4)
-    file_metadata = factory.SubFactory(FileFactory)
+    file = factory.SubFactory(FileFactory)
     PropertyName = FuzzyText(length=10)
     Value = FuzzyText(length=10)
     CreatedDatetime = factory.Faker("date_time")

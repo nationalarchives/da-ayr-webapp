@@ -57,8 +57,8 @@ class TestFuzzySearch:
                 "test series2",
                 "test consignment2",
                 "test_file2.txt",
-                files[1].file_consignments.consignment_bodies.BodyId,
-                files[1].file_consignments.consignment_series.SeriesId,
+                files[1].consignment.series.body.BodyId,
+                files[1].consignment.series.SeriesId,
             )
         ]
 
@@ -82,16 +82,16 @@ class TestFuzzySearch:
                 "test series1",
                 "test consignment1",
                 "test_file1.pdf",
-                files[0].file_consignments.consignment_bodies.BodyId,
-                files[0].file_consignments.consignment_series.SeriesId,
+                files[0].consignment.series.body.BodyId,
+                files[0].consignment.series.SeriesId,
             ),
             (
                 "testing body11",
                 "test series11",
                 "test consignment11",
                 "test_file11.txt",
-                files[10].file_consignments.consignment_bodies.BodyId,
-                files[10].file_consignments.consignment_series.SeriesId,
+                files[10].consignment.series.body.BodyId,
+                files[10].consignment.series.SeriesId,
             ),
         ]
         assert result.pages == 1
@@ -117,40 +117,40 @@ class TestFuzzySearch:
                 "test series10",
                 "test consignment10",
                 "test_file10.txt",
-                files[9].file_consignments.consignment_bodies.BodyId,
-                files[9].file_consignments.consignment_series.SeriesId,
+                files[9].consignment.series.body.BodyId,
+                files[9].consignment.series.SeriesId,
             ),
             (
                 "testing body11",
                 "test series11",
                 "test consignment11",
                 "test_file11.txt",
-                files[10].file_consignments.consignment_bodies.BodyId,
-                files[10].file_consignments.consignment_series.SeriesId,
+                files[10].consignment.series.body.BodyId,
+                files[10].consignment.series.SeriesId,
             ),
             (
                 "testing body3",
                 "test series3",
                 "test consignment3",
                 "test_file3.pdf",
-                files[2].file_consignments.consignment_bodies.BodyId,
-                files[2].file_consignments.consignment_series.SeriesId,
+                files[2].consignment.series.body.BodyId,
+                files[2].consignment.series.SeriesId,
             ),
             (
                 "testing body4",
                 "test series4",
                 "test consignment4",
                 "test_file4.txt",
-                files[3].file_consignments.consignment_bodies.BodyId,
-                files[3].file_consignments.consignment_series.SeriesId,
+                files[3].consignment.series.body.BodyId,
+                files[3].consignment.series.SeriesId,
             ),
             (
                 "testing body5",
                 "test series5",
                 "test consignment5",
                 "test_file5.txt",
-                files[4].file_consignments.consignment_bodies.BodyId,
-                files[4].file_consignments.consignment_series.SeriesId,
+                files[4].consignment.series.body.BodyId,
+                files[4].consignment.series.SeriesId,
             ),
         ]
         assert result.pages > 0
@@ -174,32 +174,32 @@ class TestFuzzySearch:
                 "test series6",
                 "test consignment6",
                 "test_file6.txt",
-                files[5].file_consignments.consignment_bodies.BodyId,
-                files[5].file_consignments.consignment_series.SeriesId,
+                files[5].consignment.series.body.BodyId,
+                files[5].consignment.series.SeriesId,
             ),
             (
                 "testing body7",
                 "test series7",
                 "test consignment7",
                 "test_file7.txt",
-                files[6].file_consignments.consignment_bodies.BodyId,
-                files[6].file_consignments.consignment_series.SeriesId,
+                files[6].consignment.series.body.BodyId,
+                files[6].consignment.series.SeriesId,
             ),
             (
                 "testing body8",
                 "test series8",
                 "test consignment8",
                 "test_file8.txt",
-                files[7].file_consignments.consignment_bodies.BodyId,
-                files[7].file_consignments.consignment_series.SeriesId,
+                files[7].consignment.series.body.BodyId,
+                files[7].consignment.series.SeriesId,
             ),
             (
                 "testing body9",
                 "test series9",
                 "test consignment9",
                 "test_file9.txt",
-                files[8].file_consignments.consignment_bodies.BodyId,
-                files[8].file_consignments.consignment_series.SeriesId,
+                files[8].consignment.series.body.BodyId,
+                files[8].consignment.series.SeriesId,
             ),
         ]
         assert result.pages > 0
@@ -220,45 +220,45 @@ class TestBrowse:
 
         assert result.items == [
             (
-                files[0].file_consignments.consignment_bodies.BodyId,
+                files[0].consignment.series.body.BodyId,
                 "test body1",
-                files[0].file_consignments.consignment_series.SeriesId,
+                files[0].consignment.series.SeriesId,
                 "test series1",
                 "01/01/2023",
                 1,
                 1,
             ),
             (
-                files[1].file_consignments.consignment_bodies.BodyId,
+                files[1].consignment.series.body.BodyId,
                 "test body2",
-                files[1].file_consignments.consignment_series.SeriesId,
+                files[1].consignment.series.SeriesId,
                 "test series2",
                 "01/01/2023",
                 1,
                 1,
             ),
             (
-                files[9].file_consignments.consignment_bodies.BodyId,
+                files[9].consignment.series.body.BodyId,
                 "testing body10",
-                files[9].file_consignments.consignment_series.SeriesId,
+                files[9].consignment.series.SeriesId,
                 "test series10",
                 "01/01/2023",
                 1,
                 1,
             ),
             (
-                files[10].file_consignments.consignment_bodies.BodyId,
+                files[10].consignment.series.body.BodyId,
                 "testing body11",
-                files[10].file_consignments.consignment_series.SeriesId,
+                files[10].consignment.series.SeriesId,
                 "test series11",
                 "01/01/2023",
                 1,
                 2,
             ),
             (
-                files[2].file_consignments.consignment_bodies.BodyId,
+                files[2].consignment.series.body.BodyId,
                 "testing body3",
-                files[2].file_consignments.consignment_series.SeriesId,
+                files[2].consignment.series.SeriesId,
                 "test series3",
                 "01/01/2023",
                 1,
@@ -278,45 +278,45 @@ class TestBrowse:
         result = browse_data(page=2, per_page=per_page, browse_type="browse")
         assert result.items == [
             (
-                files[3].file_consignments.consignment_bodies.BodyId,
+                files[3].consignment.series.body.BodyId,
                 "testing body4",
-                files[3].file_consignments.consignment_series.SeriesId,
+                files[3].consignment.series.SeriesId,
                 "test series4",
                 "01/01/2023",
                 1,
                 1,
             ),
             (
-                files[4].file_consignments.consignment_bodies.BodyId,
+                files[4].consignment.series.body.BodyId,
                 "testing body5",
-                files[4].file_consignments.consignment_series.SeriesId,
+                files[4].consignment.series.SeriesId,
                 "test series5",
                 "15/02/2023",
                 1,
                 1,
             ),
             (
-                files[5].file_consignments.consignment_bodies.BodyId,
+                files[5].consignment.series.body.BodyId,
                 "testing body6",
-                files[5].file_consignments.consignment_series.SeriesId,
+                files[5].consignment.series.SeriesId,
                 "test series6",
                 "15/02/2023",
                 1,
                 1,
             ),
             (
-                files[6].file_consignments.consignment_bodies.BodyId,
+                files[6].consignment.series.body.BodyId,
                 "testing body7",
-                files[6].file_consignments.consignment_series.SeriesId,
+                files[6].consignment.series.SeriesId,
                 "test series7",
                 "15/02/2023",
                 1,
                 1,
             ),
             (
-                files[7].file_consignments.consignment_bodies.BodyId,
+                files[7].consignment.series.body.BodyId,
                 "testing body8",
-                files[7].file_consignments.consignment_series.SeriesId,
+                files[7].consignment.series.SeriesId,
                 "test series8",
                 "15/02/2023",
                 1,
@@ -342,45 +342,45 @@ class TestBrowse:
 
         assert result.items == [
             (
-                files[4].file_consignments.consignment_bodies.BodyId,
+                files[4].consignment.series.body.BodyId,
                 "testing body5",
-                files[4].file_consignments.consignment_series.SeriesId,
+                files[4].consignment.series.SeriesId,
                 "test series5",
                 "15/02/2023",
                 1,
                 1,
             ),
             (
-                files[5].file_consignments.consignment_bodies.BodyId,
+                files[5].consignment.series.body.BodyId,
                 "testing body6",
-                files[5].file_consignments.consignment_series.SeriesId,
+                files[5].consignment.series.SeriesId,
                 "test series6",
                 "15/02/2023",
                 1,
                 1,
             ),
             (
-                files[6].file_consignments.consignment_bodies.BodyId,
+                files[6].consignment.series.body.BodyId,
                 "testing body7",
-                files[6].file_consignments.consignment_series.SeriesId,
+                files[6].consignment.series.SeriesId,
                 "test series7",
                 "15/02/2023",
                 1,
                 1,
             ),
             (
-                files[7].file_consignments.consignment_bodies.BodyId,
+                files[7].consignment.series.body.BodyId,
                 "testing body8",
-                files[7].file_consignments.consignment_series.SeriesId,
+                files[7].consignment.series.SeriesId,
                 "test series8",
                 "15/02/2023",
                 1,
                 1,
             ),
             (
-                files[8].file_consignments.consignment_bodies.BodyId,
+                files[8].consignment.series.body.BodyId,
                 "testing body9",
-                files[8].file_consignments.consignment_series.SeriesId,
+                files[8].consignment.series.SeriesId,
                 "test series9",
                 "15/02/2023",
                 1,
@@ -403,45 +403,45 @@ class TestBrowse:
 
         assert result.items == [
             (
-                files[0].file_consignments.consignment_bodies.BodyId,
+                files[0].consignment.series.body.BodyId,
                 "test body1",
-                files[0].file_consignments.consignment_series.SeriesId,
+                files[0].consignment.series.SeriesId,
                 "test series1",
                 "01/01/2023",
                 1,
                 1,
             ),
             (
-                files[1].file_consignments.consignment_bodies.BodyId,
+                files[1].consignment.series.body.BodyId,
                 "test body2",
-                files[1].file_consignments.consignment_series.SeriesId,
+                files[1].consignment.series.SeriesId,
                 "test series2",
                 "01/01/2023",
                 1,
                 1,
             ),
             (
-                files[9].file_consignments.consignment_bodies.BodyId,
+                files[9].consignment.series.body.BodyId,
                 "testing body10",
-                files[9].file_consignments.consignment_series.SeriesId,
+                files[9].consignment.series.SeriesId,
                 "test series10",
                 "01/01/2023",
                 1,
                 1,
             ),
             (
-                files[10].file_consignments.consignment_bodies.BodyId,
+                files[10].consignment.series.body.BodyId,
                 "testing body11",
-                files[10].file_consignments.consignment_series.SeriesId,
+                files[10].consignment.series.SeriesId,
                 "test series11",
                 "01/01/2023",
                 1,
                 2,
             ),
             (
-                files[2].file_consignments.consignment_bodies.BodyId,
+                files[2].consignment.series.body.BodyId,
                 "testing body3",
-                files[2].file_consignments.consignment_series.SeriesId,
+                files[2].consignment.series.SeriesId,
                 "test series3",
                 "01/01/2023",
                 1,
@@ -466,45 +466,45 @@ class TestBrowse:
 
         assert result.items == [
             (
-                files[4].file_consignments.consignment_bodies.BodyId,
+                files[4].consignment.series.body.BodyId,
                 "testing body5",
-                files[4].file_consignments.consignment_series.SeriesId,
+                files[4].consignment.series.SeriesId,
                 "test series5",
                 "15/02/2023",
                 1,
                 1,
             ),
             (
-                files[5].file_consignments.consignment_bodies.BodyId,
+                files[5].consignment.series.body.BodyId,
                 "testing body6",
-                files[5].file_consignments.consignment_series.SeriesId,
+                files[5].consignment.series.SeriesId,
                 "test series6",
                 "15/02/2023",
                 1,
                 1,
             ),
             (
-                files[6].file_consignments.consignment_bodies.BodyId,
+                files[6].consignment.series.body.BodyId,
                 "testing body7",
-                files[6].file_consignments.consignment_series.SeriesId,
+                files[6].consignment.series.SeriesId,
                 "test series7",
                 "15/02/2023",
                 1,
                 1,
             ),
             (
-                files[7].file_consignments.consignment_bodies.BodyId,
+                files[7].consignment.series.body.BodyId,
                 "testing body8",
-                files[7].file_consignments.consignment_series.SeriesId,
+                files[7].consignment.series.SeriesId,
                 "test series8",
                 "15/02/2023",
                 1,
                 1,
             ),
             (
-                files[8].file_consignments.consignment_bodies.BodyId,
+                files[8].consignment.series.body.BodyId,
                 "testing body9",
-                files[8].file_consignments.consignment_series.SeriesId,
+                files[8].consignment.series.SeriesId,
                 "test series9",
                 "15/02/2023",
                 1,
@@ -548,12 +548,10 @@ class TestBrowseTransferringBody:
 
         file = files[0]
 
-        mock_standard_user(
-            client, file.file_consignments.consignment_bodies.Name
-        )
+        mock_standard_user(client, file.consignment.series.body.Name)
 
-        transferring_body_id = file.file_consignments.consignment_bodies.BodyId
-        series_id = file.file_consignments.consignment_series.SeriesId
+        transferring_body_id = file.consignment.series.body.BodyId
+        series_id = file.consignment.series.SeriesId
         result = browse_data(
             page=1,
             per_page=per_page,
@@ -590,12 +588,11 @@ class TestBrowseSeries:
         files = create_multiple_test_records()
 
         file = files[0]
-        mock_standard_user(
-            client, file.file_consignments.consignment_bodies.Name
-        )
-        transferring_body_id = file.file_consignments.consignment_bodies.BodyId
-        series_id = file.file_consignments.consignment_series.SeriesId
-        consignment_id = file.file_consignments.ConsignmentId
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        transferring_body_id = file.consignment.series.body.BodyId
+        series_id = file.consignment.series.SeriesId
+        consignment_id = file.consignment.ConsignmentId
 
         result = browse_data(
             page=1, per_page=per_page, browse_type="series", series_id=series_id
@@ -632,10 +629,10 @@ class TestBrowseConsignment:
         """
         consignment = ConsignmentFactory()
 
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment, FileName="file_1", FileType="file"
+            consignment=consignment, FileName="file_1", FileType="file"
         )
 
         file_1_metadata = {
@@ -647,7 +644,7 @@ class TestBrowseConsignment:
 
         [
             FileMetadataFactory(
-                file_metadata=file_1,
+                file=file_1,
                 PropertyName=property_name,
                 Value=value,
             )
@@ -655,7 +652,7 @@ class TestBrowseConsignment:
         ]
 
         file_2 = FileFactory(
-            file_consignments=consignment, FileName="file_2", FileType="file"
+            consignment=consignment, FileName="file_2", FileType="file"
         )
 
         file_2_metadata = {
@@ -667,14 +664,14 @@ class TestBrowseConsignment:
 
         [
             FileMetadataFactory(
-                file_metadata=file_2,
+                file=file_2,
                 PropertyName=property_name,
                 Value=value,
             )
             for property_name, value in file_2_metadata.items()
         ]
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -726,51 +723,51 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment, FileName="file_1", FileType="file"
+            consignment=consignment, FileName="file_1", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment, FileName="file_2", FileType="file"
+            consignment=consignment, FileName="file_2", FileType="file"
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -818,51 +815,51 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment, FileName="file_1", FileType="file"
+            consignment=consignment, FileName="file_1", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment, FileName="file_2", FileType="file"
+            consignment=consignment, FileName="file_2", FileType="file"
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -910,51 +907,51 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment, FileName="file_1", FileType="file"
+            consignment=consignment, FileName="file_1", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment, FileName="file_2", FileType="file"
+            consignment=consignment, FileName="file_2", FileType="file"
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -1010,81 +1007,81 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="file_1.docx",
             FileType="file",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="file_2.ppt",
             FileType="file",
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
         file_3 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="file_3.docx",
             FileType="file",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+            file=file_3, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_period",
             Value="1",
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -1142,81 +1139,81 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="file_1.docx",
             FileType="file",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="file_2.ppt",
             FileType="file",
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
         file_3 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="file_3.docx",
             FileType="file",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3, PropertyName="closure_type", Value="Open"
+            file=file_3, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_start_date",
             Value=None,
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_period",
             Value=None,
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -1267,81 +1264,81 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="file_1.docx",
             FileType="file",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="file_2.ppt",
             FileType="file",
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
         file_3 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="file_3.docx",
             FileType="file",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="date_last_modified",
             Value="2023-02-28T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+            file=file_3, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_start_date",
             Value="2023-02-28T10:12:47",
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_period",
             Value="1",
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -1393,81 +1390,81 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="file_1.docx",
             FileType="file",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="file_2.ppt",
             FileType="file",
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
         file_3 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="file_3.docx",
             FileType="file",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="date_last_modified",
             Value="2023-02-28T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+            file=file_3, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_start_date",
             Value="2023-02-28T10:12:47",
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_period",
             Value="1",
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -1517,51 +1514,51 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment, FileName="file_1", FileType="file"
+            consignment=consignment, FileName="file_1", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment, FileName="file_2", FileType="file"
+            consignment=consignment, FileName="file_2", FileType="file"
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -1618,51 +1615,51 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment, FileName="file_1", FileType="file"
+            consignment=consignment, FileName="file_1", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment, FileName="file_2", FileType="file"
+            consignment=consignment, FileName="file_2", FileType="file"
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -1712,57 +1709,55 @@ class TestBrowseConsignment:
             ordered by their names and with the expected metadata values
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment, FileName="file_1", FileType="file"
+            consignment=consignment, FileName="file_1", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment, FileName="file_2", FileType="file"
+            consignment=consignment, FileName="file_2", FileType="file"
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
-        mock_standard_user(
-            client, file_1.file_consignments.consignment_bodies.Name
-        )
+        mock_standard_user(client, file_1.consignment.series.body.Name)
         filters = {
             "date_range": {"date_from": "01/02/2023", "date_to": "28/02/2023"},
             "date_filter_field": "date_last_modified",
@@ -1815,75 +1810,75 @@ class TestBrowseConsignment:
             ordered by their closure_type 'Closed' first and then 'Open' in ascending orders
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment, FileName="file_1", FileType="file"
+            consignment=consignment, FileName="file_1", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment, FileName="file_2", FileType="file"
+            consignment=consignment, FileName="file_2", FileType="file"
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
         file_3 = FileFactory(
-            file_consignments=consignment, FileName="file_3", FileType="file"
+            consignment=consignment, FileName="file_3", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+            file=file_3, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_period",
             Value="1",
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -1950,75 +1945,75 @@ class TestBrowseConsignment:
             ordered by their closure_type 'Closed' first and then 'Open' in ascending orders
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment, FileName="file_1", FileType="file"
+            consignment=consignment, FileName="file_1", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment, FileName="file_2", FileType="file"
+            consignment=consignment, FileName="file_2", FileType="file"
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
         file_3 = FileFactory(
-            file_consignments=consignment, FileName="file_3", FileType="file"
+            consignment=consignment, FileName="file_3", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+            file=file_3, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_period",
             Value="1",
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -2086,75 +2081,75 @@ class TestBrowseConsignment:
             ordered by their date last modified as oldest first(ascending)
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment, FileName="file_1", FileType="file"
+            consignment=consignment, FileName="file_1", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment, FileName="file_2", FileType="file"
+            consignment=consignment, FileName="file_2", FileType="file"
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
         file_3 = FileFactory(
-            file_consignments=consignment, FileName="file_3", FileType="file"
+            consignment=consignment, FileName="file_3", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="date_last_modified",
             Value="2023-01-23T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+            file=file_3, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_start_date",
             Value="2023-01-23T10:12:47",
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_period",
             Value="1",
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -2222,75 +2217,75 @@ class TestBrowseConsignment:
             ordered by their date last modified as most recent(descending)
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment, FileName="file_1", FileType="file"
+            consignment=consignment, FileName="file_1", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment, FileName="file_2", FileType="file"
+            consignment=consignment, FileName="file_2", FileType="file"
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
         file_3 = FileFactory(
-            file_consignments=consignment, FileName="file_3", FileType="file"
+            consignment=consignment, FileName="file_3", FileType="file"
         )
 
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="date_last_modified",
             Value="2023-01-23T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+            file=file_3, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_start_date",
             Value="2023-01-23T10:12:47",
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_period",
             Value="1",
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -2357,81 +2352,81 @@ class TestBrowseConsignment:
             ordered by their file name in ascending orders (A to Z)
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="first_file.txt",
             FileType="file",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="fourth_file.pdf",
             FileType="file",
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
         file_3 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="fifth_file.docx",
             FileType="file",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+            file=file_3, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_period",
             Value="1",
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -2498,81 +2493,81 @@ class TestBrowseConsignment:
             ordered by their file name in descending orders (Z to A)
         """
         consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.consignment_bodies.Name)
+        mock_standard_user(client, consignment.series.body.Name)
 
         file_1 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="first_file.txt",
             FileType="file",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_1, PropertyName="closure_type", Value="Closed"
+            file=file_1, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_1,
+            file=file_1,
             PropertyName="closure_period",
             Value="1",
         )
 
         file_2 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="fourth_file.pdf",
             FileType="file",
         )
         FileMetadataFactory(
-            file_metadata=file_2,
+            file=file_2,
             PropertyName="date_last_modified",
             Value="2023-02-27T12:28:08",
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_type", Value="Open"
+            file=file_2, PropertyName="closure_type", Value="Open"
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_start_date", Value=None
+            file=file_2, PropertyName="closure_start_date", Value=None
         )
         FileMetadataFactory(
-            file_metadata=file_2, PropertyName="closure_period", Value=None
+            file=file_2, PropertyName="closure_period", Value=None
         )
 
         file_3 = FileFactory(
-            file_consignments=consignment,
+            consignment=consignment,
             FileName="fifth_file.docx",
             FileType="file",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="date_last_modified",
             Value="2023-02-25T10:12:47",
         )
 
         FileMetadataFactory(
-            file_metadata=file_3, PropertyName="closure_type", Value="Closed"
+            file=file_3, PropertyName="closure_type", Value="Closed"
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_start_date",
             Value="2023-02-25T11:14:34",
         )
         FileMetadataFactory(
-            file_metadata=file_3,
+            file=file_3,
             PropertyName="closure_period",
             Value="1",
         )
 
-        FileFactory(file_consignments=consignment, FileType="folder")
+        FileFactory(consignment=consignment, FileType="folder")
 
         FileFactory(FileType="file")
 
@@ -2660,7 +2655,7 @@ class TestGetFileMetadata:
 
         [
             FileMetadataFactory(
-                file_metadata=file,
+                file=file,
                 PropertyName=property_name,
                 Value=value,
             )
@@ -2678,10 +2673,10 @@ class TestGetFileMetadata:
             "legal_status": "Test legal status",
             "rights_copyright": "Test copyright",
             "language": "English",
-            "consignment": file.file_consignments.ConsignmentReference,
+            "consignment": file.consignment.ConsignmentReference,
             "consignment_id": file.ConsignmentId,
-            "transferring_body": file.file_consignments.consignment_bodies.Name,
-            "transferring_body_id": file.file_consignments.consignment_bodies.BodyId,
-            "series": file.file_consignments.consignment_series.Name,
-            "series_id": file.file_consignments.consignment_series.SeriesId,
+            "transferring_body": file.consignment.series.body.Name,
+            "transferring_body_id": file.consignment.series.body.BodyId,
+            "series": file.consignment.series.Name,
+            "series_id": file.consignment.series.SeriesId,
         }

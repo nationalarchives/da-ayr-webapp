@@ -19,7 +19,7 @@ def mock_record():
     """
     consignment = ConsignmentFactory(ConsignmentReference=CONSIGNMENT_REF)
     file = FileFactory(
-        file_consignments=consignment,
+        consignment=consignment,
         FileName=FILE_NAME,
         FilePath=FILE_PATH,
         FileType="file",
@@ -37,7 +37,7 @@ def mock_record():
 
     [
         FileMetadataFactory(
-            file_metadata=file,
+            file=file,
             PropertyName=property_name,
             Value=value,
         )
@@ -86,7 +86,7 @@ def test_downloads_record_successfully_for_user_with_access_to_files_transferrin
     create_mock_s3_bucket_with_object()
     app.config["RECORD_BUCKET_NAME"] = BUCKET
     file = mock_record()
-    mock_standard_user(client, file.file_consignments.consignment_bodies.Name)
+    mock_standard_user(client, file.consignment.series.body.Name)
     response = client.get(f"/download/{file.FileId}")
 
     assert response.status_code == 200
