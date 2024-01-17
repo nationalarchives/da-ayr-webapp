@@ -543,9 +543,7 @@ class TestBrowse:
             ordered by transferring body name alphabetically in ascending order (A to Z)
         """
 
-        mock_standard_user(
-            client, browse_files[0].file_consignments.consignment_bodies.Name
-        )
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
         sorting_orders = {"transferring_body": "asc"}
         pagination_object = browse_data(
             page=1,
@@ -558,49 +556,49 @@ class TestBrowse:
 
         expected_results = [
             (
-                browse_files[19].file_consignments.consignment_bodies.BodyId,
-                browse_files[19].file_consignments.consignment_bodies.Name,
-                browse_files[19].file_consignments.consignment_series.SeriesId,
-                browse_files[19].file_consignments.consignment_series.Name,
+                browse_files[19].consignment.series.body.BodyId,
+                browse_files[19].consignment.series.body.Name,
+                browse_files[19].consignment.series.SeriesId,
+                browse_files[19].consignment.series.Name,
                 "21/09/2023",
                 2,
                 6,
             ),
             (
-                browse_files[0].file_consignments.consignment_bodies.BodyId,
-                browse_files[0].file_consignments.consignment_bodies.Name,
-                browse_files[0].file_consignments.consignment_series.SeriesId,
-                browse_files[0].file_consignments.consignment_series.Name,
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
                 "07/02/2023",
                 2,
                 3,
             ),
             (
-                browse_files[13].file_consignments.consignment_bodies.BodyId,
-                browse_files[13].file_consignments.consignment_bodies.Name,
-                browse_files[13].file_consignments.consignment_series.SeriesId,
-                browse_files[13].file_consignments.consignment_series.Name,
+                browse_files[13].consignment.series.body.BodyId,
+                browse_files[13].consignment.series.body.Name,
+                browse_files[13].consignment.series.SeriesId,
+                browse_files[13].consignment.series.Name,
                 "03/08/2023",
                 2,
                 6,
             ),
             (
-                browse_files[3].file_consignments.consignment_bodies.BodyId,
-                browse_files[3].file_consignments.consignment_bodies.Name,
-                browse_files[3].file_consignments.consignment_series.SeriesId,
-                browse_files[3].file_consignments.consignment_series.Name,
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
                 "26/04/2023",
                 2,
                 7,
             ),
             (
-                browse_files[25].file_consignments.consignment_bodies.BodyId,
-                browse_files[25].file_consignments.consignment_bodies.Name,
-                browse_files[25].file_consignments.consignment_series.SeriesId,
-                browse_files[25].file_consignments.consignment_series.Name,
-                "14/10/2023",
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[27].consignment.series.SeriesId,
+                browse_files[27].consignment.series.Name,
+                "25/11/2023",
                 1,
-                2,
+                1,
             ),
         ]
 
@@ -621,9 +619,7 @@ class TestBrowse:
             ordered by transferring body name alphabetically in descending order (Z to A)
         """
 
-        mock_standard_user(
-            client, browse_files[0].file_consignments.consignment_bodies.Name
-        )
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
         sorting_orders = {"transferring_body": "desc"}
         pagination_object = browse_data(
             page=1,
@@ -636,46 +632,46 @@ class TestBrowse:
 
         expected_results = [
             (
-                browse_files[10].file_consignments.consignment_bodies.BodyId,
-                browse_files[10].file_consignments.consignment_bodies.Name,
-                browse_files[10].file_consignments.consignment_series.SeriesId,
-                browse_files[10].file_consignments.consignment_series.Name,
+                browse_files[10].consignment.series.body.BodyId,
+                browse_files[10].consignment.series.body.Name,
+                browse_files[10].consignment.series.SeriesId,
+                browse_files[10].consignment.series.Name,
                 "17/06/2023",
                 2,
                 3,
             ),
             (
-                browse_files[25].file_consignments.consignment_bodies.BodyId,
-                browse_files[25].file_consignments.consignment_bodies.Name,
-                browse_files[25].file_consignments.consignment_series.SeriesId,
-                browse_files[25].file_consignments.consignment_series.Name,
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[25].consignment.series.SeriesId,
+                browse_files[25].consignment.series.Name,
                 "14/10/2023",
                 1,
                 2,
             ),
             (
-                browse_files[25].file_consignments.consignment_bodies.BodyId,
-                browse_files[25].file_consignments.consignment_bodies.Name,
-                browse_files[27].file_consignments.consignment_series.SeriesId,
-                browse_files[27].file_consignments.consignment_series.Name,
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[27].consignment.series.SeriesId,
+                browse_files[27].consignment.series.Name,
                 "25/11/2023",
                 1,
                 1,
             ),
             (
-                browse_files[3].file_consignments.consignment_bodies.BodyId,
-                browse_files[3].file_consignments.consignment_bodies.Name,
-                browse_files[3].file_consignments.consignment_series.SeriesId,
-                browse_files[3].file_consignments.consignment_series.Name,
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
                 "26/04/2023",
                 2,
                 7,
             ),
             (
-                browse_files[13].file_consignments.consignment_bodies.BodyId,
-                browse_files[13].file_consignments.consignment_bodies.Name,
-                browse_files[13].file_consignments.consignment_series.SeriesId,
-                browse_files[13].file_consignments.consignment_series.Name,
+                browse_files[13].consignment.series.body.BodyId,
+                browse_files[13].consignment.series.body.Name,
+                browse_files[13].consignment.series.SeriesId,
+                browse_files[13].consignment.series.Name,
                 "03/08/2023",
                 2,
                 6,
@@ -699,9 +695,7 @@ class TestBrowse:
             ordered by series name alphabetically in ascending order (A to Z)
         """
 
-        mock_standard_user(
-            client, browse_files[0].file_consignments.consignment_bodies.Name
-        )
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
         sorting_orders = {"series": "asc"}
         pagination_object = browse_data(
             page=1,
@@ -714,46 +708,46 @@ class TestBrowse:
 
         expected_results = [
             (
-                browse_files[19].file_consignments.consignment_bodies.BodyId,
-                browse_files[19].file_consignments.consignment_bodies.Name,
-                browse_files[19].file_consignments.consignment_series.SeriesId,
-                browse_files[19].file_consignments.consignment_series.Name,
+                browse_files[19].consignment.series.body.BodyId,
+                browse_files[19].consignment.series.body.Name,
+                browse_files[19].consignment.series.SeriesId,
+                browse_files[19].consignment.series.Name,
                 "21/09/2023",
                 2,
                 6,
             ),
             (
-                browse_files[0].file_consignments.consignment_bodies.BodyId,
-                browse_files[0].file_consignments.consignment_bodies.Name,
-                browse_files[0].file_consignments.consignment_series.SeriesId,
-                browse_files[0].file_consignments.consignment_series.Name,
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
                 "07/02/2023",
                 2,
                 3,
             ),
             (
-                browse_files[13].file_consignments.consignment_bodies.BodyId,
-                browse_files[13].file_consignments.consignment_bodies.Name,
-                browse_files[13].file_consignments.consignment_series.SeriesId,
-                browse_files[13].file_consignments.consignment_series.Name,
+                browse_files[13].consignment.series.body.BodyId,
+                browse_files[13].consignment.series.body.Name,
+                browse_files[13].consignment.series.SeriesId,
+                browse_files[13].consignment.series.Name,
                 "03/08/2023",
                 2,
                 6,
             ),
             (
-                browse_files[3].file_consignments.consignment_bodies.BodyId,
-                browse_files[3].file_consignments.consignment_bodies.Name,
-                browse_files[3].file_consignments.consignment_series.SeriesId,
-                browse_files[3].file_consignments.consignment_series.Name,
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
                 "26/04/2023",
                 2,
                 7,
             ),
             (
-                browse_files[25].file_consignments.consignment_bodies.BodyId,
-                browse_files[25].file_consignments.consignment_bodies.Name,
-                browse_files[27].file_consignments.consignment_series.SeriesId,
-                browse_files[27].file_consignments.consignment_series.Name,
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[27].consignment.series.SeriesId,
+                browse_files[27].consignment.series.Name,
                 "25/11/2023",
                 1,
                 1,
@@ -777,9 +771,7 @@ class TestBrowse:
             ordered by series name alphabetically in descending order (Z to A)
         """
 
-        mock_standard_user(
-            client, browse_files[0].file_consignments.consignment_bodies.Name
-        )
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
         sorting_orders = {"series": "desc"}
         pagination_object = browse_data(
             page=1,
@@ -792,46 +784,46 @@ class TestBrowse:
 
         expected_results = [
             (
-                browse_files[10].file_consignments.consignment_bodies.BodyId,
-                browse_files[10].file_consignments.consignment_bodies.Name,
-                browse_files[10].file_consignments.consignment_series.SeriesId,
-                browse_files[10].file_consignments.consignment_series.Name,
+                browse_files[10].consignment.series.body.BodyId,
+                browse_files[10].consignment.series.body.Name,
+                browse_files[10].consignment.series.SeriesId,
+                browse_files[10].consignment.series.Name,
                 "17/06/2023",
                 2,
                 3,
             ),
             (
-                browse_files[25].file_consignments.consignment_bodies.BodyId,
-                browse_files[25].file_consignments.consignment_bodies.Name,
-                browse_files[25].file_consignments.consignment_series.SeriesId,
-                browse_files[25].file_consignments.consignment_series.Name,
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[25].consignment.series.SeriesId,
+                browse_files[25].consignment.series.Name,
                 "14/10/2023",
                 1,
                 2,
             ),
             (
-                browse_files[25].file_consignments.consignment_bodies.BodyId,
-                browse_files[25].file_consignments.consignment_bodies.Name,
-                browse_files[27].file_consignments.consignment_series.SeriesId,
-                browse_files[27].file_consignments.consignment_series.Name,
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[27].consignment.series.SeriesId,
+                browse_files[27].consignment.series.Name,
                 "25/11/2023",
                 1,
                 1,
             ),
             (
-                browse_files[3].file_consignments.consignment_bodies.BodyId,
-                browse_files[3].file_consignments.consignment_bodies.Name,
-                browse_files[3].file_consignments.consignment_series.SeriesId,
-                browse_files[3].file_consignments.consignment_series.Name,
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
                 "26/04/2023",
                 2,
                 7,
             ),
             (
-                browse_files[13].file_consignments.consignment_bodies.BodyId,
-                browse_files[13].file_consignments.consignment_bodies.Name,
-                browse_files[13].file_consignments.consignment_series.SeriesId,
-                browse_files[13].file_consignments.consignment_series.Name,
+                browse_files[13].consignment.series.body.BodyId,
+                browse_files[13].consignment.series.body.Name,
+                browse_files[13].consignment.series.SeriesId,
+                browse_files[13].consignment.series.Name,
                 "03/08/2023",
                 2,
                 6,
@@ -855,9 +847,7 @@ class TestBrowse:
             ordered by consignment transfer complete date in ascending order (oldest first)
         """
 
-        mock_standard_user(
-            client, browse_files[0].file_consignments.consignment_bodies.Name
-        )
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
         sorting_orders = {"last_record_transferred": "asc"}
         pagination_object = browse_data(
             page=1,
@@ -870,46 +860,46 @@ class TestBrowse:
 
         expected_results = [
             (
-                browse_files[13].file_consignments.consignment_bodies.BodyId,
-                browse_files[13].file_consignments.consignment_bodies.Name,
-                browse_files[13].file_consignments.consignment_series.SeriesId,
-                browse_files[13].file_consignments.consignment_series.Name,
+                browse_files[13].consignment.series.body.BodyId,
+                browse_files[13].consignment.series.body.Name,
+                browse_files[13].consignment.series.SeriesId,
+                browse_files[13].consignment.series.Name,
                 "03/08/2023",
                 2,
                 6,
             ),
             (
-                browse_files[0].file_consignments.consignment_bodies.BodyId,
-                browse_files[0].file_consignments.consignment_bodies.Name,
-                browse_files[0].file_consignments.consignment_series.SeriesId,
-                browse_files[0].file_consignments.consignment_series.Name,
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
                 "07/02/2023",
                 2,
                 3,
             ),
             (
-                browse_files[25].file_consignments.consignment_bodies.BodyId,
-                browse_files[25].file_consignments.consignment_bodies.Name,
-                browse_files[25].file_consignments.consignment_series.SeriesId,
-                browse_files[25].file_consignments.consignment_series.Name,
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[25].consignment.series.SeriesId,
+                browse_files[25].consignment.series.Name,
                 "14/10/2023",
                 1,
                 2,
             ),
             (
-                browse_files[10].file_consignments.consignment_bodies.BodyId,
-                browse_files[10].file_consignments.consignment_bodies.Name,
-                browse_files[10].file_consignments.consignment_series.SeriesId,
-                browse_files[10].file_consignments.consignment_series.Name,
+                browse_files[10].consignment.series.body.BodyId,
+                browse_files[10].consignment.series.body.Name,
+                browse_files[10].consignment.series.SeriesId,
+                browse_files[10].consignment.series.Name,
                 "17/06/2023",
                 2,
                 3,
             ),
             (
-                browse_files[19].file_consignments.consignment_bodies.BodyId,
-                browse_files[19].file_consignments.consignment_bodies.Name,
-                browse_files[19].file_consignments.consignment_series.SeriesId,
-                browse_files[19].file_consignments.consignment_series.Name,
+                browse_files[19].consignment.series.body.BodyId,
+                browse_files[19].consignment.series.body.Name,
+                browse_files[19].consignment.series.SeriesId,
+                browse_files[19].consignment.series.Name,
                 "21/09/2023",
                 2,
                 6,
@@ -933,9 +923,7 @@ class TestBrowse:
             ordered by consignment transfer complete date in descending order (most recent first)
         """
 
-        mock_standard_user(
-            client, browse_files[0].file_consignments.consignment_bodies.Name
-        )
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
         sorting_orders = {"last_record_transferred": "desc"}
         pagination_object = browse_data(
             page=1,
@@ -948,46 +936,46 @@ class TestBrowse:
 
         expected_results = [
             (
-                browse_files[3].file_consignments.consignment_bodies.BodyId,
-                browse_files[3].file_consignments.consignment_bodies.Name,
-                browse_files[3].file_consignments.consignment_series.SeriesId,
-                browse_files[3].file_consignments.consignment_series.Name,
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
                 "26/04/2023",
                 2,
                 7,
             ),
             (
-                browse_files[25].file_consignments.consignment_bodies.BodyId,
-                browse_files[25].file_consignments.consignment_bodies.Name,
-                browse_files[27].file_consignments.consignment_series.SeriesId,
-                browse_files[27].file_consignments.consignment_series.Name,
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[27].consignment.series.SeriesId,
+                browse_files[27].consignment.series.Name,
                 "25/11/2023",
                 1,
                 1,
             ),
             (
-                browse_files[19].file_consignments.consignment_bodies.BodyId,
-                browse_files[19].file_consignments.consignment_bodies.Name,
-                browse_files[19].file_consignments.consignment_series.SeriesId,
-                browse_files[19].file_consignments.consignment_series.Name,
+                browse_files[19].consignment.series.body.BodyId,
+                browse_files[19].consignment.series.body.Name,
+                browse_files[19].consignment.series.SeriesId,
+                browse_files[19].consignment.series.Name,
                 "21/09/2023",
                 2,
                 6,
             ),
             (
-                browse_files[10].file_consignments.consignment_bodies.BodyId,
-                browse_files[10].file_consignments.consignment_bodies.Name,
-                browse_files[10].file_consignments.consignment_series.SeriesId,
-                browse_files[10].file_consignments.consignment_series.Name,
+                browse_files[10].consignment.series.body.BodyId,
+                browse_files[10].consignment.series.body.Name,
+                browse_files[10].consignment.series.SeriesId,
+                browse_files[10].consignment.series.Name,
                 "17/06/2023",
                 2,
                 3,
             ),
             (
-                browse_files[25].file_consignments.consignment_bodies.BodyId,
-                browse_files[25].file_consignments.consignment_bodies.Name,
-                browse_files[25].file_consignments.consignment_series.SeriesId,
-                browse_files[25].file_consignments.consignment_series.Name,
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[25].consignment.series.SeriesId,
+                browse_files[25].consignment.series.Name,
                 "14/10/2023",
                 1,
                 2,

@@ -142,8 +142,8 @@ def _build_browse_everything_query():
             func.count(func.distinct(File.FileId)).label("records_held"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Body, Body.BodyId == Consignment.BodyId)
         .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .join(Body, Body.BodyId == Series.BodyId)
         .where(func.lower(File.FileType) == "file")
         .group_by(Body.BodyId, Series.SeriesId)
     )
@@ -168,8 +168,8 @@ def _build_transferring_body_view_query(transferring_body_id):
             func.count(func.distinct(File.FileId)).label("records_held"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Body, Body.BodyId == Consignment.BodyId)
         .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .join(Body, Body.BodyId == Series.BodyId)
         .where(
             (func.lower(File.FileType) == "file")
             & (Body.BodyId == transferring_body_id)
@@ -197,8 +197,8 @@ def _build_series_view_query(series_id):
             Consignment.ConsignmentReference.label("consignment_reference"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Body, Body.BodyId == Consignment.BodyId)
         .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .join(Body, Body.BodyId == Series.BodyId)
         .where(
             (func.lower(File.FileType) == "file")
             & (Series.SeriesId == series_id)
