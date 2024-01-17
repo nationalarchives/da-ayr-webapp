@@ -119,7 +119,6 @@ def browse():
     filters = {}
     sorting_orders = {}
 
-    # if browse_type == "browse":
     # e.g. please usd example below to pass sorting order for browse all (top level)
     # sorting_orders["transferring_body"] = "asc"  # A to Z
     # sorting_orders["transferring_body"] = "desc"  # Z to A
