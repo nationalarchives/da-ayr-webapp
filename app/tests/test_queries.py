@@ -584,6 +584,462 @@ class TestBrowse:
 
         assert result.items == []
 
+    def test_browse_with_transferring_body_sorting_a_to_z(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with browse_view as 'browse' and
+            sort by 'transferring body' ascending
+        Then it returns a Paginate object returning the first 5 items
+            ordered by transferring body name alphabetically in ascending order (A to Z)
+        """
+
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+        sorting_orders = {"transferring_body": "asc"}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="browse",
+            sorting_orders=sorting_orders,
+        )
+
+        assert pagination_object.total == 6
+
+        expected_results = [
+            (
+                browse_files[19].consignment.series.body.BodyId,
+                browse_files[19].consignment.series.body.Name,
+                browse_files[19].consignment.series.SeriesId,
+                browse_files[19].consignment.series.Name,
+                "21/09/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
+                2,
+                3,
+            ),
+            (
+                browse_files[13].consignment.series.body.BodyId,
+                browse_files[13].consignment.series.body.Name,
+                browse_files[13].consignment.series.SeriesId,
+                browse_files[13].consignment.series.Name,
+                "03/08/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "26/04/2023",
+                2,
+                7,
+            ),
+            (
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[25].consignment.series.SeriesId,
+                browse_files[25].consignment.series.Name,
+                "14/10/2023",
+                1,
+                2,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_transferring_body_sorting_z_to_a(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with browse_view as 'browse' and
+            sort by 'transferring body' descending
+        Then it returns a Paginate object returning the first 5 items
+            ordered by transferring body name alphabetically in descending order (Z to A)
+        """
+
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+        sorting_orders = {"transferring_body": "desc"}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="browse",
+            sorting_orders=sorting_orders,
+        )
+
+        assert pagination_object.total == 6
+
+        expected_results = [
+            (
+                browse_files[10].consignment.series.body.BodyId,
+                browse_files[10].consignment.series.body.Name,
+                browse_files[10].consignment.series.SeriesId,
+                browse_files[10].consignment.series.Name,
+                "17/06/2023",
+                2,
+                3,
+            ),
+            (
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[25].consignment.series.SeriesId,
+                browse_files[25].consignment.series.Name,
+                "14/10/2023",
+                1,
+                2,
+            ),
+            (
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "26/04/2023",
+                2,
+                7,
+            ),
+            (
+                browse_files[13].consignment.series.body.BodyId,
+                browse_files[13].consignment.series.body.Name,
+                browse_files[13].consignment.series.SeriesId,
+                browse_files[13].consignment.series.Name,
+                "03/08/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
+                2,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_series_sorting_a_to_z(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with browse_view as 'browse' and
+            sort by 'series' ascending
+        Then it returns a Paginate object returning the first 5 items
+            ordered by series name alphabetically in ascending order (A to Z)
+        """
+
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+        sorting_orders = {"series": "asc"}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="browse",
+            sorting_orders=sorting_orders,
+        )
+
+        assert pagination_object.total == 6
+
+        expected_results = [
+            (
+                browse_files[19].consignment.series.body.BodyId,
+                browse_files[19].consignment.series.body.Name,
+                browse_files[19].consignment.series.SeriesId,
+                browse_files[19].consignment.series.Name,
+                "21/09/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
+                2,
+                3,
+            ),
+            (
+                browse_files[13].consignment.series.body.BodyId,
+                browse_files[13].consignment.series.body.Name,
+                browse_files[13].consignment.series.SeriesId,
+                browse_files[13].consignment.series.Name,
+                "03/08/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "26/04/2023",
+                2,
+                7,
+            ),
+            (
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[25].consignment.series.SeriesId,
+                browse_files[25].consignment.series.Name,
+                "14/10/2023",
+                1,
+                2,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_series_sorting_z_to_a(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with browse_view as 'browse' and
+            sort by 'series' descending
+        Then it returns a Paginate object returning the first 5 items
+            ordered by series name alphabetically in descending order (Z to A)
+        """
+
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+        sorting_orders = {"series": "desc"}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="browse",
+            sorting_orders=sorting_orders,
+        )
+
+        assert pagination_object.total == 6
+
+        expected_results = [
+            (
+                browse_files[10].consignment.series.body.BodyId,
+                browse_files[10].consignment.series.body.Name,
+                browse_files[10].consignment.series.SeriesId,
+                browse_files[10].consignment.series.Name,
+                "17/06/2023",
+                2,
+                3,
+            ),
+            (
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[25].consignment.series.SeriesId,
+                browse_files[25].consignment.series.Name,
+                "14/10/2023",
+                1,
+                2,
+            ),
+            (
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "26/04/2023",
+                2,
+                7,
+            ),
+            (
+                browse_files[13].consignment.series.body.BodyId,
+                browse_files[13].consignment.series.body.Name,
+                browse_files[13].consignment.series.SeriesId,
+                browse_files[13].consignment.series.Name,
+                "03/08/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
+                2,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_date_last_transferred_sorting_oldest_first(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with browse_view as 'browse' and
+            sort by 'date last transferred' ascending
+        Then it returns a Paginate object returning the first 5 items
+            ordered by consignment transfer complete date in ascending order (oldest first)
+        """
+
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+        sorting_orders = {"last_record_transferred": "asc"}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="browse",
+            sorting_orders=sorting_orders,
+        )
+
+        assert pagination_object.total == 6
+
+        expected_results = [
+            (
+                browse_files[13].consignment.series.body.BodyId,
+                browse_files[13].consignment.series.body.Name,
+                browse_files[13].consignment.series.SeriesId,
+                browse_files[13].consignment.series.Name,
+                "03/08/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
+                2,
+                3,
+            ),
+            (
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[25].consignment.series.SeriesId,
+                browse_files[25].consignment.series.Name,
+                "14/10/2023",
+                1,
+                2,
+            ),
+            (
+                browse_files[10].consignment.series.body.BodyId,
+                browse_files[10].consignment.series.body.Name,
+                browse_files[10].consignment.series.SeriesId,
+                browse_files[10].consignment.series.Name,
+                "17/06/2023",
+                2,
+                3,
+            ),
+            (
+                browse_files[19].consignment.series.body.BodyId,
+                browse_files[19].consignment.series.body.Name,
+                browse_files[19].consignment.series.SeriesId,
+                browse_files[19].consignment.series.Name,
+                "21/09/2023",
+                2,
+                6,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_date_last_transferred_sorting_most_recent_first(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with browse_view as 'browse' and
+            sort by 'date last transferred' descending
+        Then it returns a Paginate object returning the first 5 items
+            ordered by consignment transfer complete date in descending order (most recent first)
+        """
+
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+        sorting_orders = {"last_record_transferred": "desc"}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="browse",
+            sorting_orders=sorting_orders,
+        )
+
+        assert pagination_object.total == 6
+
+        expected_results = [
+            (
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "26/04/2023",
+                2,
+                7,
+            ),
+            (
+                browse_files[19].consignment.series.body.BodyId,
+                browse_files[19].consignment.series.body.Name,
+                browse_files[19].consignment.series.SeriesId,
+                browse_files[19].consignment.series.Name,
+                "21/09/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[10].consignment.series.body.BodyId,
+                browse_files[10].consignment.series.body.Name,
+                browse_files[10].consignment.series.SeriesId,
+                browse_files[10].consignment.series.Name,
+                "17/06/2023",
+                2,
+                3,
+            ),
+            (
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[25].consignment.series.SeriesId,
+                browse_files[25].consignment.series.Name,
+                "14/10/2023",
+                1,
+                2,
+            ),
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
+                2,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
 
 class TestBrowseTransferringBody:
     def test_browse_transferring_body_with_transferring_body_filter(

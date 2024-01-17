@@ -119,6 +119,15 @@ def browse():
     filters = {}
     sorting_orders = {}
 
+    # if browse_type == "browse":
+    # e.g. please usd example below to pass sorting order for browse all (top level)
+    # sorting_orders["transferring_body"] = "asc"  # A to Z
+    # sorting_orders["transferring_body"] = "desc"  # Z to A
+    # sorting_orders["series"] = "asc"  # A to Z
+    # sorting_orders["series"] = "desc"  # Z to A
+    # sorting_orders["last_record_transferred"] = "asc"  # oldest first
+    # sorting_orders["last_record_transferred"] = "desc"  # most recent first
+
     if transferring_body_id:
         browse_type = "transferring_body"
         browse_parameters["transferring_body_id"] = transferring_body_id

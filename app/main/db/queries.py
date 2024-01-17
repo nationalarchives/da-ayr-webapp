@@ -51,6 +51,12 @@ def browse_data(
                     dt_range["date_to"],
                 )
                 browse_query = browse_query.filter(date_filter)
+        if sorting_orders:
+            browse_query = _build_browse_sorting_orders(
+                browse_query, sorting_orders
+            )
+        else:
+            browse_query = browse_query.order_by(Body.Name, Series.Name)
 
     return browse_query.paginate(page=page, per_page=per_page)
 
@@ -124,11 +130,10 @@ def _build_browse_everything_query():
             func.count(func.distinct(File.FileId)).label("records_held"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Body, Body.BodyId == Consignment.BodyId)
         .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .join(Body, Body.BodyId == Series.BodyId)
         .where(func.lower(File.FileType) == "file")
         .group_by(Body.BodyId, Series.SeriesId)
-        .order_by(Body.Name, Series.Name)
     )
 
     return query
@@ -151,8 +156,8 @@ def _build_transferring_body_view_query(transferring_body_id):
             func.count(func.distinct(File.FileId)).label("records_held"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Body, Body.BodyId == Consignment.BodyId)
         .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .join(Body, Body.BodyId == Series.BodyId)
         .where(
             (func.lower(File.FileType) == "file")
             & (Body.BodyId == transferring_body_id)
@@ -180,8 +185,8 @@ def _build_series_view_query(series_id):
             Consignment.ConsignmentReference.label("consignment_reference"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Body, Body.BodyId == Consignment.BodyId)
         .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .join(Body, Body.BodyId == Series.BodyId)
         .where(
             (func.lower(File.FileType) == "file")
             & (Series.SeriesId == series_id)
@@ -190,6 +195,21 @@ def _build_series_view_query(series_id):
         .order_by(Body.Name, Series.Name)
     )
 
+    return query
+
+
+def _build_browse_sorting_orders(query, sorting_orders):
+    fields = []
+    for col in query.column_descriptions:
+        fields.append(col["name"])
+
+    for field, order in sorting_orders.items():
+        if field in fields:
+            query = (
+                query.order_by(desc(field))
+                if order == "desc"
+                else query.order_by(field)
+            )
     return query
 
 
