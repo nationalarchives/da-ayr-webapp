@@ -25,7 +25,7 @@ from app.main.authorize.ayr_user import AYRUser
 from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
 )
-from app.main.db.models import File
+from app.main.db.models import Body, File
 from app.main.db.queries import (
     browse_data,
     build_fuzzy_search_query,
@@ -185,6 +185,11 @@ def search():
 
     if query:
         fuzzy_search_query = build_fuzzy_search_query(query)
+        ayr_user = AYRUser.from_access_token(session.get("access_token"))
+        if ayr_user.is_standard_user:
+            fuzzy_search_query = fuzzy_search_query.where(
+                Body.Name == ayr_user.transferring_body.Name
+            )
         search_results = fuzzy_search_query.paginate(
             page=page, per_page=per_page
         )
