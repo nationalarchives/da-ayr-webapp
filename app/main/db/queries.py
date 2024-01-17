@@ -411,7 +411,9 @@ def _get_file_metadata_query(file_id: uuid.UUID):
     ]
 
     query = (
-        query.join(File, FileMetadata.FileId == File.FileId)
+        query.join(
+            FileMetadata, File.FileId == FileMetadata.FileId, isouter=True
+        )
         .join(Consignment, File.ConsignmentId == Consignment.ConsignmentId)
         .join(
             Series,

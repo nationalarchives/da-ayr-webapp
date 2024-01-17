@@ -2734,3 +2734,37 @@ class TestGetFileMetadata:
             "series": file.consignment.series.Name,
             "series_id": file.consignment.series.SeriesId,
         }
+
+    def test_valid_uuid_returns_none_for_any_metadata(
+        self, client: FlaskClient
+    ):
+        """
+        Given a file with no associatedf file metadata,
+        When get_file_metadata is called with its UUID,
+        Then a dict of metadata for the file is returned
+            and all the file metadata fields are None
+        """
+        file = FileFactory(
+            FileName="test_file.txt",
+            FilePath="data/content/test_file.txt",
+            FileType="file",
+        )
+
+        assert get_file_metadata(file_id=file.FileId) == {
+            "file_id": file.FileId,
+            "file_name": "test_file.txt",
+            "file_path": "data/content/test_file.txt",
+            "status": None,
+            "description": None,
+            "date_last_modified": None,
+            "held_by": None,
+            "legal_status": None,
+            "rights_copyright": None,
+            "language": None,
+            "consignment": file.consignment.ConsignmentReference,
+            "consignment_id": file.ConsignmentId,
+            "transferring_body": file.consignment.series.body.Name,
+            "transferring_body_id": file.consignment.series.body.BodyId,
+            "series": file.consignment.series.Name,
+            "series_id": file.consignment.series.SeriesId,
+        }

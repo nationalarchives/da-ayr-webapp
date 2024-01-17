@@ -1,11 +1,7 @@
 import boto3
 from moto import mock_s3
 
-from app.tests.factories import (
-    ConsignmentFactory,
-    FileFactory,
-    FileMetadataFactory,
-)
+from app.tests.factories import ConsignmentFactory, FileFactory
 
 BUCKET = "test-download"
 CONSIGNMENT_REF = "TDR-123-TEST"
@@ -24,25 +20,6 @@ def mock_record():
         FilePath=FILE_PATH,
         FileType="file",
     )
-
-    metadata = {
-        "date_last_modified": "2023-02-25T10:12:47",
-        "closure_type": "Closed",
-        "description": "Test description",
-        "held_by": "Test holder",
-        "legal_status": "Test legal status",
-        "rights_copyright": "Test copyright",
-        "language": "English",
-    }
-
-    [
-        FileMetadataFactory(
-            file=file,
-            PropertyName=property_name,
-            Value=value,
-        )
-        for property_name, value in metadata.items()
-    ]
 
     return file
 
