@@ -261,23 +261,6 @@ class TestFuzzySearch:
         assert results == []
 
 
-#     # def test_build_fuzzy_search_query_multiple_matches(self):
-#     #     # Test when the query string matches multiple fields
-#     #     # ...
-
-#     # def test_build_fuzzy_search_query_case_insensitivity(self):
-#     #     # Test when the query string is case-insensitive
-#     #     # ...
-
-#     # def test_build_fuzzy_search_query_distinct_results(self):
-#     #     # Test that the results are distinct
-#     #     # ...
-
-#     # def test_build_fuzzy_search_query_order_by_body_and_series(self):
-#     #     # Test that the results are ordered by Body Name and Series Name
-#     #     # ...
-
-
 class TestBrowse:
     def test_browse_without_filters(self, client: FlaskClient):
         """
