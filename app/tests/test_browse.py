@@ -464,7 +464,7 @@ def test_browse_consignment(client: FlaskClient, mock_standard_user):
             "Closure start date",
             "Closure period",
         ],
-        ["15/12/2023", "test_file1.pdf", "open", "None", "-"],
+        ["15/12/2023", "test_file1.pdf", "open", "-", "-"],
     ]
 
     assert [
