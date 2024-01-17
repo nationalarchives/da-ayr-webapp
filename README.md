@@ -308,6 +308,66 @@ More info on relecting database tables can be found [here](https://flask-sqlalch
 
 Further, to this, we do define models and columns from the corresponding tables we do use in our queries we use so that when developing we will know what attributes are available but this has to be manually kept in sync with the externally determined schema through discussion with the maintainers of the Metadata Store database.
 
+## Keycloak Local Setup
+
+It is possible to set up a local Keylcoak instance for development of Keycloak authentication pages. This repository: https://github.com/nationalarchives/tdr-auth-server/blob/master/README.md contains a readme which can be used to setup Keycloak or follow the steps below.
+
+1. Clone the TDR Auth Server repository
+2. Sign in to Keycloak
+3. Select realm settings
+4. [Top right] Select Action dropdown
+5. Select Partial Export
+6. Save the file as ```tdr-realm-export.json``` in the root directory
+7. Build the keycloak docker image using the following command
+```
+docker build -t tdr-auth-server .
+```
+8. Run the docker image with the following command:
+```
+docker run -it --rm --name tdr-auth-server -p 8081:8080 \
+-e KEYCLOAK_ADMIN=admin \
+-e KEYCLOAK_ADMIN_PASSWORD=admin \
+-e KEYCLOAK_IMPORT=/keycloak-configuration/tdr-realm.json \
+-e REALM_ADMIN_CLIENT_SECRET=someValue \
+-e CLIENT_SECRET=someValue \
+-e BACKEND_CHECKS_CLIENT_SECRET=someValue \
+-e REPORTING_CLIENT_SECRET=someValue \
+-e USER_ADMIN_CLIENT_SECRET=someValue \
+-e ROTATE_CLIENT_SECRETS_CLIENT_SECRET=someValue \
+-e KEYCLOAK_CONFIGURATION_PROPERTIES=intg_properties.json \
+-e FRONTEND_URL=someValue \
+-e GOVUK_NOTIFY_API_KEY_PATH=someValue \
+-e GOVUK_NOTIFY_TEMPLATE_ID_PATH=someTemplateId \
+-e DB_VENDOR=h2 \
+-e SNS_TOPIC_ARN=someTopicArn \
+-e TDR_ENV=intg \
+-e KEYCLOAK_HOST=localhost:8081 \
+-e KC_DB_PASSWORD=password \
+-e BLOCK_SHARED_PAGES=false tdr-auth-server
+```
+
+9. Set the TDR Keycloak theme via the admin panel
+
+Tip: the quickest way to view the TDR login theme (that is displayed to TDR users) is to (while logged into the console):
+
+10. Select the "Master" Realm (top left, below the keycloak logo) if it's not already selected
+11. Select "Realm roles" in the sidebar
+12. Select "default-roles-master"
+13. Select the "Themes" tab
+14. Under "login theme", select "tdr" from the dropdown menu
+15. Sign out (click "Admin" on the top right and select "Sign out")
+
+Please see: https://github.com/nationalarchives/tdr-auth-server/blob/master/README.md#running-locally
+
+### Update TDR Theme Locally
+
+1. Rebuild the image locally and run. `docker build -t tdr-auth-server .`
+2. Make necessary changes to the TDR theme (freemarker templates/sass/static resources)
+3. Run following command from the root directory: `[root directory] $ npm run build-local --container_name=tdr-auth-server`
+4. Refresh the locally running Keycloak pages to see the changes.
+5. Repeat steps 3 to 5 as necessary.
+
+
 ## Testing
 
 ### Unit and Integration tests
