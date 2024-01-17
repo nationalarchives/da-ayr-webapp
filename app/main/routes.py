@@ -144,7 +144,7 @@ def browse():
         ayr_user = AYRUser.from_access_token(session.get("access_token"))
         if ayr_user.is_standard_user:
             return redirect(
-                f"/browse?transferring_body={ayr_user.transferring_body.BodyId}"
+                f"/browse?transferring_body_id={ayr_user.transferring_body.BodyId}"
             )
 
     browse_results = browse_data(

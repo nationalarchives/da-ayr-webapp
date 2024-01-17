@@ -25,7 +25,7 @@ def test_standard_user_redirected_to_browse_transferring_body_when_accessing_bro
 
     assert response.status_code == 302
     assert response.headers["Location"] == url_for(
-        "main.browse", transferring_body=body.BodyId
+        "main.browse", transferring_body_id=body.BodyId
     )
 
 
