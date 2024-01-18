@@ -501,9 +501,9 @@ def test_browse_consignment_with_missing_file(
     assert b"You are viewing" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl")
-    headers = table.find_all("dt")
-    rows = table.find_all("govuk-summary-list__row")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("tr")
 
     expected_results_table = [
         [
@@ -513,18 +513,18 @@ def test_browse_consignment_with_missing_file(
             "Closure start date",
             "Closure period",
         ],
-        ["None", "test_file12.txt", "None", "None", "None"],
+        ["None", "test_file11.txt", "closed", "-", "-"],
+        ["None", "test_file12.txt", "closed", "-", "-"],
     ]
 
-    assert [
-        header.text.replace("\n", " ").strip(" ") for header in headers
-    ] == expected_results_table[0]
+    headers = [header.text.strip() for header in table.find_all("th")]
+    assert headers == expected_results_table[0]
 
-    for index, row in enumerate(rows):
-        values = row.find_all("dd")
-        assert [
-            value.text.replace("\n", " ").strip(" ") for value in values
-        ] == expected_results_table[index + 1]
+    for index, row in enumerate(rows[1:]):
+        values = [value.text.strip() for value in row.find_all("td")]
+        expected_values = expected_results_table[index + 1]
+
+        assert values == expected_values
 
 
 def test_browse_consignment_filter_display_multiple_pages(

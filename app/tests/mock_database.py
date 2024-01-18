@@ -762,6 +762,33 @@ def create_multiple_test_records():
     db.session.add(file_12)
     db.session.commit()
 
+    file_12_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_12.FileId,
+        PropertyName="file_name",
+        Value="test_file12.pdf",
+    )
+    db.session.add(file_12_metadata)
+    db.session.commit()
+
+    file_12_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_12.FileId,
+        PropertyName="closure_type",
+        Value="closed",
+    )
+    db.session.add(file_12_metadata)
+    db.session.commit()
+
+    file_12_metadata = FileMetadata(
+        MetadataId=uuid.uuid4(),
+        FileId=file_12.FileId,
+        PropertyName="file_type",
+        Value="txt",
+    )
+    db.session.add(file_12_metadata)
+    db.session.commit()
+
     return [
         file_1,
         file_2,
