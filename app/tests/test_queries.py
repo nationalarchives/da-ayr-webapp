@@ -914,15 +914,6 @@ class TestBrowse:
 
         expected_results = [
             (
-                browse_files[13].consignment.series.body.BodyId,
-                browse_files[13].consignment.series.body.Name,
-                browse_files[13].consignment.series.SeriesId,
-                browse_files[13].consignment.series.Name,
-                "03/08/2023",
-                2,
-                6,
-            ),
-            (
                 browse_files[0].consignment.series.body.BodyId,
                 browse_files[0].consignment.series.body.Name,
                 browse_files[0].consignment.series.SeriesId,
@@ -932,13 +923,13 @@ class TestBrowse:
                 3,
             ),
             (
-                browse_files[25].consignment.series.body.BodyId,
-                browse_files[25].consignment.series.body.Name,
-                browse_files[25].consignment.series.SeriesId,
-                browse_files[25].consignment.series.Name,
-                "14/10/2023",
-                1,
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "26/04/2023",
                 2,
+                7,
             ),
             (
                 browse_files[10].consignment.series.body.BodyId,
@@ -948,6 +939,15 @@ class TestBrowse:
                 "17/06/2023",
                 2,
                 3,
+            ),
+            (
+                browse_files[13].consignment.series.body.BodyId,
+                browse_files[13].consignment.series.body.Name,
+                browse_files[13].consignment.series.SeriesId,
+                browse_files[13].consignment.series.Name,
+                "03/08/2023",
+                2,
+                6,
             ),
             (
                 browse_files[19].consignment.series.body.BodyId,
@@ -990,13 +990,13 @@ class TestBrowse:
 
         expected_results = [
             (
-                browse_files[3].consignment.series.body.BodyId,
-                browse_files[3].consignment.series.body.Name,
-                browse_files[3].consignment.series.SeriesId,
-                browse_files[3].consignment.series.Name,
-                "26/04/2023",
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[25].consignment.series.SeriesId,
+                browse_files[25].consignment.series.Name,
+                "14/10/2023",
+                1,
                 2,
-                7,
             ),
             (
                 browse_files[19].consignment.series.body.BodyId,
@@ -1004,6 +1004,15 @@ class TestBrowse:
                 browse_files[19].consignment.series.SeriesId,
                 browse_files[19].consignment.series.Name,
                 "21/09/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[13].consignment.series.body.BodyId,
+                browse_files[13].consignment.series.body.Name,
+                browse_files[13].consignment.series.SeriesId,
+                browse_files[13].consignment.series.Name,
+                "03/08/2023",
                 2,
                 6,
             ),
@@ -1017,22 +1026,13 @@ class TestBrowse:
                 3,
             ),
             (
-                browse_files[25].consignment.series.body.BodyId,
-                browse_files[25].consignment.series.body.Name,
-                browse_files[25].consignment.series.SeriesId,
-                browse_files[25].consignment.series.Name,
-                "14/10/2023",
-                1,
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "26/04/2023",
                 2,
-            ),
-            (
-                browse_files[0].consignment.series.body.BodyId,
-                browse_files[0].consignment.series.body.Name,
-                browse_files[0].consignment.series.SeriesId,
-                browse_files[0].consignment.series.Name,
-                "07/02/2023",
-                2,
-                3,
+                7,
             ),
         ]
 

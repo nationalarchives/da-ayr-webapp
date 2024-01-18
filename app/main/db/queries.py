@@ -23,11 +23,13 @@ def browse_data(
     if browse_type == "transferring_body":
         body = Body.query.get_or_404(transferring_body_id)
         validate_body_user_groups_or_404(body.Name)
-        browse_query = _build_transferring_body_view_query(transferring_body_id)
+        browse_query = _build_transferring_body_view_query(
+            transferring_body_id, filters
+        )
     elif browse_type == "series":
         series = Series.query.get_or_404(series_id)
         validate_body_user_groups_or_404(series.body.Name)
-        browse_query = _build_series_view_query(series_id)
+        browse_query = _build_series_view_query(series_id, filters)
     elif browse_type == "consignment":
         consignment = Consignment.query.get_or_404(consignment_id)
         validate_body_user_groups_or_404(consignment.series.body.Name)
@@ -38,25 +40,7 @@ def browse_data(
             sorting_orders,
         )
     else:
-        browse_query = _build_browse_everything_query()
-
-    if not browse_type == "consignment":
-        if filters:
-            if "date_range" in filters:
-                dt_range = validate_date_range(filters["date_range"])
-
-                date_filter = _build_date_range_filter(
-                    Consignment.TransferCompleteDatetime,
-                    dt_range["date_from"],
-                    dt_range["date_to"],
-                )
-                browse_query = browse_query.filter(date_filter)
-        if sorting_orders:
-            browse_query = _build_browse_sorting_orders(
-                browse_query, sorting_orders
-            )
-        else:
-            browse_query = browse_query.order_by(Body.Name, Series.Name)
+        browse_query = _build_browse_everything_query(filters, sorting_orders)
 
     return browse_query.paginate(page=page, per_page=per_page)
 
@@ -113,17 +97,16 @@ def build_fuzzy_search_query(query_string: str):
     return query
 
 
-def _build_browse_everything_query():
-    query = (
+def _build_browse_everything_query(filters, sorting_orders):
+    sub_query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
-            func.to_char(
-                func.cast(func.max(Consignment.TransferCompleteDatetime), DATE),
-                current_app.config["DEFAULT_DATE_FORMAT"],
-            ).label("last_record_transferred"),
+            func.max(Consignment.TransferCompleteDatetime).label(
+                "last_record_transferred"
+            ),
             func.count(func.distinct(Consignment.ConsignmentReference)).label(
                 "consignment_in_series"
             ),
@@ -134,12 +117,43 @@ def _build_browse_everything_query():
         .join(Body, Body.BodyId == Series.BodyId)
         .where(func.lower(File.FileType) == "file")
         .group_by(Body.BodyId, Series.SeriesId)
+    ).subquery()
+
+    query = db.session.query(
+        sub_query.c.transferring_body_id,
+        sub_query.c.transferring_body,
+        sub_query.c.series_id,
+        sub_query.c.series,
+        func.to_char(
+            sub_query.c.last_record_transferred,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("last_record_transferred"),
+        sub_query.c.consignment_in_series,
+        sub_query.c.records_held,
     )
+
+    if filters:
+        if "date_range" in filters:
+            dt_range = validate_date_range(filters["date_range"])
+
+            date_filter = _build_date_range_filter(
+                sub_query.c.last_record_transferred,
+                dt_range["date_from"],
+                dt_range["date_to"],
+            )
+            query = query.filter(date_filter)
+
+    if sorting_orders:
+        query = _build_browse_sorting_orders(query, sub_query, sorting_orders)
+    else:
+        query = query.order_by(
+            sub_query.c.transferring_body, sub_query.c.series
+        )
 
     return query
 
 
-def _build_transferring_body_view_query(transferring_body_id):
+def _build_transferring_body_view_query(transferring_body_id, filters):
     query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
@@ -166,10 +180,21 @@ def _build_transferring_body_view_query(transferring_body_id):
         .order_by(Body.Name, Series.Name)
     )
 
+    if filters:
+        if "date_range" in filters:
+            dt_range = validate_date_range(filters["date_range"])
+
+            date_filter = _build_date_range_filter(
+                Consignment.TransferCompleteDatetime,
+                dt_range["date_from"],
+                dt_range["date_to"],
+            )
+            query = query.filter(date_filter)
+
     return query
 
 
-def _build_series_view_query(series_id):
+def _build_series_view_query(series_id, filters):
     query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
@@ -195,10 +220,33 @@ def _build_series_view_query(series_id):
         .order_by(Body.Name, Series.Name)
     )
 
+    if filters:
+        if "date_range" in filters:
+            dt_range = validate_date_range(filters["date_range"])
+
+            date_filter = _build_date_range_filter(
+                Consignment.TransferCompleteDatetime,
+                dt_range["date_from"],
+                dt_range["date_to"],
+            )
+            query = query.filter(date_filter)
+
     return query
 
 
-def _build_browse_sorting_orders(query, sorting_orders):
+def _build_browse_sorting_orders(query, sub_query, sorting_orders):
+    for field, order in sorting_orders.items():
+        column = getattr(sub_query.c, field, None)
+        if column is not None:
+            query = (
+                query.order_by(desc(column))
+                if order == "desc"
+                else query.order_by(column)
+            )
+    return query
+
+
+def _old_build_browse_sorting_orders(query, sorting_orders):
     fields = []
     for col in query.column_descriptions:
         fields.append(col["name"])
