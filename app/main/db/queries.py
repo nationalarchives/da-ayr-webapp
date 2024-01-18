@@ -23,13 +23,11 @@ def browse_data(
     if browse_type == "transferring_body":
         body = Body.query.get_or_404(transferring_body_id)
         validate_body_user_groups_or_404(body.Name)
-        browse_query = _build_transferring_body_view_query(
-            transferring_body_id, filters
-        )
+        browse_query = _build_transferring_body_view_query(transferring_body_id)
     elif browse_type == "series":
         series = Series.query.get_or_404(series_id)
         validate_body_user_groups_or_404(series.body.Name)
-        browse_query = _build_series_view_query(series_id, filters)
+        browse_query = _build_series_view_query(series_id)
     elif browse_type == "consignment":
         consignment = Consignment.query.get_or_404(consignment_id)
         validate_body_user_groups_or_404(consignment.series.body.Name)
@@ -153,7 +151,7 @@ def _build_browse_everything_query(filters, sorting_orders):
     return query
 
 
-def _build_transferring_body_view_query(transferring_body_id, filters):
+def _build_transferring_body_view_query(transferring_body_id):
     query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
@@ -180,21 +178,10 @@ def _build_transferring_body_view_query(transferring_body_id, filters):
         .order_by(Body.Name, Series.Name)
     )
 
-    if filters:
-        if "date_range" in filters:
-            dt_range = validate_date_range(filters["date_range"])
-
-            date_filter = _build_date_range_filter(
-                Consignment.TransferCompleteDatetime,
-                dt_range["date_from"],
-                dt_range["date_to"],
-            )
-            query = query.filter(date_filter)
-
     return query
 
 
-def _build_series_view_query(series_id, filters):
+def _build_series_view_query(series_id):
     query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
@@ -219,17 +206,6 @@ def _build_series_view_query(series_id, filters):
         .group_by(Body.BodyId, Series.SeriesId, Consignment.ConsignmentId)
         .order_by(Body.Name, Series.Name)
     )
-
-    if filters:
-        if "date_range" in filters:
-            dt_range = validate_date_range(filters["date_range"])
-
-            date_filter = _build_date_range_filter(
-                Consignment.TransferCompleteDatetime,
-                dt_range["date_from"],
-                dt_range["date_to"],
-            )
-            query = query.filter(date_filter)
 
     return query
 
