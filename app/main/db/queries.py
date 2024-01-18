@@ -142,7 +142,7 @@ def _build_browse_everything_query(filters, sorting_orders):
             query = query.filter(date_filter)
 
     if sorting_orders:
-        query = _build_browse_sorting_orders(query, sub_query, sorting_orders)
+        query = _build_sorting_orders(query, sub_query, sorting_orders)
     else:
         query = query.order_by(
             sub_query.c.transferring_body, sub_query.c.series
@@ -207,33 +207,6 @@ def _build_series_view_query(series_id):
         .order_by(Body.Name, Series.Name)
     )
 
-    return query
-
-
-def _build_browse_sorting_orders(query, sub_query, sorting_orders):
-    for field, order in sorting_orders.items():
-        column = getattr(sub_query.c, field, None)
-        if column is not None:
-            query = (
-                query.order_by(desc(column))
-                if order == "desc"
-                else query.order_by(column)
-            )
-    return query
-
-
-def _old_build_browse_sorting_orders(query, sorting_orders):
-    fields = []
-    for col in query.column_descriptions:
-        fields.append(col["name"])
-
-    for field, order in sorting_orders.items():
-        if field in fields:
-            query = (
-                query.order_by(desc(field))
-                if order == "desc"
-                else query.order_by(field)
-            )
     return query
 
 
@@ -315,9 +288,7 @@ def _build_consignment_view_query(
     if filters:
         query = _build_consignment_filters(query, sub_query, filters)
     if sorting_orders:
-        query = _build_consignment_sorting_orders(
-            query, sub_query, sorting_orders
-        )
+        query = _build_sorting_orders(query, sub_query, sorting_orders)
 
     return query
 
@@ -355,7 +326,7 @@ def _build_consignment_filters(query, sub_query, filters):
     return query
 
 
-def _build_consignment_sorting_orders(query, sub_query, sorting_orders):
+def _build_sorting_orders(query, sub_query, sorting_orders):
     for field, order in sorting_orders.items():
         column = getattr(sub_query.c, field, None)
         if column is not None:
