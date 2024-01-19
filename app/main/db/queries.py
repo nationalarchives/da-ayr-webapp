@@ -135,33 +135,77 @@ def _build_browse_everything_query():
 
 
 def _build_transferring_body_view_query(transferring_body_id):
-    query = (
+    # file_query = (
+    #     File.query.join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
+    #     .join(Series, Series.SeriesId == Consignment.SeriesId)
+    #     .join(Body, Body.BodyId == Series.BodyId)
+    #     .where(
+    #         (func.lower(File.FileType) == "file")
+    #         & (Body.BodyId == transferring_body_id)
+    #     )
+    # )
+
+    # num_records_found = file_query.count()
+    # print("num_records_found")
+    # print(num_records_found)
+    # breakpoint()
+
+    # file_subquery = file_query.subquery()
+    # from sqlalchemy.orm import aliased
+    # aliased_file_subquery = aliased(File, file_subquery, name="file")
+
+
+    # from sqlalchemy import func, DATE
+    # from flask import current_app
+
+
+    # First query (subquery) to count total files at the lowest level
+    lowest_level_query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
+        )
+        .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
+        .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .join(Body, Body.BodyId == Series.BodyId)
+        .filter(
+            func.lower(File.FileType) == "file",
+            Body.BodyId == transferring_body_id
+        )
+        # .group_by(File.FileId)
+    )
+    print(lowest_level_query.count())
+    breakpoint()
+    
+    subquery_lowest_level = lowest_level_query.subquery()
+
+    # Second query (grouped query) to count total files at all Body and Series levels
+    final_query_all_levels = (
+        db.session.query(
+            subquery_lowest_level.c.transferring_body_id,
+            subquery_lowest_level.c.transferring_body,
+            subquery_lowest_level.c.series_id,
+            subquery_lowest_level.c.series,
             func.to_char(
                 func.cast(func.max(Consignment.TransferCompleteDatetime), DATE),
                 current_app.config["DEFAULT_DATE_FORMAT"],
             ).label("last_record_transferred"),
-            func.count(func.distinct(Consignment.ConsignmentReference)).label(
-                "consignment_in_series"
-            ),
-            func.count(func.distinct(File.FileId)).label("records_held"),
+            func.count(func.distinct(Consignment.ConsignmentReference)).label("consignment_in_series"),
+            func.sum(subquery_lowest_level.c.total_files).label("total_files_at_all_levels")
         )
-        .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Body, Body.BodyId == Consignment.BodyId)
-        .join(Series, Series.SeriesId == Consignment.SeriesId)
-        .where(
-            (func.lower(File.FileType) == "file")
-            & (Body.BodyId == transferring_body_id)
-        )
-        .group_by(Body.BodyId, Series.SeriesId)
-        .order_by(Body.Name, Series.Name)
+        .join(Consignment, Consignment.SeriesId == subquery_lowest_level.c.series_id)
+        .join(Body, Body.BodyId == subquery_lowest_level.c.transferring_body_id)
+        .group_by(subquery_lowest_level.c.transferring_body_id, subquery_lowest_level.c.series_id)
     )
 
-    return query
+    # Execute the final query
+    result_all_levels = final_query_all_levels.all()
+
+    # Print the result or use it as needed
+    for row in result_all_levels:
+        print(row)
 
 
 def _build_series_view_query(series_id):
