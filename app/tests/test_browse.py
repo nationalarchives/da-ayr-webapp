@@ -467,6 +467,8 @@ def test_browse_consignment(client: FlaskClient, mock_standard_user):
         ["15/12/2023", "test_file1.pdf", "open", "-", "-"],
     ]
 
+    assert len(rows) == 2
+
     assert [
         header.text.replace("\n", " ").strip(" ") for header in headers
     ] == expected_results_table[0]
@@ -514,8 +516,10 @@ def test_browse_consignment_with_missing_file(
             "Closure period",
         ],
         ["None", "test_file11.txt", "closed", "-", "-"],
-        ["None", "test_file12.txt", "closed", "-", "-"],
+        ["None", "test_file12.txt", "None", "-", "-"],
     ]
+
+    assert len(rows) == 3
 
     headers = [header.text.strip() for header in table.find_all("th")]
     assert headers == expected_results_table[0]
@@ -571,6 +575,8 @@ def test_browse_consignment_filter_display_multiple_pages(
         ["15/12/2023", "test_file6.txt", "closed", "05/11/2023", "-"],
         ["15/12/2023", "test_file7.png", "closed", "05/11/2023", "-"],
     ]
+
+    assert len(rows) == 3
 
     assert [
         header.text.replace("\n", " ").strip(" ") for header in headers
