@@ -38,19 +38,7 @@ def browse_data(
             sorting_orders,
         )
     else:
-        browse_query = _build_browse_everything_query()
-
-    if not browse_type == "consignment":
-        if filters:
-            if "date_range" in filters:
-                dt_range = validate_date_range(filters["date_range"])
-
-                date_filter = _build_date_range_filter(
-                    Consignment.TransferCompleteDatetime,
-                    dt_range["date_from"],
-                    dt_range["date_to"],
-                )
-                browse_query = browse_query.filter(date_filter)
+        browse_query = _build_browse_everything_query(filters, sorting_orders)
 
     return browse_query.paginate(page=page, per_page=per_page)
 
@@ -107,29 +95,58 @@ def build_fuzzy_search_query(query_string: str):
     return query
 
 
-def _build_browse_everything_query():
-    query = (
+def _build_browse_everything_query(filters, sorting_orders):
+    sub_query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
-            func.to_char(
-                func.cast(func.max(Consignment.TransferCompleteDatetime), DATE),
-                current_app.config["DEFAULT_DATE_FORMAT"],
-            ).label("last_record_transferred"),
+            func.max(Consignment.TransferCompleteDatetime).label(
+                "last_record_transferred"
+            ),
             func.count(func.distinct(Consignment.ConsignmentReference)).label(
                 "consignment_in_series"
             ),
             func.count(func.distinct(File.FileId)).label("records_held"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Body, Body.BodyId == Consignment.BodyId)
         .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .join(Body, Body.BodyId == Series.BodyId)
         .where(func.lower(File.FileType) == "file")
         .group_by(Body.BodyId, Series.SeriesId)
-        .order_by(Body.Name, Series.Name)
+    ).subquery()
+
+    query = db.session.query(
+        sub_query.c.transferring_body_id,
+        sub_query.c.transferring_body,
+        sub_query.c.series_id,
+        sub_query.c.series,
+        func.to_char(
+            sub_query.c.last_record_transferred,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("last_record_transferred"),
+        sub_query.c.consignment_in_series,
+        sub_query.c.records_held,
     )
+
+    if filters:
+        if "date_range" in filters:
+            dt_range = validate_date_range(filters["date_range"])
+
+            date_filter = _build_date_range_filter(
+                sub_query.c.last_record_transferred,
+                dt_range["date_from"],
+                dt_range["date_to"],
+            )
+            query = query.filter(date_filter)
+
+    if sorting_orders:
+        query = _build_sorting_orders(query, sub_query, sorting_orders)
+    else:
+        query = query.order_by(
+            sub_query.c.transferring_body, sub_query.c.series
+        )
 
     return query
 
@@ -151,8 +168,8 @@ def _build_transferring_body_view_query(transferring_body_id):
             func.count(func.distinct(File.FileId)).label("records_held"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Body, Body.BodyId == Consignment.BodyId)
         .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .join(Body, Body.BodyId == Series.BodyId)
         .where(
             (func.lower(File.FileType) == "file")
             & (Body.BodyId == transferring_body_id)
@@ -180,8 +197,8 @@ def _build_series_view_query(series_id):
             Consignment.ConsignmentReference.label("consignment_reference"),
         )
         .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Body, Body.BodyId == Consignment.BodyId)
         .join(Series, Series.SeriesId == Consignment.SeriesId)
+        .join(Body, Body.BodyId == Series.BodyId)
         .where(
             (func.lower(File.FileType) == "file")
             & (Series.SeriesId == series_id)
@@ -271,9 +288,7 @@ def _build_consignment_view_query(
     if filters:
         query = _build_consignment_filters(query, sub_query, filters)
     if sorting_orders:
-        query = _build_consignment_sorting_orders(
-            query, sub_query, sorting_orders
-        )
+        query = _build_sorting_orders(query, sub_query, sorting_orders)
 
     return query
 
@@ -311,7 +326,7 @@ def _build_consignment_filters(query, sub_query, filters):
     return query
 
 
-def _build_consignment_sorting_orders(query, sub_query, sorting_orders):
+def _build_sorting_orders(query, sub_query, sorting_orders):
     for field, order in sorting_orders.items():
         column = getattr(sub_query.c, field, None)
         if column is not None:
