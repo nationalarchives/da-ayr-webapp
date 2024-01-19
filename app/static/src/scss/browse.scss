@@ -1,6 +1,6 @@
 /* Default styles for desktop */
 @mixin on-mobile {
-  @media screen and (width <=768px) {
+  @media screen and (width <=810px) {
     @content;
   }
 }
@@ -18,7 +18,12 @@
 // DESKTOP STYLES
 
 
+
 .govuk {
+  &-grid-column-full__browse-details {
+    padding: 0;
+  }
+
   &-form-group {
     &__search-form {
       margin-bottom: 0;
@@ -309,7 +314,7 @@
 
 // MOBILE STYLES
 
-@media screen and (width <=768px) {
+@media screen and (width <=810px) {
   .desktop {
     display: none;
   }
