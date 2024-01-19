@@ -525,10 +525,10 @@ def test_browse_consignment_with_missing_file(
     assert headers == expected_results_table[0]
 
     for index, row in enumerate(rows[1:]):
-        values = [value.text.strip() for value in row.find_all("td")]
-        expected_values = expected_results_table[index + 1]
-
-        assert values == expected_values
+        values = row.find_all("td")
+        assert [
+            value.text.replace("\n", " ").strip(" ") for value in values
+        ] == expected_results_table[index + 1]
 
 
 def test_browse_consignment_filter_display_multiple_pages(
