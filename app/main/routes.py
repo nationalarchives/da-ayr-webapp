@@ -137,6 +137,7 @@ def browse():
         # sorting_orders["last_record_transferred"] = "desc"  # most recent first
         # sorting_orders["records_held"] = "asc"  # least first
         # sorting_orders["records_held"] = "desc"  # most first
+
     elif consignment_id:
         browse_type = "consignment"
         browse_parameters["consignment_id"] = consignment_id
