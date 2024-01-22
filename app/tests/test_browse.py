@@ -79,9 +79,9 @@ def test_browse_get_with_data(client: FlaskClient, mock_superuser):
     assert b"Everything available to you" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl")
-    headers = table.find_all("dt")
-    rows = table.find_all("dd")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
 
     expected_results_table = [
         [
@@ -131,9 +131,9 @@ def test_browse_display_first_page(client: FlaskClient, app, mock_superuser):
     assert b'aria-label="Page 1"' in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl")
-    headers = table.find_all("dt")
-    rows = table.find_all("dd")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
     previous_option = soup.find("div", {"class": "govuk-pagination__prev"})
     next_option = soup.find("div", {"class": "govuk-pagination__next"})
 
@@ -186,9 +186,9 @@ def test_browse_display_middle_page(client: FlaskClient, app, mock_superuser):
     assert b'aria-label="Page 2"' in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl")
-    headers = table.find_all("dt")
-    rows = table.find_all("dd")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
     page_options = soup.find_all("span", class_="govuk-pagination__link-title")
 
     expected_results_table = [
@@ -246,9 +246,9 @@ def test_browse_display_last_page(client: FlaskClient, app, mock_superuser):
     assert b'aria-label="Page 3"' in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl")
-    headers = table.find_all("dt")
-    rows = table.find_all("dd")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
     previous_option = soup.find("div", {"class": "govuk-pagination__prev"})
     next_option = soup.find("div", {"class": "govuk-pagination__next"})
 
@@ -301,9 +301,9 @@ def test_browse_display_multiple_pages(
     assert b'aria-label="Page 2"' in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl")
-    headers = table.find_all("dt")
-    rows = table.find_all("dd")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
     # page_options = soup.find_all("span", class_="govuk-pagination__link-title")
     previous_option = soup.find("div", {"class": "govuk-pagination__prev"})
     next_option = soup.find("div", {"class": "govuk-pagination__next"})
@@ -359,9 +359,9 @@ def test_browse_transferring_body(client: FlaskClient, mock_standard_user):
     assert b"Records found 1" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl")
-    headers = table.find_all("dt")
-    rows = table.find_all("dd")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
 
     expected_results_table = [
         [
@@ -405,9 +405,9 @@ def test_browse_series(client: FlaskClient, mock_standard_user):
     assert b"Records found 1" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl")
-    headers = table.find_all("dt")
-    rows = table.find_all("dd")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
 
     expected_results_table = [
         [
@@ -452,9 +452,9 @@ def test_browse_consignment(client: FlaskClient, mock_standard_user):
     assert b"You are viewing" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl")
-    headers = table.find_all("dt")
-    rows = table.find_all("govuk-summary-list__row")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("tr")
 
     expected_results_table = [
         [
@@ -464,15 +464,17 @@ def test_browse_consignment(client: FlaskClient, mock_standard_user):
             "Closure start date",
             "Closure period",
         ],
-        ["-", "test_file1.pdf", "open", "-", "-"],
+        ["15/12/2023", "test_file1.pdf", "open", "-", "-"],
     ]
+
+    assert len(rows) == 2
 
     assert [
         header.text.replace("\n", " ").strip(" ") for header in headers
     ] == expected_results_table[0]
 
-    for index, row in enumerate(rows):
-        values = row.find_all("dd")
+    for index, row in enumerate(rows[1:]):
+        values = row.find_all("td")
         assert [
             value.text.replace("\n", " ").strip(" ") for value in values
         ] == expected_results_table[index + 1]
@@ -501,9 +503,9 @@ def test_browse_consignment_with_missing_file(
     assert b"You are viewing" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl")
-    headers = table.find_all("dt")
-    rows = table.find_all("govuk-summary-list__row")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("tr")
 
     expected_results_table = [
         [
@@ -513,15 +515,17 @@ def test_browse_consignment_with_missing_file(
             "Closure start date",
             "Closure period",
         ],
-        ["None", "test_file12.txt", "None", "None", "None"],
+        ["None", "test_file11.txt", "closed", "-", "-"],
+        ["None", "test_file12.txt", "None", "-", "-"],
     ]
 
-    assert [
-        header.text.replace("\n", " ").strip(" ") for header in headers
-    ] == expected_results_table[0]
+    assert len(rows) == 3
 
-    for index, row in enumerate(rows):
-        values = row.find_all("dd")
+    headers = [header.text.strip() for header in table.find_all("th")]
+    assert headers == expected_results_table[0]
+
+    for index, row in enumerate(rows[1:]):
+        values = row.find_all("td")
         assert [
             value.text.replace("\n", " ").strip(" ") for value in values
         ] == expected_results_table[index + 1]
@@ -555,9 +559,9 @@ def test_browse_consignment_filter_display_multiple_pages(
     assert b'aria-label="Page 2"' in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("dl")
-    headers = table.find_all("dt")
-    rows = table.find_all("govuk-summary-list__row")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("tr")
     page_options = soup.find_all("span", class_="govuk-pagination__link-title")
 
     expected_results_table = [
@@ -568,19 +572,22 @@ def test_browse_consignment_filter_display_multiple_pages(
             "Closure start date",
             "Closure period",
         ],
-        ["-", "test_file6.txt", "closed", "-", "-"],
-        ["-", "test_file7.png", "closed", "-", "-"],
+        ["15/12/2023", "test_file6.txt", "closed", "05/11/2023", "-"],
+        ["15/12/2023", "test_file7.png", "closed", "05/11/2023", "-"],
     ]
+
+    assert len(rows) == 3
 
     assert [
         header.text.replace("\n", " ").strip(" ") for header in headers
     ] == expected_results_table[0]
 
-    for index, row in enumerate(rows):
-        values = row.find_all("dd")
+    for index, row in enumerate(rows[1:]):
+        values = row.find_all("td")
         assert [
             value.text.replace("\n", " ").strip(" ") for value in values
         ] == expected_results_table[index + 1]
+
     assert (
         " ".join(page_options[0].text.replace("\n", "").split())
         == "Previouspage"

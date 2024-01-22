@@ -1,6 +1,6 @@
 /* Default styles for desktop */
 @mixin on-mobile {
-  @media screen and (width <=768px) {
+  @media screen and (width <=810px) {
     @content;
   }
 }
@@ -18,7 +18,12 @@
 // DESKTOP STYLES
 
 
+
 .govuk {
+  &-grid-column-full__browse-details {
+    padding: 0;
+  }
+
   &-form-group {
     &__search-form {
       margin-bottom: 0;
@@ -130,6 +135,16 @@
 
 
 .browse-grid {
+  &__table {
+    font-size: 1rem;
+    border-bottom: 2px solid black;
+
+    thead {
+      border-bottom: 2px solid black;
+    }
+  }
+
+
   &--two-thirds {
     padding: 0;
   }
@@ -299,7 +314,7 @@
 
 // MOBILE STYLES
 
-@media screen and (width <=768px) {
+@media screen and (width <=810px) {
   .desktop {
     display: none;
   }
@@ -431,6 +446,14 @@
   .mobile-filters-form {
     display: block;
     width: 100%;
+  }
+
+  .govuk-button__filters-form-apply-button {
+    width: 50%;
+  }
+
+  .govuk-button__sort-container-update-button {
+    width: 50%;
   }
 
   .sort-container__form {
