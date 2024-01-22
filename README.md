@@ -89,15 +89,15 @@ Set the Flask Configuration Variables either with either:
 - AWS SSM Parameter Store values:
   1. Set up your AWS credentials or log into an AWS account with the AWS CLI environment so that the desired AWS IAM user or role is set up.
   1. Make sure all of the properties (not the hardcoded values) in the `BaseConfig` class are set in the AWS SSM Parameter Store for this account.
-  1. Set all desired environment variables for all of the variables specified in `env.aws_parameter_store.template`. For convenience you can do this by running the following in the root of the repo:
+  1. Set all desired environment variables for all of the variables specified in `env.aws_secrets_manager.template`. For convenience you can do this by running the following in the root of the repo:
 
     ```shell
-    cp .env.aws_parameter_store.template .env
+    cp .env.aws_secrets_manager.template .env
     ```
 
     and filling out the `.env` file as desired.
 
-**Note:** `AWSParameterStoreConfig` depends on a `boto3` session which, when developing locally, can be set to use a specific AWS Profile by setting the environment variable `DEFAULT_AWS_PROFILE`.
+**Note:** `AWSSecretsManagerConfig` depends on a `boto3` session which, when developing locally, can be set to use a specific AWS Profile by setting the environment variable `DEFAULT_AWS_PROFILE`.
 
 ### Run app
 
@@ -109,7 +109,7 @@ flask run
 
 You should now have the app running on <https://localhost:5000/>
 
-**Note:** Unless you have changed the `FLASK_APP` value in the `.flaskenv` file to point to another application entrypoint other than `main_app`, you must specify the `CONFIG_SOURCE` environment variable (as populated by the env file templates), to be either `AWS_PARAMETER_STORE` or `ENVIRONMENT_VARIABLES` otherwise `flask run` will raise an error.
+**Note:** Unless you have changed the `FLASK_APP` value in the `.flaskenv` file to point to another application entrypoint other than `main_app`, you must specify the `CONFIG_SOURCE` environment variable (as populated by the env file templates), to be either `AWS_SECRETS_MANAGER` or `ENVIRONMENT_VARIABLES` otherwise `flask run` will raise an error.
 
 ## Flask App Configuration Details
 
@@ -142,7 +142,7 @@ Properties configurable at runtime:
 - `DB_PORT`: The port of the database to connect to.
 - `DB_HOST`: The host of the database to connect to.
 - `DB_USER`: The username of the database to connect to.
-- `DB_PASSWORD`: The password of the database to connect to. Note: When using `CONFIG_SOURCE=AWS_PARAMETER_STORE` then this does not need to be set in Parameter store and instead this is generated using an AWS API in the config.
+- `DB_PASSWORD`: The password of the database to connect to. Note: When using `CONFIG_SOURCE=AWS_SECRETS_MANAGER` then this does not need to be set in Secrets Manager and instead this is generated using an AWS API in the config.
 - `DB_NAME`: The name of the database to connect to.
 - `KEYCLOAK_BASE_URI`: The base URI of the Keycloak authentication service.
 - `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
@@ -160,9 +160,9 @@ Calculated values:
 We have two usable configs which extend `BaseConfig` for running the application:
 
 - `EnvConfig` which implements `_get_config_value` so it reads from environment variables.
-- `AWSParameterStoreConfig` which implements `_get_config_value` so it reads from AWS SSM Parameter Store values.
+- `AWSSecretsManagerConfig` which implements `_get_config_value` so it reads from AWS SSM Parameter Store values.
 
-When configuring `flask run` run the app created by `main_app.py`, as we do with the line `export FLASK_APP=main_app` in the `.flaskenv`, we can either use `EnvConfig` or `AWSParameterStoreConfig` by setting `CONFIG_SOURCE` as either `ENVIRONMENT_VARIABLES` or `AWS_PARAMETER_STORE` respectively.
+When configuring `flask run` run the app created by `main_app.py`, as we do with the line `export FLASK_APP=main_app` in the `.flaskenv`, we can either use `EnvConfig` or `AWSSecretsManagerConfig` by setting `CONFIG_SOURCE` as either `ENVIRONMENT_VARIABLES` or `AWS_SECRETS_MANAGER` respectively.
 
 We also have a `TestingConfig` that extends `BaseConfig` which is only used for Flask tests as detailed below. Its implementation of  `_get_config_value` returns an empty string for all the configurable properties just so we don't need to worry about setting values in tests we don't care about them in. We may revisit this, as the fact that config vars are unnecessary in some tests that access them seems like a code smell that could be worth addressing; specifying them in any test that needs them and refactoring the code if we still find asserting anything about them unnecessary could be a better approach long term.
 As well as the confgiurable values discussed above, we also hardcode the following on the `TestingConfig`:
@@ -195,7 +195,7 @@ In this repo we provide a `zappa_settings.json.template` which provides all the 
 
 This config makes a few assumptions about each AWS account being deployed to:
 
-- The SSM Parameter Store has been populated with all needed configuration values as detailed in [the flask configuration section above](#flask-app-configuration-details).
+- The Secrets Manager has been populated with all needed configuration values as detailed in [the flask configuration section above](#flask-app-configuration-details) as key value pairs in a secret named `ayr-test-one-vars`.
 - An RDS database and proxy exists.
 - A VPC exists which contains a private subnet connected to the internet via a NAT Gateway and a security group exists with outbound rules to the the RDS database proxy.
 - A valid certificate exists in the AWS account for the domain we want to use for the deployment.
@@ -296,7 +296,7 @@ The database is assumed to be a PostgreSQL database.
 
 This could be spun up by PostgreSQL or from Amazon RDS, for example.
 
-When choosing the configuration choice `AWS_PARAMETER_STORE`, we assume the database is an RDS database with an RDS proxy sitting in front, in the same AWS account as the SSM Parameter Store and lambda and resides in a VPC which the lambda is in so that the webapp hosted in the lambda can communicate with it securely, as mentioned in the [Zappa configuration section](#zappa-configuration).
+When choosing the configuration choice `AWS_SECRETS_MANAGER`, we assume the database is an RDS database with an RDS proxy sitting in front, in the same AWS account as the Secrets Manager and lambda and resides in a VPC which the lambda is in so that the webapp hosted in the lambda can communicate with it securely, as mentioned in the [Zappa configuration section](#zappa-configuration).
 
 ### Database Tables, Schema and Data
 
