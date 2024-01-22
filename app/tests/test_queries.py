@@ -1088,7 +1088,7 @@ class TestBrowseTransferringBody:
         browse_transferring_body_files,
     ):
         """
-        Given 5 file objects with all file type as 'file'
+        Given 6 file objects with all file type as 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
         When I call the 'browse_data' function with browse_view as 'transferring body' and
@@ -1127,7 +1127,7 @@ class TestBrowseTransferringBody:
                 browse_transferring_body_files[0].consignment.series.Name,
                 "14/10/2023",
                 1,
-                2,
+                1,
             ),
             (
                 browse_transferring_body_files[
@@ -1149,7 +1149,7 @@ class TestBrowseTransferringBody:
                 browse_transferring_body_files[4].consignment.series.Name,
                 "07/07/2023",
                 1,
-                1,
+                3,
             ),
         ]
 
@@ -1164,7 +1164,7 @@ class TestBrowseTransferringBody:
         browse_transferring_body_files,
     ):
         """
-        Given 5 file objects with all file type as 'file'
+        Given 6 file objects with all file type as 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
         When I call the 'browse_data' function with browse_view as 'transferring body' and
@@ -1203,7 +1203,7 @@ class TestBrowseTransferringBody:
                 browse_transferring_body_files[4].consignment.series.Name,
                 "07/07/2023",
                 1,
-                1,
+                3,
             ),
             (
                 browse_transferring_body_files[
@@ -1225,7 +1225,7 @@ class TestBrowseTransferringBody:
                 browse_transferring_body_files[0].consignment.series.Name,
                 "14/10/2023",
                 1,
-                2,
+                1,
             ),
         ]
 
@@ -1240,7 +1240,7 @@ class TestBrowseTransferringBody:
         browse_transferring_body_files,
     ):
         """
-        Given 5 file objects with all file type as 'file'
+        Given 6 file objects with all file type as 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
         When I call the 'browse_data' function with browse_view as 'transferring body' and
@@ -1290,7 +1290,7 @@ class TestBrowseTransferringBody:
                 browse_transferring_body_files[4].consignment.series.Name,
                 "07/07/2023",
                 1,
-                1,
+                3,
             ),
             (
                 browse_transferring_body_files[
@@ -1301,7 +1301,7 @@ class TestBrowseTransferringBody:
                 browse_transferring_body_files[0].consignment.series.Name,
                 "14/10/2023",
                 1,
-                2,
+                1,
             ),
         ]
 
@@ -1316,7 +1316,7 @@ class TestBrowseTransferringBody:
         browse_transferring_body_files,
     ):
         """
-        Given 5 file objects with all file type as 'file'
+        Given 6 file objects with all file type as 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
         When I call the 'browse_data' function with browse_view as 'transferring body' and
@@ -1355,7 +1355,7 @@ class TestBrowseTransferringBody:
                 browse_transferring_body_files[0].consignment.series.Name,
                 "14/10/2023",
                 1,
-                2,
+                1,
             ),
             (
                 browse_transferring_body_files[
@@ -1366,7 +1366,7 @@ class TestBrowseTransferringBody:
                 browse_transferring_body_files[4].consignment.series.Name,
                 "07/07/2023",
                 1,
-                1,
+                3,
             ),
             (
                 browse_transferring_body_files[
@@ -1392,7 +1392,7 @@ class TestBrowseTransferringBody:
         browse_transferring_body_files,
     ):
         """
-        Given 5 file objects with all file type as 'file'
+        Given 6 file objects with all file type as 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
         When I call the 'browse_data' function with browse_view as 'transferring body' and
@@ -1424,12 +1424,12 @@ class TestBrowseTransferringBody:
         expected_results = [
             (
                 browse_transferring_body_files[
-                    4
+                    0
                 ].consignment.series.body.BodyId,
-                browse_transferring_body_files[4].consignment.series.body.Name,
-                browse_transferring_body_files[4].consignment.series.SeriesId,
-                browse_transferring_body_files[4].consignment.series.Name,
-                "07/07/2023",
+                browse_transferring_body_files[0].consignment.series.body.Name,
+                browse_transferring_body_files[0].consignment.series.SeriesId,
+                browse_transferring_body_files[0].consignment.series.Name,
+                "14/10/2023",
                 1,
                 1,
             ),
@@ -1446,14 +1446,14 @@ class TestBrowseTransferringBody:
             ),
             (
                 browse_transferring_body_files[
-                    0
+                    4
                 ].consignment.series.body.BodyId,
-                browse_transferring_body_files[0].consignment.series.body.Name,
-                browse_transferring_body_files[0].consignment.series.SeriesId,
-                browse_transferring_body_files[0].consignment.series.Name,
-                "14/10/2023",
+                browse_transferring_body_files[4].consignment.series.body.Name,
+                browse_transferring_body_files[4].consignment.series.SeriesId,
+                browse_transferring_body_files[4].consignment.series.Name,
+                "07/07/2023",
                 1,
-                2,
+                3,
             ),
         ]
 
@@ -1500,6 +1500,17 @@ class TestBrowseTransferringBody:
         expected_results = [
             (
                 browse_transferring_body_files[
+                    4
+                ].consignment.series.body.BodyId,
+                browse_transferring_body_files[4].consignment.series.body.Name,
+                browse_transferring_body_files[4].consignment.series.SeriesId,
+                browse_transferring_body_files[4].consignment.series.Name,
+                "07/07/2023",
+                1,
+                3,
+            ),
+            (
+                browse_transferring_body_files[
                     2
                 ].consignment.series.body.BodyId,
                 browse_transferring_body_files[2].consignment.series.body.Name,
@@ -1517,17 +1528,6 @@ class TestBrowseTransferringBody:
                 browse_transferring_body_files[0].consignment.series.SeriesId,
                 browse_transferring_body_files[0].consignment.series.Name,
                 "14/10/2023",
-                1,
-                2,
-            ),
-            (
-                browse_transferring_body_files[
-                    4
-                ].consignment.series.body.BodyId,
-                browse_transferring_body_files[4].consignment.series.body.Name,
-                browse_transferring_body_files[4].consignment.series.SeriesId,
-                browse_transferring_body_files[4].consignment.series.Name,
-                "07/07/2023",
                 1,
                 1,
             ),

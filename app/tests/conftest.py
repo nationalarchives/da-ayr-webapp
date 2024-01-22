@@ -501,7 +501,7 @@ def browse_transferring_body_files():
     )
 
     file_2 = FileFactory(
-        consignment=consignment_1,
+        consignment=consignment_2,
         FileType="File",
         FileName="second_file.xls",
         FilePath="/data/second_file.xls",
@@ -515,7 +515,7 @@ def browse_transferring_body_files():
     )
 
     file_4 = FileFactory(
-        consignment=consignment_2,
+        consignment=consignment_3,
         FileType="File",
         FileName="fourth-file.pdf",
         FilePath="/data/fourth-file.pdf",
@@ -528,10 +528,18 @@ def browse_transferring_body_files():
         FilePath="/data/fifth-file.xls",
     )
 
+    file_6 = FileFactory(
+        consignment=consignment_3,
+        FileType="File",
+        FileName="sixth-file.xls",
+        FilePath="/data/sixth-file.xls",
+    )
+
     return [
         file_1,
         file_2,
         file_3,
         file_4,
         file_5,
+        file_6,
     ]
