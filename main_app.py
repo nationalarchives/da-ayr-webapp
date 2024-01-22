@@ -1,12 +1,17 @@
 import os
+import traceback
 
 from app import create_app
-from configs.aws_parameter_store_config import AWSParameterStoreConfig
+from configs.aws_secrets_manager_config import AWSSecretsManagerConfig
 from configs.env_config import EnvConfig
 
-if os.getenv("CONFIG_SOURCE") == "AWS_PARAMETER_STORE":
-    config_class = AWSParameterStoreConfig
+if os.getenv("CONFIG_SOURCE") == "AWS_SECRETS_MANAGER":
+    config_class = AWSSecretsManagerConfig
 elif os.getenv("CONFIG_SOURCE") == "ENVIRONMENT_VARIABLES":
     config_class = EnvConfig
 
-app = create_app(config_class)
+try:
+    app = create_app(config_class)
+except Exception as e:
+    print(e)
+    print(traceback.format_exc())

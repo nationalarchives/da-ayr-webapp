@@ -1,9 +1,10 @@
+import json
 from unittest.mock import patch
 
 import boto3
-from moto import mock_ssm
+from moto import mock_secretsmanager
 
-from configs.aws_parameter_store_config import AWSParameterStoreConfig
+from configs.aws_secrets_manager_config import AWSSecretsManagerConfig
 from configs.env_config import EnvConfig
 
 
@@ -54,117 +55,57 @@ def test_local_env_vars_config_initialized(monkeypatch):
     assert config.RATELIMIT_STORAGE_URI == "test_ratelimit_storage_uri"
 
 
-@patch("configs.aws_parameter_store_config.boto3")
-@mock_ssm
-def test_aws_params_config_initialized(mock_boto3, monkeypatch):
+@mock_secretsmanager
+def test_aws_secrets_manager_config_initialized():
     """
-    GIVEN DEFAULT_AWS_PROFILE env var is set and AWS SSM parameters are set
+    GIVEN AWS secret `ayr-test-one-vars` is set with all config key value pairs
     WHEN Config is initialized
-    THEN it should have attributes with the expected values from the AWS SSM
+    THEN it should have attributes with the expected values from the AWS Secrets Manager secret
     """
-    # Mock RDS client and generate_db_auth_token method
-    mock_boto3.client.return_value.generate_db_auth_token.return_value = (
-        "mocked_unescaped_%F4_/rds@_:token"
-    )
-    monkeypatch.setenv("DEFAULT_AWS_PROFILE", "test_default_aws_profile")
-
-    ssm_client = boto3.client("ssm")
-
-    ssm_client.put_parameter(
-        Name="ENVIRONMENT_NAME",
-        Value="test_env",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/AWS_REGION",
-        Value="test_aws_region",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/DB_PORT",
-        Value="5432",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/DB_HOST",
-        Value="test_db_host",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/DB_USER",
-        Value="test_db_user",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/DB_NAME",
-        Value="test_db_name",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/KEYCLOAK_BASE_URI",
-        Value="test_keycloak_base_uri",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/KEYCLOAK_CLIENT_ID",
-        Value="test_keycloak_client_id",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/KEYCLOAK_REALM_NAME",
-        Value="test_keycloak_realm_name",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/KEYCLOAK_CLIENT_SECRET",
-        Value="test_keycloak_client_secret",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/SECRET_KEY",
-        Value="test_secret_key",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/DEFAULT_PAGE_SIZE",
-        Value="test_default_page_size",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/DEFAULT_DATE_FORMAT",
-        Value="test_default_date_format",
-        Type="String",
-        Overwrite=True,
-    )
-    ssm_client.put_parameter(
-        Name="/test_env/RATELIMIT_STORAGE_URI",
-        Value="test_ratelimit_storage_uri",
-        Type="String",
-        Overwrite=True,
+    secret_value = json.dumps(
+        {
+            "AWS_REGION": "test_aws_region",
+            "KEYCLOAK_BASE_URI": "test_keycloak_base_uri",
+            "KEYCLOAK_CLIENT_ID": "test_keycloak_client_id",
+            "KEYCLOAK_REALM_NAME": "test_keycloack_realm_name",
+            "KEYCLOAK_CLIENT_SECRET": "test_keycloak_client_secret",  # pragma: allowlist secret
+            "RECORD_BUCKET_NAME": "test_record_bucket_name",
+            "RATELIMIT_STORAGE_URI": "test_ratelimit_storage_uri",
+            "DEFAULT_DATE_FORMAT": "test_default_date_format",
+            "SECRET_KEY": "test_secret_key",  # pragma: allowlist secret
+            "DB_PORT": "5432",
+            "DB_HOST": "test_db_host",
+            "DB_USER": "test_db_user",
+            "DB_NAME": "test_db_name",
+            "DEFAULT_PAGE_SIZE": "test_default_page_size",
+        }
     )
 
-    config = AWSParameterStoreConfig()
+    ssm_client = boto3.client("secretsmanager")
 
-    assert (
-        config.SQLALCHEMY_DATABASE_URI == "postgresql+psycopg2://test_db_user:"
-        "mocked_unescaped_%25F4_%2Frds%40_%3Atoken@test_db_host:5432/"
-        "test_db_name?sslmode=require"
+    ssm_client.create_secret(
+        Name="ayr-test-one-vars",
+        SecretString=secret_value,
     )
+
+    config = AWSSecretsManagerConfig()
+
+    with patch(
+        "configs.aws_secrets_manager_config.boto3.client"
+    ) as mock_boto3_client:
+        mock_boto3_client.return_value.generate_db_auth_token.return_value = (
+            "mocked_unescaped_%F4_/rds@_:token"
+        )
+        assert (
+            config.SQLALCHEMY_DATABASE_URI
+            == "postgresql+psycopg2://test_db_user:"
+            "mocked_unescaped_%25F4_%2Frds%40_%3Atoken@test_db_host:5432/"
+            "test_db_name?sslmode=require"
+        )
+
     assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
     assert config.KEYCLOAK_CLIENT_ID == "test_keycloak_client_id"
-    assert config.KEYCLOAK_REALM_NAME == "test_keycloak_realm_name"
+    assert config.KEYCLOAK_REALM_NAME == "test_keycloack_realm_name"
     assert (
         config.KEYCLOAK_CLIENT_SECRET
         == "test_keycloak_client_secret"  # pragma: allowlist secret

@@ -14,7 +14,7 @@
         "domain": $ZAPPA_SANDBOX_WEBAPP_DOMAIN,
         "runtime": "python3.11",
         "environment_variables": {
-            "CONFIG_SOURCE": "AWS_PARAMETER_STORE"
+            "CONFIG_SOURCE": "AWS_SECRETS_MANAGER"
         },
         "aws_environment_variables": {"INSTANTIATE_LAMBDA_HANDLER_ON_IMPORT": "True"},
         "vpc_config": {

@@ -39,9 +39,9 @@
         {
             "Effect": "Allow",
             "Action": [
-                "ssm:GetParameter"
+                "s3:GetObject"
             ],
-            "Resource": "arn:aws:ssm:*:*"
+            "Resource": "*"
         }
     ]
 }
