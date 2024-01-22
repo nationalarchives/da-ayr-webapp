@@ -23,7 +23,9 @@ def browse_data(
     if browse_type == "transferring_body":
         body = Body.query.get_or_404(transferring_body_id)
         validate_body_user_groups_or_404(body.Name)
-        browse_query = _build_transferring_body_view_query(transferring_body_id)
+        browse_query = _build_transferring_body_view_query(
+            transferring_body_id, filters, sorting_orders
+        )
     elif browse_type == "series":
         series = Series.query.get_or_404(series_id)
         validate_body_user_groups_or_404(series.body.Name)
@@ -153,17 +155,18 @@ def _build_browse_everything_query(filters, sorting_orders):
     return query
 
 
-def _build_transferring_body_view_query(transferring_body_id):
-    query = (
+def _build_transferring_body_view_query(
+    transferring_body_id, filters, sorting_orders
+):
+    sub_query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
-            func.to_char(
-                func.cast(func.max(Consignment.TransferCompleteDatetime), DATE),
-                current_app.config["DEFAULT_DATE_FORMAT"],
-            ).label("last_record_transferred"),
+            func.max(Consignment.TransferCompleteDatetime).label(
+                "last_record_transferred"
+            ),
             func.count(func.distinct(Consignment.ConsignmentReference)).label(
                 "consignment_in_series"
             ),
@@ -177,8 +180,27 @@ def _build_transferring_body_view_query(transferring_body_id):
             & (Body.BodyId == transferring_body_id)
         )
         .group_by(Body.BodyId, Series.SeriesId)
-        .order_by(Body.Name, Series.Name)
+    ).subquery()
+
+    query = db.session.query(
+        sub_query.c.transferring_body_id,
+        sub_query.c.transferring_body,
+        sub_query.c.series_id,
+        sub_query.c.series,
+        func.to_char(
+            sub_query.c.last_record_transferred,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("last_record_transferred"),
+        sub_query.c.consignment_in_series,
+        sub_query.c.records_held,
     )
+
+    if sorting_orders:
+        query = _build_sorting_orders(query, sub_query, sorting_orders)
+    else:
+        query = query.order_by(
+            sub_query.c.transferring_body, sub_query.c.series
+        )
 
     return query
 

@@ -431,3 +431,115 @@ def browse_files():
         file_26,
         file_27,
     ]
+
+
+@pytest.fixture(scope="function")
+def browse_transferring_body_files():
+    """
+
+    purpose of this function to return file objects to perform testing on
+      combination of single and multiple filters
+      and single sorting
+
+    returns 5 file objects associated with consignments
+
+    there is 1 body defined as Transferring bodies,
+
+    there are 3 series defined as Series in one body
+
+    there are 3 consignment objects (1 to 3) associated with transferring body and series
+      consignment_1 associated to body_1 and series_1
+      consignment_2 associated to body_1 and series_2
+      consignment_3 associated to body_1 and series_3
+
+      each consignment has a unique TransferCompleteDatetime to support date filters
+
+    there are 5 file objects (1 to 5) associated with consignments
+
+      file_1 and file_2 associated to consignment_1
+      file_3 and file_4 associated to consignment_2
+      file_5 associated to consignment_3
+    """
+
+    body_1 = BodyFactory(Name="first_body", Description="first_body")
+
+    series_1 = SeriesFactory(
+        Name="first_series", Description="first_series", body=body_1
+    )
+
+    series_2 = SeriesFactory(
+        Name="second_series", Description="second_series", body=body_1
+    )
+
+    series_3 = SeriesFactory(
+        Name="third_series", Description="third_series", body=body_1
+    )
+
+    consignment_1 = ConsignmentFactory(
+        series=series_1,
+        ConsignmentReference="TDR-2023-FI1",
+        TransferCompleteDatetime="2023-10-14",
+    )
+
+    consignment_2 = ConsignmentFactory(
+        series=series_2,
+        ConsignmentReference="TDR-2023-SE2",
+        TransferCompleteDatetime="2023-03-30",
+    )
+
+    consignment_3 = ConsignmentFactory(
+        series=series_3,
+        ConsignmentReference="TDR-2023-TH3",
+        TransferCompleteDatetime="2023-07-07",
+    )
+
+    file_1 = FileFactory(
+        consignment=consignment_1,
+        FileType="File",
+        FileName="first_file.docx",
+        FilePath="/data/first_file.docx",
+    )
+
+    file_2 = FileFactory(
+        consignment=consignment_2,
+        FileType="File",
+        FileName="second_file.xls",
+        FilePath="/data/second_file.xls",
+    )
+
+    file_3 = FileFactory(
+        consignment=consignment_2,
+        FileType="File",
+        FileName="third_file.docx",
+        FilePath="/data/third_file.docx",
+    )
+
+    file_4 = FileFactory(
+        consignment=consignment_3,
+        FileType="File",
+        FileName="fourth-file.pdf",
+        FilePath="/data/fourth-file.pdf",
+    )
+
+    file_5 = FileFactory(
+        consignment=consignment_3,
+        FileType="File",
+        FileName="fifth-file.xls",
+        FilePath="/data/fifth-file.xls",
+    )
+
+    file_6 = FileFactory(
+        consignment=consignment_3,
+        FileType="File",
+        FileName="sixth-file.xls",
+        FilePath="/data/sixth-file.xls",
+    )
+
+    return [
+        file_1,
+        file_2,
+        file_3,
+        file_4,
+        file_5,
+        file_6,
+    ]
