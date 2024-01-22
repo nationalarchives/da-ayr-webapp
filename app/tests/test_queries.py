@@ -17,7 +17,6 @@ from app.tests.factories import (
     FileMetadataFactory,
     SeriesFactory,
 )
-from app.tests.mock_database import create_multiple_test_records
 
 per_page = 5
 
@@ -262,327 +261,626 @@ class TestFuzzySearch:
 
 
 class TestBrowse:
-    def test_browse_without_filters(self, client: FlaskClient):
-        """
-        Given multiple File objects in the database
-        When browse_data is called with page=2, per_page=5, browse_type='browse'
-        Then it returns a Paginate object returning the first 5 items
-            ordered by Body name then Series name
-        """
-        files = create_multiple_test_records()
-        result = browse_data(page=1, per_page=5, browse_type="browse")
-
-        assert result.items == [
-            (
-                files[0].consignment.series.body.BodyId,
-                "test body1",
-                files[0].consignment.series.SeriesId,
-                "test series1",
-                "01/01/2023",
-                1,
-                1,
-            ),
-            (
-                files[1].consignment.series.body.BodyId,
-                "test body2",
-                files[1].consignment.series.SeriesId,
-                "test series2",
-                "01/01/2023",
-                1,
-                1,
-            ),
-            (
-                files[9].consignment.series.body.BodyId,
-                "testing body10",
-                files[9].consignment.series.SeriesId,
-                "test series10",
-                "01/01/2023",
-                1,
-                1,
-            ),
-            (
-                files[10].consignment.series.body.BodyId,
-                "testing body11",
-                files[10].consignment.series.SeriesId,
-                "test series11",
-                "01/01/2023",
-                1,
-                2,
-            ),
-            (
-                files[2].consignment.series.body.BodyId,
-                "testing body3",
-                files[2].consignment.series.SeriesId,
-                "test series3",
-                "01/01/2023",
-                1,
-                1,
-            ),
-        ]
-
-    def test_browse_get_specific_page_results(self, client: FlaskClient):
-        """
-        Given multiple File objects in the database
-        When browse_data is called with page=2, per_page=5, browse_type='browse'
-        Then it returns a Paginate object returning the second 5 items
-            ordered by Body name then Series name
-        """
-        files = create_multiple_test_records()
-
-        result = browse_data(page=2, per_page=per_page, browse_type="browse")
-        assert result.items == [
-            (
-                files[3].consignment.series.body.BodyId,
-                "testing body4",
-                files[3].consignment.series.SeriesId,
-                "test series4",
-                "01/01/2023",
-                1,
-                1,
-            ),
-            (
-                files[4].consignment.series.body.BodyId,
-                "testing body5",
-                files[4].consignment.series.SeriesId,
-                "test series5",
-                "15/02/2023",
-                1,
-                1,
-            ),
-            (
-                files[5].consignment.series.body.BodyId,
-                "testing body6",
-                files[5].consignment.series.SeriesId,
-                "test series6",
-                "15/02/2023",
-                1,
-                1,
-            ),
-            (
-                files[6].consignment.series.body.BodyId,
-                "testing body7",
-                files[6].consignment.series.SeriesId,
-                "test series7",
-                "15/02/2023",
-                1,
-                1,
-            ),
-            (
-                files[7].consignment.series.body.BodyId,
-                "testing body8",
-                files[7].consignment.series.SeriesId,
-                "test series8",
-                "15/02/2023",
-                1,
-                1,
-            ),
-        ]
-        assert result.pages > 0
-        assert result.has_next is True
-        assert result.has_prev is True
-
-    def test_browse_with_date_from_filter(self, client: FlaskClient):
-        """
-        Given multiple File objects in the database and consignment transfer complete date
-            that matches all of them
-        When browse_data is called with date_from
-        Then it returns a list containing multiple dictionary for the matching record with
-            expected fields
-        """
-        files = create_multiple_test_records()
-
-        filters = {"date_range": {"date_from": "12/02/2023"}}
-        result = browse_data(page=1, per_page=per_page, filters=filters)
-
-        assert result.items == [
-            (
-                files[4].consignment.series.body.BodyId,
-                "testing body5",
-                files[4].consignment.series.SeriesId,
-                "test series5",
-                "15/02/2023",
-                1,
-                1,
-            ),
-            (
-                files[5].consignment.series.body.BodyId,
-                "testing body6",
-                files[5].consignment.series.SeriesId,
-                "test series6",
-                "15/02/2023",
-                1,
-                1,
-            ),
-            (
-                files[6].consignment.series.body.BodyId,
-                "testing body7",
-                files[6].consignment.series.SeriesId,
-                "test series7",
-                "15/02/2023",
-                1,
-                1,
-            ),
-            (
-                files[7].consignment.series.body.BodyId,
-                "testing body8",
-                files[7].consignment.series.SeriesId,
-                "test series8",
-                "15/02/2023",
-                1,
-                1,
-            ),
-            (
-                files[8].consignment.series.body.BodyId,
-                "testing body9",
-                files[8].consignment.series.SeriesId,
-                "test series9",
-                "15/02/2023",
-                1,
-                1,
-            ),
-        ]
-
-    def test_browse_with_date_to_filter(self, client: FlaskClient):
-        """
-        Given multiple File objects in the database and consignment transfer complete date
-            that matches all of them
-        When browse_data is called with date_to
-        Then it returns a list containing multiple dictionary for the matching record with
-            expected fields
-        """
-        files = create_multiple_test_records()
-
-        filters = {"date_range": {"date_to": "28/02/2023"}}
-        result = browse_data(page=1, per_page=per_page, filters=filters)
-
-        assert result.items == [
-            (
-                files[0].consignment.series.body.BodyId,
-                "test body1",
-                files[0].consignment.series.SeriesId,
-                "test series1",
-                "01/01/2023",
-                1,
-                1,
-            ),
-            (
-                files[1].consignment.series.body.BodyId,
-                "test body2",
-                files[1].consignment.series.SeriesId,
-                "test series2",
-                "01/01/2023",
-                1,
-                1,
-            ),
-            (
-                files[9].consignment.series.body.BodyId,
-                "testing body10",
-                files[9].consignment.series.SeriesId,
-                "test series10",
-                "01/01/2023",
-                1,
-                1,
-            ),
-            (
-                files[10].consignment.series.body.BodyId,
-                "testing body11",
-                files[10].consignment.series.SeriesId,
-                "test series11",
-                "01/01/2023",
-                1,
-                2,
-            ),
-            (
-                files[2].consignment.series.body.BodyId,
-                "testing body3",
-                files[2].consignment.series.SeriesId,
-                "test series3",
-                "01/01/2023",
-                1,
-                1,
-            ),
-        ]
-
-    def test_browse_with_date_from_and_to_filter(self, client: FlaskClient):
-        """
-        Given multiple File objects in the database and consignment transfer complete date
-            that matches all of them
-        When browse_data is called with date_from and date_to
-        Then it returns a list containing multiple dictionary for the matching record with
-            date in between the range
-        """
-        files = create_multiple_test_records()
-
-        filters = {
-            "date_range": {"date_from": "01/02/2023", "date_to": "28/02/2023"}
-        }
-        result = browse_data(page=1, per_page=per_page, filters=filters)
-
-        assert result.items == [
-            (
-                files[4].consignment.series.body.BodyId,
-                "testing body5",
-                files[4].consignment.series.SeriesId,
-                "test series5",
-                "15/02/2023",
-                1,
-                1,
-            ),
-            (
-                files[5].consignment.series.body.BodyId,
-                "testing body6",
-                files[5].consignment.series.SeriesId,
-                "test series6",
-                "15/02/2023",
-                1,
-                1,
-            ),
-            (
-                files[6].consignment.series.body.BodyId,
-                "testing body7",
-                files[6].consignment.series.SeriesId,
-                "test series7",
-                "15/02/2023",
-                1,
-                1,
-            ),
-            (
-                files[7].consignment.series.body.BodyId,
-                "testing body8",
-                files[7].consignment.series.SeriesId,
-                "test series8",
-                "15/02/2023",
-                1,
-                1,
-            ),
-            (
-                files[8].consignment.series.body.BodyId,
-                "testing body9",
-                files[8].consignment.series.SeriesId,
-                "test series9",
-                "15/02/2023",
-                1,
-                1,
-            ),
-        ]
-
-    def test_browse_with_date_from_and_to_filter_no_result(
-        self, client: FlaskClient
+    def test_browse_without_filter(
+        self, client, mock_standard_user, browse_files
     ):
         """
-        Given multiple File objects in the database and consignment transfer complete date
-            that matches all of them
-        When browse_data is called with date_from and date_to
-        Then if date range not matched it returns empty list containing multiple dictionary
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with browse_view as 'browse'
+        Then it returns a Pagination object with 5 total results as per page option value
         """
-        create_multiple_test_records()
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse"
+        )
+
+        assert pagination_object.total == 6
+
+        expected_results = [
+            (
+                browse_files[19].consignment.series.body.BodyId,
+                browse_files[19].consignment.series.body.Name,
+                browse_files[19].consignment.series.SeriesId,
+                browse_files[19].consignment.series.Name,
+                "21/09/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
+                2,
+                3,
+            ),
+            (
+                browse_files[13].consignment.series.body.BodyId,
+                browse_files[13].consignment.series.body.Name,
+                browse_files[13].consignment.series.SeriesId,
+                browse_files[13].consignment.series.Name,
+                "03/08/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "26/04/2023",
+                2,
+                7,
+            ),
+            (
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[25].consignment.series.SeriesId,
+                browse_files[25].consignment.series.Name,
+                "14/10/2023",
+                1,
+                2,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_get_specific_page_results(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with browse_view as 'browse' and
+            with page=2 ( specific page)
+        Then it returns a Pagination object with 2 total results as per page option value
+            ordered by Body name then Series name
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        pagination_object = browse_data(
+            page=2, per_page=per_page, browse_type="browse"
+        )
+
+        assert pagination_object.total == 6
+
+        # return 1 records on page 2 as first five records are on page 1
+        expected_results = [
+            (
+                browse_files[10].consignment.series.body.BodyId,
+                browse_files[10].consignment.series.body.Name,
+                browse_files[10].consignment.series.SeriesId,
+                browse_files[10].consignment.series.Name,
+                "17/06/2023",
+                2,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_transferring_body_filter(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            transferring body filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            transferring body which match to the filter value
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        filters = {"transferring_body": "third_body"}
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_files[10].consignment.series.body.BodyId,
+                browse_files[10].consignment.series.body.Name,
+                browse_files[10].consignment.series.SeriesId,
+                browse_files[10].consignment.series.Name,
+                "17/06/2023",
+                2,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_transferring_body_filter_return_multiple_results(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            transferring body filter
+        Then it returns a Pagination object with 2 total results corresponding to the
+            transferring body which match to the filter value
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        # use like comparison to return multiple bodies start with fi keyword e.g. first, fifth
+        filters = {"transferring_body": "fi"}
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (
+                browse_files[19].consignment.series.body.BodyId,
+                browse_files[19].consignment.series.body.Name,
+                browse_files[19].consignment.series.SeriesId,
+                browse_files[19].consignment.series.Name,
+                "21/09/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
+                2,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_series_filter(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            series filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            series which match to the filter value
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        filters = {"series": "third_series"}
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_files[10].consignment.series.body.BodyId,
+                browse_files[10].consignment.series.body.Name,
+                browse_files[10].consignment.series.SeriesId,
+                browse_files[10].consignment.series.Name,
+                "17/06/2023",
+                2,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_series_filter_return_multiple_results(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            series filter
+        Then it returns a Pagination object with 2 total results corresponding to the
+            series which match to the filter value
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        # use like comparison to return multiple series start with fi keyword e.g. first, fifth
+        filters = {"series": "fi"}
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (
+                browse_files[19].consignment.series.body.BodyId,
+                browse_files[19].consignment.series.body.Name,
+                browse_files[19].consignment.series.SeriesId,
+                browse_files[19].consignment.series.Name,
+                "21/09/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
+                2,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_date_consignment_transferred_filter_using_date_from_option(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            date from filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            consignment transfer complete date which is greater than or equal to the date from value
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        filters = {"date_range": {"date_from": "01/10/2023"}}
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_files[25].consignment.series.body.BodyId,
+                browse_files[25].consignment.series.body.Name,
+                browse_files[25].consignment.series.SeriesId,
+                browse_files[25].consignment.series.Name,
+                "14/10/2023",
+                1,
+                2,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_date_consignment_transferred_filter_using_date_to_option(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            date to filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            consignment transfer complete date which is less than or equal to the date to value
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        filters = {"date_range": {"date_to": "07/02/2023"}}
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
+                2,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_date_consignment_transferred_filter_using_date_from_and_date_to_option(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            date from and date to filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            consignment transfer complete date which is between date from and date to values
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
 
         filters = {
-            "date_range": {"date_from": "01/03/2023", "date_to": "31/05/2023"}
+            "date_range": {"date_from": "01/01/2023", "date_to": "07/02/2023"}
         }
-        result = browse_data(page=1, per_page=per_page, filters=filters)
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
 
-        assert result.items == []
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
+                2,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_date_consignment_transferred_filter_using_date_from_and_date_to_option_multiple_results(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            date from and date to filter
+        Then it returns a Pagination object with 2 total results corresponding to the
+            consignment transfer complete date which is between date from and date to values
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        filters = {
+            "date_range": {"date_from": "01/01/2023", "date_to": "30/04/2023"}
+        }
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
+                2,
+                3,
+            ),
+            (
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "26/04/2023",
+                2,
+                7,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_date_consignment_transferred_filter_using_date_from_and_date_to_option_no_result(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            date from and date to filter
+        Then if date range not matched to any records
+            it returns empty list containing multiple dictionary
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        filters = {
+            "date_range": {"date_from": "01/01/2023", "date_to": "10/01/2023"}
+        }
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 0
+
+    def test_browse_with_transferring_body_and_series_filter(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            transferring body and series filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            transferring body and series which match to the filter value
+        """
+
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        filters = {"transferring_body": "third_body", "series": "third_series"}
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_files[10].consignment.series.body.BodyId,
+                browse_files[10].consignment.series.body.Name,
+                browse_files[10].consignment.series.SeriesId,
+                browse_files[10].consignment.series.Name,
+                "17/06/2023",
+                2,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_transferring_body_and_date_consignment_transferred_filter(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            transferring body and date range (date from, date to) filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            transferring body match to the filter value and
+            consignment transfer complete date which is between date from and date to values
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        filters = {
+            "transferring_body": "second_body",
+            "date_range": {"date_from": "01/01/2023", "date_to": "26/04/2023"},
+        }
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "26/04/2023",
+                2,
+                7,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_series_and_date_consignment_transferred_filter(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            series and date range (date from, date to) filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            series match to the filter value and
+            consignment transfer complete date which is between date from and date to values
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        filters = {
+            "series": "second_series",
+            "date_range": {"date_from": "01/01/2023", "date_to": "26/04/2023"},
+        }
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "26/04/2023",
+                2,
+                7,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_transferring_body_and_series_and_date_consignment_transferred_filter(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            transferring body and series and date range (date from, date to) filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            transferring body match to the filter value and series match to the filter value and
+            consignment transfer complete date which is between date from and date to values
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        filters = {
+            "transferring_body": "second_body",
+            "series": "second_series",
+            "date_range": {"date_from": "01/01/2023", "date_to": "26/04/2023"},
+        }
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "26/04/2023",
+                2,
+                7,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
 
     def test_browse_with_transferring_body_sorting_a_to_z(
         self, client: FlaskClient, mock_standard_user, browse_files
@@ -1042,44 +1340,399 @@ class TestBrowse:
 
 
 class TestBrowseTransferringBody:
-    def test_browse_transferring_body_with_transferring_body_filter(
-        self, client: FlaskClient, mock_standard_user
+    def test_browse_transferring_body_without_filter(
+        self, client, mock_standard_user, browse_transferring_body_files
     ):
         """
-        Given multiple File objects in the database and a transferring_body_id
-            that matches only one of them
-        And the session contains user info for a standard user with access to the
-            transferring body
-        When browse_data is called with transferring_body_id
-        Then it returns a list containing 1 dictionary for the matching record with
-            expected fields
+        Given 6 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with browse_view as 'transferring body' and
+            without any filter values
+        Then it returns a Pagination object with 3 total results
+            for the specific transferring body
         """
-        files = create_multiple_test_records()
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
 
-        file = files[0]
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
 
-        mock_standard_user(client, file.consignment.series.body.Name)
-
-        transferring_body_id = file.consignment.series.body.BodyId
-        series_id = file.consignment.series.SeriesId
-        result = browse_data(
+        pagination_object = browse_data(
             page=1,
             per_page=per_page,
             browse_type="transferring_body",
             transferring_body_id=transferring_body_id,
         )
 
-        assert result.items == [
+        assert pagination_object.total == 3
+
+        expected_results = [
             (
-                transferring_body_id,
-                "test body1",
-                series_id,
-                "test series1",
-                "01/01/2023",
+                browse_transferring_body_files[
+                    0
+                ].consignment.series.body.BodyId,
+                browse_transferring_body_files[0].consignment.series.body.Name,
+                browse_transferring_body_files[0].consignment.series.SeriesId,
+                browse_transferring_body_files[0].consignment.series.Name,
+                "14/10/2023",
                 1,
                 1,
-            )
+            ),
+            (
+                browse_transferring_body_files[
+                    2
+                ].consignment.series.body.BodyId,
+                browse_transferring_body_files[2].consignment.series.body.Name,
+                browse_transferring_body_files[2].consignment.series.SeriesId,
+                browse_transferring_body_files[2].consignment.series.Name,
+                "30/03/2023",
+                1,
+                2,
+            ),
+            (
+                browse_transferring_body_files[
+                    4
+                ].consignment.series.body.BodyId,
+                browse_transferring_body_files[4].consignment.series.body.Name,
+                browse_transferring_body_files[4].consignment.series.SeriesId,
+                browse_transferring_body_files[4].consignment.series.Name,
+                "07/07/2023",
+                1,
+                3,
+            ),
         ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_transferring_body_with_series_filter(
+        self, client, mock_standard_user, browse_transferring_body_files
+    ):
+        """
+        Given 6 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'transferring body' and
+            with the series filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            series which match to the filter value
+            for the specific transferring body
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        filters = {"series": "second_series"}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="transferring_body",
+            filters=filters,
+            transferring_body_id=transferring_body_id,
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_transferring_body_files[
+                    2
+                ].consignment.series.body.BodyId,
+                browse_transferring_body_files[2].consignment.series.body.Name,
+                browse_transferring_body_files[2].consignment.series.SeriesId,
+                browse_transferring_body_files[2].consignment.series.Name,
+                "30/03/2023",
+                1,
+                2,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_transferring_body_with_date_consignment_transferred_filter_using_date_from_option(
+        self, client, mock_standard_user, browse_transferring_body_files
+    ):
+        """
+        Given 6 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'transferring body' and
+            with date from filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            consignment transfer complete date which is greater than or equal to the date from value
+            for the specific transferring body
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        filters = {"date_range": {"date_from": "10/10/2023"}}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="transferring_body",
+            filters=filters,
+            transferring_body_id=transferring_body_id,
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_transferring_body_files[
+                    0
+                ].consignment.series.body.BodyId,
+                browse_transferring_body_files[0].consignment.series.body.Name,
+                browse_transferring_body_files[0].consignment.series.SeriesId,
+                browse_transferring_body_files[0].consignment.series.Name,
+                "14/10/2023",
+                1,
+                1,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_transferring_body_with_date_consignment_transferred_filter_using_date_to_option(
+        self, client, mock_standard_user, browse_transferring_body_files
+    ):
+        """
+        Given 6 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'transferring body' and
+            with date to filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            consignment transfer complete date which is less than or equal to the date to value
+            for the specific transferring body
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        filters = {"date_range": {"date_to": "30/03/2023"}}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="transferring_body",
+            filters=filters,
+            transferring_body_id=transferring_body_id,
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_transferring_body_files[
+                    2
+                ].consignment.series.body.BodyId,
+                browse_transferring_body_files[2].consignment.series.body.Name,
+                browse_transferring_body_files[2].consignment.series.SeriesId,
+                browse_transferring_body_files[2].consignment.series.Name,
+                "30/03/2023",
+                1,
+                2,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_transferring_body_with_date_consignment_transferred_filter_using_date_from_and_date_to_option(
+        self, client, mock_standard_user, browse_transferring_body_files
+    ):
+        """
+        Given 6 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'transferring body' and
+            with date range (date from and date to) filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            consignment transfer complete date between date from and date to value
+            for the specific transferring body
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        filters = {
+            "date_range": {"date_from": "01/03/2023", "date_to": "30/03/2023"}
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="transferring_body",
+            filters=filters,
+            transferring_body_id=transferring_body_id,
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_transferring_body_files[
+                    2
+                ].consignment.series.body.BodyId,
+                browse_transferring_body_files[2].consignment.series.body.Name,
+                browse_transferring_body_files[2].consignment.series.SeriesId,
+                browse_transferring_body_files[2].consignment.series.Name,
+                "30/03/2023",
+                1,
+                2,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_transferring_body_with_date_consignment_transferred_filter_using_date_range_option_multiple_results(
+        self, client, mock_standard_user, browse_transferring_body_files
+    ):
+        """
+        Given 6 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'transferring body' and
+            with date range (date from and date to) filter
+        Then it returns a Pagination object with 2 total results corresponding to the
+            consignment transfer complete date between date from and date to value
+            for the specific transferring body
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        filters = {
+            "date_range": {"date_from": "01/03/2023", "date_to": "30/07/2023"}
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="transferring_body",
+            filters=filters,
+            transferring_body_id=transferring_body_id,
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (
+                browse_transferring_body_files[
+                    2
+                ].consignment.series.body.BodyId,
+                browse_transferring_body_files[2].consignment.series.body.Name,
+                browse_transferring_body_files[2].consignment.series.SeriesId,
+                browse_transferring_body_files[2].consignment.series.Name,
+                "30/03/2023",
+                1,
+                2,
+            ),
+            (
+                browse_transferring_body_files[
+                    4
+                ].consignment.series.body.BodyId,
+                browse_transferring_body_files[4].consignment.series.body.Name,
+                browse_transferring_body_files[4].consignment.series.SeriesId,
+                browse_transferring_body_files[4].consignment.series.Name,
+                "07/07/2023",
+                1,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_transferring_body_with_series_and_date_consignment_transferred_filter(
+        self, client, mock_standard_user, browse_transferring_body_files
+    ):
+        """
+        Given 6 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'transferring body' and
+            with date range (date from and date to) filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            consignment transfer complete date between date from and date to value
+            for the specific transferring body
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        filters = {
+            "series": "third_series",
+            "date_range": {"date_from": "01/07/2023", "date_to": "25/07/2023"},
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="transferring_body",
+            filters=filters,
+            transferring_body_id=transferring_body_id,
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_transferring_body_files[
+                    4
+                ].consignment.series.body.BodyId,
+                browse_transferring_body_files[4].consignment.series.body.Name,
+                browse_transferring_body_files[4].consignment.series.SeriesId,
+                browse_transferring_body_files[4].consignment.series.Name,
+                "07/07/2023",
+                1,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
 
     def test_browse_transferring_body_with_series_sorting_a_to_z(
         self,
@@ -1539,43 +2192,219 @@ class TestBrowseTransferringBody:
 
 
 class TestBrowseSeries:
-    def test_browse_series_with_series_filter(
-        self, client: FlaskClient, mock_standard_user
+    def test_browse_series_without_filter(
+        self, client: FlaskClient, mock_standard_user, browse_files
     ):
         """
-        Given multiple File objects in the database and a series_id
-            that matches only one of them
-        And the session contains user info for a standard user with access to the series'
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
             associated transferring body
-        When browse_data is called with series_id
-        Then it returns a list containing 1 dictionary for the matching record with
-            expected fields
+        When I call the 'browse_data' function with browse_view as 'series'
+        Then it returns a Paginate object returning the first 2 items
+            for a specific series
+            ordered by transferring body, series and consignment reference
         """
-        files = create_multiple_test_records()
+        mock_standard_user(client, browse_files[6].consignment.series.body.Name)
+        series_id = browse_files[6].consignment.series.SeriesId
 
-        file = files[0]
-        mock_standard_user(client, file.consignment.series.body.Name)
-
-        transferring_body_id = file.consignment.series.body.BodyId
-        series_id = file.consignment.series.SeriesId
-        consignment_id = file.consignment.ConsignmentId
-
-        result = browse_data(
-            page=1, per_page=per_page, browse_type="series", series_id=series_id
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="series",
+            series_id=series_id,
         )
 
-        assert result.items == [
+        assert pagination_object.total == 2
+
+        expected_results = [
             (
-                transferring_body_id,
-                "test body1",
-                series_id,
-                "test series1",
-                "01/01/2023",
-                1,
-                consignment_id,
-                "test consignment1",
-            )
+                browse_files[6].consignment.series.body.BodyId,
+                browse_files[6].consignment.series.body.Name,
+                browse_files[6].consignment.series.SeriesId,
+                browse_files[6].consignment.series.Name,
+                "26/04/2023",
+                4,
+                browse_files[6].consignment.ConsignmentId,
+                browse_files[6].consignment.ConsignmentReference,
+            ),
+            (
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "15/03/2023",
+                3,
+                browse_files[3].consignment.ConsignmentId,
+                browse_files[3].consignment.ConsignmentReference,
+            ),
         ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_series_with_date_consignment_transferred_filter_using_date_from_option(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with browse_view as 'series' and
+            'date from' as filter
+        Then it returns a Paginate object returning the first 1 item
+            for a specific series
+            consignment transfer complete date which is greater than or equal to the date from value
+        """
+        mock_standard_user(client, browse_files[6].consignment.series.body.Name)
+        series_id = browse_files[6].consignment.series.SeriesId
+
+        filters = {"date_range": {"date_from": "20/04/2023"}}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="series",
+            series_id=series_id,
+            filters=filters,
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_files[6].consignment.series.body.BodyId,
+                browse_files[6].consignment.series.body.Name,
+                browse_files[6].consignment.series.SeriesId,
+                browse_files[6].consignment.series.Name,
+                "26/04/2023",
+                4,
+                browse_files[6].consignment.ConsignmentId,
+                browse_files[6].consignment.ConsignmentReference,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_series_with_date_consignment_transferred_filter_using_date_to_option(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with browse_view as 'series' and
+            'date to' as filter
+        Then it returns a Paginate object returning the first 1 item
+            for a specific series
+            consignment transfer complete date which is less than or equal to the date to value
+        """
+        mock_standard_user(client, browse_files[6].consignment.series.body.Name)
+        series_id = browse_files[6].consignment.series.SeriesId
+
+        filters = {"date_range": {"date_to": "30/03/2023"}}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="series",
+            series_id=series_id,
+            filters=filters,
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "15/03/2023",
+                3,
+                browse_files[3].consignment.ConsignmentId,
+                browse_files[3].consignment.ConsignmentReference,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_series_with_date_consignment_transferred_filter_using_date_from_and_date_to_option(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with browse_view as 'series' and
+            'date from' and 'date to' as filter
+        Then it returns a Paginate object returning the first 1 item
+            for a specific series
+            consignment transfer complete date which is greater than or equal to date from
+            and less than or equal to the date to value
+        """
+        mock_standard_user(client, browse_files[6].consignment.series.body.Name)
+        series_id = browse_files[6].consignment.series.SeriesId
+
+        filters = {
+            "date_range": {"date_from": "01/03/2023", "date_to": "30/03/2023"}
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="series",
+            series_id=series_id,
+            filters=filters,
+        )
+
+        assert pagination_object.total == 1
+
+        expected_results = [
+            (
+                browse_files[3].consignment.series.body.BodyId,
+                browse_files[3].consignment.series.body.Name,
+                browse_files[3].consignment.series.SeriesId,
+                browse_files[3].consignment.series.Name,
+                "15/03/2023",
+                3,
+                browse_files[3].consignment.ConsignmentId,
+                browse_files[3].consignment.ConsignmentReference,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_series_with_date_consignment_transferred_filter_using_date_from_and_date_to_option_no_result(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with browse_view as 'series' and
+            'date from' and 'date to' as filter
+        Then if date range not matched to any records
+            it returns empty list containing multiple dictionary
+        """
+        mock_standard_user(client, browse_files[6].consignment.series.body.Name)
+        series_id = browse_files[6].consignment.series.SeriesId
+
+        filters = {
+            "date_range": {"date_from": "01/02/2023", "date_to": "28/02/2023"}
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="series",
+            series_id=series_id,
+            filters=filters,
+        )
+
+        assert pagination_object.total == 0
 
     def test_browse_series_with_date_last_transferred_sorting_oldest_first(
         self, client: FlaskClient, mock_standard_user, browse_files
