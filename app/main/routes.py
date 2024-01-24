@@ -119,6 +119,10 @@ def browse():
     filters = {}
     sorting_orders = {}
 
+    # e.g. please usd example below to pass filters for browse all (top level)
+    # filters["transferring_body"] = "test"
+    # filters["series"] = "tst"
+    # filters["date_range"] = {"date_from": "01/08/2022", "date_to": "31/08/2022"}
     # e.g. please usd example below to pass sorting order for browse all (top level)
     # sorting_orders["transferring_body"] = "asc"  # A to Z
     # sorting_orders["transferring_body"] = "desc"  # Z to A
@@ -130,6 +134,8 @@ def browse():
     if transferring_body_id:
         browse_type = "transferring_body"
         browse_parameters["transferring_body_id"] = transferring_body_id
+        # filters["series"] = "tsta1"
+        # filters["date_range"] = {"date_from": "01/08/2022", "date_to": "31/08/2022"}
         # sorting_orders["series"] = "asc"  # A to Z
         # sorting_orders["series"] = "desc"  # Z to A
         # sorting_orders["last_record_transferred"] = "asc"  # oldest first
@@ -140,6 +146,7 @@ def browse():
     elif series_id:
         browse_type = "series"
         browse_parameters["series_id"] = series_id
+        # filters["date_range"] = {"date_from": "01/08/2022", "date_to": "31/08/2022"}
         # sorting_orders["last_record_transferred"] = "asc"  # oldest first
         # sorting_orders["last_record_transferred"] = "desc"  # most recent first
         # sorting_orders["records_held"] = "asc"  # least first

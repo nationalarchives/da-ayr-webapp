@@ -135,15 +135,7 @@ def _build_browse_everything_query(filters, sorting_orders):
     )
 
     if filters:
-        if "date_range" in filters:
-            dt_range = validate_date_range(filters["date_range"])
-
-            date_filter = _build_date_range_filter(
-                sub_query.c.last_record_transferred,
-                dt_range["date_from"],
-                dt_range["date_to"],
-            )
-            query = query.filter(date_filter)
+        query = _build_browse_filters(query, sub_query, filters)
 
     if sorting_orders:
         query = _build_sorting_orders(query, sub_query, sorting_orders)
@@ -195,6 +187,9 @@ def _build_transferring_body_view_query(
         sub_query.c.records_held,
     )
 
+    if filters:
+        query = _build_browse_filters(query, sub_query, filters)
+
     if sorting_orders:
         query = _build_sorting_orders(query, sub_query, sorting_orders)
     else:
@@ -243,12 +238,43 @@ def _build_series_view_query(series_id, filters, sorting_orders):
         sub_query.c.consignment_reference,
     )
 
+    if filters:
+        query = _build_browse_filters(query, sub_query, filters)
+
     if sorting_orders:
         query = _build_sorting_orders(query, sub_query, sorting_orders)
     else:
         query = query.order_by(
-            sub_query.c.transferring_body, sub_query.c.series
+            sub_query.c.transferring_body,
+            sub_query.c.series,
+            sub_query.c.consignment_reference,
         )
+    print(query)
+    return query
+
+
+def _build_browse_filters(query, sub_query, filters):
+    transferring_body = filters.get("transferring_body")
+    if transferring_body:
+        filter_value = str(f"{transferring_body}%").lower()
+        query = query.filter(
+            func.lower(sub_query.c.transferring_body).like(filter_value)
+        )
+
+    series = filters.get("series")
+    if series:
+        filter_value = str(f"{series}%").lower()
+        query = query.filter(func.lower(sub_query.c.series).like(filter_value))
+
+    date_range = filters.get("date_range")
+    if date_range:
+        dt_range = validate_date_range(date_range)
+        date_filter = _build_date_range_filter(
+            sub_query.c.last_record_transferred,
+            dt_range["date_from"],
+            dt_range["date_to"],
+        )
+        query = query.filter(date_filter)
 
     return query
 
