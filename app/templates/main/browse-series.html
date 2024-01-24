@@ -1,4 +1,28 @@
 {% if view_type == "desktop" %}
+    <div class="govuk-grid-column-full govuk-grid-column-full__browse-details">
+        <div class="browse-details">
+            <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
+            <p class="govuk-body browse__body">You are viewing</p>
+            <div class="govuk-breadcrumbs">
+                <ol class="govuk-breadcrumbs__list">
+                    <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
+                    </li>
+                    {% for record in results %}
+                        {% if loop.index == 1 %}
+                            <li class="govuk-breadcrumbs__list-item">
+                                <a class="govuk-breadcrumbs__link--record"
+                                   href="/browse?transferring_body_id={{ record['transferring_body_id'] }}">{{ record['transferring_body'] }}</a>
+                            </li>
+                            <li class="govuk-breadcrumbs__list-item">
+                                <a class="govuk-breadcrumbs__link--record" href="#">{{ record['series'] }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ol>
+            </div>
+        </div>
+    </div>
     <!-- SORT -->
     <div class="govuk-form-group sort-container__form">
         <div class="browse__sort-container">
