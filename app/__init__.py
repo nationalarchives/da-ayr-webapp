@@ -1,5 +1,5 @@
 from flask import Flask, g
-from flask_assets import Bundle, Environment
+from flask_assets import Environment
 from flask_compress import Compress
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -78,22 +78,6 @@ def create_app(config_class, database_uri=None):
             db.create_all()
         else:
             db.Model.metadata.reflect(bind=db.engine, schema="public")
-
-    # Create static asset bundles
-    css = Bundle(
-        "src/css/*.css",
-        filters="cssmin",
-        output="dist/css/custom-%(version)s.min.css",
-    )
-    js = Bundle(
-        "src/js/*.js",
-        filters="jsmin",
-        output="dist/js/custom-%(version)s.min.js",
-    )
-    if "css" not in assets:
-        assets.register("css", css)
-    if "js" not in assets:
-        assets.register("js", js)
 
     # Register blueprints
     from app.main import bp as main_bp

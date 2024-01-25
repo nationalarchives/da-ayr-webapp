@@ -19,44 +19,43 @@
     <!-- custom css stylesheet -->
     <link rel="stylesheet"
           type="text/css"
-          src="{{ url_for('static', filename='search.css') }}" />
+          href="{{ url_for('static', filename='src/css/accessibility.css') }}" />
     <link rel="stylesheet"
           type="text/css"
-          src="{{ url_for('static', filename='index.css') }}" />
+          href="{{ url_for('static', filename='src/css/base.css') }}" />
     <link rel="stylesheet"
           type="text/css"
-          src="{{ url_for('static', filename='signed-out.css') }}" />
+          href="{{ url_for('static', filename='src/css/browse.css') }}" />
     <link rel="stylesheet"
           type="text/css"
-          src="{{ url_for('static', filename='footer.css') }}" />
+          href="{{ url_for('static', filename='src/css/footer.css') }}" />
     <link rel="stylesheet"
           type="text/css"
-          src="{{ url_for('static', filename='terms-of-use.css') }}" />
+          src="{{ url_for('static', filename='src/css/header.css') }}" />
     <link rel="stylesheet"
           type="text/css"
-          src="{{ url_for('static', filename='accessibility.css') }}" />
+          src="{{ url_for('static', filename='src/css/how-to-use.css') }}" />
     <link rel="stylesheet"
           type="text/css"
-          src="{{ url_for('static', filename='privacy.css') }}" />
+          href="{{ url_for('static', filename='src/css/index.css') }}" />
     <link rel="stylesheet"
           type="text/css"
-          src="{{ url_for('static', filename='how-to-use.css') }}" />
+          href="{{ url_for('static', filename='src/css/pagination.css') }}" />
     <link rel="stylesheet"
           type="text/css"
-          src="{{ url_for('static', filename='header.css') }}" />
+          src="{{ url_for('static', filename='src/css/privacy.css') }}" />
     <link rel="stylesheet"
           type="text/css"
-          src="{{ url_for('static', filename='record.css') }}" />
+          href="{{ url_for('static', filename='src/css/record.css') }}" />
     <link rel="stylesheet"
           type="text/css"
-          src="{{ url_for('static', filename='browse.css') }}" />
+          href="{{ url_for('static', filename='/src/css/search.css') }}" />
     <link rel="stylesheet"
           type="text/css"
-          src="{{ url_for('static', filename='pagination.css') }}" />
-    <!-- custom css stylesheet end -->
-    {% assets "css" %}
-        <link href="{{ ASSET_URL }}" rel="stylesheet">
-    {% endassets %}
+          href="{{ url_for('static', filename='src/css/signed-out.css') }}" />
+    <link rel="stylesheet"
+          type="text/css"
+          href="{{ url_for('static', filename='src/css/terms-of-use.css') }}" />
 {% endblock %}
 {% block bodyStart %}
     {% if "cookies_policy" not in request.cookies %}
@@ -251,7 +250,5 @@
     <script src="{{ url_for('static', filename='govuk-frontend-4.7.0.min.js') }}"> </script>
     <script>window.GOVUKFrontend.initAll()</script>
     <!--<![endif]-->
-    {% assets "js" %}
-        <script type="text/javascript" src="{{ ASSET_URL }}"></script>
-    {% endassets %}
+    <script src="{{ url_for('static', filename='src/js/cookie-banner.js') }}"> </script>
 {% endblock %}
