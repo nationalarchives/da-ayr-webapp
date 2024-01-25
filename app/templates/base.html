@@ -19,43 +19,7 @@
     <!-- custom css stylesheet -->
     <link rel="stylesheet"
           type="text/css"
-          href="{{ url_for('static', filename='src/css/accessibility.css') }}" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="{{ url_for('static', filename='src/css/base.css') }}" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="{{ url_for('static', filename='src/css/browse.css') }}" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="{{ url_for('static', filename='src/css/footer.css') }}" />
-    <link rel="stylesheet"
-          type="text/css"
-          src="{{ url_for('static', filename='src/css/header.css') }}" />
-    <link rel="stylesheet"
-          type="text/css"
-          src="{{ url_for('static', filename='src/css/how-to-use.css') }}" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="{{ url_for('static', filename='src/css/index.css') }}" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="{{ url_for('static', filename='src/css/pagination.css') }}" />
-    <link rel="stylesheet"
-          type="text/css"
-          src="{{ url_for('static', filename='src/css/privacy.css') }}" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="{{ url_for('static', filename='src/css/record.css') }}" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="{{ url_for('static', filename='/src/css/search.css') }}" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="{{ url_for('static', filename='src/css/signed-out.css') }}" />
-    <link rel="stylesheet"
-          type="text/css"
-          href="{{ url_for('static', filename='src/css/terms-of-use.css') }}" />
+          href="{{ url_for('static', filename='src/css/main.css') }}" />
 {% endblock %}
 {% block bodyStart %}
     {% if "cookies_policy" not in request.cookies %}
@@ -249,6 +213,6 @@
     <!--[if gt IE 8]><!-->
     <script src="{{ url_for('static', filename='govuk-frontend-4.7.0.min.js') }}"> </script>
     <script>window.GOVUKFrontend.initAll()</script>
-    <!--<![endif]-->
     <script src="{{ url_for('static', filename='src/js/cookie-banner.js') }}"> </script>
+    <!--<![endif]-->
 {% endblock %}
