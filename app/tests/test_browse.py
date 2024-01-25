@@ -356,6 +356,7 @@ def test_browse_transferring_body(client: FlaskClient, mock_standard_user):
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
     assert b"You are viewing" in response.data
+    assert b"test body1" in response.data
     assert b"Records found 1" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
@@ -402,6 +403,8 @@ def test_browse_series(client: FlaskClient, mock_standard_user):
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
     assert b"You are viewing" in response.data
+    assert b"test body1" in response.data
+    assert b"test series1" in response.data
     assert b"Records found 1" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
@@ -450,6 +453,9 @@ def test_browse_consignment(client: FlaskClient, mock_standard_user):
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
     assert b"You are viewing" in response.data
+    assert b"test body1" in response.data
+    assert b"test series1" in response.data
+    assert b"test consignment1" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
     table = soup.find("table")
@@ -501,6 +507,9 @@ def test_browse_consignment_with_missing_file(
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
     assert b"You are viewing" in response.data
+    assert b"testing body11" in response.data
+    assert b"test series11" in response.data
+    assert b"test consignment11" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
     table = soup.find("table")
@@ -553,7 +562,9 @@ def test_browse_consignment_filter_display_multiple_pages(
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
     assert b"You are viewing" in response.data
-    assert b"Everything available to you" in response.data
+    assert b"test body1" in response.data
+    assert b"test series1" in response.data
+    assert b"test consignment1" in response.data
     assert b"Records found 7" in response.data
     assert b'aria-label="Page 1"' in response.data
     assert b'aria-label="Page 2"' in response.data

@@ -1,4 +1,5 @@
 {% if view_type == "desktop" %}
+    <!-- BREAD CRUMB -->
     <div class="govuk-grid-column-full govuk-grid-column-full__browse-details">
         <div class="browse-details">
             <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
@@ -27,7 +28,6 @@
                     data-module="govuk-button">Apply</button>
         </div>
     </div>
-    <!-- END SORT -->
     <!-- TABLE -->
     <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
         {% if num_records_found > 0 %}
@@ -60,7 +60,6 @@
             </table>
         {% endif %}
     </div>
-    <!-- END TABLE -->
     <!-- FILTERS -->
     <div class="govuk-grid-column-one-third filters-form">
         <div class="browse-filter-container">
@@ -198,8 +197,17 @@
             </div>
         </div>
     </div>
-    <!-- END FILTERS -->
 {% else %}
+    <!-- BREAD CRUMB -->
+    <div class="govuk-grid-column-full">
+        <div class="mobile-details">
+            <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
+            <p class="govuk-body browse__body">You are viewing</p>
+            <p class="govuk-body-m browse__body browse__available__text">Everything available to you</p>
+            <br />
+            <br />
+        </div>
+    </div>
     <!-- MOBILE FILTERS -->
     <div class="mobile-filters">
         <details class="govuk-details">
@@ -345,7 +353,6 @@
             </div>
         </details>
     </div>
-    <!-- END MOBILE FILTERS -->
     <!-- MOBILE SORT -->
     <div class="govuk-form-group sort-container__form mobile-sort">
         <div class="browse__sort-container">
@@ -365,7 +372,6 @@
                     data-module="govuk-button">Apply</button>
         </div>
     </div>
-    <!-- END MOBILE SORT -->
     <!-- MOBILE TABLE -->
     <table class="govuk-table govuk-mobile-table">
         <thead class="govuk-table__head govuk-mobile-table__head-border">
@@ -397,5 +403,4 @@
             {% endfor %}
         </tbody>
     </table>
-    <!-- END TABLE -->
 {% endif %}

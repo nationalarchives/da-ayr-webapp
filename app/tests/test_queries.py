@@ -2624,277 +2624,103 @@ class TestBrowseSeries:
 
 
 class TestBrowseConsignment:
-    def test_browse_consignment_with_consignment_filter(
-        self, client: FlaskClient, mock_standard_user
+    def test_browse_consignment_without_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
         When I call the 'browse_data' function with the consignment id
-            of the first 3 file objects
-        Then it returns a Pagination object with 2 total results corresponding to the
-            first 2 files, ordered by their names and with the expected metadata values
+        Then it returns a Pagination object with 5 total results corresponding to the
+            five files, ordered by their names and with the expected metadata values
         """
-        consignment = ConsignmentFactory()
 
-        mock_standard_user(client, consignment.series.body.Name)
-
-        file_1 = FileFactory(
-            consignment=consignment, FileName="file_1", FileType="file"
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
         )
-
-        file_1_metadata = {
-            "date_last_modified": "2023-02-25T10:12:47",
-            "closure_type": "Closed",
-            "closure_start_date": "2023-02-25T11:14:34",
-            "closure_period": "50",
-        }
-
-        [
-            FileMetadataFactory(
-                file=file_1,
-                PropertyName=property_name,
-                Value=value,
-            )
-            for property_name, value in file_1_metadata.items()
-        ]
-
-        file_2 = FileFactory(
-            consignment=consignment, FileName="file_2", FileType="file"
-        )
-
-        file_2_metadata = {
-            "date_last_modified": "2023-02-27T12:28:08",
-            "closure_type": "Open",
-            "closure_start_date": None,
-            "closure_period": None,
-        }
-
-        [
-            FileMetadataFactory(
-                file=file_2,
-                PropertyName=property_name,
-                Value=value,
-            )
-            for property_name, value in file_2_metadata.items()
-        ]
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
         pagination_object = browse_data(
             page=1,
             per_page=per_page,
             browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
+            consignment_id=consignment_id,
         )
 
-        assert pagination_object.total == 2
+        assert pagination_object.total == 5
 
         expected_results = [
             (
-                file_1.FileId,
-                "file_1",
-                "25/02/2023",
-                "Closed",
-                "25/02/2023",
-                "50",
-            ),
-            (
-                file_2.FileId,
-                "file_2",
-                "27/02/2023",
+                browse_consignment_files[4].FileId,
+                "fifth_file.doc",
+                "20/05/2023",
                 "Open",
                 None,
                 None,
+                browse_consignment_files[4].consignment.series.body.BodyId,
+                browse_consignment_files[4].consignment.series.body.Name,
+                browse_consignment_files[4].consignment.series.SeriesId,
+                browse_consignment_files[4].consignment.series.Name,
+                browse_consignment_files[4].consignment.ConsignmentId,
+                browse_consignment_files[4].consignment.ConsignmentReference,
             ),
-        ]
-
-        results = pagination_object.items
-
-        assert results == expected_results
-
-    def test_browse_consignment_with_consignment_and_record_status_open_filter(
-        self, client: FlaskClient, mock_standard_user
-    ):
-        """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
-        And the session contains user info for a standard user with access to the consignment's
-            associated transferring body
-        When I call the 'browse_data' function with the consignment id and record status filter as 'Open'
-            of the first 3 file objects
-        Then it returns a Pagination object with 1 total results corresponding to the
-            closure_type file metadata value set to 'Open' ( 1 file),
-            ordered by their names and with the expected metadata values
-        """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
-
-        file_1 = FileFactory(
-            consignment=consignment, FileName="file_1", FileType="file"
-        )
-
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment, FileName="file_2", FileType="file"
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
-
-        filters = {
-            "record_status": "Open",
-        }
-        pagination_object = browse_data(
-            page=1,
-            per_page=per_page,
-            browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
-            filters=filters,
-        )
-
-        assert pagination_object.total == 1
-
-        expected_results = [
             (
-                file_2.FileId,
-                "file_2",
-                "27/02/2023",
-                "Open",
-                None,
-                None,
-            ),
-        ]
-
-        results = pagination_object.items
-
-        assert results == expected_results
-
-    def test_browse_consignment_with_consignment_and_record_status_closed_filter(
-        self, client: FlaskClient, mock_standard_user
-    ):
-        """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
-        And the session contains user info for a standard user with access to the consignment's
-            associated transferring body
-        When I call the 'browse_data' function with the consignment id and record status filter as 'Closed'
-            of the first 3 file objects
-        Then it returns a Pagination object with 1 total results corresponding to the
-            closure_type file metadata value set to 'Closed' ( 1 file),
-            ordered by their names and with the expected metadata values
-        """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
-
-        file_1 = FileFactory(
-            consignment=consignment, FileName="file_1", FileType="file"
-        )
-
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment, FileName="file_2", FileType="file"
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
-
-        filters = {
-            "record_status": "Closed",
-        }
-        pagination_object = browse_data(
-            page=1,
-            per_page=per_page,
-            browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
-            filters=filters,
-        )
-
-        assert pagination_object.total == 1
-
-        expected_results = [
-            (
-                file_1.FileId,
-                "file_1",
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "1",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[3].FileId,
+                "fourth_file.xls",
+                "12/04/2023",
+                "Closed",
+                "12/04/2023",
+                "70",
+                browse_consignment_files[3].consignment.series.body.BodyId,
+                browse_consignment_files[3].consignment.series.body.Name,
+                browse_consignment_files[3].consignment.series.SeriesId,
+                browse_consignment_files[3].consignment.series.Name,
+                browse_consignment_files[3].consignment.ConsignmentId,
+                browse_consignment_files[3].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[1].FileId,
+                "second_file.ppt",
+                "15/01/2023",
+                "Open",
+                None,
+                None,
+                browse_consignment_files[1].consignment.series.body.BodyId,
+                browse_consignment_files[1].consignment.series.body.Name,
+                browse_consignment_files[1].consignment.series.SeriesId,
+                browse_consignment_files[1].consignment.series.Name,
+                browse_consignment_files[1].consignment.ConsignmentId,
+                browse_consignment_files[1].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[2].FileId,
+                "third_file.docx",
+                "10/03/2023",
+                "Closed",
+                "10/03/2023",
+                "25",
+                browse_consignment_files[2].consignment.series.body.BodyId,
+                browse_consignment_files[2].consignment.series.body.Name,
+                browse_consignment_files[2].consignment.series.SeriesId,
+                browse_consignment_files[2].consignment.series.Name,
+                browse_consignment_files[2].consignment.ConsignmentId,
+                browse_consignment_files[2].consignment.ConsignmentReference,
             ),
         ]
 
@@ -2902,78 +2728,33 @@ class TestBrowseConsignment:
 
         assert results == expected_results
 
-    def test_browse_consignment_with_consignment_and_record_status_all_filter(
-        self, client: FlaskClient, mock_standard_user
+    def test_browse_consignment_with_record_status_open_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
-        When I call the 'browse_data' function with the consignment id and record status filter as 'all'
-            of the first 3 file objects
+        When I call the 'browse_data' function with the consignment id
+            and record status filter as 'Open'
         Then it returns a Pagination object with 2 total results corresponding to the
-            closure_type file metadata value is either 'Open' or 'Closed' (2 files),
+            closure_type file metadata value set to 'Open' ( 2 files),
             ordered by their names and with the expected metadata values
         """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
 
-        file_1 = FileFactory(
-            consignment=consignment, FileName="file_1", FileType="file"
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
         )
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
+        filters = {"record_status": "open"}
 
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment, FileName="file_2", FileType="file"
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
-
-        filters = {
-            "record_status": "all",
-        }
         pagination_object = browse_data(
             page=1,
             per_page=per_page,
             browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
+            consignment_id=consignment_id,
             filters=filters,
         )
 
@@ -2981,20 +2762,32 @@ class TestBrowseConsignment:
 
         expected_results = [
             (
-                file_1.FileId,
-                "file_1",
-                "25/02/2023",
-                "Closed",
-                "25/02/2023",
-                "1",
-            ),
-            (
-                file_2.FileId,
-                "file_2",
-                "27/02/2023",
+                browse_consignment_files[4].FileId,
+                "fifth_file.doc",
+                "20/05/2023",
                 "Open",
                 None,
                 None,
+                browse_consignment_files[4].consignment.series.body.BodyId,
+                browse_consignment_files[4].consignment.series.body.Name,
+                browse_consignment_files[4].consignment.series.SeriesId,
+                browse_consignment_files[4].consignment.series.Name,
+                browse_consignment_files[4].consignment.ConsignmentId,
+                browse_consignment_files[4].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[1].FileId,
+                "second_file.ppt",
+                "15/01/2023",
+                "Open",
+                None,
+                None,
+                browse_consignment_files[1].consignment.series.body.BodyId,
+                browse_consignment_files[1].consignment.series.body.Name,
+                browse_consignment_files[1].consignment.series.SeriesId,
+                browse_consignment_files[1].consignment.series.Name,
+                browse_consignment_files[1].consignment.ConsignmentId,
+                browse_consignment_files[1].consignment.ConsignmentReference,
             ),
         ]
 
@@ -3002,108 +2795,221 @@ class TestBrowseConsignment:
 
         assert results == expected_results
 
-    def test_browse_consignment_with_consignment_and_file_type_filter(
-        self, client: FlaskClient, mock_standard_user
+    def test_browse_consignment_with_record_status_closed_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
-        When I call the 'browse_data' function with the consignment id and file type filter as '.docx'
-            of the first 3 file objects
+        When I call the 'browse_data' function with the consignment id
+            and record status filter as 'Closed'
+        Then it returns a Pagination object with 3 total results corresponding to the
+            closure_type file metadata value set to 'Closed' ( 3 files),
+            ordered by their names and with the expected metadata values
+        """
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        filters = {"record_status": "closed"}
+
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="consignment",
+            consignment_id=consignment_id,
+            filters=filters,
+        )
+
+        assert pagination_object.total == 3
+
+        expected_results = [
+            (
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[3].FileId,
+                "fourth_file.xls",
+                "12/04/2023",
+                "Closed",
+                "12/04/2023",
+                "70",
+                browse_consignment_files[3].consignment.series.body.BodyId,
+                browse_consignment_files[3].consignment.series.body.Name,
+                browse_consignment_files[3].consignment.series.SeriesId,
+                browse_consignment_files[3].consignment.series.Name,
+                browse_consignment_files[3].consignment.ConsignmentId,
+                browse_consignment_files[3].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[2].FileId,
+                "third_file.docx",
+                "10/03/2023",
+                "Closed",
+                "10/03/2023",
+                "25",
+                browse_consignment_files[2].consignment.series.body.BodyId,
+                browse_consignment_files[2].consignment.series.body.Name,
+                browse_consignment_files[2].consignment.series.SeriesId,
+                browse_consignment_files[2].consignment.series.Name,
+                browse_consignment_files[2].consignment.ConsignmentId,
+                browse_consignment_files[2].consignment.ConsignmentReference,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_consignment_with_record_status_all_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with the consignment id
+            and record status filter as 'all'
+        Then it returns a Pagination object with 3 total results corresponding to the
+            closure_type file metadata value set to 'Open' or 'Closed' ( 3 files),
+            ordered by their names and with the expected metadata values
+        """
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        filters = {"record_status": "all"}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="consignment",
+            consignment_id=consignment_id,
+            filters=filters,
+        )
+
+        assert pagination_object.total == 5
+
+        expected_results = [
+            (
+                browse_consignment_files[4].FileId,
+                "fifth_file.doc",
+                "20/05/2023",
+                "Open",
+                None,
+                None,
+                browse_consignment_files[4].consignment.series.body.BodyId,
+                browse_consignment_files[4].consignment.series.body.Name,
+                browse_consignment_files[4].consignment.series.SeriesId,
+                browse_consignment_files[4].consignment.series.Name,
+                browse_consignment_files[4].consignment.ConsignmentId,
+                browse_consignment_files[4].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[3].FileId,
+                "fourth_file.xls",
+                "12/04/2023",
+                "Closed",
+                "12/04/2023",
+                "70",
+                browse_consignment_files[3].consignment.series.body.BodyId,
+                browse_consignment_files[3].consignment.series.body.Name,
+                browse_consignment_files[3].consignment.series.SeriesId,
+                browse_consignment_files[3].consignment.series.Name,
+                browse_consignment_files[3].consignment.ConsignmentId,
+                browse_consignment_files[3].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[1].FileId,
+                "second_file.ppt",
+                "15/01/2023",
+                "Open",
+                None,
+                None,
+                browse_consignment_files[1].consignment.series.body.BodyId,
+                browse_consignment_files[1].consignment.series.body.Name,
+                browse_consignment_files[1].consignment.series.SeriesId,
+                browse_consignment_files[1].consignment.series.Name,
+                browse_consignment_files[1].consignment.ConsignmentId,
+                browse_consignment_files[1].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[2].FileId,
+                "third_file.docx",
+                "10/03/2023",
+                "Closed",
+                "10/03/2023",
+                "25",
+                browse_consignment_files[2].consignment.series.body.BodyId,
+                browse_consignment_files[2].consignment.series.body.Name,
+                browse_consignment_files[2].consignment.series.SeriesId,
+                browse_consignment_files[2].consignment.series.Name,
+                browse_consignment_files[2].consignment.ConsignmentId,
+                browse_consignment_files[2].consignment.ConsignmentReference,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_consignment_with_file_type_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with the consignment id
+            and file type filter as '.docx'
         Then it returns a Pagination object with 2 total results corresponding to the
             file_name file metadata value contains extension '.docx' (2 files),
             ordered by their names and with the expected metadata values
         """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
 
-        file_1 = FileFactory(
-            consignment=consignment,
-            FileName="file_1.docx",
-            FileType="file",
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
         )
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment,
-            FileName="file_2.ppt",
-            FileType="file",
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        file_3 = FileFactory(
-            consignment=consignment,
-            FileName="file_3.docx",
-            FileType="file",
-        )
-
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_3, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
-
-        filters = {
-            "file_type": ".docx",
-        }
+        filters = {"file_type": "docx"}
         pagination_object = browse_data(
             page=1,
             per_page=per_page,
             browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
+            consignment_id=consignment_id,
             filters=filters,
         )
 
@@ -3111,20 +3017,32 @@ class TestBrowseConsignment:
 
         expected_results = [
             (
-                file_1.FileId,
-                "file_1.docx",
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "1",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
             ),
             (
-                file_3.FileId,
-                "file_3.docx",
-                "25/02/2023",
+                browse_consignment_files[2].FileId,
+                "third_file.docx",
+                "10/03/2023",
                 "Closed",
-                "25/02/2023",
-                "1",
+                "10/03/2023",
+                "25",
+                browse_consignment_files[2].consignment.series.body.BodyId,
+                browse_consignment_files[2].consignment.series.body.Name,
+                browse_consignment_files[2].consignment.series.SeriesId,
+                browse_consignment_files[2].consignment.series.Name,
+                browse_consignment_files[2].consignment.ConsignmentId,
+                browse_consignment_files[2].consignment.ConsignmentReference,
             ),
         ]
 
@@ -3132,456 +3050,35 @@ class TestBrowseConsignment:
 
         assert results == expected_results
 
-    def test_browse_consignment_with_consignment_and_record_status_and_file_type_filter(
-        self, client: FlaskClient, mock_standard_user
+    def test_browse_consignment_with_date_from_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
-        When I call the 'browse_data' function with the consignment id and record status filter as 'Closed'
-        and file type filter as '.docx'
-            of the first 3 file objects
-        Then it returns a Pagination object with 1 total results corresponding to the
-            closure_type metadata value set to 'Closed' and
-            file_name file metadata value contains extension '.docx' (1 file),
-            ordered by their names and with the expected metadata values
-        """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
-
-        file_1 = FileFactory(
-            consignment=consignment,
-            FileName="file_1.docx",
-            FileType="file",
-        )
-
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment,
-            FileName="file_2.ppt",
-            FileType="file",
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        file_3 = FileFactory(
-            consignment=consignment,
-            FileName="file_3.docx",
-            FileType="file",
-        )
-
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_3, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_start_date",
-            Value=None,
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_period",
-            Value=None,
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
-
-        filters = {
-            "record_status": "Closed",
-            "file_type": ".docx",
-        }
-        pagination_object = browse_data(
-            page=1,
-            per_page=per_page,
-            browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
-            filters=filters,
-        )
-
-        assert pagination_object.total == 1
-
-        expected_results = [
-            (
-                file_1.FileId,
-                "file_1.docx",
-                "25/02/2023",
-                "Closed",
-                "25/02/2023",
-                "1",
-            ),
-        ]
-
-        results = pagination_object.items
-
-        assert results == expected_results
-
-    def test_browse_consignment_with_consignment_and_record_status_and_date_range_filter(
-        self, client: FlaskClient, mock_standard_user
-    ):
-        """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
-        And the session contains user info for a standard user with access to the consignment's
-            associated transferring body
-        When I call the 'browse_data' function with the consignment id and record status filter as 'Closed'
-        and date_range between from and to date
-            of the first 3 file objects
-        Then it returns a Pagination object with 1 total results corresponding to the
-            closure_type metadata value set to 'Closed' and
-            date_last_modified metadata value match between date_from and date_to filter (1 file),
-            ordered by their names and with the expected metadata values
-        """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
-
-        file_1 = FileFactory(
-            consignment=consignment,
-            FileName="file_1.docx",
-            FileType="file",
-        )
-
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment,
-            FileName="file_2.ppt",
-            FileType="file",
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        file_3 = FileFactory(
-            consignment=consignment,
-            FileName="file_3.docx",
-            FileType="file",
-        )
-
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="date_last_modified",
-            Value="2023-02-28T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_3, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_start_date",
-            Value="2023-02-28T10:12:47",
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
-
-        filters = {
-            "record_status": "Closed",
-            "date_range": {"date_from": "01/02/2023", "date_to": "25/02/2023"},
-            "date_filter_field": "date_last_modified",
-        }
-        pagination_object = browse_data(
-            page=1,
-            per_page=per_page,
-            browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
-            filters=filters,
-        )
-
-        assert pagination_object.total == 1
-
-        expected_results = [
-            (
-                file_1.FileId,
-                "file_1.docx",
-                "25/02/2023",
-                "Closed",
-                "25/02/2023",
-                "1",
-            ),
-        ]
-
-        results = pagination_object.items
-
-        assert results == expected_results
-
-    def test_browse_consignment_with_consignment_and_file_type_and_date_range_filter(
-        self, client: FlaskClient, mock_standard_user
-    ):
-        """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
-        And the session contains user info for a standard user with access to the consignment's
-            associated transferring body
-        When I call the 'browse_data' function with the consignment id and file_type filter as '.docx'
-        and date_range between from and to date
-            of the first 3 file objects
-        Then it returns a Pagination object with 1 total results corresponding to the
-            file_name metadata value contains file extension as '.docx'
-            date_last_modified metadata value match between date_from and date_to filter (1 file),
-            ordered by their names and with the expected metadata values
-        """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
-
-        file_1 = FileFactory(
-            consignment=consignment,
-            FileName="file_1.docx",
-            FileType="file",
-        )
-
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment,
-            FileName="file_2.ppt",
-            FileType="file",
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        file_3 = FileFactory(
-            consignment=consignment,
-            FileName="file_3.docx",
-            FileType="file",
-        )
-
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="date_last_modified",
-            Value="2023-02-28T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_3, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_start_date",
-            Value="2023-02-28T10:12:47",
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
-
-        filters = {
-            "file_type": ".docx",
-            "date_range": {"date_from": "01/02/2023", "date_to": "25/02/2023"},
-            "date_filter_field": "date_last_modified",
-        }
-        pagination_object = browse_data(
-            page=1,
-            per_page=per_page,
-            browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
-            filters=filters,
-        )
-
-        assert pagination_object.total == 1
-
-        expected_results = [
-            (
-                file_1.FileId,
-                "file_1.docx",
-                "25/02/2023",
-                "Closed",
-                "25/02/2023",
-                "1",
-            ),
-        ]
-
-        results = pagination_object.items
-
-        assert results == expected_results
-
-    def test_browse_consignment_with_consignment_and_date_from_filter(
-        self, client: FlaskClient, mock_standard_user
-    ):
-        """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
-        And the session contains user info for a standard user with access to the consignment's
-            associated transferring body
-        When I call the 'browse_data' function with the consignment id and date_from filter
-            of the first 3 file objects
+        When I call the 'browse_data' function with the consignment id
+            and date_from filter in a data range
         Then it returns a Pagination object with 2 total results corresponding to the
             date_last_modified greater than or equal date_from filter value ( 2 files),
             ordered by their names and with the expected metadata values
         """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
 
-        file_1 = FileFactory(
-            consignment=consignment, FileName="file_1", FileType="file"
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
         )
-
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment, FileName="file_2", FileType="file"
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
         filters = {
-            "date_range": {"date_from": "25/02/2023"},
+            "date_range": {"date_from": "10/04/2023"},
             "date_filter_field": "date_last_modified",
         }
         pagination_object = browse_data(
             page=1,
             per_page=per_page,
             browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
+            consignment_id=consignment_id,
             filters=filters,
         )
 
@@ -3589,20 +3086,32 @@ class TestBrowseConsignment:
 
         expected_results = [
             (
-                file_1.FileId,
-                "file_1",
-                "25/02/2023",
-                "Closed",
-                "25/02/2023",
-                "1",
-            ),
-            (
-                file_2.FileId,
-                "file_2",
-                "27/02/2023",
+                browse_consignment_files[4].FileId,
+                "fifth_file.doc",
+                "20/05/2023",
                 "Open",
                 None,
                 None,
+                browse_consignment_files[4].consignment.series.body.BodyId,
+                browse_consignment_files[4].consignment.series.body.Name,
+                browse_consignment_files[4].consignment.series.SeriesId,
+                browse_consignment_files[4].consignment.series.Name,
+                browse_consignment_files[4].consignment.ConsignmentId,
+                browse_consignment_files[4].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[3].FileId,
+                "fourth_file.xls",
+                "12/04/2023",
+                "Closed",
+                "12/04/2023",
+                "70",
+                browse_consignment_files[3].consignment.series.body.BodyId,
+                browse_consignment_files[3].consignment.series.body.Name,
+                browse_consignment_files[3].consignment.series.SeriesId,
+                browse_consignment_files[3].consignment.series.Name,
+                browse_consignment_files[3].consignment.ConsignmentId,
+                browse_consignment_files[3].consignment.ConsignmentReference,
             ),
         ]
 
@@ -3610,174 +3119,105 @@ class TestBrowseConsignment:
 
         assert results == expected_results
 
-    def test_browse_consignment_with_consignment_and_date_to_filter(
-        self, client: FlaskClient, mock_standard_user
+    def test_browse_consignment_with_date_to_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
-        When I call the 'browse_data' function with the consignment id and date_to filter
-            of the first 3 file objects
-        Then it returns a Pagination object with 1 total results corresponding to the
-            date_last_modified less than or equal date_to filter value ( 1 file),
+        When I call the 'browse_data' function with the consignment id
+            and date_to filter in a data range
+        Then it returns a Pagination object with 2 total results corresponding to the
+            date_last_modified less than or equal date_from filter value ( 2 files),
             ordered by their names and with the expected metadata values
         """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
 
-        file_1 = FileFactory(
-            consignment=consignment, FileName="file_1", FileType="file"
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
         )
-
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment, FileName="file_2", FileType="file"
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
         filters = {
-            "date_range": {"date_to": "26/02/2023"},
+            "date_range": {"date_to": "28/02/2023"},
             "date_filter_field": "date_last_modified",
         }
         pagination_object = browse_data(
             page=1,
             per_page=per_page,
             browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
+            consignment_id=consignment_id,
             filters=filters,
         )
 
-        assert pagination_object.total == 1
+        assert pagination_object.total == 2
 
         expected_results = [
             (
-                file_1.FileId,
-                "file_1",
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "1",
-            )
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[1].FileId,
+                "second_file.ppt",
+                "15/01/2023",
+                "Open",
+                None,
+                None,
+                browse_consignment_files[1].consignment.series.body.BodyId,
+                browse_consignment_files[1].consignment.series.body.Name,
+                browse_consignment_files[1].consignment.series.SeriesId,
+                browse_consignment_files[1].consignment.series.Name,
+                browse_consignment_files[1].consignment.ConsignmentId,
+                browse_consignment_files[1].consignment.ConsignmentReference,
+            ),
         ]
 
         results = pagination_object.items
 
         assert results == expected_results
 
-    def test_browse_consignment_with_consignment_and_date_from_and_to_filter(
-        self, client: FlaskClient, mock_standard_user
+    def test_browse_consignment_with_date_from_and_date_to_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
-        When I call the 'browse_data' function with the consignment id and date_from and date_to filter
-            of the first 3 file objects
+        When I call the 'browse_data' function with the consignment id
+            and date_from and date_to filter in a date range
         Then it returns a Pagination object with 2 total results corresponding to the
             date_last_modified greater than or equal to date_from filter value and
             date_last_modified less than or equal date_to filter value ( 2 file),
             ordered by their names and with the expected metadata values
         """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
 
-        file_1 = FileFactory(
-            consignment=consignment, FileName="file_1", FileType="file"
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
         )
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment, FileName="file_2", FileType="file"
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
-
-        mock_standard_user(client, file_1.consignment.series.body.Name)
         filters = {
-            "date_range": {"date_from": "01/02/2023", "date_to": "28/02/2023"},
+            "date_range": {"date_from": "01/01/2023", "date_to": "28/02/2023"},
             "date_filter_field": "date_last_modified",
         }
         pagination_object = browse_data(
             page=1,
             per_page=per_page,
             browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
+            consignment_id=consignment_id,
             filters=filters,
         )
 
@@ -3785,20 +3225,32 @@ class TestBrowseConsignment:
 
         expected_results = [
             (
-                file_1.FileId,
-                "file_1",
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "1",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
             ),
             (
-                file_2.FileId,
-                "file_2",
-                "27/02/2023",
+                browse_consignment_files[1].FileId,
+                "second_file.ppt",
+                "15/01/2023",
                 "Open",
                 None,
                 None,
+                browse_consignment_files[1].consignment.series.body.BodyId,
+                browse_consignment_files[1].consignment.series.body.Name,
+                browse_consignment_files[1].consignment.series.SeriesId,
+                browse_consignment_files[1].consignment.series.Name,
+                browse_consignment_files[1].consignment.ConsignmentId,
+                browse_consignment_files[1].consignment.ConsignmentReference,
             ),
         ]
 
@@ -3806,96 +3258,241 @@ class TestBrowseConsignment:
 
         assert results == expected_results
 
-    def test_browse_consignment_with_consignment_filter_and_record_status_sorting_closed_first(
-        self, client: FlaskClient, mock_standard_user
+    def test_browse_consignment_with_record_status_and_file_type_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
-        When I call the 'browse_data' function with the consignment id filter and record_status as sorting in ascending
-            of the first 3 file objects
-        Then it returns a Pagination object with 3 total results
-            ordered by their closure_type 'Closed' first and then 'Open' in ascending orders
+        When I call the 'browse_data' function with the consignment id
+            and record status filter as 'Closed'
+            and file type filter as '.docx'
+        Then it returns a Pagination object with 2 total results corresponding to the
+            closure_type metadata value set to 'Closed' and
+            file_name file metadata value contains extension '.docx' (1 file),
+            ordered by their names and with the expected metadata values
         """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
 
-        file_1 = FileFactory(
-            consignment=consignment, FileName="file_1", FileType="file"
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
         )
-
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment, FileName="file_2", FileType="file"
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        file_3 = FileFactory(
-            consignment=consignment, FileName="file_3", FileType="file"
-        )
-
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_3, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
         filters = {
-            "record_status": "all",
+            "record_status": "Closed",
+            "file_type": ".docx",
         }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="consignment",
+            consignment_id=consignment_id,
+            filters=filters,
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[2].FileId,
+                "third_file.docx",
+                "10/03/2023",
+                "Closed",
+                "10/03/2023",
+                "25",
+                browse_consignment_files[2].consignment.series.body.BodyId,
+                browse_consignment_files[2].consignment.series.body.Name,
+                browse_consignment_files[2].consignment.series.SeriesId,
+                browse_consignment_files[2].consignment.series.Name,
+                browse_consignment_files[2].consignment.ConsignmentId,
+                browse_consignment_files[2].consignment.ConsignmentReference,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_consignment_with_record_status_and_date_range_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with the consignment id
+            and record_status filter as 'Closed'
+            and date_range between from and to date
+        Then it returns a Pagination object with 2 total results corresponding to the
+            closure_type metadata value set to 'Closed' and
+            date_last_modified metadata value match between date_from and date_to filter (2 file),
+            ordered by their names and with the expected metadata values
+        """
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        filters = {
+            "record_status": "Closed",
+            "date_range": {"date_from": "01/01/2023", "date_to": "15/03/2023"},
+            "date_filter_field": "date_last_modified",
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="consignment",
+            consignment_id=consignment_id,
+            filters=filters,
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[2].FileId,
+                "third_file.docx",
+                "10/03/2023",
+                "Closed",
+                "10/03/2023",
+                "25",
+                browse_consignment_files[2].consignment.series.body.BodyId,
+                browse_consignment_files[2].consignment.series.body.Name,
+                browse_consignment_files[2].consignment.series.SeriesId,
+                browse_consignment_files[2].consignment.series.Name,
+                browse_consignment_files[2].consignment.ConsignmentId,
+                browse_consignment_files[2].consignment.ConsignmentReference,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_consignment_with_file_type_and_date_range_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with the consignment id
+            and file_type filter as 'docx'
+            and date_range between from and to date
+        Then it returns a Pagination object with 2 total results corresponding to the
+            file_name file metadata value contains extension '.docx' and
+            date_last_modified metadata value match between date_from and date_to filter (2 file),
+            ordered by their names and with the expected metadata values
+        """
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        filters = {
+            "file_type": "docx",
+            "date_range": {"date_from": "01/01/2023", "date_to": "15/03/2023"},
+            "date_filter_field": "date_last_modified",
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="consignment",
+            consignment_id=consignment_id,
+            filters=filters,
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[2].FileId,
+                "third_file.docx",
+                "10/03/2023",
+                "Closed",
+                "10/03/2023",
+                "25",
+                browse_consignment_files[2].consignment.series.body.BodyId,
+                browse_consignment_files[2].consignment.series.body.Name,
+                browse_consignment_files[2].consignment.series.SeriesId,
+                browse_consignment_files[2].consignment.series.Name,
+                browse_consignment_files[2].consignment.ConsignmentId,
+                browse_consignment_files[2].consignment.ConsignmentReference,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    # still sorting to finish
+    def test_browse_consignment_with_record_status_sorting_closed_first(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with the consignment id
+            and record_status as sorting in ascending
+        Then it returns a Pagination object with 5 total results
+            ordered by their closure_type 'Closed' first and then 'Open' in ascending orders
+        """
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
         sorting_orders = {
             "closure_type": "asc",
         }
@@ -3903,37 +3500,81 @@ class TestBrowseConsignment:
             page=1,
             per_page=per_page,
             browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
-            filters=filters,
+            consignment_id=consignment_id,
             sorting_orders=sorting_orders,
         )
-
-        assert pagination_object.total == 3
+        assert pagination_object.total == 5
 
         expected_results = [
             (
-                file_1.FileId,
-                "file_1",
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "1",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
             ),
             (
-                file_3.FileId,
-                "file_3",
-                "25/02/2023",
+                browse_consignment_files[3].FileId,
+                "fourth_file.xls",
+                "12/04/2023",
                 "Closed",
-                "25/02/2023",
-                "1",
+                "12/04/2023",
+                "70",
+                browse_consignment_files[3].consignment.series.body.BodyId,
+                browse_consignment_files[3].consignment.series.body.Name,
+                browse_consignment_files[3].consignment.series.SeriesId,
+                browse_consignment_files[3].consignment.series.Name,
+                browse_consignment_files[3].consignment.ConsignmentId,
+                browse_consignment_files[3].consignment.ConsignmentReference,
             ),
             (
-                file_2.FileId,
-                "file_2",
-                "27/02/2023",
+                browse_consignment_files[2].FileId,
+                "third_file.docx",
+                "10/03/2023",
+                "Closed",
+                "10/03/2023",
+                "25",
+                browse_consignment_files[2].consignment.series.body.BodyId,
+                browse_consignment_files[2].consignment.series.body.Name,
+                browse_consignment_files[2].consignment.series.SeriesId,
+                browse_consignment_files[2].consignment.series.Name,
+                browse_consignment_files[2].consignment.ConsignmentId,
+                browse_consignment_files[2].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[4].FileId,
+                "fifth_file.doc",
+                "20/05/2023",
                 "Open",
                 None,
                 None,
+                browse_consignment_files[4].consignment.series.body.BodyId,
+                browse_consignment_files[4].consignment.series.body.Name,
+                browse_consignment_files[4].consignment.series.SeriesId,
+                browse_consignment_files[4].consignment.series.Name,
+                browse_consignment_files[4].consignment.ConsignmentId,
+                browse_consignment_files[4].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[1].FileId,
+                "second_file.ppt",
+                "15/01/2023",
+                "Open",
+                None,
+                None,
+                browse_consignment_files[1].consignment.series.body.BodyId,
+                browse_consignment_files[1].consignment.series.body.Name,
+                browse_consignment_files[1].consignment.series.SeriesId,
+                browse_consignment_files[1].consignment.series.Name,
+                browse_consignment_files[1].consignment.ConsignmentId,
+                browse_consignment_files[1].consignment.ConsignmentReference,
             ),
         ]
 
@@ -3941,96 +3582,25 @@ class TestBrowseConsignment:
 
         assert results == expected_results
 
-    def test_browse_consignment_with_consignment_filter_and_record_status_sorting_open_first(
-        self, client: FlaskClient, mock_standard_user
+    def test_browse_consignment_with_record_status_sorting_open_first(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
-        When I call the 'browse_data' function with the consignment id filter and record_status as sorting in descending
-            of the first 3 file objects
-        Then it returns a Pagination object with 3 total results
-            ordered by their closure_type 'Closed' first and then 'Open' in ascending orders
+        When I call the 'browse_data' function with the consignment id
+            and record_status as sorting in descending
+        Then it returns a Pagination object with 5 total results
+            ordered by their closure_type 'Open' first and then 'Closed' in descending orders
         """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
 
-        file_1 = FileFactory(
-            consignment=consignment, FileName="file_1", FileType="file"
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
         )
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment, FileName="file_2", FileType="file"
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        file_3 = FileFactory(
-            consignment=consignment, FileName="file_3", FileType="file"
-        )
-
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_3, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
-
-        filters = {
-            "record_status": "all",
-        }
         sorting_orders = {
             "closure_type": "desc",
         }
@@ -4038,37 +3608,81 @@ class TestBrowseConsignment:
             page=1,
             per_page=per_page,
             browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
-            filters=filters,
+            consignment_id=consignment_id,
             sorting_orders=sorting_orders,
         )
-
-        assert pagination_object.total == 3
+        assert pagination_object.total == 5
 
         expected_results = [
             (
-                file_2.FileId,
-                "file_2",
-                "27/02/2023",
+                browse_consignment_files[4].FileId,
+                "fifth_file.doc",
+                "20/05/2023",
                 "Open",
                 None,
                 None,
+                browse_consignment_files[4].consignment.series.body.BodyId,
+                browse_consignment_files[4].consignment.series.body.Name,
+                browse_consignment_files[4].consignment.series.SeriesId,
+                browse_consignment_files[4].consignment.series.Name,
+                browse_consignment_files[4].consignment.ConsignmentId,
+                browse_consignment_files[4].consignment.ConsignmentReference,
             ),
             (
-                file_1.FileId,
-                "file_1",
+                browse_consignment_files[1].FileId,
+                "second_file.ppt",
+                "15/01/2023",
+                "Open",
+                None,
+                None,
+                browse_consignment_files[1].consignment.series.body.BodyId,
+                browse_consignment_files[1].consignment.series.body.Name,
+                browse_consignment_files[1].consignment.series.SeriesId,
+                browse_consignment_files[1].consignment.series.Name,
+                browse_consignment_files[1].consignment.ConsignmentId,
+                browse_consignment_files[1].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "1",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
             ),
             (
-                file_3.FileId,
-                "file_3",
-                "25/02/2023",
+                browse_consignment_files[3].FileId,
+                "fourth_file.xls",
+                "12/04/2023",
                 "Closed",
-                "25/02/2023",
-                "1",
+                "12/04/2023",
+                "70",
+                browse_consignment_files[3].consignment.series.body.BodyId,
+                browse_consignment_files[3].consignment.series.body.Name,
+                browse_consignment_files[3].consignment.series.SeriesId,
+                browse_consignment_files[3].consignment.series.Name,
+                browse_consignment_files[3].consignment.ConsignmentId,
+                browse_consignment_files[3].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[2].FileId,
+                "third_file.docx",
+                "10/03/2023",
+                "Closed",
+                "10/03/2023",
+                "25",
+                browse_consignment_files[2].consignment.series.body.BodyId,
+                browse_consignment_files[2].consignment.series.body.Name,
+                browse_consignment_files[2].consignment.series.SeriesId,
+                browse_consignment_files[2].consignment.series.Name,
+                browse_consignment_files[2].consignment.ConsignmentId,
+                browse_consignment_files[2].consignment.ConsignmentReference,
             ),
         ]
 
@@ -4076,374 +3690,25 @@ class TestBrowseConsignment:
 
         assert results == expected_results
 
-    def test_browse_consignment_with_consignment_filter_and_date_last_modified_sorting_oldest_first(
-        self, client: FlaskClient, mock_standard_user
+    def test_browse_consignment_with_file_name_sorting_a_to_z(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
-        When I call the 'browse_data' function with the consignment id filter
-            and sort by date last modified as oldest first(ascending)
-            of the first 3 file objects
-        Then it returns a Pagination object with 3 total results
-            ordered by their date last modified as oldest first(ascending)
-        """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
-
-        file_1 = FileFactory(
-            consignment=consignment, FileName="file_1", FileType="file"
-        )
-
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment, FileName="file_2", FileType="file"
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        file_3 = FileFactory(
-            consignment=consignment, FileName="file_3", FileType="file"
-        )
-
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="date_last_modified",
-            Value="2023-01-23T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_3, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_start_date",
-            Value="2023-01-23T10:12:47",
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
-
-        filters = {
-            "record_status": "all",
-        }
-        sorting_orders = {
-            "date_last_modified": "asc",
-        }
-        pagination_object = browse_data(
-            page=1,
-            per_page=per_page,
-            browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
-            filters=filters,
-            sorting_orders=sorting_orders,
-        )
-
-        assert pagination_object.total == 3
-
-        expected_results = [
-            (
-                file_3.FileId,
-                "file_3",
-                "23/01/2023",
-                "Closed",
-                "23/01/2023",
-                "1",
-            ),
-            (
-                file_1.FileId,
-                "file_1",
-                "25/02/2023",
-                "Closed",
-                "25/02/2023",
-                "1",
-            ),
-            (
-                file_2.FileId,
-                "file_2",
-                "27/02/2023",
-                "Open",
-                None,
-                None,
-            ),
-        ]
-
-        results = pagination_object.items
-
-        assert results == expected_results
-
-    def test_browse_consignment_with_consignment_filter_and_date_last_modified_sorting_most_recent_first(
-        self, client: FlaskClient, mock_standard_user
-    ):
-        """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
-        And the session contains user info for a standard user with access to the consignment's
-            associated transferring body
-        When I call the 'browse_data' function with the consignment id filter
-            and sort by date last modified as most recent(descending)
-            of the first 3 file objects
-        Then it returns a Pagination object with 3 total results
-            ordered by their date last modified as most recent(descending)
-        """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
-
-        file_1 = FileFactory(
-            consignment=consignment, FileName="file_1", FileType="file"
-        )
-
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment, FileName="file_2", FileType="file"
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        file_3 = FileFactory(
-            consignment=consignment, FileName="file_3", FileType="file"
-        )
-
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="date_last_modified",
-            Value="2023-01-23T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_3, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_start_date",
-            Value="2023-01-23T10:12:47",
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
-
-        filters = {
-            "record_status": "all",
-        }
-        sorting_orders = {
-            "date_last_modified": "desc",
-        }
-        pagination_object = browse_data(
-            page=1,
-            per_page=per_page,
-            browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
-            filters=filters,
-            sorting_orders=sorting_orders,
-        )
-
-        assert pagination_object.total == 3
-
-        expected_results = [
-            (
-                file_2.FileId,
-                "file_2",
-                "27/02/2023",
-                "Open",
-                None,
-                None,
-            ),
-            (
-                file_1.FileId,
-                "file_1",
-                "25/02/2023",
-                "Closed",
-                "25/02/2023",
-                "1",
-            ),
-            (
-                file_3.FileId,
-                "file_3",
-                "23/01/2023",
-                "Closed",
-                "23/01/2023",
-                "1",
-            ),
-        ]
-
-        results = pagination_object.items
-
-        assert results == expected_results
-
-    def test_browse_consignment_with_consignment_filter_and_record_filename_sorting_a_to_z(
-        self, client: FlaskClient, mock_standard_user
-    ):
-        """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
-        And the session contains user info for a standard user with access to the consignment's
-            associated transferring body
-        When I call the 'browse_data' function with the consignment id filter and file name as sorting in ascending
-            of the first 3 file objects
-        Then it returns a Pagination object with 3 total results
+        When I call the 'browse_data' function with the consignment id
+            and file_name as sorting in ascending
+        Then it returns a Pagination object with 5 total results
             ordered by their file name in ascending orders (A to Z)
         """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
 
-        file_1 = FileFactory(
-            consignment=consignment,
-            FileName="first_file.txt",
-            FileType="file",
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
         )
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment,
-            FileName="fourth_file.pdf",
-            FileType="file",
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        file_3 = FileFactory(
-            consignment=consignment,
-            FileName="fifth_file.docx",
-            FileType="file",
-        )
-
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_3, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
-
-        filters = {
-            "record_status": "all",
-        }
         sorting_orders = {
             "file_name": "asc",
         }
@@ -4451,37 +3716,81 @@ class TestBrowseConsignment:
             page=1,
             per_page=per_page,
             browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
-            filters=filters,
+            consignment_id=consignment_id,
             sorting_orders=sorting_orders,
         )
-
-        assert pagination_object.total == 3
+        assert pagination_object.total == 5
 
         expected_results = [
             (
-                file_3.FileId,
-                "fifth_file.docx",
-                "25/02/2023",
-                "Closed",
-                "25/02/2023",
-                "1",
-            ),
-            (
-                file_1.FileId,
-                "first_file.txt",
-                "25/02/2023",
-                "Closed",
-                "25/02/2023",
-                "1",
-            ),
-            (
-                file_2.FileId,
-                "fourth_file.pdf",
-                "27/02/2023",
+                browse_consignment_files[4].FileId,
+                "fifth_file.doc",
+                "20/05/2023",
                 "Open",
                 None,
                 None,
+                browse_consignment_files[4].consignment.series.body.BodyId,
+                browse_consignment_files[4].consignment.series.body.Name,
+                browse_consignment_files[4].consignment.series.SeriesId,
+                browse_consignment_files[4].consignment.series.Name,
+                browse_consignment_files[4].consignment.ConsignmentId,
+                browse_consignment_files[4].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[3].FileId,
+                "fourth_file.xls",
+                "12/04/2023",
+                "Closed",
+                "12/04/2023",
+                "70",
+                browse_consignment_files[3].consignment.series.body.BodyId,
+                browse_consignment_files[3].consignment.series.body.Name,
+                browse_consignment_files[3].consignment.series.SeriesId,
+                browse_consignment_files[3].consignment.series.Name,
+                browse_consignment_files[3].consignment.ConsignmentId,
+                browse_consignment_files[3].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[1].FileId,
+                "second_file.ppt",
+                "15/01/2023",
+                "Open",
+                None,
+                None,
+                browse_consignment_files[1].consignment.series.body.BodyId,
+                browse_consignment_files[1].consignment.series.body.Name,
+                browse_consignment_files[1].consignment.series.SeriesId,
+                browse_consignment_files[1].consignment.series.Name,
+                browse_consignment_files[1].consignment.ConsignmentId,
+                browse_consignment_files[1].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[2].FileId,
+                "third_file.docx",
+                "10/03/2023",
+                "Closed",
+                "10/03/2023",
+                "25",
+                browse_consignment_files[2].consignment.series.body.BodyId,
+                browse_consignment_files[2].consignment.series.body.Name,
+                browse_consignment_files[2].consignment.series.SeriesId,
+                browse_consignment_files[2].consignment.series.Name,
+                browse_consignment_files[2].consignment.ConsignmentId,
+                browse_consignment_files[2].consignment.ConsignmentReference,
             ),
         ]
 
@@ -4489,102 +3798,25 @@ class TestBrowseConsignment:
 
         assert results == expected_results
 
-    def test_browse_consignment_with_consignment_filter_and_record_filename_sorting_z_to_a(
-        self, client: FlaskClient, mock_standard_user
+    def test_browse_consignment_with_file_name_sorting_z_to_a(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given three file objects with associated metadata part of 1 consignment,
-            where 2 file types is 'file', another file 'folder', and another file of
-            type 'file' and metadata associated with a different consignment
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
-        When I call the 'browse_data' function with the consignment id filter and file name as sorting in descending
-            of the first 3 file objects
-        Then it returns a Pagination object with 3 total results
-            ordered by their file name in descending orders (Z to A)
+        When I call the 'browse_data' function with the consignment id
+            and file_name as sorting in descending
+        Then it returns a Pagination object with 5 total results
+            ordered by their file name in descending order (Z to A)
         """
-        consignment = ConsignmentFactory()
-        mock_standard_user(client, consignment.series.body.Name)
 
-        file_1 = FileFactory(
-            consignment=consignment,
-            FileName="first_file.txt",
-            FileType="file",
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
         )
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_1,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        file_2 = FileFactory(
-            consignment=consignment,
-            FileName="fourth_file.pdf",
-            FileType="file",
-        )
-        FileMetadataFactory(
-            file=file_2,
-            PropertyName="date_last_modified",
-            Value="2023-02-27T12:28:08",
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_start_date", Value=None
-        )
-        FileMetadataFactory(
-            file=file_2, PropertyName="closure_period", Value=None
-        )
-
-        file_3 = FileFactory(
-            consignment=consignment,
-            FileName="fifth_file.docx",
-            FileType="file",
-        )
-
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="date_last_modified",
-            Value="2023-02-25T10:12:47",
-        )
-
-        FileMetadataFactory(
-            file=file_3, PropertyName="closure_type", Value="Closed"
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_start_date",
-            Value="2023-02-25T11:14:34",
-        )
-        FileMetadataFactory(
-            file=file_3,
-            PropertyName="closure_period",
-            Value="1",
-        )
-
-        FileFactory(consignment=consignment, FileType="folder")
-
-        FileFactory(FileType="file")
-
-        filters = {
-            "record_status": "all",
-        }
         sorting_orders = {
             "file_name": "desc",
         }
@@ -4592,37 +3824,297 @@ class TestBrowseConsignment:
             page=1,
             per_page=per_page,
             browse_type="consignment",
-            consignment_id=consignment.ConsignmentId,
-            filters=filters,
+            consignment_id=consignment_id,
             sorting_orders=sorting_orders,
         )
-
-        assert pagination_object.total == 3
+        assert pagination_object.total == 5
 
         expected_results = [
             (
-                file_2.FileId,
-                "fourth_file.pdf",
-                "27/02/2023",
+                browse_consignment_files[2].FileId,
+                "third_file.docx",
+                "10/03/2023",
+                "Closed",
+                "10/03/2023",
+                "25",
+                browse_consignment_files[2].consignment.series.body.BodyId,
+                browse_consignment_files[2].consignment.series.body.Name,
+                browse_consignment_files[2].consignment.series.SeriesId,
+                browse_consignment_files[2].consignment.series.Name,
+                browse_consignment_files[2].consignment.ConsignmentId,
+                browse_consignment_files[2].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[1].FileId,
+                "second_file.ppt",
+                "15/01/2023",
                 "Open",
                 None,
                 None,
+                browse_consignment_files[1].consignment.series.body.BodyId,
+                browse_consignment_files[1].consignment.series.body.Name,
+                browse_consignment_files[1].consignment.series.SeriesId,
+                browse_consignment_files[1].consignment.series.Name,
+                browse_consignment_files[1].consignment.ConsignmentId,
+                browse_consignment_files[1].consignment.ConsignmentReference,
             ),
             (
-                file_1.FileId,
-                "first_file.txt",
+                browse_consignment_files[3].FileId,
+                "fourth_file.xls",
+                "12/04/2023",
+                "Closed",
+                "12/04/2023",
+                "70",
+                browse_consignment_files[3].consignment.series.body.BodyId,
+                browse_consignment_files[3].consignment.series.body.Name,
+                browse_consignment_files[3].consignment.series.SeriesId,
+                browse_consignment_files[3].consignment.series.Name,
+                browse_consignment_files[3].consignment.ConsignmentId,
+                browse_consignment_files[3].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "1",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
             ),
             (
-                file_3.FileId,
-                "fifth_file.docx",
+                browse_consignment_files[4].FileId,
+                "fifth_file.doc",
+                "20/05/2023",
+                "Open",
+                None,
+                None,
+                browse_consignment_files[4].consignment.series.body.BodyId,
+                browse_consignment_files[4].consignment.series.body.Name,
+                browse_consignment_files[4].consignment.series.SeriesId,
+                browse_consignment_files[4].consignment.series.Name,
+                browse_consignment_files[4].consignment.ConsignmentId,
+                browse_consignment_files[4].consignment.ConsignmentReference,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_consignment_with_date_last_modified_sorting_oldest_first(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with the consignment id
+            and sort by date last modified ascending
+        Then it returns a Pagination object with 5 total results
+            ordered by their date last modified as oldest first(ascending)
+        """
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        sorting_orders = {
+            "date_last_modified": "asc",
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="consignment",
+            consignment_id=consignment_id,
+            sorting_orders=sorting_orders,
+        )
+        assert pagination_object.total == 5
+
+        expected_results = [
+            (
+                browse_consignment_files[1].FileId,
+                "second_file.ppt",
+                "15/01/2023",
+                "Open",
+                None,
+                None,
+                browse_consignment_files[1].consignment.series.body.BodyId,
+                browse_consignment_files[1].consignment.series.body.Name,
+                browse_consignment_files[1].consignment.series.SeriesId,
+                browse_consignment_files[1].consignment.series.Name,
+                browse_consignment_files[1].consignment.ConsignmentId,
+                browse_consignment_files[1].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "1",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[2].FileId,
+                "third_file.docx",
+                "10/03/2023",
+                "Closed",
+                "10/03/2023",
+                "25",
+                browse_consignment_files[2].consignment.series.body.BodyId,
+                browse_consignment_files[2].consignment.series.body.Name,
+                browse_consignment_files[2].consignment.series.SeriesId,
+                browse_consignment_files[2].consignment.series.Name,
+                browse_consignment_files[2].consignment.ConsignmentId,
+                browse_consignment_files[2].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[3].FileId,
+                "fourth_file.xls",
+                "12/04/2023",
+                "Closed",
+                "12/04/2023",
+                "70",
+                browse_consignment_files[3].consignment.series.body.BodyId,
+                browse_consignment_files[3].consignment.series.body.Name,
+                browse_consignment_files[3].consignment.series.SeriesId,
+                browse_consignment_files[3].consignment.series.Name,
+                browse_consignment_files[3].consignment.ConsignmentId,
+                browse_consignment_files[3].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[4].FileId,
+                "fifth_file.doc",
+                "20/05/2023",
+                "Open",
+                None,
+                None,
+                browse_consignment_files[4].consignment.series.body.BodyId,
+                browse_consignment_files[4].consignment.series.body.Name,
+                browse_consignment_files[4].consignment.series.SeriesId,
+                browse_consignment_files[4].consignment.series.Name,
+                browse_consignment_files[4].consignment.ConsignmentId,
+                browse_consignment_files[4].consignment.ConsignmentReference,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_consignment_with_date_last_modified_sorting_most_recent_first(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given five file objects with associated metadata part of 1 consignment,
+            where 5 file types is 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function with the consignment id
+            and sort by date last modified descending
+        Then it returns a Pagination object with 5 total results
+            ordered by their date last modified as most recent first(descending)
+        """
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        sorting_orders = {
+            "date_last_modified": "desc",
+        }
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="consignment",
+            consignment_id=consignment_id,
+            sorting_orders=sorting_orders,
+        )
+        assert pagination_object.total == 5
+
+        expected_results = [
+            (
+                browse_consignment_files[4].FileId,
+                "fifth_file.doc",
+                "20/05/2023",
+                "Open",
+                None,
+                None,
+                browse_consignment_files[4].consignment.series.body.BodyId,
+                browse_consignment_files[4].consignment.series.body.Name,
+                browse_consignment_files[4].consignment.series.SeriesId,
+                browse_consignment_files[4].consignment.series.Name,
+                browse_consignment_files[4].consignment.ConsignmentId,
+                browse_consignment_files[4].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[3].FileId,
+                "fourth_file.xls",
+                "12/04/2023",
+                "Closed",
+                "12/04/2023",
+                "70",
+                browse_consignment_files[3].consignment.series.body.BodyId,
+                browse_consignment_files[3].consignment.series.body.Name,
+                browse_consignment_files[3].consignment.series.SeriesId,
+                browse_consignment_files[3].consignment.series.Name,
+                browse_consignment_files[3].consignment.ConsignmentId,
+                browse_consignment_files[3].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[2].FileId,
+                "third_file.docx",
+                "10/03/2023",
+                "Closed",
+                "10/03/2023",
+                "25",
+                browse_consignment_files[2].consignment.series.body.BodyId,
+                browse_consignment_files[2].consignment.series.body.Name,
+                browse_consignment_files[2].consignment.series.SeriesId,
+                browse_consignment_files[2].consignment.series.Name,
+                browse_consignment_files[2].consignment.ConsignmentId,
+                browse_consignment_files[2].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
+                "25/02/2023",
+                "Closed",
+                "25/02/2023",
+                "10",
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                browse_consignment_files[0].consignment.series.SeriesId,
+                browse_consignment_files[0].consignment.series.Name,
+                browse_consignment_files[0].consignment.ConsignmentId,
+                browse_consignment_files[0].consignment.ConsignmentReference,
+            ),
+            (
+                browse_consignment_files[1].FileId,
+                "second_file.ppt",
+                "15/01/2023",
+                "Open",
+                None,
+                None,
+                browse_consignment_files[1].consignment.series.body.BodyId,
+                browse_consignment_files[1].consignment.series.body.Name,
+                browse_consignment_files[1].consignment.series.SeriesId,
+                browse_consignment_files[1].consignment.series.Name,
+                browse_consignment_files[1].consignment.ConsignmentId,
+                browse_consignment_files[1].consignment.ConsignmentReference,
             ),
         ]
 
