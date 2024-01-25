@@ -1,12 +1,15 @@
+{% set breadcrumbs = {"everything": "Everything available to you"} %}
 {% if view_type == "desktop" %}
     <!-- BREAD CRUMB -->
     <div class="govuk-grid-column-full govuk-grid-column-full__browse-details">
         <div class="browse-details">
             <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
             <p class="govuk-body browse__body">You are viewing</p>
-            <p class="govuk-body-m browse__body browse__available__text">Everything available to you</p>
             <br />
             <br />
+            {% with dict = breadcrumbs %}
+                {% include "breadcrumb.html" %}
+            {% endwith %}
         </div>
     </div>
     <!-- SORT -->
@@ -62,140 +65,132 @@
     </div>
     <!-- FILTERS -->
     <div class="govuk-grid-column-one-third filters-form">
-        <div class="browse-filter-container">
-            <div class="browse-filter__header">
-                <p class="govuk-body-l browse__body filters-form__title">Filter within browse</p>
-                <img src="{{ url_for('static', filename='image/filter-icon.svg') }}"
-                     height="32px"
-                     width="32px"
-                     class="browse-filter__icon"
-                     alt="filter-icon">
+        <form method="post" action="{{ url_for('main.browse') }}">
+            {{ form.csrf_token }}
+            <div class="browse-filter-container">
+                <div class="browse-filter__header">
+                    <p class="govuk-body-l browse__body filters-form__title">Filter</p>
+                    <img src="{{ url_for('static', filename='image/filter-icon.svg') }}"
+                         height="32px"
+                         width="32px"
+                         class="browse-filter__icon"
+                         alt="filter-icon">
+                </div>
+                <label class="govuk-body browse__body">Transferring body</label>
+                <div class="govuk-form-group filters-form__group filters-form__transferring-body-group">
+                    <label class="govuk-label" for="browse_filter_transferring_body"></label>
+                    <select class="govuk-select govuk-select__filters-form-transferring-body-select"
+                            id="browse_filter_transferring_body"
+                            name="sort">
+                        <option value="all" selected>Choose one...</option>
+                        <option value="arts">Arts Council England</option>
+                        <option value="food_standards_agency">Food Standards Agency</option>
+                        <option value="foreign_office">Foreign Office</option>
+                    </select>
+                </div>
             </div>
-            <p class="govuk-body browse__body">Transferring body</p>
-            <div class="govuk-form-group filters-form__group filters-form__transferring-body-group">
-                <label class="govuk-label" for="browse_filter_transferring_body"></label>
-                <select class="govuk-select govuk-select__filters-form-transferring-body-select"
-                        id="browse_filter_transferring_body"
-                        name="sort">
-                    <option value="all" selected>Choose one...</option>
-                    <option value="arts">Arts Council England</option>
-                    <option value="food_standards_agency">Food Standards Agency</option>
-                    <option value="foreign_office">Foreign Office</option>
-                </select>
+            <div class="filters-form__series__container">
+                <label class="govuk-body browse__body">Series</label>
+                <div class="govuk-form-group filters-form__group filters-form__series-group">
+                    <label class="govuk-label" for="browse_filter_series"></label>
+                    <input class="govuk-input filters-form__series--input"
+                           id="browse_filter_series"
+                           name="width10"
+                           type="text">
+                </div>
             </div>
-        </div>
-        <div class="filters-form__series__container">
-            <p class="govuk-body browse__body">Series</p>
-            <div class="govuk-form-group filters-form__group filters-form__series-group">
-                <label class="govuk-label" for="browse_filter_series"></label>
-                <input class="govuk-input filters-form__series--input"
-                       id="browse_filter_series"
-                       name="width10"
-                       type="text">
-            </div>
-        </div>
-        <div class="filters-form__consignment-ref__container">
-            <p class="govuk-body browse__body">
-                Consignment <abbr title="reference">ref</abbr>
-            </p>
-            <div class="govuk-form-group filters-form__group filters-form__consignment-ref-group">
-                <label class="govuk-label" for="browse_filter_consignment-ref"></label>
-                <input class="govuk-input filters-form__consignment-ref--input"
-                       id="browse_filter_consignment-ref"
-                       name="width10"
-                       type="text">
-            </div>
-        </div>
-        <div class="filters-form__date__container">
-            <div class="govuk-form-group date-form filters-form__group filters-form__date-from-group">
-                <p class="govuk-body date-form browse__body filters-form__body-date">Date from</p>
-                <fieldset class="govuk-fieldset" role="group" aria-describedby="date-from">
-                    <div class="govuk-date-input" id="date-from">
-                        <div class="govuk-date-input__item">
-                            <div class="govuk-form-group">
-                                <input class="govuk-input govuk-date-input__input govuk-input--width-2"
-                                       id="date-from-day"
-                                       name="date-from-day"
-                                       type="text"
-                                       inputmode="numeric">
-                                <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                                       for="date-from-day">(DD)</label>
+            <div class="filters-form__date__container">
+                <label class="govuk-label">Date consignment transferred</label>
+                <div class="govuk-form-group date-form filters-form__group filters-form__date-from-group">
+                    <p class="govuk-body date-form browse__body filters-form__body-date">Date from</p>
+                    <fieldset class="govuk-fieldset" role="group" aria-describedby="date-from">
+                        <div class="govuk-date-input" id="date-from">
+                            <div class="govuk-date-input__item">
+                                <div class="govuk-form-group">
+                                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                                           for="date-from-day">Day</label>
+                                    <input class="govuk-input govuk-date-input__input govuk-input--width-2"
+                                           id="date-from-day"
+                                           name="date-from-day"
+                                           type="text"
+                                           inputmode="numeric">
+                                </div>
+                            </div>
+                            <div class="govuk-date-input__item">
+                                <div class="govuk-form-group">
+                                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                                           for="date-from-month">Month</label>
+                                    <input class="govuk-input govuk-date-input__input govuk-input--width-2"
+                                           id="date-from-month"
+                                           name="date-from-month"
+                                           type="text"
+                                           inputmode="numeric">
+                                </div>
+                            </div>
+                            <div class="govuk-date-input__item">
+                                <div class="govuk-form-group">
+                                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                                           for="date-from-year">Year</label>
+                                    <input class="govuk-input govuk-date-input__input govuk-input--width-4"
+                                           id="date-from-year"
+                                           name="date-from-year"
+                                           type="text"
+                                           inputmode="numeric">
+                                </div>
                             </div>
                         </div>
-                        <div class="govuk-date-input__item">
-                            <div class="govuk-form-group">
-                                <input class="govuk-input govuk-date-input__input govuk-input--width-2"
-                                       id="date-from-month"
-                                       name="date-from-month"
-                                       type="text"
-                                       inputmode="numeric">
-                                <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                                       for="date-from-month">(MM)</label>
+                    </fieldset>
+                </div>
+                <div class="govuk-form-group date-form filters-form__group filters-form__date-to-group">
+                    <p class="govuk-body-m date-form browse__body filters-form__body-date">To date</p>
+                    <fieldset class="govuk-fieldset" role="group" aria-describedby="date-to">
+                        <div class="govuk-date-input" id="date-to">
+                            <div class="govuk-date-input__item">
+                                <div class="govuk-form-group">
+                                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                                           for="date-to-day">Day</label>
+                                    <input class="govuk-input govuk-date-input__input govuk-input--width-2"
+                                           id="date-to-day"
+                                           name="date-to-day"
+                                           type="text"
+                                           inputmode="numeric">
+                                </div>
+                            </div>
+                            <div class="govuk-date-input__item">
+                                <div class="govuk-form-group">
+                                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                                           for="date-to-month">Month</label>
+                                    <input class="govuk-input govuk-date-input__input govuk-input--width-2"
+                                           id="date-to-month"
+                                           name="date-to-month"
+                                           type="text"
+                                           inputmode="numeric">
+                                </div>
+                            </div>
+                            <div class="govuk-date-input__item">
+                                <div class="govuk-form-group">
+                                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                                           for="date-to-year">Year</label>
+                                    <input class="govuk-input govuk-date-input__input govuk-input--width-4"
+                                           id="date-to-year"
+                                           name="date-to-year"
+                                           type="text"
+                                           inputmode="numeric">
+                                </div>
                             </div>
                         </div>
-                        <div class="govuk-date-input__item">
-                            <div class="govuk-form-group">
-                                <input class="govuk-input govuk-date-input__input govuk-input--width-4"
-                                       id="date-from-year"
-                                       name="date-from-year"
-                                       type="text"
-                                       inputmode="numeric">
-                                <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                                       for="date-from-year">(YYYY)</label>
-                            </div>
-                        </div>
-                    </div>
-                </fieldset>
+                    </fieldset>
+                </div>
+                <div class="filters-form__buttons">
+                    <button type="submit"
+                            class="govuk-button govuk-button__filters-form-apply-button"
+                            data-module="govuk-button">Apply filters</button>
+                    <button type="submit"
+                            class="govuk-button__filters-form-clear-button"
+                            data-module="govuk-button">Clear filters</button>
+                </div>
             </div>
-            <div class="govuk-form-group date-form filters-form__group filters-form__date-to-group">
-                <p class="govuk-body-m date-form browse__body filters-form__body-date">To date</p>
-                <fieldset class="govuk-fieldset" role="group" aria-describedby="date-to">
-                    <div class="govuk-date-input" id="date-to">
-                        <div class="govuk-date-input__item">
-                            <div class="govuk-form-group">
-                                <input class="govuk-input govuk-date-input__input govuk-input--width-2"
-                                       id="date-to-day"
-                                       name="date-to-day"
-                                       type="text"
-                                       inputmode="numeric">
-                                <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                                       for="date-to-day">(DD)</label>
-                            </div>
-                        </div>
-                        <div class="govuk-date-input__item">
-                            <div class="govuk-form-group">
-                                <input class="govuk-input govuk-date-input__input govuk-input--width-2"
-                                       id="date-to-month"
-                                       name="date-to-month"
-                                       type="text"
-                                       inputmode="numeric">
-                                <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                                       for="date-to-month">(MM)</label>
-                            </div>
-                        </div>
-                        <div class="govuk-date-input__item">
-                            <div class="govuk-form-group">
-                                <input class="govuk-input govuk-date-input__input govuk-input--width-4"
-                                       id="date-to-year"
-                                       name="date-to-year"
-                                       type="text"
-                                       inputmode="numeric">
-                                <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                                       for="date-to-year">(YYYY)</label>
-                            </div>
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
-            <div class="filters-form__buttons">
-                <button type="button"
-                        class="govuk-button govuk-button__filters-form-apply-button"
-                        data-module="govuk-button">Apply filters</button>
-                <button type="button"
-                        class="govuk-button__filters-form-clear-button"
-                        data-module="govuk-button">Clear all filters</button>
-            </div>
-        </div>
+        </form>
     </div>
 {% else %}
     <!-- BREAD CRUMB -->
@@ -203,9 +198,11 @@
         <div class="mobile-details">
             <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
             <p class="govuk-body browse__body">You are viewing</p>
-            <p class="govuk-body-m browse__body browse__available__text">Everything available to you</p>
             <br />
             <br />
+            {% with dict = breadcrumbs %}
+                {% include "breadcrumb.html" %}
+            {% endwith %}
         </div>
     </div>
     <!-- MOBILE FILTERS -->

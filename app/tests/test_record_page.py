@@ -61,7 +61,9 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
     expected_breadcrumbs_html = f"""
     <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
     <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
-    <div class="govuk-breadcrumbs govuk-breadcrumbs--record">
+    <br />
+    <br />
+    <div class="govuk-breadcrumbs">
         <ol class="govuk-breadcrumbs__list">
             <li class="govuk-breadcrumbs__list-item">
             <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
@@ -79,7 +81,7 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
                 href="/browse?consignment_id={file.ConsignmentId}">{file.consignment.ConsignmentReference}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
-            <a class="govuk-breadcrumbs__link--record">test_file.txt</a>
+            <p class="govuk-breadcrumbs__link--record">test_file.txt</p>
             </li>
         </ol>
         </div>

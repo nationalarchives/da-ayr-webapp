@@ -1,0 +1,30 @@
+{% set browse_url = "/browse" %}
+{% set transferring_body_url = browse_url ~ "?transferring_body_id=" %}
+{% set series_url = browse_url ~ "?series_id=" %}
+{% set consignment_url = browse_url ~ "?consignment_id=" %}
+<div class="govuk-breadcrumbs">
+    <ol class="govuk-breadcrumbs__list">
+        {% for key, value in dict.items() %}
+            {% if loop.index != dict|length %}
+                <li class="govuk-breadcrumbs__list-item">
+                    {% if key == "everything" %}
+                        <a class="govuk-breadcrumbs__link--record" href="{{ browse_url }}">{{ value }}</a>
+                    {% elif key == "body" %}
+                        <a class="govuk-breadcrumbs__link--record"
+                           href="{{ transferring_body_url ~ value[0] }}">{{ value[1] }}</a>
+                    {% elif key == "series" %}
+                        <a class="govuk-breadcrumbs__link--record"
+                           href="{{ series_url ~ value[0] }}">{{ value[1] }}</a>
+                    {% elif key == "consignment" %}
+                        <a class="govuk-breadcrumbs__link--record"
+                           href="{{ consignment_url ~ value[0] }}">{{ value[1] }}</a>
+                    {% endif %}
+                </li>
+            {% else %}
+                <li class="govuk-breadcrumbs__list-item">
+                    <p class="govuk-breadcrumbs__link--record">{{ value }}</p>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ol>
+</div>

@@ -1,3 +1,7 @@
+{% set breadcrumbs = {
+    "everything":"Everything",
+    "body": results.items[0]['transferring_body']
+} %}
 {% if view_type == "desktop" %}
     <!-- BREAD CRUMB -->
     <div class="govuk-grid-column-full govuk-grid-column-full__browse-details">
@@ -6,16 +10,9 @@
             <p class="govuk-body browse__body">You are viewing</p>
             <br />
             <br />
-            <div class="govuk-breadcrumbs">
-                <ol class="govuk-breadcrumbs__list">
-                    <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
-                    </li>
-                    <li class="govuk-breadcrumbs__list-item">
-                        <p class="govuk-breadcrumbs__link--record">{{ results.items[0]['transferring_body'] }}</p>
-                    </li>
-                </ol>
-            </div>
+            {% with dict = breadcrumbs %}
+                {% include "breadcrumb.html" %}
+            {% endwith %}
         </div>
     </div>
     <!-- SORT -->
@@ -212,16 +209,9 @@
             <p class="govuk-body browse__body">You are viewing</p>
             <br />
             <br />
-            <div class="govuk-breadcrumbs">
-                <ol class="govuk-breadcrumbs__list">
-                    <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
-                    </li>
-                    <li class="govuk-breadcrumbs__list-item">
-                        <p class="govuk-breadcrumbs__link--record">{{ results.items[0]['transferring_body'] }}</p>
-                    </li>
-                </ol>
-            </div>
+            {% with dict = breadcrumbs %}
+                {% include "breadcrumb.html" %}
+            {% endwith %}
         </div>
     </div>
     <!-- MOBILE FILTERS -->

@@ -1,27 +1,20 @@
+{% set breadcrumbs = {
+    "everything":"Everything",
+    "body": [results.items[0]['transferring_body_id'], results.items[0]['transferring_body']],
+    "series": [results.items[0]['series_id'], results.items[0]['series']],
+    "consignment": results.items[0]['consignment_reference']
+} %}
 {% if view_type == "desktop" %}
     <!-- BREAD CRUMB -->
     <div class="govuk-grid-column-full govuk-grid-column-full__browse-details">
         <div class="browse-details">
             <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
             <p class="govuk-body browse__body">You are viewing</p>
-            <div class="govuk-breadcrumbs">
-                <ol class="govuk-breadcrumbs__list">
-                    <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
-                    </li>
-                    <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record"
-                           href="/browse?transferring_body_id={{ results.items[0]['transferring_body_id'] }}">{{ results.items[0]['transferring_body'] }}</a>
-                    </li>
-                    <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record"
-                           href="/browse?series_id={{ results.items[0]['series_id'] }}">{{ results.items[0]['series'] }}</a>
-                    </li>
-                    <li class="govuk-breadcrumbs__list-item">
-                        <p class="govuk-breadcrumbs__link--record">{{ results.items[0]['consignment_reference'] }}</p>
-                    </li>
-                </ol>
-            </div>
+            <br />
+            <br />
+            {% with dict = breadcrumbs %}
+                {% include "breadcrumb.html" %}
+            {% endwith %}
         </div>
     </div>
     <!-- SORT -->
@@ -232,24 +225,11 @@
         <div class="mobile-details">
             <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
             <p class="govuk-body browse__body">You are viewing</p>
-            <div class="govuk-breadcrumbs">
-                <ol class="govuk-breadcrumbs__list">
-                    <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
-                    </li>
-                    <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record"
-                           href="/browse?transferring_body_id={{ results.items[0]['transferring_body_id'] }}">{{ results.items[0]['transferring_body'] }}</a>
-                    </li>
-                    <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record"
-                           href="/browse?series_id={{ results.items[0]['series_id'] }}">{{ results.items[0]['series'] }}</a>
-                    </li>
-                    <li class="govuk-breadcrumbs__list-item">
-                        <p class="govuk-breadcrumbs__link--record">{{ results.items[0]['consignment_reference'] }}</p>
-                    </li>
-                </ol>
-            </div>
+            <br />
+            <br />
+            {% with dict = breadcrumbs %}
+                {% include "breadcrumb.html" %}
+            {% endwith %}
         </div>
     </div>
     <!-- MOBILE FILTERS -->
