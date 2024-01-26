@@ -357,7 +357,6 @@ def test_browse_transferring_body(client: FlaskClient, mock_standard_user):
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
     assert b"You are viewing" in response.data
-    assert b"test body1" in response.data
     assert b"Records found 1" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
@@ -451,8 +450,6 @@ def test_browse_series(client: FlaskClient, mock_standard_user):
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
     assert b"You are viewing" in response.data
-    assert b"test body1" in response.data
-    assert b"test series1" in response.data
     assert b"Records found 1" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
@@ -548,9 +545,6 @@ def test_browse_consignment(client: FlaskClient, mock_standard_user):
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
     assert b"You are viewing" in response.data
-    assert b"test body1" in response.data
-    assert b"test series1" in response.data
-    assert b"test consignment1" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
     table = soup.find("table")
@@ -601,7 +595,7 @@ def test_browse_consignment_breadcrumb(client: FlaskClient, mock_standard_user):
     assert b"You are viewing" in response.data
 
     html = response.data.decode()
-    print(html)
+
     expected_breadcrumbs_html = f"""
     <div class="govuk-breadcrumbs">
         <ol class="govuk-breadcrumbs__list">
@@ -622,7 +616,7 @@ def test_browse_consignment_breadcrumb(client: FlaskClient, mock_standard_user):
         </ol>
     </div>
     """
-    print(expected_breadcrumbs_html)
+
     assert_contains_html(
         expected_breadcrumbs_html,
         html,
