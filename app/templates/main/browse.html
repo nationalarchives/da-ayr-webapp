@@ -29,37 +29,34 @@
             </div>
         </div>
         {% if results %}
+            <!-- TABLE -->
             <div class="govuk-grid-column-full govuk-grid-column-full__browse-details">
                 <div class="browse-details">
                     <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
                     <p class="govuk-body browse__body">You are viewing</p>
-                    <p class="govuk-body-m browse__body browse__available__text">Everything available to you</p>
                     <br />
                     <br />
+                    {% if browse_type == "browse" %}
+                        {% with view_type='desktop' %}
+                            {% include "browse-all.html" %}
+                        {% endwith %}
+                    {% endif %}
+                    {% if browse_type == "transferring_body" %}
+                        {% with view_type='desktop' %}
+                            {% include "browse-transferring-body.html" %}
+                        {% endwith %}
+                    {% endif %}
+                    {% if browse_type == "series" %}
+                        {% with view_type='desktop' %}
+                            {% include "browse-series.html" %}
+                        {% endwith %}
+                    {% endif %}
+                    {% if browse_type == "consignment" %}
+                        {% with view_type='desktop' %}
+                            {% include "browse-consignment.html" %}
+                        {% endwith %}
+                    {% endif %}
                 </div>
-            </div>
-            <!-- TABLE -->
-            <div>
-                {% if browse_type == "browse" %}
-                    {% with view_type='desktop' %}
-                        {% include "browse-all.html" %}
-                    {% endwith %}
-                {% endif %}
-                {% if browse_type == "transferring_body" %}
-                    {% with view_type='desktop' %}
-                        {% include "browse-transferring-body.html" %}
-                    {% endwith %}
-                {% endif %}
-                {% if browse_type == "series" %}
-                    {% with view_type='desktop' %}
-                        {% include "browse-series.html" %}
-                    {% endwith %}
-                {% endif %}
-                {% if browse_type == "consignment" %}
-                    {% with view_type='desktop' %}
-                        {% include "browse-consignment.html" %}
-                    {% endwith %}
-                {% endif %}
             </div>
             <!-- END TABLE -->
             <!-- PAGINATION -->
@@ -98,11 +95,6 @@
             </div>
         </div>
         {% if results %}
-            <div class="browse-details">
-                <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
-                <p class="govuk-body browse__body">You are viewing</p>
-                <p class="govuk-body-m browse__body browse__available__text">Everything available to you</p>
-            </div>
             <div class="govuk-width-container">
                 <!-- MOBILE SEARCH -->
                 <div class="mobile__search__container govuk-grid-column-full">
@@ -130,36 +122,34 @@
                 </div>
                 <!--  -->
                 <div class="mobile__search__container-block"></div>
-                <!-- MOBILE DETAILS -->
-                <div class="mobile-details">
-                    <h1 class="govuk-heading-l browse__records-found__text">Browse records {{ num_records_found }}</h1>
-                    <h2 class="govuk-body browse__body">You are viewing</h2>
-                    <p class="govuk-body browse__body browse__available__text">Everything available to you</p>
-                    <br />
-                    <br />
-                </div>
                 <!-- TABLE -->
-                <div>
-                    {% if browse_type == "browse" %}
-                        {% with view_type='mobile' %}
-                            {% include "browse-all.html" %}
-                        {% endwith %}
-                    {% endif %}
-                    {% if browse_type == "transferring_body" %}
-                        {% with view_type='mobile' %}
-                            {% include "browse-transferring-body.html" %}
-                        {% endwith %}
-                    {% endif %}
-                    {% if browse_type == "series" %}
-                        {% with view_type='mobile' %}
-                            {% include "browse-series.html" %}
-                        {% endwith %}
-                    {% endif %}
-                    {% if browse_type == "consignment" %}
-                        {% with view_type='mobile' %}
-                            {% include "browse-consignment.html" %}
-                        {% endwith %}
-                    {% endif %}
+                <div class="govuk-grid-column-full">
+                    <div class="mobile-details">
+                        <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
+                        <p class="govuk-body browse__body">You are viewing</p>
+                        <br />
+                        <br />
+                        {% if browse_type == "browse" %}
+                            {% with view_type='mobile' %}
+                                {% include "browse-all.html" %}
+                            {% endwith %}
+                        {% endif %}
+                        {% if browse_type == "transferring_body" %}
+                            {% with view_type='mobile' %}
+                                {% include "browse-transferring-body.html" %}
+                            {% endwith %}
+                        {% endif %}
+                        {% if browse_type == "series" %}
+                            {% with view_type='mobile' %}
+                                {% include "browse-series.html" %}
+                            {% endwith %}
+                        {% endif %}
+                        {% if browse_type == "consignment" %}
+                            {% with view_type='mobile' %}
+                                {% include "browse-consignment.html" %}
+                            {% endwith %}
+                        {% endif %}
+                    </div>
                 </div>
                 <!-- END TABLE -->
                 <!-- PAGINATION -->

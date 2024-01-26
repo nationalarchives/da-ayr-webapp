@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from flask import url_for
 from flask.testing import FlaskClient
 
+from app.tests.assertions import assert_contains_html
 from app.tests.factories import BodyFactory
 from app.tests.mock_database import (
     create_multiple_files_for_consignment,
@@ -385,6 +386,53 @@ def test_browse_transferring_body(client: FlaskClient, mock_standard_user):
     assert [row_data] == expected_results_table[1]
 
 
+def test_browse_transferring_body_breadcrumb(
+    client: FlaskClient, mock_standard_user
+):
+    """
+    Given a user accessing the browse page
+    When they make a GET request with a transferring body id
+    Then they should see results based on transferring body filter on browse page content.
+    And breadcrumb should show 'Everything' > transferring body name
+    """
+    files = create_multiple_test_records()
+    file = files[0]
+    transferring_body_id = file.consignment.series.body.BodyId
+
+    mock_standard_user(client, file.consignment.series.body.Name)
+
+    response = client.get(
+        f"/browse?transferring_body_id={transferring_body_id}"
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Records found 1" in response.data
+
+    html = response.data.decode()
+
+    expected_breadcrumbs_html = f"""
+    <div class="govuk-breadcrumbs">
+        <ol class="govuk-breadcrumbs__list">
+            <li class="govuk-breadcrumbs__list-item">
+            <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
+            </li>
+            <li class="govuk-breadcrumbs__list-item">
+            <p class="govuk-breadcrumbs__link--record">{file.consignment.series.body.Name}</p>
+            </li>
+        </ol>
+    </div>
+    """
+
+    assert_contains_html(
+        expected_breadcrumbs_html,
+        html,
+        "div",
+        {"class": "govuk-breadcrumbs"},
+    )
+
+
 def test_browse_series(client: FlaskClient, mock_standard_user):
     """
     Given a user accessing the browse page
@@ -431,6 +479,53 @@ def test_browse_series(client: FlaskClient, mock_standard_user):
         if row_index < len(rows) - 1:
             row_data = row_data + ", "
     assert [row_data] == expected_results_table[1]
+
+
+def test_browse_series_breadcrumb(client: FlaskClient, mock_standard_user):
+    """
+    Given a user accessing the browse page
+    When they make a GET request with a series id
+    Then they should see results based on series filter on browse page content.
+    And breadcrumb should show 'Everything' > transferring body name > series name
+    """
+    files = create_multiple_test_records()
+    file = files[0]
+    series_id = file.consignment.SeriesId
+
+    mock_standard_user(client, file.consignment.series.body.Name)
+
+    response = client.get(f"/browse?series_id={series_id}")
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Records found 1" in response.data
+
+    html = response.data.decode()
+
+    expected_breadcrumbs_html = f"""
+    <div class="govuk-breadcrumbs">
+        <ol class="govuk-breadcrumbs__list">
+            <li class="govuk-breadcrumbs__list-item">
+                <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
+            </li>
+            <li class="govuk-breadcrumbs__list-item">
+                <a class="govuk-breadcrumbs__link--record"
+                    href="/browse?transferring_body_id={file.consignment.series.body.BodyId}">{file.consignment.series.body.Name}</a>
+            </li>
+            <li class="govuk-breadcrumbs__list-item">
+                <p class="govuk-breadcrumbs__link--record">{file.consignment.series.Name}</p>
+            </li>
+        </ol>
+    </div>
+    """
+
+    assert_contains_html(
+        expected_breadcrumbs_html,
+        html,
+        "div",
+        {"class": "govuk-breadcrumbs"},
+    )
 
 
 def test_browse_consignment(client: FlaskClient, mock_standard_user):
@@ -480,6 +575,56 @@ def test_browse_consignment(client: FlaskClient, mock_standard_user):
         ] == expected_results_table[index + 1]
 
 
+def test_browse_consignment_breadcrumb(client: FlaskClient, mock_standard_user):
+    """
+    Given a user accessing the browse page
+    When they make a GET request with a consignment id
+    Then they should see results based on consignment filter on browse page content.
+    And breadcrumb should show 'Everything' > transferring body name > series name > consignment reference
+    """
+    files = create_multiple_test_records()
+    file = files[0]
+    consignment_id = file.consignment.ConsignmentId
+
+    mock_standard_user(client, file.consignment.series.body.Name)
+
+    response = client.get(f"/browse?consignment_id={consignment_id}")
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+
+    html = response.data.decode()
+
+    expected_breadcrumbs_html = f"""
+    <div class="govuk-breadcrumbs">
+        <ol class="govuk-breadcrumbs__list">
+            <li class="govuk-breadcrumbs__list-item">
+                <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
+            </li>
+            <li class="govuk-breadcrumbs__list-item">
+                <a class="govuk-breadcrumbs__link--record"
+                    href="/browse?transferring_body_id={file.consignment.series.body.BodyId}">{file.consignment.series.body.Name}</a>
+            </li>
+            <li class="govuk-breadcrumbs__list-item">
+                <a class="govuk-breadcrumbs__link--record"
+                    href="/browse?series_id={file.consignment.series.SeriesId}">{file.consignment.series.Name}</a>
+            </li>
+            <li class="govuk-breadcrumbs__list-item">
+                <p class="govuk-breadcrumbs__link--record">{file.consignment.ConsignmentReference}</p>
+            </li>
+        </ol>
+    </div>
+    """
+
+    assert_contains_html(
+        expected_breadcrumbs_html,
+        html,
+        "div",
+        {"class": "govuk-breadcrumbs"},
+    )
+
+
 def test_browse_consignment_with_missing_file(
     client: FlaskClient, mock_standard_user
 ):
@@ -501,6 +646,9 @@ def test_browse_consignment_with_missing_file(
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
     assert b"You are viewing" in response.data
+    assert b"testing body11" in response.data
+    assert b"test series11" in response.data
+    assert b"test consignment11" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
     table = soup.find("table")
@@ -553,7 +701,9 @@ def test_browse_consignment_filter_display_multiple_pages(
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
     assert b"You are viewing" in response.data
-    assert b"Everything available to you" in response.data
+    assert b"test body1" in response.data
+    assert b"test series1" in response.data
+    assert b"test consignment1" in response.data
     assert b"Records found 7" in response.data
     assert b'aria-label="Page 1"' in response.data
     assert b'aria-label="Page 2"' in response.data

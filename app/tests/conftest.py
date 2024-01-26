@@ -11,6 +11,7 @@ from app.tests.factories import (
     BodyFactory,
     ConsignmentFactory,
     FileFactory,
+    FileMetadataFactory,
     SeriesFactory,
 )
 from configs.testing_config import TestingConfig
@@ -542,4 +543,165 @@ def browse_transferring_body_files():
         file_4,
         file_5,
         file_6,
+    ]
+
+
+@pytest.fixture(scope="function")
+def browse_consignment_files():
+    """
+
+    purpose of this function to return file objects to perform testing on
+      combination of single and multiple filters
+      and single sorting
+
+    returns 5 file objects associated with consignments
+
+    there is 1 body defined as Transferring bodies,
+
+    there is 1 series defined as Series in one body
+
+    there is a 1 consignment object associated with transferring body and series
+      consignment_1 associated to body_1 and series_1
+
+    there are 5 file objects (1 to 5) associated with consignment
+
+    file_1, file_2, file_3, file_4 and file_5 associated to consignment_1
+    """
+
+    body_1 = BodyFactory(Name="first_body", Description="first_body")
+
+    series_1 = SeriesFactory(
+        Name="first_series", Description="first_series", body=body_1
+    )
+
+    consignment_1 = ConsignmentFactory(
+        series=series_1,
+        ConsignmentReference="TDR-2023-FI1",
+        TransferCompleteDatetime="2023-10-14",
+    )
+
+    file_1 = FileFactory(
+        consignment=consignment_1,
+        FileName="first_file.docx",
+        FileType="file",
+    )
+
+    FileMetadataFactory(
+        file=file_1,
+        PropertyName="date_last_modified",
+        Value="2023-02-25T10:12:47",
+    )
+
+    FileMetadataFactory(
+        file=file_1, PropertyName="closure_type", Value="Closed"
+    )
+    FileMetadataFactory(
+        file=file_1,
+        PropertyName="closure_start_date",
+        Value="2023-02-25T11:14:34",
+    )
+    FileMetadataFactory(
+        file=file_1,
+        PropertyName="closure_period",
+        Value="10",
+    )
+
+    file_2 = FileFactory(
+        consignment=consignment_1,
+        FileName="second_file.ppt",
+        FileType="file",
+    )
+    FileMetadataFactory(
+        file=file_2,
+        PropertyName="date_last_modified",
+        Value="2023-01-15T12:28:08",
+    )
+    FileMetadataFactory(file=file_2, PropertyName="closure_type", Value="Open")
+    FileMetadataFactory(
+        file=file_2, PropertyName="closure_start_date", Value=None
+    )
+    FileMetadataFactory(file=file_2, PropertyName="closure_period", Value=None)
+
+    file_3 = FileFactory(
+        consignment=consignment_1,
+        FileName="third_file.docx",
+        FileType="file",
+    )
+
+    FileMetadataFactory(
+        file=file_3,
+        PropertyName="date_last_modified",
+        Value="2023-03-10T10:12:47",
+    )
+
+    FileMetadataFactory(
+        file=file_3, PropertyName="closure_type", Value="Closed"
+    )
+    FileMetadataFactory(
+        file=file_3,
+        PropertyName="closure_start_date",
+        Value="2023-03-10T10:12:47",
+    )
+    FileMetadataFactory(
+        file=file_3,
+        PropertyName="closure_period",
+        Value="25",
+    )
+
+    file_4 = FileFactory(
+        consignment=consignment_1,
+        FileName="fourth_file.xls",
+        FileType="file",
+    )
+
+    FileMetadataFactory(
+        file=file_4,
+        PropertyName="date_last_modified",
+        Value="2023-04-12T10:12:47",
+    )
+
+    FileMetadataFactory(
+        file=file_4, PropertyName="closure_type", Value="Closed"
+    )
+    FileMetadataFactory(
+        file=file_4,
+        PropertyName="closure_start_date",
+        Value="2023-04-12T10:12:47",
+    )
+    FileMetadataFactory(
+        file=file_4,
+        PropertyName="closure_period",
+        Value="70",
+    )
+
+    file_5 = FileFactory(
+        consignment=consignment_1,
+        FileName="fifth_file.doc",
+        FileType="file",
+    )
+
+    FileMetadataFactory(
+        file=file_5,
+        PropertyName="date_last_modified",
+        Value="2023-05-20T10:12:47",
+    )
+
+    FileMetadataFactory(file=file_5, PropertyName="closure_type", Value="Open")
+    FileMetadataFactory(
+        file=file_5,
+        PropertyName="closure_start_date",
+        Value=None,
+    )
+    FileMetadataFactory(
+        file=file_5,
+        PropertyName="closure_period",
+        Value=None,
+    )
+
+    return [
+        file_1,
+        file_2,
+        file_3,
+        file_4,
+        file_5,
     ]

@@ -249,7 +249,7 @@ def _build_series_view_query(series_id, filters, sorting_orders):
             sub_query.c.series,
             sub_query.c.consignment_reference,
         )
-    print(query)
+
     return query
 
 
@@ -323,6 +323,12 @@ def _build_consignment_view_query(
                 else_=None,
             ),
         ).label("closure_period"),
+        Consignment.ConsignmentId.label("consignment_id"),
+        Consignment.ConsignmentReference.label("consignment_reference"),
+        Body.Name.label("transferring_body"),
+        Body.BodyId.label("transferring_body_id"),
+        Series.SeriesId.label("series_id"),
+        Series.Name.label("series"),
     )
 
     query_filters = [
@@ -334,8 +340,19 @@ def _build_consignment_view_query(
         select.join(
             FileMetadata, File.FileId == FileMetadata.FileId, isouter=True
         )
+        .join(Consignment, File.ConsignmentId == Consignment.ConsignmentId)
+        .join(
+            Series,
+            Series.SeriesId == Consignment.SeriesId,
+        )
+        .join(
+            Body,
+            Body.BodyId == Series.BodyId,
+        )
         .filter(*query_filters)
-        .group_by(File.FileId)
+        .group_by(
+            File.FileId, Body.BodyId, Series.SeriesId, Consignment.ConsignmentId
+        )
         .order_by(File.FileName)
     ).subquery()
 
@@ -352,13 +369,20 @@ def _build_consignment_view_query(
             current_app.config["DEFAULT_DATE_FORMAT"],
         ).label("closure_start_date"),
         sub_query.c.closure_period,
+        sub_query.c.transferring_body_id,
+        sub_query.c.transferring_body,
+        sub_query.c.series_id,
+        sub_query.c.series,
+        sub_query.c.consignment_id,
+        sub_query.c.consignment_reference,
     )
 
     if filters:
         query = _build_consignment_filters(query, sub_query, filters)
     if sorting_orders:
         query = _build_sorting_orders(query, sub_query, sorting_orders)
-
+    else:
+        query = query.order_by(sub_query.c.file_name)
     return query
 
 

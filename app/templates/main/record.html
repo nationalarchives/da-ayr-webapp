@@ -1,3 +1,10 @@
+{% set breadcrumbs = {
+    "everything":"Everything",
+    "body": [record['transferring_body_id'], record['transferring_body']],
+    "series": [record['series_id'], record['series']],
+    "consignment": [record['consignment_id'], record['consignment']],
+    "File": record['file_name']
+} %}
 {% extends "base.html" %}
 {%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
@@ -9,28 +16,11 @@
                 <div class="govuk-grid-row">
                     <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
                         <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
-                        <div class="govuk-breadcrumbs govuk-breadcrumbs--record">
-                            <ol class="govuk-breadcrumbs__list">
-                                <li class="govuk-breadcrumbs__list-item">
-                                    <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
-                                </li>
-                                <li class="govuk-breadcrumbs__list-item">
-                                    <a class="govuk-breadcrumbs__link--record"
-                                       href="/browse?transferring_body_id={{ record['transferring_body_id'] }}">{{ record['transferring_body'] }}</a>
-                                </li>
-                                <li class="govuk-breadcrumbs__list-item">
-                                    <a class="govuk-breadcrumbs__link--record"
-                                       href="/browse?series_id={{ record['series_id'] }}">{{ record['series'] }}</a>
-                                </li>
-                                <li class="govuk-breadcrumbs__list-item">
-                                    <a class="govuk-breadcrumbs__link--record"
-                                       href="/browse?consignment_id={{ record['consignment_id'] }}">{{ record['consignment'] }}</a>
-                                </li>
-                                <li class="govuk-breadcrumbs__list-item">
-                                    <a class="govuk-breadcrumbs__link--record">{{ record['file_name'] }}</a>
-                                </li>
-                            </ol>
-                        </div>
+                        <br />
+                        <br />
+                        {% with dict = breadcrumbs %}
+                            {% include "breadcrumb.html" %}
+                        {% endwith %}
                     </div>
                 </div>
                 <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--record-search">

@@ -1,3 +1,11 @@
+{% set breadcrumbs = {
+    "everything":"Everything",
+    "body": results.items[0]['transferring_body']
+} %}
+<!-- BREAD CRUMB -->
+{% with dict = breadcrumbs %}
+    {% include "breadcrumb.html" %}
+{% endwith %}
 {% if view_type == "desktop" %}
     <!-- SORT -->
     <div class="govuk-form-group sort-container__form">
@@ -18,7 +26,6 @@
                     data-module="govuk-button">Apply</button>
         </div>
     </div>
-    <!-- END SORT -->
     <!-- TABLE -->
     <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
         {% if num_records_found > 0 %}
@@ -49,7 +56,6 @@
             </table>
         {% endif %}
     </div>
-    <!-- END TABLE -->
     <!-- FILTERS -->
     <div class="govuk-grid-column-one-third filters-form">
         <div class="browse-filter-container">
@@ -187,7 +193,6 @@
             </div>
         </div>
     </div>
-    <!-- END FILTERS -->
 {% else %}
     <!-- MOBILE FILTERS -->
     <div class="mobile-filters">
@@ -334,7 +339,6 @@
             </div>
         </details>
     </div>
-    <!-- END MOBILE FILTERS -->
     <!-- MOBILE SORT -->
     <div class="govuk-form-group sort-container__form mobile-sort">
         <div class="browse__sort-container">
@@ -354,7 +358,6 @@
                     data-module="govuk-button">Apply</button>
         </div>
     </div>
-    <!-- END MOBILE SORT -->
     <!-- MOBILE TABLE -->
     <table class="govuk-table govuk-mobile-table">
         <thead class="govuk-table__head govuk-mobile-table__head-border">
