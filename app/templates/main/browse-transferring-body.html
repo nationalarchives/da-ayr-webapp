@@ -2,19 +2,11 @@
     "everything":"Everything",
     "body": results.items[0]['transferring_body']
 } %}
+<!-- BREAD CRUMB -->
+{% with dict = breadcrumbs %}
+    {% include "breadcrumb.html" %}
+{% endwith %}
 {% if view_type == "desktop" %}
-    <!-- BREAD CRUMB -->
-    <div class="govuk-grid-column-full govuk-grid-column-full__browse-details">
-        <div class="browse-details">
-            <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
-            <p class="govuk-body browse__body">You are viewing</p>
-            <br />
-            <br />
-            {% with dict = breadcrumbs %}
-                {% include "breadcrumb.html" %}
-            {% endwith %}
-        </div>
-    </div>
     <!-- SORT -->
     <div class="govuk-form-group sort-container__form">
         <div class="browse__sort-container">
@@ -202,18 +194,6 @@
         </div>
     </div>
 {% else %}
-    <!-- BREAD CRUMB -->
-    <div class="govuk-grid-column-full">
-        <div class="mobile-details">
-            <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
-            <p class="govuk-body browse__body">You are viewing</p>
-            <br />
-            <br />
-            {% with dict = breadcrumbs %}
-                {% include "breadcrumb.html" %}
-            {% endwith %}
-        </div>
-    </div>
     <!-- MOBILE FILTERS -->
     <div class="mobile-filters">
         <details class="govuk-details">
