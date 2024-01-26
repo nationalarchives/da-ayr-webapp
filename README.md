@@ -37,7 +37,11 @@ For convenience a shell script has been provided to download and extract the GOV
 
 ### CSS / SCSS
 
-SASS is being used to build the local CSS files. To build the css files you can use npm to build by first installing the npm packages and then using:
+We have the `app/static/src/scss/main.scss` file in the repo which we include all scss via partial scss files.
+
+This needs to be converted using `sass` to a `app/static/src/css/main.css` file which we include in the `app/templates/base.html` template which we use as a base for all of our html files.
+
+To build `main.css` file you can run the npm build script which runs `sass` by first installing the npm packages and then using:
 
 ```shell
 npm run build
@@ -54,6 +58,12 @@ To lint all CSS use:
 ```shell
 npm run lint
 ```
+
+### SCSS files
+
+If you need to add any new style files, then you can create a [partial scss](https://sass-lang.com/guide/#partials) file, with filename prefixed by an underscore to mark it as such and then include it in the main.scss file using `@import`.
+
+e.g. for `_foo.scss`, add `@import "includes/foo";`.
 
 ### Set up SSL Certificate
 
@@ -544,16 +554,6 @@ With pytest we can assert the logs we expect to be written by utilising pytest's
 ## Features
 
 Please refer to the specific packages documentation for more details. Details can be found in the [pytest logging documentation](https://docs.pytest.org/en/7.1.x/how-to/logging.html#how-to-manage-logging).
-
-### Asset management
-
-Custom CSS and JavaScript files are merged and compressed using [Flask Assets](https://flask-assets.readthedocs.io/en/latest/) and [Webassets](https://webassets.readthedocs.io/en/latest/). This takes all `*.css` files in `app/static/src/css` and all `*.js` files in `app/static/src/js` and outputs a single compressed file to both `app/static/dist/css` and `app/static/dist/js` respectively.
-
-CSS is [minified](https://en.wikipedia.org/wiki/Minification_(programming)) using [CSSMin](https://github.com/zacharyvoase/cssmin) and JavaScript is minified using [JSMin](https://github.com/tikitu/jsmin/). This removes all whitespace characters, comments and line breaks to reduce the size of the source code, making its transmission over a network more efficient.
-
-### Cache busting
-
-Merged and compressed assets are browser cache busted on update by modifying their URL with their MD5 hash using [Flask Assets](https://flask-assets.readthedocs.io/en/latest/) and [Webassets](https://webassets.readthedocs.io/en/latest/). The MD5 hash is appended to the file name, for example `custom-d41d8cd9.css` instead of a query string, to support certain older browsers and proxies that ignore the querystring in their caching behaviour.
 
 ### Forms generation and validation
 

@@ -1,5 +1,4 @@
 from flask import Flask, g
-from flask_assets import Bundle, Environment
 from flask_compress import Compress
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -11,7 +10,6 @@ from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 from app.logger_config import setup_logging
 from app.main.db.models import db
 
-assets = Environment()
 compress = Compress()
 csrf = CSRFProtect()
 limiter = Limiter(
@@ -64,7 +62,6 @@ def create_app(config_class, database_uri=None):
     # Initialise app extensions
     setup_logging(app)
     db.init_app(app)
-    assets.init_app(app)
     compress.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
@@ -78,22 +75,6 @@ def create_app(config_class, database_uri=None):
             db.create_all()
         else:
             db.Model.metadata.reflect(bind=db.engine, schema="public")
-
-    # Create static asset bundles
-    css = Bundle(
-        "src/css/*.css",
-        filters="cssmin",
-        output="dist/css/custom-%(version)s.min.css",
-    )
-    js = Bundle(
-        "src/js/*.js",
-        filters="jsmin",
-        output="dist/js/custom-%(version)s.min.js",
-    )
-    if "css" not in assets:
-        assets.register("css", css)
-    if "js" not in assets:
-        assets.register("js", js)
 
     # Register blueprints
     from app.main import bp as main_bp
