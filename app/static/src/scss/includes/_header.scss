@@ -1,39 +1,40 @@
 @mixin on-mobile {
-    @media screen and (width <= 768px) {
+    @media screen and (width <=768px) {
         @content;
     }
 }
 
 .govuk-header {
-    &__logo {
+    font-family: Arial, sans-serif !important;
+
+    &__logo--ayr {
+
         @include on-mobile {
             padding: 0;
             margin: 0;
         }
     }
 
-    &__link--tna {
+    &__link--ayr {
         font-weight: 700;
     }
 
     &__logotype--ayr {
         white-space: nowrap;
-        word-spacing: 0.2rem;
         margin-top: 0;
         margin-bottom: 0;
 
         @include on-mobile {
-            font-size: 1.7rem;
+            font-size: 1.8rem;
+
         }
 
     }
 
-    &__content--tna {
+    &__content--ayr {
         text-align: right;
         width: 100%;
-        padding-bottom: 0.5rem;
         margin-top: 0.75rem;
-        word-spacing: 0.2rem;
 
         @include on-mobile {
             flex-direction: column;
@@ -44,7 +45,6 @@
     }
 
     &__container--ayr {
-        margin-bottom: 0;
         display: flex;
 
         @include on-mobile {
