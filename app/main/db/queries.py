@@ -389,7 +389,7 @@ def _build_consignment_view_query(
 def _build_consignment_filters(query, sub_query, filters):
     record_status = filters.get("record_status")
     if record_status:
-        if record_status and record_status != "all":
+        if record_status and record_status.lower() != "all":
             query = query.filter(
                 func.lower(sub_query.c.closure_type) == record_status.lower()
             )

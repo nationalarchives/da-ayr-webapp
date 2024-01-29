@@ -4,10 +4,6 @@ from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
 from app.tests.factories import BodyFactory
-from app.tests.mock_database import (
-    create_multiple_files_for_consignment,
-    create_multiple_test_records,
-)
 
 
 def test_standard_user_redirected_to_browse_transferring_body_when_accessing_browse(
@@ -30,7 +26,7 @@ def test_standard_user_redirected_to_browse_transferring_body_when_accessing_bro
     )
 
 
-def test_browse_get(client: FlaskClient, mock_superuser):
+def test_browse_get_view(client: FlaskClient, mock_superuser):
     """
     Given a superuser accessing the browse page
     When they make a GET request
@@ -46,31 +42,33 @@ def test_browse_get(client: FlaskClient, mock_superuser):
     assert b"Everything available to you" in response.data
 
 
-def test_browse_submit_search_query(client: FlaskClient, mock_superuser):
+def test_browse_submit_search_query(
+    client: FlaskClient, mock_superuser, browse_files
+):
     """
     Given a superuser accessing the browse page
     When they make a POST request
     Then they should see results in content.
     """
     mock_superuser(client)
-    create_multiple_test_records()
 
     query = "test"
     response = client.post("/browse", data={"query": query})
 
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
-    assert b"Records found 11" in response.data
+    assert b"Records found 6" in response.data
 
 
-def test_browse_get_with_data(client: FlaskClient, mock_superuser):
+def test_browse_get_without_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
     """
     Given a superuser accessing the browse page
     When they make a GET request with page as a query string parameter
     Then they should see first five records on browse page content.
     """
     mock_superuser(client)
-    create_multiple_test_records()
 
     response = client.get("/browse")
 
@@ -93,11 +91,11 @@ def test_browse_get_with_data(client: FlaskClient, mock_superuser):
             "Consignments within series",
         ],
         [
-            "'test body1', 'test series1', '01/01/2023', '1', '1', "
-            "'test body2', 'test series2', '01/01/2023', '1', '1', "
-            "'testing body10', 'test series10', '01/01/2023', '1', '1', "
-            "'testing body11', 'test series11', '01/01/2023', '2', '1', "
-            "'testing body3', 'test series3', '01/01/2023', '1', '1'"
+            "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+            "'first_body', 'first_series', '07/02/2023', '3', '2', "
+            "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+            "'second_body', 'second_series', '26/04/2023', '7', '2', "
+            "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
         ],
     ]
 
@@ -112,7 +110,925 @@ def test_browse_get_with_data(client: FlaskClient, mock_superuser):
     assert [row_data] == expected_results_table[1]
 
 
-def test_browse_display_first_page(client: FlaskClient, app, mock_superuser):
+def test_browse_get_with_transferring_body_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and select transferring body as filter from dropdown list
+    Then they should see first two records matches to transferring body name on browse page content.
+    """
+    mock_superuser(client)
+    transferring_body = "fi"
+    response = client.get(
+        "/browse?transferring_body_filter=" + transferring_body
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        [
+            "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+            "'first_body', 'first_series', '07/02/2023', '3', '2'"
+        ],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_series_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and provide a series value as filter in text input field
+    Then they should see first two records matches to series name on browse page content.
+    """
+    mock_superuser(client)
+    series = "fi"
+    response = client.get("/browse?series_filter=" + series)
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        [
+            "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+            "'first_body', 'first_series', '07/02/2023', '3', '2'"
+        ],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_date_from_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and provide a date range with only date from value as filter in text input field
+    Then they should see two records matches to date last transferred greater than or equal to date from filter value
+    on browse page content.
+    """
+    mock_superuser(client)
+    day = "01"
+    month = "09"
+    year = "2023"
+    response = client.get(
+        "/browse?date_from_day="
+        + day
+        + "&date_from_month="
+        + month
+        + "&date_from_year="
+        + year
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        [
+            "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+            "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
+        ],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_date_to_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and provide a date range with only date to value as filter in text input field
+    Then they should see two records matches to date last transferred less than or equal to date to filter value
+    on browse page content.
+    """
+    mock_superuser(client)
+    day = "26"
+    month = "04"
+    year = "2023"
+    response = client.get(
+        "/browse?date_to_day="
+        + day
+        + "&date_to_month="
+        + month
+        + "&date_to_year="
+        + year
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        [
+            "'first_body', 'first_series', '07/02/2023', '3', '2', "
+            "'second_body', 'second_series', '26/04/2023', '7', '2'"
+        ],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_date_from_and_date_to_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and provide a date range with date from and date to value as filter in text input field
+    Then they should see three records matches to date last transferred between date from and date to filter value
+    on browse page content.
+    """
+    mock_superuser(client)
+    date_from_day = "01"
+    date_from_month = "08"
+    date_from_year = "2023"
+    date_to_day = "31"
+    date_to_month = "10"
+    date_to_year = "2023"
+    response = client.get(
+        "/browse?date_from_day="
+        + date_from_day
+        + "&date_from_month="
+        + date_from_month
+        + "&date_from_year="
+        + date_from_year
+        + "&date_to_day="
+        + date_to_day
+        + "&date_to_month="
+        + date_to_month
+        + "&date_to_year="
+        + date_to_year
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        [
+            "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+            "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+            "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
+        ],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_transferring_body_and_series_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and select transferring body as filter from dropdown list
+    and provide a series value as filter in text input field
+    Then they should see one record matches to transferring body name and series name on browse page content.
+    """
+    mock_superuser(client)
+    transferring_body = "fif"
+    series = "fi"
+    response = client.get(
+        "/browse?transferring_body_filter="
+        + transferring_body
+        + "&series_filter="
+        + series
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_transferring_body_and_date_from_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and select transferring body as filter from dropdown list
+    and provide a date range with only date from value as filter in text input field
+    Then they should see one record matches to transferring body name
+    and date last transferred greater than or equal to date from filter value
+    on browse page content.
+    """
+    mock_superuser(client)
+    transferring_body = "fifth"
+    day = "01"
+    month = "09"
+    year = "2023"
+    response = client.get(
+        "/browse?transferring_body_filter="
+        + transferring_body
+        + "&date_from_day="
+        + day
+        + "&date_from_month="
+        + month
+        + "&date_from_year="
+        + year
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_transferring_body_and_date_to_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and select transferring body as filter from dropdown list
+    and provide a date range with only date to value as filter in text input field
+    Then they should see one record matches to transferring body name
+    and date last transferred less than or equal to date to filter value
+    on browse page content.
+    """
+    mock_superuser(client)
+    transferring_body = "fifth"
+    day = "21"
+    month = "09"
+    year = "2023"
+    response = client.get(
+        "/browse?transferring_body_filter="
+        + transferring_body
+        + "&date_to_day="
+        + day
+        + "&date_to_month="
+        + month
+        + "&date_to_year="
+        + year
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_transferring_body_and_date_from_and_date_to_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and select transferring body as filter from dropdown list
+    and provide a date range with date from and date to value as filter in text input field
+    Then they should see two records matches to transferring body name
+    and date last transferred between date from and date to filter value
+    on browse page content.
+    """
+    mock_superuser(client)
+    transferring_body = "f"
+    date_from_day = "01"
+    date_from_month = "08"
+    date_from_year = "2023"
+    date_to_day = "31"
+    date_to_month = "10"
+    date_to_year = "2023"
+    response = client.get(
+        "/browse?transferring_body_filter="
+        + transferring_body
+        + "&date_from_day="
+        + date_from_day
+        + "&date_from_month="
+        + date_from_month
+        + "&date_from_year="
+        + date_from_year
+        + "&date_to_day="
+        + date_to_day
+        + "&date_to_month="
+        + date_to_month
+        + "&date_to_year="
+        + date_to_year
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        [
+            "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+            "'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"
+        ],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_series_and_date_from_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and provide a series value as filter in text input field
+    and provide a date range with only date from value as filter in text input field
+    Then they should see one record matches to series name
+    and date last transferred greater than or equal to date from filter value
+    on browse page content.
+    """
+    mock_superuser(client)
+    series = "fifth"
+    day = "01"
+    month = "09"
+    year = "2023"
+    response = client.get(
+        "/browse?series_filter="
+        + series
+        + "&date_from_day="
+        + day
+        + "&date_from_month="
+        + month
+        + "&date_from_year="
+        + year
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_series_and_date_to_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and provide a series value as filter in text input field
+    and provide a date range with only date to value as filter in text input field
+    Then they should see one record matches to series name
+    and date last transferred less than or equal to date to filter value
+    on browse page content.
+    """
+    mock_superuser(client)
+    series = "fifth"
+    day = "21"
+    month = "09"
+    year = "2023"
+    response = client.get(
+        "/browse?series_filter="
+        + series
+        + "&date_to_day="
+        + day
+        + "&date_to_month="
+        + month
+        + "&date_to_year="
+        + year
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_series_and_date_from_and_date_to_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and provide a series value as filter in text input field
+    and provide a date range with date from and date to value as filter in text input field
+    Then they should see one record matches to series name
+    and date last transferred between date from and date to filter value
+    on browse page content.
+    """
+    mock_superuser(client)
+    series = "fou"
+    date_from_day = "01"
+    date_from_month = "08"
+    date_from_year = "2023"
+    date_to_day = "31"
+    date_to_month = "10"
+    date_to_year = "2023"
+    response = client.get(
+        "/browse?series_filter="
+        + series
+        + "&date_from_day="
+        + date_from_day
+        + "&date_from_month="
+        + date_from_month
+        + "&date_from_year="
+        + date_from_year
+        + "&date_to_day="
+        + date_to_day
+        + "&date_to_month="
+        + date_to_month
+        + "&date_to_year="
+        + date_to_year
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        ["'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_transferring_body_and_series_and_date_from_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and select transferring body as filter from dropdown list
+    and provide a series value as filter in text input field
+    and provide a date range with only date from value as filter in text input field
+    Then they should see one record matches to transferring body name, series_name
+    and date last transferred greater than or equal to date from filter value
+    on browse page content.
+    """
+    mock_superuser(client)
+    transferring_body = "fi"
+    series = "fifth"
+    day = "01"
+    month = "09"
+    year = "2023"
+    response = client.get(
+        "/browse?transferring_body_filter="
+        + transferring_body
+        + "&series_filter="
+        + series
+        + "&date_from_day="
+        + day
+        + "&date_from_month="
+        + month
+        + "&date_from_year="
+        + year
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_transferring_body_and_series_and_date_to_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and select transferring body as filter from dropdown list
+    and provide a series value as filter in text input field
+    and provide a date range with only date to value as filter in text input field
+    Then they should see one record matches to transferring body name, series_name
+    and date last transferred less than or equal to date to filter value
+    on browse page content.
+    """
+    mock_superuser(client)
+    transferring_body = "fi"
+    series = "fifth"
+    day = "21"
+    month = "09"
+    year = "2023"
+    response = client.get(
+        "/browse?transferring_body_filter="
+        + transferring_body
+        + "&series_filter="
+        + series
+        + "&date_to_day="
+        + day
+        + "&date_to_month="
+        + month
+        + "&date_to_year="
+        + year
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_get_with_transferring_body_and_series_and_date_from_and_date_to_filter(
+    client: FlaskClient, mock_superuser, browse_files
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request with page as a query string parameter
+    and select transferring body as filter from dropdown list
+    and provide a series value as filter in text input field
+    and provide a date range with date from and date to value as filter in text input field
+    Then they should see one record matches to transferring body name, series_name
+    and date last transferred between date from and date to filter value
+    on browse page content.
+    """
+    mock_superuser(client)
+    transferring_body = "fo"
+    series = "fou"
+    date_from_day = "01"
+    date_from_month = "08"
+    date_from_year = "2023"
+    date_to_day = "31"
+    date_to_month = "10"
+    date_to_year = "2023"
+    response = client.get(
+        "/browse?transferring_body_filter="
+        + transferring_body
+        + "&series_filter="
+        + series
+        + "&date_from_day="
+        + date_from_day
+        + "&date_from_month="
+        + date_from_month
+        + "&date_from_year="
+        + date_from_year
+        + "&date_to_day="
+        + date_to_day
+        + "&date_to_month="
+        + date_to_month
+        + "&date_to_year="
+        + date_to_year
+    )
+
+    assert response.status_code == 200
+    assert b"Search for digital records" in response.data
+    assert b"You are viewing" in response.data
+    assert b"Everything available to you" in response.data
+
+    soup = BeautifulSoup(response.data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    rows = table.find_all("td")
+
+    expected_results_table = [
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+        ["'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"],
+    ]
+
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
+
+
+def test_browse_display_first_page(
+    client: FlaskClient, app, mock_superuser, browse_files
+):
     """
     Given a superuser accessing the browse page
     When they make a GET request with page as a query string parameter
@@ -120,8 +1036,8 @@ def test_browse_display_first_page(client: FlaskClient, app, mock_superuser):
     (excluding previous and incl. next page option).
     """
     mock_superuser(client)
-    create_multiple_test_records()
-    app.config["DEFAULT_PAGE_SIZE"] = 5
+
+    app.config["DEFAULT_PAGE_SIZE"] = 2
 
     response = client.get("/browse?page=1")
 
@@ -147,11 +1063,8 @@ def test_browse_display_first_page(client: FlaskClient, app, mock_superuser):
             "Consignments within series",
         ],
         [
-            "'test body1', 'test series1', '01/01/2023', '1', '1', "
-            "'test body2', 'test series2', '01/01/2023', '1', '1', "
-            "'testing body10', 'test series10', '01/01/2023', '1', '1', "
-            "'testing body11', 'test series11', '01/01/2023', '2', '1', "
-            "'testing body3', 'test series3', '01/01/2023', '1', '1'"
+            "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+            "'first_body', 'first_series', '07/02/2023', '3', '2'"
         ],
     ]
 
@@ -168,15 +1081,17 @@ def test_browse_display_first_page(client: FlaskClient, app, mock_superuser):
     assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
 
-def test_browse_display_middle_page(client: FlaskClient, app, mock_superuser):
+def test_browse_display_middle_page(
+    client: FlaskClient, app, mock_superuser, browse_files
+):
     """
     Given a superuser accessing the browse page
     When they make a GET request with page as a query string parameter
     Then they should see first page with five records on browse page content (incl. previous and next page options).
     """
     mock_superuser(client)
-    create_multiple_test_records()
-    app.config["DEFAULT_PAGE_SIZE"] = 5
+
+    app.config["DEFAULT_PAGE_SIZE"] = 2
 
     response = client.get("/browse?page=2")
 
@@ -201,11 +1116,8 @@ def test_browse_display_middle_page(client: FlaskClient, app, mock_superuser):
             "Consignments within series",
         ],
         [
-            "'testing body4', 'test series4', '01/01/2023', '1', '1', "
-            "'testing body5', 'test series5', '15/02/2023', '1', '1', "
-            "'testing body6', 'test series6', '15/02/2023', '1', '1', "
-            "'testing body7', 'test series7', '15/02/2023', '1', '1', "
-            "'testing body8', 'test series8', '15/02/2023', '1', '1'"
+            "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+            "'second_body', 'second_series', '26/04/2023', '7', '2'"
         ],
     ]
 
@@ -227,7 +1139,9 @@ def test_browse_display_middle_page(client: FlaskClient, app, mock_superuser):
     )
 
 
-def test_browse_display_last_page(client: FlaskClient, app, mock_superuser):
+def test_browse_display_last_page(
+    client: FlaskClient, app, mock_superuser, browse_files
+):
     """
     Given a superuser accessing the browse page
     When they make a GET request with page as a query string parameter
@@ -235,8 +1149,8 @@ def test_browse_display_last_page(client: FlaskClient, app, mock_superuser):
     (incl. previous and excluding next page option).
     """
     mock_superuser(client)
-    create_multiple_test_records()
-    app.config["DEFAULT_PAGE_SIZE"] = 5
+
+    app.config["DEFAULT_PAGE_SIZE"] = 2
 
     response = client.get("/browse?page=3")
 
@@ -261,7 +1175,10 @@ def test_browse_display_last_page(client: FlaskClient, app, mock_superuser):
             "Records held",
             "Consignments within series",
         ],
-        ["'testing body9', 'test series9', '15/02/2023', '1', '1'"],
+        [
+            "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
+            "'third_body', 'third_series', '17/06/2023', '3', '2'"
+        ],
     ]
 
     assert [
@@ -281,7 +1198,7 @@ def test_browse_display_last_page(client: FlaskClient, app, mock_superuser):
 
 
 def test_browse_display_multiple_pages(
-    client: FlaskClient, app, mock_superuser
+    client: FlaskClient, app, mock_superuser, browse_files
 ):
     """
     Given a superuser accessing the browse page
@@ -289,8 +1206,8 @@ def test_browse_display_multiple_pages(
     Then they should see first page with five records on browse page content (incl. previous and next page options).
     """
     mock_superuser(client)
-    create_multiple_test_records()
-    app.config["DEFAULT_PAGE_SIZE"] = 5
+
+    app.config["DEFAULT_PAGE_SIZE"] = 2
 
     response = client.get("/browse?page=1")
 
@@ -317,11 +1234,8 @@ def test_browse_display_multiple_pages(
             "Consignments within series",
         ],
         [
-            "'test body1', 'test series1', '01/01/2023', '1', '1', "
-            "'test body2', 'test series2', '01/01/2023', '1', '1', "
-            "'testing body10', 'test series10', '01/01/2023', '1', '1', "
-            "'testing body11', 'test series11', '01/01/2023', '2', '1', "
-            "'testing body3', 'test series3', '01/01/2023', '1', '1'"
+            "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+            "'first_body', 'first_series', '07/02/2023', '3', '2'"
         ],
     ]
 
@@ -338,17 +1252,17 @@ def test_browse_display_multiple_pages(
     assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
 
-def test_browse_transferring_body(client: FlaskClient, mock_standard_user):
+def test_browse_transferring_body(
+    client: FlaskClient, mock_standard_user, browse_files
+):
     """
     Given a user accessing the browse page
     When they make a GET request with a transferring body id
     Then they should see results based on transferring body filter on browse page content.
     """
-    files = create_multiple_test_records()
-    file = files[0]
-    transferring_body_id = file.consignment.series.body.BodyId
+    transferring_body_id = browse_files[0].consignment.series.body.BodyId
 
-    mock_standard_user(client, file.consignment.series.body.Name)
+    mock_standard_user(client, browse_files[0].consignment.series.body.Name)
 
     response = client.get(
         f"/browse?transferring_body_id={transferring_body_id}"
@@ -372,7 +1286,7 @@ def test_browse_transferring_body(client: FlaskClient, mock_standard_user):
             "Records held",
             "Consignments within series",
         ],
-        ["'test body1', 'test series1', '01/01/2023', '1', '1'"],
+        ["'first_body', 'first_series', '07/02/2023', '3', '2'"],
     ]
 
     assert [
@@ -387,7 +1301,7 @@ def test_browse_transferring_body(client: FlaskClient, mock_standard_user):
 
 
 def test_browse_transferring_body_breadcrumb(
-    client: FlaskClient, mock_standard_user
+    client: FlaskClient, mock_standard_user, browse_files
 ):
     """
     Given a user accessing the browse page
@@ -395,11 +1309,9 @@ def test_browse_transferring_body_breadcrumb(
     Then they should see results based on transferring body filter on browse page content.
     And breadcrumb should show 'Everything' > transferring body name
     """
-    files = create_multiple_test_records()
-    file = files[0]
-    transferring_body_id = file.consignment.series.body.BodyId
+    transferring_body_id = browse_files[0].consignment.series.body.BodyId
 
-    mock_standard_user(client, file.consignment.series.body.Name)
+    mock_standard_user(client, browse_files[0].consignment.series.body.Name)
 
     response = client.get(
         f"/browse?transferring_body_id={transferring_body_id}"
@@ -419,7 +1331,7 @@ def test_browse_transferring_body_breadcrumb(
             <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
-            <p class="govuk-breadcrumbs__link--record">{file.consignment.series.body.Name}</p>
+            <p class="govuk-breadcrumbs__link--record">{browse_files[0].consignment.series.body.Name}</p>
             </li>
         </ol>
     </div>
@@ -433,24 +1345,22 @@ def test_browse_transferring_body_breadcrumb(
     )
 
 
-def test_browse_series(client: FlaskClient, mock_standard_user):
+def test_browse_series(client: FlaskClient, mock_standard_user, browse_files):
     """
     Given a user accessing the browse page
     When they make a GET request with a series id
     Then they should see results based on series filter on browse page content.
     """
-    files = create_multiple_test_records()
-    file = files[0]
-    series_id = file.consignment.SeriesId
+    series_id = browse_files[0].consignment.series.SeriesId
 
-    mock_standard_user(client, file.consignment.series.body.Name)
+    mock_standard_user(client, browse_files[0].consignment.series.body.Name)
 
     response = client.get(f"/browse?series_id={series_id}")
 
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
     assert b"You are viewing" in response.data
-    assert b"Records found 1" in response.data
+    assert b"Records found 2" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
     table = soup.find("table")
@@ -466,7 +1376,8 @@ def test_browse_series(client: FlaskClient, mock_standard_user):
             "Consignment reference",
         ],
         [
-            "'test body1', 'test series1', '01/01/2023', '1', 'test consignment1'"
+            "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1', "
+            "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2'"
         ],
     ]
 
@@ -481,25 +1392,25 @@ def test_browse_series(client: FlaskClient, mock_standard_user):
     assert [row_data] == expected_results_table[1]
 
 
-def test_browse_series_breadcrumb(client: FlaskClient, mock_standard_user):
+def test_browse_series_breadcrumb(
+    client: FlaskClient, mock_standard_user, browse_files
+):
     """
     Given a user accessing the browse page
     When they make a GET request with a series id
     Then they should see results based on series filter on browse page content.
     And breadcrumb should show 'Everything' > transferring body name > series name
     """
-    files = create_multiple_test_records()
-    file = files[0]
-    series_id = file.consignment.SeriesId
+    series_id = browse_files[0].consignment.series.SeriesId
 
-    mock_standard_user(client, file.consignment.series.body.Name)
+    mock_standard_user(client, browse_files[0].consignment.series.body.Name)
 
     response = client.get(f"/browse?series_id={series_id}")
 
     assert response.status_code == 200
     assert b"Search for digital records" in response.data
     assert b"You are viewing" in response.data
-    assert b"Records found 1" in response.data
+    assert b"Records found 2" in response.data
 
     html = response.data.decode()
 
@@ -511,10 +1422,10 @@ def test_browse_series_breadcrumb(client: FlaskClient, mock_standard_user):
             </li>
             <li class="govuk-breadcrumbs__list-item">
                 <a class="govuk-breadcrumbs__link--record"
-                    href="/browse?transferring_body_id={file.consignment.series.body.BodyId}">{file.consignment.series.body.Name}</a>
+                    href="/browse?transferring_body_id={browse_files[0].consignment.series.body.BodyId}">{browse_files[0].consignment.series.body.Name}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
-                <p class="govuk-breadcrumbs__link--record">{file.consignment.series.Name}</p>
+                <p class="govuk-breadcrumbs__link--record">{browse_files[0].consignment.series.Name}</p>
             </li>
         </ol>
     </div>
@@ -528,17 +1439,19 @@ def test_browse_series_breadcrumb(client: FlaskClient, mock_standard_user):
     )
 
 
-def test_browse_consignment(client: FlaskClient, mock_standard_user):
+def test_browse_consignment(
+    client: FlaskClient, mock_standard_user, browse_consignment_files
+):
     """
     Given a user accessing the browse page
     When they make a GET request with a consignment id
     Then they should see results based on consignment filter on browse page content.
     """
-    files = create_multiple_test_records()
-    file = files[0]
-    consignment_id = file.consignment.ConsignmentId
+    consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
-    mock_standard_user(client, file.consignment.series.body.Name)
+    mock_standard_user(
+        client, browse_consignment_files[0].consignment.series.body.Name
+    )
 
     response = client.get(f"/browse?consignment_id={consignment_id}")
 
@@ -549,7 +1462,7 @@ def test_browse_consignment(client: FlaskClient, mock_standard_user):
     soup = BeautifulSoup(response.data, "html.parser")
     table = soup.find("table")
     headers = table.find_all("th")
-    rows = table.find_all("tr")
+    rows = table.find_all("td")
 
     expected_results_table = [
         [
@@ -559,34 +1472,42 @@ def test_browse_consignment(client: FlaskClient, mock_standard_user):
             "Closure start date",
             "Closure period",
         ],
-        ["15/12/2023", "test_file1.pdf", "open", "-", "-"],
+        [
+            "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+            "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+            "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+            "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
+            "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+        ],
     ]
 
-    assert len(rows) == 2
+    assert len(rows) == 25
 
     assert [
         header.text.replace("\n", " ").strip(" ") for header in headers
     ] == expected_results_table[0]
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_results_table[1]
 
-    for index, row in enumerate(rows[1:]):
-        values = row.find_all("td")
-        assert [
-            value.text.replace("\n", " ").strip(" ") for value in values
-        ] == expected_results_table[index + 1]
 
-
-def test_browse_consignment_breadcrumb(client: FlaskClient, mock_standard_user):
+def test_browse_consignment_breadcrumb(
+    client: FlaskClient, mock_standard_user, browse_consignment_files
+):
     """
     Given a user accessing the browse page
     When they make a GET request with a consignment id
     Then they should see results based on consignment filter on browse page content.
     And breadcrumb should show 'Everything' > transferring body name > series name > consignment reference
     """
-    files = create_multiple_test_records()
-    file = files[0]
-    consignment_id = file.consignment.ConsignmentId
+    consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
-    mock_standard_user(client, file.consignment.series.body.Name)
+    mock_standard_user(
+        client, browse_consignment_files[0].consignment.series.body.Name
+    )
 
     response = client.get(f"/browse?consignment_id={consignment_id}")
 
@@ -595,7 +1516,9 @@ def test_browse_consignment_breadcrumb(client: FlaskClient, mock_standard_user):
     assert b"You are viewing" in response.data
 
     html = response.data.decode()
-
+    consignment_reference = browse_consignment_files[
+        0
+    ].consignment.ConsignmentReference
     expected_breadcrumbs_html = f"""
     <div class="govuk-breadcrumbs">
         <ol class="govuk-breadcrumbs__list">
@@ -604,14 +1527,14 @@ def test_browse_consignment_breadcrumb(client: FlaskClient, mock_standard_user):
             </li>
             <li class="govuk-breadcrumbs__list-item">
                 <a class="govuk-breadcrumbs__link--record"
-                    href="/browse?transferring_body_id={file.consignment.series.body.BodyId}">{file.consignment.series.body.Name}</a>
+                    href="/browse?transferring_body_id={browse_consignment_files[0].consignment.series.body.BodyId}">{browse_consignment_files[0].consignment.series.body.Name}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
                 <a class="govuk-breadcrumbs__link--record"
-                    href="/browse?series_id={file.consignment.series.SeriesId}">{file.consignment.series.Name}</a>
+                    href="/browse?series_id={browse_consignment_files[0].consignment.series.SeriesId}">{browse_consignment_files[0].consignment.series.Name}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
-                <p class="govuk-breadcrumbs__link--record">{file.consignment.ConsignmentReference}</p>
+                <p class="govuk-breadcrumbs__link--record">{consignment_reference}</p>
             </li>
         </ol>
     </div>
@@ -622,123 +1545,4 @@ def test_browse_consignment_breadcrumb(client: FlaskClient, mock_standard_user):
         html,
         "div",
         {"class": "govuk-breadcrumbs"},
-    )
-
-
-def test_browse_consignment_with_missing_file(
-    client: FlaskClient, mock_standard_user
-):
-    """
-    Given a user accessing the browse page
-    When they make a GET request with a consignment id
-    and if file metadata not available for the corresponding file(s)
-    Then they should see results based on consignment filter on browse page content
-    (including file_name field and rest of the field values as 'None').
-    """
-    files = create_multiple_test_records()
-    file = files[10]
-    consignment_id = file.consignment.ConsignmentId
-
-    mock_standard_user(client, file.consignment.series.body.Name)
-
-    response = client.get(f"/browse?consignment_id={consignment_id}")
-
-    assert response.status_code == 200
-    assert b"Search for digital records" in response.data
-    assert b"You are viewing" in response.data
-    assert b"testing body11" in response.data
-    assert b"test series11" in response.data
-    assert b"test consignment11" in response.data
-
-    soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("table")
-    headers = table.find_all("th")
-    rows = table.find_all("tr")
-
-    expected_results_table = [
-        [
-            "Last modified",
-            "Filename",
-            "Status",
-            "Closure start date",
-            "Closure period",
-        ],
-        ["None", "test_file11.txt", "closed", "-", "-"],
-        ["None", "test_file12.txt", "None", "-", "-"],
-    ]
-
-    assert len(rows) == 3
-
-    headers = [header.text.strip() for header in table.find_all("th")]
-    assert headers == expected_results_table[0]
-
-    for index, row in enumerate(rows[1:]):
-        values = row.find_all("td")
-        assert [
-            value.text.replace("\n", " ").strip(" ") for value in values
-        ] == expected_results_table[index + 1]
-
-
-def test_browse_consignment_filter_display_multiple_pages(
-    client: FlaskClient, app, mock_standard_user
-):
-    """
-    Given a user accessing the browse page
-    When they make a GET request with a consignment id
-    Then they should see results based on consignment filter on browse page content.
-    """
-    app.config["DEFAULT_PAGE_SIZE"] = 5
-
-    files = create_multiple_test_records()
-    file = files[0]
-    consignment_id = file.consignment.ConsignmentId
-
-    create_multiple_files_for_consignment(consignment_id)
-
-    mock_standard_user(client, file.consignment.series.body.Name)
-
-    response = client.get(f"/browse?page=2&consignment_id={consignment_id}")
-    assert response.status_code == 200
-    assert b"Search for digital records" in response.data
-    assert b"You are viewing" in response.data
-    assert b"test body1" in response.data
-    assert b"test series1" in response.data
-    assert b"test consignment1" in response.data
-    assert b"Records found 7" in response.data
-    assert b'aria-label="Page 1"' in response.data
-    assert b'aria-label="Page 2"' in response.data
-
-    soup = BeautifulSoup(response.data, "html.parser")
-    table = soup.find("table")
-    headers = table.find_all("th")
-    rows = table.find_all("tr")
-    page_options = soup.find_all("span", class_="govuk-pagination__link-title")
-
-    expected_results_table = [
-        [
-            "Last modified",
-            "Filename",
-            "Status",
-            "Closure start date",
-            "Closure period",
-        ],
-        ["15/12/2023", "test_file6.txt", "closed", "05/11/2023", "-"],
-        ["15/12/2023", "test_file7.png", "closed", "05/11/2023", "-"],
-    ]
-
-    assert len(rows) == 3
-
-    assert [
-        header.text.replace("\n", " ").strip(" ") for header in headers
-    ] == expected_results_table[0]
-
-    for index, row in enumerate(rows[1:]):
-        values = row.find_all("td")
-        assert [
-            value.text.replace("\n", " ").strip(" ") for value in values
-        ] == expected_results_table[index + 1]
-
-    assert (
-        " ".join(page_options[0].text.replace("\n", "").split())
-        == "Previouspage"
     )
