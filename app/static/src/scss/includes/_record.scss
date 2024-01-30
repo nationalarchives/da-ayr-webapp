@@ -58,40 +58,46 @@
 
     margin-top: 0;
 
+    &__list-item {
+        &:last-child a {
+            color: black;
+            text-decoration: none;
+            line-height: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+    }
 
     &__link--record {
         color:#1d70b8;
         font-size: 1.1rem;
         font-weight: 400;
         margin-top:0;
+
+        &:visited {
+            color: #1d70b8;
+        }
+
+    &--series {
+        white-space: nowrap;
     }
 
-    &__list-item {
-        &:last-child {
-            text-decoration: none;
-            font-weight:bold;
-            color: black;
-            font-size: 1.625rem;
-            padding-left: 0;
-            margin-left: 0;
+    &--transferring-body {
+        flex-wrap: wrap;
+    }
 
-            &::before {
-                content: none;
-                }
-
-        a {
-            text-decoration: none;
-            font-weight:bold;
-            color: black;
-            font-size: 1.8rem;
-        }
-        }
+    &--consignment {
+        white-space: nowrap;
     }
 
     &--record {
        display: flex;
     }
+    }
 }
+
+
 
 .govuk-heading-m {
     &__rights-header {
