@@ -29,6 +29,7 @@ from app.main.db.models import Body, File
 from app.main.db.queries import (
     browse_data,
     build_fuzzy_search_query,
+    get_all_transferring_bodies,
     get_file_metadata,
 )
 from app.main.forms import CookiesForm
@@ -108,9 +109,8 @@ def accessibility():
 def browse():
     transferring_bodies = []
     ayr_user = AYRUser.from_access_token(session.get("access_token"))
-    if ayr_user.is_superuser and ayr_user.transferring_bodies:
-        for body in ayr_user.transferring_bodies:
-            transferring_bodies.append(body.Name)
+    if ayr_user.is_superuser:
+        transferring_bodies = get_all_transferring_bodies()
 
     form = SearchForm()
     page = int(request.args.get("page", 1))

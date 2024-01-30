@@ -553,3 +553,10 @@ def _build_date_range_filter(date_field, date_from, date_to):
         date_filter = func.to_char(date_field, "YYYY-MM-DD") <= date_to
 
     return date_filter
+
+
+def get_all_transferring_bodies():
+    bodies = []
+    for body in Body.query.all():
+        bodies.append(body.Name)
+    return bodies

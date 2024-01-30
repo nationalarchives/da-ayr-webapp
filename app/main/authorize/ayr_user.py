@@ -1,7 +1,6 @@
 from typing import List
 
 import sqlalchemy
-from sqlalchemy import func
 
 from app.main.authorize.keycloak_manager import (
     get_user_groups,
@@ -48,24 +47,3 @@ class AYRUser:
         except sqlalchemy.orm.exc.MultipleResultsFound:
             return None
         return body
-
-    @property
-    def transferring_bodies(self) -> {}:
-        transferring_body_names = get_user_transferring_body_keycloak_groups(
-            self.groups
-        )
-
-        if not transferring_body_names:
-            return None
-
-        try:
-            bodies = []
-            for body in transferring_body_names:
-                body_found = Body.query.filter(
-                    func.lower(Body.Name) == body.lower()
-                ).one_or_none()
-                if body_found:
-                    bodies.append(body_found)
-        except sqlalchemy.orm.exc.MultipleResultsFound:
-            return None
-        return bodies

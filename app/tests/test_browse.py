@@ -42,6 +42,46 @@ def test_browse_get_view(client: FlaskClient, mock_superuser):
     assert b"Everything available to you" in response.data
 
 
+def test_browse_check_transferring_bodies_list_filled_for_super_user(
+    client: FlaskClient, browse_files, mock_superuser
+):
+    """
+    Given a superuser accessing the browse page
+    When they make a GET request
+    Then they should see the browse page content
+    and transferring body dropdown will be filled with list of all transferring bodies available in database
+    """
+    mock_superuser(client)
+
+    response = client.get("/browse")
+
+    assert response.status_code == 200
+
+    html = response.data.decode()
+
+    expected_html = f"""
+        <select class="govuk-select govuk-select__filters-form-transferring-body-select"
+        id="transferring_body_filter" name="transferring_body_filter">
+            <option value="all" selected>Choose one...</option>
+            <option value="first_body">{browse_files[0].consignment.series.body.Name}</option>
+            <option value="second_body">{browse_files[3].consignment.series.body.Name}</option>
+            <option value="third_body">{browse_files[10].consignment.series.body.Name}</option>
+            <option value="fourth_body">{browse_files[13].consignment.series.body.Name}</option>
+            <option value="fifth_body">{browse_files[19].consignment.series.body.Name}</option>
+            <option value="sixth_body">{browse_files[25].consignment.series.body.Name}</option>
+        </select>
+    """
+
+    assert_contains_html(
+        expected_html,
+        html,
+        "select",
+        {
+            "class": "govuk-select govuk-select__filters-form-transferring-body-select"
+        },
+    )
+
+
 def test_browse_submit_search_query(
     client: FlaskClient, mock_superuser, browse_files
 ):
