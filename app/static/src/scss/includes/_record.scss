@@ -75,20 +75,29 @@
         font-weight: 400;
         margin-top:0;
 
+    &--series {
+        white-space: nowrap;
+
         &:visited {
             color: #1d70b8;
         }
 
-    &--series {
-        white-space: nowrap;
     }
 
     &--transferring-body {
         flex-wrap: wrap;
+
+        &:visited {
+            color: #1d70b8;
+        }
     }
 
     &--consignment {
         white-space: nowrap;
+
+        &:visited {
+            color: #1d70b8;
+        }
     }
 
     &--record {
