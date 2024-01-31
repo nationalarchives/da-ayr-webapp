@@ -212,33 +212,39 @@ def _build_browse_all_filters():
             "transferring_body_filter", ""
         ).lower()
         series = request.args.get("series_filter", "").lower()
-        date_from_day = request.args.get("date_from_day", "")
-        date_from_month = request.args.get("date_from_month", "")
-        date_from_year = request.args.get("date_from_year", "")
-        date_from = date_from_day + "/" + date_from_month + "/" + date_from_year
-        date_to_day = request.args.get("date_to_day", "")
-        date_to_month = request.args.get("date_to_month", "")
-        date_to_year = request.args.get("date_to_year", "")
-        date_to = date_to_day + "/" + date_to_month + "/" + date_to_year
 
         if transferring_body and transferring_body != "all":
             filter_items.append({"transferring_body": transferring_body})
         if series:
             filter_items.append({"series": series})
-        if (date_from and date_from != "//") and (date_to and date_to != "//"):
-            filter_items.append(
-                {"date_range": {"date_from": date_from, "date_to": date_to}}
-            )
-        elif date_from and date_from != "//":
-            filter_items.append({"date_range": {"date_from": date_from}})
-        elif date_to and date_to != "//":
-            filter_items.append({"date_range": {"date_to": date_to}})
+
+        _build_date_range_filter(filter_items)
 
         for f in filter_items:
             for key, value in f.items():
                 filters[key] = value
 
         return filters
+
+
+def _build_date_range_filter(filter_items):
+    date_from_day = request.args.get("date_from_day", "")
+    date_from_month = request.args.get("date_from_month", "")
+    date_from_year = request.args.get("date_from_year", "")
+    date_from = date_from_day + "/" + date_from_month + "/" + date_from_year
+    date_to_day = request.args.get("date_to_day", "")
+    date_to_month = request.args.get("date_to_month", "")
+    date_to_year = request.args.get("date_to_year", "")
+    date_to = date_to_day + "/" + date_to_month + "/" + date_to_year
+
+    if (date_from and date_from != "//") and (date_to and date_to != "//"):
+        filter_items.append(
+            {"date_range": {"date_from": date_from, "date_to": date_to}}
+        )
+    elif date_from and date_from != "//":
+        filter_items.append({"date_range": {"date_from": date_from}})
+    elif date_to and date_to != "//":
+        filter_items.append({"date_range": {"date_to": date_to}})
 
 
 @bp.route("/search", methods=["POST", "GET"])

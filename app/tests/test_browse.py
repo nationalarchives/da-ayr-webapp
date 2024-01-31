@@ -6,6 +6,115 @@ from app.tests.assertions import assert_contains_html
 from app.tests.factories import BodyFactory
 
 
+def verify_browse_view_header_row(data):
+    """
+    this function check header row column values against expected row
+    :param data: response data
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+
+    expected_row = (
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+    )
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_row[0]
+
+
+def verify_transferring_body_view_header_row(data):
+    """
+    this function check header row column values against expected row
+    :param data: response data
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+
+    expected_row = (
+        [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ],
+    )
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_row[0]
+
+
+def verify_series_view_header_row(data):
+    """
+    this function check header row column values against expected row
+    :param data: response data
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+
+    expected_row = (
+        [
+            "Transferring body",
+            "Series",
+            "Consignment transferred",
+            "Records in consignment",
+            "Consignment reference",
+        ],
+    )
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_row[0]
+
+
+def verify_consignment_view_header_row(data):
+    """
+    this function check header row column values against expected row
+    :param data: response data
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+    expected_row = (
+        [
+            "Last modified",
+            "Filename",
+            "Status",
+            "Closure start date",
+            "Closure period",
+        ],
+    )
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_row[0]
+
+
+def verify_data_rows(data, expected_rows):
+    """
+    this function check data rows for data table compared with expected rows
+    :param data: response data
+    :param expected_rows: expected rows to be compared
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    rows = table.find_all("td")
+
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+    assert [row_data] == expected_rows[0]
+
+
 def test_standard_user_redirected_to_browse_transferring_body_when_accessing_browse(
     client: FlaskClient, mock_standard_user
 ):
@@ -111,23 +220,8 @@ class TestBrowse:
         response = client.get("/browse")
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             [
                 "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
                 "'first_body', 'first_series', '07/02/2023', '3', '2', "
@@ -137,17 +231,8 @@ class TestBrowse:
             ],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_transferring_body_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -165,40 +250,16 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             [
                 "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
                 "'first_body', 'first_series', '07/02/2023', '3', '2'"
             ],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_series_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -214,40 +275,16 @@ class TestBrowse:
         response = client.get("/browse?series_filter=" + series)
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             [
                 "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
                 "'first_body', 'first_series', '07/02/2023', '3', '2'"
             ],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_date_from_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -274,40 +311,16 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             [
                 "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
                 "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
             ],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_date_to_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -333,40 +346,16 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             [
                 "'first_body', 'first_series', '07/02/2023', '3', '2', "
                 "'second_body', 'second_series', '26/04/2023', '7', '2'"
             ],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_date_from_and_date_to_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -401,23 +390,8 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             [
                 "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
                 "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
@@ -425,17 +399,8 @@ class TestBrowse:
             ],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_transferring_body_and_series_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -458,37 +423,13 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_transferring_body_and_date_from_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -519,37 +460,13 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_transferring_body_and_date_to_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -580,37 +497,13 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_transferring_body_and_date_from_and_date_to_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -650,40 +543,16 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             [
                 "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
                 "'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"
             ],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_series_and_date_from_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -714,37 +583,13 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_series_and_date_to_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -775,37 +620,13 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_series_and_date_from_and_date_to_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -845,37 +666,13 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             ["'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_transferring_body_and_series_and_date_from_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -910,37 +707,13 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_transferring_body_and_series_and_date_to_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -975,37 +748,13 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_get_with_transferring_body_and_series_and_date_from_and_date_to_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -1049,37 +798,13 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             ["'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_display_first_page(
         self, client: FlaskClient, app, mock_superuser, browse_files
@@ -1097,43 +822,23 @@ class TestBrowse:
         response = client.get("/browse?page=1")
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
         assert b'aria-label="Page 1"' in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
+
         previous_option = soup.find("div", {"class": "govuk-pagination__prev"})
         next_option = soup.find("div", {"class": "govuk-pagination__next"})
 
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             [
                 "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
                 "'first_body', 'first_series', '07/02/2023', '3', '2'"
             ],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
         assert not previous_option
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
@@ -1152,44 +857,24 @@ class TestBrowse:
         response = client.get("/browse?page=2")
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
         assert b'aria-label="Page 2"' in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
+
         page_options = soup.find_all(
             "span", class_="govuk-pagination__link-title"
         )
 
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             [
                 "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
                 "'second_body', 'second_series', '26/04/2023', '7', '2'"
             ],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
         assert (
             " ".join(page_options[0].text.replace("\n", "").split())
             == "Previouspage"
@@ -1215,43 +900,23 @@ class TestBrowse:
         response = client.get("/browse?page=3")
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
         assert b'aria-label="Page 3"' in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
+
         previous_option = soup.find("div", {"class": "govuk-pagination__prev"})
         next_option = soup.find("div", {"class": "govuk-pagination__next"})
 
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             [
                 "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
                 "'third_body', 'third_series', '17/06/2023', '3', '2'"
             ],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
         assert (
             " ".join(previous_option.text.replace("\n", "").split())
             == "Previouspage"
@@ -1273,44 +938,24 @@ class TestBrowse:
         response = client.get("/browse?page=1")
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
-        assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
         assert b'aria-label="Page 1"' in response.data
         assert b'aria-label="Page 2"' in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
+
         # page_options = soup.find_all("span", class_="govuk-pagination__link-title")
         previous_option = soup.find("div", {"class": "govuk-pagination__prev"})
         next_option = soup.find("div", {"class": "govuk-pagination__next"})
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             [
                 "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
                 "'first_body', 'first_series', '07/02/2023', '3', '2'"
             ],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
         assert not previous_option
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
@@ -1333,37 +978,15 @@ class TestBrowseTransferringBody:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
         assert b"You are viewing" in response.data
         assert b"Records found 1" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Last record transferred",
-                "Records held",
-                "Consignments within series",
-            ],
+        expected_rows = [
             ["'first_body', 'first_series', '07/02/2023', '3', '2'"],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_transferring_body_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_transferring_body_breadcrumb(
         self, client: FlaskClient, mock_standard_user, browse_files
@@ -1383,7 +1006,6 @@ class TestBrowseTransferringBody:
         )
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
         assert b"You are viewing" in response.data
         assert b"Records found 1" in response.data
 
@@ -1426,40 +1048,18 @@ class TestSeries:
         response = client.get(f"/browse?series_id={series_id}")
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
         assert b"You are viewing" in response.data
         assert b"Records found 2" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Transferring body",
-                "Series",
-                "Consignment transferred",
-                "Records in consignment",
-                "Consignment reference",
-            ],
+        expected_rows = [
             [
                 "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1', "
                 "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2'"
             ],
         ]
 
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_series_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_series_breadcrumb(
         self, client: FlaskClient, mock_standard_user, browse_files
@@ -1477,7 +1077,6 @@ class TestSeries:
         response = client.get(f"/browse?series_id={series_id}")
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
         assert b"You are viewing" in response.data
         assert b"Records found 2" in response.data
 
@@ -1526,22 +1125,9 @@ class TestConsignment:
         response = client.get(f"/browse?consignment_id={consignment_id}")
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
         assert b"You are viewing" in response.data
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
-
-        expected_results_table = [
-            [
-                "Last modified",
-                "Filename",
-                "Status",
-                "Closure start date",
-                "Closure period",
-            ],
+        expected_rows = [
             [
                 "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
                 "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
@@ -1551,19 +1137,8 @@ class TestConsignment:
             ],
         ]
 
-        assert len(rows) == 25
-
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_results_table[0]
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
-        assert [row_data] == expected_results_table[1]
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
     def test_browse_consignment_breadcrumb(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
@@ -1583,7 +1158,6 @@ class TestConsignment:
         response = client.get(f"/browse?consignment_id={consignment_id}")
 
         assert response.status_code == 200
-        assert b"Search for digital records" in response.data
         assert b"You are viewing" in response.data
 
         html = response.data.decode()

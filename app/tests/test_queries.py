@@ -262,25 +262,18 @@ class TestFuzzySearch:
 
 
 class TestBrowse:
-    def test_browse_get_all_transferring_bodies(
-        self, client, mock_superuser, browse_files
-    ):
+    def test_browse_get_all_transferring_bodies(self, client):
         """
-        Given 27 file objects with all file type as 'file'
+        Given 3 transferring body objects
         And the session contains user info for a superuser with access
         When I call the 'get_all_transferring_bodies' function
-        Then it should return list of all transferring body names available in database
+        Then it should return 3 transferring body names
         """
-        mock_superuser(client)
-        bodies = get_all_transferring_bodies()
+        bodies = BodyFactory.create_batch(3)
+        body_names = get_all_transferring_bodies()
 
-        assert len(bodies) == 6
-        assert bodies[0] == browse_files[0].consignment.series.body.Name
-        assert bodies[1] == browse_files[3].consignment.series.body.Name
-        assert bodies[2] == browse_files[10].consignment.series.body.Name
-        assert bodies[3] == browse_files[13].consignment.series.body.Name
-        assert bodies[4] == browse_files[19].consignment.series.body.Name
-        assert bodies[5] == browse_files[25].consignment.series.body.Name
+        assert len(body_names) == 3
+        assert body_names == [bodies[0].Name, bodies[1].Name, bodies[2].Name]
 
     def test_browse_without_filter(
         self, client, mock_standard_user, browse_files
