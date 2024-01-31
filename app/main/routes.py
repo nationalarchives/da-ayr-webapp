@@ -130,16 +130,10 @@ def browse():
         sorting_orders = build_sorting_orders()
 
     if transferring_body_id:
-        print("i was here")
         browse_type = "transferring_body"
         browse_parameters["transferring_body_id"] = transferring_body_id
         filters = _build_browse_all_filters()
-        # sorting_orders["series"] = "asc"  # A to Z
-        # sorting_orders["series"] = "desc"  # Z to A
-        # sorting_orders["last_record_transferred"] = "asc"  # oldest first
-        # sorting_orders["last_record_transferred"] = "desc"  # most recent first
-        # sorting_orders["records_held"] = "asc"  # least first
-        # sorting_orders["records_held"] = "desc"  # most first
+        sorting_orders = build_sorting_orders()
 
     elif series_id:
         browse_type = "series"
@@ -238,6 +232,11 @@ def build_sorting_orders():
         sorting_orders["last_record_transferred"] = "asc"  # oldest first
     if request.args.get("sort") == "last_record_transferred_desc":
         sorting_orders["last_record_transferred"] = "desc"  # most recent first
+
+    if request.args.get("sort") == "records_held_asc":
+        sorting_orders["records_held"] = "asc"  # least first
+    if request.args.get("sort") == "records_held_desc":
+        sorting_orders["records_held"] = "desc"  # most first
 
     return sorting_orders
 
