@@ -37,6 +37,7 @@ from app.main.forms import CookiesForm
 from app.main.util.filter_sort_builder import (
     build_filters,
     build_sorting_orders,
+    build_browse_consignment_filters,
 )
 
 from .forms import SearchForm
@@ -108,9 +109,9 @@ def browse():
     filters = {}
     sorting_orders = {}
     breadcrumb_values = {}
+    transferring_bodies = []
 
     if browse_type == "browse":
-        transferring_bodies = []
         ayr_user = AYRUser(session.get("user_groups"))
         if ayr_user.is_superuser:
             for body in Body.query.all():
@@ -144,6 +145,7 @@ def browse():
     elif consignment_id:
         browse_type = "consignment"
         browse_parameters["consignment_id"] = consignment_id
+
         consignment = Consignment.query.get(consignment_id)
         body = consignment.series.body
         series = consignment.series
@@ -154,6 +156,8 @@ def browse():
             3: {"series": series.Name},
             4: {"consignment_reference": consignment.ConsignmentReference},
         }
+
+        filters = build_browse_consignment_filters(request.args)
         sorting_orders = build_sorting_orders(request.args)
 
     else:
