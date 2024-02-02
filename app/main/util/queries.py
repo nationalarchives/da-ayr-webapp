@@ -14,7 +14,5 @@ def build_sorting_orders(request):
         sorting_orders["date_last_modified"] = "desc"  # oldest first
     if request.args.get("sort") == "last_modified_date_asc":
         sorting_orders["date_last_modified"] = "asc"  # most recent first
-    if request.args.get("sort") == "closure_expiry_date_asc":
-        sorting_orders["date_last_modified"] = "desc"
 
     return sorting_orders
