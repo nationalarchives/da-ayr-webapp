@@ -10,22 +10,37 @@
 {% if view_type == "desktop" %}
     <!-- SORT -->
     <div class="govuk-form-group sort-container__form">
-        <div class="browse__sort-container">
-            <label class="govuk-label" for="sort">Sort by</label>
-            <select class="govuk-select govuk-select__sort-container-select"
-                    id="sort"
-                    name="sort">
-                <option value="body-a">Transferring body (A to Z)</option>
-                <option value="body-b" selected>Transferring body (Z to A)</option>
-                <option value="series-a">Series (A to Z)</option>
-                <option value="series-b">Series (Z to A)</option>
-                <option value="date-first">Date record transferred (most recent first)</option>
-                <option value="date-last">Date record transferred (oldest first)</option>
-            </select>
-            <button class="govuk-button govuk-button__sort-container-update-button"
-                    id="sort-update-button"
-                    data-module="govuk-button">Apply</button>
-        </div>
+        <form action="{{ url_for('main.browse') }}" method="get">
+            <input type="hidden" name="series_id" value="{{ filters['series_id'] }}">
+            <div class="browse__sort-container">
+                <label class="govuk-label" for="sort">Sort by</label>
+                <select class="govuk-select govuk-select__sort-container-select"
+                        id="sort"
+                        name="sort">
+                    <option value="last_record_transferred-desc"
+                            {% if sorting_orders['last_record_transferred'] %} {% if sorting_orders['last_record_transferred'] == 'desc' %}selected{% endif %}
+                            {% endif %}>Date consignment transferred (most recent first)</option>
+                    <option value="last_record_transferred-asc"
+                            {% if sorting_orders['last_record_transferred'] %} {% if sorting_orders['last_record_transferred'] == 'asc' %}selected{% endif %}
+                            {% endif %}>Date consignment transferred (oldest first)</option>
+                    <option value="consignment_reference-asc"
+                            {% if sorting_orders['consignment_reference'] %} {% if sorting_orders['consignment_reference'] == 'asc' %}selected{% endif %}
+                            {% endif %}>Consignment reference (most recent first)</option>
+                    <option value="consignment_reference-desc"
+                            {% if sorting_orders['consignment_reference'] %} {% if sorting_orders['consignment_reference'] == 'desc' %}selected{% endif %}
+                            {% endif %}>Consignment reference (earliest first)</option>
+                    <option value="records_held-desc"
+                            {% if sorting_orders['records_held'] %} {% if sorting_orders['records_held'] == 'desc' %}selected{% endif %}
+                            {% endif %}>Records held in consignment (most first)</option>
+                    <option value="records_held-asc"
+                            {% if sorting_orders['records_held'] %} {% if sorting_orders['records_held'] == 'asc' %}selected{% endif %}
+                            {% endif %}>Records held in consignment (least first)</option>
+                </select>
+                <button type="submit"
+                        class="govuk-button govuk-button__sort-container-update-button"
+                        data-module="govuk-button">Apply</button>
+            </div>
+        </form>
     </div>
     <!-- TABLE -->
     <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
@@ -296,30 +311,45 @@
     </div>
     <!-- MOBILE SORT -->
     <div class="govuk-form-group sort-container__form mobile-sort">
-        <div class="browse__sort-container">
-            <label class="govuk-label" for="sort">Sort by</label>
-            <select class="govuk-select govuk-select__sort-container-select"
-                    id="sort"
-                    name="sort">
-                <option value="body-a">Transferring body (A to Z)</option>
-                <option value="body-b" selected>Transferring body (Z to A)</option>
-                <option value="series-a">Series (A to Z)</option>
-                <option value="series-b">Series (Z to A)</option>
-                <option value="date-first">Date record transferred (most recent first)</option>
-                <option value="date-last">Date record transferred (oldest first)</option>
-            </select>
-            <button class="govuk-button govuk-button__sort-container-update-button"
-                    id="sort-update-button"
-                    data-module="govuk-button">Apply</button>
-        </div>
+        <form action="{{ url_for('main.browse') }}" method="get">
+            <input type="hidden" name="series_id" value="{{ filters['series_id'] }}">
+            <div class="browse__sort-container">
+                <label class="govuk-label" for="sort">Sort by</label>
+                <select class="govuk-select govuk-select__sort-container-select"
+                        id="sort"
+                        name="sort">
+                    <option value="last_record_transferred-desc"
+                            {% if sorting_orders['last_record_transferred'] %} {% if sorting_orders['last_record_transferred'] == 'desc' %}selected{% endif %}
+                            {% endif %}>Date consignment transferred (most recent first)</option>
+                    <option value="last_record_transferred-asc"
+                            {% if sorting_orders['last_record_transferred'] %} {% if sorting_orders['last_record_transferred'] == 'asc' %}selected{% endif %}
+                            {% endif %}>Date consignment transferred (oldest first)</option>
+                    <option value="consignment_reference-asc"
+                            {% if sorting_orders['consignment_reference'] %} {% if sorting_orders['consignment_reference'] == 'asc' %}selected{% endif %}
+                            {% endif %}>Consignment reference (most recent first)</option>
+                    <option value="consignment_reference-desc"
+                            {% if sorting_orders['consignment_reference'] %} {% if sorting_orders['consignment_reference'] == 'desc' %}selected{% endif %}
+                            {% endif %}>Consignment reference (earliest first)</option>
+                    <option value="records_held-desc"
+                            {% if sorting_orders['records_held'] %} {% if sorting_orders['records_held'] == 'desc' %}selected{% endif %}
+                            {% endif %}>Records held in consignment (most first)</option>
+                    <option value="records_held-asc"
+                            {% if sorting_orders['records_held'] %} {% if sorting_orders['records_held'] == 'asc' %}selected{% endif %}
+                            {% endif %}>Records held in consignment (least first)</option>
+                </select>
+                <button class="govuk-button govuk-button__sort-container-update-button"
+                        id="sort-update-button"
+                        data-module="govuk-button">Apply</button>
+            </div>
+        </form>
     </div>
     <!-- MOBILE TABLE -->
     <table class="govuk-table govuk-mobile-table">
         <thead class="govuk-table__head govuk-mobile-table__head-border">
             <tr class="govuk-table__row">
                 <th scope="col" class="govuk-table__header">Series / Last consignment transferred</th>
-                <th scope="col" class="govuk-table__header govuk-table__header__right">Records in series</th>
-                <th scope="col" class="govuk-table__header govuk-table__header__right">Consignments within series</th>
+                <th scope="col" class="govuk-table__header govuk-table__header__right">Records in consignment</th>
+                <th scope="col" class="govuk-table__header govuk-table__header__right">Consignment reference</th>
             </tr>
         </thead>
         <tbody class="govuk-table__body">
@@ -338,7 +368,7 @@
                     </td>
                     <td class="govuk-table__cell">
                         <div class="browse__table__series-row right-align empty-cell">-</div>
-                        <div class="right-align">{{ record["consignment_in_series"] }}</div>
+                        <div class="right-align">{{ record["consignment_reference"] }}</div>
                     </td>
                 </tr>
             {% endfor %}
