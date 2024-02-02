@@ -11,22 +11,50 @@
 {% if view_type == "desktop" %}
     <!-- SORT -->
     <div class="govuk-form-group sort-container__form">
-        <div class="browse__sort-container">
-            <label class="govuk-label" for="sort">Sort by</label>
-            <select class="govuk-select govuk-select__sort-container-select"
-                    id="sort"
-                    name="sort">
-                <option value="body-a">Transferring body (A to Z)</option>
-                <option value="body-b" selected>Transferring body (Z to A)</option>
-                <option value="series-a">Series (A to Z)</option>
-                <option value="series-b">Series (Z to A)</option>
-                <option value="date-first">Date record transferred (most recent first)</option>
-                <option value="date-last">Date record transferred (oldest first)</option>
-            </select>
-            <button class="govuk-button govuk-button__sort-container-update-button"
-                    id="sort-update-button"
-                    data-module="govuk-button">Apply</button>
-        </div>
+        <form action="{{ url_for('main.browse') }}" method="get">
+            <input type="hidden"
+                   name="consignment_id"
+                   value="{{ filters['consignment_id'] }}">
+            <div class="browse__sort-container">
+                <label class="govuk-label" for="sort">Sort by</label>
+                <select class="govuk-select govuk-select__sort-container-select"
+                        id="sort"
+                        name="sort">
+                    <option value="closure_type_asc"
+                            {% if sorting_orders["closure_type"] == "asc" %}selected{% endif %}>
+                        Record status (closed first)
+                    </option>
+                    <option value="closure_type_desc"
+                            {% if sorting_orders["closure_type"] == "desc" %}selected{% endif %}>
+                        Record status (open first)
+                    </option>
+                    <option value="closure_expiry_date_asc"
+                            {% if sorting_orders["closure_expiry_date"] == "asc" %}selected{% endif %}>
+                        Closure expiry date (soonest first)
+                    </option>
+                    <option value="last_modified_date_desc"
+                            {% if sorting_orders["date_last_modified"] == "desc" %}selected{% endif %}>
+                        Last modified (most recent first)
+                    </option>
+                    <option value="last_modified_date_asc"
+                            {% if sorting_orders["date_last_modified"] == "asc" %}selected{% endif %}>
+                        Last modified (oldest first)
+                    </option>
+                    <option value="filename_asc"
+                            {% if sorting_orders["file_name"] == "asc" %}selected{% endif %}>
+                        Record filename (A-Z)
+                    </option>
+                    <option value="filename_desc"
+                            {% if sorting_orders["file_name"] == "desc" %}selected{% endif %}>
+                        Record filename (Z-A)
+                    </option>
+                </select>
+                <button type="submit"
+                        class="govuk-button govuk-button__sort-container-update-button"
+                        id="sort-update-button"
+                        data-module="govuk-button">Apply</button>
+            </div>
+        </form>
     </div>
     <!-- TABLE -->
     <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
@@ -49,7 +77,7 @@
                                 <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
                             </td>
                             <td class="govuk-table__cell">
-                                <strong class="govuk-tag {{ 'govuk-tag--green' if record['closure_type'] == 'Open' else 'govuk-tag--red' }}">
+                                <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
                                     {{ record['closure_type'] }}
                                 </strong>
                             </td>
