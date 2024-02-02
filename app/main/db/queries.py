@@ -389,7 +389,7 @@ def _build_consignment_view_query(
 def _build_consignment_filters(query, sub_query, filters):
     record_status = filters.get("record_status")
     if record_status:
-        if record_status and record_status != "all":
+        if record_status and record_status.lower() != "all":
             query = query.filter(
                 func.lower(sub_query.c.closure_type) == record_status.lower()
             )
@@ -553,3 +553,10 @@ def _build_date_range_filter(date_field, date_from, date_to):
         date_filter = func.to_char(date_field, "YYYY-MM-DD") <= date_to
 
     return date_filter
+
+
+def get_all_transferring_bodies():
+    bodies = []
+    for body in Body.query.all():
+        bodies.append(body.Name)
+    return bodies

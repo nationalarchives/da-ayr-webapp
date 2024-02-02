@@ -29,6 +29,7 @@ from app.main.db.models import Body, File
 from app.main.db.queries import (
     browse_data,
     build_fuzzy_search_query,
+    get_all_transferring_bodies,
     get_file_metadata,
 )
 from app.main.forms import CookiesForm
@@ -106,6 +107,11 @@ def accessibility():
 @bp.route("/browse", methods=["POST", "GET"])
 @access_token_sign_in_required
 def browse():
+    transferring_bodies = []
+    ayr_user = AYRUser.from_access_token(session.get("access_token"))
+    if ayr_user.is_superuser:
+        transferring_bodies = get_all_transferring_bodies()
+
     form = SearchForm()
     page = int(request.args.get("page", 1))
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
@@ -119,10 +125,9 @@ def browse():
     filters = {}
     sorting_orders = {}
 
-    # e.g. please usd example below to pass filters for browse all (top level)
-    # filters["transferring_body"] = "test"
-    # filters["series"] = "tst"
-    # filters["date_range"] = {"date_from": "01/08/2022", "date_to": "31/08/2022"}
+    if browse_type == "browse":
+        filters = _build_browse_all_filters()
+
     # e.g. please usd example below to pass sorting order for browse all (top level)
     # sorting_orders["transferring_body"] = "asc"  # A to Z
     # sorting_orders["transferring_body"] = "desc"  # Z to A
@@ -193,8 +198,53 @@ def browse():
         filters=browse_parameters,
         browse_type=browse_type,
         results=browse_results,
+        transferring_bodies=transferring_bodies,
+        user_filters=filters,
         num_records_found=num_records_found,
     )
+
+
+def _build_browse_all_filters():
+    if request.args:
+        filter_items = []
+        filters = {}
+        transferring_body = request.args.get(
+            "transferring_body_filter", ""
+        ).lower()
+        series = request.args.get("series_filter", "").lower()
+
+        if transferring_body and transferring_body != "all":
+            filter_items.append({"transferring_body": transferring_body})
+        if series:
+            filter_items.append({"series": series})
+
+        _build_date_range_filter(filter_items)
+
+        for f in filter_items:
+            for key, value in f.items():
+                filters[key] = value
+
+        return filters
+
+
+def _build_date_range_filter(filter_items):
+    date_from_day = request.args.get("date_from_day", "")
+    date_from_month = request.args.get("date_from_month", "")
+    date_from_year = request.args.get("date_from_year", "")
+    date_from = date_from_day + "/" + date_from_month + "/" + date_from_year
+    date_to_day = request.args.get("date_to_day", "")
+    date_to_month = request.args.get("date_to_month", "")
+    date_to_year = request.args.get("date_to_year", "")
+    date_to = date_to_day + "/" + date_to_month + "/" + date_to_year
+
+    if (date_from and date_from != "//") and (date_to and date_to != "//"):
+        filter_items.append(
+            {"date_range": {"date_from": date_from, "date_to": date_to}}
+        )
+    elif date_from and date_from != "//":
+        filter_items.append({"date_range": {"date_from": date_from}})
+    elif date_to and date_to != "//":
+        filter_items.append({"date_range": {"date_to": date_to}})
 
 
 @bp.route("/search", methods=["POST", "GET"])
