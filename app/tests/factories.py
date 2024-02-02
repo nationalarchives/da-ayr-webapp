@@ -57,7 +57,6 @@ class FileFactory(SQLAlchemyModelFactory):
     FileType = FuzzyText(length=10)
     FileName = FuzzyText(length=10)
     FilePath = FuzzyText(length=50)
-    ParentId = factory.Faker("uuid4")
     CiteableReference = FuzzyText(length=10)
     Checksum = FuzzyText(length=10)
     CreatedDatetime = factory.Faker("date_time")

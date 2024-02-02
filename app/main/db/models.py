@@ -48,7 +48,6 @@ class File(db.Model):
     FileType = db.Column(Text, nullable=False)
     FileName = db.Column(Text, nullable=False)
     FilePath = db.Column(Text, nullable=False)
-    ParentId = db.Column(UUID(as_uuid=True))
     CiteableReference = db.Column(Text)
     Checksum = db.Column(Text)
     CreatedDatetime = db.Column(DateTime)
