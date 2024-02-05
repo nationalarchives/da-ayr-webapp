@@ -61,27 +61,26 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
     expected_breadcrumbs_html = f"""
     <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
     <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
-    <br />
-    <br />
+
     <div class="govuk-breadcrumbs">
         <ol class="govuk-breadcrumbs__list">
             <li class="govuk-breadcrumbs__list-item">
             <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
-            <a class="govuk-breadcrumbs__link--record"
+            <a class="govuk-breadcrumbs__link--record--transferring-body"
                 href="/browse?transferring_body_id={file.consignment.series.body.BodyId}">{file.consignment.series.body.Name}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
-            <a class="govuk-breadcrumbs__link--record"
+            <a class="govuk-breadcrumbs__link--record--series"
                 href="/browse?series_id={file.consignment.series.SeriesId}">{file.consignment.series.Name}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
-            <a class="govuk-breadcrumbs__link--record"
+            <a class="govuk-breadcrumbs__link--record--consignment"
                 href="/browse?consignment_id={file.ConsignmentId}">{file.consignment.ConsignmentReference}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
-            <p class="govuk-breadcrumbs__link--record">test_file.txt</p>
+            <a class="govuk-breadcrumbs__link--record" href="#">test_file.txt</a>
             </li>
         </ol>
         </div>

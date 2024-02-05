@@ -54,45 +54,6 @@
     }
 }
 
-.govuk-breadcrumbs {
-
-    margin-top: 0;
-
-
-    &__link--record {
-        color:#1d70b8;
-        font-size: 1.1rem;
-        font-weight: 400;
-        margin-top:0;
-    }
-
-    &__list-item {
-        &:last-child {
-            text-decoration: none;
-            font-weight:bold;
-            color: black;
-            font-size: 1.625rem;
-            padding-left: 0;
-            margin-left: 0;
-
-            &::before {
-                content: none;
-                }
-
-        a {
-            text-decoration: none;
-            font-weight:bold;
-            color: black;
-            font-size: 1.8rem;
-        }
-        }
-    }
-
-    &--record {
-       display: flex;
-    }
-}
-
 .govuk-heading-m {
     &__rights-header {
         display: flex;
@@ -118,10 +79,10 @@
 
     &__record-view  {
         margin-top: 2rem;
-        margin-bottom: 0;
+        margin-bottom: 0.6rem;
 
     p {
-        margin-bottom: 0;
+        margin-bottom: 0.6rem;
     }
     }
 }

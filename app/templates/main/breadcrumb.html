@@ -10,19 +10,19 @@
                     {% if key == "everything" %}
                         <a class="govuk-breadcrumbs__link--record" href="{{ browse_url }}">{{ value }}</a>
                     {% elif key == "body" %}
-                        <a class="govuk-breadcrumbs__link--record"
+                        <a class="govuk-breadcrumbs__link--record--transferring-body"
                            href="{{ transferring_body_url ~ value[0] }}">{{ value[1] }}</a>
                     {% elif key == "series" %}
-                        <a class="govuk-breadcrumbs__link--record"
+                        <a class="govuk-breadcrumbs__link--record--series"
                            href="{{ series_url ~ value[0] }}">{{ value[1] }}</a>
                     {% elif key == "consignment" %}
-                        <a class="govuk-breadcrumbs__link--record"
+                        <a class="govuk-breadcrumbs__link--record--consignment"
                            href="{{ consignment_url ~ value[0] }}">{{ value[1] }}</a>
                     {% endif %}
                 </li>
             {% else %}
                 <li class="govuk-breadcrumbs__list-item">
-                    <p class="govuk-breadcrumbs__link--record">{{ value }}</p>
+                    <a class="govuk-breadcrumbs__link--record" href="#">{{ value }}</a>
                 </li>
             {% endif %}
         {% endfor %}

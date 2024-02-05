@@ -1206,8 +1206,8 @@ class TestBrowseTransferringBody:
                 <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                <p class="govuk-breadcrumbs__link--record">
-                {browse_transferring_body_files[0].consignment.series.body.Name}</p>
+                <a class="govuk-breadcrumbs__link--record" href="#">
+                {browse_transferring_body_files[0].consignment.series.body.Name}</a>
                 </li>
             </ol>
         </div>
@@ -1848,11 +1848,11 @@ class TestSeries:
                     <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                    <a class="govuk-breadcrumbs__link--record"
+                    <a class="govuk-breadcrumbs__link--record--transferring-body"
                         href="/browse?transferring_body_id={browse_files[0].consignment.series.body.BodyId}">{browse_files[0].consignment.series.body.Name}</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                    <p class="govuk-breadcrumbs__link--record">{browse_files[0].consignment.series.Name}</p>
+                    <a class="govuk-breadcrumbs__link--record" href="#">{browse_files[0].consignment.series.Name}</a>
                 </li>
             </ol>
         </div>
@@ -2269,15 +2269,15 @@ class TestConsignment:
                     <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                    <a class="govuk-breadcrumbs__link--record"
+                    <a class="govuk-breadcrumbs__link--record--transferring-body"
                         href="/browse?transferring_body_id={browse_consignment_files[0].consignment.series.body.BodyId}">{browse_consignment_files[0].consignment.series.body.Name}</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                    <a class="govuk-breadcrumbs__link--record"
+                    <a class="govuk-breadcrumbs__link--record--series"
                         href="/browse?series_id={browse_consignment_files[0].consignment.series.SeriesId}">{browse_consignment_files[0].consignment.series.Name}</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                    <p class="govuk-breadcrumbs__link--record">{consignment_reference}</p>
+                    <a class="govuk-breadcrumbs__link--record" href="#">{consignment_reference}</p>
                 </li>
             </ol>
         </div>
