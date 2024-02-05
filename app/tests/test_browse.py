@@ -135,6 +135,7 @@ def test_standard_user_redirected_to_browse_transferring_body_when_accessing_bro
     )
 
 
+
 class TestBrowse:
     def test_browse_get_view(self, client: FlaskClient, mock_superuser):
         """
@@ -1206,12 +1207,14 @@ class TestBrowseTransferringBody:
                 <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                <p class="govuk-breadcrumbs__link--record">
-                {browse_transferring_body_files[0].consignment.series.body.Name}</p>
+                <a class="govuk-breadcrumbs__link--record" href="#">
+                {browse_transferring_body_files[0].consignment.series.body.Name}</a>
                 </li>
             </ol>
         </div>
         """
+
+
 
         assert_contains_html(
             expected_breadcrumbs_html,
@@ -1848,11 +1851,11 @@ class TestSeries:
                     <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                    <a class="govuk-breadcrumbs__link--record"
+                    <a class="govuk-breadcrumbs__link--record--transferring-body"
                         href="/browse?transferring_body_id={browse_files[0].consignment.series.body.BodyId}">{browse_files[0].consignment.series.body.Name}</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                    <p class="govuk-breadcrumbs__link--record">{browse_files[0].consignment.series.Name}</p>
+                    <a class="govuk-breadcrumbs__link--record" href="#">{browse_files[0].consignment.series.Name}</a>
                 </li>
             </ol>
         </div>
@@ -2238,6 +2241,8 @@ class TestConsignment:
         verify_consignment_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
+  
+
     def test_browse_consignment_breadcrumb(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
@@ -2269,15 +2274,15 @@ class TestConsignment:
                     <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                    <a class="govuk-breadcrumbs__link--record"
+                    <a class="govuk-breadcrumbs__link--record--transferring-body"
                         href="/browse?transferring_body_id={browse_consignment_files[0].consignment.series.body.BodyId}">{browse_consignment_files[0].consignment.series.body.Name}</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                    <a class="govuk-breadcrumbs__link--record"
+                    <a class="govuk-breadcrumbs__link--record--series"
                         href="/browse?series_id={browse_consignment_files[0].consignment.series.SeriesId}">{browse_consignment_files[0].consignment.series.Name}</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                    <p class="govuk-breadcrumbs__link--record">{consignment_reference}</p>
+                    <a class="govuk-breadcrumbs__link--record" href="#">{consignment_reference}</p>
                 </li>
             </ol>
         </div>

@@ -54,63 +54,6 @@
     }
 }
 
-.govuk-breadcrumbs {
-
-    margin-top: 0;
-
-    &__list-item {
-        &:last-child a {
-            text-decoration: none;
-            font-weight:bold;
-            color: black;
-            font-size: 1.5rem;
-            line-height: 1.3rem;
-        }
-    }
-
-    &__link--record {
-
-        color:#1d70b8;
-        font-size: 1.1rem;
-        font-weight: 400;
-        margin-top:0;
-        
-        &:last-child a {
-            flex-wrap:wrap;
-        }
-
-        
-
-        &--series {
-            white-space: nowrap;
-    
-            &:visited {
-                color: #1d70b8;
-            }
-        }
-
-        &--transferring-body {
-            flex-wrap: wrap;
-    
-            &:visited {
-                color: #1d70b8;
-            }
-        } 
-    
-        &--consignment {
-            white-space: nowrap;
-    
-            &:visited {
-                color: #1d70b8;
-            }
-        }
-        }
-
-    &--record {
-       display: flex;
-    }
-}
-
 .govuk-heading-m {
     &__rights-header {
         display: flex;
@@ -136,10 +79,10 @@
 
     &__record-view  {
         margin-top: 2rem;
-        margin-bottom: 0;
+        margin-bottom: 0.6rem;
 
     p {
-        margin-bottom: 0;
+        margin-bottom: 0.6rem;
     }
     }
 }

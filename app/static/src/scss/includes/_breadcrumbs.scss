@@ -1,0 +1,57 @@
+.govuk-breadcrumbs {
+
+    margin-top: 0;
+
+
+    &__list-item {
+        &:last-child a {
+            text-decoration: none;
+            font-weight:bold;
+            color: black;
+            font-size: 1.5rem;
+            line-height: 1.8rem;
+
+
+        }
+    }
+
+    &__link--record {
+
+        color:#1d70b8;
+        font-size: 1.1rem;
+        font-weight: 400;
+        margin-top:0;
+
+
+
+
+
+        &--series {
+            white-space: nowrap;
+
+            &:visited {
+                color: #1d70b8;
+            }
+        }
+
+        &--transferring-body {
+            flex-wrap: wrap;
+
+            &:visited {
+                color: #1d70b8;
+            }
+        }
+
+        &--consignment {
+            white-space: nowrap;
+
+            &:visited {
+                color: #1d70b8;
+            }
+        }
+        }
+
+    &--record {
+       display: flex;
+    }
+}
