@@ -135,7 +135,6 @@ def test_standard_user_redirected_to_browse_transferring_body_when_accessing_bro
     )
 
 
-
 class TestBrowse:
     def test_browse_get_view(self, client: FlaskClient, mock_superuser):
         """
@@ -1214,8 +1213,6 @@ class TestBrowseTransferringBody:
         </div>
         """
 
-
-
         assert_contains_html(
             expected_breadcrumbs_html,
             html,
@@ -2240,8 +2237,6 @@ class TestConsignment:
 
         verify_consignment_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
-
-  
 
     def test_browse_consignment_breadcrumb(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
