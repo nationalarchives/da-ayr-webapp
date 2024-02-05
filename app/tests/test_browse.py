@@ -2078,41 +2078,8 @@ class TestSeries:
         """
         Given a superuser accessing the browse page
         When they make a GET request with a series id
-        and select sorting option as consignment reference ascending
-        Then they should see records sorted by consignment reference in alphabetic order most recent first
-        on browse page content.
-        """
-        mock_standard_user(
-            client,
-            browse_files[0].consignment.series.body.Name,
-        )
-
-        series_id = browse_files[0].consignment.series.SeriesId
-
-        response = client.get(
-            f"/browse?series_id={series_id}&sort=consignment_reference-asc"
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1', "
-                "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2'"
-            ],
-        ]
-
-        verify_series_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_series_with_consignment_reference_sorting_oldest_first(
-        self, client: FlaskClient, mock_standard_user, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with a series id
         and select sorting option as consignment reference descending
-        Then they should see records sorted by consignment reference in reverse alphabetic order oldest first
+        Then they should see records sorted by consignment reference in reverse alphabetic order most recent first
         on browse page content.
         """
         mock_standard_user(
@@ -2132,6 +2099,39 @@ class TestSeries:
             [
                 "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2', "
                 "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1'"
+            ],
+        ]
+
+        verify_series_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_series_with_consignment_reference_sorting_oldest_first(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they make a GET request with a series id
+        and select sorting option as consignment reference ascending
+        Then they should see records sorted by consignment reference in alphabetic order oldest first
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_files[0].consignment.series.body.Name,
+        )
+
+        series_id = browse_files[0].consignment.series.SeriesId
+
+        response = client.get(
+            f"/browse?series_id={series_id}&sort=consignment_reference-asc"
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1', "
+                "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2'"
             ],
         ]
 
