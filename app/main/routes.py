@@ -93,12 +93,8 @@ def callback():
         redirect_uri=f"{request.url_root}callback",
     )
 
-    session["access_token_response"] = access_token_response
     session["access_token"] = access_token_response["access_token"]
     session["refresh_token"] = access_token_response["refresh_token"]
-    session["token_type"] = access_token_response["token_type"]
-    session["token_scope"] = access_token_response["scope"]
-    session["session_state"] = access_token_response["session_state"]
 
     return redirect(url_for("main.browse"))
 
