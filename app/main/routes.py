@@ -138,7 +138,7 @@ def browse():
     elif series_id:
         browse_type = "series"
         browse_parameters["series_id"] = series_id
-        # filters["date_range"] = {"date_from": "01/08/2022", "date_to": "31/08/2022"}
+        filters = _build_browse_all_filters()
         # sorting_orders["last_record_transferred"] = "asc"  # oldest first
         # sorting_orders["last_record_transferred"] = "desc"  # most recent first
         # sorting_orders["records_held"] = "asc"  # least first
