@@ -1,5 +1,5 @@
 import boto3
-from moto import mock_s3
+from moto import mock_aws
 
 from app.tests.factories import ConsignmentFactory, FileFactory
 
@@ -49,7 +49,7 @@ def test_invalid_id_raises_404(client):
     assert response.status_code == 404
 
 
-@mock_s3
+@mock_aws
 def test_downloads_record_successfully_for_user_with_access_to_files_transferring_body(
     app, client, mock_standard_user
 ):
@@ -74,7 +74,7 @@ def test_downloads_record_successfully_for_user_with_access_to_files_transferrin
     assert response.data == b"record"
 
 
-@mock_s3
+@mock_aws
 def test_raises_404_for_user_without_access_to_files_transferring_body(
     app, client, mock_standard_user
 ):
@@ -93,7 +93,7 @@ def test_raises_404_for_user_without_access_to_files_transferring_body(
     assert response.status_code == 404
 
 
-@mock_s3
+@mock_aws
 def test_downloads_record_successfully_for_superuser(
     app, client, mock_superuser
 ):

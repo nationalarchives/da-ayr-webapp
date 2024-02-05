@@ -2,7 +2,7 @@ import json
 from unittest.mock import patch
 
 import boto3
-from moto import mock_secretsmanager
+from moto import mock_aws
 
 from configs.aws_secrets_manager_config import AWSSecretsManagerConfig
 from configs.env_config import EnvConfig
@@ -55,7 +55,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
     assert config.RATELIMIT_STORAGE_URI == "test_ratelimit_storage_uri"
 
 
-@mock_secretsmanager
+@mock_aws
 def test_aws_secrets_manager_config_initialized():
     """
     GIVEN AWS secret `ayr-test-one-vars` is set with all config key value pairs
