@@ -127,14 +127,7 @@ def browse():
 
     if browse_type == "browse":
         filters = _build_browse_all_filters()
-
-    # e.g. please usd example below to pass sorting order for browse all (top level)
-    # sorting_orders["transferring_body"] = "asc"  # A to Z
-    # sorting_orders["transferring_body"] = "desc"  # Z to A
-    # sorting_orders["series"] = "asc"  # A to Z
-    # sorting_orders["series"] = "desc"  # Z to A
-    # sorting_orders["last_record_transferred"] = "asc"  # oldest first
-    # sorting_orders["last_record_transferred"] = "desc"  # most recent first
+        sorting_orders = build_sorting_orders()
 
     if transferring_body_id:
         browse_type = "transferring_body"
@@ -200,6 +193,7 @@ def browse():
         results=browse_results,
         transferring_bodies=transferring_bodies,
         user_filters=filters,
+        sorting_orders=sorting_orders,
         num_records_found=num_records_found,
     )
 
@@ -225,6 +219,27 @@ def _build_browse_all_filters():
                 filters[key] = value
 
         return filters
+
+
+def build_sorting_orders():
+    sorting_orders = {}
+
+    if request.args.get("sort") == "transferring_body_asc":
+        sorting_orders["transferring_body"] = "asc"  # A to Z
+    if request.args.get("sort") == "transferring_body_desc":
+        sorting_orders["transferring_body"] = "desc"  # Z to A
+
+    if request.args.get("sort") == "series_asc":
+        sorting_orders["series"] = "asc"  # A to Z
+    if request.args.get("sort") == "series_desc":
+        sorting_orders["series"] = "desc"  # Z to A
+
+    if request.args.get("sort") == "last_record_transferred_asc":
+        sorting_orders["last_record_transferred"] = "asc"  # oldest first
+    if request.args.get("sort") == "last_record_transferred_desc":
+        sorting_orders["last_record_transferred"] = "desc"  # most recent first
+
+    return sorting_orders
 
 
 def _build_date_range_filter(filter_items):

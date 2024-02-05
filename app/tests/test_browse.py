@@ -959,6 +959,174 @@ class TestBrowse:
         assert not previous_option
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
+    def test_browse_with_transferring_body_sorting_a_to_z(
+        self, client: FlaskClient, mock_superuser, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they select sorting option as transferring body ascending (A to Z)
+        Then they should see first five records sorted in alphabetic order of transferring body (A to Z)
+        on browse page content.
+        """
+        mock_superuser(client)
+
+        response = client.get("/browse?sort=transferring_body_asc")
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                "'first_body', 'first_series', '07/02/2023', '3', '2', "
+                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                "'second_body', 'second_series', '26/04/2023', '7', '2', "
+                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_with_transferring_body_sorting_z_to_a(
+        self, client: FlaskClient, mock_superuser, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they select sorting option as transferring body descending (Z to A)
+        Then they should see first five records sorted in reverse alphabetic order of transferring body (Z to A)
+        on browse page content.
+        """
+        mock_superuser(client)
+
+        response = client.get("/browse?sort=transferring_body_desc")
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'third_body', 'third_series', '17/06/2023', '3', '2', "
+                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
+                "'second_body', 'second_series', '26/04/2023', '7', '2', "
+                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                "'first_body', 'first_series', '07/02/2023', '3', '2'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_with_series_sorting_a_to_z(
+        self, client: FlaskClient, mock_superuser, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they select sorting option as series ascending (A to Z)
+        Then they should see first five records sorted in alphabetic order of series (A to Z)
+        on browse page content.
+        """
+        mock_superuser(client)
+
+        response = client.get("/browse?sort=series_asc")
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                "'first_body', 'first_series', '07/02/2023', '3', '2', "
+                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                "'second_body', 'second_series', '26/04/2023', '7', '2', "
+                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_with_series_sorting_z_to_a(
+        self, client: FlaskClient, mock_superuser, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they select sorting option as series descending (Z to A)
+        Then they should see first five records sorted in reverse alphabetic order of series (Z to A)
+        on browse page content.
+        """
+        mock_superuser(client)
+
+        response = client.get("/browse?sort=series_desc")
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'third_body', 'third_series', '17/06/2023', '3', '2', "
+                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
+                "'second_body', 'second_series', '26/04/2023', '7', '2', "
+                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                "'first_body', 'first_series', '07/02/2023', '3', '2'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_with_date_consignment_transferred_sorting_oldest_first(
+        self, client: FlaskClient, mock_superuser, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they select sorting option as date consignment transferred ascending
+        Then they should see first five records sorted in oldest date first order of date consignment transferred
+        on browse page content.
+        """
+        mock_superuser(client)
+
+        response = client.get("/browse?sort=last_record_transferred_asc")
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'first_series', '07/02/2023', '3', '2', "
+                "'second_body', 'second_series', '26/04/2023', '7', '2', "
+                "'third_body', 'third_series', '17/06/2023', '3', '2', "
+                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_with_date_consignment_transferred_sorting_most_recent_first(
+        self, client: FlaskClient, mock_superuser, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they select sorting option as date consignment transferred descending
+        Then they should see first five records sorted in most recent date first order of date consignment transferred
+        on browse page content.
+        """
+        mock_superuser(client)
+
+        response = client.get("/browse?sort=last_record_transferred_desc")
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
+                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                "'third_body', 'third_series', '17/06/2023', '3', '2', "
+                "'second_body', 'second_series', '26/04/2023', '7', '2'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
 
 class TestBrowseTransferringBody:
     def test_browse_transferring_body(
