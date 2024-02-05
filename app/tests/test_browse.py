@@ -1550,9 +1550,249 @@ class TestBrowseTransferringBody:
         verify_browse_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
+    def test_browse_transferring_body_with_series_sorting_a_to_z(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        and select sorting option as series ascending (A to Z)
+        Then they should see results based on transferring body
+        sorted in alphabetic order of series (A to Z)
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&sort=series_asc"
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'first_series', '14/10/2023', '1', '1', "
+                "'first_body', 'second_series', '30/03/2023', '2', '1', "
+                "'first_body', 'third_series', '07/07/2023', '3', '1'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_transferring_body_with_series_sorting_z_to_a(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        and select sorting option as series descending (Z to A)
+        Then they should see results based on transferring body
+        sorted in reverse alphabetic order of series (Z to A)
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&sort=series_desc"
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'third_series', '07/07/2023', '3', '1', "
+                "'first_body', 'second_series', '30/03/2023', '2', '1', "
+                "'first_body', 'first_series', '14/10/2023', '1', '1'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_transferring_body_with_date_consignment_transferred_sorting_oldest_first(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        and select sorting option as date consignment transferred ascending
+        Then they should see results based on transferring body
+        sorted in oldest date first order of date consignment transferred
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&sort=last_record_transferred_asc"
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'second_series', '30/03/2023', '2', '1', "
+                "'first_body', 'third_series', '07/07/2023', '3', '1', "
+                "'first_body', 'first_series', '14/10/2023', '1', '1'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_transferring_body_with_date_consignment_transferred_sorting_most_recent_first(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        and select sorting option as date consignment transferred descending
+        Then they should see results based on transferring body
+        sorted in most recent date first order of date consignment transferred
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&sort=last_record_transferred_desc"
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'first_series', '14/10/2023', '1', '1', "
+                "'first_body', 'third_series', '07/07/2023', '3', '1', "
+                "'first_body', 'second_series', '30/03/2023', '2', '1'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_transferring_body_with_records_held_in_series_sorting_most_first(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        and select sorting option as records held in series (most first)
+        Then they should see results based on transferring body
+        sorted in most number of records held in consignment
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&sort=records_held_desc"
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'third_series', '07/07/2023', '3', '1', "
+                "'first_body', 'second_series', '30/03/2023', '2', '1', "
+                "'first_body', 'first_series', '14/10/2023', '1', '1'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_transferring_body_with_records_held_in_series_sorting_least_first(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        and select sorting option as records held in series (least first)
+        Then they should see results based on transferring body
+        sorted in least number of records held in consignment
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&sort=records_held_asc"
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'first_series', '14/10/2023', '1', '1', "
+                "'first_body', 'second_series', '30/03/2023', '2', '1', "
+                "'first_body', 'third_series', '07/07/2023', '3', '1'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
 
 class TestSeries:
-    def test_browse_series(
+    def test_browse_series_without_filter(
         self, client: FlaskClient, mock_standard_user, browse_files
     ):
         """
@@ -1624,6 +1864,147 @@ class TestSeries:
             "div",
             {"class": "govuk-breadcrumbs"},
         )
+
+    def test_browse_series_with_date_from_filter(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_files,
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a series id
+        and provide a date range with only date from value as filter in text input field
+        Then they should see results based on series and
+        matches to date last transferred greater than or equal to date from filter value
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_files[0].consignment.series.body.Name,
+        )
+
+        series_id = browse_files[0].consignment.series.SeriesId
+
+        day = "01"
+        month = "02"
+        year = "2023"
+
+        response = client.get(
+            f"/browse?series_id={series_id}&date_from_day="
+            + day
+            + "&date_from_month="
+            + month
+            + "&date_from_year="
+            + year
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            ["'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2'"],
+        ]
+
+        verify_series_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_series_with_date_to_filter(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_files,
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a series id
+        and provide a date range with only date to value as filter in text input field
+        Then they should see results based on series and
+        matches to date last transferred less than or equal to date to filter value
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_files[0].consignment.series.body.Name,
+        )
+
+        series_id = browse_files[0].consignment.series.SeriesId
+
+        day = "31"
+        month = "01"
+        year = "2023"
+
+        response = client.get(
+            f"/browse?series_id={series_id}&date_to_day="
+            + day
+            + "&date_to_month="
+            + month
+            + "&date_to_year="
+            + year
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            ["'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1'"],
+        ]
+
+        verify_series_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_series_with_date_from_and_date_to_filter(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_files,
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a series id
+        and provide a date range with date from and date to value as filter in text input field
+        Then they should see results based on series and
+        matches to date last transferred between date from and date to filter value
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_files[0].consignment.series.body.Name,
+        )
+
+        series_id = browse_files[0].consignment.series.SeriesId
+
+        date_from_day = "01"
+        date_from_month = "01"
+        date_from_year = "2023"
+        date_to_day = "27"
+        date_to_month = "02"
+        date_to_year = "2023"
+
+        response = client.get(
+            f"/browse?series_id={series_id}&date_from_day="
+            + date_from_day
+            + "&date_from_month="
+            + date_from_month
+            + "&date_from_year="
+            + date_from_year
+            + "&date_to_day="
+            + date_to_day
+            + "&date_to_month="
+            + date_to_month
+            + "&date_to_year="
+            + date_to_year
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1', "
+                "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2'"
+            ],
+        ]
+
+        verify_series_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
 
 class TestConsignment:
