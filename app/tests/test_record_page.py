@@ -61,8 +61,7 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
     expected_breadcrumbs_html = f"""
     <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
     <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
-    <br />
-    <br />
+
     <div class="govuk-breadcrumbs">
         <ol class="govuk-breadcrumbs__list">
             <li class="govuk-breadcrumbs__list-item">
