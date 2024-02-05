@@ -970,7 +970,7 @@ class TestBrowse:
         """
         mock_superuser(client)
 
-        response = client.get("/browse?sort=transferring_body_asc")
+        response = client.get("/browse?sort=transferring_body-asc")
 
         assert response.status_code == 200
 
@@ -998,7 +998,7 @@ class TestBrowse:
         """
         mock_superuser(client)
 
-        response = client.get("/browse?sort=transferring_body_desc")
+        response = client.get("/browse?sort=transferring_body-desc")
 
         assert response.status_code == 200
 
@@ -1026,7 +1026,7 @@ class TestBrowse:
         """
         mock_superuser(client)
 
-        response = client.get("/browse?sort=series_asc")
+        response = client.get("/browse?sort=series-asc")
 
         assert response.status_code == 200
 
@@ -1054,7 +1054,7 @@ class TestBrowse:
         """
         mock_superuser(client)
 
-        response = client.get("/browse?sort=series_desc")
+        response = client.get("/browse?sort=series-desc")
 
         assert response.status_code == 200
 
@@ -1082,7 +1082,7 @@ class TestBrowse:
         """
         mock_superuser(client)
 
-        response = client.get("/browse?sort=last_record_transferred_asc")
+        response = client.get("/browse?sort=last_record_transferred-asc")
 
         assert response.status_code == 200
 
@@ -1110,7 +1110,7 @@ class TestBrowse:
         """
         mock_superuser(client)
 
-        response = client.get("/browse?sort=last_record_transferred_desc")
+        response = client.get("/browse?sort=last_record_transferred-desc")
 
         assert response.status_code == 200
 
@@ -1574,7 +1574,7 @@ class TestBrowseTransferringBody:
         ].consignment.series.body.BodyId
 
         response = client.get(
-            f"/browse?transferring_body_id={transferring_body_id}&sort=series_asc"
+            f"/browse?transferring_body_id={transferring_body_id}&sort=series-asc"
         )
 
         assert response.status_code == 200
@@ -1614,7 +1614,7 @@ class TestBrowseTransferringBody:
         ].consignment.series.body.BodyId
 
         response = client.get(
-            f"/browse?transferring_body_id={transferring_body_id}&sort=series_desc"
+            f"/browse?transferring_body_id={transferring_body_id}&sort=series-desc"
         )
 
         assert response.status_code == 200
@@ -1654,7 +1654,7 @@ class TestBrowseTransferringBody:
         ].consignment.series.body.BodyId
 
         response = client.get(
-            f"/browse?transferring_body_id={transferring_body_id}&sort=last_record_transferred_asc"
+            f"/browse?transferring_body_id={transferring_body_id}&sort=last_record_transferred-asc"
         )
 
         assert response.status_code == 200
@@ -1694,7 +1694,7 @@ class TestBrowseTransferringBody:
         ].consignment.series.body.BodyId
 
         response = client.get(
-            f"/browse?transferring_body_id={transferring_body_id}&sort=last_record_transferred_desc"
+            f"/browse?transferring_body_id={transferring_body_id}&sort=last_record_transferred-desc"
         )
 
         assert response.status_code == 200
@@ -1734,7 +1734,7 @@ class TestBrowseTransferringBody:
         ].consignment.series.body.BodyId
 
         response = client.get(
-            f"/browse?transferring_body_id={transferring_body_id}&sort=records_held_desc"
+            f"/browse?transferring_body_id={transferring_body_id}&sort=records_held-desc"
         )
 
         assert response.status_code == 200
@@ -1774,7 +1774,7 @@ class TestBrowseTransferringBody:
         ].consignment.series.body.BodyId
 
         response = client.get(
-            f"/browse?transferring_body_id={transferring_body_id}&sort=records_held_asc"
+            f"/browse?transferring_body_id={transferring_body_id}&sort=records_held-asc"
         )
 
         assert response.status_code == 200
@@ -1812,8 +1812,8 @@ class TestSeries:
 
         expected_rows = [
             [
-                "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1', "
-                "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2'"
+                "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2', "
+                "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1'"
             ],
         ]
 
@@ -1998,8 +1998,206 @@ class TestSeries:
 
         expected_rows = [
             [
+                "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2', "
+                "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1'"
+            ],
+        ]
+
+        verify_series_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_series_with_date_consignment_transferred_sorting_oldest_first(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they make a GET request with a series id
+        and select sorting option as date consignment transferred ascending
+        Then they should see first five records sorted in oldest date first order of date consignment transferred
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_files[0].consignment.series.body.Name,
+        )
+
+        series_id = browse_files[0].consignment.series.SeriesId
+
+        response = client.get(
+            f"/browse?series_id={series_id}&sort=last_record_transferred-asc"
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
                 "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1', "
                 "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2'"
+            ],
+        ]
+
+        verify_series_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_series_with_date_consignment_transferred_sorting_most_recent_first(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they make a GET request with a series id
+        and select sorting option as date consignment transferred descending
+        Then they should see records sorted in most recent date first order of date consignment transferred
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_files[0].consignment.series.body.Name,
+        )
+
+        series_id = browse_files[0].consignment.series.SeriesId
+
+        response = client.get(
+            f"/browse?series_id={series_id}&sort=last_record_transferred-desc"
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2', "
+                "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1'"
+            ],
+        ]
+
+        verify_series_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_series_with_consignment_reference_sorting_most_recent_first(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they make a GET request with a series id
+        and select sorting option as consignment reference ascending
+        Then they should see records sorted by consignment reference in alphabetic order most recent first
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_files[0].consignment.series.body.Name,
+        )
+
+        series_id = browse_files[0].consignment.series.SeriesId
+
+        response = client.get(
+            f"/browse?series_id={series_id}&sort=consignment_reference-asc"
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1', "
+                "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2'"
+            ],
+        ]
+
+        verify_series_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_series_with_consignment_reference_sorting_oldest_first(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they make a GET request with a series id
+        and select sorting option as consignment reference descending
+        Then they should see records sorted by consignment reference in reverse alphabetic order oldest first
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_files[0].consignment.series.body.Name,
+        )
+
+        series_id = browse_files[0].consignment.series.SeriesId
+
+        response = client.get(
+            f"/browse?series_id={series_id}&sort=consignment_reference-desc"
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2', "
+                "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1'"
+            ],
+        ]
+
+        verify_series_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_series_with_records_held_in_consignment_sorting_least_first(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they make a GET request with a series id
+        and select sorting option as records held in consignment ascending
+        Then they should see records sorted by least records held first in consignment
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_files[0].consignment.series.body.Name,
+        )
+
+        series_id = browse_files[0].consignment.series.SeriesId
+
+        response = client.get(
+            f"/browse?series_id={series_id}&sort=records_held-asc"
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1', "
+                "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2'"
+            ],
+        ]
+
+        verify_series_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_series_with_records_held_in_consignment_sorting_most_first(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they make a GET request with a series id
+        and select sorting option as records held in consignment descending
+        Then they should see records sorted by most records held first in consignment
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_files[0].consignment.series.body.Name,
+        )
+
+        series_id = browse_files[0].consignment.series.SeriesId
+
+        response = client.get(
+            f"/browse?series_id={series_id}&sort=records_held-desc"
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'first_series', '07/02/2023', '2', 'TDR-2023-SE2', "
+                "'first_body', 'first_series', '13/01/2023', '1', 'TDR-2023-FI1'"
             ],
         ]
 

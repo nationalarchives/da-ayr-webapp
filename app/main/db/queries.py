@@ -247,7 +247,7 @@ def _build_series_view_query(series_id, filters, sorting_orders):
         query = query.order_by(
             sub_query.c.transferring_body,
             sub_query.c.series,
-            sub_query.c.consignment_reference,
+            desc(sub_query.c.last_record_transferred),
         )
 
     return query

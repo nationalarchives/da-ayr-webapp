@@ -33,6 +33,10 @@ from app.main.db.queries import (
     get_file_metadata,
 )
 from app.main.forms import CookiesForm
+from app.main.util.filter_sort_builder import (
+    build_filters,
+    build_sorting_orders,
+)
 
 from .forms import SearchForm
 
@@ -126,23 +130,23 @@ def browse():
     sorting_orders = {}
 
     if browse_type == "browse":
-        filters = _build_browse_all_filters()
-        sorting_orders = build_sorting_orders()
+        if request.args:
+            filters = build_filters(request.args)
+            sorting_orders = build_sorting_orders(request.args)
 
     if transferring_body_id:
         browse_type = "transferring_body"
         browse_parameters["transferring_body_id"] = transferring_body_id
-        filters = _build_browse_all_filters()
-        sorting_orders = build_sorting_orders()
+        if request.args:
+            filters = build_filters(request.args)
+            sorting_orders = build_sorting_orders(request.args)
 
     elif series_id:
         browse_type = "series"
         browse_parameters["series_id"] = series_id
-        filters = _build_browse_all_filters()
-        # sorting_orders["last_record_transferred"] = "asc"  # oldest first
-        # sorting_orders["last_record_transferred"] = "desc"  # most recent first
-        # sorting_orders["records_held"] = "asc"  # least first
-        # sorting_orders["records_held"] = "desc"  # most first
+        if request.args:
+            filters = build_filters(request.args)
+            sorting_orders = build_sorting_orders(request.args)
 
     elif consignment_id:
         browse_type = "consignment"
@@ -190,75 +194,6 @@ def browse():
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
     )
-
-
-def _build_browse_all_filters():
-    if request.args:
-        filter_items = []
-        filters = {}
-        transferring_body = request.args.get(
-            "transferring_body_filter", ""
-        ).lower()
-        series = request.args.get("series_filter", "").lower()
-
-        if transferring_body and transferring_body != "all":
-            filter_items.append({"transferring_body": transferring_body})
-        if series:
-            filter_items.append({"series": series})
-
-        _build_date_range_filter(filter_items)
-
-        for f in filter_items:
-            for key, value in f.items():
-                filters[key] = value
-
-        return filters
-
-
-def build_sorting_orders():
-    sorting_orders = {}
-
-    if request.args.get("sort") == "transferring_body_asc":
-        sorting_orders["transferring_body"] = "asc"  # A to Z
-    if request.args.get("sort") == "transferring_body_desc":
-        sorting_orders["transferring_body"] = "desc"  # Z to A
-
-    if request.args.get("sort") == "series_asc":
-        sorting_orders["series"] = "asc"  # A to Z
-    if request.args.get("sort") == "series_desc":
-        sorting_orders["series"] = "desc"  # Z to A
-
-    if request.args.get("sort") == "last_record_transferred_asc":
-        sorting_orders["last_record_transferred"] = "asc"  # oldest first
-    if request.args.get("sort") == "last_record_transferred_desc":
-        sorting_orders["last_record_transferred"] = "desc"  # most recent first
-
-    if request.args.get("sort") == "records_held_asc":
-        sorting_orders["records_held"] = "asc"  # least first
-    if request.args.get("sort") == "records_held_desc":
-        sorting_orders["records_held"] = "desc"  # most first
-
-    return sorting_orders
-
-
-def _build_date_range_filter(filter_items):
-    date_from_day = request.args.get("date_from_day", "")
-    date_from_month = request.args.get("date_from_month", "")
-    date_from_year = request.args.get("date_from_year", "")
-    date_from = date_from_day + "/" + date_from_month + "/" + date_from_year
-    date_to_day = request.args.get("date_to_day", "")
-    date_to_month = request.args.get("date_to_month", "")
-    date_to_year = request.args.get("date_to_year", "")
-    date_to = date_to_day + "/" + date_to_month + "/" + date_to_year
-
-    if (date_from and date_from != "//") and (date_to and date_to != "//"):
-        filter_items.append(
-            {"date_range": {"date_from": date_from, "date_to": date_to}}
-        )
-    elif date_from and date_from != "//":
-        filter_items.append({"date_range": {"date_from": date_from}})
-    elif date_to and date_to != "//":
-        filter_items.append({"date_range": {"date_to": date_to}})
 
 
 @bp.route("/search", methods=["POST", "GET"])
