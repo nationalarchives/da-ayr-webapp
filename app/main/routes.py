@@ -130,10 +130,10 @@ def browse():
         sorting_orders = build_sorting_orders()
 
     if transferring_body_id:
+        print("i was here")
         browse_type = "transferring_body"
         browse_parameters["transferring_body_id"] = transferring_body_id
-        # filters["series"] = "tsta1"
-        # filters["date_range"] = {"date_from": "01/08/2022", "date_to": "31/08/2022"}
+        filters = _build_browse_all_filters()
         # sorting_orders["series"] = "asc"  # A to Z
         # sorting_orders["series"] = "desc"  # Z to A
         # sorting_orders["last_record_transferred"] = "asc"  # oldest first

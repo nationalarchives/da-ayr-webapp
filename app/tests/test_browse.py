@@ -1129,17 +1129,25 @@ class TestBrowse:
 
 
 class TestBrowseTransferringBody:
-    def test_browse_transferring_body(
-        self, client: FlaskClient, mock_standard_user, browse_files
+    def test_browse_transferring_body_without_filter(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
     ):
         """
-        Given a user accessing the browse page
+        Given a standard user accessing the browse page
         When they make a GET request with a transferring body id
         Then they should see results based on transferring body filter on browse page content.
         """
-        transferring_body_id = browse_files[0].consignment.series.body.BodyId
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
 
-        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
 
         response = client.get(
             f"/browse?transferring_body_id={transferring_body_id}"
@@ -1147,17 +1155,24 @@ class TestBrowseTransferringBody:
 
         assert response.status_code == 200
         assert b"You are viewing" in response.data
-        assert b"Records found 1" in response.data
+        assert b"Records found 3" in response.data
 
         expected_rows = [
-            ["'first_body', 'first_series', '07/02/2023', '3', '2'"],
+            [
+                "'first_body', 'first_series', '14/10/2023', '1', '1', "
+                "'first_body', 'second_series', '30/03/2023', '2', '1', "
+                "'first_body', 'third_series', '07/07/2023', '3', '1'"
+            ],
         ]
 
         verify_transferring_body_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
     def test_browse_transferring_body_breadcrumb(
-        self, client: FlaskClient, mock_standard_user, browse_files
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
     ):
         """
         Given a user accessing the browse page
@@ -1165,9 +1180,14 @@ class TestBrowseTransferringBody:
         Then they should see results based on transferring body filter on browse page content.
         And breadcrumb should show 'Everything' > transferring body name
         """
-        transferring_body_id = browse_files[0].consignment.series.body.BodyId
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
 
-        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
 
         response = client.get(
             f"/browse?transferring_body_id={transferring_body_id}"
@@ -1175,7 +1195,7 @@ class TestBrowseTransferringBody:
 
         assert response.status_code == 200
         assert b"You are viewing" in response.data
-        assert b"Records found 1" in response.data
+        assert b"Records found 3" in response.data
 
         html = response.data.decode()
 
@@ -1186,7 +1206,8 @@ class TestBrowseTransferringBody:
                 <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                <p class="govuk-breadcrumbs__link--record">{browse_files[0].consignment.series.body.Name}</p>
+                <p class="govuk-breadcrumbs__link--record">
+                {browse_transferring_body_files[0].consignment.series.body.Name}</p>
                 </li>
             </ol>
         </div>
@@ -1198,6 +1219,336 @@ class TestBrowseTransferringBody:
             "div",
             {"class": "govuk-breadcrumbs"},
         )
+
+    def test_browse_transferring_body_with_series_filter(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        and provide a series value as filter in text input field
+        Then they should see results based on transferring body and matches to series name
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        series = "second"
+
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&series_filter="
+            + series
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            ["'first_body', 'second_series', '30/03/2023', '2', '1'"],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_transferring_body_with_date_from_filter(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        and provide a date range with only date from value as filter in text input field
+        Then they should see results based on transferring body and
+        matches to date last transferred greater than or equal to date from filter value
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        day = "01"
+        month = "10"
+        year = "2023"
+
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&date_from_day="
+            + day
+            + "&date_from_month="
+            + month
+            + "&date_from_year="
+            + year
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            ["'first_body', 'first_series', '14/10/2023', '1', '1'"],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_transferring_body_with_date_to_filter(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        and provide a date range with only date to value as filter in text input field
+        Then they should see results based on transferring body and
+        matches to date last transferred less than or equal to date to filter value
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        day = "31"
+        month = "03"
+        year = "2023"
+
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&date_to_day="
+            + day
+            + "&date_to_month="
+            + month
+            + "&date_to_year="
+            + year
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            ["'first_body', 'second_series', '30/03/2023', '2', '1'"],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_transferring_body_with_date_from_and_date_to_filter(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        and provide a date range with date from and date to value as filter in text input field
+        Then they should see results based on transferring body and
+        matches to date last transferred between date from and date to filter value
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        date_from_day = "01"
+        date_from_month = "07"
+        date_from_year = "2023"
+        date_to_day = "31"
+        date_to_month = "10"
+        date_to_year = "2023"
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&date_from_day="
+            + date_from_day
+            + "&date_from_month="
+            + date_from_month
+            + "&date_from_year="
+            + date_from_year
+            + "&date_to_day="
+            + date_to_day
+            + "&date_to_month="
+            + date_to_month
+            + "&date_to_year="
+            + date_to_year
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', 'first_series', '14/10/2023', '1', '1', "
+                "'first_body', 'third_series', '07/07/2023', '3', '1'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_transferring_body_with_series_and_date_from_filter(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        and provide a series value as filter in text input field
+        and provide a date range with only date from value as filter in text input field
+        Then they should see results based on transferring body and series name and
+        matches to date last transferred greater than or equal to date from filter value
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+        series = "first"
+        day = "01"
+        month = "10"
+        year = "2023"
+
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&series_filter={series}&date_from_day="
+            + day
+            + "&date_from_month="
+            + month
+            + "&date_from_year="
+            + year
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            ["'first_body', 'first_series', '14/10/2023', '1', '1'"],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_transferring_body_with_series_and_date_to_filter(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        and provide a series value as filter in text input field
+        and provide a date range with only date to value as filter in text input field
+        Then they should see results based on transferring body and series name and
+        matches to date last transferred less than or equal to date to filter value
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+        series = "second"
+        day = "31"
+        month = "03"
+        year = "2023"
+
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&series_filter={series}&date_to_day="
+            + day
+            + "&date_to_month="
+            + month
+            + "&date_to_year="
+            + year
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            ["'first_body', 'second_series', '30/03/2023', '2', '1'"],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_transferring_body_with_series_and_date_from_and_date_to_filter(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        and provide a series value as filter in text input field
+        and provide a date range with date from and date to value as filter in text input field
+        Then they should see results based on transferring body and series name and
+        matches to date last transferred between date from and date to filter value
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+        series = "first"
+        date_from_day = "01"
+        date_from_month = "07"
+        date_from_year = "2023"
+        date_to_day = "31"
+        date_to_month = "10"
+        date_to_year = "2023"
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&series_filter={series}&date_from_day="
+            + date_from_day
+            + "&date_from_month="
+            + date_from_month
+            + "&date_from_year="
+            + date_from_year
+            + "&date_to_day="
+            + date_to_day
+            + "&date_to_month="
+            + date_to_month
+            + "&date_to_year="
+            + date_to_year
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            ["'first_body', 'first_series', '14/10/2023', '1', '1'"],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
 
 
 class TestSeries:
