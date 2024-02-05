@@ -15,21 +15,18 @@ def test_header_links_render(client):
     html = response.data.decode()
 
     header_html = """<header class="govuk-header" data-module="govuk-header" role="banner">
- <div class="govuk-header__container govuk-header__container--ayr govuk-width-container">
-  <div class="govuk-header__logo">
-   <a class="govuk-header__link govuk-header__link--homepage" href="/browse">
-    <span class="govuk-header__logotype-text govuk-header__logotype--ayr">
-     Access Your Records (AYR)
-    </span>
-   </a>
-  </div>
-  <div class="govuk-header__content govuk-header__content--tna">
-   Delivered by
-   <a class="govuk-header__link govuk-header__link--tna" href="https://www.nationalarchives.gov.uk/">
-    The National Archives
-   </a>
-  </div>
- </div>
+<div class="govuk-header__container govuk-header__container--ayr govuk-width-container">
+<div class="govuk-header__logo govuk-header__logo--ayr">
+<a class="govuk-header__link govuk-header__link--homepage govuk-header__link--homepage--ayr" href="/browse">
+<span class="govuk-header__logotype-text govuk-header__logotype--ayr">Access Your Records (AYR)</span>
+</a>
+</div>
+<div class="govuk-header__content govuk-header__content--ayr">
+                Delivered by
+                <a class="govuk-header__link govuk-header__link--ayr" href="https://www.nationalarchives.gov.uk/">The
+                National Archives</a>
+</div>
+</div>
 </header>"""
 
     assert_contains_html(
