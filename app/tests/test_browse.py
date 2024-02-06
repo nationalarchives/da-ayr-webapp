@@ -2959,3 +2959,100 @@ class TestConsignment:
         ]
         verify_consignment_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
+
+    def test_browse_consignment_sort_and_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        Then they should be able to sort the results by the available options and be
+        able to filter the available results
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        response = client.get(f"/browse?consignment_id={consignment_id}")
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        expected_rows = [
+            [
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+            ],
+        ]
+
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+        # record status filter
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}&sort=closure_type_desc&record_status=all"
+        )
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        expected_rows = [
+            [
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+            ],
+        ]
+
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+        # file type filter
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}&sort=closure_type_desc&record_status=all&file_type=doc"
+        )
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        expected_rows = [
+            [
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+            ],
+        ]
+
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+        # dates
+        response = client.get(
+            f"""/browse?consignment_id={consignment_id}&sort=closure_type_desc&record_status=all
+            &date_from_day=1&date_from_month=1&date_from_year=2023&date_to_day=30&date_to_month=12&date_to_year=2023"""
+        )
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        expected_rows = [
+            [
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+            ],
+        ]
+
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)

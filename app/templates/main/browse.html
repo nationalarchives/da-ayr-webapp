@@ -9,7 +9,6 @@
             <div class="search__container__content">
                 <p class="govuk-body search__heading">Search for digital records</p>
                 <form method="post" action="{{ url_for('main.search') }}">
-                    {{ form.csrf_token }}
                     <div class="govuk-form-group govuk-form-group__search-form">
                         <label for="searchInput"></label>
                         <input class="govuk-input govuk-!-width-three-quarters"
@@ -75,7 +74,6 @@
             <div class="search__container__content">
                 <p class="govuk-body search__heading">Search for digital records</p>
                 <form method="post" action="{{ url_for('main.search') }}">
-                    {{ form.csrf_token }}
                     <div class="govuk-form-group govuk-form-group__search-form">
                         <label for="searchInput"></label>
                         <input class="govuk-input govuk-!-width-three-quarters"
@@ -101,7 +99,6 @@
                     <div class="mobile__search__container__content">
                         <p class="govuk-body search__heading">Search for digital records</p>
                         <form method="post" action="{{ url_for('main.search') }}">
-                            {{ form.csrf_token }}
                             <div class="govuk-form-group govuk-form-group__search-form">
                                 <label for="searchInput"></label>
                                 <input class="govuk-input govuk-!-width-three-quarters"
