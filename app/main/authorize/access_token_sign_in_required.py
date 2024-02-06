@@ -71,6 +71,7 @@ def access_token_sign_in_required(view_func):
                     decoded_refresh_token
                 )
                 access_token = refreshed_token_response["access_token"]
+                session["access_token"] = access_token
                 decoded_token = keycloak_openid.introspect(refresh_token)
 
             user_groups = session["user_groups"] = decoded_token["groups"]
