@@ -2310,7 +2310,7 @@ class TestConsignment:
 
         # record status (open first)
         response = client.get(
-            f"/browse?consignment_id={consignment_id}&sort=closure_type_desc"
+            f"/browse?consignment_id={consignment_id}&sort=closure_type-desc"
         )
         assert response.status_code == 200
         assert b"You are viewing" in response.data
@@ -2328,7 +2328,7 @@ class TestConsignment:
 
         # record status (closed first)
         response = client.get(
-            f"/browse?consignment_id={consignment_id}&sort=closure_type_asc"
+            f"/browse?consignment_id={consignment_id}&sort=closure_type-asc"
         )
         assert response.status_code == 200
         assert b"You are viewing" in response.data
@@ -2360,7 +2360,7 @@ class TestConsignment:
 
         # last modified (most recent first)
         response = client.get(
-            f"/browse?consignment_id={consignment_id}&sort=last_modified_date_desc"
+            f"/browse?consignment_id={consignment_id}&sort=date_last_modified-desc"
         )
         assert response.status_code == 200
         assert b"You are viewing" in response.data
@@ -2378,7 +2378,7 @@ class TestConsignment:
 
         # last modified (oldest first)
         response = client.get(
-            f"/browse?consignment_id={consignment_id}&sort=last_modified_date_asc"
+            f"/browse?consignment_id={consignment_id}&sort=date_last_modified-asc"
         )
         assert response.status_code == 200
         assert b"You are viewing" in response.data
@@ -2410,7 +2410,7 @@ class TestConsignment:
 
         # record filename (a-z)
         response = client.get(
-            f"/browse?consignment_id={consignment_id}&sort=filename_asc"
+            f"/browse?consignment_id={consignment_id}&sort=file_name-asc"
         )
         assert response.status_code == 200
         assert b"You are viewing" in response.data
@@ -2428,7 +2428,7 @@ class TestConsignment:
 
         # record filename (z-a)
         response = client.get(
-            f"/browse?consignment_id={consignment_id}&sort=filename_desc"
+            f"/browse?consignment_id={consignment_id}&sort=file_name-desc"
         )
         assert response.status_code == 200
         assert b"You are viewing" in response.data
