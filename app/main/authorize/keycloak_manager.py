@@ -25,19 +25,7 @@ def get_user_transferring_body_keycloak_groups(groups: List[str]) -> List[str]:
     return users_transferring_bodies
 
 
-def get_user_groups(access_token: str) -> List[str]:
-    if not access_token:
-        return []
-
-    decoded_token = _decode_token(access_token)
-
-    if not decoded_token["active"]:
-        return []
-
-    return decoded_token["groups"]
-
-
-def _decode_token(access_token: str) -> Dict[str, str]:
+def decode_keycloak_token(keycloak_token: str) -> Dict[str, str]:
     keycloak_openid = keycloak.KeycloakOpenID(
         server_url=current_app.config["KEYCLOAK_BASE_URI"],
         client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
@@ -45,6 +33,6 @@ def _decode_token(access_token: str) -> Dict[str, str]:
         client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
     )
 
-    decoded_token = keycloak_openid.introspect(access_token)
+    decoded_token = keycloak_openid.introspect(keycloak_token)
 
     return decoded_token

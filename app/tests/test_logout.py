@@ -14,6 +14,7 @@ def test_sign_out(mock_keycloak_openid, client, mock_standard_user):
     """
     with client.session_transaction() as session:
         mock_standard_user(client)
+        session["access_token"] = "mock_access_token"
         session["refresh_token"] = "mock_refresh_token"
 
     response = client.get(url_for("main.sign_out"))

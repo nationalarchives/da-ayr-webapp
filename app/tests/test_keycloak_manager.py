@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from app.main.authorize.keycloak_manager import (
-    get_user_groups,
+    decode_keycloak_token,
     get_user_transferring_body_keycloak_groups,
 )
 
@@ -63,54 +63,16 @@ class TestGetUserTransferringBodyGroups:
             ]
 
 
-class TestGetUserGroups:
-    def test_no_token_returns_empty_list(
-        self,
+class TestDecodeKeycloakToken:
+    @patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID")
+    def test_returns_keycloak_introspection_result(
+        self, mock_keycloak_open_id, app
     ):
         """
-        Given no access token,
-        When calling the get_user_groups
-        Then it should return an empty list
-        """
-        results = get_user_groups("")
-        assert results == []
-
-    @patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID")
-    def test_inactive_user_returns_empty_list(self, mock_keycloak_open_id, app):
-        """
-        Given a mocked KeycloakOpenID with introspection result indicating an inactive user
+        Given a mocked KeycloakOpenID with introspection result
         And configured Keycloak parameters in the Flask app
-        When the get_user_groups function is called with a valid token
-        Then the result should be an empty list
-        And KeycloakOpenID should be instantiated with the correct configuration
-        And introspect should be called once on the KeycloakOpenID instance
-        """
-        mock_keycloak_open_id.return_value.introspect.return_value = {
-            "active": False,
-        }
-
-        app.config["KEYCLOAK_BASE_URI"] = "a"
-        app.config["KEYCLOAK_CLIENT_ID"] = "b"
-        app.config["KEYCLOAK_REALM_NAME"] = "c"
-        app.config["KEYCLOAK_CLIENT_SECRET"] = "d"
-
-        with app.app_context():
-            groups = get_user_groups("valid_token")
-
-        assert groups == []
-
-        mock_keycloak_open_id.assert_called_once_with(
-            server_url="a", client_id="b", realm_name="c", client_secret_key="d"
-        )
-        mock_keycloak_open_id.return_value.introspect.assert_called_once()
-
-    @patch("app.main.authorize.keycloak_manager.keycloak.KeycloakOpenID")
-    def test_active_user_returns_groups(self, mock_keycloak_open_id, app):
-        """
-        Given a mocked KeycloakOpenID with introspection result indicating an active user and associated groups
-        And configured Keycloak parameters in the Flask app
-        When the get_user_groups function is called with a valid token
-        Then the result should be the list of associated groups
+        When the decode_keycloak_token function is called with a valid token
+        Then the result should be the keycloak introspection result
         And KeycloakOpenID should be instantiated with the correct configuration
         And introspect should be called once on the KeycloakOpenID instance
         """
@@ -125,9 +87,12 @@ class TestGetUserGroups:
         app.config["KEYCLOAK_CLIENT_SECRET"] = "d"
 
         with app.app_context():
-            groups = get_user_groups("valid_token")
+            decoded_token = decode_keycloak_token("valid_token")
 
-        assert groups == ["foo", "bar"]
+        decoded_token == {
+            "active": True,
+            "groups": ["foo", "bar"],
+        }
 
         mock_keycloak_open_id.assert_called_once_with(
             server_url="a", client_id="b", realm_name="c", client_secret_key="d"

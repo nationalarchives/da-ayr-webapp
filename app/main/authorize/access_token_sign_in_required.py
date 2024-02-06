@@ -3,6 +3,7 @@ from functools import wraps
 from flask import flash, g, redirect, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
+from app.main.authorize.keycloak_manager import decode_keycloak_token
 
 
 def access_token_sign_in_required(view_func):
@@ -36,11 +37,25 @@ def access_token_sign_in_required(view_func):
     def decorated_view(*args, **kwargs):
         g.access_token_sign_in_required = True  # Set attribute on g
         try:
-            ayr_user = AYRUser.from_access_token(session.get("access_token"))
+            access_token = session.get("access_token")
 
-            if not ayr_user.groups:
+            if not access_token:
                 session.clear()
                 return redirect(url_for("main.sign_in"))
+
+            decoded_token = decode_keycloak_token(access_token)
+
+            if decoded_token["active"] is False:
+                session.clear()
+                return redirect(url_for("main.sign_in"))
+
+            user_groups = session["user_groups"] = decoded_token["groups"]
+
+            if not user_groups:
+                session.clear()
+                return redirect(url_for("main.sign_in"))
+
+            ayr_user = AYRUser(user_groups)
 
             if not ayr_user.can_access_ayr:
                 flash(
