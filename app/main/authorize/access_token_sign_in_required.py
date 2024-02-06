@@ -40,7 +40,7 @@ def access_token_sign_in_required(view_func):
         g.access_token_sign_in_required = True  # Set attribute on g
 
         try:
-            if not _validate_access_token():
+            if not _validate_or_refresh_access_token():
                 session.clear()
                 return redirect(url_for("main.sign_in"))
 
@@ -63,7 +63,7 @@ def access_token_sign_in_required(view_func):
     return decorated_view
 
 
-def _validate_access_token():
+def _validate_or_refresh_access_token():
     is_valid_access_token = False
 
     keycloak_openid = get_keycloak_instance_from_flask_config()
@@ -76,5 +76,23 @@ def _validate_access_token():
             session["user_groups"] = user_groups
             if user_groups:
                 is_valid_access_token = True
+
+    # if access token not valid, attempt to refresh it with the refresh_token if present
+    if not is_valid_access_token:
+        refresh_token = session.get("refresh_token")
+        if refresh_token:
+            refreshed_token_response = keycloak_openid.refresh_token(
+                refresh_token
+            )
+            session["access_token"] = refreshed_token_response["access_token"]
+            session["refresh_token"] = refreshed_token_response["refresh_token"]
+            decoded_refreshed_token = keycloak_openid.introspect(
+                refreshed_token_response["access_token"]
+            )
+            if decoded_refreshed_token["active"] is True:
+                refreshed_user_groups = decoded_refreshed_token["groups"]
+                session["user_groups"] = refreshed_user_groups
+                if refreshed_user_groups:
+                    is_valid_access_token = True
 
     return is_valid_access_token
