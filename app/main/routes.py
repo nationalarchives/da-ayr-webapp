@@ -36,7 +36,7 @@ from app.main.forms import CookiesForm
 from app.main.util.filter_sort_builder import (
     build_filters,
     build_sorting_orders,
-    build_sorting_orders_consignment
+    build_sorting_orders_consignment,
 )
 
 from .forms import SearchForm
