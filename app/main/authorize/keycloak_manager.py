@@ -1,8 +1,5 @@
 import os
-from typing import Dict, List
-
-import keycloak
-from flask import current_app
+from typing import List
 
 
 def get_user_transferring_body_keycloak_groups(groups: List[str]) -> List[str]:
@@ -23,16 +20,3 @@ def get_user_transferring_body_keycloak_groups(groups: List[str]) -> List[str]:
         if len(transferring_body) > 0:
             users_transferring_bodies.append(transferring_body)
     return users_transferring_bodies
-
-
-def decode_keycloak_token(keycloak_token: str) -> Dict[str, str]:
-    keycloak_openid = keycloak.KeycloakOpenID(
-        server_url=current_app.config["KEYCLOAK_BASE_URI"],
-        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
-        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
-        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
-    )
-
-    decoded_token = keycloak_openid.introspect(keycloak_token)
-
-    return decoded_token

@@ -21,7 +21,7 @@ from configs.testing_config import TestingConfig
 def mock_standard_user():
     ayr_user_patcher = patch("app.main.authorize.permissions_helpers.AYRUser")
     patcher = patch(
-        "app.main.authorize.access_token_sign_in_required.decode_keycloak_token"
+        "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
     )
 
     def _mock_standard_user(client: FlaskClient, body: str = "test_body"):
@@ -31,10 +31,10 @@ def mock_standard_user():
             session["user_groups"] = groups
 
         mock_ayr_user = ayr_user_patcher.start()
-        mock_decode_keycloak_token = patcher.start()
+        mock_keycloak_introspect = patcher.start()
 
         mock_ayr_user.return_value = AYRUser(groups)
-        mock_decode_keycloak_token.return_value = {
+        mock_keycloak_introspect.return_value = {
             "active": True,
             "groups": groups,
         }
@@ -52,7 +52,7 @@ def mock_standard_user():
 def mock_superuser():
     ayr_user_patcher = patch("app.main.authorize.permissions_helpers.AYRUser")
     patcher = patch(
-        "app.main.authorize.access_token_sign_in_required.decode_keycloak_token"
+        "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
     )
 
     def _mock_superuser(client: FlaskClient):
@@ -63,10 +63,10 @@ def mock_superuser():
             session["user_groups"] = groups
 
         mock_ayr_user = ayr_user_patcher.start()
-        mock_decode_keycloak_token = patcher.start()
+        mock_keycloak_introspect = patcher.start()
 
         mock_ayr_user.return_value = AYRUser(groups)
-        mock_decode_keycloak_token.return_value = {
+        mock_keycloak_introspect.return_value = {
             "active": True,
             "groups": groups,
         }

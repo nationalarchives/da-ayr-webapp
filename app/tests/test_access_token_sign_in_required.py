@@ -28,9 +28,11 @@ def test_access_token_sign_in_required_decorator_no_token(app):
         assert response.headers["Location"] == url_for("main.sign_in")
 
 
-@patch("app.main.authorize.access_token_sign_in_required.decode_keycloak_token")
+@patch(
+    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
+)
 def test_access_token_sign_in_required_decorator_inactive_token(
-    mock_decode_keycloak_token, app
+    mock_keycloak_introspect, app
 ):
     """
     Given an inactive access token in the session,
@@ -38,7 +40,7 @@ def test_access_token_sign_in_required_decorator_inactive_token(
     Then it should redirect to the sign in view.
     And the session should be cleared
     """
-    mock_decode_keycloak_token.return_value = {"active": False}
+    mock_keycloak_introspect.return_value = {"active": False}
 
     view_name = "/protected_view"
     with app.test_client() as client:
@@ -60,9 +62,11 @@ def test_access_token_sign_in_required_decorator_inactive_token(
             assert cleared_session == {}
 
 
-@patch("app.main.authorize.access_token_sign_in_required.decode_keycloak_token")
+@patch(
+    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
+)
 def test_access_token_sign_in_required_decorator_active_without_ayr_access(
-    mock_decode_keycloak_token,
+    mock_keycloak_introspect,
     app,
 ):
     """
@@ -71,7 +75,7 @@ def test_access_token_sign_in_required_decorator_active_without_ayr_access(
     When accessing a route protected by the 'access_token_sign_in_required' decorator,
     Then it should redirect to the index page with a flashed message.
     """
-    mock_decode_keycloak_token.return_value = {
+    mock_keycloak_introspect.return_value = {
         "active": True,
         "groups": ["not empty"],
     }

@@ -1,9 +1,9 @@
 from functools import wraps
 
-from flask import flash, g, redirect, session, url_for
+import keycloak
+from flask import current_app, flash, g, redirect, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
-from app.main.authorize.keycloak_manager import decode_keycloak_token
 
 
 def access_token_sign_in_required(view_func):
@@ -43,11 +43,35 @@ def access_token_sign_in_required(view_func):
                 session.clear()
                 return redirect(url_for("main.sign_in"))
 
-            decoded_token = decode_keycloak_token(access_token)
+            keycloak_openid = keycloak.KeycloakOpenID(
+                server_url=current_app.config["KEYCLOAK_BASE_URI"],
+                client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
+                realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
+                client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
+            )
+
+            decoded_token = keycloak_openid.introspect(access_token)
 
             if decoded_token["active"] is False:
-                session.clear()
-                return redirect(url_for("main.sign_in"))
+                refresh_token = session.get("refresh_token")
+
+                if not refresh_token:
+                    session.clear()
+                    return redirect(url_for("main.sign_in"))
+
+                decoded_refresh_token = keycloak_openid.introspect(
+                    refresh_token
+                )
+
+                if decoded_refresh_token["active"] is False:
+                    session.clear()
+                    return redirect(url_for("main.sign_in"))
+
+                refreshed_token_response = keycloak_openid.refresh_token(
+                    decoded_refresh_token
+                )
+                access_token = refreshed_token_response["access_token"]
+                decoded_token = keycloak_openid.introspect(refresh_token)
 
             user_groups = session["user_groups"] = decoded_token["groups"]
 
