@@ -36,7 +36,6 @@ from app.main.forms import CookiesForm
 from app.main.util.filter_sort_builder import (
     build_filters,
     build_sorting_orders,
-    build_sorting_orders_consignment,
 )
 
 from .forms import SearchForm
@@ -152,7 +151,7 @@ def browse():
     elif consignment_id:
         browse_type = "consignment"
         browse_parameters["consignment_id"] = consignment_id
-        sorting_orders = build_sorting_orders_consignment(request)
+        sorting_orders = build_sorting_orders(request.args)
 
         # e.g. please use example below to pass filter values
         # filters["record_status"] = "open"

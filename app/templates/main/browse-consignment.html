@@ -20,31 +20,31 @@
                 <select class="govuk-select govuk-select__sort-container-select"
                         id="sort"
                         name="sort">
-                    <option value="closure_type_asc"
+                    <option value="closure_type-asc"
                             {% if sorting_orders["closure_type"] == "asc" %}selected{% endif %}>
                         Record status (closed first)
                     </option>
-                    <option value="closure_type_desc"
+                    <option value="closure_type-desc"
                             {% if sorting_orders["closure_type"] == "desc" %}selected{% endif %}>
                         Record status (open first)
                     </option>
-                    <option value="closure_expiry_date_asc"
+                    <option value="closure_expiry_date-asc"
                             {% if sorting_orders["closure_expiry_date"] == "asc" %}selected{% endif %}>
                         Closure expiry date (soonest first)
                     </option>
-                    <option value="last_modified_date_desc"
+                    <option value="date_last_modified-desc"
                             {% if sorting_orders["date_last_modified"] == "desc" %}selected{% endif %}>
                         Last modified (most recent first)
                     </option>
-                    <option value="last_modified_date_asc"
+                    <option value="date_last_modified-asc"
                             {% if sorting_orders["date_last_modified"] == "asc" %}selected{% endif %}>
                         Last modified (oldest first)
                     </option>
-                    <option value="filename_asc"
+                    <option value="file_name-asc"
                             {% if sorting_orders["file_name"] == "asc" %}selected{% endif %}>
                         Record filename (A-Z)
                     </option>
-                    <option value="filename_desc"
+                    <option value="file_name-desc"
                             {% if sorting_orders["file_name"] == "desc" %}selected{% endif %}>
                         Record filename (Z-A)
                     </option>
