@@ -36,51 +36,13 @@ def access_token_sign_in_required(view_func):
     @wraps(view_func)
     def decorated_view(*args, **kwargs):
         g.access_token_sign_in_required = True  # Set attribute on g
+
         try:
-            access_token = session.get("access_token")
-
-            if not access_token:
+            if not _validate_or_refresh():
                 session.clear()
                 return redirect(url_for("main.sign_in"))
 
-            keycloak_openid = keycloak.KeycloakOpenID(
-                server_url=current_app.config["KEYCLOAK_BASE_URI"],
-                client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
-                realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
-                client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
-            )
-
-            decoded_token = keycloak_openid.introspect(access_token)
-
-            if decoded_token["active"] is False:
-                refresh_token = session.get("refresh_token")
-
-                if not refresh_token:
-                    session.clear()
-                    return redirect(url_for("main.sign_in"))
-
-                decoded_refresh_token = keycloak_openid.introspect(
-                    refresh_token
-                )
-
-                if decoded_refresh_token["active"] is False:
-                    session.clear()
-                    return redirect(url_for("main.sign_in"))
-
-                refreshed_token_response = keycloak_openid.refresh_token(
-                    decoded_refresh_token
-                )
-                access_token = refreshed_token_response["access_token"]
-                session["access_token"] = access_token
-                decoded_token = keycloak_openid.introspect(refresh_token)
-
-            user_groups = session["user_groups"] = decoded_token["groups"]
-
-            if not user_groups:
-                session.clear()
-                return redirect(url_for("main.sign_in"))
-
-            ayr_user = AYRUser(user_groups)
+            ayr_user = AYRUser(session["user_groups"])
 
             if not ayr_user.can_access_ayr:
                 flash(
@@ -97,3 +59,44 @@ def access_token_sign_in_required(view_func):
     decorated_view.access_token_sign_in_required = True
 
     return decorated_view
+
+
+def _validate_or_refresh():
+    valid_access_token = False
+
+    keycloak_openid = keycloak.KeycloakOpenID(
+        server_url=current_app.config["KEYCLOAK_BASE_URI"],
+        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
+        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
+        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
+    )
+
+    # check if access_token in session and is valid
+    access_token = session.get("access_token")
+    if access_token:
+        decoded_token = keycloak_openid.introspect(access_token)
+        if decoded_token["active"] is True:
+            user_groups = decoded_token["groups"]
+            session["user_groups"] = user_groups
+            if user_groups:
+                valid_access_token = True
+
+    # if access token not valid, attempt to refresh it with the refresh_token if present
+    if not valid_access_token:
+        refresh_token = session.get("refresh_token")
+        if refresh_token:
+            refreshed_token_response = keycloak_openid.refresh_token(
+                refresh_token
+            )
+            session["access_token"] = refreshed_token_response["access_token"]
+            session["refresh_token"] = refreshed_token_response["refresh_token"]
+            decoded_refreshed_token = keycloak_openid.introspect(
+                refreshed_token_response["access_token"]
+            )
+            if decoded_refreshed_token["active"] is True:
+                refreshed_user_groups = decoded_refreshed_token["groups"]
+                session["user_groups"] = refreshed_user_groups
+                if refreshed_user_groups:
+                    valid_access_token = True
+
+    return valid_access_token
