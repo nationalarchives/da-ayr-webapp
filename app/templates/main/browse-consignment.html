@@ -32,8 +32,10 @@
                         endif %}>Closure expiry date (soonest first)</option>
                     <option value="date_last_modified-desc" {% if sorting_orders["date_last_modified"]=="desc" %}selected{%
                         endif %}>Last modified (most recent first)</option>
-                    <option value="date_last_modified-asc" {% if sorting_orders["date_last_modified"]=="asc" %}selected{%
-                        endif %}>Last modified (oldest first)</option>
+                    <option value="date_last_modified-asc"
+                            {% if sorting_orders["date_last_modified"]=="asc" %}selected{% endif %}>
+                        Last modified (oldest first)
+                    </option>
                     <option value="file_name-asc"
                             {% if sorting_orders["file_name"]=="asc" %}selected{% endif %}>
                         Record filename (A-Z)
