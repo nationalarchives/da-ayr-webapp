@@ -113,13 +113,6 @@ def verify_data_rows(data, expected_rows):
         if row_index < len(rows) - 1:
             row_data = row_data + ", "
 
-    print("actual")
-    print(row_data)
-
-    print("expected")
-    print(expected_rows)
-    print("")
-
     assert [row_data] == expected_rows[0]
 
 
