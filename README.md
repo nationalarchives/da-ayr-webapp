@@ -152,7 +152,7 @@ Properties configurable at runtime:
 - `DB_PORT`: The port of the database to connect to.
 - `DB_HOST`: The host of the database to connect to.
 - `DB_USER`: The username of the database to connect to.
-- `DB_PASSWORD`: The password of the database to connect to. Note: When using `CONFIG_SOURCE=AWS_SECRETS_MANAGER` then this does not need to be set in Secrets Manager and instead this is generated using an AWS API in the config.
+- `DB_PASSWORD`: The password of the database to connect to.
 - `DB_NAME`: The name of the database to connect to.
 - `KEYCLOAK_BASE_URI`: The base URI of the Keycloak authentication service.
 - `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
