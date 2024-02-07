@@ -1,5 +1,6 @@
 from functools import wraps
 
+import keycloak
 from flask import flash, g, redirect, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
@@ -67,6 +68,7 @@ def _validate_or_refresh_access_token():
     is_valid_access_token = False
 
     keycloak_openid = get_keycloak_instance_from_flask_config()
+
     # check if access_token in session and is valid
     access_token = session.get("access_token")
     if access_token:
@@ -81,18 +83,27 @@ def _validate_or_refresh_access_token():
     if not is_valid_access_token:
         refresh_token = session.get("refresh_token")
         if refresh_token:
-            refreshed_token_response = keycloak_openid.refresh_token(
-                refresh_token
-            )
-            session["access_token"] = refreshed_token_response["access_token"]
-            session["refresh_token"] = refreshed_token_response["refresh_token"]
-            decoded_refreshed_token = keycloak_openid.introspect(
-                refreshed_token_response["access_token"]
-            )
-            if decoded_refreshed_token["active"] is True:
-                refreshed_user_groups = decoded_refreshed_token["groups"]
-                session["user_groups"] = refreshed_user_groups
-                if refreshed_user_groups:
-                    is_valid_access_token = True
+            try:
+                refreshed_token_response = keycloak_openid.refresh_token(
+                    refresh_token
+                )
+            except keycloak.exceptions.KeycloakPostError:
+                return False
+            else:
+                session["access_token"] = refreshed_token_response[
+                    "access_token"
+                ]
+                session["refresh_token"] = refreshed_token_response[
+                    "refresh_token"
+                ]
+
+                decoded_refreshed_token = keycloak_openid.introspect(
+                    refreshed_token_response["access_token"]
+                )
+                if decoded_refreshed_token["active"] is True:
+                    refreshed_user_groups = decoded_refreshed_token["groups"]
+                    session["user_groups"] = refreshed_user_groups
+                    if refreshed_user_groups:
+                        is_valid_access_token = True
 
     return is_valid_access_token
