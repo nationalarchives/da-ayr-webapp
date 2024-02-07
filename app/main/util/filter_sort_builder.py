@@ -19,6 +19,7 @@ def build_filters(args):
 
     return filters
 
+
 def build_browse_consignment_filters(request):
     if request.args:
         filter_items = []
@@ -76,6 +77,7 @@ def build_sorting_orders(args):
                 sorting_orders[sort_by] = sort_order
 
     return sorting_orders
+
 
 def build_consignment_sorting_orders(request):
     sorting_orders = {}
