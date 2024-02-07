@@ -29,10 +29,10 @@ def test_access_token_sign_in_required_decorator_no_token(app):
 
 
 @patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
+    "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
 )
 def test_access_token_sign_in_required_decorator_inactive_token(
-    mock_keycloak_introspect, app
+    mock_keycloak, app
 ):
     """
     Given an inactive access token in the session,
@@ -40,7 +40,7 @@ def test_access_token_sign_in_required_decorator_inactive_token(
     Then it should redirect to the sign in view.
     And the session should be cleared
     """
-    mock_keycloak_introspect.return_value = {"active": False}
+    mock_keycloak.return_value.instrospect.return_value = {"active": False}
 
     view_name = "/protected_view"
     with app.test_client() as client:
@@ -63,10 +63,10 @@ def test_access_token_sign_in_required_decorator_inactive_token(
 
 
 @patch(
-    "app.main.authorize.access_token_sign_in_required.keycloak.KeycloakOpenID.introspect"
+    "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
 )
 def test_access_token_sign_in_required_decorator_active_without_ayr_access(
-    mock_keycloak_introspect,
+    mock_keycloak,
     app,
 ):
     """
@@ -75,7 +75,7 @@ def test_access_token_sign_in_required_decorator_active_without_ayr_access(
     When accessing a route protected by the 'access_token_sign_in_required' decorator,
     Then it should redirect to the index page with a flashed message.
     """
-    mock_keycloak_introspect.return_value = {
+    mock_keycloak.return_value.introspect.return_value = {
         "active": True,
         "groups": ["not empty"],
     }

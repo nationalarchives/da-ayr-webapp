@@ -1,9 +1,11 @@
 from functools import wraps
 
-import keycloak
-from flask import current_app, flash, g, redirect, session, url_for
+from flask import flash, g, redirect, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
+from app.main.flask_config_helpers import (
+    get_keycloak_instance_from_flask_config,
+)
 
 
 def access_token_sign_in_required(view_func):
@@ -64,13 +66,7 @@ def access_token_sign_in_required(view_func):
 def _validate_access_token():
     is_valid_access_token = False
 
-    keycloak_openid = keycloak.KeycloakOpenID(
-        server_url=current_app.config["KEYCLOAK_BASE_URI"],
-        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
-        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
-        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
-    )
-
+    keycloak_openid = get_keycloak_instance_from_flask_config()
     # check if access_token in session and is valid
     access_token = session.get("access_token")
     if access_token:
