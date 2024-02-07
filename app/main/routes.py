@@ -35,9 +35,9 @@ from app.main.flask_config_helpers import (
 )
 from app.main.forms import CookiesForm
 from app.main.util.filter_sort_builder import (
+    build_browse_consignment_filters,
     build_filters,
     build_sorting_orders,
-    build_browse_consignment_filters,
 )
 
 from .forms import SearchForm

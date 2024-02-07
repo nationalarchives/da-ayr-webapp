@@ -20,44 +20,6 @@ def build_filters(args):
     return filters
 
 
-def build_browse_consignment_filters(request):
-    if request.args:
-        filter_items = []
-        filters = {}
-        record_status = request.args.get("record_status")
-        file_type = request.args.get("file_type")
-        date_from_day = request.args.get("date_from_day", "")
-        date_from_month = request.args.get("date_from_month", "")
-        date_from_year = request.args.get("date_from_year", "")
-        date_from = date_from_day + "/" + date_from_month + "/" + date_from_year
-        date_to_day = request.args.get("date_to_day", "")
-        date_to_month = request.args.get("date_to_month", "")
-        date_to_year = request.args.get("date_to_year", "")
-        date_to = date_to_day + "/" + date_to_month + "/" + date_to_year
-        date_filter_field = request.args.get("date_filter_field")
-
-        if record_status:
-            filter_items.append({"record_status": record_status})
-        if date_filter_field:
-            filter_items.append({"date_filter_field": date_filter_field})
-        if file_type:
-            filter_items.append({"file_type": file_type})
-        if (date_from and date_from != "//") and (date_to and date_to != "//"):
-            filter_items.append(
-                {"date_range": {"date_from": date_from, "date_to": date_to}}
-            )
-        elif date_from and date_from != "//":
-            filter_items.append({"date_range": {"date_from": date_from}})
-        elif date_to and date_to != "//":
-            filter_items.append({"date_range": {"date_to": date_to}})
-
-        for f in filter_items:
-            for key, value in f.items():
-                filters[key] = value
-
-    return filters
-
-
 def build_sorting_orders(args):
     sorting_orders = {}
     if args:
