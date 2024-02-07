@@ -407,6 +407,36 @@ class TestBrowse:
         verify_browse_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
+    def test_browse_get_with_transferring_body_filter_wildcard_character(
+        self, client: FlaskClient, mock_superuser, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they make a GET request with page as a query string parameter
+        and select transferring body as filter from dropdown list
+        Then they should see first two records matches to transferring body name on browse page content.
+        """
+        mock_superuser(client)
+        transferring_body = "t"
+        response = client.get(
+            "/browse?transferring_body_filter=" + transferring_body
+        )
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                "'first_body', 'first_series', '07/02/2023', '3', '2', "
+                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
+                "'third_body', 'third_series', '17/06/2023', '3', '2'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
     def test_browse_get_with_series_filter(
         self, client: FlaskClient, mock_superuser, browse_files
     ):
@@ -426,6 +456,32 @@ class TestBrowse:
             [
                 "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
                 "'first_body', 'first_series', '07/02/2023', '3', '2'"
+            ],
+        ]
+
+        verify_browse_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_get_with_series_filter_wildcard_character(
+        self, client: FlaskClient, mock_superuser, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they make a GET request with page as a query string parameter
+        and provide a series value as filter in text input field
+        Then they should see first two records matches to series name on browse page content.
+        """
+        mock_superuser(client)
+        series = "f"
+        response = client.get("/browse?series_filter=" + series)
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                "'first_body', 'first_series', '07/02/2023', '3', '2', "
+                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"
             ],
         ]
 
