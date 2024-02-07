@@ -1,6 +1,7 @@
 from functools import wraps
 
-from flask import flash, g, redirect, session, url_for
+import keycloak
+from flask import current_app, flash, g, redirect, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
 
@@ -35,12 +36,13 @@ def access_token_sign_in_required(view_func):
     @wraps(view_func)
     def decorated_view(*args, **kwargs):
         g.access_token_sign_in_required = True  # Set attribute on g
-        try:
-            ayr_user = AYRUser.from_access_token(session.get("access_token"))
 
-            if not ayr_user.groups:
+        try:
+            if not _validate_access_token():
                 session.clear()
                 return redirect(url_for("main.sign_in"))
+
+            ayr_user = AYRUser(session["user_groups"])
 
             if not ayr_user.can_access_ayr:
                 flash(
@@ -57,3 +59,26 @@ def access_token_sign_in_required(view_func):
     decorated_view.access_token_sign_in_required = True
 
     return decorated_view
+
+
+def _validate_access_token():
+    is_valid_access_token = False
+
+    keycloak_openid = keycloak.KeycloakOpenID(
+        server_url=current_app.config["KEYCLOAK_BASE_URI"],
+        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
+        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
+        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
+    )
+
+    # check if access_token in session and is valid
+    access_token = session.get("access_token")
+    if access_token:
+        decoded_token = keycloak_openid.introspect(access_token)
+        if decoded_token["active"] is True:
+            user_groups = decoded_token["groups"]
+            session["user_groups"] = user_groups
+            if user_groups:
+                is_valid_access_token = True
+
+    return is_valid_access_token

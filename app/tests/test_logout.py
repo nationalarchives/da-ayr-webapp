@@ -3,8 +3,8 @@ from unittest.mock import patch
 from flask import url_for
 
 
-@patch("app.main.routes.keycloak.KeycloakOpenID")
-def test_sign_out(mock_keycloak_openid, client, mock_standard_user):
+@patch("app.main.routes.keycloak.KeycloakOpenID.logout")
+def test_sign_out(mock_keycloak_openid_logout, client, mock_standard_user):
     """
     Given a session with `refresh_token` set, and a mocked KeycloakOpenID instance,
     When a request with this session is made to the 'main.sign_out' route,
@@ -14,6 +14,7 @@ def test_sign_out(mock_keycloak_openid, client, mock_standard_user):
     """
     with client.session_transaction() as session:
         mock_standard_user(client)
+        session["access_token"] = "mock_access_token"
         session["refresh_token"] = "mock_refresh_token"
 
     response = client.get(url_for("main.sign_out"))
@@ -21,9 +22,7 @@ def test_sign_out(mock_keycloak_openid, client, mock_standard_user):
     assert response.status_code == 302
     assert response.headers["Location"] == url_for("main.signed_out")
 
-    mock_keycloak_openid.return_value.logout.assert_called_once_with(
-        "mock_refresh_token"
-    )
+    mock_keycloak_openid_logout.assert_called_once_with("mock_refresh_token")
 
     with client.session_transaction() as cleared_session:
         assert cleared_session == {}

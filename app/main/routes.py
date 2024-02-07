@@ -93,12 +93,8 @@ def callback():
         redirect_uri=f"{request.url_root}callback",
     )
 
-    session["access_token_response"] = access_token_response
     session["access_token"] = access_token_response["access_token"]
     session["refresh_token"] = access_token_response["refresh_token"]
-    session["token_type"] = access_token_response["token_type"]
-    session["token_scope"] = access_token_response["scope"]
-    session["session_state"] = access_token_response["session_state"]
 
     return redirect(url_for("main.browse"))
 
@@ -112,7 +108,7 @@ def accessibility():
 @access_token_sign_in_required
 def browse():
     transferring_bodies = []
-    ayr_user = AYRUser.from_access_token(session.get("access_token"))
+    ayr_user = AYRUser(session.get("user_groups"))
     if ayr_user.is_superuser:
         transferring_bodies = get_all_transferring_bodies()
 
@@ -165,7 +161,7 @@ def browse():
         # sorting_orders["date_last_modified"] = "asc"  # oldest first
         # sorting_orders["date_last_modified"] = "desc"  # most recent first
     else:
-        ayr_user = AYRUser.from_access_token(session.get("access_token"))
+        ayr_user = AYRUser(session.get("user_groups"))
         if ayr_user.is_standard_user:
             return redirect(
                 f"/browse?transferring_body_id={ayr_user.transferring_body.BodyId}"
@@ -212,7 +208,7 @@ def search():
 
     if query:
         fuzzy_search_query = build_fuzzy_search_query(query)
-        ayr_user = AYRUser.from_access_token(session.get("access_token"))
+        ayr_user = AYRUser(session.get("user_groups"))
         if ayr_user.is_standard_user:
             fuzzy_search_query = fuzzy_search_query.where(
                 Body.Name == ayr_user.transferring_body.Name
