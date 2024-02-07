@@ -34,16 +34,5 @@ class AWSSecretsManagerConfig(BaseConfig):
 
         return secrets_dict
 
-    @property
-    def DB_PASSWORD(self):
-        client = boto3.client("rds")
-        token = client.generate_db_auth_token(
-            DBHostname=self.DB_HOST,
-            Port=self.DB_PORT,
-            DBUsername=self.DB_USER,
-            Region=self.AWS_REGION,
-        )
-        return token
-
     def _get_config_value(self, variable_name):
         return self.secrets_dict[variable_name]

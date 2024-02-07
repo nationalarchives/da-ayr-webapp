@@ -1,5 +1,4 @@
 import json
-from unittest.mock import patch
 
 import boto3
 from moto import mock_aws
@@ -76,6 +75,7 @@ def test_aws_secrets_manager_config_initialized():
             "DB_PORT": "5432",
             "DB_HOST": "test_db_host",
             "DB_USER": "test_db_user",
+            "DB_PASSWORD": "test_db_password",  # pragma: allowlist secret
             "DB_NAME": "test_db_name",
             "DEFAULT_PAGE_SIZE": "test_default_page_size",
         }
@@ -90,18 +90,12 @@ def test_aws_secrets_manager_config_initialized():
 
     config = AWSSecretsManagerConfig()
 
-    with patch(
-        "configs.aws_secrets_manager_config.boto3.client"
-    ) as mock_boto3_client:
-        mock_boto3_client.return_value.generate_db_auth_token.return_value = (
-            "mocked_unescaped_%F4_/rds@_:token"
-        )
-        assert (
-            config.SQLALCHEMY_DATABASE_URI
-            == "postgresql+psycopg2://test_db_user:"
-            "mocked_unescaped_%25F4_%2Frds%40_%3Atoken@test_db_host:5432/"
-            "test_db_name?sslmode=require"
-        )
+    assert (
+        config.SQLALCHEMY_DATABASE_URI
+        == "postgresql+psycopg2://test_db_user:test_db_password"
+        "@test_db_host:5432/"
+        "test_db_name?sslmode=require"
+    )
 
     assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
     assert config.KEYCLOAK_CLIENT_ID == "test_keycloak_client_id"
