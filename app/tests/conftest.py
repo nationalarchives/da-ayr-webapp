@@ -19,40 +19,61 @@ from configs.testing_config import TestingConfig
 
 @pytest.fixture(scope="function")
 def mock_standard_user():
-    patcher = patch("app.main.authorize.ayr_user.AYRUser.from_access_token")
+    ayr_user_patcher = patch("app.main.authorize.permissions_helpers.AYRUser")
+    patcher = patch(
+        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
+    )
 
     def _mock_standard_user(client: FlaskClient, body: str = "test_body"):
-        mock_ayr_user_from_access_token = patcher.start()
+        groups = ["/ayr_user_type/view_dept", f"/transferring_body_user/{body}"]
         with client.session_transaction() as session:
             session["access_token"] = "valid_token"
+            session["user_groups"] = groups
 
-        groups = ["/ayr_user_type/view_dept", f"/transferring_body_user/{body}"]
+        mock_ayr_user = ayr_user_patcher.start()
+        mock_keycloak = patcher.start()
 
-        mock_ayr_user_from_access_token.return_value = AYRUser(groups)
+        mock_ayr_user.return_value = AYRUser(groups)
+        mock_keycloak.return_value.introspect.return_value = {
+            "active": True,
+            "groups": groups,
+        }
 
         if Body.query.filter(Body.Name == body).count() == 0:
             BodyFactory(Name=body)
 
     yield _mock_standard_user
 
+    ayr_user_patcher.stop()
     patcher.stop()
 
 
 @pytest.fixture(scope="function")
 def mock_superuser():
-    patcher = patch("app.main.authorize.ayr_user.AYRUser.from_access_token")
+    ayr_user_patcher = patch("app.main.authorize.permissions_helpers.AYRUser")
+    patcher = patch(
+        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
+    )
 
     def _mock_superuser(client: FlaskClient):
-        mock_ayr_user_from_access_token = patcher.start()
+        groups = ["/ayr_user_type/view_all"]
+
         with client.session_transaction() as session:
             session["access_token"] = "valid_token"
+            session["user_groups"] = groups
 
-        mock_ayr_user_from_access_token.return_value = AYRUser(
-            ["/ayr_user_type/view_all"]
-        )
+        mock_ayr_user = ayr_user_patcher.start()
+        mock_keycloak = patcher.start()
+
+        mock_ayr_user.return_value = AYRUser(groups)
+        mock_keycloak.return_value.introspect.return_value = {
+            "active": True,
+            "groups": groups,
+        }
 
     yield _mock_superuser
 
+    ayr_user_patcher.stop()
     patcher.stop()
 
 

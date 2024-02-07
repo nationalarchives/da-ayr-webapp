@@ -1,7 +1,6 @@
 import uuid
 
 import boto3
-import keycloak
 from flask import (
     Response,
     current_app,
@@ -32,6 +31,9 @@ from app.main.db.queries import (
     get_all_transferring_bodies,
     get_file_metadata,
 )
+from app.main.flask_config_helpers import (
+    get_keycloak_instance_from_flask_config,
+)
 from app.main.forms import CookiesForm
 from app.main.util.filter_sort_builder import (
     build_filters,
@@ -49,12 +51,7 @@ def index():
 @bp.route("/sign-out", methods=["GET"])
 @access_token_sign_in_required
 def sign_out():
-    keycloak_openid = keycloak.KeycloakOpenID(
-        server_url=current_app.config["KEYCLOAK_BASE_URI"],
-        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
-        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
-        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
-    )
+    keycloak_openid = get_keycloak_instance_from_flask_config()
     keycloak_openid.logout(session["refresh_token"])
     session.clear()
 
@@ -63,12 +60,7 @@ def sign_out():
 
 @bp.route("/sign-in", methods=["GET"])
 def sign_in():
-    keycloak_openid = keycloak.KeycloakOpenID(
-        server_url=current_app.config["KEYCLOAK_BASE_URI"],
-        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
-        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
-        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
-    )
+    keycloak_openid = get_keycloak_instance_from_flask_config()
     auth_url = keycloak_openid.auth_url(
         redirect_uri=f"{request.url_root}callback",
         scope="email",
@@ -80,25 +72,16 @@ def sign_in():
 
 @bp.route("/callback", methods=["GET"])
 def callback():
+    keycloak_openid = get_keycloak_instance_from_flask_config()
     code = request.args.get("code")
-    keycloak_openid = keycloak.KeycloakOpenID(
-        server_url=current_app.config["KEYCLOAK_BASE_URI"],
-        client_id=current_app.config["KEYCLOAK_CLIENT_ID"],
-        realm_name=current_app.config["KEYCLOAK_REALM_NAME"],
-        client_secret_key=current_app.config["KEYCLOAK_CLIENT_SECRET"],
-    )
     access_token_response = keycloak_openid.token(
         grant_type="authorization_code",
         code=code,
         redirect_uri=f"{request.url_root}callback",
     )
 
-    session["access_token_response"] = access_token_response
     session["access_token"] = access_token_response["access_token"]
     session["refresh_token"] = access_token_response["refresh_token"]
-    session["token_type"] = access_token_response["token_type"]
-    session["token_scope"] = access_token_response["scope"]
-    session["session_state"] = access_token_response["session_state"]
 
     return redirect(url_for("main.browse"))
 
@@ -112,7 +95,7 @@ def accessibility():
 @access_token_sign_in_required
 def browse():
     transferring_bodies = []
-    ayr_user = AYRUser.from_access_token(session.get("access_token"))
+    ayr_user = AYRUser(session.get("user_groups"))
     if ayr_user.is_superuser:
         transferring_bodies = get_all_transferring_bodies()
 
@@ -166,7 +149,7 @@ def browse():
         # sorting_orders["date_last_modified"] = "asc"  # oldest first
         # sorting_orders["date_last_modified"] = "desc"  # most recent first
     else:
-        ayr_user = AYRUser.from_access_token(session.get("access_token"))
+        ayr_user = AYRUser(session.get("user_groups"))
         if ayr_user.is_standard_user:
             return redirect(
                 f"/browse?transferring_body_id={ayr_user.transferring_body.BodyId}"
@@ -213,7 +196,7 @@ def search():
 
     if query:
         fuzzy_search_query = build_fuzzy_search_query(query)
-        ayr_user = AYRUser.from_access_token(session.get("access_token"))
+        ayr_user = AYRUser(session.get("user_groups"))
         if ayr_user.is_standard_user:
             fuzzy_search_query = fuzzy_search_query.where(
                 Body.Name == ayr_user.transferring_body.Name
