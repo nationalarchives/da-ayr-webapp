@@ -21,6 +21,10 @@ def build_filters(args):
 
 def build_sorting_orders(args):
     sorting_orders = {}
+    # set default sort for consignment view
+    if args.get("consignment_id") and not args.get("sort"):
+        sorting_orders["closure_type"] = "asc"
+        return sorting_orders
     if args.get("sort"):
         sort_details = args.get("sort").split("-")
         sort_by = None

@@ -2212,7 +2212,8 @@ class TestConsignment:
         """
         Given a user accessing the browse page
         When they make a GET request with a consignment id
-        Then they should see results based on consignment filter on browse page content.
+        Then they should see results based on consignment filter on browse page content
+        sorted by record status closed first as default.
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
@@ -2227,11 +2228,11 @@ class TestConsignment:
 
         expected_rows = [
             [
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
                 "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
                 "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
             ],
         ]
 
@@ -2239,7 +2240,10 @@ class TestConsignment:
         verify_data_rows(response.data, expected_rows)
 
     def test_browse_consignment_breadcrumb(
-        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_consignment_files,
     ):
         """
         Given a user accessing the browse page
@@ -2289,3 +2293,153 @@ class TestConsignment:
             "div",
             {"class": "govuk-breadcrumbs"},
         )
+
+    def test_browse_consignment_sort_record_status(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        Then they should be able to sort the results by the available options
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        # record status (open first)
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}&sort=closure_type-desc"
+        )
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+        expected_rows = [
+            [
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+            ],
+        ]
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+        # record status (closed first)
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}&sort=closure_type-asc"
+        )
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+        expected_rows = [
+            [
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+            ],
+        ]
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_consignment_sort_last_modified(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        Then they should be able to sort the results by the available options
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        # last modified (most recent first)
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}&sort=date_last_modified-desc"
+        )
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+        expected_rows = [
+            [
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+            ],
+        ]
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+        # last modified (oldest first)
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}&sort=date_last_modified-asc"
+        )
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+        expected_rows = [
+            [
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-'"
+            ],
+        ]
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_consignment_sort_filename(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        Then they should be able to sort the results by the available options
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        # record filename (a-z)
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}&sort=file_name-asc"
+        )
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+        expected_rows = [
+            [
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+            ],
+        ]
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+        # record filename (z-a)
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}&sort=file_name-desc"
+        )
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+        expected_rows = [
+            [
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-'"
+            ],
+        ]
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)

@@ -151,6 +151,7 @@ def browse():
     elif consignment_id:
         browse_type = "consignment"
         browse_parameters["consignment_id"] = consignment_id
+        sorting_orders = build_sorting_orders(request.args)
 
         # e.g. please use example below to pass filter values
         # filters["record_status"] = "open"
