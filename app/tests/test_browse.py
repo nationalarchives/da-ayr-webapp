@@ -112,11 +112,7 @@ def verify_data_rows(data, expected_rows):
         row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
         if row_index < len(rows) - 1:
             row_data = row_data + ", "
-    print("actual")
-    print(row_data)
 
-    print("expected")
-    print(expected_rows)
     assert [row_data] == expected_rows[0]
 
 
