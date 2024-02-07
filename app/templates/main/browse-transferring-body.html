@@ -29,7 +29,7 @@
         <!-- TABLE -->
         <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
             {% if num_records_found > 0 %}
-                <table class="govuk-table browse-grid__table">
+                <table class="govuk-table browse-grid__table" id="tbl_result">
                     <thead class="govuk-table__head">
                         <tr class="govuk-table__row">
                             <th scope="col"
@@ -128,7 +128,7 @@
             {% endwith %}
         </div>
         <!-- MOBILE TABLE -->
-        <table class="govuk-table govuk-mobile-table">
+        <table class="govuk-table govuk-mobile-table" id="tbl_result">
             <thead class="govuk-table__head govuk-mobile-table__head-border">
                 <tr class="govuk-table__row">
                     <th scope="col" class="govuk-table__header">Series / Last consignment transferred</th>

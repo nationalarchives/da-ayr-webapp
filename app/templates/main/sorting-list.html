@@ -9,6 +9,8 @@
                 <option value="{{ value }}"
                         {% if sorting_orders[list[0]] %} {% if sorting_orders[list[0]] == list[1] %}selected{% endif %}
                         {% endif %}>{{ key }}</option>
+            {% else %}
+                <option value="{{ value }}">{{ key }}</option>
             {% endif %}
         {% endfor %}
     </select>
