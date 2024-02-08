@@ -472,7 +472,7 @@ poetry run pytest e2e_tests/test_record_metadata.py -k test_page_title_and_heade
 
 ### Generate playwright tests using GUI
 
-Run `poetry run playwright codegen https://localhost:5000` to spin up a browser instance which you can interact with, where each interaction will be captured as a pytest playwright line, which builds out a test skeleton file for you to add assertions to.
+Run `poetry run playwright codegen https://localhost:5000 --ignore-https-errors` to spin up a browser instance which you can interact with, where each interaction will be captured as a pytest playwright line, which builds out a test skeleton file for you to add assertions to.
 
 ### When to add an E2E Tests?
 

@@ -1,0 +1,100 @@
+{% set browse_url = "/browse" %}
+{% set transferring_body_url = browse_url ~ "?transferring_body_id=" %}
+{% set series_url = browse_url ~ "?series_id=" %}
+{% set consignment_url = browse_url ~ "?consignment_id=" %}
+<div class="browse-all-filter-from-dates">
+    <p class="govuk-body govuk-body--browse-all-date">Date from</p>
+    <fieldset class="govuk-fieldset govuk-fieldset--date-from"
+              role="group"
+              aria-describedby="date-from">
+        <div class="govuk-date-input govuk-date-input--browse-all-date-to">
+            <div class="govuk-date-input__item govuk-date-input__item--browse-all">
+                <div class="govuk-form-group">
+                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                           for="date_from_day">Day</label>
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-2"
+                           id="date_from_day"
+                           name="date_from_day"
+                           type="text"
+                           value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_from'] %}{{ user_filters['date_range']['date_from'][0:2] }}{% endif %}{% endif %}"
+                           inputmode="numeric">
+                </div>
+            </div>
+            <div class="govuk-date-input__item govuk-date-input__item--browse-all">
+                <div class="govuk-form-group">
+                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                           for="date_from_month">Month</label>
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-2"
+                           id="date_from_month"
+                           name="date_from_month"
+                           type="text"
+                           value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_from'] %}{{ user_filters['date_range']['date_from'][3:5] }}{% endif %}{% endif %}"
+                           inputmode="numeric">
+                </div>
+            </div>
+            <div class="govuk-date-input__item govuk-date-input__item--browse-all">
+                <div class="govuk-form-group">
+                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                           for="date_from_year">Year</label>
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-4"
+                           id="date_from_year"
+                           name="date_from_year"
+                           type="text"
+                           value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_from'] %}{{ user_filters['date_range']['date_from'][6:10] }}{% endif %}{% endif %}"
+                           inputmode="numeric">
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</div>
+<div class="browse-all-filter-to-dates">
+    <p class="govuk-body govuk-body--browse-all-date">To date</p>
+    <fieldset class="govuk-fieldset govuk-fieldset--date-to"
+              role="group"
+              aria-describedby="date-to">
+        <div class="govuk-date-input govuk-date-input--browse-all-date-to">
+            <div class="govuk-date-input__item govuk-date-input__item--browse-all">
+                <div class="govuk-form-group">
+                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                           for="date_to_day">Day</label>
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-2"
+                           id="date_to_day"
+                           name="date_to_day"
+                           type="text"
+                           value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_to'] %}{{ user_filters['date_range']['date_to'][0:2] }}{% endif %}{% endif %}"
+                           inputmode="numeric">
+                </div>
+            </div>
+            <div class="govuk-date-input__item govuk-date-input__item--browse-all">
+                <div class="govuk-form-group">
+                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                           for="date_to_month">Month</label>
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-2"
+                           id="date_to_month"
+                           name="date_to_month"
+                           type="text"
+                           value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_to'] %}{{ user_filters['date_range']['date_to'][3:5] }}{% endif %}{% endif %}"
+                           inputmode="numeric">
+                </div>
+            </div>
+            <div class="govuk-date-input__item govuk-date-input__item--browse-all">
+                <div class="govuk-form-group">
+                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                           for="date_to_year">Year</label>
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-4"
+                           id="date_to_year"
+                           name="date_to_year"
+                           type="text"
+                           value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_to'] %}{{ user_filters['date_range']['date_to'][6:10] }}{% endif %}{% endif %}"
+                           inputmode="numeric">
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</div>
+<div class="filters-form__buttons">
+    <button type="submit"
+            class="govuk-button govuk-button__browse-all-filters-form-apply-button"
+            data-module="govuk-button">Apply filters</button>
+    <a href="{% if view_name == 'browse' %} {{ browse_url }} {% elif view_name == 'transferring_body' %} {{ transferring_body_url ~ transferring_body_id }} {% elif view_name == 'series' %} {{ series_url ~ series_id }} {% elif view_name == 'consignment' %} {{ consigmnent_url ~ consignment_id }} {% endif %}">clear filters</a>
+</div>
