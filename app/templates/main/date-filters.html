@@ -1,3 +1,6 @@
+{% if request.args.get('sort') %}
+    {% set sorting_order = '?sort=' ~ request.args.get('sort') %}
+{% endif %}
 {% set browse_url = "/browse" %}
 {% set transferring_body_url = browse_url ~ "?transferring_body_id=" %}
 {% set series_url = browse_url ~ "?series_id=" %}
@@ -96,5 +99,5 @@
     <button type="submit"
             class="govuk-button govuk-button__browse-all-filters-form-apply-button"
             data-module="govuk-button">Apply filters</button>
-    <a href="{% if view_name == 'browse' %} {{ browse_url }} {% elif view_name == 'transferring_body' %} {{ transferring_body_url ~ transferring_body_id }} {% elif view_name == 'series' %} {{ series_url ~ series_id }} {% elif view_name == 'consignment' %} {{ consigmnent_url ~ consignment_id }} {% endif %}">clear filters</a>
+    <a href="{% if view_name == 'browse' %} {% if sorting_order %} {{ browse_url ~ sorting_order }} {% else %} {{ browse_url }} {% endif %} {% elif view_name == 'transferring_body' %} {% if sorting_order %} {{ transferring_body_url ~ transferring_body_id  ~ sorting_order }} {% else %} {{ transferring_body_url ~ transferring_body_id }} {% endif %} {% elif view_name == 'series' %} {% if sorting_order %} {{ series_url ~ series_id ~ sorting_order }} {% else %} {{ series_url ~ series_id }} {% endif %} {% elif view_name == 'consignment' %} {% if sorting_order %} {{ consigmnent_url ~ consignment_id ~ sorting_order }} {% else %} {{ consigmnent_url ~ consignment_id }} {% endif %} {% endif %}">clear filters</a>
 </div>
