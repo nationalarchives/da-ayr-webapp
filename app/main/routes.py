@@ -241,6 +241,7 @@ def record(record_id: uuid.UUID):
     Returns:
         A rendered HTML page with record details.
     """
+    form = SearchForm()
     file = File.query.get_or_404(record_id)
 
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
@@ -263,6 +264,7 @@ def record(record_id: uuid.UUID):
 
     return render_template(
         "record.html",
+        form=form,
         record=file_metadata,
         breadcrumb_values=breadcrumb_values,
     )
