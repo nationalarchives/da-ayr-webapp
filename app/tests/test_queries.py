@@ -419,6 +419,52 @@ class TestBrowse:
 
         assert results == expected_results
 
+    def test_browse_with_transferring_body_filter_with_wildcard_character(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            transferring body filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            transferring body which match to the filter value
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        filters = {"transferring_body": "fi"}
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (
+                browse_files[19].consignment.series.body.BodyId,
+                browse_files[19].consignment.series.body.Name,
+                browse_files[19].consignment.series.SeriesId,
+                browse_files[19].consignment.series.Name,
+                "21/09/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
+                2,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
     def test_browse_with_transferring_body_filter_return_multiple_results(
         self, client, mock_standard_user, browse_files
     ):
@@ -494,6 +540,52 @@ class TestBrowse:
                 browse_files[10].consignment.series.SeriesId,
                 browse_files[10].consignment.series.Name,
                 "17/06/2023",
+                2,
+                3,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_with_series_filter_with_wildcard_character(
+        self, client, mock_standard_user, browse_files
+    ):
+        """
+        Given 27 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'browse' and
+            series filter
+        Then it returns a Pagination object with 2 total results corresponding to the
+            series which match to the filter value
+        """
+        mock_standard_user(client, browse_files[0].consignment.series.body.Name)
+
+        filters = {"series": "fi"}
+        pagination_object = browse_data(
+            page=1, per_page=per_page, browse_type="browse", filters=filters
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (
+                browse_files[19].consignment.series.body.BodyId,
+                browse_files[19].consignment.series.body.Name,
+                browse_files[19].consignment.series.SeriesId,
+                browse_files[19].consignment.series.Name,
+                "21/09/2023",
+                2,
+                6,
+            ),
+            (
+                browse_files[0].consignment.series.body.BodyId,
+                browse_files[0].consignment.series.body.Name,
+                browse_files[0].consignment.series.SeriesId,
+                browse_files[0].consignment.series.Name,
+                "07/02/2023",
                 2,
                 3,
             ),
@@ -1468,6 +1560,68 @@ class TestBrowseTransferringBody:
                 "30/03/2023",
                 1,
                 2,
+            ),
+        ]
+
+        results = pagination_object.items
+
+        assert results == expected_results
+
+    def test_browse_transferring_body_with_series_filter_wildcard_character(
+        self, client, mock_standard_user, browse_transferring_body_files
+    ):
+        """
+        Given 6 file objects with all file type as 'file'
+        And the session contains user info for a standard user with access to the consignment's
+            associated transferring body
+        When I call the 'browse_data' function  with browse_view as 'transferring body' and
+            with the series filter
+        Then it returns a Pagination object with 1 total results corresponding to the
+            series which match to the filter value
+            for the specific transferring body
+        """
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        filters = {"series": "t"}
+        pagination_object = browse_data(
+            page=1,
+            per_page=per_page,
+            browse_type="transferring_body",
+            filters=filters,
+            transferring_body_id=transferring_body_id,
+        )
+
+        assert pagination_object.total == 2
+
+        expected_results = [
+            (
+                browse_transferring_body_files[
+                    0
+                ].consignment.series.body.BodyId,
+                browse_transferring_body_files[0].consignment.series.body.Name,
+                browse_transferring_body_files[0].consignment.series.SeriesId,
+                browse_transferring_body_files[0].consignment.series.Name,
+                "14/10/2023",
+                1,
+                1,
+            ),
+            (
+                browse_transferring_body_files[
+                    4
+                ].consignment.series.body.BodyId,
+                browse_transferring_body_files[4].consignment.series.body.Name,
+                browse_transferring_body_files[4].consignment.series.SeriesId,
+                browse_transferring_body_files[4].consignment.series.Name,
+                "07/07/2023",
+                1,
+                3,
             ),
         ]
 

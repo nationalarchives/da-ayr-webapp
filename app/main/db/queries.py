@@ -256,14 +256,14 @@ def _build_series_view_query(series_id, filters, sorting_orders):
 def _build_browse_filters(query, sub_query, filters):
     transferring_body = filters.get("transferring_body")
     if transferring_body:
-        filter_value = str(f"{transferring_body}%").lower()
+        filter_value = str(f"%{transferring_body}%").lower()
         query = query.filter(
             func.lower(sub_query.c.transferring_body).like(filter_value)
         )
 
     series = filters.get("series")
     if series:
-        filter_value = str(f"{series}%").lower()
+        filter_value = str(f"%{series}%").lower()
         query = query.filter(func.lower(sub_query.c.series).like(filter_value))
 
     date_range = filters.get("date_range")

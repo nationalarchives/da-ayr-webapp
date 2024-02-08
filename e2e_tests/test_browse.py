@@ -74,6 +74,42 @@ class TestBrowse:
         assert cols.nth(3).inner_text() == "1"
         assert cols.nth(4).inner_text() == "1"
 
+    def test_browse_sort_and_filter_functionality_with_series_filter_wildcard_character(
+        self, authenticated_page: Page
+    ):
+        authenticated_page.goto("/browse")
+        authenticated_page.get_by_label("", exact=True).nth(2).fill("1")
+        authenticated_page.get_by_role("button", name="Apply filters").click()
+
+        table = authenticated_page.locator("#tbl_result").first
+        headers = table.locator("thead th").all_text_contents()
+        rows = table.locator("tbody tr")
+        cols = rows.nth(0).locator("td")
+
+        assert headers == [
+            "Transferring body",
+            "Series",
+            "Last record transferred",
+            "Records held",
+            "Consignments within series",
+        ]
+
+        assert rows.count() == 2
+
+        assert cols.nth(0).inner_text() == "MOCK1 Department"
+        assert cols.nth(1).inner_text() == "MOCK1 123"
+        assert cols.nth(2).inner_text() == "28/07/2023"
+        assert cols.nth(3).inner_text() == "1"
+        assert cols.nth(4).inner_text() == "1"
+
+        cols = rows.nth(1).locator("td")
+
+        assert cols.nth(0).inner_text() == "Testing A"
+        assert cols.nth(1).inner_text() == "TSTA 1"
+        assert cols.nth(2).inner_text() == "25/01/2024"
+        assert cols.nth(3).inner_text() == "73"
+        assert cols.nth(4).inner_text() == "7"
+
     def test_browse_clear_filter_functionality(self, authenticated_page: Page):
         authenticated_page.goto("/browse")
         authenticated_page.get_by_label("", exact=True).nth(1).select_option(
