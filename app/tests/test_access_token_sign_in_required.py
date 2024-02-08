@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import keycloak
 import pytest
 from flask import Flask, render_template, url_for
 
@@ -24,7 +25,7 @@ class TestAccessTokenSignInRequiredDecorator:
         """
         Given either no access or refresh token in the session,
         When accessing a route protected by the 'access_token_sign_in_required' decorator,
-        Then it should clear the session and redirect to the sign in view.
+        Then it should clear the session and redirect to the sign in view
         """
         view_name = "/protected_view"
         with app.test_client() as client:
@@ -37,6 +38,52 @@ class TestAccessTokenSignInRequiredDecorator:
             with client.session_transaction() as session:
                 session["access_token"] = access_token
                 session["refresh_token"] = refresh_token
+
+            response = client.get(view_name)
+
+            assert response.status_code == 302
+            assert response.headers["Location"] == url_for("main.sign_in")
+            with client.session_transaction() as cleared_session:
+                assert cleared_session == {}
+
+    @staticmethod
+    @patch(
+        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
+    )
+    def test_an_inactive_access_token_and_an_inactive_refresh_token_is_redirected_to_sign_in(
+        mock_keycloak, app
+    ):
+        """
+        Given an inactive access token and an inactive refresh token in the session
+        When accessing a route protected by the 'access_token_sign_in_required' decorator,
+        Then it should clear the session and redirect to the sign in view
+        """
+        view_name = "/protected_view"
+        with app.test_client() as client:
+
+            @app.route(view_name)
+            @access_token_sign_in_required
+            def protected_view():
+                return "Access granted"
+
+            with client.session_transaction() as session:
+                session["access_token"] = "inactive_access_token"
+                session["refresh_token"] = "inactive_refresh_token"
+
+            def mock_refresh_token(token):
+                raise keycloak.exceptions.KeycloakPostError
+
+            mock_keycloak.return_value.refresh_token.side_effect = (
+                mock_refresh_token
+            )
+
+            def mock_introspect(token):
+                if token == "inactive_access_token":
+                    return {"active": False}
+                elif token == "active_access_token":
+                    return {"active": True, "groups": ["a", "b"]}
+
+            mock_keycloak.return_value.introspect.side_effect = mock_introspect
 
             response = client.get(view_name)
 
@@ -83,6 +130,9 @@ class TestAccessTokenSignInRequiredDecorator:
 
             response = client.get(view_name)
 
+            assert response.status_code == 302
+            assert response.headers["Location"] == url_for("main.index")
+
             with client.session_transaction() as session:
                 flashed_messages = session["_flashes"]
 
@@ -92,9 +142,6 @@ class TestAccessTokenSignInRequiredDecorator:
                     "TNA User is logged in but does not have access to AYR. Please contact your admin.",
                 )
             ]
-
-            assert response.status_code == 302
-            assert response.headers["Location"] == url_for("main.index")
 
     @staticmethod
     @patch(
@@ -138,6 +185,9 @@ class TestAccessTokenSignInRequiredDecorator:
 
             response = client.get(view_name)
 
+            assert response.status_code == 302
+            assert response.headers["Location"] == url_for("main.index")
+
             with client.session_transaction() as session:
                 flashed_messages = session["_flashes"]
 
@@ -147,9 +197,6 @@ class TestAccessTokenSignInRequiredDecorator:
                     "TNA User is logged in but does not have access to AYR. Please contact your admin.",
                 )
             ]
-
-            assert response.status_code == 302
-            assert response.headers["Location"] == url_for("main.index")
 
     @staticmethod
     @patch(
