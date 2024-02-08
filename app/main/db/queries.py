@@ -560,3 +560,46 @@ def get_all_transferring_bodies():
     for body in Body.query.all():
         bodies.append(body.Name)
     return bodies
+
+
+def get_breadcrumb_values(
+    transferring_body_id=None, series_id=None, consignment_id=None
+):
+    dict_values = {}
+    if transferring_body_id:
+        transferring_body = (
+            Body.query.filter(Body.BodyId == transferring_body_id).first()
+        ).Name
+        dict_values[0] = {"transferring_body": transferring_body}
+    elif series_id:
+        result = (
+            db.session.query(Body.BodyId, Body.Name, Series.Name)
+            .join(Body, Body.BodyId == Series.BodyId)
+            .filter(Series.SeriesId == series_id)
+            .first()
+        )
+
+        dict_values[0] = {"transferring_body_id": result[0]}
+        dict_values[1] = {"transferring_body": result[1]}
+        dict_values[2] = {"series": result[2]}
+    elif consignment_id:
+        result = (
+            db.session.query(
+                Body.BodyId,
+                Body.Name,
+                Series.SeriesId,
+                Series.Name,
+                Consignment.ConsignmentReference,
+            )
+            .join(Series, Series.SeriesId == Consignment.SeriesId)
+            .join(Body, Body.BodyId == Series.BodyId)
+            .filter(Consignment.ConsignmentId == consignment_id)
+            .first()
+        )
+        dict_values[0] = {"transferring_body_id": result[0]}
+        dict_values[1] = {"transferring_body": result[1]}
+        dict_values[2] = {"series_id": result[2]}
+        dict_values[3] = {"series": result[3]}
+        dict_values[4] = {"consignment_reference": result[4]}
+
+    return dict_values

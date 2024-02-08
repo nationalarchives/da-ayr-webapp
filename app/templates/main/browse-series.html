@@ -1,7 +1,7 @@
 {% set breadcrumbs = {
     "everything":"Everything",
-    "body": [results.items[0]['transferring_body_id'], results.items[0]['transferring_body']],
-    "series": results.items[0]['series']
+    "body": [breadcrumb_values[0]["transferring_body_id"], breadcrumb_values[1]["transferring_body"]],
+    "series": breadcrumb_values[2]["series"]
 } %}
 {% set sorting_list = {
     "Date consignment transferred (most recent first)": "last_record_transferred-desc",
@@ -27,33 +27,31 @@
         </div>
         <!-- TABLE -->
         <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
-            {% if num_records_found > 0 %}
-                <table class="govuk-table browse-grid__table" id="tbl_result">
-                    <thead class="govuk-table__head">
+            <table class="govuk-table browse-grid__table" id="tbl_result">
+                <thead class="govuk-table__head">
+                    <tr class="govuk-table__row">
+                        <th scope="col"
+                            class="govuk-table__header browse-grid__key__transferring-body">Transferring body</th>
+                        <th scope="col" class="govuk-table__header">Series</th>
+                        <th scope="col" class="govuk-table__header browse__table__right-align">Consignment transferred</th>
+                        <th scope="col" class="govuk-table__header browse__table__right-align">Records in consignment</th>
+                        <th scope="col" class="govuk-table__header browse__table__right-align">Consignment reference</th>
+                    </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                    {% for record in results %}
                         <tr class="govuk-table__row">
-                            <th scope="col"
-                                class="govuk-table__header browse-grid__key__transferring-body">Transferring body</th>
-                            <th scope="col" class="govuk-table__header">Series</th>
-                            <th scope="col" class="govuk-table__header browse__table__right-align">Consignment transferred</th>
-                            <th scope="col" class="govuk-table__header browse__table__right-align">Records in consignment</th>
-                            <th scope="col" class="govuk-table__header browse__table__right-align">Consignment reference</th>
+                            <td class="govuk-table__cell">{{ record["transferring_body"] }}</td>
+                            <td class="govuk-table__cell">{{ record["series"] }}</td>
+                            <td class="govuk-table__cell browse__table__right-align">{{ record["last_record_transferred"] }}</td>
+                            <td class="govuk-table__cell browse__table__right-align">{{ record["records_held"] }}</td>
+                            <td class="govuk-table__cell">
+                                <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody class="govuk-table__body">
-                        {% for record in results %}
-                            <tr class="govuk-table__row">
-                                <td class="govuk-table__cell">{{ record["transferring_body"] }}</td>
-                                <td class="govuk-table__cell">{{ record["series"] }}</td>
-                                <td class="govuk-table__cell browse__table__right-align">{{ record["last_record_transferred"] }}</td>
-                                <td class="govuk-table__cell browse__table__right-align">{{ record["records_held"] }}</td>
-                                <td class="govuk-table__cell">
-                                    <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         <!-- FILTERS -->
         <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">

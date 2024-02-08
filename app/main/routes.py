@@ -29,6 +29,7 @@ from app.main.db.queries import (
     browse_data,
     build_fuzzy_search_query,
     get_all_transferring_bodies,
+    get_breadcrumb_values,
     get_file_metadata,
 )
 from app.main.flask_config_helpers import (
@@ -111,6 +112,7 @@ def browse():
     browse_parameters = {}
     filters = {}
     sorting_orders = {}
+    breadcrumb_values = {}
 
     if browse_type == "browse":
         if request.args:
@@ -120,6 +122,9 @@ def browse():
     if transferring_body_id:
         browse_type = "transferring_body"
         browse_parameters["transferring_body_id"] = transferring_body_id
+        breadcrumb_values = get_breadcrumb_values(
+            transferring_body_id=transferring_body_id
+        )
         if request.args:
             filters = build_filters(request.args)
             sorting_orders = build_sorting_orders(request.args)
@@ -127,6 +132,7 @@ def browse():
     elif series_id:
         browse_type = "series"
         browse_parameters["series_id"] = series_id
+        breadcrumb_values = get_breadcrumb_values(series_id=series_id)
         if request.args:
             filters = build_filters(request.args)
             sorting_orders = build_sorting_orders(request.args)
@@ -134,6 +140,7 @@ def browse():
     elif consignment_id:
         browse_type = "consignment"
         browse_parameters["consignment_id"] = consignment_id
+        breadcrumb_values = get_breadcrumb_values(consignment_id=consignment_id)
         sorting_orders = build_sorting_orders(request.args)
 
         # e.g. please use example below to pass filter values
@@ -174,6 +181,7 @@ def browse():
         browse_type=browse_type,
         results=browse_results,
         transferring_bodies=transferring_bodies,
+        breadcrumb_values=breadcrumb_values,
         user_filters=filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,

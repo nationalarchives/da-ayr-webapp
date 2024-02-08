@@ -1,8 +1,8 @@
 {% set breadcrumbs = {
     "everything":"Everything",
-    "body": [results.items[0]['transferring_body_id'], results.items[0]['transferring_body']],
-    "series": [results.items[0]['series_id'], results.items[0]['series']],
-    "consignment": results.items[0]['consignment_reference']
+    "body": [breadcrumb_values[0]["transferring_body_id"], breadcrumb_values[1]["transferring_body"]],
+    "series": [breadcrumb_values[2]["series_id"], breadcrumb_values[3]["series"]],
+    "consignment": breadcrumb_values[4]["consignment_reference"]
 } %}
 <!-- BREAD CRUMB -->
 {% with dict = breadcrumbs %}
