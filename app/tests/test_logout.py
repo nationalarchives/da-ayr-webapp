@@ -12,10 +12,7 @@ def test_sign_out(mock_keycloak, client, mock_standard_user):
         and the KeycloakOpenID 'logout' method should be called with the refresh token
         and the session should be cleared
     """
-    with client.session_transaction() as session:
-        mock_standard_user(client)
-        session["access_token"] = "mock_access_token"
-        session["refresh_token"] = "mock_refresh_token"
+    mock_standard_user(client)
 
     response = client.get(url_for("main.sign_out"))
 
@@ -23,7 +20,7 @@ def test_sign_out(mock_keycloak, client, mock_standard_user):
     assert response.headers["Location"] == url_for("main.signed_out")
 
     mock_keycloak.return_value.logout.assert_called_once_with(
-        "mock_refresh_token"
+        "valid_refresh_token"
     )
 
     with client.session_transaction() as cleared_session:

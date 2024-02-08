@@ -27,7 +27,8 @@ def mock_standard_user():
     def _mock_standard_user(client: FlaskClient, body: str = "test_body"):
         groups = ["/ayr_user_type/view_dept", f"/transferring_body_user/{body}"]
         with client.session_transaction() as session:
-            session["access_token"] = "valid_token"
+            session["access_token"] = "valid_access_token"
+            session["refresh_token"] = "valid_refresh_token"
             session["user_groups"] = groups
 
         mock_ayr_user = ayr_user_patcher.start()
@@ -59,7 +60,8 @@ def mock_superuser():
         groups = ["/ayr_user_type/view_all"]
 
         with client.session_transaction() as session:
-            session["access_token"] = "valid_token"
+            session["access_token"] = "valid_access_token"
+            session["refresh_token"] = "valid_refresh_token"
             session["user_groups"] = groups
 
         mock_ayr_user = ayr_user_patcher.start()

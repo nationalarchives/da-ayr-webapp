@@ -41,9 +41,24 @@ def access_token_sign_in_required(view_func):
         g.access_token_sign_in_required = True  # Set attribute on g
 
         try:
-            if not _validate_or_refresh_access_token():
+            access_token = session["access_token"]
+            refresh_token = session["refresh_token"]
+            try:
+                (
+                    access_token,
+                    refresh_token,
+                    tokens_are_refreshed,
+                ) = _validate_or_refresh_tokens(access_token, refresh_token)
+            except InvalidAccessToken:
                 session.clear()
                 return redirect(url_for("main.sign_in"))
+
+            if tokens_are_refreshed:
+                session["access_token"] = access_token
+                session["refresh_token"] = refresh_token
+                keycloak_openid = get_keycloak_instance_from_flask_config()
+                decoded_access_token = keycloak_openid.introspect(access_token)
+                session["user_groups"] = decoded_access_token["groups"]
 
             ayr_user = AYRUser(session["user_groups"])
 
@@ -64,46 +79,30 @@ def access_token_sign_in_required(view_func):
     return decorated_view
 
 
-def _validate_or_refresh_access_token():
-    is_valid_access_token = False
+def _validate_or_refresh_tokens(access_token, refresh_token):
+    tokens_are_refreshed = False
+
+    if not (access_token and refresh_token):
+        raise InvalidAccessToken
 
     keycloak_openid = get_keycloak_instance_from_flask_config()
 
-    # check if access_token in session and is valid
-    access_token = session.get("access_token")
-    if access_token:
-        decoded_token = keycloak_openid.introspect(access_token)
-        if decoded_token["active"] is True:
-            user_groups = decoded_token["groups"]
-            session["user_groups"] = user_groups
-            if user_groups:
-                is_valid_access_token = True
+    decoded_token = keycloak_openid.introspect(access_token)
 
-    # if access token not valid, attempt to refresh it with the refresh_token if present
-    if not is_valid_access_token:
-        refresh_token = session.get("refresh_token")
-        if refresh_token:
-            try:
-                refreshed_token_response = keycloak_openid.refresh_token(
-                    refresh_token
-                )
-            except keycloak.exceptions.KeycloakPostError:
-                return False
-            else:
-                session["access_token"] = refreshed_token_response[
-                    "access_token"
-                ]
-                session["refresh_token"] = refreshed_token_response[
-                    "refresh_token"
-                ]
+    if decoded_token["active"] is False:
+        try:
+            refreshed_token_response = keycloak_openid.refresh_token(
+                refresh_token
+            )
+        except keycloak.exceptions.KeycloakPostError:
+            raise InvalidAccessToken
 
-                decoded_refreshed_token = keycloak_openid.introspect(
-                    refreshed_token_response["access_token"]
-                )
-                if decoded_refreshed_token["active"] is True:
-                    refreshed_user_groups = decoded_refreshed_token["groups"]
-                    session["user_groups"] = refreshed_user_groups
-                    if refreshed_user_groups:
-                        is_valid_access_token = True
+        access_token = refreshed_token_response["access_token"]
+        refresh_token = refreshed_token_response["refresh_token"]
+        tokens_are_refreshed = True
 
-    return is_valid_access_token
+    return access_token, refresh_token, tokens_are_refreshed
+
+
+class InvalidAccessToken(Exception):
+    pass

@@ -82,6 +82,8 @@ def callback():
 
     session["access_token"] = access_token_response["access_token"]
     session["refresh_token"] = access_token_response["refresh_token"]
+    decoded_access_token = keycloak_openid.introspect(session["access_token"])
+    session["user_groups"] = decoded_access_token["groups"]
 
     return redirect(url_for("main.browse"))
 
