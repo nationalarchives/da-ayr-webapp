@@ -1,7 +1,3 @@
-{% set browse_url = "/browse" %}
-{% set transferring_body_url = browse_url ~ "?transferring_body_id=" %}
-{% set series_url = browse_url ~ "?series_id=" %}
-{% set consignment_url = browse_url ~ "?consignment_id=" %}
 <div class="browse-all-filter-from-dates">
     <p class="govuk-body govuk-body--browse-all-date">Date from</p>
     <fieldset class="govuk-fieldset govuk-fieldset--date-from"
@@ -91,11 +87,4 @@
             </div>
         </div>
     </fieldset>
-</div>
-<div class="filters-form__buttons">
-    <button type="submit"
-            class="govuk-button govuk-button__browse-all-filters-form-apply-button"
-            data-module="govuk-button">Apply filters</button>
-    <a class="govuk-link govuk-link--browse-all-filter"
-       href="{% if view_name == 'browse' %} {% if sorting_order %} {{ browse_url ~ sorting_order }} {% else %} {{ browse_url }} {% endif %} {% elif view_name == 'transferring_body' %} {% if sorting_order %} {{ transferring_body_url ~ transferring_body_id  ~ sorting_order }} {% else %} {{ transferring_body_url ~ transferring_body_id }} {% endif %} {% elif view_name == 'series' %} {% if sorting_order %} {{ series_url ~ series_id ~ sorting_order }} {% else %} {{ series_url ~ series_id }} {% endif %} {% elif view_name == 'consignment' %} {% if sorting_order %} {{ consigmnent_url ~ consignment_id ~ sorting_order }} {% else %} {{ consignment_url ~ consignment_id }} {% endif %} {% endif %}">Clear filters</a>
 </div>

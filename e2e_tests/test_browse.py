@@ -112,18 +112,17 @@ class TestBrowse:
 
     def test_browse_clear_filter_functionality(self, authenticated_page: Page):
         authenticated_page.goto("/browse")
+        authenticated_page.get_by_label("Sort by").select_option(
+            "transferring_body-desc"
+        )
+        authenticated_page.get_by_role(
+            "button", name="Apply", exact=True
+        ).first.click()
         authenticated_page.get_by_label("", exact=True).nth(1).select_option(
             "Testing A"
         )
         authenticated_page.get_by_role("button", name="Apply filters").click()
-        authenticated_page.get_by_role("link", name="clear filters").click()
-
-        assert (
-            authenticated_page.get_by_label("", exact=True)
-            .nth(1)
-            .evaluate("el => el.options[el.selectedIndex].text")
-            == "Choose one..."
-        )
+        authenticated_page.get_by_role("link", name="Clear filters").click()
         assert authenticated_page.inner_text("#series_filter") == ""
         assert authenticated_page.inner_text("#date_from_day") == ""
         assert authenticated_page.inner_text("#date_from_month") == ""
@@ -131,6 +130,12 @@ class TestBrowse:
         assert authenticated_page.inner_text("#date_to_day") == ""
         assert authenticated_page.inner_text("#date_to_month") == ""
         assert authenticated_page.inner_text("#date_to_year") == ""
+        assert (
+            authenticated_page.get_by_label("Sort by", exact=True).evaluate(
+                "el => el.options[el.selectedIndex].text"
+            )
+            == "Transferring body (Z to A)"
+        )
 
 
 class TestBrowseTransferringBody:
@@ -203,6 +208,10 @@ class TestBrowseTransferringBody:
         authenticated_page.goto(
             "/browse?transferring_body_id=6b63aa4d-7838-4010-b6f8-66fb3c07823d"
         )
+        authenticated_page.get_by_label("Sort by").select_option("series-desc")
+        authenticated_page.get_by_role(
+            "button", name="Apply", exact=True
+        ).first.click()
         authenticated_page.get_by_label("", exact=True).nth(1).fill("mock")
         authenticated_page.get_by_role("button", name="Apply filters").click()
         authenticated_page.get_by_role("link", name="clear filters").click()
@@ -214,6 +223,12 @@ class TestBrowseTransferringBody:
         assert authenticated_page.inner_text("#date_to_day") == ""
         assert authenticated_page.inner_text("#date_to_month") == ""
         assert authenticated_page.inner_text("#date_to_year") == ""
+        assert (
+            authenticated_page.get_by_label("Sort by", exact=True).evaluate(
+                "el => el.options[el.selectedIndex].text"
+            )
+            == "Series (Z to A)"
+        )
 
 
 class TestBrowseSeries:
@@ -288,19 +303,25 @@ class TestBrowseSeries:
         authenticated_page.goto(
             "/browse?series_id=c28cc3ab-c12a-4f06-82e1-18648c82a17f"
         )
+        authenticated_page.get_by_label("Sort by").select_option(
+            "records_held-desc"
+        )
+        authenticated_page.get_by_role(
+            "button", name="Apply", exact=True
+        ).first.click()
         authenticated_page.get_by_label("Day").first.fill("01")
         authenticated_page.get_by_role("button", name="Apply filters").click()
         authenticated_page.get_by_role("link", name="clear filters").click()
 
-        assert (
-            authenticated_page.get_by_label("", exact=True)
-            .nth(1)
-            .evaluate("el => el.options[el.selectedIndex].text")
-            == "Choose one..."
-        )
         assert authenticated_page.inner_text("#date_from_day") == ""
         assert authenticated_page.inner_text("#date_from_month") == ""
         assert authenticated_page.inner_text("#date_from_year") == ""
         assert authenticated_page.inner_text("#date_to_day") == ""
         assert authenticated_page.inner_text("#date_to_month") == ""
         assert authenticated_page.inner_text("#date_to_year") == ""
+        assert (
+            authenticated_page.get_by_label("", exact=True)
+            .nth(1)
+            .evaluate("el => el.options[el.selectedIndex].text")
+            == "Records held in consignment (most first)"
+        )
