@@ -29,8 +29,11 @@ from app.main.db.queries import (
     browse_data,
     build_fuzzy_search_query,
     get_all_transferring_bodies,
-    get_breadcrumb_values,
+    get_consignment_view_breadcrumb_values,
     get_file_metadata,
+    get_record_view_breadcrumb_values,
+    get_series_view_breadcrumb_values,
+    get_transferring_body_view_breadcrumb_values,
 )
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
@@ -122,7 +125,7 @@ def browse():
     if transferring_body_id:
         browse_type = "transferring_body"
         browse_parameters["transferring_body_id"] = transferring_body_id
-        breadcrumb_values = get_breadcrumb_values(
+        breadcrumb_values = get_transferring_body_view_breadcrumb_values(
             transferring_body_id=transferring_body_id
         )
         if request.args:
@@ -132,7 +135,9 @@ def browse():
     elif series_id:
         browse_type = "series"
         browse_parameters["series_id"] = series_id
-        breadcrumb_values = get_breadcrumb_values(series_id=series_id)
+        breadcrumb_values = get_series_view_breadcrumb_values(
+            series_id=series_id
+        )
         if request.args:
             filters = build_filters(request.args)
             sorting_orders = build_sorting_orders(request.args)
@@ -140,21 +145,11 @@ def browse():
     elif consignment_id:
         browse_type = "consignment"
         browse_parameters["consignment_id"] = consignment_id
-        breadcrumb_values = get_breadcrumb_values(consignment_id=consignment_id)
+        breadcrumb_values = get_consignment_view_breadcrumb_values(
+            consignment_id=consignment_id
+        )
         sorting_orders = build_sorting_orders(request.args)
 
-        # e.g. please use example below to pass filter values
-        # filters["record_status"] = "open"
-        # filters["file_type"] = "docx"
-        # filters["date_range"] = {"date_from": "01/08/2022", "date_to": "31/08/2022"}
-        # filters["date_filter_field"] = "date_last_modified"
-        # e.g. please usd example below to pass sorting order
-        # sorting_orders["file_name"] = "asc"  # A to Z
-        # sorting_orders["file_name"] = "desc"  # Z to A
-        # sorting_orders["record_status"] = "asc"  # A to Z
-        # sorting_orders["record_status"] = "desc"  # Z to A
-        # sorting_orders["date_last_modified"] = "asc"  # oldest first
-        # sorting_orders["date_last_modified"] = "desc"  # most recent first
     else:
         ayr_user = AYRUser(session.get("user_groups"))
         if ayr_user.is_standard_user:
@@ -242,8 +237,12 @@ def record(record_id: uuid.UUID):
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
     file_metadata = get_file_metadata(record_id)
-
-    return render_template("record.html", record=file_metadata)
+    breadcrumb_values = get_record_view_breadcrumb_values(file_id=record_id)
+    return render_template(
+        "record.html",
+        record=file_metadata,
+        breadcrumb_values=breadcrumb_values,
+    )
 
 
 @bp.route("/download/<uuid:record_id>")

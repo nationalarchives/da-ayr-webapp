@@ -1,9 +1,9 @@
 {% set breadcrumbs = {
     "everything":"Everything",
-    "body": [record['transferring_body_id'], record['transferring_body']],
-    "series": [record['series_id'], record['series']],
-    "consignment": [record['consignment_id'], record['consignment']],
-    "File": record['file_name']
+    "body": [breadcrumb_values[0]["transferring_body_id"], breadcrumb_values[1]["transferring_body"]],
+    "series": [breadcrumb_values[2]["series_id"], breadcrumb_values[3]["series"]],
+    "consignment": [breadcrumb_values[4]["consignment_id"], breadcrumb_values[5]["consignment_reference"]],
+    "File": breadcrumb_values[6]['file_name']
 } %}
 {% extends "base.html" %}
 {%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
@@ -91,8 +91,8 @@
                                 {{ record['language'] }}
                             </dd>
                         </div>
-                    </div>
-                </dl>
+                    </dl>
+                </div>
                 <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record">
                     <div class="rights-container">
                         <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
