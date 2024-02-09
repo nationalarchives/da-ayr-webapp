@@ -24,16 +24,11 @@ from app.main.authorize.ayr_user import AYRUser
 from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
 )
-from app.main.db.models import Body, File
+from app.main.db.models import Body, Consignment, File, Series
 from app.main.db.queries import (
     browse_data,
     build_fuzzy_search_query,
-    get_all_transferring_bodies,
-    get_consignment_view_breadcrumb_values,
     get_file_metadata,
-    get_record_view_breadcrumb_values,
-    get_series_view_breadcrumb_values,
-    get_transferring_body_view_breadcrumb_values,
 )
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
@@ -98,11 +93,6 @@ def accessibility():
 @bp.route("/browse", methods=["POST", "GET"])
 @access_token_sign_in_required
 def browse():
-    transferring_bodies = []
-    ayr_user = AYRUser(session.get("user_groups"))
-    if ayr_user.is_superuser:
-        transferring_bodies = get_all_transferring_bodies()
-
     form = SearchForm()
     page = int(request.args.get("page", 1))
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
@@ -118,36 +108,50 @@ def browse():
     breadcrumb_values = {}
 
     if browse_type == "browse":
-        if request.args:
-            filters = build_filters(request.args)
-            sorting_orders = build_sorting_orders(request.args)
+        transferring_bodies = []
+        ayr_user = AYRUser(session.get("user_groups"))
+        if ayr_user.is_superuser:
+            for body in Body.query.all():
+                transferring_bodies.append(body.Name)
+        filters = build_filters(request.args)
+        sorting_orders = build_sorting_orders(request.args)
 
     if transferring_body_id:
         browse_type = "transferring_body"
         browse_parameters["transferring_body_id"] = transferring_body_id
-        breadcrumb_values = get_transferring_body_view_breadcrumb_values(
-            transferring_body_id=transferring_body_id
-        )
-        if request.args:
-            filters = build_filters(request.args)
-            sorting_orders = build_sorting_orders(request.args)
+        breadcrumb_values = {
+            0: {"transferring_body": Body.query.get(transferring_body_id).Name}
+        }
+        filters = build_filters(request.args)
+        sorting_orders = build_sorting_orders(request.args)
 
     elif series_id:
         browse_type = "series"
         browse_parameters["series_id"] = series_id
-        breadcrumb_values = get_series_view_breadcrumb_values(
-            series_id=series_id
-        )
-        if request.args:
-            filters = build_filters(request.args)
-            sorting_orders = build_sorting_orders(request.args)
+        series = Series.query.get(series_id)
+        body = series.body
+        breadcrumb_values = {
+            0: {"transferring_body_id": body.BodyId},
+            1: {"transferring_body": body.Name},
+            2: {"series": series.Name},
+        }
+
+        filters = build_filters(request.args)
+        sorting_orders = build_sorting_orders(request.args)
 
     elif consignment_id:
         browse_type = "consignment"
         browse_parameters["consignment_id"] = consignment_id
-        breadcrumb_values = get_consignment_view_breadcrumb_values(
-            consignment_id=consignment_id
-        )
+        consignment = Consignment.query.get(consignment_id)
+        body = consignment.series.body
+        series = consignment.series
+        breadcrumb_values = {
+            0: {"transferring_body_id": body.BodyId},
+            1: {"transferring_body": body.Name},
+            2: {"series_id": series.SeriesId},
+            3: {"series": series.Name},
+            4: {"consignment_reference": consignment.ConsignmentReference},
+        }
         sorting_orders = build_sorting_orders(request.args)
 
     else:
@@ -237,7 +241,21 @@ def record(record_id: uuid.UUID):
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
     file_metadata = get_file_metadata(record_id)
-    breadcrumb_values = get_record_view_breadcrumb_values(file_id=record_id)
+
+    file = File.query.get(record_id)
+    consignment = file.consignment
+    body = consignment.series.body
+    series = consignment.series
+    breadcrumb_values = {
+        0: {"transferring_body_id": body.BodyId},
+        1: {"transferring_body": body.Name},
+        2: {"series_id": series.SeriesId},
+        3: {"series": series.Name},
+        4: {"consignment_id": consignment.ConsignmentId},
+        5: {"consignment_reference": consignment.ConsignmentReference},
+        6: {"file_name": file.FileName},
+    }
+
     return render_template(
         "record.html",
         record=file_metadata,
