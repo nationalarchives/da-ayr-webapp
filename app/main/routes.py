@@ -159,7 +159,6 @@ def browse():
 
         filters = build_browse_consignment_filters(request.args)
         sorting_orders = build_sorting_orders(request.args)
-
     else:
         ayr_user = AYRUser(session.get("user_groups"))
         if ayr_user.is_standard_user:

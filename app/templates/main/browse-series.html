@@ -137,7 +137,9 @@
                         </td>
                         <td class="govuk-table__cell">
                             <div class="browse__table__series-row right-align empty-cell">-</div>
-                            <div class="right-align">{{ record["consignment_reference"] }}</div>
+                            <div class="right-align">
+                                <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
+                            </div>
                         </td>
                     </tr>
                 {% endfor %}
