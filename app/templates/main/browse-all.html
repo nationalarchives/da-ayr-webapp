@@ -22,35 +22,33 @@
         </div>
         <!-- TABLE -->
         <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
-            {% if num_records_found > 0 %}
-                <table class="govuk-table browse-grid__table" id="tbl_result">
-                    <thead class="govuk-table__head">
+            <table class="govuk-table browse-grid__table" id="tbl_result">
+                <thead class="govuk-table__head">
+                    <tr class="govuk-table__row">
+                        <th scope="col"
+                            class="govuk-table__header browse-grid__key__transferring-body">Transferring body</th>
+                        <th scope="col" class="govuk-table__header">Series</th>
+                        <th scope="col" class="govuk-table__header browse__table__right-align">Last record transferred</th>
+                        <th scope="col" class="govuk-table__header browse__table__right-align">Records held</th>
+                        <th scope="col" class="govuk-table__header browse__table__right-align">Consignments within series</th>
+                    </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                    {% for record in results %}
                         <tr class="govuk-table__row">
-                            <th scope="col"
-                                class="govuk-table__header browse-grid__key__transferring-body">Transferring body</th>
-                            <th scope="col" class="govuk-table__header">Series</th>
-                            <th scope="col" class="govuk-table__header browse__table__right-align">Last record transferred</th>
-                            <th scope="col" class="govuk-table__header browse__table__right-align">Records held</th>
-                            <th scope="col" class="govuk-table__header browse__table__right-align">Consignments within series</th>
+                            <td class="govuk-table__cell">
+                                <a href="{{ url_for('main.browse', transferring_body_id=record['transferring_body_id']) }}">{{ record["transferring_body"] }}</a>
+                            </td>
+                            <td class="govuk-table__cell">
+                                <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">{{ record["series"] }}</a>
+                            </td>
+                            <td class="govuk-table__cell browse__table__right-align">{{ record["last_record_transferred"] }}</td>
+                            <td class="govuk-table__cell browse__table__right-align">{{ record["records_held"] }}</td>
+                            <td class="govuk-table__cell browse__table__right-align">{{ record["consignment_in_series"] }}</td>
                         </tr>
-                    </thead>
-                    <tbody class="govuk-table__body">
-                        {% for record in results %}
-                            <tr class="govuk-table__row">
-                                <td class="govuk-table__cell">
-                                    <a href="{{ url_for('main.browse', transferring_body_id=record['transferring_body_id']) }}">{{ record["transferring_body"] }}</a>
-                                </td>
-                                <td class="govuk-table__cell">
-                                    <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">{{ record["series"] }}</a>
-                                </td>
-                                <td class="govuk-table__cell browse__table__right-align">{{ record["last_record_transferred"] }}</td>
-                                <td class="govuk-table__cell browse__table__right-align">{{ record["records_held"] }}</td>
-                                <td class="govuk-table__cell browse__table__right-align">{{ record["consignment_in_series"] }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         <!-- FILTERS -->
         <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">

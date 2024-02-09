@@ -1329,6 +1329,24 @@ class TestBrowse:
         verify_browse_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
+    def test_browse_get_filter_no_results(
+        self, client: FlaskClient, mock_superuser, browse_files
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they make a GET request with page as a query string parameter
+        and enter a filter value for series
+        Then If series filter does not return any records they should see empty table with header rows
+        on browse page content.
+        """
+        mock_superuser(client)
+        series = "junk"
+        response = client.get("/browse?series=" + series)
+
+        assert response.status_code == 200
+
+        verify_browse_view_header_row(response.data)
+
 
 class TestBrowseTransferringBody:
     def test_browse_transferring_body_without_filter(
@@ -2112,6 +2130,38 @@ class TestBrowseTransferringBody:
         verify_browse_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
+    def test_browse_transferring_body_with_filter_no_results(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request with a transferring body id
+        Then they should see results based on transferring body filter on browse page content.
+        """
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        series = "junk"
+        response = client.get(
+            f"/browse?transferring_body_id={transferring_body_id}&series_filter="
+            + series
+        )
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+        assert b"Records found 0" in response.data
+
+        verify_transferring_body_view_header_row(response.data)
+
 
 class TestSeries:
     def test_browse_series_without_filter(
@@ -2641,6 +2691,34 @@ class TestSeries:
 
         verify_series_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
+
+    def test_browse_series_with_filter_no_results(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_files,
+    ):
+        """
+        Given a superuser accessing the browse page
+        When they make a GET request with a series id
+        and select sorting option as records held in consignment descending
+        Then they should see records sorted by most records held first in consignment
+        on browse page content.
+        """
+        mock_standard_user(
+            client,
+            browse_files[0].consignment.series.body.Name,
+        )
+
+        series_id = browse_files[0].consignment.series.SeriesId
+
+        response = client.get(
+            f"/browse?series_id={series_id}&date_from_day=01&date_from_month=01&date_from_year=2024"
+        )
+
+        assert response.status_code == 200
+
+        verify_series_view_header_row(response.data)
 
 
 class TestConsignment:

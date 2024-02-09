@@ -8,7 +8,6 @@ from flask.testing import FlaskClient
 from app.main.db.queries import (
     browse_data,
     build_fuzzy_search_query,
-    get_all_transferring_bodies,
     get_file_metadata,
 )
 from app.tests.factories import (
@@ -262,19 +261,6 @@ class TestFuzzySearch:
 
 
 class TestBrowse:
-    def test_browse_get_all_transferring_bodies(self, client):
-        """
-        Given 3 transferring body objects
-        And the session contains user info for a superuser with access
-        When I call the 'get_all_transferring_bodies' function
-        Then it should return 3 transferring body names
-        """
-        bodies = BodyFactory.create_batch(3)
-        body_names = get_all_transferring_bodies()
-
-        assert len(body_names) == 3
-        assert body_names == [bodies[0].Name, bodies[1].Name, bodies[2].Name]
-
     def test_browse_without_filter(
         self, client, mock_standard_user, browse_files
     ):
