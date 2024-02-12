@@ -46,7 +46,6 @@ def build_browse_consignment_filters(args):
     if args:
         filter_items = []
         record_status = args.get("record_status")
-        file_type = args.get("file_type")
         date_filter_field = args.get("date_filter_field")
 
         if record_status:
@@ -54,8 +53,6 @@ def build_browse_consignment_filters(args):
         if date_filter_field:
             filter_items.append({"date_filter_field": date_filter_field})
             _build_date_range_filter(args, filter_items)
-        if file_type:
-            filter_items.append({"file_type": file_type})
 
         for f in filter_items:
             for key, value in f.items():

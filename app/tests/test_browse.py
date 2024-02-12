@@ -2814,36 +2814,6 @@ class TestConsignment:
             {"class": "govuk-breadcrumbs"},
         )
 
-    def test_browse_consignment_with_file_type_filter(
-        self, client: FlaskClient, mock_standard_user, browse_consignment_files
-    ):
-        """
-        Given a user accessing the browse page
-        When they make a GET request with a consignment id
-        and use file type filter with value
-        Then they should see the results by file type filter value
-        and sorted by record status ascending default
-        """
-        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
-
-        mock_standard_user(
-            client, browse_consignment_files[0].consignment.series.body.Name
-        )
-
-        response = client.get(
-            f"/browse?consignment_id={consignment_id}&file_type=doc"
-        )
-
-        assert response.status_code == 200
-        assert b"You are viewing" in response.data
-
-        expected_rows = [
-            ["'20/05/2023', 'fifth_file.doc', 'Open', '-', '-'"],
-        ]
-
-        verify_consignment_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
     def test_browse_consignment_with_date_range_filter(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
@@ -3199,37 +3169,6 @@ class TestConsignment:
                 "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
                 "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
             ],
-        ]
-
-        verify_consignment_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_consignment_with_file_type_filter_and_sorting_and_sorting_record_status_z_to_a(
-        self, client: FlaskClient, mock_standard_user, browse_consignment_files
-    ):
-        """
-        Given a user accessing the browse page
-        When they make a GET request with a consignment id
-        and use file type filter with value
-        and use sorting by record status filter descending
-        Then they should see the results by file type filter value
-        and sorted by record status in reverse alphabetic order (Z to A)
-        """
-        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
-
-        mock_standard_user(
-            client, browse_consignment_files[0].consignment.series.body.Name
-        )
-
-        response = client.get(
-            f"/browse?consignment_id={consignment_id}&sort=closure_type-desc&record_status=all&file_type=doc"
-        )
-
-        assert response.status_code == 200
-        assert b"You are viewing" in response.data
-
-        expected_rows = [
-            ["'20/05/2023', 'fifth_file.doc', 'Open', '-', '-'"],
         ]
 
         verify_consignment_view_header_row(response.data)
