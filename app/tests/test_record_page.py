@@ -80,7 +80,7 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
                 href="/browse?consignment_id={file.ConsignmentId}">{file.consignment.ConsignmentReference}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
-            <a class="govuk-breadcrumbs__link--record" href="#">test_file.txt</a>
+            <span class="govuk-breadcrumbs__link--record" href="#">test_file.txt</span>
             </li>
         </ol>
         </div>
