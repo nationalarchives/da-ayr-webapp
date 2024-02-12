@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+import keycloak
+import pytest
 from flask import Flask, render_template, url_for
 
 from app.main.authorize.access_token_sign_in_required import (
@@ -7,133 +9,294 @@ from app.main.authorize.access_token_sign_in_required import (
 )
 
 
-def test_access_token_sign_in_required_decorator_no_token(app):
-    """
-    Given no access token in the session,
-    When accessing a route protected by the 'access_token_sign_in_required' decorator,
-    Then it should redirect to the sign in view.
-    """
-    view_name = "/protected_view"
-    with app.test_client() as client:
+class TestAccessTokenSignInRequiredDecorator:
+    @staticmethod
+    @pytest.mark.parametrize(
+        "access_token, refresh_token",
+        [
+            (None, None),
+            ("foo", None),
+            (None, "foo"),
+        ],
+    )
+    def test_no_access_or_refresh_token_is_redirected_to_sign_in(
+        app, access_token, refresh_token
+    ):
+        """
+        Given either no access or refresh token in the session,
+        When accessing a route protected by the 'access_token_sign_in_required' decorator,
+        Then it should clear the session and redirect to the sign in view
+        """
+        view_name = "/protected_view"
+        with app.test_client() as client:
 
-        @app.route(view_name)
-        @access_token_sign_in_required
-        def protected_view():
-            return "Access granted"
+            @app.route(view_name)
+            @access_token_sign_in_required
+            def protected_view():
+                return "Access granted"
 
-        with client.session_transaction() as session:
-            session["access_token"] = None
-        response = client.get(view_name)
-        assert response.status_code == 302
-        assert response.headers["Location"] == url_for("main.sign_in")
+            with client.session_transaction() as session:
+                session["access_token"] = access_token
+                session["refresh_token"] = refresh_token
 
+            response = client.get(view_name)
 
-@patch(
-    "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
-)
-def test_access_token_sign_in_required_decorator_inactive_token(
-    mock_keycloak, app
-):
-    """
-    Given an inactive access token in the session,
-    When accessing a route protected by the 'access_token_sign_in_required' decorator,
-    Then it should redirect to the sign in view.
-    And the session should be cleared
-    """
-    mock_keycloak.return_value.instrospect.return_value = {"active": False}
+            assert response.status_code == 302
+            assert response.headers["Location"] == url_for("main.sign_in")
+            with client.session_transaction() as cleared_session:
+                assert cleared_session == {}
 
-    view_name = "/protected_view"
-    with app.test_client() as client:
+    @staticmethod
+    @patch(
+        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
+    )
+    def test_an_inactive_access_token_and_an_inactive_refresh_token_is_redirected_to_sign_in(
+        mock_keycloak, app
+    ):
+        """
+        Given an inactive access token and an inactive refresh token in the session
+        When accessing a route protected by the 'access_token_sign_in_required' decorator,
+        Then it should clear the session and redirect to the sign in view
+        """
+        view_name = "/protected_view"
+        with app.test_client() as client:
 
-        @app.route(view_name)
-        @access_token_sign_in_required
-        def protected_view():
-            return "Access granted"
+            @app.route(view_name)
+            @access_token_sign_in_required
+            def protected_view():
+                return "Access granted"
 
-        with client.session_transaction() as session:
-            session["access_token"] = "some_token"
-            session["foo"] = "bar"
-        response = client.get(view_name)
+            with client.session_transaction() as session:
+                session["access_token"] = "inactive_access_token"
+                session["refresh_token"] = "inactive_refresh_token"
 
-        assert response.status_code == 302
-        assert response.headers["Location"] == url_for("main.sign_in")
+            def mock_refresh_token(token):
+                raise keycloak.exceptions.KeycloakPostError
 
-        with client.session_transaction() as cleared_session:
-            assert cleared_session == {}
-
-
-@patch(
-    "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
-)
-def test_access_token_sign_in_required_decorator_active_without_ayr_access(
-    mock_keycloak,
-    app,
-):
-    """
-    Given an active access token in the session,
-    And the user does not have access to AYR,
-    When accessing a route protected by the 'access_token_sign_in_required' decorator,
-    Then it should redirect to the index page with a flashed message.
-    """
-    mock_keycloak.return_value.introspect.return_value = {
-        "active": True,
-        "groups": ["not empty"],
-    }
-    app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
-
-    view_name = "/protected_view"
-    with app.test_client() as client:
-
-        @app.route(view_name)
-        @access_token_sign_in_required
-        def protected_view():
-            return "Access granted"
-
-        with client.session_transaction() as session:
-            session["access_token"] = "valid_token"
-
-        response = client.get(view_name)
-
-        with client.session_transaction() as session:
-            flashed_messages = session["_flashes"]
-
-        assert flashed_messages == [
-            (
-                "message",
-                "TNA User is logged in but does not have access to AYR. Please contact your admin.",
+            mock_keycloak.return_value.refresh_token.side_effect = (
+                mock_refresh_token
             )
-        ]
 
-        assert response.status_code == 302
-        assert response.headers["Location"] == url_for("main.index")
+            def mock_introspect(token):
+                if token == "inactive_access_token":
+                    return {"active": False}
+                elif token == "active_access_token":
+                    return {"active": True, "groups": ["a", "b"]}
 
+            mock_keycloak.return_value.introspect.side_effect = mock_introspect
 
-def test_access_token_sign_in_required_decorator_valid_token(
-    app,
-    mock_standard_user,
-):
-    """
-    Given an active access token in the session,
-    And the user has access to AYR,
-    When accessing a route protected by the 'access_token_sign_in_required' decorator,
-    Then it should grant access
-    """
-    view_name = "/protected_view"
-    with app.test_client() as client:
+            response = client.get(view_name)
 
-        @app.route(view_name)
-        @access_token_sign_in_required
-        def protected_view():
-            return "Access granted"
+            assert response.status_code == 302
+            assert response.headers["Location"] == url_for("main.sign_in")
+            with client.session_transaction() as cleared_session:
+                assert cleared_session == {}
 
-        with client.session_transaction() as session:
-            session["access_token"] = "valid_token"
+    @staticmethod
+    @patch(
+        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
+    )
+    def test_an_active_access_token_without_ayr_access_is_redirected_to_sign_in(
+        mock_keycloak,
+        app,
+    ):
+        """
+        Given an active access token in the session,
+        And the user does not have access to AYR,
+        When accessing a route protected by the 'access_token_sign_in_required' decorator,
+        Then it should redirect to the index page with a flashed message
+        """
+        app.config["FORCE_AUTHENTICATION_FOR_IN_TESTING"] = True
 
-        mock_standard_user(client)
-        response = client.get(view_name)
+        view_name = "/protected_view"
+        with app.test_client() as client:
 
-    assert response.status_code == 200
-    assert response.data.decode() == "Access granted"
+            @app.route(view_name)
+            @access_token_sign_in_required
+            def protected_view():
+                return "Access granted"
+
+            groups = ["a", "b"]
+
+            with client.session_transaction() as session:
+                session["access_token"] = "active_access_token"
+                session["refresh_token"] = "active_refresh_token"
+                session["user_groups"] = groups
+
+            mock_keycloak.return_value.introspect.return_value = {
+                "active": True,
+                "groups": groups,
+            }
+
+            response = client.get(view_name)
+
+            assert response.status_code == 302
+            assert response.headers["Location"] == url_for("main.index")
+
+            with client.session_transaction() as session:
+                flashed_messages = session["_flashes"]
+
+            assert flashed_messages == [
+                (
+                    "message",
+                    "TNA User is logged in but does not have access to AYR. Please contact your admin.",
+                )
+            ]
+
+    @staticmethod
+    @patch(
+        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
+    )
+    def test_an_inactive_access_token_but_an_active_refresh_token_without_ayr_access_is_redirected_to_index(
+        mock_keycloak, app
+    ):
+        """
+        Given an inactive access token and an active refresh token in the session
+            that results in an active access token without access to ayr
+        When accessing a route protected by the 'access_token_sign_in_required' decorator,
+        Then it should update the session with the
+            refreshed access_token, user_groups and refresh_token
+        And redirect to the index page with a flashed message
+        """
+        view_name = "/protected_view"
+        with app.test_client() as client:
+
+            @app.route(view_name)
+            @access_token_sign_in_required
+            def protected_view():
+                return "Access granted"
+
+            with client.session_transaction() as session:
+                session["access_token"] = "inactive_access_token"
+                session["refresh_token"] = "active_refresh_token"
+
+            mock_keycloak.return_value.refresh_token.return_value = {
+                "access_token": "active_access_token",
+                "refresh_token": "new_active_refresh_token",
+            }
+
+            def mock_introspect(token):
+                if token == "inactive_access_token":
+                    return {"active": False}
+                elif token == "active_access_token":
+                    return {"active": True, "groups": ["a", "b"]}
+
+            mock_keycloak.return_value.introspect.side_effect = mock_introspect
+
+            response = client.get(view_name)
+
+            assert response.status_code == 302
+            assert response.headers["Location"] == url_for("main.index")
+
+            with client.session_transaction() as session:
+                flashed_messages = session["_flashes"]
+
+            assert flashed_messages == [
+                (
+                    "message",
+                    "TNA User is logged in but does not have access to AYR. Please contact your admin.",
+                )
+            ]
+
+    @staticmethod
+    @patch(
+        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
+    )
+    def test_an_inactive_access_token_but_an_active_refresh_token_with_ayr_access_is_refreshed_and_permitted(
+        mock_keycloak, app
+    ):
+        """
+        Given an inactive access token and an active refresh token in the session
+            that results in an active access token with access to ayr
+        When accessing a route protected by the 'access_token_sign_in_required' decorator,
+        Then it should update the session with the
+            refreshed access_token, user_groups and refresh_token
+        And grant access
+        """
+        view_name = "/protected_view"
+        with app.test_client() as client:
+
+            @app.route(view_name)
+            @access_token_sign_in_required
+            def protected_view():
+                return "Access granted"
+
+            with client.session_transaction() as session:
+                session["access_token"] = "inactive_access_token"
+                session["refresh_token"] = "active_refresh_token"
+
+            valid_groups = [
+                "/ayr_user_type/view_dept",
+                "/transferring_body_user/foo",
+            ]
+
+            def mock_introspect(token):
+                if token == "inactive_access_token":
+                    return {"active": False}
+                elif token == "active_access_token":
+                    return {"active": True, "groups": valid_groups}
+
+            mock_keycloak.return_value.introspect.side_effect = mock_introspect
+
+            mock_keycloak.return_value.refresh_token.return_value = {
+                "access_token": "active_access_token",
+                "refresh_token": "new_active_refresh_token",
+            }
+
+            response = client.get(view_name)
+
+            assert response.status_code == 200
+            assert response.data.decode() == "Access granted"
+
+            with client.session_transaction() as updated_session:
+                assert updated_session["access_token"] == "active_access_token"
+                assert (
+                    updated_session["refresh_token"]
+                    == "new_active_refresh_token"
+                )
+                assert updated_session["user_groups"] == valid_groups
+
+    @staticmethod
+    @patch(
+        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
+    )
+    def test_an_active_access_token_with_ayr_access_is_permitted(
+        mock_keycloak,
+        app,
+    ):
+        """
+        Given an active access token in the session,
+        And the user has access to AYR,
+        When accessing a route protected by the 'access_token_sign_in_required' decorator,
+        Then it should grant access
+        """
+        view_name = "/protected_view"
+        with app.test_client() as client:
+
+            @app.route(view_name)
+            @access_token_sign_in_required
+            def protected_view():
+                return "Access granted"
+
+            valid_groups = [
+                "/ayr_user_type/view_dept",
+                "/transferring_body_user/foo",
+            ]
+
+            with client.session_transaction() as session:
+                session["access_token"] = "active_access_token"
+                session["refresh_token"] = "active_refresh_token"
+                session["user_groups"] = valid_groups
+
+            mock_keycloak.return_value.introspect.return_value = {
+                "active": True,
+                "groups": valid_groups,
+            }
+
+            response = client.get(view_name)
+
+        assert response.status_code == 200
+        assert response.data.decode() == "Access granted"
 
 
 def test_expected_unprotected_routes_decorated_by_access_token_sign_in_required(
