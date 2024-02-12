@@ -243,7 +243,7 @@
 @media screen and (width <=810px) {
 .govuk-grid-column-full__page-nav {
     order: 2;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 
@@ -316,9 +316,11 @@
 }
 
 
+.mobile__search__container-block {
+    margin-bottom: -2rem;
+}
 
 
-/*
 .mobile__search__container {
     display: flex;
     flex-direction: row;
@@ -332,7 +334,7 @@
     left: 0;
     right: 0;
     order: 1;
-} */
+}
 
 .record-mobile__search__container__content {
     background-color: #f3f2f1;
