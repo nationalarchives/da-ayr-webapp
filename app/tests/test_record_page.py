@@ -95,53 +95,53 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
     )
 
     expected_record_summary_html = f"""
-    <dl class="govuk-summary-list govuk-summary-list-record--record">
+    <dl class="govuk-summary-list govuk-summary-list--record">
         <div class="govuk-summary-list__row"></div>
-        <div class="govuk-summary-list__row govuk-summary-list-record__row--record">
-            <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Filename</dt>
-            <dd class="govuk-summary-list__value govuk-summary-list-record__value--record">test_file.txt</dd>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Filename</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">test_file.txt</dd>
         </div>
-        <div class="govuk-summary-list__row govuk-summary-list-record__row--record">
-            <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Status</dt>
-            <dd class="govuk-summary-list__value govuk-summary-list-record__value--record">
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                 <span class="govuk-tag govuk-tag--red">Closed</span>
             </dd>
         </div>
-        <div class="govuk-summary-list__row govuk-summary-list-record__row--record">
-            <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Transferring body</dt>
-            <dd class="govuk-summary-list__value govuk-summary-list-record__value--record">
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Transferring body</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                 {file.consignment.series.body.Name}
             </dd>
         </div>
-        <div class="govuk-summary-list__row govuk-summary-list-record__row--record">
-            <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Consignment ID</dt>
-            <dd class="govuk-summary-list__value govuk-summary-list-record__value--record">
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Consignment ID</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                 {file.consignment.ConsignmentId}
             </dd>
         </div>
-        <div class="govuk-summary-list__row govuk-summary-list-record__row--record">
-            <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Description</dt>
-            <dd class="govuk-summary-list__value govuk-summary-list-record__value--record">Test description</dd>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Description</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">Test description</dd>
         </div>
-        <div class="govuk-summary-list__row govuk-summary-list-record__row--record">
-            <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Date last modified</dt>
-            <dd class="govuk-summary-list__value govuk-summary-list-record__value--record">2023-02-25T10:12:47</dd>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Date last modified</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">2023-02-25T10:12:47</dd>
         </div>
-        <div class="govuk-summary-list__row govuk-summary-list-record__row--record">
-            <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Held by</dt>
-            <dd class="govuk-summary-list__value govuk-summary-list-record__value--record">Test holder</dd>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">Test holder</dd>
         </div>
-        <div class="govuk-summary-list__row govuk-summary-list-record__row--record">
-            <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Legal status</dt>
-            <dd class="govuk-summary-list__value govuk-summary-list-record__value--record">Test legal status</dd>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Legal status</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">Test legal status</dd>
         </div>
-        <div class="govuk-summary-list__row govuk-summary-list-record__row--record">
-            <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Rights copyright</dt>
-            <dd class="govuk-summary-list__value govuk-summary-list-record__value--record">Test copyright</dd>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Rights copyright</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">Test copyright</dd>
         </div>
-        <div class="govuk-summary-list__row govuk-summary-list-record__row--record">
-            <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Language</dt>
-            <dd class="govuk-summary-list__value govuk-summary-list-record__value--record">English</dd>
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Language</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">English</dd>
         </div>
     </dl>
     """
@@ -150,7 +150,7 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
         expected_record_summary_html,
         html,
         "dl",
-        {"class": "govuk-summary-list govuk-summary-list-record--record"},
+        {"class": "govuk-summary-list govuk-summary-list--record"},
     )
 
     expected_arrangement_html = """
