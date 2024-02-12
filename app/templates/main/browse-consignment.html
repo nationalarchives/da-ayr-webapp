@@ -13,7 +13,6 @@
     "Record filename (A to Z)": "file_name-asc",
     "Record filename (Z to A)": "file_name-desc"
 } %}
-{% set view = "consignment" %}
 <!-- BREAD CRUMB -->
 {% with dict = breadcrumbs %}
     {% include "breadcrumb.html" %}
@@ -153,64 +152,15 @@
                                             </div>
                                         </div>
                                     </fieldset>
-                                    <!--<div class="consignment-filter-from-dates">
-                        <p class="govuk-body govuk-body--consignment-date">Date from</p>
-                        <fieldset class="govuk-fieldset govuk-fieldset--date-from" role="group" aria-describedby="date-from">
-                            <div class="govuk-date-input govuk-date-input--consignment-date-to">
-                                <div class="govuk-date-input__item govuk-date-input__item--consignment">
-                                    <div class="govuk-form-group">
-                                        <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-from-day">Day</label>
-                                        <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-from-day" name="date_from_day" type="text" inputmode="numeric" value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_from'] %}{{ user_filters['date_range']['date_from'][0:2] }}{% endif %}{% endif %}">
-                                    </div>
                                 </div>
-                                <div class="govuk-date-input__item govuk-date-input__item--consignment">
-                                    <div class="govuk-form-group">
-                                        <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-from-month">Month</label>
-                                        <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-from-month" name="date_from_month" type="text" inputmode="numeric" value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_from'] %}{{ user_filters['date_range']['date_from'][3:5] }}{% endif %}{% endif %}">
-                                    </div>
+                                {% include "date-filters.html" %}
+                                <div class="filters-form__buttons">
+                                    <button type="submit"
+                                            class="govuk-button govuk-button__browse-all-filters-form-apply-button"
+                                            data-module="govuk-button">Apply filters</button>
+                                    <a class="govuk-link govuk-link--consignment-filter"
+                                       href="{{ url_for('main.browse',consignment_id = filters['consignment_id'], sort=request.args.get('sort')) }}">Clear filters</a>
                                 </div>
-                                <div class="govuk-date-input__item govuk-date-input__item--consignment">
-                                    <div class="govuk-form-group">
-                                        <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-from-year">Year</label>
-                                        <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="date-from-year" name="date_from_year" type="text" inputmode="numeric" value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_from'] %}{{ user_filters['date_range']['date_from'][6:10] }}{% endif %}{% endif %}">
-                                    </div>
-                                </div>
-                            </div>
-                        </fieldset>
-                    </div>
-                    <div class="consignment-filter-to-dates">
-                        <p class="govuk-body govuk-body--consignment-date">To date</p>
-                        <fieldset class="govuk-fieldset govuk-fieldset--date-to" role="group" aria-describedby="date-to">
-                            <div class="govuk-date-input govuk-date-input--consignment-date-to">
-                                <div class="govuk-date-input__item govuk-date-input__item--consignment">
-                                    <div class="govuk-form-group">
-                                        <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-to-day">Day</label>
-                                        <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-to-day" name="date_to_day" type="text" inputmode="numeric" value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_to'] %}{{ user_filters['date_range']['date_to'][0:2] }}{% endif %}{% endif %}">
-                                    </div>
-                                </div>
-                                <div class="govuk-date-input__item govuk-date-input__item--consignment">
-                                    <div class="govuk-form-group">
-                                        <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-to-month">Month</label>
-                                        <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-to-month" name="date_to_month" type="text" inputmode="numeric" value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_to'] %}{{ user_filters['date_range']['date_to'][3:5] }}{% endif %}{% endif %}">
-                                    </div>
-                                </div>
-                                <div class="govuk-date-input__item govuk-date-input__item--consignment">
-                                    <div class="govuk-form-group">
-                                        <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-to-year">Year</label>
-                                        <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="date-to-year" name="date_to_year" type="text" inputmode="numeric" value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_to'] %}{{ user_filters['date_range']['date_to'][6:10] }}{% endif %}{% endif %}">
-                                    </div>
-                                </div>
-                            </div>
-                        </fieldset>
-                    </div>-->
-                                </div>
-                                <!--<div class="filters-form__buttons">
-                    <button type="submit" class="govuk-button govuk-button__consignment-filters-form-apply-button" data-module="govuk-button">Apply filters</button>
-                    <a class="govuk-link govuk-link--consignment-filter" href="{{ url_for('main.browse', consignment_id=filters['consignment_id']) }}">Clear filters</a>
-                </div>-->
-                                {% with view_name = view, consignment_id = filters['consignment_id'] %}
-                                    {% include "date-filters.html" %}
-                                {% endwith %}
                             </div>
                         </div>
                         <!-- END FILTERS -->
@@ -304,64 +254,17 @@
                                                                         </div>
                                                                     </div>
                                                                 </fieldset>
-                                                                <!--<div class="consignment-filter-from-dates">
-                                    <p class="govuk-body govuk-body--consignment-date">Date from</p>
-                                    <fieldset class="govuk-fieldset govuk-fieldset--date-from" role="group" aria-describedby="date-from">
-                                        <div class="govuk-date-input govuk-date-input--consignment-date-to">
-                                            <div class="govuk-date-input__item govuk-date-input__item--consignment">
-                                                <div class="govuk-form-group">
-                                                    <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-from-day">Day</label>
-                                                    <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-from-day" name="date_from_day" type="text" inputmode="numeric" value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_from'] %}{{ user_filters['date_range']['date_from'][0:2] }}{% endif %}{% endif %}">
-                                                </div>
-                                            </div>
-                                            <div class="govuk-date-input__item govuk-date-input__item--consignment">
-                                                <div class="govuk-form-group">
-                                                    <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-from-month">Month</label>
-                                                    <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-from-month" name="date_from_month" type="text" inputmode="numeric" value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_from'] %}{{ user_filters['date_range']['date_from'][3:5] }}{% endif %}{% endif %}">
-                                                </div>
-                                            </div>
-                                            <div class="govuk-date-input__item govuk-date-input__item--consignment">
-                                                <div class="govuk-form-group">
-                                                    <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-from-year">Year</label>
-                                                    <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="date-from-year" name="date_from_year" type="text" inputmode="numeric" value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_from'] %}{{ user_filters['date_range']['date_from'][6:10] }}{% endif %}{% endif %}">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </fieldset>
-                                </div>
-                                <div class="consignment-filter-to-dates">
-                                    <p class="govuk-body govuk-body--consignment-date">To date</p>
-                                    <fieldset class="govuk-fieldset govuk-fieldset--date-to" role="group" aria-describedby="date-to">
-                                        <div class="govuk-date-input govuk-date-input--consignment-date-to">
-                                            <div class="govuk-date-input__item govuk-date-input__item--consignment">
-                                                <div class="govuk-form-group">
-                                                    <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-to-day">Day</label>
-                                                    <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-to-day" name="date_to_day" type="text" inputmode="numeric" value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_to'] %}{{ user_filters['date_range']['date_to'][0:2] }}{% endif %}{% endif %}">
-                                                </div>
-                                            </div>
-                                            <div class="govuk-date-input__item govuk-date-input__item--consignment">
-                                                <div class="govuk-form-group">
-                                                    <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-to-month">Month</label>
-                                                    <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="date-to-month" name="date_to_month" type="text" inputmode="numeric" value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_to'] %}{{ user_filters['date_range']['date_to'][3:5] }}{% endif %}{% endif %}">
-                                                </div>
-                                            </div>
-                                            <div class="govuk-date-input__item govuk-date-input__item--consignment">
-                                                <div class="govuk-form-group">
-                                                    <label class="govuk-label govuk-date-input__label filters-form__date__label" for="date-to-year">Year</label>
-                                                    <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="date-to-year" name="date_to_year" type="text" inputmode="numeric" value="{% if user_filters['date_range'] %}{% if user_filters['date_range']['date_to'] %}{{ user_filters['date_range']['date_to'][6:10] }}{% endif %}{% endif %}">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </fieldset>
-                                </div>-->
                                                             </div>
-                                                            <!--<div class="filters-form__buttons">
-                                <button type="submit" class="govuk-button govuk-button__consignment-filters-form-apply-button" data-module="govuk-button">Apply filters</button>
-                                <a class="govuk-link govuk-link--consignment-filter" href="{{ url_for('main.browse', consignment_id=filters['consignment_id']) }}">Clear filters</a>
-                            </div>-->
-                                                            {% with view_name = view, consignment_id = filters['consignment_id'] %}
-                                                                {% include "date-filters.html" %}
-                                                            {% endwith %}
+                                                            {% include "date-filters.html" %}
+                                                            <div class="filters-form__buttons">
+                                                                <button type="submit"
+                                                                        class="govuk-button govuk-button__browse-all-filters-form-apply-button"
+                                                                        data-module="govuk-button">
+                                                                    Apply filters
+                                                                </button>
+                                                                <a class="govuk-link govuk-link--consignment-filter"
+                                                                   href="{{ url_for('main.browse',consignment_id = filters['consignment_id'], sort=request.args.get('sort')) }}">Clear filters</a>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
