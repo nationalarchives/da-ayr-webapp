@@ -117,19 +117,19 @@
         </div>
     </div>
     <!-- MOBILE -->
-    <div class="record-page-mobile">
-        <div class="record__mobile__search__container">
-            <div class="record-mobile__search__container__content">
+    <div class="govuk-grid-row govuk-grid-row--mobile">
+        <div class="mobile__search__container govuk-grid-column-full">
+            <div class="mobile__search__container__content">
                 <p class="govuk-body search__heading">Search for digital records</p>
                 <form method="post" action="{{ url_for('main.search') }}">
                     {{ form.csrf_token }}
-                    <div class="govuk-form-group govuk-form-group__record-search-form">
+                    <div class="govuk-form-group govuk-form-group__search-form">
                         <label for="searchInput"></label>
                         <input class="govuk-input govuk-!-width-three-quarters"
                                id="searchInput"
                                name="query"
                                type="text">
-                        <p class="govuk-body-s record__search__text">
+                        <p class="govuk-body-s mobile__search__text">
                             Search using a record metadata term, for example – transferring body, series,
                             consignment
                             ref etc.
@@ -141,6 +141,8 @@
                 </form>
             </div>
         </div>
+        <!--  -->
+        <div class="mobile__search__container-block"></div>
         <div class="govuk-grid-row govuk-grid-row--record">
             <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
                 <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
@@ -158,78 +160,6 @@
                 Refer to <a href="/terms-of-use" class="govuk-link">Terms of use.</a>
             </p>
         </div>
-        <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--record-table">
-            <h1 class="govuk-heading-m govuk-heading-m__record-details">Record details</h1>
-            <dl class="govuk-summary-list govuk-summary-list-record--record-mobile">
-                <div class="govuk-summary-list__row"></div>
-                <div class="govuk-summary-list__row govuk-summary-list-record__row--mobile">
-                    <dt class="govuk-summary-list__key govuk-summary-list-record__key--mobile-table">Filename</dt>
-                    <dd class="govuk-summary-list__value govuk-summary-list-record__value--mobile">
-                        {{ record['file_name'] }}
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list-record__row--mobile">
-                    <dt class="govuk-summary-list__key govuk-summary-list-record__key--mobile-table">Status</dt>
-                    {% if record['status'] | lower == 'closed' %}
-                        <dd class="govuk-summary-list__value govuk-summary-list-record__value--mobile">
-                            <span class="govuk-tag govuk-tag--red">{{ record['status'] }}</span>
-                        </dd>
-                    {% else %}
-                        <dd class="govuk-summary-list__value govuk-summary-list-record__value--record">
-                            <span class="govuk-tag govuk-tag--green">{{ record['status'] }}</span>
-                        </dd>
-                    {% endif %}
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list-record__row--mobile">
-                    <dt class="govuk-summary-list__key govuk-summary-list-record__key--mobile-table">Transferring body</dt>
-                    <dd class="govuk-summary-list__value govuk-summary-list-record__value--mobile">
-                        {{ record['transferring_body'] }}
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list-record__row--mobile">
-                    <dt class="govuk-summary-list__key govuk-summary-list-record__key--mobile-table">Consignment ID</dt>
-                    <dd class="govuk-summary-list__value govuk-summary-list-record__value--mobile">
-                        {{ record['consignment_id'] }}
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list-record__row--mobile">
-                    <dt class="govuk-summary-list__key govuk-summary-list-record__key--mobile-table">Description</dt>
-                    <dd class="govuk-summary-list__value govuk-summary-list-record__value--mobile">
-                        {{ record['description'] }}
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list-record__row--mobile">
-                    <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Date last modified</dt>
-                    <dd class="govuk-summary-list__value govuk-summary-list-record__value--mobile">
-                        {{ record['date_last_modified'] }}
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list-record__row--mobile">
-                    <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Held by</dt>
-                    <dd class="govuk-summary-list__value govuk-summary-list-record__value--mobile">
-                        {{ record['held_by'] }}
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list-record__row--mobile">
-                    <dt class="govuk-summary-list__key govuk-summary-list-record__key--record-table">Legal status</dt>
-                    <dd class="govuk-summary-list__value govuk-summary-list-record__value--mobile">
-                        {{ record['legal_status'] }}
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list-record__row--mobile">
-                    <dt class="govuk-summary-list__key govuk-summary-list-record__key--mobile-table">Rights copyright</dt>
-                    <dd class="govuk-summary-list__value govuk-summary-list-record__value--mobile">
-                        {{ record['rights_copyright'] }}
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list-record__row--mobile">
-                    <dt class="govuk-summary-list__key govuk-summary-list-record__key--mobile-table">Language</dt>
-                    <dd class="govuk-summary-list__value govuk-summary-list-record__value--mobile">
-                        {{ record['language'] }}
-                    </dd>
-                </div>
-            </div>
-        </dl>
         <div class="record-container">
             <h3 class="govuk-heading-m govuk-heading-m__record-arrangement-mobile">Record arrangement</h3>
             <ol>
@@ -238,5 +168,77 @@
                 {% endfor %}
             </ol>
         </div>
+        <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--record-table">
+            <h1 class="govuk-heading-m govuk-heading-m__record-details">Record details</h1>
+            <dl class="govuk-summary-list govuk-summary-list--mobile">
+                <div class="govuk-summary-list__row"></div>
+                <div class="govuk-summary-list__row govuk-summary-list__row--mobile">
+                    <dt class="govuk-summary-list__key govuk-summary-list__key--mobile-table">Filename</dt>
+                    <dd class="govuk-summary-list__value govuk-summary-list__value--mobile">
+                        {{ record['file_name'] }}
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row govuk-summary-list__row--mobile">
+                    <dt class="govuk-summary-list__key govuk-summary-list__key--mobile-table">Status</dt>
+                    {% if record['status'] | lower == 'closed' %}
+                        <dd class="govuk-summary-list__value govuk-summary-list__value--mobile">
+                            <span class="govuk-tag govuk-tag--red">{{ record['status'] }}</span>
+                        </dd>
+                    {% else %}
+                        <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                            <span class="govuk-tag govuk-tag--green">{{ record['status'] }}</span>
+                        </dd>
+                    {% endif %}
+                </div>
+                <div class="govuk-summary-list__row govuk-summary-list__row--mobile">
+                    <dt class="govuk-summary-list__key govuk-summary-list__key--mobile-table">Transferring body</dt>
+                    <dd class="govuk-summary-list__value govuk-summary-list__value--mobile">
+                        {{ record['transferring_body'] }}
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row govuk-summary-list__row--mobile">
+                    <dt class="govuk-summary-list__key govuk-summary-list__key--mobile-table">Consignment ID</dt>
+                    <dd class="govuk-summary-list__value govuk-summary-list__value--mobile">
+                        {{ record['consignment_id'] }}
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row govuk-summary-list__row--mobile">
+                    <dt class="govuk-summary-list__key govuk-summary-list__key--mobile-table">Description</dt>
+                    <dd class="govuk-summary-list__value govuk-summary-list__value--mobile">
+                        {{ record['description'] }}
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row govuk-summary-list__row--mobile">
+                    <dt class="govuk-summary-list__key govuk-summary-list__key--mobile-table">Date last modified</dt>
+                    <dd class="govuk-summary-list__value govuk-summary-list__value--mobile">
+                        {{ record['date_last_modified'] }}
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row govuk-summary-list__row--mobile">
+                    <dt class="govuk-summary-list__key govuk-summary-list__key--mobile-table">Held by</dt>
+                    <dd class="govuk-summary-list__value govuk-summary-list__value--mobile">
+                        {{ record['held_by'] }}
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row govuk-summary-list__row--mobile">
+                    <dt class="govuk-summary-list__key govuk-summary-list__key--mobile-table">Legal status</dt>
+                    <dd class="govuk-summary-list__value govuk-summary-list__value--mobile">
+                        {{ record['legal_status'] }}
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row govuk-summary-list__row--mobile">
+                    <dt class="govuk-summary-list__key govuk-summary-list__key--mobile-table">Rights copyright</dt>
+                    <dd class="govuk-summary-list__value govuk-summary-list__value--mobile">
+                        {{ record['rights_copyright'] }}
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row govuk-summary-list__row--mobile">
+                    <dt class="govuk-summary-list__key govuk-summary-list__key--mobile-table">Language</dt>
+                    <dd class="govuk-summary-list__value govuk-summary-list__value--mobile">
+                        {{ record['language'] }}
+                    </dd>
+                </div>
+            </div>
+        </dl>
     </div>
 {% endblock %}
