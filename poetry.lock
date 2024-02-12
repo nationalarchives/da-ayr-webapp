@@ -985,13 +985,13 @@ flask = "*"
 
 [[package]]
 name = "flask-limiter"
-version = "3.5.0"
+version = "3.5.1"
 description = "Rate limiting for flask applications"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "Flask-Limiter-3.5.0.tar.gz", hash = "sha256:13a3491b994c49f7cb4706587a38ca47e8162b576530472df38be68104f299c0"},
-    {file = "Flask_Limiter-3.5.0-py3-none-any.whl", hash = "sha256:dbda4174f44e6cb858c6eb75e7488186f2977dd5d33d7028ba1aabf179de1bee"},
+    {file = "Flask-Limiter-3.5.1.tar.gz", hash = "sha256:8117e1040e5d5c31bf667d3b649fcba325f979d814a3d76a3a2331c3eab63c5e"},
+    {file = "Flask_Limiter-3.5.1-py3-none-any.whl", hash = "sha256:d40526719994197da180caa870ba01e722ed6a70a75790021638dbf29aae82ee"},
 ]
 
 [package.dependencies]
@@ -2956,4 +2956,4 @@ wheel = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "8ffe8321992671d737446020780fa5d9959f58c3b2c954f992cd849a2f41c4da"
+content-hash = "11fb8e2a084991a07c195f13b449943a33160cea06ae3b79e0456162d90dc4c6"
