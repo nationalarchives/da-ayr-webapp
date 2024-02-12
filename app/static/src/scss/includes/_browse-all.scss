@@ -1,7 +1,6 @@
 
 .browse-all-filter {
     &-container {
-
       background-color: #f3f2f1;
       padding: 0.5rem;
       min-width: 100%;
@@ -11,86 +10,70 @@
     }
 
     &__header {
-
       display: flex;
     }
 
     &__icon {
-
       justify-content: space-between;
       width: 2rem;
       margin-left: auto;
     }
 
     &-from-dates {
-
       display: inline-flex;
-      margin-bottom: 15px;
     }
 
     &-to-dates {
-
       display: inline-flex;
     }
 
     &-container--series {
-
       min-width: 100%;
       display: inline-flex;
     }
   }
 
   .filters-form {
-
     float: right;
     font-size: 1rem;
 
     &__group {
-
       margin: 0.5rem 0;
     }
 
     &__title {
-
       font-weight: 700;
       font-size: 1.5rem;
     }
 
     &__transferring-body-group {
-
       display: flex;
       align-items: baseline;
     }
 
     &__series-group {
-
       display: flex;
     }
 
     &__browse-all-ref-group {
-
       display: flex;
     }
 
     &__date__label {
-
       font-size: 1rem;
     }
 
     &__date-from-group {
-
       display: flex;
       justify-content: space-between;
     }
 
     &__date-to-group {
-
       display: flex;
       justify-content: space-between;
     }
 
     &__series__container {
-
       background-color: #f3f2f1;
       padding: 0.5rem;
       min-width: 100%;
@@ -98,7 +81,6 @@
     }
 
     &__browse-all-ref__container {
-
       background-color: #f3f2f1;
       padding: 0.5rem;
       min-width: 100%;
@@ -106,44 +88,37 @@
     }
 
     &__date__container {
-
       background-color: #f3f2f1;
       padding: 0.5rem;
       min-width: 100%;
     }
 
     &__series--input {
-
       flex-grow: 1;
       width: 100%;
     }
 
     &__browse-all-ref--input {
-
       flex-grow: 1;
       width: 100%;
     }
 
     &__clear--button {
-
       margin-right: 1rem;
       font-size: 1rem;
     }
 
     &__date--button {
-
       align-self: flex-end;
       margin-right: 0.5rem;
     }
 
     &__body-date {
-
       max-width: 2.4rem;
       font-size: 1rem;
     }
 
     &__filetype__container {
-
       background-color: #f3f2f1;
       padding: 0.5rem;
       min-width: 100%;
@@ -151,24 +126,20 @@
       display: inline-flex;
 
     }
-
   }
 
   .series-doc--container {
-
     padding-right: 0.6rem;
   }
 
   .govuk-heading-s {
     &--series {
-
       margin-bottom: 0;
       padding-top: 0;
       font-size: 1rem;
     }
 
     &--browse-all-filter {
-
       font-size: 1rem;
       padding-top: 0.3rem;
       margin-bottom: 0.3rem;
@@ -178,7 +149,6 @@
 
 .govuk-body {
   &--series {
-
     font-size: 0.8rem;
     white-space: nowrap;
     color: black;
@@ -186,7 +156,6 @@
   }
 
   &--browse-all-date {
-
     display: inline;
     font-size: 1rem;
     white-space: nowrap;
@@ -197,42 +166,28 @@
 
 .govuk-form-group {
   &--browse-all-filter {
-
     margin-bottom: 0;
   }
 
   &__browse-all-form-group {
-
     display:inline-block;
     margin-bottom: 0;
 
   }
-
-
 }
 
+.govuk-link {
+  &--browse-all-filter {
+    margin-left: 1rem;
+    margin-bottom: 0.6rem;
+  }
+}
 
 .govuk-button {
   &__browse-all-filters-form-apply-button {
-
     margin-left: 0;
     margin-bottom: 10px;
     margin-top: 0;
-  }
-
-  &__browse-all-filters-form-clear-button {
-
-    margin-left: 2.5rem;
-    margin-bottom: 10px;
-    background: none;
-    border: none;
-    padding: 0;
-    text-decoration: underline;
-    text-decoration-color:#1d70b8;
-    color: #1d70b8;
-    font-size: 0.9rem;
-    line-height: 1rem;
-    box-shadow: none;
   }
 }
 

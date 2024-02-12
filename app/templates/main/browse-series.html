@@ -65,9 +65,14 @@
                          alt="filter-icon">
                 </div>
                 <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Date consignment transferred</h3>
-                {% with view_name = view, series_id = filters['series_id'] %}
-                    {% include "date-filters.html" %}
-                {% endwith %}
+                {% include "date-filters.html" %}
+                <div class="filters-form__buttons">
+                    <button type="submit"
+                            class="govuk-button govuk-button__browse-all-filters-form-apply-button"
+                            data-module="govuk-button">Apply filters</button>
+                    <a class="govuk-link govuk-link--browse-all-filter"
+                       href="{{ url_for('main.browse',series_id = filters['series_id'], sort=request.args.get('sort')) }}">Clear filters</a>
+                </div>
             </div>
         </div>
     {% else %}
@@ -88,9 +93,14 @@
                     <div class="govuk-grid-column-one-third filters-form mobile-filters-form">
                         <div class="filters-form__date__container">
                             <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Date consignment transferred</h3>
-                            {% with view_name = view, series_id = filters['series_id'] %}
-                                {% include "date-filters.html" %}
-                            {% endwith %}
+                            {% include "date-filters.html" %}
+                            <div class="filters-form__buttons">
+                                <button type="submit"
+                                        class="govuk-button govuk-button__browse-all-filters-form-apply-button"
+                                        data-module="govuk-button">Apply filters</button>
+                                <a class="govuk-link govuk-link--browse-all-filter"
+                                   href="{{ url_for('main.browse',series_id = filters['series_id'], sort=request.args.get('sort')) }}">Clear filters</a>
+                            </div>
                         </div>
                     </div>
                 </div>

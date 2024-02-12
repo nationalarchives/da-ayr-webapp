@@ -10,7 +10,6 @@
     "Records held in series (most first)": "records_held-desc",
     "Records held in series (least first)": "records_held-asc"
 } %}
-{% set view = "transferring_body" %}
 <!-- BREAD CRUMB -->
 {% with dict = breadcrumbs %}
     {% include "breadcrumb.html" %}
@@ -77,9 +76,14 @@
             </div>
             <div class="browse-all-filter-container">
                 <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Date consignment transferred</h3>
-                {% with view_name = view, transferring_body_id = filters['transferring_body_id'] %}
-                    {% include "date-filters.html" %}
-                {% endwith %}
+                {% include "date-filters.html" %}
+                <div class="filters-form__buttons">
+                    <button type="submit"
+                            class="govuk-button govuk-button__browse-all-filters-form-apply-button"
+                            data-module="govuk-button">Apply filters</button>
+                    <a class="govuk-link govuk-link--browse-all-filter"
+                       href="{{ url_for('main.browse',transferring_body_id = filters['transferring_body_id'], sort=request.args.get('sort')) }}">Clear filters</a>
+                </div>
             </div>
         </div>
     {% else %}
@@ -111,9 +115,14 @@
                         </div>
                         <div class="filters-form__date__container">
                             <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Date consignment transferred</h3>
-                            {% with view_name = view, transferring_body_id = filters['transferring_body_id'] %}
-                                {% include "date-filters.html" %}
-                            {% endwith %}
+                            {% include "date-filters.html" %}
+                            <div class="filters-form__buttons">
+                                <button type="submit"
+                                        class="govuk-button govuk-button__browse-all-filters-form-apply-button"
+                                        data-module="govuk-button">Apply filters</button>
+                                <a class="govuk-link govuk-link--browse-all-filter"
+                                   href="{{ url_for('main.browse',transferring_body_id = filters['transferring_body_id'], sort=request.args.get('sort')) }}">Clear filters</a>
+                            </div>
                         </div>
                     </div>
                 </div>
