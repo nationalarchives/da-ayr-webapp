@@ -124,7 +124,7 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
             <dd class="govuk-summary-list__value govuk-summary-list__value--record">Test description</dd>
         </div>
         <div class="govuk-summary-list__row govuk-summary-list__row--record">
-            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Date last modified</dt>
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Record date</dt>
             <dd class="govuk-summary-list__value govuk-summary-list__value--record">2023-02-25T10:12:47</dd>
         </div>
         <div class="govuk-summary-list__row govuk-summary-list__row--record">
