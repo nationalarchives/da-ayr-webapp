@@ -106,11 +106,11 @@
 }
 
 .govuk-summary-list {
-    &--mobile {
+    &--record {
         table-layout: auto;
     }
 
-    &__key--mobile-table {
+    &__key--record-table {
         white-space: nowrap;
         width:0;
         text-align:right;
@@ -118,12 +118,12 @@
         margin-left: 0;
     }
 
-    &__value--mobile {
+    &__value--record {
         font-size: 1rem;
         text-align: left;
     }
 
-    &__row--mobile {
+    &__row--record {
         &:last-child {
             border-bottom: 2px solid #000;
         }
