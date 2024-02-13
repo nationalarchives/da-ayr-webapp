@@ -390,6 +390,18 @@ def _build_consignment_view_query(
                     dt_range["date_to"],
                 )
                 query = query.filter(date_filter)
+            elif (
+                date_filter_field
+                and date_filter_field.lower() == "opening_date"
+            ):
+                dt_range = validate_date_range(date_range)
+                date_filter = _build_date_range_filter(
+                    sub_query.c.opening_date,
+                    dt_range["date_from"],
+                    dt_range["date_to"],
+                )
+                query = query.filter(date_filter)
+
     if sorting_orders:
         query = _build_sorting_orders(query, sub_query, sorting_orders)
     else:
