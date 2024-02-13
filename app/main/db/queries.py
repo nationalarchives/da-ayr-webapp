@@ -23,26 +23,26 @@ def browse_data(
     if browse_type == "transferring_body":
         body = Body.query.get_or_404(transferring_body_id)
         validate_body_user_groups_or_404(body.Name)
-        browse_query = _build_transferring_body_view_query(
+        browse_query = build_transferring_body_view_query(
             transferring_body_id, filters, sorting_orders
         )
     elif browse_type == "series":
         series = Series.query.get_or_404(series_id)
         validate_body_user_groups_or_404(series.body.Name)
-        browse_query = _build_series_view_query(
+        browse_query = build_series_view_query(
             series_id, filters, sorting_orders
         )
     elif browse_type == "consignment":
         consignment = Consignment.query.get_or_404(consignment_id)
         validate_body_user_groups_or_404(consignment.series.body.Name)
 
-        browse_query = _build_consignment_view_query(
+        browse_query = build_consignment_view_query(
             consignment_id,
             filters,
             sorting_orders,
         )
     else:
-        browse_query = _build_browse_everything_query(filters, sorting_orders)
+        browse_query = build_browse_everything_query(filters, sorting_orders)
 
     return browse_query.paginate(page=page, per_page=per_page)
 
@@ -99,7 +99,7 @@ def build_fuzzy_search_query(query_string: str):
     return query
 
 
-def _build_browse_everything_query(filters, sorting_orders):
+def build_browse_everything_query(filters, sorting_orders):
     sub_query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
@@ -147,7 +147,7 @@ def _build_browse_everything_query(filters, sorting_orders):
     return query
 
 
-def _build_transferring_body_view_query(
+def build_transferring_body_view_query(
     transferring_body_id, filters, sorting_orders
 ):
     sub_query = (
@@ -200,7 +200,7 @@ def _build_transferring_body_view_query(
     return query
 
 
-def _build_series_view_query(series_id, filters, sorting_orders):
+def build_series_view_query(series_id, filters, sorting_orders):
     sub_query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
@@ -253,33 +253,7 @@ def _build_series_view_query(series_id, filters, sorting_orders):
     return query
 
 
-def _build_browse_filters(query, sub_query, filters):
-    transferring_body = filters.get("transferring_body")
-    if transferring_body:
-        filter_value = str(f"%{transferring_body}%").lower()
-        query = query.filter(
-            func.lower(sub_query.c.transferring_body).like(filter_value)
-        )
-
-    series = filters.get("series")
-    if series:
-        filter_value = str(f"%{series}%").lower()
-        query = query.filter(func.lower(sub_query.c.series).like(filter_value))
-
-    date_range = filters.get("date_range")
-    if date_range:
-        dt_range = validate_date_range(date_range)
-        date_filter = _build_date_range_filter(
-            sub_query.c.last_record_transferred,
-            dt_range["date_from"],
-            dt_range["date_to"],
-        )
-        query = query.filter(date_filter)
-
-    return query
-
-
-def _build_consignment_view_query(
+def build_consignment_view_query(
     consignment_id: uuid.UUID,
     filters,
     sorting_orders,
@@ -406,6 +380,32 @@ def _build_consignment_view_query(
         query = _build_sorting_orders(query, sub_query, sorting_orders)
     else:
         query = query.order_by(sub_query.c.file_name)
+    return query
+
+
+def _build_browse_filters(query, sub_query, filters):
+    transferring_body = filters.get("transferring_body")
+    if transferring_body:
+        filter_value = str(f"%{transferring_body}%").lower()
+        query = query.filter(
+            func.lower(sub_query.c.transferring_body).like(filter_value)
+        )
+
+    series = filters.get("series")
+    if series:
+        filter_value = str(f"%{series}%").lower()
+        query = query.filter(func.lower(sub_query.c.series).like(filter_value))
+
+    date_range = filters.get("date_range")
+    if date_range:
+        dt_range = validate_date_range(date_range)
+        date_filter = _build_date_range_filter(
+            sub_query.c.last_record_transferred,
+            dt_range["date_from"],
+            dt_range["date_to"],
+        )
+        query = query.filter(date_filter)
+
     return query
 
 
