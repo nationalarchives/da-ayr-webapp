@@ -301,47 +301,32 @@ def test_record_search_box(client, mock_superuser):
 
     html = response.data.decode()
 
-    search_html = """<p class="govuk-body search__heading">Search for digital records</p>"""
-
-    assert_contains_html(
-        search_html,
-        html,
-        "p",
-        {"class": "govuk-body search__heading"},
-    )
-
-    search_html = """<p class="govuk-body-s">
+    search_html = """<div class="search__container govuk-grid-column-full">
+    <div class="search__container__content">
+        <p class="govuk-body search__heading">Search for digital records</p>
+        <form method="get" action="/search">
+            <div class="govuk-form-group govuk-form-group__search-form">
+                <label for="searchInput"></label>
+                <input class="govuk-input govuk-!-width-three-quarters"
+                       id="searchInput"
+                       name="query"
+                       type="text">
+                <button class="govuk-button govuk-button__search-button"
+                        data-module="govuk-button"
+                        type="submit">Search</button>
+            </div>
+            <p class="govuk-body-s">
                 Search using a record metadata term, for example – transferring body, series,
                 consignment
                 ref etc.
-            </p>"""
+            </p>
+        </form>
+    </div>
+</div>"""
 
     assert_contains_html(
         search_html,
         html,
-        "p",
-        {"class": "govuk-body-s"},
-    )
-
-    input_html = """ <input class="govuk-input govuk-!-width-three-quarters"
-                       id="searchInput"
-                       name="query"
-                       type="text">"""
-
-    assert_contains_html(
-        input_html,
-        html,
-        "input",
-        {"class": "govuk-input govuk-!-width-three-quarters"},
-    )
-
-    button_html = """<button class="govuk-button govuk-button__search-button"
-                        data-module="govuk-button"
-                        type="submit">Search</button>"""
-
-    assert_contains_html(
-        button_html,
-        html,
-        "button",
-        {"class": "govuk-button govuk-button__search-button"},
+        "div",
+        {"class": "search__container govuk-grid-column-full"},
     )
