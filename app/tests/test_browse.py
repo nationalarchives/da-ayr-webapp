@@ -112,12 +112,6 @@ def verify_data_rows(data, expected_rows):
         if row_index < len(rows) - 1:
             row_data = row_data + ", "
 
-    print("actual")
-    print(row_data)
-    print("expected")
-    print(expected_rows)
-    print("")
-
     assert [row_data] == expected_rows[0]
 
 
@@ -3353,7 +3347,7 @@ class TestConsignment:
         When they make a GET request with a consignment id
         and use opening date filter
         Then they should see a selection of available record data that
-        matches the expected data
+        matches the expected data sorted by opening date
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
@@ -3363,7 +3357,7 @@ class TestConsignment:
 
         response = client.get(
             f"/browse?consignment_id={consignment_id}"
-            "&sort=closure_type-desc"
+            "&sort=opening_date-asc"
             "&record_status=all"
             "&date_filter_field=opening_date"
             "&date_from_day=01"
@@ -3377,8 +3371,8 @@ class TestConsignment:
         expected_rows = [
             [
                 "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023'"
             ],
         ]
 
@@ -3393,7 +3387,7 @@ class TestConsignment:
         When they make a GET request with a consignment id
         and use opening date filter
         Then they should see a selection of available record data that
-        matches the expected data
+        matches the expected data sorted by opening date
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
@@ -3403,7 +3397,7 @@ class TestConsignment:
 
         response = client.get(
             f"/browse?consignment_id={consignment_id}"
-            "&sort=closure_type-desc"
+            "&sort=opening_date-asc"
             "&record_status=all"
             "&date_filter_field=opening_date"
             "&date_to_day=03"
