@@ -112,6 +112,12 @@ def verify_data_rows(data, expected_rows):
         if row_index < len(rows) - 1:
             row_data = row_data + ", "
 
+    print("actual")
+    print(row_data)
+    print("expected")
+    print(expected_rows)
+    print("")
+
     assert [row_data] == expected_rows[0]
 
 
@@ -3338,3 +3344,124 @@ class TestConsignment:
         assert b"You are viewing" in response.data
 
         verify_consignment_view_header_row(response.data)
+
+    def test_browse_consignment_filter_opening_date_from(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and use opening date filter
+        Then they should see a selection of available record data that
+        matches the expected data
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}"
+            "&sort=closure_type-desc"
+            "&record_status=all"
+            "&date_filter_field=opening_date"
+            "&date_from_day=01"
+            "&date_from_month=01"
+            "&date_from_year=2023"
+        )
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        expected_rows = [
+            [
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
+            ],
+        ]
+
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_consignment_filter_opening_date_to(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and use opening date filter
+        Then they should see a selection of available record data that
+        matches the expected data
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}"
+            "&sort=closure_type-desc"
+            "&record_status=all"
+            "&date_filter_field=opening_date"
+            "&date_to_day=03"
+            "&date_to_month=04"
+            "&date_to_year=2023"
+        )
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        expected_rows = [
+            [
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
+            ],
+        ]
+
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_consignment_filter_opening_date(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and use opening date filter
+        Then they should see a selection of available record data that
+        matches the expected data
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}"
+            "&sort=closure_type-desc"
+            "&record_status=all"
+            "&date_filter_field=opening_date"
+            "&date_from_day=10"
+            "&date_from_month=03"
+            "&date_from_year=2023"
+            "&date_to_day=20"
+            "&date_to_month=10"
+            "&date_to_year=2023"
+        )
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        expected_rows = [
+            [
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
+            ],
+        ]
+
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
