@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
+from app.tests.assertions import assert_contains_html
 from app.tests.factories import (
     BodyFactory,
     ConsignmentFactory,
@@ -27,12 +28,12 @@ def test_search_get(client: FlaskClient, mock_superuser):
 def test_search_no_query(client: FlaskClient, mock_superuser):
     """
     Given a superuser accessing the search page
-    When they make a POST request without a query
+    When they make a GET request without a query
     Then they should not see any records found.
     """
     mock_superuser(client)
     form_data = {"foo": "bar"}
-    response = client.post("/search", data=form_data)
+    response = client.get("/search", data=form_data)
 
     assert response.status_code == 200
     assert b"records found" not in response.data
@@ -48,10 +49,50 @@ def test_search_with_no_results(client: FlaskClient, mock_superuser):
     FileFactory(FileType="file", FileName="foo")
 
     form_data = {"query": "bar"}
-    response = client.post("/search", data=form_data)
+    response = client.get("/search", data=form_data)
 
     assert response.status_code == 200
     assert b"0 record(s) found"
+
+
+def test_search_box(client, mock_superuser):
+    mock_superuser(client)
+
+    response = client.get("/search")
+
+    assert response.status_code == 200
+
+    html = response.data.decode()
+
+    search_html = """<div class="search__container govuk-grid-column-full">
+    <div class="search__container__content">
+        <p class="govuk-body search__heading">Search for digital records</p>
+        <form method="get" action="/search">
+            <div class="govuk-form-group govuk-form-group__search-form">
+                <label for="searchInput"></label>
+                <input class="govuk-input govuk-!-width-three-quarters"
+                       id="searchInput"
+                       name="query"
+                       type="text">
+                <button class="govuk-button govuk-button__search-button"
+                        data-module="govuk-button"
+                        type="submit">Search</button>
+            </div>
+            <p class="govuk-body-s">
+                Search using a record metadata term, for example – transferring body, series,
+                consignment
+                ref etc.
+            </p>
+        </form>
+    </div>
+</div>"""
+
+    assert_contains_html(
+        search_html,
+        html,
+        "div",
+        {"class": "search__container govuk-grid-column-full"},
+    )
 
 
 def test_search_results_displayed_single_page(
@@ -97,7 +138,7 @@ def test_search_results_displayed_single_page(
 
     app.config["DEFAULT_PAGE_SIZE"] = 5
     form_data = {"query": "test_contact"}
-    response = client.post("/search", data=form_data)
+    response = client.get("/search", data=form_data)
 
     assert response.status_code == 200
     assert b"2 record(s) found" in response.data
@@ -134,7 +175,7 @@ def test_search_results_displayed_multiple_pages(
     """
     Given a standard user with access to a body, and there are files from that body and another body
         and a search query which matches a property from related file data
-        and the pagination size K is set to less than than the number of files in the body
+        and the pagination size K is set to less than the number of files in the body
     When they make a request on the search page with the search term
     Then a table is populated with the first K results with metadata fields for the files from there body.
     And the pagination widget is displayed
@@ -173,7 +214,7 @@ def test_search_results_displayed_multiple_pages(
 
     app.config["DEFAULT_PAGE_SIZE"] = 2
     form_data = {"query": "test_contact"}
-    response = client.post("/search", data=form_data)
+    response = client.get("/search", data=form_data)
 
     assert response.status_code == 200
     assert b"5 record(s) found" in response.data

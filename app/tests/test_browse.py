@@ -202,7 +202,7 @@ class TestBrowse:
         mock_superuser(client)
 
         query = "test"
-        response = client.post("/browse", data={"query": query})
+        response = client.get("/browse", data={"query": query})
 
         assert response.status_code == 200
         assert b"Search for digital records" in response.data
