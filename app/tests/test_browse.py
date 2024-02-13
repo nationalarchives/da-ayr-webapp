@@ -112,6 +112,7 @@ def verify_data_rows(data, expected_rows):
         row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
         if row_index < len(rows) - 1:
             row_data = row_data + ", "
+
     assert [row_data] == expected_rows[0]
 
 
@@ -2139,7 +2140,9 @@ class TestBrowseTransferringBody:
         """
         Given a standard user accessing the browse page
         When they make a GET request with a transferring body id
-        Then they should see results based on transferring body filter on browse page content.
+        and use series_filter with value
+        Then if database does not have records and no results found returned
+        they should see empty header row on browse transferring body page content.
         """
         transferring_body_id = browse_transferring_body_files[
             0
@@ -2701,8 +2704,9 @@ class TestSeries:
         """
         Given a superuser accessing the browse page
         When they make a GET request with a series id
-        and select sorting option as records held in consignment descending
-        Then they should see records sorted by most records held first in consignment
+        and use date from filter with date value
+        Then if database does not have records and no results found returned
+        they should see empty header row on browse transferring body page content.
         on browse page content.
         """
         mock_standard_user(
@@ -2722,7 +2726,7 @@ class TestSeries:
 
 
 class TestConsignment:
-    def test_browse_consignment(
+    def test_browse_consignment_without_filter(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
@@ -2810,13 +2814,15 @@ class TestConsignment:
             {"class": "govuk-breadcrumbs"},
         )
 
-    def test_browse_consignment_sort_record_status(
+    def test_browse_consignment_with_date_range_filter(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
         Given a user accessing the browse page
         When they make a GET request with a consignment id
-        Then they should be able to sort the results by the available options
+        and use date from and date to filter values
+        Then they should see the results by date las modified between date from and date to value
+        and sorted by record status ascending default
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
@@ -2824,25 +2830,131 @@ class TestConsignment:
             client, browse_consignment_files[0].consignment.series.body.Name
         )
 
-        # record status (open first)
-        response = client.get(
-            f"/browse?consignment_id={consignment_id}&sort=closure_type-desc"
+        url = (
+            f"/browse?consignment_id={consignment_id}"
+            "&date_filter_field=date_last_modified"
+            "&date_from_day=01"
+            "&date_from_month=01"
+            "&date_from_year=2020"
+            "&date_to_day=10"
+            "&date_to_month=03"
+            "&date_to_year=2023"
         )
+
+        response = client.get(url)
+
         assert response.status_code == 200
         assert b"You are viewing" in response.data
+
         expected_rows = [
             [
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
                 "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
             ],
         ]
+
         verify_consignment_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
-        # record status (closed first)
+    def test_browse_consignment_with_date_from_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and use date from filter with value and date last modified field
+        Then they should see the results by date last modified greater than or equal to date from value
+        and sorted by record status ascending default
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        url = (
+            f"/browse?consignment_id={consignment_id}"
+            "&date_filter_field=date_last_modified"
+            "&date_from_day=01"
+            "&date_from_month=01"
+            "&date_from_year=2020"
+        )
+
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        expected_rows = [
+            [
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+            ],
+        ]
+
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_consignment_with_date_to_filter(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and use date to filter with value and date last modified field
+        Then they should see the results by date last modified less than or equal to date from value
+        and sorted by record status ascending default
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        url = (
+            f"/browse?consignment_id={consignment_id}"
+            "&date_filter_field=date_last_modified"
+            "&date_to_day=10"
+            "&date_to_month=03"
+            "&date_to_year=2023"
+        )
+
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        expected_rows = [
+            [
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+            ],
+        ]
+
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_consignment_with_sorting_record_status_a_to_z(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and select sorting option as record status ascending
+        Then they should see records sorted by closure type in reverse alphabetic order (A to Z)
+        on browse page content.
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
         response = client.get(
             f"/browse?consignment_id={consignment_id}&sort=closure_type-asc"
         )
@@ -2860,13 +2972,15 @@ class TestConsignment:
         verify_consignment_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
-    def test_browse_consignment_sort_last_modified(
+    def test_browse_consignment_with_sorting_record_status_z_to_a(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
         Given a user accessing the browse page
         When they make a GET request with a consignment id
-        Then they should be able to sort the results by the available options
+        and select sorting option as record status descending
+        Then they should see records sorted by closure type in reverse alphabetic order (Z to A)
+        on browse page content.
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
@@ -2874,7 +2988,39 @@ class TestConsignment:
             client, browse_consignment_files[0].consignment.series.body.Name
         )
 
-        # last modified (most recent first)
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}&sort=closure_type-desc"
+        )
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+        expected_rows = [
+            [
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+            ],
+        ]
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_consignment_with_sorting_last_modified_most_recent_first(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and select sorting option as date last modified descending
+        Then they should see records sorted by date last modified most recent first
+        on browse page content.
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
         response = client.get(
             f"/browse?consignment_id={consignment_id}&sort=date_last_modified-desc"
         )
@@ -2892,7 +3038,22 @@ class TestConsignment:
         verify_consignment_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
-        # last modified (oldest first)
+    def test_browse_consignment_with_sorting_last_modified_oldest_first(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and select sorting option as date last modified ascending
+        Then they should see records sorted by date last modified oldest first
+        on browse page content.
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
         response = client.get(
             f"/browse?consignment_id={consignment_id}&sort=date_last_modified-asc"
         )
@@ -2910,13 +3071,15 @@ class TestConsignment:
         verify_consignment_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
-    def test_browse_consignment_sort_filename(
+    def test_browse_consignment_with_sorting_filename_a_to_z(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
         Given a user accessing the browse page
         When they make a GET request with a consignment id
-        Then they should be able to sort the results by the available options
+        and select sorting option as filename ascending
+        Then they should see records sorted by filename in alphabetic order (A to Z)
+        on browse page content.
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
@@ -2924,7 +3087,6 @@ class TestConsignment:
             client, browse_consignment_files[0].consignment.series.body.Name
         )
 
-        # record filename (a-z)
         response = client.get(
             f"/browse?consignment_id={consignment_id}&sort=file_name-asc"
         )
@@ -2942,7 +3104,22 @@ class TestConsignment:
         verify_consignment_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
-        # record filename (z-a)
+    def test_browse_consignment_with_sorting_filename_z_to_a(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and select sorting option as filename descending
+        Then they should see records sorted by filename in alphabetic order (Z to A)
+        on browse page content.
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
         response = client.get(
             f"/browse?consignment_id={consignment_id}&sort=file_name-desc"
         )
@@ -2959,3 +3136,205 @@ class TestConsignment:
         ]
         verify_consignment_view_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
+
+    def test_browse_consignment_with_record_status_filter_and_sorting_record_status_z_to_a(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and use record status filter value 'all'
+        and use sorting by record status filter descending
+        Then they should see the results by record status filter 'all'
+        and sorted by record status in reverse alphabetic order (Z to A)
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        # record status filter & open records first
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}&sort=closure_type-desc&record_status=all"
+        )
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        expected_rows = [
+            [
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+            ],
+        ]
+
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_consignment_with_date_range_filter_and_sorting_record_status_z_to_a(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and use date from and date to filter values
+        and use sorting by record status filter descending
+        Then they should see the results by date las modified between date from and date to value
+        and sorted by record status in reverse alphabetic order (Z to A)
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        url = (
+            f"/browse?consignment_id={consignment_id}"
+            "&sort=closure_type-desc"
+            "&record_status=all"
+            "&date_filter_field=date_last_modified"
+            "&date_from_day=01"
+            "&date_from_month=01"
+            "&date_from_year=2020"
+            "&date_to_day=10"
+            "&date_to_month=03"
+            "&date_to_year=2023"
+        )
+
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        expected_rows = [
+            [
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+            ],
+        ]
+
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_consignment_with_date_from_filter_and_sorting_record_status_z_to_a(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and use date from filter with value and date last modified field
+        and use sorting by record status filter descending
+        Then they should see the results by date last modified greater than or equal to date from value
+        and sorted by record status in reverse alphabetic order (Z to A)
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        url = (
+            f"/browse?consignment_id={consignment_id}"
+            "&sort=closure_type-desc"
+            "&record_status=all"
+            "&date_filter_field=date_last_modified"
+            "&date_from_day=01"
+            "&date_from_month=01"
+            "&date_from_year=2020"
+        )
+
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        expected_rows = [
+            [
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+            ],
+        ]
+
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_consignment_with_date_to_filter_and_sorting_record_status_z_to_a(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and use date to filter with value and date last modified field
+        and use sorting by record status filter descending
+        Then they should see the results by date last modified less than or equal to date from value
+        and sorted by record status in reverse alphabetic order (Z to A)
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        url = (
+            f"/browse?consignment_id={consignment_id}"
+            "&sort=closure_type-desc"
+            "&record_status=all"
+            "&date_filter_field=date_last_modified"
+            "&date_to_day=10"
+            "&date_to_month=03"
+            "&date_to_year=2023"
+        )
+
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        expected_rows = [
+            [
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+            ],
+        ]
+
+        verify_consignment_view_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_browse_consignment_filter_with_no_results(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse page
+        When they make a GET request with a consignment id
+        and use date last modified filter with value
+        Then if database does not have records and no results found returned
+        they should see empty header row on browse transferring body page content.
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        response = client.get(
+            f"/browse?consignment_id={consignment_id}"
+            "&sort=closure_type-desc"
+            "&record_status=all"
+            "&date_filter_field=date_last_modified"
+            "&date_from_day=01"
+            "&date_from_month=05"
+            "&date_from_year=2024"
+        )
+
+        assert response.status_code == 200
+        assert b"You are viewing" in response.data
+
+        verify_consignment_view_header_row(response.data)

@@ -41,6 +41,26 @@ def build_sorting_orders(args):
     return sorting_orders
 
 
+def build_browse_consignment_filters(args):
+    filters = {}
+    if args:
+        filter_items = []
+        record_status = args.get("record_status")
+        date_filter_field = args.get("date_filter_field")
+
+        if record_status:
+            filter_items.append({"record_status": record_status})
+        if date_filter_field:
+            filter_items.append({"date_filter_field": date_filter_field})
+            _build_date_range_filter(args, filter_items)
+
+        for f in filter_items:
+            for key, value in f.items():
+                filters[key] = value
+
+    return filters
+
+
 def _build_date_range_filter(args, filter_items):
     date_from_day = args.get("date_from_day", "")
     date_from_month = args.get("date_from_month", "")

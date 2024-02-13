@@ -12,8 +12,7 @@
                         <div class="govuk-grid-column-two-thirds">
                             <h2 class="govuk-heading-l">Search</h2>
                             <h3 class="govuk-heading-s govuk-!-font-weight-bold">Search for digital records</h3>
-                            <form action="{{ url_for('main.search') }}" method="post">
-                                {{ form.csrf_token }}
+                            <form action="{{ url_for('main.search') }}" method="get">
                                 <div class="govuk-form-group">
                                     <label for="searchInput"></label>
                                     <input class="govuk-input govuk-!-width-three-quarters"
