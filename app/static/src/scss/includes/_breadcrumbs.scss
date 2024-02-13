@@ -1,3 +1,46 @@
+@mixin stacked-breadcrumbs {
+  margin-right: 0.625em;
+  padding-right: 0.9784em;
+  margin-left: 0;
+  padding-left: 0;
+  float: none;
+
+  &::before {
+    content: none;
+  }
+
+  &::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 0.4375em;
+    height: 0.4375em;
+    margin: auto 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+    border: solid;
+    border-width: 1px 1px 0 0;
+    border-color: #505a5f;
+  }
+
+  &:last-child {
+    display: block;
+    word-break: break-all;
+
+    &::after {
+      content: none;
+    }
+  }
+}
+
+
+
+
+
 .govuk-breadcrumbs {
   &__list-item {
     &:last-child span {
@@ -15,40 +58,12 @@
   }
 
   &--file &__list-item {
-    margin-right: 0.625em;
-    padding-right: 0.9784em;
-    margin-left: 0;
-    padding-left: 0;
-    float: none;
+    @include stacked_breadcrumbs;
+  }
 
-    &::before {
-      content: none;
-    }
-
-    &::after {
-      content: "";
-      display: block;
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      right: 0;
-      width: 0.4375em;
-      height: 0.4375em;
-      margin: auto 0;
-      -webkit-transform: rotate(45deg);
-      -ms-transform: rotate(45deg);
-      transform: rotate(45deg);
-      border: solid;
-      border-width: 1px 1px 0 0;
-      border-color: #505a5f;
-    }
-
-    &:last-child {
-      display: block;
-
-      &::after {
-        content: none;
-      }
+  @include on-mobile {
+    &__list-item {
+      @include stacked_breadcrumbs;
     }
   }
 
