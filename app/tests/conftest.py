@@ -620,13 +620,8 @@ def browse_consignment_files():
     )
     FileMetadataFactory(
         file=file_1,
-        PropertyName="closure_start_date",
+        PropertyName="opening_date",
         Value="2023-02-25T11:14:34",
-    )
-    FileMetadataFactory(
-        file=file_1,
-        PropertyName="closure_period",
-        Value="10",
     )
 
     file_2 = FileFactory(
@@ -640,10 +635,7 @@ def browse_consignment_files():
         Value="2023-01-15T12:28:08",
     )
     FileMetadataFactory(file=file_2, PropertyName="closure_type", Value="Open")
-    FileMetadataFactory(
-        file=file_2, PropertyName="closure_start_date", Value=None
-    )
-    FileMetadataFactory(file=file_2, PropertyName="closure_period", Value=None)
+    FileMetadataFactory(file=file_2, PropertyName="opening_date", Value=None)
 
     file_3 = FileFactory(
         consignment=consignment_1,
@@ -662,13 +654,8 @@ def browse_consignment_files():
     )
     FileMetadataFactory(
         file=file_3,
-        PropertyName="closure_start_date",
+        PropertyName="opening_date",
         Value="2023-03-10T10:12:47",
-    )
-    FileMetadataFactory(
-        file=file_3,
-        PropertyName="closure_period",
-        Value="25",
     )
 
     file_4 = FileFactory(
@@ -688,13 +675,8 @@ def browse_consignment_files():
     )
     FileMetadataFactory(
         file=file_4,
-        PropertyName="closure_start_date",
+        PropertyName="opening_date",
         Value="2023-04-12T10:12:47",
-    )
-    FileMetadataFactory(
-        file=file_4,
-        PropertyName="closure_period",
-        Value="70",
     )
 
     file_5 = FileFactory(
@@ -712,12 +694,7 @@ def browse_consignment_files():
     FileMetadataFactory(file=file_5, PropertyName="closure_type", Value="Open")
     FileMetadataFactory(
         file=file_5,
-        PropertyName="closure_start_date",
-        Value=None,
-    )
-    FileMetadataFactory(
-        file=file_5,
-        PropertyName="closure_period",
+        PropertyName="opening_date",
         Value=None,
     )
 

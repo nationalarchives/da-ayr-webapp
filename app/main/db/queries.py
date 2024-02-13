@@ -308,21 +308,12 @@ def _build_consignment_view_query(
         func.max(
             db.case(
                 (
-                    FileMetadata.PropertyName == "closure_start_date",
+                    FileMetadata.PropertyName == "opening_date",
                     func.cast(FileMetadata.Value, DATE),
                 ),
                 else_=None,
             ),
-        ).label("closure_start_date"),
-        func.max(
-            db.case(
-                (
-                    FileMetadata.PropertyName == "closure_period",
-                    FileMetadata.Value,
-                ),
-                else_=None,
-            ),
-        ).label("closure_period"),
+        ).label("opening_date"),
         Consignment.ConsignmentId.label("consignment_id"),
         Consignment.ConsignmentReference.label("consignment_reference"),
         Body.Name.label("transferring_body"),
@@ -365,10 +356,9 @@ def _build_consignment_view_query(
         ).label("date_last_modified"),
         sub_query.c.closure_type,
         func.to_char(
-            sub_query.c.closure_start_date,
+            sub_query.c.opening_date,
             current_app.config["DEFAULT_DATE_FORMAT"],
-        ).label("closure_start_date"),
-        sub_query.c.closure_period,
+        ).label("opening_date"),
         sub_query.c.transferring_body_id,
         sub_query.c.transferring_body,
         sub_query.c.series_id,

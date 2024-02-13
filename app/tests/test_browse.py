@@ -88,8 +88,7 @@ def verify_consignment_view_header_row(data):
             "Last modified",
             "Filename",
             "Status",
-            "Closure start date",
-            "Closure period",
+            "Record opening date",
         ],
     )
     assert [
@@ -2725,6 +2724,7 @@ class TestSeries:
         verify_series_view_header_row(response.data)
 
 
+# TBD
 class TestConsignment:
     def test_browse_consignment_without_filter(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
@@ -2748,11 +2748,11 @@ class TestConsignment:
 
         expected_rows = [
             [
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-'"
             ],
         ]
 
@@ -2848,9 +2848,9 @@ class TestConsignment:
 
         expected_rows = [
             [
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-'"
             ],
         ]
 
@@ -2888,11 +2888,11 @@ class TestConsignment:
 
         expected_rows = [
             [
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-'"
             ],
         ]
 
@@ -2930,9 +2930,9 @@ class TestConsignment:
 
         expected_rows = [
             [
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-'"
             ],
         ]
 
@@ -2962,11 +2962,11 @@ class TestConsignment:
         assert b"You are viewing" in response.data
         expected_rows = [
             [
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-'"
             ],
         ]
         verify_consignment_view_header_row(response.data)
@@ -2995,11 +2995,11 @@ class TestConsignment:
         assert b"You are viewing" in response.data
         expected_rows = [
             [
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
             ],
         ]
         verify_consignment_view_header_row(response.data)
@@ -3028,11 +3028,11 @@ class TestConsignment:
         assert b"You are viewing" in response.data
         expected_rows = [
             [
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
-                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-'"
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-'"
             ],
         ]
         verify_consignment_view_header_row(response.data)
@@ -3061,11 +3061,11 @@ class TestConsignment:
         assert b"You are viewing" in response.data
         expected_rows = [
             [
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
-                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-'"
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-'"
             ],
         ]
         verify_consignment_view_header_row(response.data)
@@ -3094,11 +3094,11 @@ class TestConsignment:
         assert b"You are viewing" in response.data
         expected_rows = [
             [
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
             ],
         ]
         verify_consignment_view_header_row(response.data)
@@ -3127,11 +3127,11 @@ class TestConsignment:
         assert b"You are viewing" in response.data
         expected_rows = [
             [
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years', "
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
-                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-'"
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-'"
             ],
         ]
         verify_consignment_view_header_row(response.data)
@@ -3163,11 +3163,11 @@ class TestConsignment:
 
         expected_rows = [
             [
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
             ],
         ]
 
@@ -3211,9 +3211,9 @@ class TestConsignment:
 
         expected_rows = [
             [
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
             ],
         ]
 
@@ -3254,11 +3254,11 @@ class TestConsignment:
 
         expected_rows = [
             [
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', '-', "
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', '70 years', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
             ],
         ]
 
@@ -3299,9 +3299,9 @@ class TestConsignment:
 
         expected_rows = [
             [
-                "'15/01/2023', 'second_file.ppt', 'Open', '-', '-', "
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', '10 years', "
-                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', '25 years'"
+                "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
             ],
         ]
 

@@ -7,7 +7,7 @@
 {% set sorting_list = {
     "Record status (closed first)": "closure_type-asc",
     "Record status (open first)": "closure_type-desc",
-    "Closure expiry date (soonest first)": "closure_expiry_date-asc",
+    "Record opening date (soonest first)": "opening_date-asc",
     "Date last modified (most recent first)": "date_last_modified-desc",
     "Date last modified (oldest first)": "date_last_modified-asc",
     "Record filename (A to Z)": "file_name-asc",
@@ -36,8 +36,7 @@
                         <th scope="col" class="govuk-table__header">Last modified</th>
                         <th scope="col" class="govuk-table__header">Filename</th>
                         <th scope="col" class="govuk-table__header">Status</th>
-                        <th scope="col" class="govuk-table__header">Closure start date</th>
-                        <th scope="col" class="govuk-table__header">Closure period</th>
+                        <th scope="col" class="govuk-table__header">Record opening date</th>
                     </tr>
                 </thead>
                 <tbody class="govuk-table__body">
@@ -54,15 +53,8 @@
                                 </strong>
                             </td>
                             <td class="govuk-table__cell">
-                                {% if record['closure_start_date'] %}
-                                    {{ record['closure_start_date'] }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td class="govuk-table__cell">
-                                {% if record['closure_period'] %}
-                                    {{ record['closure_period'] }} years
+                                {% if record['opening_date'] %}
+                                    {{ record['opening_date'] }}
                                 {% else %}
                                     -
                                 {% endif %}
@@ -269,8 +261,8 @@
                                                             </strong>
                                                         </td>
                                                         <td class="govuk-table__cell">
-                                                            {% if record['closure_start_date'] %}
-                                                                {{ record['closure_start_date'] }}
+                                                            {% if record['opening_date'] %}
+                                                                {{ record['opening_date'] }}
                                                             {% else %}
                                                                 -
                                                             {% endif %}
