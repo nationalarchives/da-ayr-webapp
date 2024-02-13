@@ -1,23 +1,20 @@
-
 .banner__container {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: none;
-
+  display: flex;
+  justify-content: space-between;
+  border-bottom: none;
 }
 
 .sign-out a:hover {
-    text-decoration: none;
+  text-decoration: none;
 }
 
-
 @media screen and (width <=810px) {
-    .sign-out {
-        margin: 0.5rem 0;
-        align-self: flex-end;
-    }
+  .sign-out {
+    margin: 0.5rem 0;
+    align-self: flex-end;
+  }
 
-    .banner__container {
-        flex-direction: column;
-    }
+  .banner__container {
+    flex-direction: column;
+  }
 }

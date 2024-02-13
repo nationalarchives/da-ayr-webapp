@@ -2,7 +2,7 @@
 {% set transferring_body_url = browse_url ~ "?transferring_body_id=" %}
 {% set series_url = browse_url ~ "?series_id=" %}
 {% set consignment_url = browse_url ~ "?consignment_id=" %}
-<div class="govuk-breadcrumbs">
+<div class="govuk-breadcrumbs  {{ 'govuk-breadcrumbs--file' if record_breadcrumbs }}">
     <ol class="govuk-breadcrumbs__list">
         {% for key, value in dict.items() %}
             {% if loop.index != dict|length %}
@@ -22,7 +22,8 @@
                 </li>
             {% else %}
                 <li class="govuk-breadcrumbs__list-item">
-                    <span class="govuk-breadcrumbs__link--record" href="#">{{ value }}</span>
+                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record"
+                          href="#">{{ value }}</span>
                 </li>
             {% endif %}
         {% endfor %}
