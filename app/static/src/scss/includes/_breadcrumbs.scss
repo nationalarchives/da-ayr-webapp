@@ -48,6 +48,7 @@
       text-decoration: none;
       font-weight: bold;
       color: black;
+      -webkit-text-fill-color: black;
       font-size: 1.5rem;
       line-height: 1.3rem;
       cursor: default;
@@ -68,35 +69,46 @@
     }
   }
 
-  &__link--record {
+
+
+   &__link--record  {
     color: #1d70b8;
     font-size: 1rem;
     font-weight: 400;
     margin-top: 0;
 
-    &--series {
+    &--series  {
       white-space: nowrap;
+      color: #1d70b8;
 
       &:visited {
         color: #1d70b8;
+        -webkit-text-fill-color: #1d70b8;
       }
     }
 
     &--transferring-body {
-      flex-wrap: wrap;
+
+        flex-wrap: wrap;
+        color: #1d70b8;
 
       &:visited {
         color: #1d70b8;
+        -webkit-text-fill-color: #1d70b8;
       }
+
     }
 
     &--consignment {
       white-space: nowrap;
+      color: #1d70b8;
 
       &:visited {
         color: #1d70b8;
+        -webkit-text-fill-color: #1d70b8;
       }
     }
+
   }
 
   &--record {

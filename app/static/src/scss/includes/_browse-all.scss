@@ -234,3 +234,10 @@
     margin-right: 0.6rem;
   }
 }
+
+.govuk-table__cell {
+  &--ayr a {
+    color: #1d70b8;
+    -webkit-text-fill-color: #1d70b8;
+  }
+}

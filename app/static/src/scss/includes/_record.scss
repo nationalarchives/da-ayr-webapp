@@ -134,11 +134,14 @@
 }
 
 .govuk-body {
-  &--terms-of-use {
+  &--terms-of-use  {
+
     align-self: center;
     justify-content: center;
     font-size: 0.9rem;
     font-weight: 200;
+    color: black;
+
   }
 
   &__record-arrangement-list {
@@ -152,9 +155,28 @@
   }
 }
 
-.govuk-link:visited {
-  color: black;
+
+
+
+.govuk-link  {
+  &--ayr {
+    color: black;
+    -webkit-text-fill-color: black;
+    font-size: 0.9rem;
+
+    a {
+      color: black;
+      -webkit-text-fill-color: black;
+      font-size: 0.9rem;
+    }
+
+    &:visited{
+      color: black;
+  }
 }
+
+}
+
 
 .search-terms {
   text-align: left;
