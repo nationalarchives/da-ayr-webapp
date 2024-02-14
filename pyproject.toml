@@ -49,6 +49,7 @@ pytest-playwright = "0.4.4"
 pre-commit = "^3.6.1"
 safety = "3.0.1"
 factory-boy = "^3.3.0"
+pyjwt = "^2.8.0"
 
 [build-system]
 requires = ["poetry-core"]
