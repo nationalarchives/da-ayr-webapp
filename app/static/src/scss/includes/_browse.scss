@@ -14,10 +14,7 @@
   display: block;
 }
 
-
 // DESKTOP STYLES
-
-
 
 .govuk {
   &-grid-column-full__browse-details {
@@ -71,7 +68,6 @@
       min-width: auto;
       font-size: 1rem;
     }
-
   }
 
   &-summary-list__row__browse-grid-list {
@@ -79,7 +75,6 @@
       display: none;
     }
   }
-
 }
 
 .browse {
@@ -130,9 +125,7 @@
       margin-top: 2rem;
     }
   }
-
 }
-
 
 .browse-grid {
   &__table {
@@ -143,7 +136,6 @@
       border-bottom: 2px solid black;
     }
   }
-
 
   &--two-thirds {
     padding: 0;
@@ -161,12 +153,11 @@
     width: 30%;
   }
 
-  &__list>div:first-child,
-  &__list>div:last-child {
+  &__list > div:first-child,
+  &__list > div:last-child {
     border-bottom: 2px solid black;
   }
 }
-
 
 .search {
   &__container {
@@ -179,7 +170,6 @@
 
     &__content {
       margin: 0 auto;
-
     }
   }
 
@@ -188,16 +178,13 @@
     margin-top: 1rem;
     margin-bottom: 0;
   }
-
 }
 
 .sort-container {
   &__form {
     margin-bottom: 0.5rem;
   }
-
 }
-
 
 .browse-filter {
   &-container {
@@ -402,7 +389,6 @@
     font-size: 1.2rem;
   }
 
-
   .govuk-mobile-summary-list {
     display: block;
     font-size: 1rem;
@@ -436,7 +422,6 @@
     float: none;
     padding: 0;
   }
-
 
   .mobile-filters {
     display: block;
@@ -494,7 +479,6 @@
     font-weight: 700;
     padding: 10px 2px 2px 10px;
     align-items: center;
-
   }
 
   .govuk-details__summary:focus {
@@ -537,7 +521,4 @@
     background-color: #fff;
     z-index: 1;
   }
-
 }
-
-/*# sourceMappingURL=browse.css.map */

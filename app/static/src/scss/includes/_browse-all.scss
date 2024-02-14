@@ -1,151 +1,147 @@
-
 .browse-all-filter {
-    &-container {
-      background-color: #f3f2f1;
-      padding: 0.5rem;
-      min-width: 100%;
-      margin-bottom: 0.5rem;
-      display: inline-block;
-
-    }
-
-    &__header {
-      display: flex;
-    }
-
-    &__icon {
-      justify-content: space-between;
-      width: 2rem;
-      margin-left: auto;
-    }
-
-    &-from-dates {
-      display: inline-flex;
-    }
-
-    &-to-dates {
-      display: inline-flex;
-    }
-
-    &-container--series {
-      min-width: 100%;
-      display: inline-flex;
-    }
+  &-container {
+    background-color: #f3f2f1;
+    padding: 0.5rem;
+    min-width: 100%;
+    margin-bottom: 0.5rem;
+    display: inline-block;
   }
 
-  .filters-form {
-    float: right;
+  &__header {
+    display: flex;
+  }
+
+  &__icon {
+    justify-content: space-between;
+    width: 2rem;
+    margin-left: auto;
+  }
+
+  &-from-dates {
+    display: inline-flex;
+  }
+
+  &-to-dates {
+    display: inline-flex;
+  }
+
+  &-container--series {
+    min-width: 100%;
+    display: inline-flex;
+  }
+}
+
+.filters-form {
+  float: right;
+  font-size: 1rem;
+
+  &__group {
+    margin: 0.5rem 0;
+  }
+
+  &__title {
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+
+  &__transferring-body-group {
+    display: flex;
+    align-items: baseline;
+  }
+
+  &__series-group {
+    display: flex;
+  }
+
+  &__browse-all-ref-group {
+    display: flex;
+  }
+
+  &__date__label {
     font-size: 1rem;
-
-    &__group {
-      margin: 0.5rem 0;
-    }
-
-    &__title {
-      font-weight: 700;
-      font-size: 1.5rem;
-    }
-
-    &__transferring-body-group {
-      display: flex;
-      align-items: baseline;
-    }
-
-    &__series-group {
-      display: flex;
-    }
-
-    &__browse-all-ref-group {
-      display: flex;
-    }
-
-    &__date__label {
-      font-size: 1rem;
-    }
-
-    &__date-from-group {
-      display: flex;
-      justify-content: space-between;
-    }
-
-    &__date-to-group {
-      display: flex;
-      justify-content: space-between;
-    }
-
-    &__series__container {
-      background-color: #f3f2f1;
-      padding: 0.5rem;
-      min-width: 100%;
-      margin-bottom: 0.5rem;
-    }
-
-    &__browse-all-ref__container {
-      background-color: #f3f2f1;
-      padding: 0.5rem;
-      min-width: 100%;
-      margin-bottom: 0.5rem;
-    }
-
-    &__date__container {
-      background-color: #f3f2f1;
-      padding: 0.5rem;
-      min-width: 100%;
-    }
-
-    &__series--input {
-      flex-grow: 1;
-      width: 100%;
-    }
-
-    &__browse-all-ref--input {
-      flex-grow: 1;
-      width: 100%;
-    }
-
-    &__clear--button {
-      margin-right: 1rem;
-      font-size: 1rem;
-    }
-
-    &__date--button {
-      align-self: flex-end;
-      margin-right: 0.5rem;
-    }
-
-    &__body-date {
-      max-width: 2.4rem;
-      font-size: 1rem;
-    }
-
-    &__filetype__container {
-      background-color: #f3f2f1;
-      padding: 0.5rem;
-      min-width: 100%;
-      margin-bottom: 0.5rem;
-      display: inline-flex;
-
-    }
   }
 
-  .series-doc--container {
-    padding-right: 0.6rem;
+  &__date-from-group {
+    display: flex;
+    justify-content: space-between;
   }
 
-  .govuk-heading-s {
-    &--series {
-      margin-bottom: 0;
-      padding-top: 0;
-      font-size: 1rem;
-    }
-
-    &--browse-all-filter {
-      font-size: 1rem;
-      padding-top: 0.3rem;
-      margin-bottom: 0.3rem;
-
-    }
+  &__date-to-group {
+    display: flex;
+    justify-content: space-between;
   }
+
+  &__series__container {
+    background-color: #f3f2f1;
+    padding: 0.5rem;
+    min-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  &__browse-all-ref__container {
+    background-color: #f3f2f1;
+    padding: 0.5rem;
+    min-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  &__date__container {
+    background-color: #f3f2f1;
+    padding: 0.5rem;
+    min-width: 100%;
+  }
+
+  &__series--input {
+    flex-grow: 1;
+    width: 100%;
+  }
+
+  &__browse-all-ref--input {
+    flex-grow: 1;
+    width: 100%;
+  }
+
+  &__clear--button {
+    margin-right: 1rem;
+    font-size: 1rem;
+  }
+
+  &__date--button {
+    align-self: flex-end;
+    margin-right: 0.5rem;
+  }
+
+  &__body-date {
+    max-width: 2.4rem;
+    font-size: 1rem;
+  }
+
+  &__filetype__container {
+    background-color: #f3f2f1;
+    padding: 0.5rem;
+    min-width: 100%;
+    margin-bottom: 0.5rem;
+    display: inline-flex;
+  }
+}
+
+.series-doc--container {
+  padding-right: 0.6rem;
+}
+
+.govuk-heading-s {
+  &--series {
+    margin-bottom: 0;
+    padding-top: 0;
+    font-size: 1rem;
+  }
+
+  &--browse-all-filter {
+    font-size: 1rem;
+    padding-top: 0.3rem;
+    margin-bottom: 0.3rem;
+  }
+}
 
 .govuk-body {
   &--series {
@@ -170,9 +166,8 @@
   }
 
   &__browse-all-form-group {
-    display:inline-block;
+    display: inline-block;
     margin-bottom: 0;
-
   }
 }
 
@@ -193,17 +188,14 @@
 
 .govuk-fieldset {
   &--date-to {
-
     margin-left: 20px;
   }
 
   &--date-from {
-
     margin-left: 0;
   }
 
   &--record-status {
-
     margin-bottom: 0;
     margin-top: 0;
   }
@@ -211,41 +203,34 @@
 
 .govuk-heading-m {
   &--browse-all-filter-title {
-
     margin-bottom: 10px;
   }
 }
 
 .govuk-radios {
   &__label--browse-all {
-
     padding: 5px 10px 1 1px !important;
     font-size: 1rem;
-    }
+  }
 
   &--small {
-
     padding: 0 0 10px;
   }
 }
 
 .govuk-input {
   &--browse-all-input {
-
     width: 95%;
   }
 }
 
-
 .govuk-date-input {
   &--browse-all-date-to {
-
     margin-left: 0;
     display: inline-flex;
   }
 
   &__item--browse-all {
-
     margin-right: 0.6rem;
   }
 }
