@@ -63,8 +63,7 @@ def sign_in():
     keycloak_openid = get_keycloak_instance_from_flask_config()
     auth_url = keycloak_openid.auth_url(
         redirect_uri=f"{request.url_root}callback",
-        scope="email",
-        state="your_state_info",
+        scope="group_mapper_client_scope",
     )
 
     return redirect(auth_url)
