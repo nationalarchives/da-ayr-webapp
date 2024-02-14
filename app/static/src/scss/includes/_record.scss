@@ -1,13 +1,12 @@
 /* SCSS for Record page */
 
 .govuk-width-container {
-
   &--desktop-record {
     display: flex;
     justify-content: center;
     align-items: flex-start;
   }
-
+}
 
 .govuk-main-wrapper {
   &--record-view {
@@ -16,7 +15,6 @@
     flex-direction: column;
     margin-top: 0;
   }
-
 }
 
 .govuk-grid-column-full {
@@ -70,17 +68,14 @@
     margin-bottom: 0.5rem;
   }
 
-
   &__record-details {
     margin-bottom: 0.5rem;
   }
-
 
   &__record-header {
     padding-top: 0.6rem;
     display: flex;
     justify-content: center;
-
   }
 
   &__search-records {
@@ -123,7 +118,6 @@
   }
 
   &__row--record {
-
     &:last-child {
       border-bottom: 2px solid #000;
     }
@@ -147,8 +141,7 @@
 }
 
 .govuk-body {
-
-  &--terms-of-use  {
+  &--terms-of-use {
     align-self: center;
     justify-content: center;
     font-size: 0.9rem;
@@ -167,14 +160,7 @@
   }
 }
 
-.govuk-body-m {
-  &__record-view {
-    margin-bottom: 0;
-  }
-}
-
-
-.govuk-link  {
+.govuk-link {
   &--ayr {
     color: black;
     -webkit-text-fill-color: black;
@@ -186,13 +172,11 @@
       font-size: 0.9rem;
     }
 
-    &:visited{
+    &:visited {
       color: black;
+    }
   }
 }
-
-}
-
 
 .search-terms {
   text-align: left;
