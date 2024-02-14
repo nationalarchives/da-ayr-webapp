@@ -1,70 +1,67 @@
 /* SCSS for Footer */
 
 @mixin on-mobile {
-   @media screen and (width <=640px) {
-      @content;
-   }
+  @media screen and (width <=640px) {
+    @content;
+  }
 }
 
-
 .govuk-footer {
-   padding-bottom: 40px;
+  padding-bottom: 40px;
 
+  &__tna-logo {
+    width: 100px;
+  }
 
-   &__tna-logo {
-      width: 100px;
-   }
+  &__meta {
+    margin: 0;
+    align-items: center;
+    gap: 40px;
 
-   &__meta {
-      margin: 0;
-      align-items: center;
-      gap: 40px;
+    @include on-mobile {
+      flex-direction: column;
+    }
+  }
 
-      @include on-mobile {
-         flex-direction: column;
-      }
-   }
+  &__meta-item {
+    display: block;
+    margin: 0;
+  }
 
-   &__meta-item {
+  &__inline-list-item {
+    margin-bottom: 10px;
+
+    @include on-mobile {
       display: block;
-      margin: 0;
-   }
+      margin-right: 0;
+      margin-bottom: 0;
+      text-align: center;
+      padding: 10px 0;
+    }
+  }
 
-   &__inline-list-item {
-      margin-bottom: 10px;
+  &__link {
+    @include on-mobile {
+      order: 2;
+    }
+  }
 
-      @include on-mobile {
-         display: block;
-         margin-right: 0;
-         margin-bottom: 0;
-         text-align: center;
-         padding: 10px 0;
-      }
-   }
+  &__meta-item--grow {
+    @include on-mobile {
+      flex-basis: auto;
+    }
+  }
 
-   &__link {
-      @include on-mobile {
-         order: 2;
-      }
-   }
+  &__licence-logo {
+    @include on-mobile {
+      margin: 0 auto 10px;
+      display: block;
+    }
+  }
 
-   &__meta-item--grow {
-      @include on-mobile {
-         flex-basis: auto;
-      }
-   }
-
-   &__licence-logo {
-      @include on-mobile {
-         margin: 0 auto 10px;
-         display: block;
-      }
-   }
-
-   &__licence-description {
-      @include on-mobile {
-         text-align: center;
-      }
-   }
-
+  &__licence-description {
+    @include on-mobile {
+      text-align: center;
+    }
+  }
 }
