@@ -41,8 +41,8 @@ def access_token_sign_in_required(view_func):
         g.access_token_sign_in_required = True  # Set attribute on g
 
         try:
-            access_token = session["access_token"]
-            refresh_token = session["refresh_token"]
+            access_token = session.get("access_token")
+            refresh_token = session.get("refresh_token")
             try:
                 (
                     access_token,

@@ -2920,7 +2920,6 @@ class TestBrowseConsignment:
                 "20/05/2023",
                 "Open",
                 None,
-                None,
                 browse_consignment_files[4].consignment.series.body.BodyId,
                 browse_consignment_files[4].consignment.series.body.Name,
                 browse_consignment_files[4].consignment.series.SeriesId,
@@ -2934,7 +2933,6 @@ class TestBrowseConsignment:
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "10",
                 browse_consignment_files[0].consignment.series.body.BodyId,
                 browse_consignment_files[0].consignment.series.body.Name,
                 browse_consignment_files[0].consignment.series.SeriesId,
@@ -2948,7 +2946,6 @@ class TestBrowseConsignment:
                 "12/04/2023",
                 "Closed",
                 "12/04/2023",
-                "70",
                 browse_consignment_files[3].consignment.series.body.BodyId,
                 browse_consignment_files[3].consignment.series.body.Name,
                 browse_consignment_files[3].consignment.series.SeriesId,
@@ -2961,7 +2958,6 @@ class TestBrowseConsignment:
                 "second_file.ppt",
                 "15/01/2023",
                 "Open",
-                None,
                 None,
                 browse_consignment_files[1].consignment.series.body.BodyId,
                 browse_consignment_files[1].consignment.series.body.Name,
@@ -2976,7 +2972,6 @@ class TestBrowseConsignment:
                 "10/03/2023",
                 "Closed",
                 "10/03/2023",
-                "25",
                 browse_consignment_files[2].consignment.series.body.BodyId,
                 browse_consignment_files[2].consignment.series.body.Name,
                 browse_consignment_files[2].consignment.series.SeriesId,
@@ -3029,7 +3024,6 @@ class TestBrowseConsignment:
                 "20/05/2023",
                 "Open",
                 None,
-                None,
                 browse_consignment_files[4].consignment.series.body.BodyId,
                 browse_consignment_files[4].consignment.series.body.Name,
                 browse_consignment_files[4].consignment.series.SeriesId,
@@ -3042,7 +3036,6 @@ class TestBrowseConsignment:
                 "second_file.ppt",
                 "15/01/2023",
                 "Open",
-                None,
                 None,
                 browse_consignment_files[1].consignment.series.body.BodyId,
                 browse_consignment_files[1].consignment.series.body.Name,
@@ -3096,7 +3089,6 @@ class TestBrowseConsignment:
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "10",
                 browse_consignment_files[0].consignment.series.body.BodyId,
                 browse_consignment_files[0].consignment.series.body.Name,
                 browse_consignment_files[0].consignment.series.SeriesId,
@@ -3110,7 +3102,6 @@ class TestBrowseConsignment:
                 "12/04/2023",
                 "Closed",
                 "12/04/2023",
-                "70",
                 browse_consignment_files[3].consignment.series.body.BodyId,
                 browse_consignment_files[3].consignment.series.body.Name,
                 browse_consignment_files[3].consignment.series.SeriesId,
@@ -3124,7 +3115,6 @@ class TestBrowseConsignment:
                 "10/03/2023",
                 "Closed",
                 "10/03/2023",
-                "25",
                 browse_consignment_files[2].consignment.series.body.BodyId,
                 browse_consignment_files[2].consignment.series.body.Name,
                 browse_consignment_files[2].consignment.series.SeriesId,
@@ -3176,7 +3166,6 @@ class TestBrowseConsignment:
                 "20/05/2023",
                 "Open",
                 None,
-                None,
                 browse_consignment_files[4].consignment.series.body.BodyId,
                 browse_consignment_files[4].consignment.series.body.Name,
                 browse_consignment_files[4].consignment.series.SeriesId,
@@ -3190,7 +3179,6 @@ class TestBrowseConsignment:
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "10",
                 browse_consignment_files[0].consignment.series.body.BodyId,
                 browse_consignment_files[0].consignment.series.body.Name,
                 browse_consignment_files[0].consignment.series.SeriesId,
@@ -3204,7 +3192,6 @@ class TestBrowseConsignment:
                 "12/04/2023",
                 "Closed",
                 "12/04/2023",
-                "70",
                 browse_consignment_files[3].consignment.series.body.BodyId,
                 browse_consignment_files[3].consignment.series.body.Name,
                 browse_consignment_files[3].consignment.series.SeriesId,
@@ -3217,7 +3204,6 @@ class TestBrowseConsignment:
                 "second_file.ppt",
                 "15/01/2023",
                 "Open",
-                None,
                 None,
                 browse_consignment_files[1].consignment.series.body.BodyId,
                 browse_consignment_files[1].consignment.series.body.Name,
@@ -3232,73 +3218,6 @@ class TestBrowseConsignment:
                 "10/03/2023",
                 "Closed",
                 "10/03/2023",
-                "25",
-                browse_consignment_files[2].consignment.series.body.BodyId,
-                browse_consignment_files[2].consignment.series.body.Name,
-                browse_consignment_files[2].consignment.series.SeriesId,
-                browse_consignment_files[2].consignment.series.Name,
-                browse_consignment_files[2].consignment.ConsignmentId,
-                browse_consignment_files[2].consignment.ConsignmentReference,
-            ),
-        ]
-
-        results = pagination_object.items
-
-        assert results == expected_results
-
-    def test_browse_consignment_with_file_type_filter(
-        self, client: FlaskClient, mock_standard_user, browse_consignment_files
-    ):
-        """
-        Given five file objects with associated metadata part of 1 consignment,
-            where 5 file types is 'file'
-        And the session contains user info for a standard user with access to the consignment's
-            associated transferring body
-        When I call the 'browse_data' function with the consignment id
-            and file type filter as '.docx'
-        Then it returns a Pagination object with 2 total results corresponding to the
-            file_name file metadata value contains extension '.docx' (2 files),
-            ordered by their names and with the expected metadata values
-        """
-
-        mock_standard_user(
-            client, browse_consignment_files[0].consignment.series.body.Name
-        )
-        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
-
-        filters = {"file_type": "docx"}
-        pagination_object = browse_data(
-            page=1,
-            per_page=per_page,
-            browse_type="consignment",
-            consignment_id=consignment_id,
-            filters=filters,
-        )
-
-        assert pagination_object.total == 2
-
-        expected_results = [
-            (
-                browse_consignment_files[0].FileId,
-                "first_file.docx",
-                "25/02/2023",
-                "Closed",
-                "25/02/2023",
-                "10",
-                browse_consignment_files[0].consignment.series.body.BodyId,
-                browse_consignment_files[0].consignment.series.body.Name,
-                browse_consignment_files[0].consignment.series.SeriesId,
-                browse_consignment_files[0].consignment.series.Name,
-                browse_consignment_files[0].consignment.ConsignmentId,
-                browse_consignment_files[0].consignment.ConsignmentReference,
-            ),
-            (
-                browse_consignment_files[2].FileId,
-                "third_file.docx",
-                "10/03/2023",
-                "Closed",
-                "10/03/2023",
-                "25",
                 browse_consignment_files[2].consignment.series.body.BodyId,
                 browse_consignment_files[2].consignment.series.body.Name,
                 browse_consignment_files[2].consignment.series.SeriesId,
@@ -3353,7 +3272,6 @@ class TestBrowseConsignment:
                 "20/05/2023",
                 "Open",
                 None,
-                None,
                 browse_consignment_files[4].consignment.series.body.BodyId,
                 browse_consignment_files[4].consignment.series.body.Name,
                 browse_consignment_files[4].consignment.series.SeriesId,
@@ -3367,7 +3285,6 @@ class TestBrowseConsignment:
                 "12/04/2023",
                 "Closed",
                 "12/04/2023",
-                "70",
                 browse_consignment_files[3].consignment.series.body.BodyId,
                 browse_consignment_files[3].consignment.series.body.Name,
                 browse_consignment_files[3].consignment.series.SeriesId,
@@ -3422,7 +3339,6 @@ class TestBrowseConsignment:
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "10",
                 browse_consignment_files[0].consignment.series.body.BodyId,
                 browse_consignment_files[0].consignment.series.body.Name,
                 browse_consignment_files[0].consignment.series.SeriesId,
@@ -3435,7 +3351,6 @@ class TestBrowseConsignment:
                 "second_file.ppt",
                 "15/01/2023",
                 "Open",
-                None,
                 None,
                 browse_consignment_files[1].consignment.series.body.BodyId,
                 browse_consignment_files[1].consignment.series.body.Name,
@@ -3492,7 +3407,6 @@ class TestBrowseConsignment:
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "10",
                 browse_consignment_files[0].consignment.series.body.BodyId,
                 browse_consignment_files[0].consignment.series.body.Name,
                 browse_consignment_files[0].consignment.series.SeriesId,
@@ -3506,84 +3420,12 @@ class TestBrowseConsignment:
                 "15/01/2023",
                 "Open",
                 None,
-                None,
                 browse_consignment_files[1].consignment.series.body.BodyId,
                 browse_consignment_files[1].consignment.series.body.Name,
                 browse_consignment_files[1].consignment.series.SeriesId,
                 browse_consignment_files[1].consignment.series.Name,
                 browse_consignment_files[1].consignment.ConsignmentId,
                 browse_consignment_files[1].consignment.ConsignmentReference,
-            ),
-        ]
-
-        results = pagination_object.items
-
-        assert results == expected_results
-
-    def test_browse_consignment_with_record_status_and_file_type_filter(
-        self, client: FlaskClient, mock_standard_user, browse_consignment_files
-    ):
-        """
-        Given five file objects with associated metadata part of 1 consignment,
-            where 5 file types is 'file'
-        And the session contains user info for a standard user with access to the consignment's
-            associated transferring body
-        When I call the 'browse_data' function with the consignment id
-            and record status filter as 'Closed'
-            and file type filter as '.docx'
-        Then it returns a Pagination object with 2 total results corresponding to the
-            closure_type metadata value set to 'Closed' and
-            file_name file metadata value contains extension '.docx' (1 file),
-            ordered by their names and with the expected metadata values
-        """
-
-        mock_standard_user(
-            client, browse_consignment_files[0].consignment.series.body.Name
-        )
-        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
-
-        filters = {
-            "record_status": "Closed",
-            "file_type": ".docx",
-        }
-        pagination_object = browse_data(
-            page=1,
-            per_page=per_page,
-            browse_type="consignment",
-            consignment_id=consignment_id,
-            filters=filters,
-        )
-
-        assert pagination_object.total == 2
-
-        expected_results = [
-            (
-                browse_consignment_files[0].FileId,
-                "first_file.docx",
-                "25/02/2023",
-                "Closed",
-                "25/02/2023",
-                "10",
-                browse_consignment_files[0].consignment.series.body.BodyId,
-                browse_consignment_files[0].consignment.series.body.Name,
-                browse_consignment_files[0].consignment.series.SeriesId,
-                browse_consignment_files[0].consignment.series.Name,
-                browse_consignment_files[0].consignment.ConsignmentId,
-                browse_consignment_files[0].consignment.ConsignmentReference,
-            ),
-            (
-                browse_consignment_files[2].FileId,
-                "third_file.docx",
-                "10/03/2023",
-                "Closed",
-                "10/03/2023",
-                "25",
-                browse_consignment_files[2].consignment.series.body.BodyId,
-                browse_consignment_files[2].consignment.series.body.Name,
-                browse_consignment_files[2].consignment.series.SeriesId,
-                browse_consignment_files[2].consignment.series.Name,
-                browse_consignment_files[2].consignment.ConsignmentId,
-                browse_consignment_files[2].consignment.ConsignmentReference,
             ),
         ]
 
@@ -3635,7 +3477,6 @@ class TestBrowseConsignment:
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "10",
                 browse_consignment_files[0].consignment.series.body.BodyId,
                 browse_consignment_files[0].consignment.series.body.Name,
                 browse_consignment_files[0].consignment.series.SeriesId,
@@ -3649,7 +3490,6 @@ class TestBrowseConsignment:
                 "10/03/2023",
                 "Closed",
                 "10/03/2023",
-                "25",
                 browse_consignment_files[2].consignment.series.body.BodyId,
                 browse_consignment_files[2].consignment.series.body.Name,
                 browse_consignment_files[2].consignment.series.SeriesId,
@@ -3663,79 +3503,6 @@ class TestBrowseConsignment:
 
         assert results == expected_results
 
-    def test_browse_consignment_with_file_type_and_date_range_filter(
-        self, client: FlaskClient, mock_standard_user, browse_consignment_files
-    ):
-        """
-        Given five file objects with associated metadata part of 1 consignment,
-            where 5 file types is 'file'
-        And the session contains user info for a standard user with access to the consignment's
-            associated transferring body
-        When I call the 'browse_data' function with the consignment id
-            and file_type filter as 'docx'
-            and date_range between from and to date
-        Then it returns a Pagination object with 2 total results corresponding to the
-            file_name file metadata value contains extension '.docx' and
-            date_last_modified metadata value match between date_from and date_to filter (2 file),
-            ordered by their names and with the expected metadata values
-        """
-
-        mock_standard_user(
-            client, browse_consignment_files[0].consignment.series.body.Name
-        )
-        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
-
-        filters = {
-            "file_type": "docx",
-            "date_range": {"date_from": "01/01/2023", "date_to": "15/03/2023"},
-            "date_filter_field": "date_last_modified",
-        }
-        pagination_object = browse_data(
-            page=1,
-            per_page=per_page,
-            browse_type="consignment",
-            consignment_id=consignment_id,
-            filters=filters,
-        )
-
-        assert pagination_object.total == 2
-
-        expected_results = [
-            (
-                browse_consignment_files[0].FileId,
-                "first_file.docx",
-                "25/02/2023",
-                "Closed",
-                "25/02/2023",
-                "10",
-                browse_consignment_files[0].consignment.series.body.BodyId,
-                browse_consignment_files[0].consignment.series.body.Name,
-                browse_consignment_files[0].consignment.series.SeriesId,
-                browse_consignment_files[0].consignment.series.Name,
-                browse_consignment_files[0].consignment.ConsignmentId,
-                browse_consignment_files[0].consignment.ConsignmentReference,
-            ),
-            (
-                browse_consignment_files[2].FileId,
-                "third_file.docx",
-                "10/03/2023",
-                "Closed",
-                "10/03/2023",
-                "25",
-                browse_consignment_files[2].consignment.series.body.BodyId,
-                browse_consignment_files[2].consignment.series.body.Name,
-                browse_consignment_files[2].consignment.series.SeriesId,
-                browse_consignment_files[2].consignment.series.Name,
-                browse_consignment_files[2].consignment.ConsignmentId,
-                browse_consignment_files[2].consignment.ConsignmentReference,
-            ),
-        ]
-
-        results = pagination_object.items
-
-        assert results == expected_results
-
-    # still sorting to finish
     def test_browse_consignment_with_record_status_sorting_closed_first(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
@@ -3774,7 +3541,6 @@ class TestBrowseConsignment:
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "10",
                 browse_consignment_files[0].consignment.series.body.BodyId,
                 browse_consignment_files[0].consignment.series.body.Name,
                 browse_consignment_files[0].consignment.series.SeriesId,
@@ -3788,7 +3554,6 @@ class TestBrowseConsignment:
                 "12/04/2023",
                 "Closed",
                 "12/04/2023",
-                "70",
                 browse_consignment_files[3].consignment.series.body.BodyId,
                 browse_consignment_files[3].consignment.series.body.Name,
                 browse_consignment_files[3].consignment.series.SeriesId,
@@ -3802,7 +3567,6 @@ class TestBrowseConsignment:
                 "10/03/2023",
                 "Closed",
                 "10/03/2023",
-                "25",
                 browse_consignment_files[2].consignment.series.body.BodyId,
                 browse_consignment_files[2].consignment.series.body.Name,
                 browse_consignment_files[2].consignment.series.SeriesId,
@@ -3816,7 +3580,6 @@ class TestBrowseConsignment:
                 "20/05/2023",
                 "Open",
                 None,
-                None,
                 browse_consignment_files[4].consignment.series.body.BodyId,
                 browse_consignment_files[4].consignment.series.body.Name,
                 browse_consignment_files[4].consignment.series.SeriesId,
@@ -3829,7 +3592,6 @@ class TestBrowseConsignment:
                 "second_file.ppt",
                 "15/01/2023",
                 "Open",
-                None,
                 None,
                 browse_consignment_files[1].consignment.series.body.BodyId,
                 browse_consignment_files[1].consignment.series.body.Name,
@@ -3882,7 +3644,6 @@ class TestBrowseConsignment:
                 "20/05/2023",
                 "Open",
                 None,
-                None,
                 browse_consignment_files[4].consignment.series.body.BodyId,
                 browse_consignment_files[4].consignment.series.body.Name,
                 browse_consignment_files[4].consignment.series.SeriesId,
@@ -3895,7 +3656,6 @@ class TestBrowseConsignment:
                 "second_file.ppt",
                 "15/01/2023",
                 "Open",
-                None,
                 None,
                 browse_consignment_files[1].consignment.series.body.BodyId,
                 browse_consignment_files[1].consignment.series.body.Name,
@@ -3910,7 +3670,6 @@ class TestBrowseConsignment:
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "10",
                 browse_consignment_files[0].consignment.series.body.BodyId,
                 browse_consignment_files[0].consignment.series.body.Name,
                 browse_consignment_files[0].consignment.series.SeriesId,
@@ -3924,7 +3683,6 @@ class TestBrowseConsignment:
                 "12/04/2023",
                 "Closed",
                 "12/04/2023",
-                "70",
                 browse_consignment_files[3].consignment.series.body.BodyId,
                 browse_consignment_files[3].consignment.series.body.Name,
                 browse_consignment_files[3].consignment.series.SeriesId,
@@ -3938,7 +3696,6 @@ class TestBrowseConsignment:
                 "10/03/2023",
                 "Closed",
                 "10/03/2023",
-                "25",
                 browse_consignment_files[2].consignment.series.body.BodyId,
                 browse_consignment_files[2].consignment.series.body.Name,
                 browse_consignment_files[2].consignment.series.SeriesId,
@@ -3990,7 +3747,6 @@ class TestBrowseConsignment:
                 "20/05/2023",
                 "Open",
                 None,
-                None,
                 browse_consignment_files[4].consignment.series.body.BodyId,
                 browse_consignment_files[4].consignment.series.body.Name,
                 browse_consignment_files[4].consignment.series.SeriesId,
@@ -4004,7 +3760,6 @@ class TestBrowseConsignment:
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "10",
                 browse_consignment_files[0].consignment.series.body.BodyId,
                 browse_consignment_files[0].consignment.series.body.Name,
                 browse_consignment_files[0].consignment.series.SeriesId,
@@ -4018,7 +3773,6 @@ class TestBrowseConsignment:
                 "12/04/2023",
                 "Closed",
                 "12/04/2023",
-                "70",
                 browse_consignment_files[3].consignment.series.body.BodyId,
                 browse_consignment_files[3].consignment.series.body.Name,
                 browse_consignment_files[3].consignment.series.SeriesId,
@@ -4031,7 +3785,6 @@ class TestBrowseConsignment:
                 "second_file.ppt",
                 "15/01/2023",
                 "Open",
-                None,
                 None,
                 browse_consignment_files[1].consignment.series.body.BodyId,
                 browse_consignment_files[1].consignment.series.body.Name,
@@ -4046,7 +3799,6 @@ class TestBrowseConsignment:
                 "10/03/2023",
                 "Closed",
                 "10/03/2023",
-                "25",
                 browse_consignment_files[2].consignment.series.body.BodyId,
                 browse_consignment_files[2].consignment.series.body.Name,
                 browse_consignment_files[2].consignment.series.SeriesId,
@@ -4098,7 +3850,6 @@ class TestBrowseConsignment:
                 "10/03/2023",
                 "Closed",
                 "10/03/2023",
-                "25",
                 browse_consignment_files[2].consignment.series.body.BodyId,
                 browse_consignment_files[2].consignment.series.body.Name,
                 browse_consignment_files[2].consignment.series.SeriesId,
@@ -4111,7 +3862,6 @@ class TestBrowseConsignment:
                 "second_file.ppt",
                 "15/01/2023",
                 "Open",
-                None,
                 None,
                 browse_consignment_files[1].consignment.series.body.BodyId,
                 browse_consignment_files[1].consignment.series.body.Name,
@@ -4126,7 +3876,6 @@ class TestBrowseConsignment:
                 "12/04/2023",
                 "Closed",
                 "12/04/2023",
-                "70",
                 browse_consignment_files[3].consignment.series.body.BodyId,
                 browse_consignment_files[3].consignment.series.body.Name,
                 browse_consignment_files[3].consignment.series.SeriesId,
@@ -4140,7 +3889,6 @@ class TestBrowseConsignment:
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "10",
                 browse_consignment_files[0].consignment.series.body.BodyId,
                 browse_consignment_files[0].consignment.series.body.Name,
                 browse_consignment_files[0].consignment.series.SeriesId,
@@ -4153,7 +3901,6 @@ class TestBrowseConsignment:
                 "fifth_file.doc",
                 "20/05/2023",
                 "Open",
-                None,
                 None,
                 browse_consignment_files[4].consignment.series.body.BodyId,
                 browse_consignment_files[4].consignment.series.body.Name,
@@ -4206,7 +3953,6 @@ class TestBrowseConsignment:
                 "15/01/2023",
                 "Open",
                 None,
-                None,
                 browse_consignment_files[1].consignment.series.body.BodyId,
                 browse_consignment_files[1].consignment.series.body.Name,
                 browse_consignment_files[1].consignment.series.SeriesId,
@@ -4220,7 +3966,6 @@ class TestBrowseConsignment:
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "10",
                 browse_consignment_files[0].consignment.series.body.BodyId,
                 browse_consignment_files[0].consignment.series.body.Name,
                 browse_consignment_files[0].consignment.series.SeriesId,
@@ -4234,7 +3979,6 @@ class TestBrowseConsignment:
                 "10/03/2023",
                 "Closed",
                 "10/03/2023",
-                "25",
                 browse_consignment_files[2].consignment.series.body.BodyId,
                 browse_consignment_files[2].consignment.series.body.Name,
                 browse_consignment_files[2].consignment.series.SeriesId,
@@ -4248,7 +3992,6 @@ class TestBrowseConsignment:
                 "12/04/2023",
                 "Closed",
                 "12/04/2023",
-                "70",
                 browse_consignment_files[3].consignment.series.body.BodyId,
                 browse_consignment_files[3].consignment.series.body.Name,
                 browse_consignment_files[3].consignment.series.SeriesId,
@@ -4261,7 +4004,6 @@ class TestBrowseConsignment:
                 "fifth_file.doc",
                 "20/05/2023",
                 "Open",
-                None,
                 None,
                 browse_consignment_files[4].consignment.series.body.BodyId,
                 browse_consignment_files[4].consignment.series.body.Name,
@@ -4314,7 +4056,6 @@ class TestBrowseConsignment:
                 "20/05/2023",
                 "Open",
                 None,
-                None,
                 browse_consignment_files[4].consignment.series.body.BodyId,
                 browse_consignment_files[4].consignment.series.body.Name,
                 browse_consignment_files[4].consignment.series.SeriesId,
@@ -4328,7 +4069,6 @@ class TestBrowseConsignment:
                 "12/04/2023",
                 "Closed",
                 "12/04/2023",
-                "70",
                 browse_consignment_files[3].consignment.series.body.BodyId,
                 browse_consignment_files[3].consignment.series.body.Name,
                 browse_consignment_files[3].consignment.series.SeriesId,
@@ -4342,7 +4082,6 @@ class TestBrowseConsignment:
                 "10/03/2023",
                 "Closed",
                 "10/03/2023",
-                "25",
                 browse_consignment_files[2].consignment.series.body.BodyId,
                 browse_consignment_files[2].consignment.series.body.Name,
                 browse_consignment_files[2].consignment.series.SeriesId,
@@ -4356,7 +4095,6 @@ class TestBrowseConsignment:
                 "25/02/2023",
                 "Closed",
                 "25/02/2023",
-                "10",
                 browse_consignment_files[0].consignment.series.body.BodyId,
                 browse_consignment_files[0].consignment.series.body.Name,
                 browse_consignment_files[0].consignment.series.SeriesId,
@@ -4369,7 +4107,6 @@ class TestBrowseConsignment:
                 "second_file.ppt",
                 "15/01/2023",
                 "Open",
-                None,
                 None,
                 browse_consignment_files[1].consignment.series.body.BodyId,
                 browse_consignment_files[1].consignment.series.body.Name,

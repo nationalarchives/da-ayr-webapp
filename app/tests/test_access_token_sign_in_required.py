@@ -12,15 +12,11 @@ from app.main.authorize.access_token_sign_in_required import (
 class TestAccessTokenSignInRequiredDecorator:
     @staticmethod
     @pytest.mark.parametrize(
-        "access_token, refresh_token",
-        [
-            (None, None),
-            ("foo", None),
-            (None, "foo"),
-        ],
+        "session_dict",
+        [{}, {"access_token": "foo"}, {"refresh_token": "foo"}],
     )
     def test_no_access_or_refresh_token_is_redirected_to_sign_in(
-        app, access_token, refresh_token
+        app, session_dict
     ):
         """
         Given either no access or refresh token in the session,
@@ -36,8 +32,7 @@ class TestAccessTokenSignInRequiredDecorator:
                 return "Access granted"
 
             with client.session_transaction() as session:
-                session["access_token"] = access_token
-                session["refresh_token"] = refresh_token
+                session.update(session_dict)
 
             response = client.get(view_name)
 
@@ -69,6 +64,8 @@ class TestAccessTokenSignInRequiredDecorator:
             with client.session_transaction() as session:
                 session["access_token"] = "inactive_access_token"
                 session["refresh_token"] = "inactive_refresh_token"
+
+            session
 
             def mock_refresh_token(token):
                 raise keycloak.exceptions.KeycloakPostError

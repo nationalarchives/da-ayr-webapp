@@ -1,5 +1,9 @@
+import json
 import os
+import zlib
 
+import jwt
+from itsdangerous import base64_decode
 from playwright.sync_api import Page, expect
 
 
@@ -15,6 +19,57 @@ def test_sign_in_succeeds_when_valid_credentials(page: Page):
     page.get_by_label("Password").fill(os.environ.get("AYR_TEST_PASSWORD"))
     page.get_by_role("button", name="Sign in").click()
     expect(page).to_have_url("/browse")
+    cookies = page.context.cookies()
+    for index, cookie in enumerate(cookies):
+        if cookie["name"] == "session":
+            session_cookie_index = index
+            break
+
+    flask_session_cookie = cookies[session_cookie_index]
+    flask_session_cookie_string = flask_session_cookie["value"]
+
+    decoded_data = decode_flask_session_cookie(flask_session_cookie_string)
+    access_token = json.loads(decoded_data)["access_token"]
+    decoded_token_dict = jwt.decode(
+        access_token, options={"verify_signature": False}
+    )
+    assert set(decoded_token_dict.keys()) == {
+        "exp",
+        "iat",
+        "auth_time",
+        "jti",
+        "iss",
+        "sub",
+        "typ",
+        "azp",
+        "session_state",
+        "scope",
+        "sid",
+        "groups",
+    }
+
+
+def decode_flask_session_cookie(cookie):
+    """Decode a Flask cookie."""
+    try:
+        compressed = False
+        payload = cookie
+
+        if payload.startswith("."):
+            compressed = True
+            payload = payload[1:]
+
+        data = payload.split(".")[0]
+
+        data = base64_decode(data)
+        if compressed:
+            data = zlib.decompress(data)
+
+        return data.decode("utf-8")
+    except Exception as e:
+        return "[Decoding error: are you sure this was a Flask session cookie? {}]".format(
+            e
+        )
 
 
 def test_sign_in_fails_when_invalid_credentials(page: Page):

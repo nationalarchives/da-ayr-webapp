@@ -308,21 +308,12 @@ def _build_consignment_view_query(
         func.max(
             db.case(
                 (
-                    FileMetadata.PropertyName == "closure_start_date",
+                    FileMetadata.PropertyName == "opening_date",
                     func.cast(FileMetadata.Value, DATE),
                 ),
                 else_=None,
             ),
-        ).label("closure_start_date"),
-        func.max(
-            db.case(
-                (
-                    FileMetadata.PropertyName == "closure_period",
-                    FileMetadata.Value,
-                ),
-                else_=None,
-            ),
-        ).label("closure_period"),
+        ).label("opening_date"),
         Consignment.ConsignmentId.label("consignment_id"),
         Consignment.ConsignmentReference.label("consignment_reference"),
         Body.Name.label("transferring_body"),
@@ -365,10 +356,9 @@ def _build_consignment_view_query(
         ).label("date_last_modified"),
         sub_query.c.closure_type,
         func.to_char(
-            sub_query.c.closure_start_date,
+            sub_query.c.opening_date,
             current_app.config["DEFAULT_DATE_FORMAT"],
-        ).label("closure_start_date"),
-        sub_query.c.closure_period,
+        ).label("opening_date"),
         sub_query.c.transferring_body_id,
         sub_query.c.transferring_body,
         sub_query.c.series_id,
@@ -378,44 +368,44 @@ def _build_consignment_view_query(
     )
 
     if filters:
-        query = _build_consignment_filters(query, sub_query, filters)
+        record_status = filters.get("record_status")
+        if record_status:
+            if record_status and record_status.lower() != "all":
+                query = query.filter(
+                    func.lower(sub_query.c.closure_type)
+                    == record_status.lower()
+                )
+
+        date_range = filters.get("date_range")
+        if date_range:
+            date_filter_field = filters.get("date_filter_field")
+            if (
+                date_filter_field
+                and date_filter_field.lower() == "date_last_modified"
+            ):
+                dt_range = validate_date_range(date_range)
+                date_filter = _build_date_range_filter(
+                    sub_query.c.date_last_modified,
+                    dt_range["date_from"],
+                    dt_range["date_to"],
+                )
+                query = query.filter(date_filter)
+            elif (
+                date_filter_field
+                and date_filter_field.lower() == "opening_date"
+            ):
+                dt_range = validate_date_range(date_range)
+                date_filter = _build_date_range_filter(
+                    sub_query.c.opening_date,
+                    dt_range["date_from"],
+                    dt_range["date_to"],
+                )
+                query = query.filter(date_filter)
+
     if sorting_orders:
         query = _build_sorting_orders(query, sub_query, sorting_orders)
     else:
         query = query.order_by(sub_query.c.file_name)
-    return query
-
-
-def _build_consignment_filters(query, sub_query, filters):
-    record_status = filters.get("record_status")
-    if record_status:
-        if record_status and record_status.lower() != "all":
-            query = query.filter(
-                func.lower(sub_query.c.closure_type) == record_status.lower()
-            )
-
-    file_type = filters.get("file_type")
-    if file_type:
-        filter_value = str(f"%{file_type}").lower()
-        query = query.filter(
-            func.lower(sub_query.c.file_name).like(filter_value)
-        )
-
-    date_range = filters.get("date_range")
-    if date_range:
-        date_filter_field = filters.get("date_filter_field")
-        if (
-            date_filter_field
-            and date_filter_field.lower() == "date_last_modified"
-        ):
-            dt_range = validate_date_range(date_range)
-            date_filter = _build_date_range_filter(
-                sub_query.c.date_last_modified,
-                dt_range["date_from"],
-                dt_range["date_to"],
-            )
-            query = query.filter(date_filter)
-
     return query
 
 

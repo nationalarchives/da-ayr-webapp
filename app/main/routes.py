@@ -35,6 +35,7 @@ from app.main.flask_config_helpers import (
 )
 from app.main.forms import CookiesForm
 from app.main.util.filter_sort_builder import (
+    build_browse_consignment_filters,
     build_filters,
     build_sorting_orders,
 )
@@ -62,8 +63,7 @@ def sign_in():
     keycloak_openid = get_keycloak_instance_from_flask_config()
     auth_url = keycloak_openid.auth_url(
         redirect_uri=f"{request.url_root}callback",
-        scope="email",
-        state="your_state_info",
+        scope="group_mapper_client_scope",
     )
 
     return redirect(auth_url)
@@ -108,9 +108,9 @@ def browse():
     filters = {}
     sorting_orders = {}
     breadcrumb_values = {}
+    transferring_bodies = []
 
     if browse_type == "browse":
-        transferring_bodies = []
         ayr_user = AYRUser(session.get("user_groups"))
         if ayr_user.is_superuser:
             for body in Body.query.all():
@@ -144,6 +144,7 @@ def browse():
     elif consignment_id:
         browse_type = "consignment"
         browse_parameters["consignment_id"] = consignment_id
+
         consignment = Consignment.query.get(consignment_id)
         body = consignment.series.body
         series = consignment.series
@@ -154,8 +155,9 @@ def browse():
             3: {"series": series.Name},
             4: {"consignment_reference": consignment.ConsignmentReference},
         }
-        sorting_orders = build_sorting_orders(request.args)
 
+        filters = build_browse_consignment_filters(request.args)
+        sorting_orders = build_sorting_orders(request.args)
     else:
         ayr_user = AYRUser(session.get("user_groups"))
         if ayr_user.is_standard_user:
@@ -238,6 +240,7 @@ def record(record_id: uuid.UUID):
     Returns:
         A rendered HTML page with record details.
     """
+    form = SearchForm()
     file = File.query.get_or_404(record_id)
 
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
@@ -260,6 +263,7 @@ def record(record_id: uuid.UUID):
 
     return render_template(
         "record.html",
+        form=form,
         record=file_metadata,
         breadcrumb_values=breadcrumb_values,
     )
