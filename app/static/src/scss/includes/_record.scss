@@ -335,4 +335,22 @@
     margin-left: 20px;
     white-space: nowrap;
   }
+
+  .govuk-link {
+    &--ayr {
+      color: black;
+      -webkit-text-fill-color: black;
+      font-size: 0.9rem;
+
+      a {
+        color: black;
+        -webkit-text-fill-color: black;
+        font-size: 0.9rem;
+      }
+
+      &:visited {
+        color: black;
+      }
+    }
+  }
 }
