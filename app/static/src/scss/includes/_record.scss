@@ -20,6 +20,7 @@
 .govuk-grid-column-full {
   &__page-nav {
     margin-bottom: 3rem;
+    padding-left: 2rem;
   }
 }
 
@@ -237,6 +238,7 @@
   .govuk-grid-column-full__page-nav {
     order: 2;
     margin-bottom: 0.5rem;
+    padding-left: 2rem;
   }
 
   .govuk-grid-row {
