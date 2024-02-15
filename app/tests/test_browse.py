@@ -1546,8 +1546,8 @@ class TestBrowseTransferringBody:
                 <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                <a class="govuk-breadcrumbs__link--record" href="#">
-                {browse_transferring_body_files[0].consignment.series.body.Name}</a>
+                <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">
+                {browse_transferring_body_files[0].consignment.series.body.Name}</span>
                 </li>
             </ol>
         </div>
@@ -2342,7 +2342,8 @@ class TestSeries:
                         href="/browse?transferring_body_id={browse_files[0].consignment.series.body.BodyId}">{browse_files[0].consignment.series.body.Name}</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                    <a class="govuk-breadcrumbs__link--record" href="#">{browse_files[0].consignment.series.Name}</a>
+                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">
+                    {browse_files[0].consignment.series.Name}</span>
                 </li>
             </ol>
         </div>
@@ -2801,7 +2802,7 @@ class TestConsignment:
                         href="/browse?series_id={browse_consignment_files[0].consignment.series.SeriesId}">{browse_consignment_files[0].consignment.series.Name}</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                    <a class="govuk-breadcrumbs__link--record" href="#">{consignment_reference}</p>
+                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">{consignment_reference}</span>
                 </li>
             </ol>
         </div>
