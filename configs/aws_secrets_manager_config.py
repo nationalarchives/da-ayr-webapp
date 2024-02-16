@@ -28,7 +28,7 @@ class AWSSecretsManagerConfig(BaseConfig):
         )
 
         secret_value_json_string = client.get_secret_value(
-            SecretId="ayr-test-one-vars"  # pragma: allowlist secret
+            SecretId=os.getenv("AWS_SM_CONFIG_SECRET_ID")
         )["SecretString"]
         secrets_dict = json.loads(secret_value_json_string)
 
