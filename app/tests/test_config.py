@@ -55,9 +55,9 @@ def test_local_env_vars_config_initialized(monkeypatch):
 
 
 @mock_aws
-def test_aws_secrets_manager_config_initialized():
+def test_aws_secrets_manager_config_initialized(monkeypatch):
     """
-    GIVEN AWS secret `ayr-test-one-vars` is set with all config key value pairs
+    GIVEN AWS secret with secret_id `AWS_SM_CONFIG_SECRET_ID` is set with all config key value pairs
     WHEN Config is initialized
     THEN it should have attributes with the expected values from the AWS Secrets Manager secret
     """
@@ -84,9 +84,13 @@ def test_aws_secrets_manager_config_initialized():
     ssm_client = boto3.client("secretsmanager")
 
     ssm_client.create_secret(
-        Name="ayr-test-one-vars",
+        Name="test_secret_id",
         SecretString=secret_value,
     )
+
+    monkeypatch.setenv(
+        "AWS_SM_CONFIG_SECRET_ID", "test_secret_id"
+    )  # pragma: allowlist secret
 
     config = AWSSecretsManagerConfig()
 
