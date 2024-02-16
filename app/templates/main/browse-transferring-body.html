@@ -41,8 +41,8 @@
                 <tbody class="govuk-table__body">
                     {% for record in results %}
                         <tr class="govuk-table__row">
-                            <td class="govuk-table__cell">{{ record["transferring_body"] }}</td>
-                            <td class="govuk-table__cell">
+                            <td class="govuk-table__cell govuk-table__cell--ayr">{{ record["transferring_body"] }}</td>
+                            <td class="govuk-table__cell govuk-table__cell--ayr">
                                 <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">{{ record["series"] }}</a>
                             </td>
                             <td class="govuk-table__cell browse__table__right-align">{{ record["last_record_transferred"] }}</td>

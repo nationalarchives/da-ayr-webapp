@@ -44,7 +44,7 @@
                             <td class="govuk-table__cell">{{ record["series"] }}</td>
                             <td class="govuk-table__cell browse__table__right-align">{{ record["last_record_transferred"] }}</td>
                             <td class="govuk-table__cell browse__table__right-align">{{ record["records_held"] }}</td>
-                            <td class="govuk-table__cell">
+                            <td class="govuk-table__cell govuk-table__cell--ayr">
                                 <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
                             </td>
                         </tr>

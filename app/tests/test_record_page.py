@@ -62,7 +62,7 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
     <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
     <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
 
-    <div class="govuk-breadcrumbs">
+    <div class="govuk-breadcrumbs govuk-breadcrumbs--file">
         <ol class="govuk-breadcrumbs__list">
             <li class="govuk-breadcrumbs__list-item">
             <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
@@ -80,7 +80,7 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
                 href="/browse?consignment_id={file.ConsignmentId}">{file.consignment.ConsignmentReference}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
-            <a class="govuk-breadcrumbs__link--record" href="#">test_file.txt</a>
+            <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">test_file.txt</span>
             </li>
         </ol>
         </div>
@@ -176,7 +176,7 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
             class="govuk-button govuk-button__download--record"
             data-module="govuk-button">Download record</a>
         <p class="govuk-body govuk-body--terms-of-use">
-            Refer to <a href="/terms-of-use" class="govuk-link">Terms of use.</a>
+            Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
         </p>
     </div>
     """

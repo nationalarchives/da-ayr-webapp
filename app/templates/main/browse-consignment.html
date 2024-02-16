@@ -43,9 +43,8 @@
                     {% for record in results %}
                         <tr class="govuk-table__row">
                             <td class="govuk-table__cell">{{ record["date_last_modified"] }}</td>
-                            <td class="govuk-table__cell">
-                                <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"]
-                                }}</a>
+                            <td class="govuk-table__cell govuk-table__cell--ayr">
+                                <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
                             </td>
                             <td class="govuk-table__cell">
                                 <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
