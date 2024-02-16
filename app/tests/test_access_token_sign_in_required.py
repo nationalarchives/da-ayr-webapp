@@ -311,6 +311,9 @@ def test_expected_unprotected_routes_decorated_by_access_token_sign_in_required(
         "main.download_record",
         "main.sign_out",
         "main.browse",
+        "main.browse_transferring_body",
+        "main.browse_series",
+        "main.browse_consignment",
     ]
     expected_unprotected_routes = [
         "static",

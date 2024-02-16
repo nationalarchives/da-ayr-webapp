@@ -16,18 +16,15 @@
                         {% with view_type='desktop' %}
                             {% include "browse-all.html" %}
                         {% endwith %}
-                    {% endif %}
-                    {% if browse_type == "transferring_body" %}
+                    {% elif browse_type == "transferring_body" %}
                         {% with view_type='desktop' %}
                             {% include "browse-transferring-body.html" %}
                         {% endwith %}
-                    {% endif %}
-                    {% if browse_type == "series" %}
+                    {% elif browse_type == "series" %}
                         {% with view_type='desktop' %}
                             {% include "browse-series.html" %}
                         {% endwith %}
-                    {% endif %}
-                    {% if browse_type == "consignment" %}
+                    {% elif browse_type == "consignment" %}
                         {% with view_type='desktop' %}
                             {% include "browse-consignment.html" %}
                         {% endwith %}
@@ -35,13 +32,6 @@
                 </div>
             </div>
             <!-- END TABLE -->
-            <!-- PAGINATION -->
-            <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
-                {% with view_name='main.browse' %}
-                    {% include "pagination.html" %}
-                {% endwith %}
-            </div>
-            <!-- END PAGINATION -->
         {% endif %}
     </div>
     <!-- MOBILE SEARCH-->
@@ -60,18 +50,15 @@
                             {% with view_type='mobile' %}
                                 {% include "browse-all.html" %}
                             {% endwith %}
-                        {% endif %}
-                        {% if browse_type == "transferring_body" %}
+                        {% elif browse_type == "transferring_body" %}
                             {% with view_type='mobile' %}
                                 {% include "browse-transferring-body.html" %}
                             {% endwith %}
-                        {% endif %}
-                        {% if browse_type == "series" %}
+                        {% elif browse_type == "series" %}
                             {% with view_type='mobile' %}
                                 {% include "browse-series.html" %}
                             {% endwith %}
-                        {% endif %}
-                        {% if browse_type == "consignment" %}
+                        {% elif browse_type == "consignment" %}
                             {% with view_type='mobile' %}
                                 {% include "browse-consignment.html" %}
                             {% endwith %}
@@ -79,13 +66,6 @@
                     </div>
                 </div>
                 <!-- END TABLE -->
-                <!-- PAGINATION -->
-                <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
-                    {% with view_name='main.browse' %}
-                        {% include "pagination.html" %}
-                    {% endwith %}
-                </div>
-                <!-- END PAGINATION -->
             </div>
         {% endif %}
     </div>

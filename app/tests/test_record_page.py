@@ -69,15 +69,15 @@ def test_returns_record_page_for_user_with_access_to_files_transferring_body(
             </li>
             <li class="govuk-breadcrumbs__list-item">
             <a class="govuk-breadcrumbs__link--record--transferring-body"
-                href="/browse?transferring_body_id={file.consignment.series.body.BodyId}">{file.consignment.series.body.Name}</a>
+                href="/browse/transferring_body/{file.consignment.series.body.BodyId}">{file.consignment.series.body.Name}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
             <a class="govuk-breadcrumbs__link--record--series"
-                href="/browse?series_id={file.consignment.series.SeriesId}">{file.consignment.series.Name}</a>
+                href="/browse/series/{file.consignment.series.SeriesId}">{file.consignment.series.Name}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
             <a class="govuk-breadcrumbs__link--record--consignment"
-                href="/browse?consignment_id={file.ConsignmentId}">{file.consignment.ConsignmentReference}</a>
+                href="/browse/consignment/{file.ConsignmentId}">{file.consignment.ConsignmentReference}</a>
             </li>
             <li class="govuk-breadcrumbs__list-item">
             <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">test_file.txt</span>

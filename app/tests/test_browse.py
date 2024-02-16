@@ -1,5 +1,5 @@
+import pytest
 from bs4 import BeautifulSoup
-from flask import url_for
 from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
@@ -48,30 +48,33 @@ def verify_data_rows(data, expected_rows):
     assert [row_data] == expected_rows[0]
 
 
-def test_standard_user_redirected_to_browse_transferring_body_when_accessing_browse(
-    client: FlaskClient, mock_standard_user
-):
-    """
-    Given a standard user accessing the browse page
-    When they make a GET request
-    Then they should be redirected to the transferring_body browse page for
-        the body they have access to
-    """
-    body = BodyFactory()
-    mock_standard_user(client, body.Name)
-
-    response = client.get("/browse")
-
-    assert response.status_code == 302
-    assert response.headers["Location"] == url_for(
-        "main.browse", transferring_body_id=body.BodyId
-    )
-
-
 class TestBrowse:
     @property
     def route_url(self):
         return "/browse"
+
+    @property
+    def transferring_body_route_url(self):
+        return "/browse/transferring_body"
+
+    def test_standard_user_redirected_to_browse_transferring_body_when_accessing_browse(
+        self, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a standard user accessing the browse page
+        When they make a GET request
+        Then they should be redirected to the transferring_body browse page for
+            the body they have access to
+        """
+        body = BodyFactory()
+        mock_standard_user(client, body.Name)
+
+        response = client.get(f"{self.route_url}")
+
+        assert response.status_code == 302
+        assert response.headers[
+            "Location"
+        ] == self.transferring_body_route_url + "/" + str(body.BodyId)
 
     def test_browse_get_view(self, client: FlaskClient, mock_superuser):
         """
@@ -141,809 +144,289 @@ class TestBrowse:
         response = client.get(f"{self.route_url}", data={"query": query})
 
         assert response.status_code == 200
+
         assert b"Search for digital records" in response.data
-        assert b"Records found 6" in response.data
+        assert b"Records found 27" in response.data
 
-    def test_browse_get_without_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
+    @pytest.mark.parametrize(
+        "query_params, expected_results",
+        [
+            (
+                "series_filter=junk",
+                [
+                    [""],
+                ],
+            ),
+            (
+                "",
+                [
+                    [
+                        "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                        "'first_body', 'first_series', '07/02/2023', '3', '2', "
+                        "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                        "'second_body', 'second_series', '26/04/2023', '7', '2', "
+                        "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
+                    ],
+                ],
+            ),
+            (
+                "transferring_body_filter=fi",
+                [
+                    [
+                        "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                        "'first_body', 'first_series', '07/02/2023', '3', '2'"
+                    ],
+                ],
+            ),
+            (
+                "transferring_body_filter=t",
+                [
+                    [
+                        "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                        "'first_body', 'first_series', '07/02/2023', '3', '2', "
+                        "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                        "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
+                        "'third_body', 'third_series', '17/06/2023', '3', '2'"
+                    ],
+                ],
+            ),
+            (
+                "date_from_day=01&date_from_month=10&date_from_year=2023",
+                [
+                    ["'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"],
+                ],
+            ),
+            (
+                "date_to_day=31&date_to_month=03&date_to_year=2023",
+                [
+                    ["'first_body', 'first_series', '07/02/2023', '3', '2'"],
+                ],
+            ),
+            (
+                "series_filter=fi",
+                [
+                    [
+                        "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                        "'first_body', 'first_series', '07/02/2023', '3', '2'"
+                    ],
+                ],
+            ),
+            (
+                "series_filter=f",
+                [
+                    [
+                        "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                        "'first_body', 'first_series', '07/02/2023', '3', '2', "
+                        "'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"
+                    ],
+                ],
+            ),
+            (
+                "date_from_day=01&date_from_month=09&date_from_year=2023",
+                [
+                    [
+                        "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                        "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
+                    ],
+                ],
+            ),
+            (
+                "date_to_day=26&date_to_month=04&date_to_year=2023",
+                [
+                    [
+                        "'first_body', 'first_series', '07/02/2023', '3', '2', "
+                        "'second_body', 'second_series', '26/04/2023', '7', '2'"
+                    ],
+                ],
+            ),
+            (
+                "date_from_day=01&date_from_month=08&date_from_year=2023&date_to_day=31"
+                "&date_to_month=10&date_to_year=2023",
+                [
+                    [
+                        "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                        "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                        "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
+                    ],
+                ],
+            ),
+            (
+                "transferring_body_filter=fif&series_filter=fi",
+                [
+                    ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+                ],
+            ),
+            (
+                "transferring_body_filter=fifth&date_from_day=01&date_from_month=09&date_from_year=2023",
+                [
+                    ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+                ],
+            ),
+            (
+                "transferring_body_filter=fifth&date_to_day=21&date_to_month=09&date_to_year=2023",
+                [
+                    ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+                ],
+            ),
+            (
+                "transferring_body_filter=f&date_from_day=01&date_from_month=08&date_from_year=2023&date_to_day=31"
+                "&date_to_month=10&date_to_year=2023",
+                [
+                    [
+                        "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                        "'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"
+                    ],
+                ],
+            ),
+            (
+                "series_filter=fifth&date_from_day=01&date_from_month=09&date_from_year=2023",
+                [
+                    ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+                ],
+            ),
+            (
+                "series_filter=fifth&date_to_day=21&date_to_month=09&date_to_year=2023",
+                [
+                    ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+                ],
+            ),
+            (
+                "series_filter=fou&date_from_month=08&date_from_year=2023&date_to_day=31"
+                "&date_to_month=10&date_to_year=2023",
+                [
+                    ["'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"],
+                ],
+            ),
+            (
+                "transferring_body_filter=fi&series_filter=fifth&date_from_day=01"
+                "&date_from_month=09&date_from_year=2023",
+                [
+                    ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+                ],
+            ),
+            (
+                "transferring_body_filter=fi&series_filter=fifth&date_to_day=21&"
+                "date_to_month=09&date_to_year=2023",
+                [
+                    ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
+                ],
+            ),
+            (
+                "transferring_body_filter=fo&series_filter=fou&date_from_month=08&date_from_year=2023"
+                "&date_to_day=31&date_to_month=10&date_to_year=2023",
+                [
+                    ["'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"],
+                ],
+            ),
+            (
+                "transferring_body-asc",
+                [
+                    [
+                        "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                        "'first_body', 'first_series', '07/02/2023', '3', '2', "
+                        "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                        "'second_body', 'second_series', '26/04/2023', '7', '2', "
+                        "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
+                    ],
+                ],
+            ),
+            (
+                "sort=transferring_body-desc",
+                [
+                    [
+                        "'third_body', 'third_series', '17/06/2023', '3', '2', "
+                        "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
+                        "'second_body', 'second_series', '26/04/2023', '7', '2', "
+                        "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                        "'first_body', 'first_series', '07/02/2023', '3', '2'"
+                    ],
+                ],
+            ),
+            (
+                "sort=series-asc",
+                [
+                    [
+                        "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                        "'first_body', 'first_series', '07/02/2023', '3', '2', "
+                        "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                        "'second_body', 'second_series', '26/04/2023', '7', '2', "
+                        "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
+                    ],
+                ],
+            ),
+            (
+                "sort=series-desc",
+                [
+                    [
+                        "'third_body', 'third_series', '17/06/2023', '3', '2', "
+                        "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
+                        "'second_body', 'second_series', '26/04/2023', '7', '2', "
+                        "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                        "'first_body', 'first_series', '07/02/2023', '3', '2'"
+                    ],
+                ],
+            ),
+            (
+                "sort=last_record_transferred-asc",
+                [
+                    [
+                        "'first_body', 'first_series', '07/02/2023', '3', '2', "
+                        "'second_body', 'second_series', '26/04/2023', '7', '2', "
+                        "'third_body', 'third_series', '17/06/2023', '3', '2', "
+                        "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                        "'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"
+                    ],
+                ],
+            ),
+            (
+                "sort=last_record_transferred-desc",
+                [
+                    [
+                        "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
+                        "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                        "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                        "'third_body', 'third_series', '17/06/2023', '3', '2', "
+                        "'second_body', 'second_series', '26/04/2023', '7', '2'"
+                    ],
+                ],
+            ),
+            (
+                "sort=last_record_transferred-desc&transferring_body_filter=f",
+                [
+                    [
+                        "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
+                        "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
+                        "'first_body', 'first_series', '07/02/2023', '3', '2'"
+                    ],
+                ],
+            ),
+        ],
+    )
+    def test_browse_full_test(
+        self,
+        client: FlaskClient,
+        mock_superuser,
+        browse_files,
+        query_params,
+        expected_results,
     ):
         """
         Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        Then they should see first five records on browse page content.
-        """
-        mock_superuser(client)
-
-        response = client.get(f"{self.route_url}")
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
-                "'first_body', 'first_series', '07/02/2023', '3', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
-                "'second_body', 'second_series', '26/04/2023', '7', '2', "
-                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_transferring_body_filter_and_transferring_body_sorting_z_to_a(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and select transferring body as filter from dropdown list
-        and sorted by transferring body descending order
-        Then they should see first five records sorted in reverse alphabetic order of transferring body (Z to A)
+        When they make a GET request
+        and provide different filter values
+        and sorting orders (asc, desc)
+        Then they should see results based on
+        matching filter value(s) and the result sorted in sorting order
         on browse page content.
         """
         mock_superuser(client)
 
-        transferring_body = "f"
-        response = client.get(
-            f"{self.route_url}?sort=transferring_body-desc&transferring_body_filter="
-            + transferring_body
-        )
+        response = client.get(f"{self.route_url}?{query_params}")
 
         assert response.status_code == 200
 
-        expected_rows = [
-            [
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
-                "'first_body', 'first_series', '07/02/2023', '3', '2', "
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"
-            ],
-        ]
-
         verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_transferring_body_filter_and_series_sorting_a_to_z(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and select transferring body as filter from dropdown list
-        and sorted by series ascending order
-        Then they should see first five records sorted in reverse alphabetic order of series (A to Z)
-        on browse page content.
-        """
-        mock_superuser(client)
-
-        transferring_body = "f"
-        response = client.get(
-            f"{self.route_url}?sort=series-asc&transferring_body_filter="
-            + transferring_body
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
-                "'first_body', 'first_series', '07/02/2023', '3', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_transferring_body_filter_and_date_consignment_transferred_sorting_most_recent_first(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and select transferring body as filter from dropdown list
-        and sorted by date consignment transferred descending
-        Then they should see first five records sorted in date consignment transferred (most recent first)
-        on browse page content.
-        """
-        mock_superuser(client)
-
-        transferring_body = "f"
-        response = client.get(
-            f"{self.route_url}?sort=last_record_transferred-desc&transferring_body_filter="
-            + transferring_body
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
-                "'first_body', 'first_series', '07/02/2023', '3', '2'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_date_from_and_date_to_filter_and_transferring_body_sorting_z_to_a(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and provide a date range with date from and date to value as filter in text input field
-        Then they should see two records matches to transferring body name
-        and date last transferred between date from and date to filter value
-        sorted in transferring body as reverse alphabetic order (Z to A)
-        on browse page content.
-        """
-        mock_superuser(client)
-        date_from_day = "01"
-        date_from_month = "01"
-        date_from_year = "2023"
-        date_to_day = "31"
-        date_to_month = "12"
-        date_to_year = "2023"
-        response = client.get(
-            f"{self.route_url}?sort=transferring_body-desc"
-            + "&date_from_day="
-            + date_from_day
-            + "&date_from_month="
-            + date_from_month
-            + "&date_from_year="
-            + date_from_year
-            + "&date_to_day="
-            + date_to_day
-            + "&date_to_month="
-            + date_to_month
-            + "&date_to_year="
-            + date_to_year
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'third_body', 'third_series', '17/06/2023', '3', '2', "
-                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
-                "'second_body', 'second_series', '26/04/2023', '7', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
-                "'first_body', 'first_series', '07/02/2023', '3', '2'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_transferring_body_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and select transferring body as filter from dropdown list
-        Then they should see first two records matches to transferring body name on browse page content.
-        """
-        mock_superuser(client)
-        transferring_body = "fi"
-        response = client.get(
-            f"{self.route_url}?transferring_body_filter=" + transferring_body
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
-                "'first_body', 'first_series', '07/02/2023', '3', '2'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_transferring_body_filter_wildcard_character(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and select transferring body as filter from dropdown list
-        Then they should see first two records matches to transferring body name on browse page content.
-        """
-        mock_superuser(client)
-        transferring_body = "t"
-        response = client.get(
-            f"{self.route_url}?transferring_body_filter=" + transferring_body
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
-                "'first_body', 'first_series', '07/02/2023', '3', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
-                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
-                "'third_body', 'third_series', '17/06/2023', '3', '2'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_series_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and provide a series value as filter in text input field
-        Then they should see first two records matches to series name on browse page content.
-        """
-        mock_superuser(client)
-        series = "fi"
-        response = client.get(f"{self.route_url}?series_filter=" + series)
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
-                "'first_body', 'first_series', '07/02/2023', '3', '2'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_series_filter_wildcard_character(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and provide a series value as filter in text input field
-        Then they should see first two records matches to series name on browse page content.
-        """
-        mock_superuser(client)
-        series = "f"
-        response = client.get(f"{self.route_url}?series_filter=" + series)
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
-                "'first_body', 'first_series', '07/02/2023', '3', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_date_from_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and provide a date range with only date from value as filter in text input field
-        Then they should see two records matches to date last transferred
-        greater than or equal to date from filter value
-        on browse page content.
-        """
-        mock_superuser(client)
-        day = "01"
-        month = "09"
-        year = "2023"
-        response = client.get(
-            f"{self.route_url}?date_from_day="
-            + day
-            + "&date_from_month="
-            + month
-            + "&date_from_year="
-            + year
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
-                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_date_to_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and provide a date range with only date to value as filter in text input field
-        Then they should see two records matches to date last transferred less than or equal to date to filter value
-        on browse page content.
-        """
-        mock_superuser(client)
-        day = "26"
-        month = "04"
-        year = "2023"
-        response = client.get(
-            f"{self.route_url}?date_to_day="
-            + day
-            + "&date_to_month="
-            + month
-            + "&date_to_year="
-            + year
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'first_body', 'first_series', '07/02/2023', '3', '2', "
-                "'second_body', 'second_series', '26/04/2023', '7', '2'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_date_from_and_date_to_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and provide a date range with date from and date to value as filter in text input field
-        Then they should see three records matches to date last transferred between date from and date to filter value
-        on browse page content.
-        """
-        mock_superuser(client)
-        date_from_day = "01"
-        date_from_month = "08"
-        date_from_year = "2023"
-        date_to_day = "31"
-        date_to_month = "10"
-        date_to_year = "2023"
-        response = client.get(
-            f"{self.route_url}?date_from_day="
-            + date_from_day
-            + "&date_from_month="
-            + date_from_month
-            + "&date_from_year="
-            + date_from_year
-            + "&date_to_day="
-            + date_to_day
-            + "&date_to_month="
-            + date_to_month
-            + "&date_to_year="
-            + date_to_year
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
-                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_transferring_body_and_series_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and select transferring body as filter from dropdown list
-        and provide a series value as filter in text input field
-        Then they should see one record matches to transferring body name and series name on browse page content.
-        """
-        mock_superuser(client)
-        transferring_body = "fif"
-        series = "fi"
-        response = client.get(
-            f"{self.route_url}?transferring_body_filter="
-            + transferring_body
-            + "&series_filter="
-            + series
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_transferring_body_and_date_from_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and select transferring body as filter from dropdown list
-        and provide a date range with only date from value as filter in text input field
-        Then they should see one record matches to transferring body name
-        and date last transferred greater than or equal to date from filter value
-        on browse page content.
-        """
-        mock_superuser(client)
-        transferring_body = "fifth"
-        day = "01"
-        month = "09"
-        year = "2023"
-        response = client.get(
-            f"{self.route_url}?transferring_body_filter="
-            + transferring_body
-            + "&date_from_day="
-            + day
-            + "&date_from_month="
-            + month
-            + "&date_from_year="
-            + year
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_transferring_body_and_date_to_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and select transferring body as filter from dropdown list
-        and provide a date range with only date to value as filter in text input field
-        Then they should see one record matches to transferring body name
-        and date last transferred less than or equal to date to filter value
-        on browse page content.
-        """
-        mock_superuser(client)
-        transferring_body = "fifth"
-        day = "21"
-        month = "09"
-        year = "2023"
-        response = client.get(
-            f"{self.route_url}?transferring_body_filter="
-            + transferring_body
-            + "&date_to_day="
-            + day
-            + "&date_to_month="
-            + month
-            + "&date_to_year="
-            + year
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_transferring_body_and_date_from_and_date_to_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and select transferring body as filter from dropdown list
-        and provide a date range with date from and date to value as filter in text input field
-        Then they should see two records matches to transferring body name
-        and date last transferred between date from and date to filter value
-        on browse page content.
-        """
-        mock_superuser(client)
-        transferring_body = "f"
-        date_from_day = "01"
-        date_from_month = "08"
-        date_from_year = "2023"
-        date_to_day = "31"
-        date_to_month = "10"
-        date_to_year = "2023"
-        response = client.get(
-            f"{self.route_url}?transferring_body_filter="
-            + transferring_body
-            + "&date_from_day="
-            + date_from_day
-            + "&date_from_month="
-            + date_from_month
-            + "&date_from_year="
-            + date_from_year
-            + "&date_to_day="
-            + date_to_day
-            + "&date_to_month="
-            + date_to_month
-            + "&date_to_year="
-            + date_to_year
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_series_and_date_from_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and provide a series value as filter in text input field
-        and provide a date range with only date from value as filter in text input field
-        Then they should see one record matches to series name
-        and date last transferred greater than or equal to date from filter value
-        on browse page content.
-        """
-        mock_superuser(client)
-        series = "fifth"
-        day = "01"
-        month = "09"
-        year = "2023"
-        response = client.get(
-            f"{self.route_url}?series_filter="
-            + series
-            + "&date_from_day="
-            + day
-            + "&date_from_month="
-            + month
-            + "&date_from_year="
-            + year
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_series_and_date_to_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and provide a series value as filter in text input field
-        and provide a date range with only date to value as filter in text input field
-        Then they should see one record matches to series name
-        and date last transferred less than or equal to date to filter value
-        on browse page content.
-        """
-        mock_superuser(client)
-        series = "fifth"
-        day = "21"
-        month = "09"
-        year = "2023"
-        response = client.get(
-            f"{self.route_url}?series_filter="
-            + series
-            + "&date_to_day="
-            + day
-            + "&date_to_month="
-            + month
-            + "&date_to_year="
-            + year
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_series_and_date_from_and_date_to_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and provide a series value as filter in text input field
-        and provide a date range with date from and date to value as filter in text input field
-        Then they should see one record matches to series name
-        and date last transferred between date from and date to filter value
-        on browse page content.
-        """
-        mock_superuser(client)
-        series = "fou"
-        date_from_day = "01"
-        date_from_month = "08"
-        date_from_year = "2023"
-        date_to_day = "31"
-        date_to_month = "10"
-        date_to_year = "2023"
-        response = client.get(
-            f"{self.route_url}?series_filter="
-            + series
-            + "&date_from_day="
-            + date_from_day
-            + "&date_from_month="
-            + date_from_month
-            + "&date_from_year="
-            + date_from_year
-            + "&date_to_day="
-            + date_to_day
-            + "&date_to_month="
-            + date_to_month
-            + "&date_to_year="
-            + date_to_year
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            ["'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_transferring_body_and_series_and_date_from_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and select transferring body as filter from dropdown list
-        and provide a series value as filter in text input field
-        and provide a date range with only date from value as filter in text input field
-        Then they should see one record matches to transferring body name, series_name
-        and date last transferred greater than or equal to date from filter value
-        on browse page content.
-        """
-        mock_superuser(client)
-        transferring_body = "fi"
-        series = "fifth"
-        day = "01"
-        month = "09"
-        year = "2023"
-        response = client.get(
-            f"{self.route_url}?transferring_body_filter="
-            + transferring_body
-            + "&series_filter="
-            + series
-            + "&date_from_day="
-            + day
-            + "&date_from_month="
-            + month
-            + "&date_from_year="
-            + year
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_transferring_body_and_series_and_date_to_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and select transferring body as filter from dropdown list
-        and provide a series value as filter in text input field
-        and provide a date range with only date to value as filter in text input field
-        Then they should see one record matches to transferring body name, series_name
-        and date last transferred less than or equal to date to filter value
-        on browse page content.
-        """
-        mock_superuser(client)
-        transferring_body = "fi"
-        series = "fifth"
-        day = "21"
-        month = "09"
-        year = "2023"
-        response = client.get(
-            f"{self.route_url}?transferring_body_filter="
-            + transferring_body
-            + "&series_filter="
-            + series
-            + "&date_to_day="
-            + day
-            + "&date_to_month="
-            + month
-            + "&date_to_year="
-            + year
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            ["'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_with_transferring_body_and_series_and_date_from_and_date_to_filter(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and select transferring body as filter from dropdown list
-        and provide a series value as filter in text input field
-        and provide a date range with date from and date to value as filter in text input field
-        Then they should see one record matches to transferring body name, series_name
-        and date last transferred between date from and date to filter value
-        on browse page content.
-        """
-        mock_superuser(client)
-        transferring_body = "fo"
-        series = "fou"
-        date_from_day = "01"
-        date_from_month = "08"
-        date_from_year = "2023"
-        date_to_day = "31"
-        date_to_month = "10"
-        date_to_year = "2023"
-        response = client.get(
-            f"{self.route_url}?transferring_body_filter="
-            + transferring_body
-            + "&series_filter="
-            + series
-            + "&date_from_day="
-            + date_from_day
-            + "&date_from_month="
-            + date_from_month
-            + "&date_from_year="
-            + date_from_year
-            + "&date_to_day="
-            + date_to_day
-            + "&date_to_month="
-            + date_to_month
-            + "&date_to_year="
-            + date_to_year
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            ["'fourth_body', 'fourth_series', '03/08/2023', '6', '2'"],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
+        verify_data_rows(response.data, expected_results)
 
     def test_browse_display_first_page(
         self, client: FlaskClient, app, mock_superuser, browse_files
@@ -1097,193 +580,3 @@ class TestBrowse:
 
         assert not previous_option
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"
-
-    def test_browse_with_transferring_body_sorting_a_to_z(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they select sorting option as transferring body ascending (A to Z)
-        Then they should see first five records sorted in alphabetic order of transferring body (A to Z)
-        on browse page content.
-        """
-        mock_superuser(client)
-
-        response = client.get(f"{self.route_url}?sort=transferring_body-asc")
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
-                "'first_body', 'first_series', '07/02/2023', '3', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
-                "'second_body', 'second_series', '26/04/2023', '7', '2', "
-                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_with_transferring_body_sorting_z_to_a(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they select sorting option as transferring body descending (Z to A)
-        Then they should see first five records sorted in reverse alphabetic order of transferring body (Z to A)
-        on browse page content.
-        """
-        mock_superuser(client)
-
-        response = client.get(f"{self.route_url}?sort=transferring_body-desc")
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'third_body', 'third_series', '17/06/2023', '3', '2', "
-                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
-                "'second_body', 'second_series', '26/04/2023', '7', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
-                "'first_body', 'first_series', '07/02/2023', '3', '2'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_with_series_sorting_a_to_z(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they select sorting option as series ascending (A to Z)
-        Then they should see first five records sorted in alphabetic order of series (A to Z)
-        on browse page content.
-        """
-        mock_superuser(client)
-
-        response = client.get(f"{self.route_url}?sort=series-asc")
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
-                "'first_body', 'first_series', '07/02/2023', '3', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
-                "'second_body', 'second_series', '26/04/2023', '7', '2', "
-                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_with_series_sorting_z_to_a(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they select sorting option as series descending (Z to A)
-        Then they should see first five records sorted in reverse alphabetic order of series (Z to A)
-        on browse page content.
-        """
-        mock_superuser(client)
-
-        response = client.get(f"{self.route_url}?sort=series-desc")
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'third_body', 'third_series', '17/06/2023', '3', '2', "
-                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
-                "'second_body', 'second_series', '26/04/2023', '7', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
-                "'first_body', 'first_series', '07/02/2023', '3', '2'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_with_date_consignment_transferred_sorting_oldest_first(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they select sorting option as date consignment transferred ascending
-        Then they should see first five records sorted in oldest date first order of date consignment transferred
-        on browse page content.
-        """
-        mock_superuser(client)
-
-        response = client.get(
-            f"{self.route_url}?sort=last_record_transferred-asc"
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'first_body', 'first_series', '07/02/2023', '3', '2', "
-                "'second_body', 'second_series', '26/04/2023', '7', '2', "
-                "'third_body', 'third_series', '17/06/2023', '3', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_with_date_consignment_transferred_sorting_most_recent_first(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they select sorting option as date consignment transferred descending
-        Then they should see first five records sorted in most recent date first order of date consignment transferred
-        on browse page content.
-        """
-        mock_superuser(client)
-
-        response = client.get(
-            f"{self.route_url}?sort=last_record_transferred-desc"
-        )
-
-        assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
-                "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
-                "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
-                "'third_body', 'third_series', '17/06/2023', '3', '2', "
-                "'second_body', 'second_series', '26/04/2023', '7', '2'"
-            ],
-        ]
-
-        verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
-
-    def test_browse_get_filter_no_results(
-        self, client: FlaskClient, mock_superuser, browse_files
-    ):
-        """
-        Given a superuser accessing the browse page
-        When they make a GET request with page as a query string parameter
-        and enter a filter value for series
-        Then If series filter does not return any records they should see empty table with header rows
-        on browse page content.
-        """
-        mock_superuser(client)
-        series = "junk"
-        response = client.get(f"{self.route_url}?series=" + series)
-
-        assert response.status_code == 200
-
-        verify_browse_view_header_row(response.data)

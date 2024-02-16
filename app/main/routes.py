@@ -14,6 +14,7 @@ from flask import (
     url_for,
 )
 from flask_wtf.csrf import CSRFError
+from sqlalchemy import func
 from werkzeug.exceptions import HTTPException
 
 from app.main import bp
@@ -24,9 +25,12 @@ from app.main.authorize.ayr_user import AYRUser
 from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
 )
-from app.main.db.models import Body, Consignment, File, Series
+from app.main.db.models import Body, Consignment, File, Series, db
 from app.main.db.queries import (
-    browse_data,
+    build_browse_all_query,
+    build_browse_consignment_query,
+    build_browse_series_query,
+    build_browse_transferring_body_query,
     build_fuzzy_search_query,
     get_file_metadata,
 )
@@ -92,106 +96,232 @@ def accessibility():
     return render_template("accessibility.html")
 
 
-@bp.route("/browse", methods=["POST", "GET"])
+@bp.route("/browse", methods=["GET"])
 @access_token_sign_in_required
 def browse():
     form = SearchForm()
     page = int(request.args.get("page", 1))
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
-
-    transferring_body_id = request.args.get("transferring_body_id", None)
-    series_id = request.args.get("series_id", None)
-    consignment_id = request.args.get("consignment_id", None)
-
-    browse_type = "browse"
-    browse_parameters = {}
-    filters = {}
-    sorting_orders = {}
-    breadcrumb_values = {}
     transferring_bodies = []
 
-    if browse_type == "browse":
-        ayr_user = AYRUser(session.get("user_groups"))
-        if ayr_user.is_superuser:
-            for body in Body.query.all():
-                transferring_bodies.append(body.Name)
-        filters = build_filters(request.args)
-        sorting_orders = build_sorting_orders(request.args)
-
-    if transferring_body_id:
-        browse_type = "transferring_body"
-        browse_parameters["transferring_body_id"] = transferring_body_id
-        breadcrumb_values = {
-            0: {"transferring_body": Body.query.get(transferring_body_id).Name}
-        }
-        filters = build_filters(request.args)
-        sorting_orders = build_sorting_orders(request.args)
-
-    elif series_id:
-        browse_type = "series"
-        browse_parameters["series_id"] = series_id
-        series = Series.query.get(series_id)
-        body = series.body
-        breadcrumb_values = {
-            0: {"transferring_body_id": body.BodyId},
-            1: {"transferring_body": body.Name},
-            2: {"series": series.Name},
-        }
-
-        filters = build_filters(request.args)
-        sorting_orders = build_sorting_orders(request.args)
-
-    elif consignment_id:
-        browse_type = "consignment"
-        browse_parameters["consignment_id"] = consignment_id
-
-        consignment = Consignment.query.get(consignment_id)
-        body = consignment.series.body
-        series = consignment.series
-        breadcrumb_values = {
-            0: {"transferring_body_id": body.BodyId},
-            1: {"transferring_body": body.Name},
-            2: {"series_id": series.SeriesId},
-            3: {"series": series.Name},
-            4: {"consignment_reference": consignment.ConsignmentReference},
-        }
-
-        filters = build_browse_consignment_filters(request.args)
-        sorting_orders = build_sorting_orders(request.args)
+    ayr_user = AYRUser(session.get("user_groups"))
+    if ayr_user.is_standard_user:
+        return redirect(
+            f"/browse/transferring_body/{ayr_user.transferring_body.BodyId}"
+        )
     else:
-        ayr_user = AYRUser(session.get("user_groups"))
-        if ayr_user.is_standard_user:
-            return redirect(
-                f"/browse?transferring_body_id={ayr_user.transferring_body.BodyId}"
-            )
+        # all access user (superuser)
+        for body in Body.query.all():
+            transferring_bodies.append(body.Name)
 
-    browse_results = browse_data(
-        page=page,
-        per_page=per_page,
-        browse_type=browse_type,
+        filters = build_filters(request.args)
+        sorting_orders = build_sorting_orders(request.args)
+
+        query = build_browse_all_query(
+            filters=filters,
+            sorting_orders=sorting_orders,
+        )
+
+        browse_results = query.paginate(page=page, per_page=per_page)
+
+        total_records = db.session.query(
+            func.sum(query.subquery().c.records_held)
+        ).scalar()
+        if total_records:
+            num_records_found = total_records
+        else:
+            num_records_found = 0
+
+        return render_template(
+            "browse.html",
+            form=form,
+            current_page=page,
+            browse_type="browse",
+            results=browse_results,
+            transferring_bodies=transferring_bodies,
+            filters=filters,
+            sorting_orders=sorting_orders,
+            num_records_found=num_records_found,
+            dict_args={
+                k: v for k, v in request.args.items() if k not in "page"
+            },
+        )
+
+
+@bp.route("/browse/transferring_body/<uuid:_id>", methods=["GET"])
+@access_token_sign_in_required
+def browse_transferring_body(_id: uuid.UUID):
+    """
+    Render the browse transferring body view page.
+
+    This function retrieves search results for a specific
+    record(s) based on the 'transferring_body_id' provided in the query parameters, and renders
+    the list of results on the 'browse-transferring-body.html' template.
+
+    Returns:
+        A rendered HTML page with transferring body records.
+    """
+    form = SearchForm()
+
+    page = int(request.args.get("page", 1))
+    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
+
+    breadcrumb_values = {0: {"transferring_body": Body.query.get(_id).Name}}
+    filters = build_filters(request.args)
+    sorting_orders = build_sorting_orders(request.args)
+
+    query = build_browse_transferring_body_query(
+        transferring_body_id=_id,
         filters=filters,
         sorting_orders=sorting_orders,
-        **browse_parameters,
     )
 
-    num_records_found = browse_results.total
+    browse_results = query.paginate(page=page, per_page=per_page)
+
+    total_records = db.session.query(
+        func.sum(query.subquery().c.records_held)
+    ).scalar()
+    if total_records:
+        num_records_found = total_records
+    else:
+        num_records_found = 0
 
     return render_template(
         "browse.html",
         form=form,
         current_page=page,
-        filters=browse_parameters,
-        browse_type=browse_type,
+        browse_type="transferring_body",
         results=browse_results,
-        transferring_bodies=transferring_bodies,
         breadcrumb_values=breadcrumb_values,
-        user_filters=filters,
+        filters=filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
+        dict_args={k: v for k, v in request.args.items() if k not in "page"},
     )
 
 
-@bp.route("/search", methods=["POST", "GET"])
+@bp.route("/browse/series/<uuid:_id>", methods=["GET"])
+@access_token_sign_in_required
+def browse_series(_id: uuid.UUID):
+    """
+    Render the browse series view page.
+
+    This function retrieves search results for a specific
+    record(s) based on the 'series_id' provided in the query parameters, and renders
+    the list of results on the 'browse-series.html' template.
+
+    Returns:
+        A rendered HTML page with series records.
+    """
+    form = SearchForm()
+    page = int(request.args.get("page", 1))
+    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
+
+    series = Series.query.get(_id)
+    body = series.body
+    breadcrumb_values = {
+        0: {"transferring_body_id": body.BodyId},
+        1: {"transferring_body": body.Name},
+        2: {"series": series.Name},
+    }
+
+    filters = build_filters(request.args)
+    sorting_orders = build_sorting_orders(request.args)
+
+    query = build_browse_series_query(
+        series_id=_id,
+        filters=filters,
+        sorting_orders=sorting_orders,
+    )
+
+    browse_results = query.paginate(page=page, per_page=per_page)
+
+    total_records = db.session.query(
+        func.sum(query.subquery().c.records_held)
+    ).scalar()
+    if total_records:
+        num_records_found = total_records
+    else:
+        num_records_found = 0
+
+    return render_template(
+        "browse.html",
+        form=form,
+        current_page=page,
+        browse_type="series",
+        results=browse_results,
+        breadcrumb_values=breadcrumb_values,
+        filters=filters,
+        sorting_orders=sorting_orders,
+        num_records_found=num_records_found,
+        dict_args={k: v for k, v in request.args.items() if k not in "page"},
+    )
+
+
+@bp.route("/browse/consignment/<uuid:_id>", methods=["GET"])
+@access_token_sign_in_required
+def browse_consignment(_id: uuid.UUID):
+    """
+    Render the browse consignment view page.
+
+    This function retrieves search results for a specific
+    record(s) based on the 'consignment_id' provided in the query parameters, and renders
+    the list of results on the 'browse-consignment.html' template.
+
+    Returns:
+        A rendered HTML page with consignment records.
+    """
+    form = SearchForm()
+    page = int(request.args.get("page", 1))
+    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
+
+    consignment = Consignment.query.get(_id)
+    body = consignment.series.body
+    series = consignment.series
+    breadcrumb_values = {
+        0: {"transferring_body_id": body.BodyId},
+        1: {"transferring_body": body.Name},
+        2: {"series_id": series.SeriesId},
+        3: {"series": series.Name},
+        4: {"consignment_reference": consignment.ConsignmentReference},
+    }
+
+    filters = build_browse_consignment_filters(request.args)
+    sorting_orders = build_sorting_orders(request.args)
+
+    # set default sort for consignment view
+    if len(sorting_orders) == 0:
+        sorting_orders["closure_type"] = "asc"
+
+    query = build_browse_consignment_query(
+        consignment_id=_id,
+        filters=filters,
+        sorting_orders=sorting_orders,
+    )
+
+    browse_results = query.paginate(page=page, per_page=per_page)
+
+    total_records = query.count()
+    if total_records:
+        num_records_found = total_records
+    else:
+        num_records_found = 0
+
+    return render_template(
+        "browse.html",
+        form=form,
+        current_page=page,
+        browse_type="consignment",
+        results=browse_results,
+        breadcrumb_values=breadcrumb_values,
+        filters=filters,
+        sorting_orders=sorting_orders,
+        num_records_found=num_records_found,
+        dict_args={k: v for k, v in request.args.items() if k not in "page"},
+    )
+
+
+@bp.route("/search", methods=["GET"])
 @access_token_sign_in_required
 def search():
     form = SearchForm()
@@ -226,6 +356,7 @@ def search():
         results=search_results,
         num_records_found=num_records_found,
         sorting_orders=sorting_orders,
+        dict_args={k: v for k, v in request.args.items() if k not in "page"},
     )
 
 

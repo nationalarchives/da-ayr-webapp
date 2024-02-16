@@ -17,10 +17,8 @@
 {% with dict = breadcrumbs %}
     {% include "breadcrumb.html" %}
 {% endwith %}
-<form action="{{ url_for('main.browse') }}" method="get">
-    <input type="hidden"
-           name="consignment_id"
-           value="{{ filters['consignment_id'] }}">
+<form action="{{ url_for('main.browse_consignment', _id=request.view_args['_id']) }}"
+      method="get">
     {% if view_type == "desktop" %}
         <!-- SORT -->
         <div class="govuk-form-group sort-container__form">
@@ -81,7 +79,7 @@
                         <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
                             <div class="govuk-radios__item govuk-radios__item--consignment-radio-buttons">
                                 <input class="govuk-radios__input" id="recordStatus-closed" name="record_status"
-                                    type="radio" value="closed" {% if user_filters["record_status"]=='closed' %}checked{%
+                                    type="radio" value="closed" {% if filters["record_status"]=='closed' %}checked{%
                                     endif %}>
                                     <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                            for="recordStatus-closed">Closed only</label>
@@ -92,14 +90,14 @@
                                            name="record_status"
                                            type="radio"
                                            value="open"
-                                           {% if user_filters["record_status"]=='open' %}checked{% endif %}>
+                                           {% if filters["record_status"]=='open' %}checked{% endif %}>
                                     <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                            for="recordStatus-open">Open only</label>
                                 </div>
                                 <div class="govuk-radios__item govuk-radios__item--consignment">
                                     <input class="govuk-radios__input" id="recordStatus-all" name="record_status" type="radio"
-                                        value="all" {% if user_filters["record_status"]=='all' %}checked{% endif %} {% if not
-                                        user_filters["record_status"] %}checked{% endif %}>
+                                        value="all" {% if filters["record_status"]=='all' %}checked{% endif %} {% if not
+                                        filters["record_status"] %}checked{% endif %}>
                                         <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                                for="recordStatus-all">All records</label>
                                     </div>
@@ -116,13 +114,13 @@
                                     <div class="govuk-radios__item">
                                         <input class="govuk-radios__input" id="date_last_modified" name="date_filter_field"
                                             type="radio" value="date_last_modified" {% if
-                                            user_filters["date_filter_field"]=='date_last_modified' %}checked{% endif %}>
+                                            filters["date_filter_field"]=='date_last_modified' %}checked{% endif %}>
                                             <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                                    for="date_last_modified">File last modified</label>
                                         </div>
                                         <div class="govuk-radios__item">
                                             <input class="govuk-radios__input" id="opening_date" name="date_filter_field" type="radio"
-                                                value="opening_date" {% if user_filters["date_filter_field"]=='opening_date'
+                                                value="opening_date" {% if filters["date_filter_field"]=='opening_date'
                                                 %}checked{% endif %}>
                                                 <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                                        for="opening_date">Record opening date</label>
@@ -136,11 +134,18 @@
                                             class="govuk-button govuk-button__browse-all-filters-form-apply-button"
                                             data-module="govuk-button">Apply filters</button>
                                     <a class="govuk-link govuk-link--consignment-filter"
-                                       href="{{ url_for('main.browse',consignment_id = filters['consignment_id'], sort=request.args.get('sort')) }}">Clear filters</a>
+                                       href="{{ url_for('main.browse_consignment',_id = request.view_args['_id'], sort=request.args.get('sort')) }}">Clear filters</a>
                                 </div>
                             </div>
                         </div>
                         <!-- END FILTERS -->
+                        <!-- PAGINATION -->
+                        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
+                            {% with view_name= 'main.browse_consignment', id = request.view_args['_id'] %}
+                                {% include "pagination.html" %}
+                            {% endwith %}
+                        </div>
+                        <!-- END PAGINATION -->
                     {% else %}
                         <!-- MOBILE FILTERS -->
                         <div class="mobile-filters">
@@ -165,7 +170,7 @@
                                                     <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
                                                         <div class="govuk-radios__item govuk-radios__item--consignment-radio-buttons">
                                                             <input class="govuk-radios__input" id="recordStatus-closed" name="record_status"
-                                                                type="radio" value="closed" {% if user_filters["record_status"]=='closed' %}checked{%
+                                                                type="radio" value="closed" {% if filters["record_status"]=='closed' %}checked{%
                                                                 endif %}>
                                                                 <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                                                        for="recordStatus-closed">Closed only</label>
@@ -176,14 +181,14 @@
                                                                        name="record_status"
                                                                        type="radio"
                                                                        value="open"
-                                                                       {% if user_filters["record_status"]=='open' %}checked{% endif %}>
+                                                                       {% if filters["record_status"]=='open' %}checked{% endif %}>
                                                                 <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                                                        for="recordStatus-open">Open only</label>
                                                             </div>
                                                             <div class="govuk-radios__item govuk-radios__item--consignment">
                                                                 <input class="govuk-radios__input" id="recordStatus-all" name="record_status" type="radio"
-                                                                    value="all" {% if user_filters["record_status"]=='all' %}checked{% endif %} {% if not
-                                                                    user_filters["record_status"] %}checked{% endif %}>
+                                                                    value="all" {% if filters["record_status"]=='all' %}checked{% endif %} {% if not
+                                                                    filters["record_status"] %}checked{% endif %}>
                                                                     <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                                                            for="recordStatus-all">All records</label>
                                                                 </div>
@@ -200,7 +205,7 @@
                                                                 <div class="govuk-radios__item">
                                                                     <input class="govuk-radios__input" id="date_last_modified" name="date_filter_field"
                                                                         type="radio" value="date_last_modified" {% if
-                                                                        user_filters["date_filter_field"]=='date_last_modified' %}checked{% endif %}>
+                                                                        filters["date_filter_field"]=='date_last_modified' %}checked{% endif %}>
                                                                         <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                                                                for="date_last_modified">
                                                                             File last modified
@@ -208,7 +213,7 @@
                                                                     </div>
                                                                     <div class="govuk-radios__item">
                                                                         <input class="govuk-radios__input" id="opening_date" name="date_filter_field" type="radio"
-                                                                            value="opening_date" {% if user_filters["date_filter_field"]=='opening_date'
+                                                                            value="opening_date" {% if filters["date_filter_field"]=='opening_date'
                                                                             %}checked{% endif %}>
                                                                             <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                                                                    for="opening_date">
@@ -226,7 +231,7 @@
                                                                     Apply filters
                                                                 </button>
                                                                 <a class="govuk-link govuk-link--consignment-filter"
-                                                                   href="{{ url_for('main.browse',consignment_id = filters['consignment_id'], sort=request.args.get('sort')) }}">Clear filters</a>
+                                                                   href="{{ url_for('main.browse_consignment', _id = request.view_args['_id'], sort=request.args.get('sort')) }}">Clear filters</a>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -276,5 +281,12 @@
                                                 {% endfor %}
                                             </tbody>
                                         </table>
+                                        <!-- PAGINATION -->
+                                        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
+                                            {% with view_name= 'main.browse_consignment', id = request.view_args['_id'] %}
+                                                {% include "pagination.html" %}
+                                            {% endwith %}
+                                        </div>
+                                        <!-- END PAGINATION -->
                                     {% endif %}
                                 </form>

@@ -3,48 +3,8 @@ import uuid
 from flask import current_app
 from sqlalchemy import DATE, and_, desc, func, or_
 
-from app.main.authorize.permissions_helpers import (
-    validate_body_user_groups_or_404,
-)
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 from app.main.util.date_formatter import validate_date_range
-
-
-def browse_data(
-    page,
-    per_page,
-    browse_type="browse",
-    filters=None,
-    sorting_orders=None,
-    transferring_body_id=None,
-    series_id=None,
-    consignment_id=None,
-):
-    if browse_type == "transferring_body":
-        body = Body.query.get_or_404(transferring_body_id)
-        validate_body_user_groups_or_404(body.Name)
-        browse_query = build_transferring_body_view_query(
-            transferring_body_id, filters, sorting_orders
-        )
-    elif browse_type == "series":
-        series = Series.query.get_or_404(series_id)
-        validate_body_user_groups_or_404(series.body.Name)
-        browse_query = build_series_view_query(
-            series_id, filters, sorting_orders
-        )
-    elif browse_type == "consignment":
-        consignment = Consignment.query.get_or_404(consignment_id)
-        validate_body_user_groups_or_404(consignment.series.body.Name)
-
-        browse_query = build_consignment_view_query(
-            consignment_id,
-            filters,
-            sorting_orders,
-        )
-    else:
-        browse_query = build_browse_everything_query(filters, sorting_orders)
-
-    return browse_query.paginate(page=page, per_page=per_page)
 
 
 def build_fuzzy_search_query(query_string: str):
@@ -99,7 +59,7 @@ def build_fuzzy_search_query(query_string: str):
     return query
 
 
-def build_browse_everything_query(filters, sorting_orders):
+def build_browse_all_query(filters=None, sorting_orders=None):
     sub_query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
@@ -147,8 +107,8 @@ def build_browse_everything_query(filters, sorting_orders):
     return query
 
 
-def build_transferring_body_view_query(
-    transferring_body_id, filters, sorting_orders
+def build_browse_transferring_body_query(
+    transferring_body_id, filters=None, sorting_orders=None
 ):
     sub_query = (
         db.session.query(
@@ -200,7 +160,7 @@ def build_transferring_body_view_query(
     return query
 
 
-def build_series_view_query(series_id, filters, sorting_orders):
+def build_browse_series_query(series_id, filters=None, sorting_orders=None):
     sub_query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
@@ -253,10 +213,8 @@ def build_series_view_query(series_id, filters, sorting_orders):
     return query
 
 
-def build_consignment_view_query(
-    consignment_id: uuid.UUID,
-    filters,
-    sorting_orders,
+def build_browse_consignment_query(
+    consignment_id: uuid.UUID, filters=None, sorting_orders=None
 ):
     select = db.session.query(
         File.FileId.label("file_id"),

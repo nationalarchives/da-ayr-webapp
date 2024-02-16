@@ -5,7 +5,7 @@
         {% if results.has_prev == True %}
             <div class="govuk-pagination__prev">
                 <a class="govuk-link govuk-pagination__link"
-                   href="{{ url_for(view_name, page=current_page-1, **filters) }}"
+                   href="{% if id != None %} {{ url_for(view_name, _id=id, page=current_page-1, **dict_args) }} {% else %} {{ url_for(view_name, page=current_page-1, **dict_args) }} {% endif %}"
                    rel="prev">
                     <svg class="govuk-pagination__icon govuk-pagination__icon--prev"
                          xmlns="http://www.w3.org/2000/svg"
@@ -17,7 +17,8 @@
                         <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z">
                         </path>
                     </svg>
-                    <span class="govuk-pagination__link-title">Previous<span class="govuk-visually-hidden">page</span></span></a>
+                    <span class="govuk-pagination__link-title">Previous<span class="govuk-visually-hidden">page</span></span>
+                </a>
             </div>
         {% endif %}
         <ul class="govuk-pagination__list">
@@ -26,15 +27,14 @@
                     {% if page != current_page %}
                         <li class="govuk-pagination__item">
                             <a class="govuk-link govuk-pagination__link"
-                               href="{{ url_for(view_name, page=page, **filters) }}"
+                               href="{% if id != None %} {{ url_for(view_name, _id=id , page=page, **dict_args) }} {% else %} {{ url_for(view_name, page=page, **dict_args) }}{% endif %}"
                                aria-label="Page {{ page }}">{{ page }}</a>
                         </li>
                     {% else %}
                         <li class="govuk-pagination__item govuk-pagination__item--current">
                             <a class="govuk-link govuk-pagination__link"
-                               href="{{ url_for(view_name, page=page, **filters) }}"
-                               aria-label="Page {{ page }}"
-                               aria-current="page">{{ page }}</a>
+                               href="{% if id != None %} {{ url_for(view_name, _id=id , page=page, **dict_args) }} {% else %} {{ url_for(view_name, page=page, **dict_args) }} {% endif %}"
+                               aria-label="Page {{ page }}">{{ page }}</a>
                         </li>
                     {% endif %}
                 {% else %}
@@ -45,7 +45,7 @@
         {% if results.has_next == True %}
             <div class="govuk-pagination__next">
                 <a class="govuk-link govuk-pagination__link"
-                   href="{{ url_for(view_name, page=current_page+1, **filters) }}"
+                   href="{% if id != None %} {{ url_for(view_name, _id=id , page=current_page+1, **dict_args) }} {% else %} {{ url_for(view_name, page=current_page+1, **dict_args) }}{% endif %}"
                    rel="next">
                     <span class="govuk-pagination__link-title">Next<span class="govuk-visually-hidden">page</span></span>
                     <svg class="govuk-pagination__icon govuk-pagination__icon--next"
