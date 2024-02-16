@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+from flask import url_for
+
 
 @patch("app.main.routes.get_keycloak_instance_from_flask_config")
 def test_sign_in(mock_keycloak, client):
@@ -14,3 +16,51 @@ def test_sign_in(mock_keycloak, client):
         redirect_uri="http://localhost/callback",
         scope="group_mapper_client_scope",
     )
+
+
+@patch("app.main.routes.get_keycloak_instance_from_flask_config")
+def test_callback_route_superuser(mock_keycloak, client):
+    mock_keycloak.return_value.token.return_value = {
+        "access_token": "valid_access_token",
+        "refresh_token": "valid_refresh_token",
+    }
+    mock_keycloak.return_value.introspect.return_value = {
+        "groups": ["/ayr_user_type/view_all"]
+    }
+
+    with client.session_transaction() as sess:
+        sess["access_token"] = "valid_access_token"
+        sess["refresh_token"] = "valid_refresh_token"
+
+    response = client.get("/callback?code=valid_code")
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == url_for("main.browse")
+
+    with client.session_transaction() as sess:
+        assert "user_type" in sess
+        assert sess["user_type"] == "superuser"
+
+
+@patch("app.main.routes.get_keycloak_instance_from_flask_config")
+def test_callback_route_standard_user(mock_keycloak, client):
+    mock_keycloak.return_value.token.return_value = {
+        "access_token": "valid_access_token",
+        "refresh_token": "valid_refresh_token",
+    }
+    mock_keycloak.return_value.introspect.return_value = {
+        "groups": ["/ayr_user_type/view_dept"]
+    }
+
+    with client.session_transaction() as sess:
+        sess["access_token"] = "valid_access_token"
+        sess["refresh_token"] = "valid_refresh_token"
+
+    response = client.get("/callback?code=valid_code")
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == url_for("main.browse")
+
+    with client.session_transaction() as sess:
+        assert "user_type" in sess
+        assert sess["user_type"] == "standard_user"
