@@ -1,38 +1,20 @@
 import boto3
 from moto import mock_aws
 
-from app.tests.factories import ConsignmentFactory, FileFactory
-
-BUCKET = "test-download"
-CONSIGNMENT_REF = "TDR-123-TEST"
-FILE_PATH = "data/content/folder_a/test_file.txt"
-FILE_NAME = "test_file.txt"
+from app.tests.factories import FileFactory
 
 
-def mock_record():
-    """
-    Creates a dummy record to be used by tests
-    """
-    consignment = ConsignmentFactory(ConsignmentReference=CONSIGNMENT_REF)
-    file = FileFactory(
-        consignment=consignment,
-        FileName=FILE_NAME,
-        FilePath=FILE_PATH,
-        FileType="file",
-    )
-
-    return file
-
-
-def create_mock_s3_bucket_with_object():
+def create_mock_s3_bucket_with_object(bucket_name, file):
     """
     Creates a dummy bucket to be used by tests
     """
     s3 = boto3.resource("s3", region_name="us-east-1")
 
-    bucket = s3.create_bucket(Bucket=BUCKET)
+    bucket = s3.create_bucket(Bucket=bucket_name)
 
-    object = s3.Object(BUCKET, f"{CONSIGNMENT_REF}/{FILE_PATH}")
+    object = s3.Object(
+        bucket_name, f"{file.consignment.ConsignmentReference}/{file.FileId}"
+    )
     object.put(Body="record")
     return bucket
 
@@ -54,22 +36,26 @@ def test_downloads_record_successfully_for_user_with_access_to_files_transferrin
     app, client, mock_standard_user
 ):
     """
-    Given a File in the database
+    Given a File in the database with corresponding file in the s3 bucket
     When a standard user with access to the file's transferring body makes a
         request to download record
     Then the response status code should be 200
     And the file should contain the expected content
     """
-    create_mock_s3_bucket_with_object()
-    app.config["RECORD_BUCKET_NAME"] = BUCKET
-    file = mock_record()
+    bucket_name = "test_bucket"
+    file = FileFactory(
+        FileType="file",
+    )
+    create_mock_s3_bucket_with_object(bucket_name, file)
+    app.config["RECORD_BUCKET_NAME"] = bucket_name
+
     mock_standard_user(client, file.consignment.series.body.Name)
     response = client.get(f"/download/{file.FileId}")
 
     assert response.status_code == 200
     assert (
         response.headers["Content-Disposition"]
-        == f"attachment;filename={FILE_NAME}"
+        == f"attachment;filename={file.FileName}"
     )
     assert response.data == b"record"
 
@@ -84,9 +70,13 @@ def test_raises_404_for_user_without_access_to_files_transferring_body(
         request to download record
     Then the response status code should be 404
     """
-    create_mock_s3_bucket_with_object()
-    app.config["RECORD_BUCKET_NAME"] = BUCKET
-    file = mock_record()
+    bucket_name = "test_bucket"
+    file = FileFactory(
+        FileType="file",
+    )
+    create_mock_s3_bucket_with_object(bucket_name, file)
+    app.config["RECORD_BUCKET_NAME"] = bucket_name
+
     mock_standard_user(client, "different_body")
     response = client.get(f"/download/{file.FileId}")
 
@@ -103,9 +93,13 @@ def test_downloads_record_successfully_for_superuser(
     When the superuser makes a request to download record
     Then the response status code should be 200
     """
-    create_mock_s3_bucket_with_object()
-    app.config["RECORD_BUCKET_NAME"] = BUCKET
-    file = mock_record()
+    bucket_name = "test_bucket"
+    file = FileFactory(
+        FileType="file",
+    )
+    create_mock_s3_bucket_with_object(bucket_name, file)
+    app.config["RECORD_BUCKET_NAME"] = bucket_name
+
     mock_superuser(client)
     response = client.get(f"/download/{file.FileId}")
 
