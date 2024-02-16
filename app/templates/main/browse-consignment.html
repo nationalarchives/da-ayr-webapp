@@ -5,13 +5,14 @@
     "consignment": breadcrumb_values[4]["consignment_reference"]
 } %}
 {% set sorting_list = {
-    "Record status (closed first)": "closure_type-asc",
-    "Record status (open first)": "closure_type-desc",
-    "Record opening date (soonest first)": "opening_date-asc",
-    "Date last modified (most recent first)": "date_last_modified-desc",
-    "Date last modified (oldest first)": "date_last_modified-asc",
-    "Record filename (A to Z)": "file_name-asc",
-    "Record filename (Z to A)": "file_name-desc"
+    "Record date (most recent first)": "date_last_modified-desc",
+    "Record date (oldest first)": "date_last_modified-asc",
+    "Filename (A to Z)": "file_name-asc",
+    "Filename (Z to A)": "file_name-desc",
+    "Record opening (sooner)": "opening_date-asc",
+    "Record opening (later)": "opening_date-desc",
+    "Record status (closed)": "closure_type-asc",
+    "Record status (open)": "closure_type-desc"
 } %}
 <!-- BREAD CRUMB -->
 {% with dict = breadcrumbs %}
@@ -33,7 +34,7 @@
             <table class="govuk-table browse-grid__table" id="tbl_result">
                 <thead class="govuk-table__head">
                     <tr class="govuk-table__row">
-                        <th scope="col" class="govuk-table__header">Last modified</th>
+                        <th scope="col" class="govuk-table__header">Record date</th>
                         <th scope="col" class="govuk-table__header">Filename</th>
                         <th scope="col" class="govuk-table__header">Status</th>
                         <th scope="col" class="govuk-table__header">Record opening date</th>
@@ -118,7 +119,7 @@
                                             type="radio" value="date_last_modified" {% if
                                             user_filters["date_filter_field"]=='date_last_modified' %}checked{% endif %}>
                                             <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
-                                                   for="date_last_modified">File last modified</label>
+                                                   for="date_last_modified">Record date</label>
                                         </div>
                                         <div class="govuk-radios__item">
                                             <input class="govuk-radios__input" id="opening_date" name="date_filter_field" type="radio"
@@ -203,7 +204,7 @@
                                                                         user_filters["date_filter_field"]=='date_last_modified' %}checked{% endif %}>
                                                                         <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                                                                for="date_last_modified">
-                                                                            File last modified
+                                                                            Record date
                                                                         </label>
                                                                     </div>
                                                                     <div class="govuk-radios__item">
@@ -212,7 +213,7 @@
                                                                             %}checked{% endif %}>
                                                                             <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                                                                    for="opening_date">
-                                                                                Closure expiry
+                                                                                Record opening date
                                                                             </label>
                                                                         </div>
                                                                     </div>
@@ -243,9 +244,9 @@
                                         <table class="govuk-table govuk-mobile-table" id="tbl_result">
                                             <thead class="govuk-table__head govuk-mobile-table__head-border">
                                                 <tr class="govuk-table__row">
-                                                    <th scope="col" class="govuk-table__header">Last modified</th>
+                                                    <th scope="col" class="govuk-table__header">Record date</th>
                                                     <th scope="col" class="govuk-table__header govuk-table__header__right">Status</th>
-                                                    <th scope="col" class="govuk-table__header govuk-table__header__right">Closure expiry</th>
+                                                    <th scope="col" class="govuk-table__header govuk-table__header__right">Record opening date</th>
                                                 </tr>
                                             </thead>
                                             <tbody class="govuk-table__body">

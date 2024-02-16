@@ -24,6 +24,11 @@
   &-form-group {
     &__search-form {
       margin-bottom: 0;
+      margin-right: -8rem;
+
+      @include on-mobile {
+        margin-right: 0;
+      }
     }
   }
 
@@ -170,6 +175,7 @@
 
     &__content {
       margin: 0 auto;
+      width: 80%;
     }
   }
 

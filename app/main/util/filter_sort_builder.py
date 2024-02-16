@@ -25,7 +25,7 @@ def build_sorting_orders(args):
     if args:
         # set default sort for consignment view
         if args.get("consignment_id") and not args.get("sort"):
-            sorting_orders["closure_type"] = "asc"
+            sorting_orders["date_last_modified"] = "desc"
             return sorting_orders
         if args.get("sort"):
             sort_details = args.get("sort").split("-")

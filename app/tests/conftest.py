@@ -30,6 +30,7 @@ def mock_standard_user():
             session["access_token"] = "valid_access_token"
             session["refresh_token"] = "valid_refresh_token"
             session["user_groups"] = groups
+            session["user_type"] = "standard_user"
 
         mock_ayr_user = ayr_user_patcher.start()
         mock_keycloak = patcher.start()
@@ -63,6 +64,7 @@ def mock_superuser():
             session["access_token"] = "valid_access_token"
             session["refresh_token"] = "valid_refresh_token"
             session["user_groups"] = groups
+            session["user_type"] = "superuser"
 
         mock_ayr_user = ayr_user_patcher.start()
         mock_keycloak = patcher.start()

@@ -85,12 +85,13 @@ def verify_consignment_view_header_row(data):
     headers = table.find_all("th")
     expected_row = (
         [
-            "Last modified",
+            "Record date",
             "Filename",
             "Status",
             "Record opening date",
         ],
     )
+
     assert [
         header.text.replace("\n", " ").strip(" ") for header in headers
     ] == expected_row[0]
@@ -205,7 +206,7 @@ class TestBrowse:
 
         assert response.status_code == 200
         assert b"Search for digital records" in response.data
-        assert b"Records found 6" in response.data
+        assert b"Browse records 6" in response.data
 
     def test_browse_get_without_filter(
         self, client: FlaskClient, mock_superuser, browse_files
@@ -1375,7 +1376,7 @@ class TestBrowseTransferringBody:
 
         assert response.status_code == 200
         assert b"You are viewing" in response.data
-        assert b"Records found 3" in response.data
+        assert b"Browse records 3" in response.data
 
         expected_rows = [
             [
@@ -1535,7 +1536,7 @@ class TestBrowseTransferringBody:
 
         assert response.status_code == 200
         assert b"You are viewing" in response.data
-        assert b"Records found 3" in response.data
+        assert b"Browse records 3" in response.data
 
         html = response.data.decode()
 
@@ -2160,7 +2161,7 @@ class TestBrowseTransferringBody:
 
         assert response.status_code == 200
         assert b"You are viewing" in response.data
-        assert b"Records found 0" in response.data
+        assert b"Browse records 0" in response.data
 
         verify_transferring_body_view_header_row(response.data)
 
@@ -2182,7 +2183,7 @@ class TestSeries:
 
         assert response.status_code == 200
         assert b"You are viewing" in response.data
-        assert b"Records found 2" in response.data
+        assert b"Browse records 2" in response.data
 
         expected_rows = [
             [
@@ -2327,7 +2328,7 @@ class TestSeries:
 
         assert response.status_code == 200
         assert b"You are viewing" in response.data
-        assert b"Records found 2" in response.data
+        assert b"Browse records 2" in response.data
 
         html = response.data.decode()
 
@@ -2734,7 +2735,7 @@ class TestConsignment:
         Given a user accessing the browse page
         When they make a GET request with a consignment id
         Then they should see results based on consignment filter on browse page content
-        sorted by record status closed first as default.
+        sorted by record date most recent first as default.
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
@@ -2749,10 +2750,10 @@ class TestConsignment:
 
         expected_rows = [
             [
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
                 "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
                 "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                 "'15/01/2023', 'second_file.ppt', 'Open', '-'"
             ],
         ]
@@ -2823,7 +2824,7 @@ class TestConsignment:
         When they make a GET request with a consignment id
         and use date from and date to filter values
         Then they should see the results by date las modified between date from and date to value
-        and sorted by record status ascending default
+        and sorted by record date most recent by default
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
@@ -2849,8 +2850,8 @@ class TestConsignment:
 
         expected_rows = [
             [
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                 "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                 "'15/01/2023', 'second_file.ppt', 'Open', '-'"
             ],
         ]
@@ -2864,9 +2865,9 @@ class TestConsignment:
         """
         Given a user accessing the browse page
         When they make a GET request with a consignment id
-        and use date from filter with value and date last modified field
-        Then they should see the results by date last modified greater than or equal to date from value
-        and sorted by record status ascending default
+        and use date from filter with value and record date field
+        Then they should see the results by record date greater than or equal to date from value
+        and sorted by record date most recent by default
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
@@ -2889,10 +2890,10 @@ class TestConsignment:
 
         expected_rows = [
             [
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
                 "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
                 "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
-                "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                 "'15/01/2023', 'second_file.ppt', 'Open', '-'"
             ],
         ]
@@ -2906,9 +2907,9 @@ class TestConsignment:
         """
         Given a user accessing the browse page
         When they make a GET request with a consignment id
-        and use date to filter with value and date last modified field
-        Then they should see the results by date last modified less than or equal to date from value
-        and sorted by record status ascending default
+        and use date to filter with value and record date field
+        Then they should see the results by record date less than or equal to date from value
+        and sorted by record date most recent by default
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 
@@ -2931,8 +2932,8 @@ class TestConsignment:
 
         expected_rows = [
             [
-                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                 "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                 "'15/01/2023', 'second_file.ppt', 'Open', '-'"
             ],
         ]
@@ -3012,8 +3013,8 @@ class TestConsignment:
         """
         Given a user accessing the browse page
         When they make a GET request with a consignment id
-        and select sorting option as date last modified descending
-        Then they should see records sorted by date last modified most recent first
+        and select sorting option as record date descending
+        Then they should see records sorted by record date most recent first
         on browse page content.
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
@@ -3045,8 +3046,8 @@ class TestConsignment:
         """
         Given a user accessing the browse page
         When they make a GET request with a consignment id
-        and select sorting option as date last modified ascending
-        Then they should see records sorted by date last modified oldest first
+        and select sorting option as record date ascending
+        Then they should see records sorted by record date oldest first
         on browse page content.
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
@@ -3227,9 +3228,9 @@ class TestConsignment:
         """
         Given a user accessing the browse page
         When they make a GET request with a consignment id
-        and use date from filter with value and date last modified field
+        and use date from filter with value and record date field
         and use sorting by record status filter descending
-        Then they should see the results by date last modified greater than or equal to date from value
+        Then they should see the results by record date greater than or equal to date from value
         and sorted by record status in reverse alphabetic order (Z to A)
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
@@ -3272,9 +3273,9 @@ class TestConsignment:
         """
         Given a user accessing the browse page
         When they make a GET request with a consignment id
-        and use date to filter with value and date last modified field
+        and use date to filter with value and record date field
         and use sorting by record status filter descending
-        Then they should see the results by date last modified less than or equal to date from value
+        Then they should see the results by record date less than or equal to date from value
         and sorted by record status in reverse alphabetic order (Z to A)
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
@@ -3315,7 +3316,7 @@ class TestConsignment:
         """
         Given a user accessing the browse page
         When they make a GET request with a consignment id
-        and use date last modified filter with value
+        and use record date filter with value
         Then if database does not have records and no results found returned
         they should see empty header row on browse transferring body page content.
         """

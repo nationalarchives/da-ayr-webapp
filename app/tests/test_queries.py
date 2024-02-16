@@ -3924,9 +3924,9 @@ class TestBrowseConsignment:
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
         When I call the 'browse_data' function with the consignment id
-            and sort by date last modified ascending
+            and sort by record date ascending
         Then it returns a Pagination object with 5 total results
-            ordered by their date last modified as oldest first(ascending)
+            ordered by their record date as oldest first(ascending)
         """
 
         mock_standard_user(
@@ -4027,9 +4027,9 @@ class TestBrowseConsignment:
         And the session contains user info for a standard user with access to the consignment's
             associated transferring body
         When I call the 'browse_data' function with the consignment id
-            and sort by date last modified descending
+            and sort by record date descending
         Then it returns a Pagination object with 5 total results
-            ordered by their date last modified as most recent first(descending)
+            ordered by their record date as most recent first(descending)
         """
 
         mock_standard_user(
