@@ -278,16 +278,14 @@ def download_record(record_id: uuid.UUID):
 
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
-    file_metadata = get_file_metadata(record_id)
-    consignment_reference = file_metadata["consignment"]
-    file_path = file_metadata["file_path"]
-    key = f'{consignment_reference}/{file_path.rstrip("/")}'
-    file_name = file_metadata["file_name"]
-    file = s3.get_object(Bucket=bucket, Key=key)
+
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+
+    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
 
     response = Response(
-        file["Body"].read(),
-        headers={"Content-Disposition": "attachment;filename=" + file_name},
+        s3_file_object["Body"].read(),
+        headers={"Content-Disposition": "attachment;filename=" + file.FileName},
     )
 
     return response
