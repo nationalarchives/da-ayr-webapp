@@ -119,29 +119,7 @@
     </div>
     <!-- MOBILE -->
     <div class="govuk-grid-row govuk-grid-row--mobile">
-        <div class="mobile__search__container govuk-grid-column-full">
-            <div class="mobile__search__container__content">
-                <p class="govuk-body search__heading">Search for digital records</p>
-                <form method="post" action="{{ url_for('main.search') }}">
-                    {{ form.csrf_token }}
-                    <div class="govuk-form-group govuk-form-group__search-form">
-                        <label for="searchInput"></label>
-                        <input class="govuk-input govuk-!-width-three-quarters"
-                               id="searchInput"
-                               name="query"
-                               type="text">
-                        <p class="govuk-body-s mobile__search__text">
-                            Search using a record metadata term, for example – transferring body, series,
-                            consignment
-                            ref etc.
-                        </p>
-                        <button class="govuk-button govuk-button__search-button"
-                                data-module="govuk-button"
-                                type="submit">Search</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        {% include "top-search.html" %}
         <!--  -->
         <div class="mobile__search__container-block"></div>
         <div class="govuk-grid-row govuk-grid-row--record">

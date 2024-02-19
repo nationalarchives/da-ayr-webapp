@@ -311,10 +311,10 @@
     margin-bottom: -2rem;
   }
 
-  .mobile__search__container {
+  .search__container {
     display: flex;
     flex-direction: row;
-    margin-top: -2rem;
+    margin-top: 0;
     align-items: center;
     justify-content: center;
     background-color: #f3f2f1;
@@ -326,9 +326,9 @@
     order: 1;
   }
 
-  .record-mobile__search__container__content {
+  .search__container__content {
     background-color: #f3f2f1;
-    margin-top: -1rem;
+    margin-top: 0;
   }
 
   .govuk-heading-m__record-arrangement-mobile {
