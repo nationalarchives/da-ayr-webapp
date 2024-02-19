@@ -44,47 +44,49 @@
             <!-- END PAGINATION -->
         {% endif %}
     </div>
-    {% if results %}
-        <div class="govuk-width-container">
-            <!-- MOBILE SEARCH -->
-            {% include "top-search.html" %}
-            <!--  -->
-            <div class="mobile__search__container-block"></div>
-            <!-- TABLE -->
-            <div class="govuk-grid-column-full">
-                <div class="mobile-details">
-                    <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
-                    <p class="govuk-body browse__body">You are viewing</p>
-                    {% if browse_type == "browse" %}
-                        {% with view_type='mobile' %}
-                            {% include "browse-all.html" %}
-                        {% endwith %}
-                    {% endif %}
-                    {% if browse_type == "transferring_body" %}
-                        {% with view_type='mobile' %}
-                            {% include "browse-transferring-body.html" %}
-                        {% endwith %}
-                    {% endif %}
-                    {% if browse_type == "series" %}
-                        {% with view_type='mobile' %}
-                            {% include "browse-series.html" %}
-                        {% endwith %}
-                    {% endif %}
-                    {% if browse_type == "consignment" %}
-                        {% with view_type='mobile' %}
-                            {% include "browse-consignment.html" %}
-                        {% endwith %}
-                    {% endif %}
+    <!-- MOBILE SEARCH-->
+    <div class="govuk-grid-row browse__page mobile">
+        {{ super() }}
+        {% include "top-search.html" %}
+        {% if results %}
+            <div class="govuk-width-container">
+                <div class="mobile__search__container-block"></div>
+                <!-- TABLE -->
+                <div class="govuk-grid-column-full govuk-grid-column-full--browse">
+                    <div class="mobile-details">
+                        <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
+                        <p class="govuk-body browse__body">You are viewing</p>
+                        {% if browse_type == "browse" %}
+                            {% with view_type='mobile' %}
+                                {% include "browse-all.html" %}
+                            {% endwith %}
+                        {% endif %}
+                        {% if browse_type == "transferring_body" %}
+                            {% with view_type='mobile' %}
+                                {% include "browse-transferring-body.html" %}
+                            {% endwith %}
+                        {% endif %}
+                        {% if browse_type == "series" %}
+                            {% with view_type='mobile' %}
+                                {% include "browse-series.html" %}
+                            {% endwith %}
+                        {% endif %}
+                        {% if browse_type == "consignment" %}
+                            {% with view_type='mobile' %}
+                                {% include "browse-consignment.html" %}
+                            {% endwith %}
+                        {% endif %}
+                    </div>
                 </div>
+                <!-- END TABLE -->
+                <!-- PAGINATION -->
+                <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
+                    {% with view_name='main.browse' %}
+                        {% include "pagination.html" %}
+                    {% endwith %}
+                </div>
+                <!-- END PAGINATION -->
             </div>
-            <!-- END TABLE -->
-            <!-- PAGINATION -->
-            <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
-                {% with view_name='main.browse' %}
-                    {% include "pagination.html" %}
-                {% endwith %}
-            </div>
-            <!-- END PAGINATION -->
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
 {% endblock %}

@@ -517,4 +517,14 @@
     background-color: #fff;
     z-index: 1;
   }
+
+  .govuk-grid-column-full {
+    &--browse {
+      display: block;
+
+    }
+  }
+
+
+
 }
