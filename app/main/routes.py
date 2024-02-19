@@ -298,7 +298,7 @@ def browse_consignment(_id: uuid.UUID):
         filters=filters,
         sorting_orders=sorting_orders,
     )
-
+    print(query.subquery())
     browse_results = query.paginate(page=page, per_page=per_page)
 
     total_records = query.count()
