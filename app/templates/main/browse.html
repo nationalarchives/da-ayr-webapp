@@ -44,94 +44,47 @@
             <!-- END PAGINATION -->
         {% endif %}
     </div>
-    <!-- MOBILE -->
-    <div class="govuk-grid-row browse__page mobile">
-        {{ super() }}
-        <div class="search__container govuk-grid-column-full">
-            <div class="search__container__content">
-                <p class="govuk-body search__heading">Search for digital records</p>
-                <form method="get" action="{{ url_for('main.search') }}">
-                    <div class="govuk-form-group govuk-form-group__search-form">
-                        <label for="searchInput"></label>
-                        <input class="govuk-input govuk-!-width-three-quarters"
-                               id="searchInput"
-                               name="query"
-                               type="text">
-                        <button class="govuk-button govuk-button__search-button"
-                                data-module="govuk-button"
-                                type="submit">Search</button>
-                    </div>
-                    <p class="govuk-body-s">
-                        Search using a record metadata term, for example – transferring body, series,
-                        consignment
-                        ref etc.
-                    </p>
-                </form>
+    {% if results %}
+        <div class="govuk-width-container">
+            <!-- MOBILE SEARCH -->
+            {% include "top-search.html" %}
+            <!--  -->
+            <div class="mobile__search__container-block"></div>
+            <!-- TABLE -->
+            <div class="govuk-grid-column-full">
+                <div class="mobile-details">
+                    <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
+                    <p class="govuk-body browse__body">You are viewing</p>
+                    {% if browse_type == "browse" %}
+                        {% with view_type='mobile' %}
+                            {% include "browse-all.html" %}
+                        {% endwith %}
+                    {% endif %}
+                    {% if browse_type == "transferring_body" %}
+                        {% with view_type='mobile' %}
+                            {% include "browse-transferring-body.html" %}
+                        {% endwith %}
+                    {% endif %}
+                    {% if browse_type == "series" %}
+                        {% with view_type='mobile' %}
+                            {% include "browse-series.html" %}
+                        {% endwith %}
+                    {% endif %}
+                    {% if browse_type == "consignment" %}
+                        {% with view_type='mobile' %}
+                            {% include "browse-consignment.html" %}
+                        {% endwith %}
+                    {% endif %}
+                </div>
             </div>
+            <!-- END TABLE -->
+            <!-- PAGINATION -->
+            <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
+                {% with view_name='main.browse' %}
+                    {% include "pagination.html" %}
+                {% endwith %}
+            </div>
+            <!-- END PAGINATION -->
         </div>
-        {% if results %}
-            <div class="govuk-width-container">
-                <!-- MOBILE SEARCH -->
-                <div class="mobile__search__container govuk-grid-column-full">
-                    <div class="mobile__search__container__content">
-                        <p class="govuk-body search__heading">Search for digital records</p>
-                        <form method="get" action="{{ url_for('main.search') }}">
-                            <div class="govuk-form-group govuk-form-group__search-form">
-                                <label for="searchInput"></label>
-                                <input class="govuk-input govuk-!-width-three-quarters"
-                                       id="searchInput"
-                                       name="query"
-                                       type="text">
-                                <p class="govuk-body-s mobile__search__text">
-                                    Search using a record metadata term, for example – transferring body, series,
-                                    consignment
-                                    ref etc.
-                                </p>
-                                <button class="govuk-button govuk-button__search-button"
-                                        data-module="govuk-button"
-                                        type="submit">Search</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                <!--  -->
-                <div class="mobile__search__container-block"></div>
-                <!-- TABLE -->
-                <div class="govuk-grid-column-full">
-                    <div class="mobile-details">
-                        <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
-                        <p class="govuk-body browse__body">You are viewing</p>
-                        {% if browse_type == "browse" %}
-                            {% with view_type='mobile' %}
-                                {% include "browse-all.html" %}
-                            {% endwith %}
-                        {% endif %}
-                        {% if browse_type == "transferring_body" %}
-                            {% with view_type='mobile' %}
-                                {% include "browse-transferring-body.html" %}
-                            {% endwith %}
-                        {% endif %}
-                        {% if browse_type == "series" %}
-                            {% with view_type='mobile' %}
-                                {% include "browse-series.html" %}
-                            {% endwith %}
-                        {% endif %}
-                        {% if browse_type == "consignment" %}
-                            {% with view_type='mobile' %}
-                                {% include "browse-consignment.html" %}
-                            {% endwith %}
-                        {% endif %}
-                    </div>
-                </div>
-                <!-- END TABLE -->
-                <!-- PAGINATION -->
-                <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
-                    {% with view_name='main.browse' %}
-                        {% include "pagination.html" %}
-                    {% endwith %}
-                </div>
-                <!-- END PAGINATION -->
-            </div>
-        {% endif %}
-    </div>
+    {% endif %}
 {% endblock %}

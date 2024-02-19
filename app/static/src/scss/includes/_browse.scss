@@ -350,7 +350,7 @@
     flex-direction: column;
   }
 
-  .mobile__search__container {
+  .search__container {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -363,10 +363,10 @@
   }
 
   .mobile__search__container-block {
-    height: 13rem;
+    height: 16rem;
   }
 
-  .mobile__search__container__content {
+  .search__container__content {
     width: 90vw;
   }
 
@@ -374,10 +374,6 @@
     width: 80vw;
     margin-bottom: 0.5rem;
     margin-top: 0.3rem;
-  }
-
-  .search__container {
-    display: none;
   }
 
   .search__heading {
