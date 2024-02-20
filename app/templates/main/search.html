@@ -4,15 +4,15 @@
 {% block beforeContent %}{{ super() }}{% endblock %}
 {% block content %}
     {% set sorting_list = {
-            "Series (A to Z)": "series-asc",
-            "Series (Z to A)": "series-desc",
-            "Consignment reference (most recent first)": "consignment_reference-desc",
-            "Consignment reference (oldest first)": "consignment_reference-asc",
-            "Filename (A to Z)": "filename-asc",
-            "Filename (Z to A)": "filename-desc",
-            "Record opening (sooner)": “opening_date-desc”,
-            "Record opening (later)":  “opening_date-asc",
-        } %}
+        "Series (A to Z)": "series-asc",
+        "Series (Z to A)": "series-desc",
+        "Consignment reference (most recent first)": "consignment_reference-desc",
+        "Consignment reference (oldest first)": "consignment_reference-asc",
+        "Filename (A to Z)": "filename-asc",
+        "Filename (Z to A)": "filename-desc",
+        "Record opening (sooner)": "opening_date-desc",
+        "Record opening (later)": "opening_date-asc"
+    } %}
     <!-- SEARCH -->
     <div class="govuk-grid-row govuk-grid-row--search">
         {{ super() }}
