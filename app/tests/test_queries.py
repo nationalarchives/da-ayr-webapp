@@ -1,257 +1,53 @@
 import uuid
-from datetime import datetime
 
 import pytest
 import werkzeug
 from flask.testing import FlaskClient
 
 from app.main.db.queries import build_fuzzy_search_query, get_file_metadata
-from app.tests.factories import (
-    BodyFactory,
-    ConsignmentFactory,
-    FileFactory,
-    FileMetadataFactory,
-    SeriesFactory,
-)
+from app.tests.factories import FileFactory, FileMetadataFactory
 
 per_page = 5
 
 
 class TestFuzzySearch:
-    @pytest.mark.parametrize(
-        "file_metadata_property",
-        [
-            "Value",
-        ],
-    )
-    def test_build_fuzzy_search_query_with_results_matching_file_metadata_properties(
-        self, client: FlaskClient, file_metadata_property
+    def test_build_fuzzy_search_query_with_results(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given a query string that matches one of the parametrized file_metadata_property
-            on a FileMetadata object in the database
-        When build_fuzzy_search_query is called with it and is executed
-        Then a list containing 1 tuple with information for the corresponding
-            file is returned
+        Given a filter value that does match transferring body in the database
+        When build_browse_all_query is called with it and is executed
+        Then matching list results rows is returned
         """
-        file_metadata_property_map = {file_metadata_property: "foo"}
-        file = FileFactory(FileType="file")
-        FileMetadataFactory(file=file, **file_metadata_property_map)
-        query_string = "foo"
-
-        query = build_fuzzy_search_query(query_string)
-        results = query.all()
-        assert results == [
-            (
-                file.consignment.series.body.Name,
-                file.consignment.series.Name,
-                file.consignment.ConsignmentReference,
-                file.FileName,
-                file.consignment.series.body.BodyId,
-                file.consignment.series.SeriesId,
-            )
-        ]
-
-    @pytest.mark.parametrize(
-        "file_property",
-        [
-            "FileName",
-            "FileReference",
-        ],
-    )
-    def test_build_fuzzy_search_query_with_results_matching_file_properties(
-        self, client: FlaskClient, file_property
-    ):
-        """
-        Given a query string that matches one of the parametrized file_property
-            on a File object in the database
-        When build_fuzzy_search_query is called with it and is executed
-        Then a list containing 1 tuple with information for the corresponding
-            file is returned
-        """
-        file_property_map = {file_property: "foo"}
-        file = FileFactory(FileType="file", **file_property_map)
-        query_string = "foo"
-
-        query = build_fuzzy_search_query(query_string)
-        results = query.all()
-        assert results == [
-            (
-                file.consignment.series.body.Name,
-                file.consignment.series.Name,
-                file.consignment.ConsignmentReference,
-                file.FileName,
-                file.consignment.series.body.BodyId,
-                file.consignment.series.SeriesId,
-            )
-        ]
-
-    @pytest.mark.parametrize(
-        "consignment_property",
-        [
-            "ConsignmentReference",
-            "ConsignmentType",
-            "ContactName",
-            "ContactEmail",
-        ],
-    )
-    def test_build_fuzzy_search_query_with_results_matching_consignment_properties(
-        self, client: FlaskClient, consignment_property
-    ):
-        """
-        Given a query string that matches one of the parametrized consignment_property
-            on a Consignment object in the database with 1 file
-        When build_fuzzy_search_query is called with it and is executed
-        Then a list containing 1 tuple with information for the corresponding
-            file in the Consignment is returned
-        """
-        consignment_property_map = {consignment_property: "foo"}
-        file = FileFactory(
-            FileType="file",
-            consignment=ConsignmentFactory(**consignment_property_map),
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
         )
-        query_string = "foo"
 
-        query = build_fuzzy_search_query(query_string)
+        query = build_fuzzy_search_query(query_string="fifth_file")
         results = query.all()
-        assert results == [
-            (
-                file.consignment.series.body.Name,
-                file.consignment.series.Name,
-                file.consignment.ConsignmentReference,
-                file.FileName,
-                file.consignment.series.body.BodyId,
-                file.consignment.series.SeriesId,
-            )
-        ]
 
-    @pytest.mark.parametrize(
-        "consignment_date_property",
-        [
-            "TransferStartDatetime",
-            "TransferCompleteDatetime",
-            "ExportDatetime",
-        ],
-    )
-    def test_build_fuzzy_search_query_with_results_matching_consignment_date_properties(
-        self, client: FlaskClient, consignment_date_property
-    ):
-        """
-        Given a query string that matches one of the parametrized consignment_date_property
-            on a Consignment object in the database with 1 file
-        When build_fuzzy_search_query is called with it and is executed
-        Then a list containing 1 tuple with information for the corresponding
-            file in the Consignment is returned
-        """
-        consignment_date_property_map = {
-            consignment_date_property: datetime(2022, 2, 18)
-        }
-        file = FileFactory(
-            FileType="file",
-            consignment=ConsignmentFactory(**consignment_date_property_map),
-        )
-        query_string = "18/02/2022"
-        query = build_fuzzy_search_query(query_string)
-        results = query.all()
-        assert results == [
+        expected_results = [
             (
-                file.consignment.series.body.Name,
-                file.consignment.series.Name,
-                file.consignment.ConsignmentReference,
-                file.FileName,
-                file.consignment.series.body.BodyId,
-                file.consignment.series.SeriesId,
-            )
-        ]
-
-    @pytest.mark.parametrize(
-        "body_property",
-        [
-            "Name",
-            "Description",
-        ],
-    )
-    def test_build_fuzzy_search_query_with_results_matching_body_properties(
-        self, client: FlaskClient, body_property
-    ):
-        """
-        Given a query string that matches one of the parametrized body_property
-            on a Body object in the database with 1 file
-        When build_fuzzy_search_query is called with it and is executed
-        Then a list containing 1 tuple with information for the corresponding
-            file in the Body is returned
-        """
-        body_property_map = {body_property: "foo"}
-        file = FileFactory(
-            FileType="file",
-            consignment=ConsignmentFactory(
-                series=SeriesFactory(body=BodyFactory(**body_property_map))
+                browse_consignment_files[4].consignment.series.body.BodyId,
+                browse_consignment_files[4].consignment.series.body.Name,
+                browse_consignment_files[4].consignment.series.SeriesId,
+                browse_consignment_files[4].consignment.series.Name,
+                browse_consignment_files[4].consignment.ConsignmentId,
+                browse_consignment_files[4].consignment.ConsignmentReference,
+                browse_consignment_files[4].FileName,
+                "Open",
+                None,
             ),
-        )
-        query_string = "foo"
-
-        query = build_fuzzy_search_query(query_string)
-        results = query.all()
-        assert results == [
-            (
-                file.consignment.series.body.Name,
-                file.consignment.series.Name,
-                file.consignment.ConsignmentReference,
-                file.FileName,
-                file.consignment.series.body.BodyId,
-                file.consignment.series.SeriesId,
-            )
         ]
-
-    @pytest.mark.parametrize(
-        "series_property",
-        [
-            "Name",
-            "Description",
-        ],
-    )
-    def test_build_fuzzy_search_query_with_results_matching_series_properties(
-        self, client: FlaskClient, series_property
-    ):
-        """
-        Given a query string that matches one of the parametrized series_property
-            on a Series object in the database with 1 file
-        When build_fuzzy_search_query is called with it and is executed
-        Then a list containing 1 tuple with information for the corresponding
-            file in the Body is returned
-        """
-        series_property_map = {series_property: "foo"}
-        file = FileFactory(
-            FileType="file",
-            consignment=ConsignmentFactory(
-                series=SeriesFactory(**series_property_map)
-            ),
-        )
-        query_string = "foo"
-
-        query = build_fuzzy_search_query(query_string)
-        results = query.all()
-        assert results == [
-            (
-                file.consignment.series.body.Name,
-                file.consignment.series.Name,
-                file.consignment.ConsignmentReference,
-                file.FileName,
-                file.consignment.series.body.BodyId,
-                file.consignment.series.SeriesId,
-            )
-        ]
+        assert results == expected_results
 
     def test_build_fuzzy_search_query_no_results(self, client: FlaskClient):
         """
-        Given a query string that does not match any field in any file object
-            in the database
-        When fuzzy_search is called with it and is executed
+        Given a filter value that does not match transferring body in the database
+        When build_browse_all_query is called with it and is executed
         Then an empty list is returned
         """
-        FileFactory(FileName="foo", FileType="file")
-        query_string = "bar"
-        query = build_fuzzy_search_query(query_string)
+        query = build_fuzzy_search_query(query_string="junk")
         results = query.all()
         assert results == []
 

@@ -106,7 +106,7 @@ def test_pagination_get_first_page(authenticated_page: Page):
     )
     links = authenticated_page.locator(".govuk-pagination__link-title").all()
     assert links[0].inner_text() == "Nextpage"
-    expect(authenticated_page.get_by_text("5 record(s) found"))
+    expect(authenticated_page.get_by_text("Records found 5"))
     rows = authenticated_page.locator(".govuk-table__row").all()
     assert len(rows) == 6  # including header row
 

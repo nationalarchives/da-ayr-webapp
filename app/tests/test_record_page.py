@@ -267,7 +267,7 @@ def test_returns_record_page_for_superuser(client, mock_superuser):
     assert response.status_code == 200
 
 
-def test_record_search_box(client, mock_superuser):
+def test_record_top_search(client, mock_superuser):
     mock_superuser(client)
 
     file = FileFactory(
@@ -310,7 +310,8 @@ def test_record_search_box(client, mock_superuser):
                 <input class="govuk-input govuk-!-width-three-quarters"
                        id="searchInput"
                        name="query"
-                       type="text">
+                       type="text"
+                       value="">
                 <button class="govuk-button govuk-button__search-button"
                         data-module="govuk-button"
                         type="submit">Search</button>

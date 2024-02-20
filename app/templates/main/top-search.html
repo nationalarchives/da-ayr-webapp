@@ -7,7 +7,8 @@
                 <input class="govuk-input govuk-!-width-three-quarters"
                        id="searchInput"
                        name="query"
-                       type="text">
+                       type="text"
+                       value="{% if request.args.get('query') %}{{ request.args.get('query') }}{% endif %}">
                 <button class="govuk-button govuk-button__search-button"
                         data-module="govuk-button"
                         type="submit">Search</button>
