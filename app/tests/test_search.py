@@ -141,7 +141,7 @@ def test_search_results_displayed_single_page(
     response = client.get("/search", data=form_data)
 
     assert response.status_code == 200
-    assert b"2 record(s) found" in response.data
+    assert b"Results found 2" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
     table = soup.find("table", class_="govuk-table")
@@ -217,7 +217,7 @@ def test_search_results_displayed_multiple_pages(
     response = client.get("/search", data=form_data)
 
     assert response.status_code == 200
-    assert b"5 record(s) found" in response.data
+    assert b"Results found 5" in response.data
 
     soup = BeautifulSoup(response.data, "html.parser")
     table = soup.find("table", class_="govuk-table")
