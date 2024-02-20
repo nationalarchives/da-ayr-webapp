@@ -581,3 +581,52 @@ class TestSearch:
             == "Previouspage"
         )
         assert not next_option
+
+    def test_search_results_summary_display(
+        self, client: FlaskClient, mock_superuser, browse_consignment_files
+    ):
+        """
+        Given a superuser
+        When they make a request on the search page with the search term
+        Then they should be redirected to search results summary screen
+        with search results summary page content
+        """
+
+        mock_superuser(client)
+
+        form_data = {"query": "fi"}
+
+        response = client.get(f"{self.route_url}", data=form_data)
+
+        assert response.status_code == 200
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        table = soup.find("table")
+        headers = table.find_all("th")
+        rows = table.find_all("td")
+
+        expected_row = (
+            [
+                "Results found within each Transferring body",
+                "Records found",
+            ],
+        )
+        assert [
+            header.text.replace("\n", " ").strip(" ") for header in headers
+        ] == expected_row[0]
+
+        expected_rows = [
+            [
+                "'first_body', '15'",
+            ],
+        ]
+
+        row_data = ""
+        for row_index, row in enumerate(rows):
+            row_data = (
+                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+            )
+            if row_index < len(rows) - 1:
+                row_data = row_data + ", "
+
+        assert [row_data] == expected_rows[0]

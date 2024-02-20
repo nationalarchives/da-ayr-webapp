@@ -32,6 +32,7 @@ from app.main.db.queries import (
     build_browse_series_query,
     build_browse_transferring_body_query,
     build_fuzzy_search_query,
+    build_fuzzy_search_summary_query,
     get_file_metadata,
 )
 from app.main.flask_config_helpers import (
@@ -362,25 +363,46 @@ def search():
     filters = {"query": query}
     sorting_orders = build_sorting_orders(request.args)
 
+    ayr_user = AYRUser(session.get("user_groups"))
     if query:
-        fuzzy_search_query = build_fuzzy_search_query(
-            query,
-            sorting_orders=sorting_orders,
-        )
-        # added a filter for transferring body - for standard user to return only matching rows
-        ayr_user = AYRUser(session.get("user_groups"))
-        if ayr_user.is_standard_user:
+        if ayr_user.is_superuser:
+            query = build_fuzzy_search_summary_query(query)
+            search_results = query.all()
+
+            total_records = db.session.query(
+                func.sum(query.subquery().c.records_held)
+            ).scalar()
+            if total_records:
+                num_records_found = total_records
+            else:
+                num_records_found = 0
+
+            return render_template(
+                "search-results-summary.html",
+                form=form,
+                filters=filters,
+                results=search_results,
+                num_records_found=num_records_found,
+            )
+        else:
+            fuzzy_search_query = build_fuzzy_search_query(
+                query,
+                sorting_orders=sorting_orders,
+            )
+            # added a filter for transferring body - for standard user to return only matching rows
             fuzzy_search_query = fuzzy_search_query.where(
                 Body.Name == ayr_user.transferring_body.Name
             )
 
-        search_results = fuzzy_search_query.paginate(
-            page=page, per_page=per_page
-        )
+            search_results = fuzzy_search_query.paginate(
+                page=page, per_page=per_page
+            )
 
-        total_records = fuzzy_search_query.count()
-        if total_records:
-            num_records_found = total_records
+            total_records = fuzzy_search_query.count()
+            if total_records:
+                num_records_found = total_records
+            else:
+                num_records_found = 0
 
     return render_template(
         "search.html",
