@@ -65,3 +65,10 @@ repos:
         - stylelint-config-standard-scss@3.0.0
         - stylelint-config-standard-scss@^11.1.0
         - stylelint-selector-bem-pattern@^3.0.1
+
+- repo: https://github.com/pre-commit/mirrors-prettier
+  rev: v3.1.0
+  hooks:
+    - id: prettier
+      types_or: [css, javascript, scss]
+      args: ['--write']
