@@ -47,43 +47,45 @@ def browse_data(
     return browse_query.paginate(page=page, per_page=per_page)
 
 
-def build_fuzzy_search_query(query_string: str):
+def build_fuzzy_search_query(query_string: str, sorting_orders=None):
     filter_value = str(f"%{query_string}%").lower()
 
     fuzzy_filters = or_(
         func.lower(Consignment.ConsignmentReference).like(filter_value),
-        func.lower(Consignment.ConsignmentType).like(filter_value),
-        func.lower(Consignment.ContactName).like(filter_value),
-        func.lower(Consignment.ContactEmail).like(filter_value),
-        func.to_char(
-            func.cast(Consignment.TransferStartDatetime, DATE),
-            current_app.config["DEFAULT_DATE_FORMAT"],
-        ).like(filter_value),
-        func.to_char(
-            func.cast(Consignment.TransferCompleteDatetime, DATE),
-            current_app.config["DEFAULT_DATE_FORMAT"],
-        ).like(filter_value),
-        func.to_char(
-            func.cast(Consignment.ExportDatetime, DATE),
-            current_app.config["DEFAULT_DATE_FORMAT"],
-        ).like(filter_value),
         func.lower(Body.Name).like(filter_value),
         func.lower(Body.Description).like(filter_value),
         func.lower(Series.Name).like(filter_value),
         func.lower(Series.Description).like(filter_value),
         func.lower(File.FileName).like(filter_value),
-        func.lower(File.FileReference).like(filter_value),
-        func.lower(FileMetadata.Value).like(filter_value),
     )
 
-    query = (
+    sub_query = (
         db.session.query(
+            Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
+            Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
+            Consignment.ConsignmentId.label("consignment_id"),
             Consignment.ConsignmentReference.label("consignment_reference"),
             File.FileName.label("file_name"),
-            Body.BodyId.label("body_id"),
-            Series.SeriesId.label("series_id"),
+            func.max(
+                db.case(
+                    (
+                        FileMetadata.PropertyName == "closure_type",
+                        FileMetadata.Value,
+                    ),
+                    else_=None,
+                )
+            ).label("closure_type"),
+            func.max(
+                db.case(
+                    (
+                        FileMetadata.PropertyName == "opening_date",
+                        func.cast(FileMetadata.Value, DATE),
+                    ),
+                    else_=None,
+                ),
+            ).label("opening_date"),
         )
         .join(Series, Series.BodyId == Body.BodyId)
         .join(
@@ -93,8 +95,41 @@ def build_fuzzy_search_query(query_string: str):
         .join(File, File.ConsignmentId == Consignment.ConsignmentId)
         .join(FileMetadata, File.FileId == FileMetadata.FileId, isouter=True)
         .where(and_(func.lower(File.FileType) == "file", fuzzy_filters))
-        .order_by(Body.Name, Series.Name, File.FileName)
+        .group_by(
+            File.FileId, Body.BodyId, Series.SeriesId, Consignment.ConsignmentId
+        )
+        .order_by(
+            Body.Name,
+            Series.Name,
+            Consignment.ConsignmentReference,
+            File.FileName,
+        )
+    ).subquery()
+
+    query = db.session.query(
+        sub_query.c.transferring_body_id,
+        sub_query.c.transferring_body,
+        sub_query.c.series_id,
+        sub_query.c.series,
+        sub_query.c.consignment_id,
+        sub_query.c.consignment_reference,
+        sub_query.c.file_name,
+        sub_query.c.closure_type,
+        func.to_char(
+            sub_query.c.opening_date,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("opening_date"),
     )
+
+    if sorting_orders:
+        query = _build_sorting_orders(query, sub_query, sorting_orders)
+    else:
+        query = query.order_by(
+            sub_query.c.transferring_body,
+            sub_query.c.series,
+            sub_query.c.consignment_reference,
+            sub_query.c.file_name,
+        )
 
     return query
 

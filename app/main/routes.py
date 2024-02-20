@@ -204,18 +204,25 @@ def search():
     )
     page = int(request.args.get("page", 1))
     filters = {"query": query}
+    sorting_orders = build_sorting_orders(request.args)
 
     if query:
-        fuzzy_search_query = build_fuzzy_search_query(query)
+        query = build_fuzzy_search_query(
+            query,
+            sorting_orders=sorting_orders,
+        )
+        # added a filter for transferring body - for standard user to return only matching rows
         ayr_user = AYRUser(session.get("user_groups"))
         if ayr_user.is_standard_user:
-            fuzzy_search_query = fuzzy_search_query.where(
-                Body.Name == ayr_user.transferring_body.Name
-            )
-        search_results = fuzzy_search_query.paginate(
-            page=page, per_page=per_page
-        )
-        num_records_found = search_results.total
+            query = query.where(Body.Name == ayr_user.transferring_body.Name)
+
+        search_results = query.paginate(page=page, per_page=per_page)
+
+        total_records = query.count()
+        if total_records:
+            num_records_found = total_records
+        else:
+            num_records_found = 0
 
     return render_template(
         "search.html",
