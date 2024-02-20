@@ -142,7 +142,7 @@ def browse():
             filters=filters,
             sorting_orders=sorting_orders,
             num_records_found=num_records_found,
-            dict_args={
+            query_string_parameters={
                 k: v for k, v in request.args.items() if k not in "page"
             },
         )
@@ -155,8 +155,8 @@ def browse_transferring_body(_id: uuid.UUID):
     Render the browse transferring body view page.
 
     This function retrieves search results for a specific
-    record(s) based on the 'transferring_body_id' provided in the query parameters, and renders
-    the list of results on the 'browse-transferring-body.html' template.
+    record(s) based on the transferring_body 'id' provided
+    as list of results on the 'browse-transferring-body.html' template.
 
     Returns:
         A rendered HTML page with transferring body records.
@@ -196,7 +196,9 @@ def browse_transferring_body(_id: uuid.UUID):
         filters=filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        dict_args={k: v for k, v in request.args.items() if k not in "page"},
+        query_string_parameters={
+            k: v for k, v in request.args.items() if k not in "page"
+        },
     )
 
 
@@ -207,8 +209,8 @@ def browse_series(_id: uuid.UUID):
     Render the browse series view page.
 
     This function retrieves search results for a specific
-    record(s) based on the 'series_id' provided in the query parameters, and renders
-    the list of results on the 'browse-series.html' template.
+    record(s) based on the series 'id' provided
+    as list of results on the 'browse-series.html' template.
 
     Returns:
         A rendered HTML page with series records.
@@ -254,7 +256,9 @@ def browse_series(_id: uuid.UUID):
         filters=filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        dict_args={k: v for k, v in request.args.items() if k not in "page"},
+        query_string_parameters={
+            k: v for k, v in request.args.items() if k not in "page"
+        },
     )
 
 
@@ -265,8 +269,8 @@ def browse_consignment(_id: uuid.UUID):
     Render the browse consignment view page.
 
     This function retrieves search results for a specific
-    record(s) based on the 'consignment_id' provided in the query parameters, and renders
-    the list of results on the 'browse-consignment.html' template.
+    record(s) based on the consignment 'id' provided
+    as list of results on the 'browse-consignment.html' template.
 
     Returns:
         A rendered HTML page with consignment records.
@@ -298,7 +302,7 @@ def browse_consignment(_id: uuid.UUID):
         filters=filters,
         sorting_orders=sorting_orders,
     )
-    print(query.subquery())
+
     browse_results = query.paginate(page=page, per_page=per_page)
 
     total_records = query.count()
@@ -317,7 +321,9 @@ def browse_consignment(_id: uuid.UUID):
         filters=filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        dict_args={k: v for k, v in request.args.items() if k not in "page"},
+        query_string_parameters={
+            k: v for k, v in request.args.items() if k not in "page"
+        },
     )
 
 
@@ -356,7 +362,9 @@ def search():
         results=search_results,
         num_records_found=num_records_found,
         sorting_orders=sorting_orders,
-        dict_args={k: v for k, v in request.args.items() if k not in "page"},
+        query_string_parameters={
+            k: v for k, v in request.args.items() if k not in "page"
+        },
     )
 
 
