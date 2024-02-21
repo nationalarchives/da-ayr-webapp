@@ -196,7 +196,6 @@ def browse():
 def search():
     form = SearchForm()
     search_results = None
-    sorting_orders = {}
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     num_records_found = 0
     query = (
@@ -225,7 +224,6 @@ def search():
         filters=filters,
         results=search_results,
         num_records_found=num_records_found,
-        sorting_orders=sorting_orders,
     )
 
 
