@@ -15,8 +15,8 @@
 {% with dict = breadcrumbs %}
     {% include "breadcrumb.html" %}
 {% endwith %}
-<form action="{{ url_for('main.browse') }}" method="get">
-    <input type="hidden" name="series_id" value="{{ filters['series_id'] }}">
+<form action="{{ url_for('main.browse_series', _id=request.view_args['_id']) }}"
+      method="get">
     {% if view_type == "desktop" %}
         <!-- SORT -->
         <div class="govuk-form-group sort-container__form">
@@ -44,8 +44,8 @@
                             <td class="govuk-table__cell">{{ record["series"] }}</td>
                             <td class="govuk-table__cell browse__table__right-align">{{ record["last_record_transferred"] }}</td>
                             <td class="govuk-table__cell browse__table__right-align">{{ record["records_held"] }}</td>
-                            <td class="govuk-table__cell govuk-table__cell--ayr">
-                                <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
+                            <td class="govuk-table__cell">
+                                <a href="{{ url_for('main.browse_consignment', _id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
                             </td>
                         </tr>
                     {% endfor %}
@@ -70,10 +70,17 @@
                             class="govuk-button govuk-button__browse-all-filters-form-apply-button"
                             data-module="govuk-button">Apply filters</button>
                     <a class="govuk-link govuk-link--browse-all-filter"
-                       href="{{ url_for('main.browse',series_id = filters['series_id'], sort=request.args.get('sort')) }}">Clear filters</a>
+                       href="{{ url_for('main.browse_series',_id = request.view_args['_id'], sort=request.args.get('sort')) }}">Clear filters</a>
                 </div>
             </div>
         </div>
+        <!-- PAGINATION -->
+        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
+            {% with view_name= 'main.browse_series', id = request.view_args['_id'] %}
+                {% include "pagination.html" %}
+            {% endwith %}
+        </div>
+        <!-- END PAGINATION -->
     {% else %}
         <!-- MOBILE FILTERS -->
         <div class="mobile-filters">
@@ -98,7 +105,7 @@
                                         class="govuk-button govuk-button__browse-all-filters-form-apply-button"
                                         data-module="govuk-button">Apply filters</button>
                                 <a class="govuk-link govuk-link--browse-all-filter"
-                                   href="{{ url_for('main.browse',series_id = filters['series_id'], sort=request.args.get('sort')) }}">Clear filters</a>
+                                   href="{{ url_for('main.browse_series',_id = request.view_args['_id'], sort=request.args.get('sort')) }}">Clear filters</a>
                             </div>
                         </div>
                     </div>
@@ -115,7 +122,7 @@
         <table class="govuk-table govuk-mobile-table" id="tbl_result">
             <thead class="govuk-table__head govuk-mobile-table__head-border">
                 <tr class="govuk-table__row">
-                    <th scope="col" class="govuk-table__header">Series / Last consignment transferred</th>
+                    <th scope="col" class="govuk-table__header">Consignment transferred date</th>
                     <th scope="col" class="govuk-table__header govuk-table__header__right">Records in consignment</th>
                     <th scope="col" class="govuk-table__header govuk-table__header__right">Consignment reference</th>
                 </tr>
@@ -124,25 +131,26 @@
                 {% for record in results %}
                     <tr class="govuk-table__row">
                         <td class="govuk-table__cell">
-                            <div class="browse__table__series-row">
-                                <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">{{ record["series"]
-                                }}</a>
-                            </div>
                             <div>{{ record["last_record_transferred"] }}</div>
                         </td>
                         <td class="govuk-table__cell">
-                            <div class="browse__table__series-row empty-cell">-</div>
                             <div class="right-align">{{ record["records_held"] }}</div>
                         </td>
                         <td class="govuk-table__cell">
-                            <div class="browse__table__series-row right-align empty-cell">-</div>
                             <div class="right-align">
-                                <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
+                                <a href="{{ url_for('main.browse_consignment', _id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
                             </div>
                         </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
+        <!-- PAGINATION -->
+        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
+            {% with view_name='main.browse_series', id = request.view_args['_id'] %}
+                {% include "pagination.html" %}
+            {% endwith %}
+        </div>
+        <!-- END PAGINATION -->
     {% endif %}
 </form>

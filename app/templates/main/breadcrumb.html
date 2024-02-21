@@ -1,7 +1,7 @@
 {% set browse_url = "/browse" %}
-{% set transferring_body_url = browse_url ~ "?transferring_body_id=" %}
-{% set series_url = browse_url ~ "?series_id=" %}
-{% set consignment_url = browse_url ~ "?consignment_id=" %}
+{% set transferring_body_url = browse_url ~ "/transferring_body/" %}
+{% set series_url = browse_url ~ "/series/" %}
+{% set consignment_url = browse_url ~ "/consignment/" %}
 <div class="govuk-breadcrumbs  {{ 'govuk-breadcrumbs--file' if 'record' in dict }}">
     <ol class="govuk-breadcrumbs__list">
         {% for key, value in dict.items() %}
