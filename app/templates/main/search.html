@@ -19,7 +19,7 @@
         <div class="govuk-width-container">
             <div class="govuk-grid-row">{% include "top-search.html" %}</div>
             <div class="mobile__search__container-block"></div>
-            <h2 class="govuk-heading-m govuk-heading-m--search-results">Results found {{ num_records_found }}</h2>
+            <h2 class="govuk-heading-m govuk-heading-m--search-results">{{ num_records_found }} record(s) found</h2>
             <!-- SORT -->
             <div class="govuk-form-group sort-container__form">
                 {% with dict = sorting_list %}
