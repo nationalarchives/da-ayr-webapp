@@ -124,13 +124,9 @@ def browse():
 
         browse_results = query.paginate(page=page, per_page=per_page)
 
-        total_records = db.session.query(
+        num_records_found = db.session.query(
             func.sum(query.subquery().c.records_held)
         ).scalar()
-        if total_records:
-            num_records_found = total_records
-        else:
-            num_records_found = 0
 
         return render_template(
             "browse.html",
@@ -178,13 +174,9 @@ def browse_transferring_body(_id: uuid.UUID):
 
     browse_results = query.paginate(page=page, per_page=per_page)
 
-    total_records = db.session.query(
+    num_records_found = db.session.query(
         func.sum(query.subquery().c.records_held)
     ).scalar()
-    if total_records:
-        num_records_found = total_records
-    else:
-        num_records_found = 0
 
     return render_template(
         "browse.html",
@@ -238,13 +230,9 @@ def browse_series(_id: uuid.UUID):
 
     browse_results = query.paginate(page=page, per_page=per_page)
 
-    total_records = db.session.query(
+    num_records_found = db.session.query(
         func.sum(query.subquery().c.records_held)
     ).scalar()
-    if total_records:
-        num_records_found = total_records
-    else:
-        num_records_found = 0
 
     return render_template(
         "browse.html",
@@ -305,11 +293,7 @@ def browse_consignment(_id: uuid.UUID):
 
     browse_results = query.paginate(page=page, per_page=per_page)
 
-    total_records = query.count()
-    if total_records:
-        num_records_found = total_records
-    else:
-        num_records_found = 0
+    num_records_found = query.count()
 
     return render_template(
         "browse.html",
