@@ -163,7 +163,7 @@ def build_fuzzy_search_summary_query(query_string: str):
         .group_by(Body.BodyId)
         .order_by(Body.Name)
     )
-    print(query)
+
     return query
 
 
