@@ -33,7 +33,6 @@
                         <table class="govuk-table">
                             <thead class="govuk-table__head">
                                 <tr class="govuk-table__row govuk-!-font-size-14">
-                                    <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Transferring body</th>
                                     <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Series</th>
                                     <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Consignment Reference</th>
                                     <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Title</th>
@@ -44,10 +43,15 @@
                             <tbody class="govuk-table__body">
                                 {% for record in results %}
                                     <tr class="govuk-table__row">
-                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record['transferring_body'] }}</td>
-                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record['series'] }}</td>
-                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record['consignment_reference'] }}</td>
-                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record['file_name'] }}</td>
+                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                            <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">{{ record["series"] }}</a>
+                                        </td>
+                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                            <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
+                                        </td>
+                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                            <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                        </td>
                                         <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
                                             <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
                                                 {{ record['closure_type'] }}
