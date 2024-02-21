@@ -10,27 +10,33 @@
             <div class="govuk-grid-row">{% include "top-search.html" %}</div>
             <div class="mobile__search__container-block"></div>
             <div class="govuk-grid-row">
-                <div class="govuk-grid-column-full">
+                <div class="govuk-grid-column-two-thirds">
                     {% if filters["query"]|length >0 %}
                         <h2 class="govuk-heading-m">Results found {{ num_records_found }}</h2>
                         <!-- BREAD CRUMB -->
                         {% with dict = breadcrumbs %}
                             {% include "breadcrumb.html" %}
                         {% endwith %}
-                        <table class="govuk-table">
+                        <table class="govuk-table govuk-table--results-summary">
                             <thead class="govuk-table__head">
-                                <tr class="govuk-table__row govuk-!-font-size-14">
-                                    <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Results found within each Transferring body</th>
-                                    <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Records found</th>
+                                <tr class="govuk-table__row">
+                                    <th scope="col"
+                                        class="govuk-table__header govuk-table__header--results-summary">
+                                        Results found within each Transferring body
+                                    </th>
+                                    <th scope="col"
+                                        class="govuk-table__header govuk-table__header--results-summary">
+                                        Records found
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody class="govuk-table__body">
                                 {% for record in results %}
                                     <tr class="govuk-table__row">
-                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                        <td class="govuk-table__cell govuk-table__cell--results-summary">
                                             <a href="{{ url_for('main.browse', transferring_body_id=record['transferring_body_id']) }}">{{ record['transferring_body'] }}</a>
                                         </td>
-                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record['records_held'] }}</td>
+                                        <td class="govuk-table__cell govuk-table__cell--record-results">{{ record['records_held'] }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
