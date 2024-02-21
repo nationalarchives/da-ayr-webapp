@@ -14,6 +14,7 @@ from flask import (
     url_for,
 )
 from flask_wtf.csrf import CSRFError
+from sqlalchemy import func
 from werkzeug.exceptions import HTTPException
 
 from app.main import bp
@@ -24,10 +25,11 @@ from app.main.authorize.ayr_user import AYRUser
 from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
 )
-from app.main.db.models import Body, Consignment, File, Series
+from app.main.db.models import Body, Consignment, File, Series, db
 from app.main.db.queries import (
     browse_data,
     build_fuzzy_search_query,
+    build_fuzzy_search_summary_query,
     get_file_metadata,
 )
 from app.main.flask_config_helpers import (
@@ -206,23 +208,41 @@ def search():
     filters = {"query": query}
     sorting_orders = build_sorting_orders(request.args)
 
+    ayr_user = AYRUser(session.get("user_groups"))
     if query:
-        query = build_fuzzy_search_query(
-            query,
-            sorting_orders=sorting_orders,
-        )
-        # added a filter for transferring body - for standard user to return only matching rows
-        ayr_user = AYRUser(session.get("user_groups"))
-        if ayr_user.is_standard_user:
+        if ayr_user.is_superuser:
+            query = build_fuzzy_search_summary_query(query)
+            search_results = query.all()
+
+            total_records = db.session.query(
+                func.sum(query.subquery().c.records_held)
+            ).scalar()
+            if total_records:
+                num_records_found = total_records
+            else:
+                num_records_found = 0
+            return render_template(
+                "search-results-summary.html",
+                form=form,
+                filters=filters,
+                results=search_results,
+                num_records_found=num_records_found,
+            )
+        else:
+            query = build_fuzzy_search_query(
+                query,
+                sorting_orders=sorting_orders,
+            )
+            # added a filter for transferring body - for standard user to return only matching rows
             query = query.where(Body.Name == ayr_user.transferring_body.Name)
 
-        search_results = query.paginate(page=page, per_page=per_page)
+            search_results = query.paginate(page=page, per_page=per_page)
 
-        total_records = query.count()
-        if total_records:
-            num_records_found = total_records
-        else:
-            num_records_found = 0
+            total_records = query.count()
+            if total_records:
+                num_records_found = total_records
+            else:
+                num_records_found = 0
 
     return render_template(
         "search.html",

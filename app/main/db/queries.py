@@ -134,6 +134,39 @@ def build_fuzzy_search_query(query_string: str, sorting_orders=None):
     return query
 
 
+def build_fuzzy_search_summary_query(query_string: str):
+    filter_value = str(f"%{query_string}%").lower()
+
+    fuzzy_filters = or_(
+        func.lower(Consignment.ConsignmentReference).like(filter_value),
+        func.lower(Body.Name).like(filter_value),
+        func.lower(Body.Description).like(filter_value),
+        func.lower(Series.Name).like(filter_value),
+        func.lower(Series.Description).like(filter_value),
+        func.lower(File.FileName).like(filter_value),
+    )
+
+    query = (
+        db.session.query(
+            Body.BodyId.label("transferring_body_id"),
+            Body.Name.label("transferring_body"),
+            func.count(File.FileName.label("file_name")).label("records_held"),
+        )
+        .join(Series, Series.BodyId == Body.BodyId)
+        .join(
+            Consignment,
+            Consignment.SeriesId == Series.SeriesId,
+        )
+        .join(File, File.ConsignmentId == Consignment.ConsignmentId)
+        .join(FileMetadata, File.FileId == FileMetadata.FileId, isouter=True)
+        .where(and_(func.lower(File.FileType) == "file", fuzzy_filters))
+        .group_by(Body.BodyId)
+        .order_by(Body.Name)
+    )
+    print(query)
+    return query
+
+
 def _build_browse_everything_query(filters, sorting_orders):
     sub_query = (
         db.session.query(
