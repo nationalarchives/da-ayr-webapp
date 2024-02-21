@@ -591,7 +591,6 @@ class TestSearch:
         Then they should be redirected to search results summary screen
         with search results summary page content
         """
-
         mock_superuser(client)
 
         form_data = {"query": "fi"}
