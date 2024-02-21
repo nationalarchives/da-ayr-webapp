@@ -6,6 +6,17 @@
   }
 }
 
+.govuk-grid-column-full {
+  &--search-results {
+    padding-top: 1.4rem;
+  }
+}
+
+.govuk-heading-m {
+  &--search-results {
+    font-size: 2rem;
+  }
+}
 
 @media screen and (width <=810px) {
   .govuk-grid-row {

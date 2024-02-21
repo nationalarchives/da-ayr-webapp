@@ -3,14 +3,34 @@
 {% block pageTitle %}Dashboard – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block beforeContent %}{{ super() }}{% endblock %}
 {% block content %}
+    {% set sorting_list = {
+        "Series (A to Z)": "series-asc",
+        "Series (Z to A)": "series-desc",
+        "Consignment reference (most recent first)": "consignment_reference-desc",
+        "Consignment reference (oldest first)": "consignment_reference-asc",
+        "Filename (A to Z)": "filename-asc",
+        "Filename (Z to A)": "filename-desc",
+        "Record opening (sooner)": "opening_date-desc",
+        "Record opening (later)": "opening_date-asc"
+    } %}
+    <!-- SEARCH  -->
     <div class="govuk-grid-row govuk-grid-row--search">
         {{ super() }}
         <div class="govuk-width-container">
             <div class="govuk-grid-row">{% include "top-search.html" %}</div>
             <div class="mobile__search__container-block"></div>
+            <h2 class="govuk-heading-m govuk-heading-m--search-results">{{ num_records_found }} record(s) found</h2>
+            <!-- SORT -->
+            <div class="govuk-form-group sort-container__form">
+                {% with dict = sorting_list %}
+                    {% include "sorting-list.html" %}
+                {% endwith %}
+            </div>
+            <!-- TABLE -->
             <div class="govuk-grid-row">
-                <div class="govuk-grid-column-full">
+                <div class="govuk-grid-column-full govuk-grid-column-full--search-results">
                     {% if filters["query"]|length >0 %}
+
                         <h2 class="govuk-heading-m">Records found {{ num_records_found }}</h2>
                         <table class="govuk-table">
                             <thead class="govuk-table__head">
@@ -42,6 +62,8 @@
                                                 -
                                             {% endif %}
                                         </td>
+
+
                                     </tr>
                                 {% endfor %}
                             </tbody>
