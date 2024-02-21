@@ -347,7 +347,6 @@ def browse_consignment(_id: uuid.UUID):
 def search():
     form = SearchForm()
     search_results = None
-    sorting_orders = {}
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     num_records_found = 0
     query = (
@@ -356,18 +355,27 @@ def search():
     )
     page = int(request.args.get("page", 1))
     filters = {"query": query}
+    sorting_orders = build_sorting_orders(request.args)
 
     if query:
-        fuzzy_search_query = build_fuzzy_search_query(query)
+        fuzzy_search_query = build_fuzzy_search_query(
+            query,
+            sorting_orders=sorting_orders,
+        )
+        # added a filter for transferring body - for standard user to return only matching rows
         ayr_user = AYRUser(session.get("user_groups"))
         if ayr_user.is_standard_user:
             fuzzy_search_query = fuzzy_search_query.where(
                 Body.Name == ayr_user.transferring_body.Name
             )
+
         search_results = fuzzy_search_query.paginate(
             page=page, per_page=per_page
         )
-        num_records_found = search_results.total
+
+        total_records = fuzzy_search_query.count()
+        if total_records:
+            num_records_found = total_records
 
     return render_template(
         "search.html",
