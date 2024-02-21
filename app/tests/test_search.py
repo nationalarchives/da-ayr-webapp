@@ -16,7 +16,6 @@ def verify_search_header_row(data):
 
     expected_row = (
         [
-            "Transferring body",
             "Series",
             "Consignment Reference",
             "Title",
@@ -151,11 +150,11 @@ class TestSearch:
                 "query=TDR-2023-FI1",
                 [
                     [
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
                     ],
                 ],
             ),
@@ -163,8 +162,8 @@ class TestSearch:
                 "query=docx&sort=series-asc",
                 [
                     [
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
                     ],
                 ],
             ),
@@ -172,8 +171,8 @@ class TestSearch:
                 "query=docx&sort=series-desc",
                 [
                     [
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
                     ],
                 ],
             ),
@@ -181,8 +180,8 @@ class TestSearch:
                 "query=docx&sort=consignment-reference-asc",
                 [
                     [
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
                     ],
                 ],
             ),
@@ -190,8 +189,8 @@ class TestSearch:
                 "query=docx&sort=consignment-reference-desc",
                 [
                     [
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
                     ],
                 ],
             ),
@@ -199,11 +198,11 @@ class TestSearch:
                 "query=TDR-2023-FI1&sort=file_name-asc",
                 [
                     [
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
                     ],
                 ],
             ),
@@ -211,11 +210,11 @@ class TestSearch:
                 "query=TDR-2023-FI1&sort=file_name-desc",
                 [
                     [
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-'"
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-'"
                     ],
                 ],
             ),
@@ -223,11 +222,11 @@ class TestSearch:
                 "query=TDR-2023-FI1&sort=opening_date-desc",
                 [
                     [
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023'"
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023'"
                     ],
                 ],
             ),
@@ -235,11 +234,11 @@ class TestSearch:
                 "query=TDR-2023-FI1&sort=opening_date-asc",
                 [
                     [
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
-                        "'first_body', 'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-'"
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-'"
                     ],
                 ],
             ),
@@ -300,11 +299,11 @@ class TestSearch:
 
         expected_rows = [
             [
-                "'first_body', 'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
-                "'first_body', 'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                "'first_body', 'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                "'first_body', 'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
-                "'first_body', 'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
+                "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
             ],
         ]
 
@@ -344,8 +343,8 @@ class TestSearch:
 
         expected_rows = [
             [
-                "'first_body', 'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
-                "'first_body', 'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023'"
+                "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023'"
             ],
         ]
 
@@ -399,8 +398,8 @@ class TestSearch:
 
         expected_rows = [
             [
-                "'first_body', 'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
-                "'first_body', 'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023'"
+                "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023'"
             ],
         ]
 
@@ -445,8 +444,8 @@ class TestSearch:
 
         expected_rows = [
             [
-                "'first_body', 'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                "'first_body', 'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-'"
+                "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-'"
             ],
         ]
 
@@ -496,7 +495,7 @@ class TestSearch:
 
         expected_rows = [
             [
-                "'first_body', 'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
             ],
         ]
 
