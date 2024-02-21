@@ -117,6 +117,10 @@ def browse():
         filters = build_filters(request.args)
         sorting_orders = build_sorting_orders(request.args)
 
+        # set default sort
+        if len(sorting_orders) == 0:
+            sorting_orders["transferring_body"] = "asc"
+
         query = build_browse_all_query(
             filters=filters,
             sorting_orders=sorting_orders,
@@ -124,9 +128,14 @@ def browse():
 
         browse_results = query.paginate(page=page, per_page=per_page)
 
-        num_records_found = db.session.query(
+        total_records = db.session.query(
             func.sum(query.subquery().c.records_held)
         ).scalar()
+
+        if total_records:
+            num_records_found = total_records
+        else:
+            num_records_found = 0
 
         return render_template(
             "browse.html",
@@ -166,6 +175,10 @@ def browse_transferring_body(_id: uuid.UUID):
     filters = build_filters(request.args)
     sorting_orders = build_sorting_orders(request.args)
 
+    # set default sort
+    if len(sorting_orders) == 0:
+        sorting_orders["series"] = "asc"
+
     query = build_browse_transferring_body_query(
         transferring_body_id=_id,
         filters=filters,
@@ -174,9 +187,14 @@ def browse_transferring_body(_id: uuid.UUID):
 
     browse_results = query.paginate(page=page, per_page=per_page)
 
-    num_records_found = db.session.query(
+    total_records = db.session.query(
         func.sum(query.subquery().c.records_held)
     ).scalar()
+
+    if total_records:
+        num_records_found = total_records
+    else:
+        num_records_found = 0
 
     return render_template(
         "browse.html",
@@ -222,6 +240,10 @@ def browse_series(_id: uuid.UUID):
     filters = build_filters(request.args)
     sorting_orders = build_sorting_orders(request.args)
 
+    # set default sort
+    if len(sorting_orders) == 0:
+        sorting_orders["last_record_transferred"] = "desc"
+
     query = build_browse_series_query(
         series_id=_id,
         filters=filters,
@@ -230,9 +252,14 @@ def browse_series(_id: uuid.UUID):
 
     browse_results = query.paginate(page=page, per_page=per_page)
 
-    num_records_found = db.session.query(
+    total_records = db.session.query(
         func.sum(query.subquery().c.records_held)
     ).scalar()
+
+    if total_records:
+        num_records_found = total_records
+    else:
+        num_records_found = 0
 
     return render_template(
         "browse.html",
@@ -281,7 +308,7 @@ def browse_consignment(_id: uuid.UUID):
     filters = build_browse_consignment_filters(request.args)
     sorting_orders = build_sorting_orders(request.args)
 
-    # set default sort for consignment view
+    # set default sort
     if len(sorting_orders) == 0:
         sorting_orders["closure_type"] = "asc"
 
@@ -293,7 +320,11 @@ def browse_consignment(_id: uuid.UUID):
 
     browse_results = query.paginate(page=page, per_page=per_page)
 
-    num_records_found = query.count()
+    total_records = query.count()
+    if total_records:
+        num_records_found = total_records
+    else:
+        num_records_found = 0
 
     return render_template(
         "browse.html",
