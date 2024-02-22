@@ -10,7 +10,7 @@
             <!-- TABLE -->
             <div class="govuk-grid-column-full govuk-grid-column-full__browse-details">
                 <div class="browse-details">
-                    <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
+                    <h1 class="govuk-heading-l browse__records-found__text">Browse records {{ num_records_found }}</h1>
                     <p class="govuk-body browse__body">You are viewing</p>
                     {% if browse_type == "browse" %}
                         {% with view_type='desktop' %}
@@ -44,7 +44,7 @@
                 <!-- TABLE -->
                 <div class="govuk-grid-column-full govuk-grid-column-full--browse">
                     <div class="mobile-details">
-                        <h1 class="govuk-heading-l browse__records-found__text">Records found {{ num_records_found }}</h1>
+                        <h1 class="govuk-heading-l browse__records-found__text">Browse records {{ num_records_found }}</h1>
                         <p class="govuk-body browse__body">You are viewing</p>
                         {% if browse_type == "browse" %}
                             {% with view_type='mobile' %}

@@ -317,9 +317,7 @@ def test_record_top_search(client, mock_superuser):
                         type="submit">Search</button>
             </div>
             <p class="govuk-body-s">
-                Search using a record metadata term, for example – transferring body, series,
-                consignment
-                ref etc.
+                Search by file name, transferring body, series or consignment reference.
             </p>
         </form>
     </div>

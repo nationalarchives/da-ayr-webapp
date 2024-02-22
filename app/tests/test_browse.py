@@ -146,7 +146,7 @@ class TestBrowse:
         assert response.status_code == 200
 
         assert b"Search for digital records" in response.data
-        assert b"Records found 27" in response.data
+        assert b"Browse records 27" in response.data
 
     @pytest.mark.parametrize(
         "query_params, expected_results",

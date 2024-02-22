@@ -87,6 +87,11 @@ def callback():
     session["refresh_token"] = access_token_response["refresh_token"]
     decoded_access_token = keycloak_openid.introspect(session["access_token"])
     session["user_groups"] = decoded_access_token["groups"]
+    ayr_user = AYRUser(session.get("user_groups"))
+    if ayr_user.is_superuser:
+        session["user_type"] = "superuser"
+    else:
+        session["user_type"] = "standard_user"
 
     return redirect(url_for("main.browse"))
 
@@ -310,7 +315,7 @@ def browse_consignment(_id: uuid.UUID):
 
     # set default sort
     if len(sorting_orders) == 0:
-        sorting_orders["closure_type"] = "asc"
+        sorting_orders["date_last_modified"] = "desc"
 
     query = build_browse_consignment_query(
         consignment_id=_id,
