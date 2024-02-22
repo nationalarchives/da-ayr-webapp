@@ -5,7 +5,13 @@ import werkzeug
 from flask.testing import FlaskClient
 
 from app.main.db.queries import build_fuzzy_search_query, get_file_metadata
-from app.tests.factories import FileFactory, FileMetadataFactory
+from app.tests.factories import (
+    BodyFactory,
+    ConsignmentFactory,
+    FileFactory,
+    FileMetadataFactory,
+    SeriesFactory,
+)
 
 per_page = 5
 
@@ -43,11 +49,18 @@ class TestFuzzySearch:
 
     def test_build_fuzzy_search_query_no_results(self, client: FlaskClient):
         """
-        Given a filter value that does not match transferring body in the database
+        Given a filter value that does not match any field used for search terms
+            in any file in the database
         When build_browse_all_query is called with it and is executed
         Then an empty list is returned
         """
-        query = build_fuzzy_search_query(query_string="junk")
+        body = BodyFactory(Name="foo", Description="foo")
+        series = SeriesFactory(Name="foo", Description="foo", body=body)
+        consignment = ConsignmentFactory(
+            ConsignmentReference="foo", series=series
+        )
+        FileFactory(FileType="file", FileName="foo", consignment=consignment)
+        query = build_fuzzy_search_query(query_string="bar")
         results = query.all()
         assert results == []
 
