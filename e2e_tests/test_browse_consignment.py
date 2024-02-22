@@ -20,7 +20,7 @@ class TestBrowseConsignment:
         cols = rows.first.locator("td")
 
         assert headers == [
-            "Last modified",
+            "Record date",
             "Filename",
             "Status",
             "Record opening date",
@@ -54,7 +54,7 @@ class TestBrowseConsignment:
         cols = rows.first.locator("td")
 
         assert headers == [
-            "Last modified",
+            "Record date",
             "Filename",
             "Status",
             "Record opening date",

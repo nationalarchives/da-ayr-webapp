@@ -95,9 +95,7 @@ class TestSearch:
                         type="submit">Search</button>
             </div>
             <p class="govuk-body-s">
-                Search using a record metadata term, for example – transferring body, series,
-                consignment
-                ref etc.
+                Search by file name, transferring body, series or consignment reference.
             </p>
         </form>
     </div>
@@ -136,6 +134,82 @@ class TestSearch:
 
         assert response.status_code == 200
         assert b"Records found 0"
+
+    def test_search_box_standard_user(
+        self, client: FlaskClient, mock_standard_user
+    ):
+        mock_standard_user(client)
+
+        response = client.get(f"{self.route_url}")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        search_html = """<div class="search__container govuk-grid-column-full">
+        <div class="search__container__content">
+            <p class="govuk-body search__heading">Search for digital records</p>
+            <form method="get" action="/search">
+                <div class="govuk-form-group govuk-form-group__search-form">
+                    <label for="searchInput"></label>
+                    <input class="govuk-input govuk-!-width-three-quarters"
+                        id="searchInput"
+                        name="query"
+                        type="text" value=""/>
+                    <button class="govuk-button govuk-button__search-button"
+                            data-module="govuk-button"
+                            type="submit">Search</button>
+                </div>
+                <p class="govuk-body-s">
+                    Search by file name, series or consignment reference.
+                </p>
+            </form>
+        </div>
+    </div>"""
+
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "search__container govuk-grid-column-full"},
+        )
+
+    def test_search_box_super_user(self, client: FlaskClient, mock_superuser):
+        mock_superuser(client)
+
+        response = client.get(f"{self.route_url}")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        search_html = """<div class="search__container govuk-grid-column-full">
+        <div class="search__container__content">
+            <p class="govuk-body search__heading">Search for digital records</p>
+            <form method="get" action="/search">
+                <div class="govuk-form-group govuk-form-group__search-form">
+                    <label for="searchInput"></label>
+                    <input class="govuk-input govuk-!-width-three-quarters"
+                        id="searchInput"
+                        name="query"
+                        type="text" value=""/>
+                    <button class="govuk-button govuk-button__search-button"
+                            data-module="govuk-button"
+                            type="submit">Search</button>
+                </div>
+                <p class="govuk-body-s">
+                    Search by file name, transferring body, series or consignment reference.
+                </p>
+            </form>
+        </div>
+    </div>"""
+
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "search__container govuk-grid-column-full"},
+        )
 
     @pytest.mark.parametrize(
         "query_params, expected_results",

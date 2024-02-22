@@ -59,6 +59,11 @@ def access_token_sign_in_required(view_func):
                 keycloak_openid = get_keycloak_instance_from_flask_config()
                 decoded_access_token = keycloak_openid.introspect(access_token)
                 session["user_groups"] = decoded_access_token["groups"]
+                ayr_user = AYRUser(session.get("user_groups"))
+                if ayr_user.is_superuser:
+                    session["user_type"] = "superuser"
+                else:
+                    session["user_type"] = "standard_user"
 
             ayr_user = AYRUser(session["user_groups"])
 

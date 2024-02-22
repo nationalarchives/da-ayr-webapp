@@ -221,9 +221,10 @@ class TestAccessTokenSignInRequiredDecorator:
             with client.session_transaction() as session:
                 session["access_token"] = "inactive_access_token"
                 session["refresh_token"] = "active_refresh_token"
+                session["user_type"] = "standard_user"
 
             valid_groups = [
-                "/ayr_user_type/view_dept",
+                "/ayr_user_type/view_all",
                 "/transferring_body_user/foo",
             ]
 
@@ -252,6 +253,7 @@ class TestAccessTokenSignInRequiredDecorator:
                     == "new_active_refresh_token"
                 )
                 assert updated_session["user_groups"] == valid_groups
+                assert updated_session["user_type"] == "superuser"
 
     @staticmethod
     @patch(
