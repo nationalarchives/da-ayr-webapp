@@ -7,7 +7,9 @@ from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 from app.main.util.date_formatter import validate_date_range
 
 
-def build_fuzzy_search_query(query_string: str, sorting_orders=None):
+def build_fuzzy_search_query(
+    query_string: str, transferring_body_id=None, sorting_orders=None
+):
     filter_value = str(f"%{query_string}%").lower()
 
     fuzzy_filters = or_(
@@ -81,15 +83,20 @@ def build_fuzzy_search_query(query_string: str, sorting_orders=None):
         ).label("opening_date"),
     )
 
+    if transferring_body_id:
+        query = query.filter(
+            sub_query.c.transferring_body_id == transferring_body_id
+        )
+
     if sorting_orders:
         query = _build_sorting_orders(query, sub_query, sorting_orders)
-    else:
-        query = query.order_by(
-            sub_query.c.transferring_body,
-            sub_query.c.series,
-            sub_query.c.consignment_reference,
-            sub_query.c.file_name,
-        )
+    # else:
+    #    query = query.order_by(
+    #        sub_query.c.transferring_body,
+    #        sub_query.c.series,
+    #        sub_query.c.consignment_reference,
+    #        sub_query.c.file_name,
+    #    )
 
     return query
 

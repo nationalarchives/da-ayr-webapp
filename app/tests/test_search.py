@@ -1,11 +1,12 @@
 import pytest
 from bs4 import BeautifulSoup
+from flask import url_for
 from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
 
 
-def verify_search_header_row(data):
+def verify_search_transferring_body_header_row(data):
     """
     this function check header row column values against expected row
     :param data: response data
@@ -21,6 +22,26 @@ def verify_search_header_row(data):
             "Title",
             "Status",
             "Record opening",
+        ],
+    )
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_row[0]
+
+
+def verify_search_results_summary_header_row(data):
+    """
+    this function check header row column values against expected row
+    :param data: response data
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+
+    expected_row = (
+        [
+            "Results found within each Transferring body",
+            "Records found",
         ],
     )
     assert [
@@ -47,12 +68,68 @@ def verify_data_rows(data, expected_rows):
     assert [row_data] == expected_rows[0]
 
 
-class TestSearch:
+class TestSearchRedirect:
     @property
     def route_url(self):
         return "/search"
 
-    def test_search_get(self, client: FlaskClient, mock_superuser):
+    def test_search_route_redirect_superuser(
+        self, client: FlaskClient, mock_superuser
+    ):
+        """
+        Given a superuser accessing the search route
+        When they make a GET request
+        Then they should see the search results summary page content.
+        """
+        mock_superuser(client)
+
+        query = "fi"
+        form_data = {"query": query}
+
+        response = client.get(f"{self.route_url}", data=form_data)
+
+        assert response.status_code == 302
+        assert response.headers["Location"] == url_for(
+            "main.search_results_summary", query=query
+        )
+
+    def test_search_route_redirect_standard_user(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a standard user accessing the search route
+        When they make a GET request
+        Then they should see the search transferring body page content.
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        query = "fi"
+        form_data = {"query": query}
+
+        response = client.get(f"{self.route_url}", data=form_data)
+
+        assert response.status_code == 302
+        assert response.headers["Location"] == url_for(
+            "main.search_transferring_body",
+            _id=str(transferring_body_id),
+            query=query,
+        )
+
+
+class TesthSearchResultsSummary:
+    @property
+    def route_url(self):
+        return "/search_results_summary"
+
+    def test_search_results_summary_get(
+        self, client: FlaskClient, mock_superuser
+    ):
         """
         Given a superuser accessing the search page
         When they make a GET request
@@ -66,7 +143,7 @@ class TestSearch:
         assert b"Search for digital records" in response.data
         assert b"Search" in response.data
 
-    def test_search_top_search(self, client, mock_superuser):
+    def test_search_results_summary_top_search(self, client, mock_superuser):
         """
         Given a superuser accessing the search page
         When they make a GET request
@@ -79,10 +156,10 @@ class TestSearch:
         assert response.status_code == 200
 
         html = response.data.decode()
-        search_html = f"""<div class="search__container govuk-grid-column-full">
+        search_html = """<div class="search__container govuk-grid-column-full">
     <div class="search__container__content">
         <p class="govuk-body search__heading">Search for digital records</p>
-        <form method="get" action="{self.route_url}">
+        <form method="get" action="/search">
             <div class="govuk-form-group govuk-form-group__search-form">
                 <label for="searchInput"></label>
                 <input class="govuk-input govuk-!-width-three-quarters"
@@ -108,7 +185,9 @@ class TestSearch:
             {"class": "search__container govuk-grid-column-full"},
         )
 
-    def test_search_no_query(self, client: FlaskClient, mock_superuser):
+    def test_search_results_summary_no_query(
+        self, client: FlaskClient, mock_superuser
+    ):
         """
         Given a superuser accessing the search page
         When they make a GET request without a query
@@ -121,7 +200,9 @@ class TestSearch:
         assert response.status_code == 200
         assert b"records found" not in response.data
 
-    def test_search_with_no_results(self, client: FlaskClient, mock_superuser):
+    def test_search_results_summary_with_no_results(
+        self, client: FlaskClient, mock_superuser
+    ):
         """
         Given a superuser with a search query
         When they make a request on the search page, and no results are found
@@ -135,74 +216,143 @@ class TestSearch:
         assert response.status_code == 200
         assert b"Records found 0"
 
-    def test_search_box_standard_user(
-        self, client: FlaskClient, mock_standard_user
+    def test_search_results_summary_with_results(
+        self, client: FlaskClient, mock_superuser, browse_consignment_files
     ):
-        mock_standard_user(client)
-
-        response = client.get(f"{self.route_url}")
-
-        assert response.status_code == 200
-
-        html = response.data.decode()
-
-        search_html = """<div class="search__container govuk-grid-column-full">
-        <div class="search__container__content">
-            <p class="govuk-body search__heading">Search for digital records</p>
-            <form method="get" action="/search">
-                <div class="govuk-form-group govuk-form-group__search-form">
-                    <label for="searchInput"></label>
-                    <input class="govuk-input govuk-!-width-three-quarters"
-                        id="searchInput"
-                        name="query"
-                        type="text" value=""/>
-                    <button class="govuk-button govuk-button__search-button"
-                            data-module="govuk-button"
-                            type="submit">Search</button>
-                </div>
-                <p class="govuk-body-s">
-                    Search by file name, series or consignment reference.
-                </p>
-            </form>
-        </div>
-    </div>"""
-
-        assert_contains_html(
-            search_html,
-            html,
-            "div",
-            {"class": "search__container govuk-grid-column-full"},
-        )
-
-    def test_search_box_super_user(self, client: FlaskClient, mock_superuser):
+        """
+        Given a superuser
+        When they make a request on the search page with the search term
+        Then they should be redirected to search results summary screen
+        with search results summary page content
+        """
         mock_superuser(client)
 
-        response = client.get(f"{self.route_url}")
+        form_data = {"query": "fi"}
+
+        response = client.get(f"{self.route_url}", data=form_data)
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', '15'",
+            ],
+        ]
+
+        verify_search_results_summary_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_search_results_summary_breadcrumbs(
+        self, client: FlaskClient, mock_superuser, browse_consignment_files
+    ):
+        """
+        Given a superuser
+        When they make a request on the search page with the search term
+        Then they should be redirected to search results summary screen
+        with search results summary page content
+        """
+        mock_superuser(client)
+
+        form_data = {"query": "fi"}
+
+        response = client.get(f"{self.route_url}", data=form_data)
 
         assert response.status_code == 200
 
         html = response.data.decode()
 
+        search_html = """<div class="govuk-breadcrumbs  ">
+    <ol class="govuk-breadcrumbs__list">
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">Results summary</span>
+                </li>
+    </ol>
+</div>"""
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "govuk-breadcrumbs"},
+        )
+
+
+class TestSearchTransferringBody:
+    @property
+    def route_url(self):
+        return "/search/transferring_body"
+
+    @property
+    def search_results_summary_route_url(self):
+        return "/search_results_summary"
+
+    def test_search_transferring_body_get(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a standard user accessing the search page
+        When they make a GET request
+        Then they should see the search form and page content.
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(f"{self.route_url}/{transferring_body_id}")
+
+        assert response.status_code == 200
+        assert b"Search" in response.data
+        assert b"Search for digital records" in response.data
+        assert b"Search" in response.data
+
+    def test_search_transferring_body_top_search(
+        self, client, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a standard user accessing the search page
+        When they make a GET request
+        Then they should see the top search component available on search page content.
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(f"{self.route_url}/{transferring_body_id}")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
         search_html = """<div class="search__container govuk-grid-column-full">
-        <div class="search__container__content">
-            <p class="govuk-body search__heading">Search for digital records</p>
-            <form method="get" action="/search">
-                <div class="govuk-form-group govuk-form-group__search-form">
-                    <label for="searchInput"></label>
-                    <input class="govuk-input govuk-!-width-three-quarters"
-                        id="searchInput"
-                        name="query"
-                        type="text" value=""/>
-                    <button class="govuk-button govuk-button__search-button"
-                            data-module="govuk-button"
-                            type="submit">Search</button>
-                </div>
-                <p class="govuk-body-s">
-                    Search by file name, transferring body, series or consignment reference.
-                </p>
-            </form>
-        </div>
-    </div>"""
+    <div class="search__container__content">
+        <p class="govuk-body search__heading">Search for digital records</p>
+        <form method="get" action="/search">
+            <div class="govuk-form-group govuk-form-group__search-form">
+                <label for="searchInput"></label>
+                <input class="govuk-input govuk-!-width-three-quarters"
+                       id="searchInput"
+                       name="query"
+                       type="text"
+                       value="">
+                <button class="govuk-button govuk-button__search-button"
+                        data-module="govuk-button"
+                        type="submit">Search</button>
+            </div>
+            <p class="govuk-body-s">
+                Search by file name, series or consignment reference.
+            </p>
+        </form>
+    </div>
+</div>"""
 
         assert_contains_html(
             search_html,
@@ -210,6 +360,56 @@ class TestSearch:
             "div",
             {"class": "search__container govuk-grid-column-full"},
         )
+
+    def test_search_transferring_body_no_query(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a standard user accessing the search page
+        When they make a GET request without a query
+        Then they should not see any records found.
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        form_data = {"foo": "bar"}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+        assert b"records found" not in response.data
+
+    def test_search_transferring_body_with_no_results(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a standard user with a search query
+        When they make a request on the search page, and no results are found
+        Then they should see no records found.
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        form_data = {"query": "bar"}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+        assert b"Records found 0"
 
     @pytest.mark.parametrize(
         "query_params, expected_results",
@@ -318,7 +518,7 @@ class TestSearch:
             ),
         ],
     )
-    def test_search_full_test(
+    def test_search_transferring_body_full_test(
         self,
         client: FlaskClient,
         mock_standard_user,
@@ -327,7 +527,7 @@ class TestSearch:
         expected_results,
     ):
         """
-        Given a superuser accessing the search page
+        Given a standard user accessing the search page
         When they make a GET request
         and provide different values as query string
         and sorting orders (asc, desc)
@@ -340,14 +540,20 @@ class TestSearch:
             client, browse_consignment_files[0].consignment.series.body.Name
         )
 
-        response = client.get(f"{self.route_url}?{query_params}")
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}?{query_params}"
+        )
 
         assert response.status_code == 200
 
-        verify_search_header_row(response.data)
+        verify_search_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_results)
 
-    def test_search_results_display_single_page(
+    def test_search_transferring_body_results_display_single_page(
         self,
         client: FlaskClient,
         app,
@@ -366,7 +572,14 @@ class TestSearch:
 
         app.config["DEFAULT_PAGE_SIZE"] = 5
         form_data = {"query": "first"}
-        response = client.get(f"{self.route_url}", data=form_data)
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
 
         assert response.status_code == 200
         assert b"Records found 5" in response.data
@@ -381,7 +594,7 @@ class TestSearch:
             ],
         ]
 
-        verify_search_header_row(response.data)
+        verify_search_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
         assert (
@@ -389,7 +602,7 @@ class TestSearch:
             not in response.data
         )
 
-    def test_search_results_display_multiple_pages(
+    def test_search_transferring_body_results_display_multiple_pages(
         self,
         client: FlaskClient,
         app,
@@ -410,7 +623,14 @@ class TestSearch:
 
         app.config["DEFAULT_PAGE_SIZE"] = 2
         form_data = {"query": "first"}
-        response = client.get(f"{self.route_url}", data=form_data)
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
 
         assert response.status_code == 200
         assert b"Records found 5" in response.data
@@ -422,7 +642,7 @@ class TestSearch:
             ],
         ]
 
-        verify_search_header_row(response.data)
+        verify_search_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
         # check pagination
@@ -437,7 +657,7 @@ class TestSearch:
         assert not previous_option
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
-    def test_search_results_display_first_page(
+    def test_search_transferring_body_results_display_first_page(
         self,
         client: FlaskClient,
         app,
@@ -459,8 +679,13 @@ class TestSearch:
         app.config["DEFAULT_PAGE_SIZE"] = 2
         form_data = {"query": "first"}
 
-        response = client.get(f"{self.route_url}?page=1", data=form_data)
-        # response = client.get(f"{self.route_url}?page=1")
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}?page=1", data=form_data
+        )
 
         assert response.status_code == 200
         assert b'aria-label="Page 1"' in response.data
@@ -477,13 +702,13 @@ class TestSearch:
             ],
         ]
 
-        verify_search_header_row(response.data)
+        verify_search_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
         assert not previous_option
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
-    def test_search_results_display_middle_page(
+    def test_search_transferring_body_results_display_middle_page(
         self,
         client: FlaskClient,
         app,
@@ -505,7 +730,13 @@ class TestSearch:
         app.config["DEFAULT_PAGE_SIZE"] = 2
         form_data = {"query": "first"}
 
-        response = client.get(f"{self.route_url}?page=2", data=form_data)
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}?page=2", data=form_data
+        )
 
         assert response.status_code == 200
         assert b'aria-label="Page 2"' in response.data
@@ -523,7 +754,7 @@ class TestSearch:
             ],
         ]
 
-        verify_search_header_row(response.data)
+        verify_search_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
         assert (
@@ -535,7 +766,7 @@ class TestSearch:
             == "Nextpage"
         )
 
-    def test_search_results_display_last_page(
+    def test_search_transferring_body_results_display_last_page(
         self,
         client: FlaskClient,
         app,
@@ -557,7 +788,13 @@ class TestSearch:
         app.config["DEFAULT_PAGE_SIZE"] = 2
         form_data = {"query": "first"}
 
-        response = client.get(f"{self.route_url}?page=3", data=form_data)
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}?page=3", data=form_data
+        )
 
         assert response.status_code == 200
         assert b'aria-label="Page 3"' in response.data
@@ -573,7 +810,7 @@ class TestSearch:
             ],
         ]
 
-        verify_search_header_row(response.data)
+        verify_search_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
         assert (
@@ -582,50 +819,195 @@ class TestSearch:
         )
         assert not next_option
 
-    def test_search_results_summary_display(
+    def test_search_transferring_body_breadcrumbs_superuser(
         self, client: FlaskClient, mock_superuser, browse_consignment_files
     ):
         """
         Given a superuser
         When they make a request on the search page with the search term
-        Then they should be redirected to search results summary screen
+        Then they should be redirected to search transferring body screen
         with search results summary page content
+        and see a bread crumbs rendered as Everything > Results summary > Transferring body > ‘Search term’
         """
         mock_superuser(client)
 
-        form_data = {"query": "fi"}
+        query = "fi"
+        form_data = {"query": query}
 
-        response = client.get(f"{self.route_url}", data=form_data)
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
 
         assert response.status_code == 200
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        table = soup.find("table")
-        headers = table.find_all("th")
-        rows = table.find_all("td")
+        html = response.data.decode()
+        search_html = f"""<div class="govuk-breadcrumbs  ">
+    <ol class="govuk-breadcrumbs__list">
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                    <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="/search_results_summary?query={query}">Results summary</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="/browse/transferring_body/{transferring_body_id}">first_body</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{query}’</span>
+                </li>
+    </ol>
+    </div>"""
 
-        expected_row = (
-            [
-                "Results found within each Transferring body",
-                "Records found",
-            ],
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "govuk-breadcrumbs"},
         )
-        assert [
-            header.text.replace("\n", " ").strip(" ") for header in headers
-        ] == expected_row[0]
 
-        expected_rows = [
-            [
-                "'first_body', '15'",
-            ],
-        ]
+    def test_search_transferring_body_breadcrumbs_standard_user_single_search_term(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a standard user
+        When they make a request on the search page with the search term
+        Then they should be redirected to search transferring body screen
+        with search results summary page content
+        and see a bread crumbs rendered as Everything > Results summary > Transferring body > ‘Search term’
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        query = "fi"
+        form_data = {"query": query}
 
-        row_data = ""
-        for row_index, row in enumerate(rows):
-            row_data = (
-                row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-            )
-            if row_index < len(rows) - 1:
-                row_data = row_data + ", "
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
 
-        assert [row_data] == expected_rows[0]
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        search_html = f"""<div class="govuk-breadcrumbs  ">
+    <ol class="govuk-breadcrumbs__list">
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="/browse/transferring_body/{transferring_body_id}">first_body</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{query}’</span>
+                </li>
+    </ol>
+</div>"""
+
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "govuk-breadcrumbs"},
+        )
+
+    def test_search_transferring_body_breadcrumbs_standard_user_multiple_search_terms(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a standard user
+        When they make a request on the search page with the search term
+        Then they should be redirected to search transferring body screen
+        with search results summary page content
+        and see a bread crumbs rendered as Everything > Results summary > Transferring body >
+        ‘Search term’ + ‘Search term’
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        query1 = "fi"
+        query2 = "st"
+        form_data = {"query": query1 + "," + query2}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        search_html = f"""<div class="govuk-breadcrumbs  ">
+    <ol class="govuk-breadcrumbs__list">
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="/browse/transferring_body/{transferring_body_id}">first_body</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{query1}’ + ‘{query2}’</span>
+                </li>
+    </ol>
+</div>"""
+
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "govuk-breadcrumbs"},
+        )
+
+    def test_search_transferring_body_breadcrumbs_standard_user_invalid_search_terms(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a superuser
+        When they make a request on the search page with the search term
+        Then they should be redirected to search transferring body screen
+        with search results summary page content
+        and see a bread crumbs rendered as Everything > Results summary > Transferring body > ‘Search term’
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        # added blank search term
+        query = "fi"
+        form_data = {"query": query + ", "}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        search_html = f"""<div class="govuk-breadcrumbs  ">
+    <ol class="govuk-breadcrumbs__list">
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="/browse/transferring_body/{transferring_body_id}">first_body</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{query}’</span>
+                </li>
+    </ol>
+</div>"""
+
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "govuk-breadcrumbs"},
+        )

@@ -13,6 +13,7 @@
                 <div class="govuk-grid-column-full">
                     {% if filters["query"]|length >0 %}
                         <h2 class="govuk-heading-m">Results found {{ num_records_found }}</h2>
+                        <p class="govuk-body browse__body">You are viewing</p>
                         <!-- BREAD CRUMB -->
                         {% with dict = breadcrumbs %}
                             {% include "breadcrumb.html" %}
@@ -28,13 +29,17 @@
                                 {% for record in results %}
                                     <tr class="govuk-table__row">
                                         <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
-                                            <a href="{{ url_for('main.browse', transferring_body_id=record['transferring_body_id']) }}">{{ record['transferring_body'] }}</a>
+                                            <a href="{{ url_for('main.search_transferring_body', _id=record['transferring_body_id'] , query=filters['query']) }}">{{ record['transferring_body'] }}</a>
                                         </td>
                                         <td class="govuk-table__cell govuk-body govuk-!-font-size-14">{{ record['records_held'] }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
+                        <!-- PAGINATION -->
+                        {% with view_name='main.search_results_summary' %}
+                            {% include "pagination.html" %}
+                        {% endwith %}
                     {% endif %}
                 </div>
             </div>
