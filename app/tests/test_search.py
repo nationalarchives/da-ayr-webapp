@@ -516,6 +516,30 @@ class TestSearchTransferringBody:
                     ],
                 ],
             ),
+            (
+                "query=TDR-2023-FI1&sort=closure_type-asc",
+                [
+                    [
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-'"
+                    ],
+                ],
+            ),
+            (
+                "query=TDR-2023-FI1&sort=closure_type-desc",
+                [
+                    [
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                    ],
+                ],
+            ),
         ],
     )
     def test_search_transferring_body_full_test(
