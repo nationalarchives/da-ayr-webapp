@@ -1,0 +1,38 @@
+/* Default styles for desktop */
+
+.govuk-table__header {
+  &--results-summary {
+    font-weight: bold;
+    font-size: 1rem;
+  }
+
+  &:last-child {
+    text-align: right;
+  }
+}
+
+.govuk-table__cell {
+  &--results-summary {
+    font-size: 1rem;
+  }
+
+  a {
+    color: #1d70b8;
+
+    &:visited {
+      color: #1d70b8;
+    }
+  }
+
+  &--record-results {
+    font-weight: bold;
+    font-size: 1rem;
+    text-align: right;
+  }
+}
+
+.govuk-table {
+  &--results-summary {
+    margin-top: 3rem;
+  }
+}
