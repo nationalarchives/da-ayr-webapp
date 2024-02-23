@@ -16,7 +16,7 @@ def validate_body_user_groups_or_404(
     Raises:
         werkzeug.exceptions.NotFound: If the user does not have access to the specified transferring body.
     """
-    ayr_user = AYRUser(session.get("user_groups"))
+    ayr_user = AYRUser(session["token"]["userinfo"]["groups"])
 
     if ayr_user.is_superuser:
         return

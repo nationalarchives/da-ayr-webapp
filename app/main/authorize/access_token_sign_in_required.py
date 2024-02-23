@@ -1,12 +1,8 @@
 from functools import wraps
 
-import keycloak
-from flask import flash, g, redirect, session, url_for
+from flask import current_app, flash, g, redirect, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
-from app.main.flask_config_helpers import (
-    get_keycloak_instance_from_flask_config,
-)
 
 
 def access_token_sign_in_required(view_func):
@@ -41,31 +37,25 @@ def access_token_sign_in_required(view_func):
         g.access_token_sign_in_required = True  # Set attribute on g
 
         try:
-            access_token = session.get("access_token")
-            refresh_token = session.get("refresh_token")
+            token = session.get("token")
             try:
                 (
-                    access_token,
-                    refresh_token,
-                    tokens_are_refreshed,
-                ) = _validate_or_refresh_tokens(access_token, refresh_token)
+                    token,
+                    token_is_refreshed,
+                ) = _validate_or_refresh_token(token)
             except InvalidAccessToken:
                 session.clear()
                 return redirect(url_for("main.sign_in"))
 
-            if tokens_are_refreshed:
-                session["access_token"] = access_token
-                session["refresh_token"] = refresh_token
-                keycloak_openid = get_keycloak_instance_from_flask_config()
-                decoded_access_token = keycloak_openid.introspect(access_token)
-                session["user_groups"] = decoded_access_token["groups"]
-                ayr_user = AYRUser(session.get("user_groups"))
+            if token_is_refreshed:
+                session["token"] = token
+                ayr_user = AYRUser(session["token"]["userinfo"]["groups"])
                 if ayr_user.is_superuser:
                     session["user_type"] = "superuser"
                 else:
                     session["user_type"] = "standard_user"
 
-            ayr_user = AYRUser(session["user_groups"])
+            ayr_user = AYRUser(session["token"]["userinfo"]["groups"])
 
             if not ayr_user.can_access_ayr:
                 flash(
@@ -84,29 +74,29 @@ def access_token_sign_in_required(view_func):
     return decorated_view
 
 
-def _validate_or_refresh_tokens(access_token, refresh_token):
-    tokens_are_refreshed = False
+def _validate_or_refresh_token(token):
+    token_is_refreshed = False
 
-    if not (access_token and refresh_token):
+    if not (token["access_token"] and token["refresh_token"]):
         raise InvalidAccessToken
+    token_endpoint = f'{current_app.config["KEYCLOAK_BASE_URI"]}realms/{current_app.config["KEYCLOAK_REALM_NAME"]}/protocol/openid-connect/token/introspect'
+    introspected_token = (
+        current_app.extensions["authlib.integrations.flask_client"]
+        .keycloak._get_oauth_client()
+        .introspect_token(token_endpoint, token=token["access_token"])
+    )
+    if introspected_token.ok and introspected_token.json()["active"] is False:
+        token_endpoint = f'{current_app.config["KEYCLOAK_BASE_URI"]}realms/{current_app.config["KEYCLOAK_REALM_NAME"]}/protocol/openid-connect/token/refresh'
+        refreshed_token_response = (
+            current_app.extensions["authlib.integrations.flask_client"]
+            .keycloak._get_oauth_client()
+            .refresh_token(token_endpoint, token=token)
+        )
+        if refreshed_token_response.ok():
+            token = refreshed_token_response.json()
+            token_is_refreshed = True
 
-    keycloak_openid = get_keycloak_instance_from_flask_config()
-
-    decoded_token = keycloak_openid.introspect(access_token)
-
-    if decoded_token["active"] is False:
-        try:
-            refreshed_token_response = keycloak_openid.refresh_token(
-                refresh_token
-            )
-        except keycloak.exceptions.KeycloakPostError:
-            raise InvalidAccessToken
-
-        access_token = refreshed_token_response["access_token"]
-        refresh_token = refreshed_token_response["refresh_token"]
-        tokens_are_refreshed = True
-
-    return access_token, refresh_token, tokens_are_refreshed
+    return token, token_is_refreshed
 
 
 class InvalidAccessToken(Exception):

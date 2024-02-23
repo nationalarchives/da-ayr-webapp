@@ -1,4 +1,5 @@
-from flask import Flask, g
+from authlib.integrations.flask_client import OAuth
+from flask import Flask, g, session
 from flask_compress import Compress
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -16,6 +17,8 @@ limiter = Limiter(
     get_remote_address, default_limits=["2 per second", "60 per minute"]
 )
 talisman = Talisman()
+
+oauth = OAuth()
 
 
 def null_to_dash(value):
@@ -66,10 +69,21 @@ def create_app(config_class, database_uri=None):
     csrf.init_app(app)
     limiter.init_app(app)
     talisman.init_app(app, content_security_policy=csp, force_https=force_https)
+    oauth.init_app(app)
+
     WTFormsHelpers(app)
 
     # setup database components
     with app.app_context():
+        oauth.register(
+            "keycloak",
+            client_id=app.config["KEYCLOAK_CLIENT_ID"],
+            client_secret=app.config["KEYCLOAK_CLIENT_SECRET"],
+            client_kwargs={
+                "scope": "openid group_mapper_client_scope",
+            },
+            server_metadata_url=f'{app.config["KEYCLOAK_BASE_URI"]}realms/{app.config["KEYCLOAK_REALM_NAME"]}/.well-known/openid-configuration',
+        )
         # create db objects for testing else use existing database objects
         if database_uri:
             db.create_all()

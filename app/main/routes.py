@@ -1,4 +1,5 @@
 import uuid
+from urllib.parse import quote_plus, urlencode
 
 import boto3
 from flask import (
@@ -34,9 +35,6 @@ from app.main.db.queries import (
     build_fuzzy_search_query,
     get_file_metadata,
 )
-from app.main.flask_config_helpers import (
-    get_keycloak_instance_from_flask_config,
-)
 from app.main.forms import CookiesForm
 from app.main.util.filter_sort_builder import (
     build_browse_consignment_filters,
@@ -55,44 +53,42 @@ def index():
 @bp.route("/sign-out", methods=["GET"])
 @access_token_sign_in_required
 def sign_out():
-    keycloak_openid = get_keycloak_instance_from_flask_config()
-    keycloak_openid.logout(session["refresh_token"])
-    session.clear()
+    # session.clear()
+    sign_out_url = f'{current_app.config["KEYCLOAK_BASE_URI"]}realms/{current_app.config["KEYCLOAK_REALM_NAME"]}/protocol/openid-connect/logout'
+    refreshed_token_response = (
+        current_app.extensions["authlib.integrations.flask_client"]
+        .keycloak._get_oauth_client()
+        .request("POST", sign_out_url)
+    )
+    breakpoint()
+    return redirect(url_for("main.signed_out"))
+    #     current_app.config["KEYCLOAK_BASE_URI"]
 
-    return redirect("/signed-out")
+    #     + "v2/logout?"
+    #     + urlencode(url_for("main.signed_out", _external=True)
+    #         {
+    #             "returnTo": url_for("main.signed_out", _external=True),
+    #             "client_id": current_app.config["KEYCLOAK_CLIENT_ID"]
+    #         },
+    #         quote_via=quote_plus,
+    #     )
+    # )
 
 
 @bp.route("/sign-in", methods=["GET"])
 def sign_in():
-    keycloak_openid = get_keycloak_instance_from_flask_config()
-    auth_url = keycloak_openid.auth_url(
-        redirect_uri=f"{request.url_root}callback",
-        scope="group_mapper_client_scope",
+    return current_app.extensions[
+        "authlib.integrations.flask_client"
+    ].keycloak.authorize_redirect(
+        redirect_uri=url_for("main.callback", _external=True)
     )
-
-    return redirect(auth_url)
 
 
 @bp.route("/callback", methods=["GET"])
 def callback():
-    keycloak_openid = get_keycloak_instance_from_flask_config()
-    code = request.args.get("code")
-    access_token_response = keycloak_openid.token(
-        grant_type="authorization_code",
-        code=code,
-        redirect_uri=f"{request.url_root}callback",
-    )
-
-    session["access_token"] = access_token_response["access_token"]
-    session["refresh_token"] = access_token_response["refresh_token"]
-    decoded_access_token = keycloak_openid.introspect(session["access_token"])
-    session["user_groups"] = decoded_access_token["groups"]
-    ayr_user = AYRUser(session.get("user_groups"))
-    if ayr_user.is_superuser:
-        session["user_type"] = "superuser"
-    else:
-        session["user_type"] = "standard_user"
-
+    session["token"] = current_app.extensions[
+        "authlib.integrations.flask_client"
+    ].keycloak.authorize_access_token()
     return redirect(url_for("main.browse"))
 
 
@@ -109,7 +105,7 @@ def browse():
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     transferring_bodies = []
 
-    ayr_user = AYRUser(session.get("user_groups"))
+    ayr_user = AYRUser(session["token"]["userinfo"]["groups"])
     if ayr_user.is_standard_user:
         return redirect(
             f"/browse/transferring_body/{ayr_user.transferring_body.BodyId}"
@@ -368,7 +364,7 @@ def search():
             sorting_orders=sorting_orders,
         )
         # added a filter for transferring body - for standard user to return only matching rows
-        ayr_user = AYRUser(session.get("user_groups"))
+        ayr_user = AYRUser(session["token"]["userinfo"]["groups"])
         if ayr_user.is_standard_user:
             fuzzy_search_query = fuzzy_search_query.where(
                 Body.Name == ayr_user.transferring_body.Name
