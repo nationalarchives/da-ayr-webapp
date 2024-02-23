@@ -1,10 +1,107 @@
 from playwright.sync_api import Page, expect
 
 
-class TestSearch:
+class TestSearchResultsSummary:
     @property
     def route_url(self):
-        return "/search"
+        return "/search_results_summary"
+
+    def test_search_results_summary_sorting(self, authenticated_page: Page):
+        """
+        Given a standard user on the search page
+        When they interact with the search form and submit a query
+        Then the table should contain the expected headers and entries
+        and sorted transferring body in alphabetic order (A to Z)
+        on a search results summary screen
+        """
+        authenticated_page.goto(f"{self.route_url}?query=")
+        authenticated_page.get_by_label("", exact=True).click()
+        authenticated_page.get_by_label("", exact=True).fill("test")
+        authenticated_page.get_by_role("button", name="Search").click()
+
+        table = authenticated_page.locator("table")
+
+        # Use JavaScript to extract the text of header elements (th) within the table
+        header_texts = table.evaluate(
+            '(table) => Array.from(table.querySelectorAll("th")).map(th => th.textContent)'
+        )
+        # List of expected header values
+        expected_headers = [
+            "Results found within each Transferring body",
+            "Records found",
+        ]
+        for expected_header in expected_headers:
+            assert expected_header in header_texts
+
+        # Use JavaScript to extract the text of table cell elements (td) within the table
+        cell_texts = table.evaluate(
+            '(table) => Array.from(table.querySelectorAll("td")).map(td => td.textContent)'
+        )
+        breakpoint()
+        expected_entries = [
+            "MOCK1 Department",
+            11,
+            "TSTA 1",
+            841,
+        ]
+        assert expected_entries == cell_texts
+
+
+class TestSearchTransferringBody:
+    @property
+    def route_url(self):
+        return "/search/transferring_body"
+
+    def test_search_results_summary_sorting(self, authenticated_page: Page):
+        """
+        Given a standard user on the search page
+        When they interact with the search form and submit a query
+        Then the table should contain the expected headers and entries
+        and sort the results based on the sorting order selection from dropdown list
+        on a search transferring body screen
+        """
+        authenticated_page.goto(f"{self.route_url}?query=")
+        authenticated_page.get_by_label("", exact=True).click()
+        authenticated_page.get_by_label("", exact=True).fill("dtp")
+        authenticated_page.get_by_role("button", name="Search").click()
+        authenticated_page.get_by_role("link", name="Testing A").click()
+        authenticated_page.get_by_label("Sort by").select_option(
+            "consignment_reference-desc"
+        )
+        authenticated_page.get_by_role("button", name="Apply").click()
+
+        table = authenticated_page.locator("table")
+        # Use JavaScript to extract the text of header elements (th) within the table
+        header_texts = table.evaluate(
+            '(table) => Array.from(table.querySelectorAll("th")).map(th => th.textContent)'
+        )
+        # List of expected header values
+        expected_headers = [
+            "Series",
+            "Consignment reference",
+            "Title",
+            "Status",
+            "Record opening",
+        ]
+        for expected_header in expected_headers:
+            assert expected_header in header_texts
+
+        # Use JavaScript to extract the text of table cell elements (td) within the table
+        cell_texts = table.evaluate(
+            '(table) => Array.from(table.querySelectorAll("td")).map(td => td.textContent)'
+        )
+
+        expected_entries = [
+            "Testing A",
+            "TSTA 1",
+            "TDR-2023-H2QS",
+            "file-a1.txt",
+            "Testing A",
+            "TSTA 1",
+            "TDR-2023-H2QS",
+            "file-a2.txt",
+        ]
+        assert expected_entries == cell_texts
 
     def test_search_end_to_end(self, authenticated_page: Page):
         """
@@ -66,7 +163,7 @@ class TestSearch:
         ]
         assert expected_entries == cell_texts
 
-    def test_pagination_available(self, authenticated_page: Page):
+    def test_search_pagination_available(self, authenticated_page: Page):
         authenticated_page.goto(f"{self.route_url}")
         authenticated_page.fill("#searchInput", "Testing A")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
@@ -77,7 +174,7 @@ class TestSearch:
             == "Pagination"
         )
 
-    def test_pagination_check_only_one_page_returned(
+    def test_search_pagination_check_only_one_page_returned(
         self, authenticated_page: Page
     ):
         authenticated_page.goto(f"{self.route_url}")
@@ -91,7 +188,7 @@ class TestSearch:
         )
         assert not pagination_element
 
-    def test_pagination_get_first_page(self, authenticated_page: Page):
+    def test_search_pagination_get_first_page(self, authenticated_page: Page):
         authenticated_page.goto(f"{self.route_url}")
         authenticated_page.fill("#searchInput", "Testing A")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
@@ -116,7 +213,9 @@ class TestSearch:
         rows = authenticated_page.locator(".govuk-table__row").all()
         assert len(rows) == 6  # including header row
 
-    def test_pagination_get_previous_page(self, authenticated_page: Page):
+    def test_search_pagination_get_previous_page(
+        self, authenticated_page: Page
+    ):
         authenticated_page.goto(f"{self.route_url}")
         authenticated_page.fill("#searchInput", "Testing A")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
@@ -135,7 +234,7 @@ class TestSearch:
         ).all()
         assert links[0].inner_text() == "Previouspage"
 
-    def test_pagination_get_next_page(self, authenticated_page: Page):
+    def test_search_pagination_get_next_page(self, authenticated_page: Page):
         authenticated_page.goto(f"{self.route_url}")
         authenticated_page.fill("#searchInput", "Testing A")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
@@ -160,7 +259,9 @@ class TestSearch:
         if len(links) > 1:
             assert links[1].inner_text() == "Nextpage"
 
-    def test_pagination_get_ellipses_page(self, authenticated_page: Page):
+    def test_search_pagination_get_ellipses_page(
+        self, authenticated_page: Page
+    ):
         authenticated_page.goto(f"{self.route_url}")
         authenticated_page.fill("#searchInput", "Testing A")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
@@ -184,7 +285,9 @@ class TestSearch:
         ).all()
         assert links[0].inner_text() == "Nextpage"
 
-    def test_pagination_click_previous_link(self, authenticated_page: Page):
+    def test_search_pagination_click_previous_link(
+        self, authenticated_page: Page
+    ):
         authenticated_page.goto(f"{self.route_url}")
         authenticated_page.fill("#searchInput", "Testing A")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
@@ -205,7 +308,7 @@ class TestSearch:
         url = "/search?page=1&query=testing+a"
         authenticated_page.expect_response(url)
 
-    def test_pagination_click_next_link(self, authenticated_page: Page):
+    def test_search_pagination_click_next_link(self, authenticated_page: Page):
         authenticated_page.goto(f"{self.route_url}")
         authenticated_page.fill("#searchInput", "Testing A")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
@@ -226,7 +329,7 @@ class TestSearch:
         url = "/search?page=2&query=testing+a"
         authenticated_page.expect_response(url)
 
-    def test_pagination_get_last_page(self, authenticated_page: Page):
+    def test_search_pagination_get_last_page(self, authenticated_page: Page):
         authenticated_page.goto(f"{self.route_url}")
         authenticated_page.fill("#searchInput", "Testing A")
         authenticated_page.get_by_role("button").get_by_text("Search").click()

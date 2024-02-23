@@ -18,86 +18,89 @@
         "Series (Z to A)": "series-desc",
         "Consignment reference (most recent first)": "consignment_reference-desc",
         "Consignment reference (oldest first)": "consignment_reference-asc",
-        "Filename (A to Z)": "filename-asc",
-        "Filename (Z to A)": "filename-desc",
+        "Filename (A to Z)": "file_name-asc",
+        "Filename (Z to A)": "file_name-desc",
         "Record opening (sooner)": "opening_date-desc",
         "Record opening (later)": "opening_date-asc"
     } %}
     <!-- SEARCH  -->
-    <div class="govuk-grid-row govuk-grid-row--search">
-        {{ super() }}
-        <div class="govuk-width-container">
-            <div class="govuk-grid-row">{% include "top-search.html" %}</div>
-            <div class="mobile__search__container-block"></div>
-            {% if filters["query"]|length >0 %}
-                <h2 class="govuk-heading-m">Records found {{ num_records_found }}</h2>
-                <p class="govuk-body browse__body">You are viewing</p>
-                <!-- BREAD CRUMB -->
-                {% if session["user_type"] == "superuser" %}
-                    {% with dict = superuser_breadcrumbs %}
-                        {% include "breadcrumb.html" %}
-                    {% endwith %}
-                {% else %}
-                    {% with dict = standard_user_breadcrumbs %}
-                        {% include "breadcrumb.html" %}
-                    {% endwith %}
-                {% endif %}
-                <!-- SORT -->
-                <div class="govuk-form-group sort-container__form">
-                    {% with dict = sorting_list %}
-                        {% include "sorting-list.html" %}
-                    {% endwith %}
-                </div>
-            {% endif %}
-            <!-- TABLE -->
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-full govuk-grid-column-full--search-results">
-                    {% if filters["query"]|length >0 %}
-                        <table class="govuk-table">
-                            <thead class="govuk-table__head">
-                                <tr class="govuk-table__row govuk-!-font-size-14">
-                                    <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Series</th>
-                                    <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Consignment Reference</th>
-                                    <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Title</th>
-                                    <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Status</th>
-                                    <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Record opening</th>
-                                </tr>
-                            </thead>
-                            <tbody class="govuk-table__body">
-                                {% for record in results %}
-                                    <tr class="govuk-table__row">
-                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
-                                            <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">{{ record["series"] }}</a>
-                                        </td>
-                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
-                                            <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
-                                        </td>
-                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
-                                            <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
-                                        </td>
-                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
-                                            <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
-                                                {{ record['closure_type'] }}
-                                            </strong>
-                                        </td>
-                                        <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
-                                            {% if record['opening_date'] %}
-                                                {{ record['opening_date'] }}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                        <!-- PAGINATION -->
-                        {% with view_name='main.search_transferring_body', id = request.view_args['_id'] %}
-                            {% include "pagination.html" %}
+    <form action="{{ url_for('main.search_transferring_body', _id = request.view_args['_id']) }}"
+          method="get">
+        <div class="govuk-grid-row govuk-grid-row--search">
+            {{ super() }}
+            <div class="govuk-width-container">
+                <div class="govuk-grid-row">{% include "top-search.html" %}</div>
+                <div class="mobile__search__container-block"></div>
+                {% if filters["query"]|length >0 %}
+                    <h2 class="govuk-heading-m">Records found {{ num_records_found }}</h2>
+                    <p class="govuk-body browse__body">You are viewing</p>
+                    <!-- BREAD CRUMB -->
+                    {% if session["user_type"] == "superuser" %}
+                        {% with dict = superuser_breadcrumbs %}
+                            {% include "breadcrumb.html" %}
+                        {% endwith %}
+                    {% else %}
+                        {% with dict = standard_user_breadcrumbs %}
+                            {% include "breadcrumb.html" %}
                         {% endwith %}
                     {% endif %}
+                    <!-- SORT -->
+                    <div class="govuk-form-group sort-container__form">
+                        {% with dict = sorting_list %}
+                            {% include "sorting-list.html" %}
+                        {% endwith %}
+                    </div>
+                {% endif %}
+                <!-- TABLE -->
+                <div class="govuk-grid-row">
+                    <div class="govuk-grid-column-full govuk-grid-column-full--search-results">
+                        {% if filters["query"]|length >0 %}
+                            <table class="govuk-table">
+                                <thead class="govuk-table__head">
+                                    <tr class="govuk-table__row govuk-!-font-size-14">
+                                        <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Series</th>
+                                        <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Consignment Reference</th>
+                                        <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Title</th>
+                                        <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Status</th>
+                                        <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Record opening</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="govuk-table__body">
+                                    {% for record in results %}
+                                        <tr class="govuk-table__row">
+                                            <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                                <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">{{ record["series"] }}</a>
+                                            </td>
+                                            <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                                <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
+                                            </td>
+                                            <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                                <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                            </td>
+                                            <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                                <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
+                                                    {{ record['closure_type'] }}
+                                                </strong>
+                                            </td>
+                                            <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                                {% if record['opening_date'] %}
+                                                    {{ record['opening_date'] }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <!-- PAGINATION -->
+                            {% with view_name='main.search_transferring_body', id = request.view_args['_id'] %}
+                                {% include "pagination.html" %}
+                            {% endwith %}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </form>
 {% endblock %}
