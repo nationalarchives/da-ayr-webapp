@@ -37,7 +37,7 @@ class TestSearchResultsSummary:
         cell_texts = table.evaluate(
             '(table) => Array.from(table.querySelectorAll("td")).map(td => td.textContent)'
         )
-        breakpoint()
+
         expected_entries = [
             "Testing A",
             "132",
