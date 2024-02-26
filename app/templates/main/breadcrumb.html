@@ -2,6 +2,7 @@
 {% set transferring_body_url = browse_url ~ "/transferring_body/" %}
 {% set series_url = browse_url ~ "/series/" %}
 {% set consignment_url = browse_url ~ "/consignment/" %}
+{% set search_result_summary_url = "/search_results_summary?query=" %}
 <div class="govuk-breadcrumbs  {{ 'govuk-breadcrumbs--file' if 'record' in dict }}">
     <ol class="govuk-breadcrumbs__list">
         {% for key, value in dict.items() %}
@@ -18,6 +19,9 @@
                     {% elif key == "consignment" %}
                         <a class="govuk-breadcrumbs__link--record--consignment"
                            href="{{ consignment_url ~ value[0] }}">{{ value[1] }}</a>
+                    {% elif key == "summary" %}
+                        <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="{{ search_result_summary_url ~ value[0] }}">Results summary</a>
                     {% endif %}
                 </li>
             {% else %}

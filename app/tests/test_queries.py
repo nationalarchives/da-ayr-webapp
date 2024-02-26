@@ -4,7 +4,11 @@ import pytest
 import werkzeug
 from flask.testing import FlaskClient
 
-from app.main.db.queries import build_fuzzy_search_query, get_file_metadata
+from app.main.db.queries import (
+    build_fuzzy_search_query,
+    build_fuzzy_search_summary_query,
+    get_file_metadata,
+)
 from app.tests.factories import (
     BodyFactory,
     ConsignmentFactory,
@@ -22,7 +26,7 @@ class TestFuzzySearch:
     ):
         """
         Given a filter value that does match transferring body in the database
-        When build_browse_all_query is called with it and is executed
+        When build_fuzzy_search_query is called with it and is executed
         Then matching list results rows is returned
         """
         mock_standard_user(
@@ -49,9 +53,8 @@ class TestFuzzySearch:
 
     def test_build_fuzzy_search_query_no_results(self, client: FlaskClient):
         """
-        Given a filter value that does not match any field used for search terms
-            in any file in the database
-        When build_browse_all_query is called with it and is executed
+        Given a filter value that does not match transferring body in the database
+        When build_fuzzy_search_query is called with it and is executed
         Then an empty list is returned
         """
         body = BodyFactory(Name="foo", Description="foo")
@@ -61,6 +64,42 @@ class TestFuzzySearch:
         )
         FileFactory(FileType="file", FileName="foo", consignment=consignment)
         query = build_fuzzy_search_query(query_string="bar")
+        results = query.all()
+        assert results == []
+
+    def test_build_fuzzy_search_summary_query_with_results(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a filter value that does match multiple in the database
+        When build_fuzzy_search_summary_query is called with it and is executed
+        Then matching list results rows is returned
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        query = build_fuzzy_search_summary_query(query_string="fi")
+        results = query.all()
+
+        expected_results = [
+            (
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                15,
+            ),
+        ]
+        assert results == expected_results
+
+    def test_build_fuzzy_search_summary_query_no_results(
+        self, client: FlaskClient
+    ):
+        """
+        Given a filter value that does not match transferring body in the database
+        When build_fuzzy_search_summary_query is called with it and is executed
+        Then an empty list is returned
+        """
+        query = build_fuzzy_search_summary_query(query_string="junk")
         results = query.all()
         assert results == []
 

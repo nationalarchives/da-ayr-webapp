@@ -32,6 +32,7 @@ from app.main.db.queries import (
     build_browse_series_query,
     build_browse_transferring_body_query,
     build_fuzzy_search_query,
+    build_fuzzy_search_summary_query,
     get_file_metadata,
 )
 from app.main.flask_config_helpers import (
@@ -350,6 +351,68 @@ def browse_consignment(_id: uuid.UUID):
 @bp.route("/search", methods=["GET"])
 @access_token_sign_in_required
 def search():
+    query = (
+        request.form.get("query", "").lower()
+        or request.args.get("query", "").lower()
+    )
+
+    ayr_user = AYRUser(session.get("user_groups"))
+
+    if ayr_user.is_standard_user:
+        transferring_body_id = str(
+            Body.query.filter(Body.Name == ayr_user.transferring_body.Name)
+            .first()
+            .BodyId
+        )
+
+        return redirect(
+            url_for(
+                "main.search_transferring_body",
+                _id=transferring_body_id,
+                query=query,
+            )
+        )
+    else:
+        return redirect(url_for("main.search_results_summary", query=query))
+
+
+@bp.route("/search_results_summary", methods=["GET"])
+@access_token_sign_in_required
+def search_results_summary():
+    form = SearchForm()
+    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
+
+    query = (
+        request.form.get("query", "").lower()
+        or request.args.get("query", "").lower()
+    )
+    page = int(request.args.get("page", 1))
+
+    filters = {"query": query}
+
+    query = build_fuzzy_search_summary_query(query)
+    search_results = query.paginate(page=page, per_page=per_page)
+
+    total_records = db.session.query(
+        func.sum(query.subquery().c.records_held)
+    ).scalar()
+    if total_records:
+        num_records_found = total_records
+    else:
+        num_records_found = 0
+
+    return render_template(
+        "search-results-summary.html",
+        form=form,
+        filters=filters,
+        results=search_results,
+        num_records_found=num_records_found,
+    )
+
+
+@bp.route("/search/transferring_body/<uuid:_id>", methods=["GET"])
+@access_token_sign_in_required
+def search_transferring_body(_id: uuid.UUID):
     form = SearchForm()
     search_results = None
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
@@ -359,20 +422,39 @@ def search():
         or request.args.get("query", "").lower()
     )
     page = int(request.args.get("page", 1))
+
     filters = {"query": query}
     sorting_orders = build_sorting_orders(request.args)
 
+    breadcrumb_values = {
+        0: {"transferring_body_id": _id},
+        1: {"transferring_body": Body.query.get(_id).Name},
+        2: {"query": ""},
+        3: {"search_terms": ""},
+    }
+
     if query:
+        str_items = ""
+        query_items = query.strip().split(",")
+        # exclude any empty items
+        query_items = list(filter(None, query_items))
+
+        if len(query_items) > 0:
+            for i in range(len(query_items)):
+                if len(query_items[i].strip()) > 0:
+                    str_items = str_items + "‘" + query_items[i].strip() + "’"
+                    if i < len(query_items) - 1:
+                        str_items = str_items + " + "
+
+        # update breadcrumb values with query and search terms
+        breadcrumb_values.update({2: {"query": query}})
+        breadcrumb_values.update({3: {"search_terms": str_items}})
+
         fuzzy_search_query = build_fuzzy_search_query(
             query,
+            transferring_body_id=_id,
             sorting_orders=sorting_orders,
         )
-        # added a filter for transferring body - for standard user to return only matching rows
-        ayr_user = AYRUser(session.get("user_groups"))
-        if ayr_user.is_standard_user:
-            fuzzy_search_query = fuzzy_search_query.where(
-                Body.Name == ayr_user.transferring_body.Name
-            )
 
         search_results = fuzzy_search_query.paginate(
             page=page, per_page=per_page
@@ -381,12 +463,15 @@ def search():
         total_records = fuzzy_search_query.count()
         if total_records:
             num_records_found = total_records
+        else:
+            num_records_found = 0
 
     return render_template(
-        "search.html",
+        "search-transferring-body.html",
         form=form,
         current_page=page,
         filters=filters,
+        breadcrumb_values=breadcrumb_values,
         results=search_results,
         num_records_found=num_records_found,
         sorting_orders=sorting_orders,
