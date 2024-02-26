@@ -139,9 +139,7 @@ class TesthSearchResultsSummary:
         response = client.get(f"{self.route_url}")
 
         assert response.status_code == 200
-        assert b"Search" in response.data
         assert b"Search for digital records" in response.data
-        assert b"Search" in response.data
 
     def test_search_results_summary_top_search(self, client, mock_superuser):
         """
@@ -216,12 +214,12 @@ class TesthSearchResultsSummary:
         assert response.status_code == 200
         assert b"Records found 0"
 
-    def test_search_results_summary_with_results(
+    def test_search_results_summary_with_single_term_results(
         self, client: FlaskClient, mock_superuser, browse_consignment_files
     ):
         """
         Given a superuser
-        When they make a request on the search page with the search term
+        When they make a request on the search page with the single search term
         Then they should be redirected to search results summary screen
         with search results summary page content
         """
@@ -235,7 +233,33 @@ class TesthSearchResultsSummary:
 
         expected_rows = [
             [
-                "'first_body', '15'",
+                "'first_body', '5'",
+            ],
+        ]
+
+        verify_search_results_summary_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+    def test_search_results_summary_with_multiple_terms_results(
+        self, client: FlaskClient, mock_superuser, browse_consignment_files
+    ):
+        """
+        Given a superuser
+        When they make a request on the search page with the single search term
+        Then they should be redirected to search results summary screen
+        with search results summary page content
+        """
+        mock_superuser(client)
+
+        form_data = {"query": "fi, body"}
+
+        response = client.get(f"{self.route_url}", data=form_data)
+
+        assert response.status_code == 200
+
+        expected_rows = [
+            [
+                "'first_body', '5'",
             ],
         ]
 
@@ -332,10 +356,14 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
 
         html = response.data.decode()
-        search_html = """<div class="search__container govuk-grid-column-full">
+
+        search_html = f"""<div class="search__container govuk-grid-column-full">
     <div class="search__container__content">
         <p class="govuk-body search__heading">Search for digital records</p>
         <form method="get" action="/search">
+            <input type="hidden"
+            name="transferring_body_id"
+            value="{transferring_body_id}">
             <div class="govuk-form-group govuk-form-group__search-form">
                 <label for="searchInput"></label>
                 <input class="govuk-input govuk-!-width-three-quarters"
@@ -433,6 +461,33 @@ class TestSearchTransferringBody:
                 ],
             ),
             (
+                "query=TDR-2023-FI1,th",
+                [
+                    [
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                    ],
+                ],
+            ),
+            (
+                "query=TDR-2023-FI1,second",
+                [
+                    [
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-'"
+                    ],
+                ],
+            ),
+            (
+                "query=TDR-2023-FI1,docx",
+                [
+                    [
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                    ],
+                ],
+            ),
+            (
                 "query=docx&sort=series-asc",
                 [
                     [
@@ -525,7 +580,7 @@ class TestSearchTransferringBody:
                         "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023', "
                         "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
                         "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-'"
-                    ],
+                    ]
                 ],
             ),
             (
@@ -537,6 +592,25 @@ class TestSearchTransferringBody:
                         "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
                         "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                    ]
+                ],
+            ),
+            (
+                "query=TDR-2023-FI1,docx&sort=opening_date-asc",
+                [
+                    [
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                    ],
+                ],
+            ),
+            (
+                "query=TDR-2023-FI1,doc&sort=opening_date-asc",
+                [
+                    [
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-'"
                     ],
                 ],
             ),

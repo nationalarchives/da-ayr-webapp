@@ -2,6 +2,11 @@
     <div class="search__container__content">
         <p class="govuk-body search__heading">Search for digital records</p>
         <form method="get" action="{{ url_for('main.search') }}">
+            {% if request.view_args.get('_id') %}
+                <input type="hidden"
+                       name="transferring_body_id"
+                       value="{{ request.view_args['_id'] }}">
+            {% endif %}
             <div class="govuk-form-group govuk-form-group__search-form">
                 <label for="searchInput"></label>
                 <input class="govuk-input govuk-!-width-three-quarters"
