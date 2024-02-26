@@ -38,23 +38,15 @@ def access_token_sign_in_required(view_func):
 
         try:
             token = session.get("token")
-            try:
-                (
-                    token,
-                    token_is_refreshed,
-                ) = _validate_or_refresh_token(token)
-            except InvalidAccessToken:
+            if (
+                not current_app.extensions["authlib.integrations.flask_client"]
+                .keycloak._get_oauth_client()
+                .ensure_active_token(token)
+            ):
                 session.clear()
                 return redirect(url_for("main.sign_in"))
 
-            if token_is_refreshed:
-                session["token"] = token
-                ayr_user = AYRUser(session["token"]["userinfo"]["groups"])
-                if ayr_user.is_superuser:
-                    session["user_type"] = "superuser"
-                else:
-                    session["user_type"] = "standard_user"
-
+            session["token"] = token
             ayr_user = AYRUser(session["token"]["userinfo"]["groups"])
 
             if not ayr_user.can_access_ayr:
@@ -62,6 +54,11 @@ def access_token_sign_in_required(view_func):
                     "TNA User is logged in but does not have access to AYR. Please contact your admin."
                 )  # FIXME: this flash doesn't currently show when first redirected, only on a new page load
                 return redirect(url_for("main.index"))
+
+            if ayr_user.is_superuser:
+                session["user_type"] = "superuser"
+            else:
+                session["user_type"] = "standard_user"
 
             return view_func(*args, **kwargs)
         finally:
@@ -74,29 +71,29 @@ def access_token_sign_in_required(view_func):
     return decorated_view
 
 
-def _validate_or_refresh_token(token):
-    token_is_refreshed = False
+# def _validate_or_refresh_token(token):
+#     token_is_refreshed = False
 
-    if not (token["access_token"] and token["refresh_token"]):
-        raise InvalidAccessToken
-    token_endpoint = f'{current_app.config["KEYCLOAK_BASE_URI"]}realms/{current_app.config["KEYCLOAK_REALM_NAME"]}/protocol/openid-connect/token/introspect'
-    introspected_token = (
-        current_app.extensions["authlib.integrations.flask_client"]
-        .keycloak._get_oauth_client()
-        .introspect_token(token_endpoint, token=token["access_token"])
-    )
-    if introspected_token.ok and introspected_token.json()["active"] is False:
-        token_endpoint = f'{current_app.config["KEYCLOAK_BASE_URI"]}realms/{current_app.config["KEYCLOAK_REALM_NAME"]}/protocol/openid-connect/token/refresh'
-        refreshed_token_response = (
-            current_app.extensions["authlib.integrations.flask_client"]
-            .keycloak._get_oauth_client()
-            .refresh_token(token_endpoint, token=token)
-        )
-        if refreshed_token_response.ok():
-            token = refreshed_token_response.json()
-            token_is_refreshed = True
+#     if not (token["access_token"] and token["refresh_token"]):
+#         raise InvalidAccessToken
+#     token_endpoint = f'{current_app.config["KEYCLOAK_BASE_URI"]}realms/{current_app.config["KEYCLOAK_REALM_NAME"]}/protocol/openid-connect/token/introspect'
+#     introspected_token = (
+#         current_app.extensions["authlib.integrations.flask_client"]
+#         .keycloak._get_oauth_client()
+#         .introspect_token(token_endpoint, token=token["access_token"])
+#     )
+#     if introspected_token.ok and introspected_token.json()["active"] is False:
+#         token_endpoint = f'{current_app.config["KEYCLOAK_BASE_URI"]}realms/{current_app.config["KEYCLOAK_REALM_NAME"]}/protocol/openid-connect/token/refresh'
+#         refreshed_token_response = (
+#             current_app.extensions["authlib.integrations.flask_client"]
+#             .keycloak._get_oauth_client()
+#             .refresh_token(token_endpoint, token=token)
+#         )
+#         if refreshed_token_response.ok():
+#             token = refreshed_token_response.json()
+#             token_is_refreshed = True
 
-    return token, token_is_refreshed
+#     return token, token_is_refreshed
 
 
 class InvalidAccessToken(Exception):
