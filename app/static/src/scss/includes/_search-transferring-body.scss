@@ -12,6 +12,12 @@
   }
 }
 
+.govuk-grid-column-two-thirds {
+  &--search-results {
+    margin-top: 1rem;
+  }
+}
+
 .govuk-heading-m {
   &--search-results {
     font-size: 2rem;
@@ -45,11 +51,15 @@
 .govuk-table__cell {
   &--search-results {
     font-size: 1rem;
+    margin-bottom: -1rem;
+    line-height: 1.2rem;
+    padding: 10px 10px 5px 0;
 
     a {
       color: #1d70b8;
+      margin-bottom: -1rem;
 
-      :visited {
+      &:visited {
         color: #1d70b8;
       }
     }
@@ -59,8 +69,13 @@
 .govuk-table__header {
   &--search-header {
     font-size: 1rem;
+    padding: 0;
 
-    :last-child {
+    &-title {
+      margin-right: 3rem;
+    }
+
+    &:last-child {
       text-align: right;
     }
   }
@@ -69,10 +84,13 @@
 .search-all-filter-container {
   background-color: #f3f2f1;
   padding: 0.5rem;
+  padding-bottom: 1.5rem;
   min-width: 100%;
   margin-bottom: 0.5rem;
-  display: inline-block;
-  height: 245px;
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  height: auto;
 }
 
 .ayr-filter__tag {
@@ -80,9 +98,8 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-weight: 400;
-  font-size: 0.875rem;
+  font-size: 1rem;
   line-height: 1.1429;
-  background-color: #fff;
   border: 1px solid #0b0c0c;
   color: #0b0c0c;
   display: inline-block;
@@ -97,30 +114,15 @@
 
 .ayr-filter-tags {
   display: flex;
+  flex-wrap: wrap;
 }
 
-img.cancel-filter-one {
-  height: 11px;
-  width: 11px;
-  margin-top: 1.2rem;
-  margin-left: -1rem;
-
-  ::after {
-    content: "";
-    display: inline-block;
-    font-weight: bold;
-    height: 10px;
-    margin-left: 5px;
-    vertical-align: middle;
-    width: 10px;
-  }
-}
-
-img.cancel-filter-two {
-  height: 11px;
-  width: 11px;
-  margin-top: 1.2rem;
-  margin-left: -1rem;
+img.cancel-filter {
+  height: 20px;
+  width: 20px;
+  padding-top: 0.3rem;
+  margin-top: 0.6rem;
+  margin-left: -1.5rem;
 
   ::after {
     content: "";
@@ -139,9 +141,9 @@ img.cancel-filter-two {
 
 a.govuk-link {
   &--transferring-filter {
-    font-size: 1rem;
+    font-size: 0.9rem;
 
-    :visited {
+    &:visited {
       color: #1d70b8;
     }
   }
@@ -152,7 +154,7 @@ a.govuk-link {
     height: 35px;
     width: 70px;
     font-size: 1rem;
-    margin: 0 16 10 0;
+    margin: 0 26px 0 0;
   }
 }
 
@@ -160,9 +162,26 @@ a.govuk-link {
   display: flex;
   align-items: center;
   width: auto;
-  margin-top: 3rem;
+  margin-top: 0.9rem;
 }
 
 .search-filter-link {
   padding-top: 1rem;
+}
+
+.govuk-form-group {
+  &--search-all-filter {
+    margin-bottom: 0;
+  }
+
+  &__search-all-form-group {
+    display: inline-block;
+    margin-bottom: 0;
+  }
+}
+
+.govuk-input {
+  &--search-all-input {
+    width: 95% !important;
+  }
 }
