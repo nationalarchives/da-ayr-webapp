@@ -45,37 +45,48 @@
                             {% include "sorting-list.html" %}
                         {% endwith %}
                     </div>
-                    <!-- TABLE -->
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-full govuk-grid-column-full--search-results">
+                {% endif %}
+                <!-- TABLE -->
+                <div class="govuk-grid-row">
+                    <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--search-results">
+                        {% if filters["query"]|length >0 %}
                             <table class="govuk-table">
                                 <thead class="govuk-table__head">
-                                    <tr class="govuk-table__row govuk-!-font-size-14">
-                                        <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Series</th>
-                                        <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Consignment Reference</th>
-                                        <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Title</th>
-                                        <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Status</th>
-                                        <th scope="col" class="govuk-table__header govuk-!-font-weight-bold">Record opening</th>
+                                    <tr class="govuk-table__row">
+                                        <th scope="col"
+                                            class="govuk-table__header govuk-table__header--search-header">Series</th>
+                                        <th scope="col"
+                                            class="govuk-table__header govuk-table__header--search-header">
+                                            Consignment Reference
+                                        </th>
+                                        <th scope="col"
+                                            class="govuk-table__header govuk-table__header--search-header">Title</th>
+                                        <th scope="col"
+                                            class="govuk-table__header govuk-table__header--search-header">Status</th>
+                                        <th scope="col"
+                                            class="govuk-table__header govuk-table__header--search-header">
+                                            Record opening
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="govuk-table__body">
                                     {% for record in results %}
                                         <tr class="govuk-table__row">
-                                            <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                            <td class="govuk-table__cell govuk-table__cell--search-results">
                                                 <a href="{{ url_for('main.browse', series_id=record['series_id']) }}">{{ record["series"] }}</a>
                                             </td>
-                                            <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                            <td class="govuk-table__cell govuk-table__cell--search-results">
                                                 <a href="{{ url_for('main.browse', consignment_id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
                                             </td>
-                                            <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                            <td class="govuk-table__cell govuk-table__cell--search-results">
                                                 <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
                                             </td>
-                                            <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                            <td class="govuk-table__cell">
                                                 <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
                                                     {{ record['closure_type'] }}
                                                 </strong>
                                             </td>
-                                            <td class="govuk-table__cell govuk-body govuk-!-font-size-14">
+                                            <td class="govuk-table__cell">
                                                 {% if record['opening_date'] %}
                                                     {{ record['opening_date'] }}
                                                 {% else %}
@@ -90,9 +101,61 @@
                             {% with view_name='main.search_transferring_body', id = request.view_args['_id'] %}
                                 {% include "pagination.html" %}
                             {% endwith %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <!-- FILTER TRAY -->
+            <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
+                <div class="search-all-filter-container">
+                    <div class="browse-filter__header">
+                        <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
+                    </div>
+                    <div class="govuk-form-group filters-form__group filters-form__transferring-body-group">
+                        <label class="govuk-label" for="transferring_body_filter"></label>
+                        <select class="govuk-select govuk-select__filters-form-transferring-body-select"
+                                id="transferring_body_filter"
+                                name="transferring_body_filter">
+                            {% for body in transferring_bodies %}
+                                {% if user_filters['transferring_body'] %}
+                                    {% if ((user_filters['transferring_body'] | lower) == body | lower) %}
+                                        <option value="{{ body }}" selected="selected">{{ body }}</option>
+                                    {% else %}
+                                        <option value="{{ body }}">{{ body }}</option>
+                                    {% endif %}
+                                {% else %}
+                                    <option value="{{ body }}">{{ body }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
+                    <div class="ayr-filter-tags">
+                        <a class="ayr-filter__tag" href="/path/to/remove/this"><span class="govuk-visually-hidden">Remove this filter</span>EC9</a>
+                        <div class="ayr-cancel-filter-icon">
+                            <img class="cancel-filter-one"
+                                 src="{{ url_for('static', filename='image/cancel-filter.svg') }}"
+                                 height="10px"
+                                 width="10px"
+                                 alt="cancel-filter">
+                        </div>
+                        <a class="ayr-filter__tag" href="/path/to/remove/this"><span class="govuk-visually-hidden">Remove this filter</span>agenda</a>
+                        <div class="ayr-cancel-filter-icon">
+                            <img class="cancel-filter-two"
+                                 src="{{ url_for('static', filename='image/cancel-filter.svg') }}"
+                                 height="10px"
+                                 width="10px"
+                                 alt="cancel-filter">
                         </div>
                     </div>
-                {% endif %}
+                    <div class="search-form__buttons">
+                        <button type="submit"
+                                class="govuk-button govuk-button__search-filters-form-apply-button"
+                                data-module="govuk-button">Apply</button>
+                        <a class="govuk-link govuk-link--transferring-filter"
+                           href="{{ url_for('main.browse_consignment',_id = request.view_args['_id'], sort=request.args.get('sort')) }}">Clear all</a>
+                    </div>
+                </div>
             </div>
         </div>
     </form>
