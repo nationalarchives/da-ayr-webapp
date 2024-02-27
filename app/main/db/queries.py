@@ -32,6 +32,7 @@ def build_fuzzy_search_transferring_body_query(
             Series.Description.label("series_description"),
             Consignment.ConsignmentId.label("consignment_id"),
             Consignment.ConsignmentReference.label("consignment_reference"),
+            File.FileId.label("file_id"),
             File.FileName.label("file_name"),
             func.max(
                 db.case(
@@ -80,6 +81,7 @@ def build_fuzzy_search_transferring_body_query(
         sub_query.c.series_description,
         sub_query.c.consignment_id,
         sub_query.c.consignment_reference,
+        sub_query.c.file_id,
         sub_query.c.file_name,
         sub_query.c.closure_type,
         func.to_char(
@@ -96,6 +98,10 @@ def build_fuzzy_search_transferring_body_query(
     if len(search_terms) > 0:
         for term in search_terms:
             fuzzy_filters = or_(
+                func.lower(sub_query.c.transferring_body).like(term),
+                func.lower(sub_query.c.transferring_body_description).like(
+                    term
+                ),
                 func.lower(sub_query.c.series).like(term),
                 func.lower(sub_query.c.series_description).like(term),
                 func.lower(sub_query.c.consignment_reference).like(term),

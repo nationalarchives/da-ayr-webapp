@@ -357,13 +357,10 @@ class TestSearchTransferringBody:
 
         html = response.data.decode()
 
-        search_html = f"""<div class="search__container govuk-grid-column-full">
+        search_html = """<div class="search__container govuk-grid-column-full">
     <div class="search__container__content">
         <p class="govuk-body search__heading">Search for digital records</p>
         <form method="get" action="/search">
-            <input type="hidden"
-            name="transferring_body_id"
-            value="{transferring_body_id}">
             <div class="govuk-form-group govuk-form-group__search-form">
                 <label for="searchInput"></label>
                 <input class="govuk-input govuk-!-width-three-quarters"
