@@ -40,7 +40,7 @@
     <form action="{{ url_for('main.search_transferring_body', _id = request.view_args['_id']) }}"
           method="get">
         <div class="govuk-grid-row govuk-grid-row--search">
-        {{ super() }}
+            {{ super() }}
             <div class="govuk-width-container">
                 <div class="govuk-grid-row">{% include "top-search.html" %}</div>
                 <div class="mobile__search__container-block"></div>
