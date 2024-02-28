@@ -1381,7 +1381,7 @@ class TestSearchTransferringBody:
                         </div>
                         <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
                         <div class="ayr-filter-tags">
-                            <div class="box">
+                            <div class="search-term">
                                 {term1}
                                 <img src="/assets/image/cancel-filters.svg"
                                 height="24px"
@@ -1389,7 +1389,7 @@ class TestSearchTransferringBody:
                                 class="close-icon"
                                 alt="">
                             </div>
-                            <div class="box">
+                            <div class="search-term">
                             {term2}
                             <img src="/assets/image/cancel-filters.svg"
                             height="24px"
@@ -1397,7 +1397,7 @@ class TestSearchTransferringBody:
                             class="close-icon"
                             alt="">
                             </div>
-                            <div class="box">
+                            <div class="search-term">
                                 {term3}
                                 <img src="/assets/image/cancel-filters.svg"
                                 height="24px"
@@ -1405,7 +1405,7 @@ class TestSearchTransferringBody:
                                 class="close-icon"
                                 alt="">
                             </div>
-                            <div class="box">
+                            <div class="search-term">
                                 {term4}
                                 <img src="/assets/image/cancel-filters.svg"
                                 height="24px"
