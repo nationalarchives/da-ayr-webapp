@@ -1,48 +1,18 @@
 from playwright.sync_api import Page, expect
 
 
-class TestSearchResultsSummary:
-    @property
-    def route_url(self):
-        return "/search_results_summary"
-
-    def test_search_results_summary_sorting(self, authenticated_page: Page):
-        """
-        Given a standard user on the search page
-        When they interact with the search form and submit a query
-        Then the table should contain the expected headers and entries
-        and sorted transferring body in alphabetic order (A to Z)
-        on a search results summary screen
-        """
-        authenticated_page.goto(f"{self.route_url}?query=")
-        authenticated_page.get_by_label("", exact=True).click()
-        authenticated_page.get_by_label("", exact=True).fill("dtp")
-        authenticated_page.get_by_role("button", name="Search").click()
-
-        table = authenticated_page.locator("table")
-
-        # Use JavaScript to extract the text of header elements (th) within the table
-        header_texts = table.evaluate(
-            '(table) => Array.from(table.querySelectorAll("th")).map(th => th.textContent)'
-        )
-        # List of expected header values
-        expected_headers = [
-            "Results found within each Transferring body",
-            "Records found",
-        ]
-        for expected_header in expected_headers:
-            assert expected_header in header_texts
-
-        # Use JavaScript to extract the text of table cell elements (td) within the table
-        cell_texts = table.evaluate(
-            '(table) => Array.from(table.querySelectorAll("td")).map(td => td.textContent)'
-        )
-
-        expected_entries = [
-            "Testing A",
-            "132",
-        ]
-        assert expected_entries == cell_texts
+def verify_search_results_summary_header_row(table):
+    # Use JavaScript to extract the text of header elements (th) within the table
+    header_texts = table.evaluate(
+        '(table) => Array.from(table.querySelectorAll("th")).map(th => th.textContent)'
+    )
+    # List of expected header values
+    expected_headers = [
+        "Results found within each Transferring body",
+        "Records found",
+    ]
+    for expected_header in expected_headers:
+        assert expected_header in header_texts
 
 
 def verify_search_transferring_body_header_row(table):
@@ -62,40 +32,69 @@ def verify_search_transferring_body_header_row(table):
         assert expected_header in header_texts
 
 
-def verify_search_data_rows(table):
+def verify_search_data_rows(table, expected_rows):
     # Use JavaScript to extract the text of table cell elements (td) within the table
     cell_texts = table.evaluate(
         '(table) => Array.from(table.querySelectorAll("td")).map(td => td.textContent)'
     )
 
-    expected_entries = [
-        "TSTA 1",
-        "TDR-2024-H5DN",
-        "DTP.docx",
-        "Open",
-        "-",
-        "TSTA 1",
-        "TDR-2024-H5DN",
-        "DTP_ Sensitivity review process.docx",
-        "Open",
-        "-",
-        "TSTA 1",
-        "TDR-2024-H5DN",
-        "DTP_ Digital Transfer process diagram UG.docx",
-        "Open",
-        "-",
-        "TSTA 1",
-        "TDR-2024-H5DN",
-        "DTP_ Digital Transfer process diagram v 6.docx",
-        "Open",
-        "-",
-        "TSTA 1",
-        "TDR-2023-TMT",
-        "DTP_ Sensitivity review process.docx",
-        "Open",
-        "-",
-    ]
-    assert expected_entries == cell_texts
+    assert expected_rows == cell_texts
+
+
+class TestSearchResultsSummary:
+    @property
+    def route_url(self):
+        return "/search_results_summary"
+
+    def test_search_results_summary_search_single_term(
+        self, authenticated_page: Page
+    ):
+        """
+        Given a standard user on the search page
+        When they interact with the search form and submit a query with single search term
+        Then the table should contain the expected headers and entries
+        and sorted transferring body in alphabetic order (A to Z)
+        on a search results summary screen
+        """
+        authenticated_page.goto(f"{self.route_url}?query=")
+        authenticated_page.get_by_label("", exact=True).click()
+        authenticated_page.get_by_label("", exact=True).fill("dtp")
+        authenticated_page.get_by_role("button", name="Search").click()
+
+        table = authenticated_page.locator("table")
+
+        expected_rows = [
+            "Testing A",
+            "132",
+        ]
+
+        verify_search_results_summary_header_row(table)
+        verify_search_data_rows(table, expected_rows)
+
+    def test_search_results_summary_search_multiple_terms(
+        self, authenticated_page: Page
+    ):
+        """
+        Given a standard user on the search page
+        When they interact with the search form and submit a query with multiple search terms
+        Then the table should contain the expected headers and entries
+        and sorted transferring body in alphabetic order (A to Z)
+        on a search results summary screen
+        """
+        authenticated_page.goto(f"{self.route_url}?query=")
+        authenticated_page.get_by_label("", exact=True).click()
+        authenticated_page.get_by_label("", exact=True).fill("dtp,tdr-2023-tmt")
+        authenticated_page.get_by_role("button", name="Search").click()
+
+        table = authenticated_page.locator("table")
+
+        expected_rows = [
+            "Testing A",
+            "4",
+        ]
+
+        verify_search_results_summary_header_row(table)
+        verify_search_data_rows(table, expected_rows)
 
 
 class TestSearchTransferringBody:
@@ -107,10 +106,12 @@ class TestSearchTransferringBody:
     def transferring_body_id(self):
         return "c969a99f-dd61-4890-a8b4-6556d5d69915"
 
-    def test_search_transferring_body_sorting(self, authenticated_page: Page):
+    def test_search_transferring_body_search_single_term(
+        self, authenticated_page: Page
+    ):
         """
-        Given a standard user on the search page
-        When they interact with the search form and submit a query
+        Given a standard user on the search transferring body page
+        When they interact with the search form and submit a query with single search term
         Then the table should contain the expected headers and entries
         and sort the results based on the sorting order selection from dropdown list
         on a search transferring body screen
@@ -127,21 +128,49 @@ class TestSearchTransferringBody:
 
         table = authenticated_page.locator("table")
 
-        verify_search_transferring_body_header_row(table)
-        verify_search_data_rows(table)
+        expected_rows = [
+            "TSTA 1",
+            "TDR-2024-H5DN",
+            "DTP.docx",
+            "Open",
+            "-",
+            "TSTA 1",
+            "TDR-2024-H5DN",
+            "DTP_ Sensitivity review process.docx",
+            "Open",
+            "-",
+            "TSTA 1",
+            "TDR-2024-H5DN",
+            "DTP_ Digital Transfer process diagram UG.docx",
+            "Open",
+            "-",
+            "TSTA 1",
+            "TDR-2024-H5DN",
+            "DTP_ Digital Transfer process diagram v 6.docx",
+            "Open",
+            "-",
+            "TSTA 1",
+            "TDR-2023-TMT",
+            "DTP_ Sensitivity review process.docx",
+            "Open",
+            "-",
+        ]
 
-    def test_search_transferring_body_end_to_end(
+        verify_search_transferring_body_header_row(table)
+        verify_search_data_rows(table, expected_rows)
+
+    def test_search_transferring_body_search_multiple_terms(
         self, authenticated_page: Page
     ):
         """
-        Given a user on the search page
-        When they interact with the search form and submit a query
+        Given a user on the search transferring body page
+        When they interact with the search form and submit a query with multiple search terms
         Then the table should contain the expected headers and entries.
         """
         authenticated_page.goto(
             f"{self.route_url}/{self.transferring_body_id}?query="
         )
-        authenticated_page.fill("#searchInput", "dtp")
+        authenticated_page.fill("#searchInput", "dtp,tdr-2023-tmt")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
 
         expect(
@@ -151,8 +180,31 @@ class TestSearchTransferringBody:
 
         table = authenticated_page.locator("table")
 
+        expected_rows = [
+            "TSTA 1",
+            "TDR-2023-TMT",
+            "DTP_ Digital Transfer process diagram UG.docx",
+            "Open",
+            "-",
+            "TSTA 1",
+            "TDR-2023-TMT",
+            "DTP_ Digital Transfer process diagram v 6.docx",
+            "Open",
+            "-",
+            "TSTA 1",
+            "TDR-2023-TMT",
+            "DTP.docx",
+            "Open",
+            "-",
+            "TSTA 1",
+            "TDR-2023-TMT",
+            "DTP_ Sensitivity review process.docx",
+            "Open",
+            "-",
+        ]
+
         verify_search_transferring_body_header_row(table)
-        verify_search_data_rows(table)
+        verify_search_data_rows(table, expected_rows)
 
     def test_search_transferring_body_pagination_available(
         self, authenticated_page: Page

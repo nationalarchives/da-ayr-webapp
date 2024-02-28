@@ -5,8 +5,8 @@ import werkzeug
 from flask.testing import FlaskClient
 
 from app.main.db.queries import (
-    build_fuzzy_search_query,
     build_fuzzy_search_summary_query,
+    build_fuzzy_search_transferring_body_query,
     get_file_metadata,
 )
 from app.tests.factories import (
@@ -20,30 +20,39 @@ from app.tests.factories import (
 per_page = 5
 
 
-class TestFuzzySearch:
-    def test_build_fuzzy_search_query_with_results(
+class TestFuzzySearchTransferringBody:
+    def test_build_fuzzy_search_transferring_body_query_with_single_term_search_results(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
         Given a filter value that does match transferring body in the database
-        When build_fuzzy_search_query is called with it and is executed
+        When build_fuzzy_search_transferring_body_query is called
+        with single search term and is executed
         Then matching list results rows is returned
         """
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
         )
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
 
-        query = build_fuzzy_search_query(query_string="fifth_file")
+        query = build_fuzzy_search_transferring_body_query(
+            query_string="fifth_file", transferring_body_id=transferring_body_id
+        )
         results = query.all()
 
         expected_results = [
             (
                 browse_consignment_files[4].consignment.series.body.BodyId,
                 browse_consignment_files[4].consignment.series.body.Name,
+                browse_consignment_files[4].consignment.series.body.Description,
                 browse_consignment_files[4].consignment.series.SeriesId,
                 browse_consignment_files[4].consignment.series.Name,
+                browse_consignment_files[4].consignment.series.Description,
                 browse_consignment_files[4].consignment.ConsignmentId,
                 browse_consignment_files[4].consignment.ConsignmentReference,
+                browse_consignment_files[4].FileId,
                 browse_consignment_files[4].FileName,
                 "Open",
                 None,
@@ -51,10 +60,52 @@ class TestFuzzySearch:
         ]
         assert results == expected_results
 
-    def test_build_fuzzy_search_query_no_results(self, client: FlaskClient):
+    def test_build_fuzzy_search_transferring_body_query_with_multiple_terms_search_results(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
         """
-        Given a filter value that does not match transferring body in the database
-        When build_fuzzy_search_query is called with it and is executed
+        Given a filter value that does match transferring body in the database
+        When build_fuzzy_search_transferring_body_query is called
+        with multiple search terms and is executed
+        Then matching list results rows is returned based on the search within the search
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        query = build_fuzzy_search_transferring_body_query(
+            query_string="fi, xls", transferring_body_id=transferring_body_id
+        )
+        results = query.all()
+
+        expected_results = [
+            (
+                browse_consignment_files[3].consignment.series.body.BodyId,
+                browse_consignment_files[3].consignment.series.body.Name,
+                browse_consignment_files[3].consignment.series.body.Description,
+                browse_consignment_files[3].consignment.series.SeriesId,
+                browse_consignment_files[3].consignment.series.Name,
+                browse_consignment_files[3].consignment.series.Description,
+                browse_consignment_files[3].consignment.ConsignmentId,
+                browse_consignment_files[3].consignment.ConsignmentReference,
+                browse_consignment_files[3].FileId,
+                browse_consignment_files[3].FileName,
+                "Closed",
+                "12/04/2023",
+            ),
+        ]
+        assert results == expected_results
+
+    def test_build_fuzzy_search_transferring_body_query_no_results(
+        self, client: FlaskClient
+    ):
+        """
+        Given a filter value that does not match any field used for search terms
+            in any file in the database
+        When build_browse_all_query is called with it and is executed
         Then an empty list is returned
         """
         body = BodyFactory(Name="foo", Description="foo")
@@ -63,11 +114,14 @@ class TestFuzzySearch:
             ConsignmentReference="foo", series=series
         )
         FileFactory(FileType="file", FileName="foo", consignment=consignment)
-        query = build_fuzzy_search_query(query_string="bar")
+        transferring_body_id = body.BodyId
+        query = build_fuzzy_search_transferring_body_query(
+            query_string="bar", transferring_body_id=transferring_body_id
+        )
         results = query.all()
         assert results == []
 
-    def test_build_fuzzy_search_summary_query_with_results(
+    def test_build_fuzzy_search_summary_query_with_single_term_results(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
@@ -86,7 +140,32 @@ class TestFuzzySearch:
             (
                 browse_consignment_files[0].consignment.series.body.BodyId,
                 browse_consignment_files[0].consignment.series.body.Name,
-                15,
+                5,
+            ),
+        ]
+        assert results == expected_results
+
+    def test_build_fuzzy_search_summary_query_with_multiple_terms_results(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a filter value that does match multiple in the database
+        When build_fuzzy_search_summary_query is called
+        with multiple search terms and is executed
+        Then matching list results rows is returned based on the search within the search
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        query = build_fuzzy_search_summary_query(query_string="fi, file")
+        results = query.all()
+
+        expected_results = [
+            (
+                browse_consignment_files[0].consignment.series.body.BodyId,
+                browse_consignment_files[0].consignment.series.body.Name,
+                5,
             ),
         ]
         assert results == expected_results

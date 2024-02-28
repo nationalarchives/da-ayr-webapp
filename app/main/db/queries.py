@@ -7,28 +7,20 @@ from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 from app.main.util.date_formatter import validate_date_range
 
 
-def build_fuzzy_search_query(
-    query_string: str, transferring_body_id=None, sorting_orders=None
+def build_fuzzy_search_transferring_body_query(
+    query_string: str, transferring_body_id, sorting_orders=None
 ):
-    filter_value = str(f"%{query_string}%").lower()
-
-    fuzzy_filters = or_(
-        func.lower(Consignment.ConsignmentReference).like(filter_value),
-        func.lower(Body.Name).like(filter_value),
-        func.lower(Body.Description).like(filter_value),
-        func.lower(Series.Name).like(filter_value),
-        func.lower(Series.Description).like(filter_value),
-        func.lower(File.FileName).like(filter_value),
-    )
-
     sub_query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
+            Body.Description.label("transferring_body_description"),
             Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
+            Series.Description.label("series_description"),
             Consignment.ConsignmentId.label("consignment_id"),
             Consignment.ConsignmentReference.label("consignment_reference"),
+            File.FileId.label("file_id"),
             File.FileName.label("file_name"),
             func.max(
                 db.case(
@@ -56,7 +48,7 @@ def build_fuzzy_search_query(
         )
         .join(File, File.ConsignmentId == Consignment.ConsignmentId)
         .join(FileMetadata, File.FileId == FileMetadata.FileId, isouter=True)
-        .where(and_(func.lower(File.FileType) == "file", fuzzy_filters))
+        .where(func.lower(File.FileType) == "file")
         .group_by(
             File.FileId, Body.BodyId, Series.SeriesId, Consignment.ConsignmentId
         )
@@ -71,10 +63,13 @@ def build_fuzzy_search_query(
     query = db.session.query(
         sub_query.c.transferring_body_id,
         sub_query.c.transferring_body,
+        sub_query.c.transferring_body_description,
         sub_query.c.series_id,
         sub_query.c.series,
+        sub_query.c.series_description,
         sub_query.c.consignment_id,
         sub_query.c.consignment_reference,
+        sub_query.c.file_id,
         sub_query.c.file_name,
         sub_query.c.closure_type,
         func.to_char(
@@ -83,40 +78,40 @@ def build_fuzzy_search_query(
         ).label("opening_date"),
     )
 
-    if transferring_body_id:
-        query = query.filter(
-            sub_query.c.transferring_body_id == transferring_body_id
-        )
+    query = query.filter(
+        sub_query.c.transferring_body_id == transferring_body_id
+    )
+
+    for term in query_string.split(","):
+        if len(term.strip()) > 0:
+            filter_value = "%" + term.strip() + "%"
+
+            fuzzy_filters = or_(
+                func.lower(sub_query.c.transferring_body).like(filter_value),
+                func.lower(sub_query.c.transferring_body_description).like(
+                    filter_value
+                ),
+                func.lower(sub_query.c.series).like(filter_value),
+                func.lower(sub_query.c.series_description).like(filter_value),
+                func.lower(sub_query.c.consignment_reference).like(
+                    filter_value
+                ),
+                func.lower(sub_query.c.file_name).like(filter_value),
+            )
+            query = query.filter(fuzzy_filters)
 
     if sorting_orders:
         query = _build_sorting_orders(query, sub_query, sorting_orders)
-    # else:
-    #    query = query.order_by(
-    #        sub_query.c.transferring_body,
-    #        sub_query.c.series,
-    #        sub_query.c.consignment_reference,
-    #        sub_query.c.file_name,
-    #    )
 
     return query
 
 
 def build_fuzzy_search_summary_query(query_string: str):
-    filter_value = str(f"%{query_string}%").lower()
-
-    fuzzy_filters = or_(
-        func.lower(Consignment.ConsignmentReference).like(filter_value),
-        func.lower(Body.Name).like(filter_value),
-        func.lower(Body.Description).like(filter_value),
-        func.lower(Series.Name).like(filter_value),
-        func.lower(Series.Description).like(filter_value),
-        func.lower(File.FileName).like(filter_value),
-    )
-
-    query = (
+    sub_query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
+            Body.Description.label("transferring_body_description"),
             func.count(File.FileName.label("file_name")).label("records_held"),
         )
         .join(Series, Series.BodyId == Body.BodyId)
@@ -125,11 +120,42 @@ def build_fuzzy_search_summary_query(query_string: str):
             Consignment.SeriesId == Series.SeriesId,
         )
         .join(File, File.ConsignmentId == Consignment.ConsignmentId)
-        .join(FileMetadata, File.FileId == FileMetadata.FileId, isouter=True)
-        .where(and_(func.lower(File.FileType) == "file", fuzzy_filters))
         .group_by(Body.BodyId)
         .order_by(Body.Name)
+    ).subquery()
+
+    query = (
+        db.session.query(
+            sub_query.c.transferring_body_id,
+            sub_query.c.transferring_body,
+            func.count(sub_query.c.records_held).label("records_held"),
+        )
+        .join(Series, Series.BodyId == sub_query.c.transferring_body_id)
+        .join(
+            Consignment,
+            Consignment.SeriesId == Series.SeriesId,
+        )
+        .join(File, File.ConsignmentId == Consignment.ConsignmentId)
+        .where(func.lower(File.FileType) == "file")
+        .group_by(
+            sub_query.c.transferring_body_id, sub_query.c.transferring_body
+        )
     )
+
+    for term in query_string.split(","):
+        if len(term.strip()) > 0:
+            filter_value = "%" + term.strip() + "%"
+            fuzzy_filters = or_(
+                func.lower(sub_query.c.transferring_body).like(filter_value),
+                func.lower(sub_query.c.transferring_body_description).like(
+                    filter_value
+                ),
+                func.lower(Series.Name).like(filter_value),
+                func.lower(Series.Description).like(filter_value),
+                func.lower(Consignment.ConsignmentReference).like(filter_value),
+                func.lower(File.FileName).like(filter_value),
+            )
+            query = query.filter(fuzzy_filters)
 
     return query
 

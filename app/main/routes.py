@@ -31,8 +31,8 @@ from app.main.db.queries import (
     build_browse_consignment_query,
     build_browse_series_query,
     build_browse_transferring_body_query,
-    build_fuzzy_search_query,
     build_fuzzy_search_summary_query,
+    build_fuzzy_search_transferring_body_query,
     get_file_metadata,
 )
 from app.main.flask_config_helpers import (
@@ -352,18 +352,21 @@ def browse_consignment(_id: uuid.UUID):
 @access_token_sign_in_required
 def search():
     query = (
-        request.form.get("query", "").lower()
-        or request.args.get("query", "").lower()
+        request.form.get("query", "").lower().strip()
+        or request.args.get("query", "").lower().strip()
     )
+
+    transferring_body_id = request.args.get("transferring_body_id", "")
 
     ayr_user = AYRUser(session.get("user_groups"))
 
-    if ayr_user.is_standard_user:
-        transferring_body_id = str(
-            Body.query.filter(Body.Name == ayr_user.transferring_body.Name)
-            .first()
-            .BodyId
-        )
+    if ayr_user.is_standard_user or transferring_body_id:
+        if not transferring_body_id:
+            transferring_body_id = str(
+                Body.query.filter(Body.Name == ayr_user.transferring_body.Name)
+                .first()
+                .BodyId
+            )
 
         return redirect(
             url_for(
@@ -383,30 +386,37 @@ def search_results_summary():
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
 
     query = (
-        request.form.get("query", "").lower()
-        or request.args.get("query", "").lower()
+        request.form.get("query", "").lower().strip()
+        or request.args.get("query", "").lower().strip()
     )
+
     page = int(request.args.get("page", 1))
-
     filters = {"query": query}
+    search_results = None
+    num_records_found = 0
 
-    query = build_fuzzy_search_summary_query(query)
-    search_results = query.paginate(page=page, per_page=per_page)
+    if query:
+        fuzzy_search_summary_query = build_fuzzy_search_summary_query(query)
+        search_results = fuzzy_search_summary_query.paginate(
+            page=page, per_page=per_page
+        )
 
-    total_records = db.session.query(
-        func.sum(query.subquery().c.records_held)
-    ).scalar()
-    if total_records:
-        num_records_found = total_records
-    else:
-        num_records_found = 0
+        total_records = db.session.query(
+            func.sum(fuzzy_search_summary_query.subquery().c.records_held)
+        ).scalar()
+        if total_records:
+            num_records_found = total_records
 
     return render_template(
         "search-results-summary.html",
         form=form,
+        current_page=page,
         filters=filters,
         results=search_results,
         num_records_found=num_records_found,
+        query_string_parameters={
+            k: v for k, v in request.args.items() if k not in "page"
+        },
     )
 
 
@@ -418,39 +428,40 @@ def search_transferring_body(_id: uuid.UUID):
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     num_records_found = 0
     query = (
-        request.form.get("query", "").lower()
-        or request.args.get("query", "").lower()
+        request.form.get("query", "").lower().strip()
+        or request.args.get("query", "").lower().strip()
     )
+
     page = int(request.args.get("page", 1))
 
     filters = {"query": query}
     sorting_orders = build_sorting_orders(request.args)
 
     breadcrumb_values = {
-        0: {"transferring_body_id": _id},
-        1: {"transferring_body": Body.query.get(_id).Name},
-        2: {"query": ""},
-        3: {"search_terms": ""},
+        0: {"query": ""},
+        1: {"transferring_body_id": _id},
+        2: {"transferring_body": Body.query.get(_id).Name},
     }
 
     if query:
-        str_items = ""
-        query_items = query.strip().split(",")
-        # exclude any empty items
-        query_items = list(filter(None, query_items))
+        breadcrumb_values.update({0: {"query": query}})
 
-        if len(query_items) > 0:
-            for i in range(len(query_items)):
-                if len(query_items[i].strip()) > 0:
-                    str_items = str_items + "‘" + query_items[i].strip() + "’"
-                    if i < len(query_items) - 1:
-                        str_items = str_items + " + "
+        search_terms = ""
+        query_items = [item for item in query.split(",") if item]
+        for i in range(len(query_items)):
+            if len(query_items[i].strip()) > 0:
+                search_terms += (
+                    "‘"
+                    + query_items[i].strip()
+                    + "’"
+                    + (" + " if i < len(query_items) - 1 else "")
+                )
 
-        # update breadcrumb values with query and search terms
-        breadcrumb_values.update({2: {"query": query}})
-        breadcrumb_values.update({3: {"search_terms": str_items}})
+        breadcrumb_values.update(
+            {3: {"search_terms": query if query == "," else search_terms}}
+        )
 
-        fuzzy_search_query = build_fuzzy_search_query(
+        fuzzy_search_query = build_fuzzy_search_transferring_body_query(
             query,
             transferring_body_id=_id,
             sorting_orders=sorting_orders,
@@ -463,8 +474,6 @@ def search_transferring_body(_id: uuid.UUID):
         total_records = fuzzy_search_query.count()
         if total_records:
             num_records_found = total_records
-        else:
-            num_records_found = 0
 
     return render_template(
         "search-transferring-body.html",
