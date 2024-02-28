@@ -53,7 +53,19 @@
     font-size: 1rem;
     margin-bottom: -1rem;
     line-height: 1.2rem;
-    padding: 10px 10px 5px 0;
+    padding: 10px;
+
+    &-no-wrap {
+      white-space: nowrap;
+    }
+
+    &:last-child {
+      padding-right: 0;
+    }
+
+    &:first-child {
+      padding-left: 0;
+    }
 
     a {
       color: #1d70b8;
@@ -72,12 +84,17 @@
     padding: 10px;
 
     &-title {
-      margin-right: 3rem;
+      width: 100%;
       font-size: 1rem;
     }
 
     &:last-child {
       text-align: right;
+      padding-right: 0;
+    }
+
+    &:first-child {
+      padding-left: 0;
     }
   }
 }
@@ -196,5 +213,6 @@ a.govuk-link {
   fill: black; /* This sets the color of the SVG */
   width: 24px; /* This sets the width of the SVG */
   height: 24px; /* This sets the height of the SVG */
-  cursor: pointer; /* Changes the cursor to a pointer when hovering over the SVG */
+  cursor: pointer;
+  padding-left: 5px; /* Changes the cursor to a pointer when hovering over the SVG */
 }
