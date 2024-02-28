@@ -352,11 +352,9 @@ def browse_consignment(_id: uuid.UUID):
 @access_token_sign_in_required
 def search():
     query = (
-        request.form.get("query", "").lower()
-        or request.args.get("query", "").lower()
+        request.form.get("query", "").lower().strip()
+        or request.args.get("query", "").lower().strip()
     )
-    if query:
-        query = query.strip()
 
     transferring_body_id = request.args.get("transferring_body_id", "")
 
@@ -388,11 +386,9 @@ def search_results_summary():
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
 
     query = (
-        request.form.get("query", "").lower()
-        or request.args.get("query", "").lower()
+        request.form.get("query", "").lower().strip()
+        or request.args.get("query", "").lower().strip()
     )
-    if query:
-        query = query.strip()
 
     page = int(request.args.get("page", 1))
     filters = {"query": query}
@@ -432,11 +428,9 @@ def search_transferring_body(_id: uuid.UUID):
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     num_records_found = 0
     query = (
-        request.form.get("query", "").lower()
-        or request.args.get("query", "").lower()
+        request.form.get("query", "").lower().strip()
+        or request.args.get("query", "").lower().strip()
     )
-    if query:
-        query = query.strip()
 
     page = int(request.args.get("page", 1))
 
