@@ -127,11 +127,15 @@ class TesthSearchResultsSummary:
     def route_url(self):
         return "/search_results_summary"
 
+    @property
+    def browse_all_route_url(self):
+        return "/browse"
+
     def test_search_results_summary_get(
         self, client: FlaskClient, mock_superuser
     ):
         """
-        Given a superuser accessing the search page
+        Given a superuser accessing the search results summary page
         When they make a GET request
         Then they should see the search form and page content.
         """
@@ -143,7 +147,7 @@ class TesthSearchResultsSummary:
 
     def test_search_results_summary_top_search(self, client, mock_superuser):
         """
-        Given a superuser accessing the search page
+        Given a superuser accessing the search results summary page
         When they make a GET request
         Then they should see the top search component available on search page content.
         """
@@ -187,9 +191,9 @@ class TesthSearchResultsSummary:
         self, client: FlaskClient, mock_superuser
     ):
         """
-        Given a superuser accessing the search page
+        Given a superuser accessing the search results summary page
         When they make a GET request without a query
-        Then they should not see any records found.
+        Then they should not see any results on the page.
         """
         mock_superuser(client)
         form_data = {"foo": "bar"}
@@ -202,9 +206,9 @@ class TesthSearchResultsSummary:
         self, client: FlaskClient, mock_superuser
     ):
         """
-        Given a superuser with a search query
-        When they make a request on the search page, and no results are found
-        Then they should see no records found.
+        Given a superuser with a search results summary query
+        When they make a request on the search results summary page, and no results are found
+        Then they should see not see any results on the page.
         """
         mock_superuser(client)
 
@@ -214,12 +218,12 @@ class TesthSearchResultsSummary:
         assert response.status_code == 200
         assert b"Records found 0"
 
-    def test_search_results_summary_with_single_term_results(
+    def test_search_results_summary_with_results_single_term(
         self, client: FlaskClient, mock_superuser, browse_consignment_files
     ):
         """
         Given a superuser
-        When they make a request on the search page with the single search term
+        When they make a request on the search results summary page with the single search term
         Then they should be redirected to search results summary screen
         with search results summary page content
         """
@@ -240,12 +244,12 @@ class TesthSearchResultsSummary:
         verify_search_results_summary_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
-    def test_search_results_summary_with_multiple_terms_results(
+    def test_search_results_summary_with_results_multiple_terms(
         self, client: FlaskClient, mock_superuser, browse_consignment_files
     ):
         """
         Given a superuser
-        When they make a request on the search page with the single search term
+        When they make a request on the search results summary page with the single search term
         Then they should be redirected to search results summary screen
         with search results summary page content
         """
@@ -271,8 +275,9 @@ class TesthSearchResultsSummary:
     ):
         """
         Given a superuser
-        When they make a request on the search page with the search term
+        When they make a request on the search results summary page with the search term
         Then they should be redirected to search results summary screen
+        and see breadcrumb values Everything > Results summary
         with search results summary page content
         """
         mock_superuser(client)
@@ -285,10 +290,10 @@ class TesthSearchResultsSummary:
 
         html = response.data.decode()
 
-        search_html = """<div class="govuk-breadcrumbs  ">
+        search_html = f"""<div class="govuk-breadcrumbs  ">
     <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
+                        <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">Everything</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                     <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">Results summary</span>
@@ -312,11 +317,19 @@ class TestSearchTransferringBody:
     def search_results_summary_route_url(self):
         return "/search_results_summary"
 
+    @property
+    def browse_all_route_url(self):
+        return "/browse"
+
+    @property
+    def browse_transferring_body_route_url(self):
+        return f"{self.browse_all_route_url}/transferring_body"
+
     def test_search_transferring_body_get(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given a standard user accessing the search page
+        Given a standard user accessing the search transferring body page
         When they make a GET request
         Then they should see the search form and page content.
         """
@@ -339,7 +352,7 @@ class TestSearchTransferringBody:
         self, client, mock_standard_user, browse_consignment_files
     ):
         """
-        Given a standard user accessing the search page
+        Given a standard user accessing the search transferring body page
         When they make a GET request
         Then they should see the top search component available on search page content.
         """
@@ -386,13 +399,228 @@ class TestSearchTransferringBody:
             {"class": "search__container govuk-grid-column-full"},
         )
 
+    def test_search_transferring_body_superuser_breadcrumb_single_term(
+        self, client, mock_superuser, browse_consignment_files
+    ):
+        """
+        Given a superuser accessing the search transferring body page
+        When they make a GET request
+        Then they should see the breadcrumb values with Everything > results summary > transferring body > search term
+        on search page content.
+        """
+        mock_superuser(client)
+        query = "TDR-2023-FI1"
+
+        form_data = {"query": query}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+        transferring_body = browse_consignment_files[
+            0
+        ].consignment.series.body.Name
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        search_html = f"""<div class="govuk-breadcrumbs  ">
+    <ol class="govuk-breadcrumbs__list">
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">Everything</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="{self.search_results_summary_route_url}?query={query.lower()}">Results summary</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="{self.browse_transferring_body_route_url}/{transferring_body_id}">{transferring_body}</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{query.lower()}’</span>
+                </li>
+    </ol>
+</div>"""
+
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "govuk-breadcrumbs"},
+        )
+
+    def test_search_transferring_body_superuser_breadcrumb_multiple_terms(
+        self, client, mock_superuser, browse_consignment_files
+    ):
+        """
+        Given a superuser accessing the search transferring body page
+        When they make a GET request
+        Then they should see the breadcrumb values with Everything > results summary > transferring body > search term
+        on search page content.
+        """
+        mock_superuser(client)
+
+        term1 = "TDR-2023-FI1"
+        term2 = "first"
+        query = f"{term1},{term2}"
+
+        form_data = {"query": query}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+        transferring_body = browse_consignment_files[
+            0
+        ].consignment.series.body.Name
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        search_html = f"""<div class="govuk-breadcrumbs  ">
+    <ol class="govuk-breadcrumbs__list">
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">Everything</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="{self.search_results_summary_route_url}?query={query.lower()}">Results summary</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="{self.browse_transferring_body_route_url}/{transferring_body_id}">{transferring_body}</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{term1.lower()}’ + ‘{term2.lower()}’</span>
+                </li>
+    </ol>
+</div>"""
+
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "govuk-breadcrumbs"},
+        )
+
+    def test_search_transferring_body_standard_user_breadcrumb_single_term(
+        self, client, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a superuser accessing the search transferring body page
+        When they make a GET request
+        Then they should see the breadcrumb values with Everything > results summary > transferring body > search term
+        on search page content.
+        """
+        query = "TDR-2023-FI1"
+
+        form_data = {"query": query}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        transferring_body = browse_consignment_files[
+            0
+        ].consignment.series.body.Name
+
+        mock_standard_user(client, transferring_body)
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        search_html = f"""<div class="govuk-breadcrumbs  ">
+    <ol class="govuk-breadcrumbs__list">
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="{self.browse_transferring_body_route_url}/{transferring_body_id}">{transferring_body}</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{query.lower()}’</span>
+                </li>
+    </ol>
+</div>"""
+
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "govuk-breadcrumbs"},
+        )
+
+    def test_search_transferring_body_standard_user_breadcrumb_multiple_terms(
+        self, client, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a superuser accessing the search transferring body page
+        When they make a GET request
+        Then they should see the breadcrumb values with Everything > results summary > transferring body > search term
+        on search page content.
+        """
+        term1 = "TDR-2023-FI1"
+        term2 = "first"
+        query = f"{term1},{term2}"
+
+        form_data = {"query": query}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        transferring_body = browse_consignment_files[
+            0
+        ].consignment.series.body.Name
+
+        mock_standard_user(client, transferring_body)
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        search_html = f"""<div class="govuk-breadcrumbs  ">
+    <ol class="govuk-breadcrumbs__list">
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="{self.browse_transferring_body_route_url}/{transferring_body_id}">{transferring_body}</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{term1.lower()}’ + ‘{term2.lower()}’</span>
+                </li>
+    </ol>
+</div>"""
+
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "govuk-breadcrumbs"},
+        )
+
     def test_search_transferring_body_no_query(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given a standard user accessing the search page
+        Given a standard user accessing the search transferring body page
         When they make a GET request without a query
-        Then they should not see any records found.
+        Then they should not see any results on the page.
         """
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -415,9 +643,9 @@ class TestSearchTransferringBody:
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given a standard user with a search query
-        When they make a request on the search page, and no results are found
-        Then they should see no records found.
+        Given a standard user with a search transferring body page
+        When they make a request and no results are found
+        Then they should not see search results on the page.
         """
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -613,7 +841,7 @@ class TestSearchTransferringBody:
             ),
         ],
     )
-    def test_search_transferring_body_full_test(
+    def test_search_transferring_body_results_full_test(
         self,
         client: FlaskClient,
         mock_standard_user,
@@ -622,7 +850,7 @@ class TestSearchTransferringBody:
         expected_results,
     ):
         """
-        Given a standard user accessing the search page
+        Given a standard user accessing the search transferring body page
         When they make a GET request
         and provide different values as query string
         and sorting orders (asc, desc)

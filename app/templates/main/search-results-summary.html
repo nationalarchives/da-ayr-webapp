@@ -11,7 +11,7 @@
             <div class="mobile__search__container-block"></div>
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-two-thirds">
-                    {% if filters["query"].strip() |length >0 %}
+                    {% if filters["query"] |length >0 %}
                         <h2 class="govuk-heading-m">Results found {{ num_records_found }}</h2>
                         <p class="govuk-body browse__body">You are viewing</p>
                         <!-- BREAD CRUMB -->

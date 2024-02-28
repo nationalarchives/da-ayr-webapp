@@ -355,6 +355,9 @@ def search():
         request.form.get("query", "").lower()
         or request.args.get("query", "").lower()
     )
+    if query:
+        query = query.strip()
+
     transferring_body_id = request.args.get("transferring_body_id", "")
 
     ayr_user = AYRUser(session.get("user_groups"))
@@ -388,12 +391,15 @@ def search_results_summary():
         request.form.get("query", "").lower()
         or request.args.get("query", "").lower()
     )
+    if query:
+        query = query.strip()
+
     page = int(request.args.get("page", 1))
     filters = {"query": query}
     search_results = None
     num_records_found = 0
 
-    if query.strip():
+    if query:
         fuzzy_search_summary_query = build_fuzzy_search_summary_query(query)
         search_results = fuzzy_search_summary_query.paginate(
             page=page, per_page=per_page
@@ -429,36 +435,37 @@ def search_transferring_body(_id: uuid.UUID):
         request.form.get("query", "").lower()
         or request.args.get("query", "").lower()
     )
+    if query:
+        query = query.strip()
+
     page = int(request.args.get("page", 1))
 
     filters = {"query": query}
     sorting_orders = build_sorting_orders(request.args)
 
     breadcrumb_values = {
-        0: {"transferring_body_id": _id},
-        1: {"transferring_body": Body.query.get(_id).Name},
-        2: {"query": ""},
-        3: {"search_terms": ""},
+        0: {"query": ""},
+        1: {"transferring_body_id": _id},
+        2: {"transferring_body": Body.query.get(_id).Name},
     }
 
-    if query.strip():
+    if query:
+        breadcrumb_values.update({0: {"query": query}})
+
         search_terms = ""
-        query_items = query.strip().split(",")
-        # exclude any empty items
-        query_items = list(filter(None, query_items))
+        query_items = [item for item in query.split(",") if item]
+        for i in range(len(query_items)):
+            if len(query_items[i].strip()) > 0:
+                search_terms += (
+                    "‘"
+                    + query_items[i].strip()
+                    + "’"
+                    + (" + " if i < len(query_items) - 1 else "")
+                )
 
-        if len(query_items) > 0:
-            for i in range(len(query_items)):
-                if len(query_items[i].strip()) > 0:
-                    search_terms = (
-                        search_terms + "‘" + query_items[i].strip() + "’"
-                    )
-                    if i < len(query_items) - 1:
-                        search_terms = search_terms + " + "
-
-        # update breadcrumb values with query and search terms
-        breadcrumb_values.update({2: {"query": query}})
-        breadcrumb_values.update({3: {"search_terms": search_terms}})
+        breadcrumb_values.update(
+            {3: {"search_terms": query if query == "," else search_terms}}
+        )
 
         fuzzy_search_query = build_fuzzy_search_transferring_body_query(
             query,

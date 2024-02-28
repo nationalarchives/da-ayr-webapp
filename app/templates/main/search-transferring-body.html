@@ -1,23 +1,11 @@
-{% set superuser_breadcrumbs = {
-    "everything": "Everything",
-    "summary": [breadcrumb_values[2]["query"], "Results summary"],
-    "body": [breadcrumb_values[0]["transferring_body_id"], breadcrumb_values[1]["transferring_body"]],
-} %}
-{% set standard_user_breadcrumbs = {
-    "body": [breadcrumb_values[0]["transferring_body_id"], breadcrumb_values[1]["transferring_body"]],
-} %}
-{% if breadcrumb_values[3]["search_terms"] | length > 0 %}
-    {% if session["user_type"] == "superuser" %}
-        {%- set _ = superuser_breadcrumbs.update({'search_terms': breadcrumb_values[3]["search_terms"]}) -%}
-    {% else %}
-        {%- set _ = standard_user_breadcrumbs.update({'search_terms': breadcrumb_values[3]["search_terms"]}) -%}
-    {% endif %}
-{% else %}
-    {% if session["user_type"] == "superuser" %}
-        {%- set _ = superuser_breadcrumbs.update({'search_terms': filters["query"].strip()}) -%}
-    {% else %}
-        {%- set _ = standard_user_breadcrumbs.update({'search_terms': filters["query"].strip()}) -%}
-    {% endif %}
+{% set breadcrumbs = {} %}
+{% if session["user_type"] == "superuser" %}
+    {%- set _ = breadcrumbs.update({'everything': "Everything"}) -%}
+    {%- set _ = breadcrumbs.update({'summary': [breadcrumb_values[0]["query"], "Results summary"]}) -%}
+{% endif %}
+{%- set _ = breadcrumbs.update({'body': [breadcrumb_values[1]["transferring_body_id"], breadcrumb_values[2]["transferring_body"]] }) -%}
+{% if breadcrumb_values[3] %}
+    {%- set _ = breadcrumbs.update({'search_terms': breadcrumb_values[3]["search_terms"]}) -%}
 {% endif %}
 {% extends "base.html" %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
@@ -44,19 +32,13 @@
             <div class="govuk-width-container">
                 <div class="govuk-grid-row">{% include "top-search.html" %}</div>
                 <div class="mobile__search__container-block"></div>
-                {% if filters["query"].strip() |length >0 %}
+                {% if filters["query"] |length >0 %}
                     <h2 class="govuk-heading-m">Records found {{ num_records_found }}</h2>
                     <p class="govuk-body browse__body">You are viewing</p>
                     <!-- BREAD CRUMB -->
-                    {% if session["user_type"] == "superuser" %}
-                        {% with dict = superuser_breadcrumbs %}
-                            {% include "breadcrumb.html" %}
-                        {% endwith %}
-                    {% else %}
-                        {% with dict = standard_user_breadcrumbs %}
-                            {% include "breadcrumb.html" %}
-                        {% endwith %}
-                    {% endif %}
+                    {% with dict = breadcrumbs %}
+                        {% include "breadcrumb.html" %}
+                    {% endwith %}
                     <!-- SORT -->
                     <div class="govuk-form-group sort-container__form">
                         {% with dict = sorting_list %}

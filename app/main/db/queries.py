@@ -7,18 +7,6 @@ from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 from app.main.util.date_formatter import validate_date_range
 
 
-def _get_search_terms(query_string):
-    search_terms = []
-    query_terms = query_string.strip().split(",")
-    # exclude any empty items
-    query_terms = list(filter(None, query_terms))
-
-    for i in range(len(query_terms)):
-        if len(query_terms[i].strip()) > 0:
-            search_terms.append("%" + query_terms[i].strip().lower() + "%")
-    return search_terms
-
-
 def build_fuzzy_search_transferring_body_query(
     query_string: str, transferring_body_id, sorting_orders=None
 ):
@@ -94,18 +82,21 @@ def build_fuzzy_search_transferring_body_query(
         sub_query.c.transferring_body_id == transferring_body_id
     )
 
-    search_terms = _get_search_terms(query_string)
-    if len(search_terms) > 0:
-        for term in search_terms:
+    for term in query_string.split(","):
+        if len(term.strip()) > 0:
+            filter_value = "%" + term.strip().lower() + "%"
+
             fuzzy_filters = or_(
-                func.lower(sub_query.c.transferring_body).like(term),
+                func.lower(sub_query.c.transferring_body).like(filter_value),
                 func.lower(sub_query.c.transferring_body_description).like(
-                    term
+                    filter_value
                 ),
-                func.lower(sub_query.c.series).like(term),
-                func.lower(sub_query.c.series_description).like(term),
-                func.lower(sub_query.c.consignment_reference).like(term),
-                func.lower(sub_query.c.file_name).like(term),
+                func.lower(sub_query.c.series).like(filter_value),
+                func.lower(sub_query.c.series_description).like(filter_value),
+                func.lower(sub_query.c.consignment_reference).like(
+                    filter_value
+                ),
+                func.lower(sub_query.c.file_name).like(filter_value),
             )
             query = query.filter(fuzzy_filters)
 
@@ -151,18 +142,18 @@ def build_fuzzy_search_summary_query(query_string: str):
         )
     )
 
-    search_terms = _get_search_terms(query_string)
-    if len(search_terms) > 0:
-        for term in search_terms:
+    for term in query_string.split(","):
+        if len(term.strip()) > 0:
+            filter_value = "%" + term.strip().lower() + "%"
             fuzzy_filters = or_(
-                func.lower(sub_query.c.transferring_body).like(term),
+                func.lower(sub_query.c.transferring_body).like(filter_value),
                 func.lower(sub_query.c.transferring_body_description).like(
-                    term
+                    filter_value
                 ),
-                func.lower(Series.Name).like(term),
-                func.lower(Series.Description).like(term),
-                func.lower(Consignment.ConsignmentReference).like(term),
-                func.lower(File.FileName).like(term),
+                func.lower(Series.Name).like(filter_value),
+                func.lower(Series.Description).like(filter_value),
+                func.lower(Consignment.ConsignmentReference).like(filter_value),
+                func.lower(File.FileName).like(filter_value),
             )
             query = query.filter(fuzzy_filters)
 
