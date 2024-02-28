@@ -1334,3 +1334,100 @@ class TestSearchTransferringBody:
             "div",
             {"class": "govuk-breadcrumbs"},
         )
+
+    def test_search_transferring_body_filter_tray(
+        self, client, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a standard user accessing the search page
+        When they make a GET request
+        Then they should see the filter tray component available on search page content.
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        term1 = "Some text"
+        term2 = "this is testing a long filename."
+        term3 = "Some text"
+        term4 = "Some text"
+        query = f"{term1},{term2},{term3},{term4}"
+
+        form_data = {"query": query}
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        search_filter_html = f"""
+        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters">
+                    <div class="search-all-filter-container">
+                        <div class="browse-filter__header">
+                            <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
+                        </div>
+                        <div class="govuk-form-group govuk-form-group--search-all-filter">
+                            <label class="govuk-label" for="search_filter"></label>
+                            <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
+                            id="search_filter"
+                            name="search_filter"
+                            value=""
+                            type="text">
+                        </div>
+                        <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
+                        <div class="ayr-filter-tags">
+                            <div class="search-term">
+                                {term1}
+                                <img src="/assets/image/cancel-filters.svg"
+                                height="24px"
+                                width="30px"
+                                class="close-icon"
+                                alt="">
+                            </div>
+                            <div class="search-term">
+                            {term2}
+                            <img src="/assets/image/cancel-filters.svg"
+                            height="24px"
+                            width="30px"
+                            class="close-icon"
+                            alt="">
+                            </div>
+                            <div class="search-term">
+                                {term3}
+                                <img src="/assets/image/cancel-filters.svg"
+                                height="24px"
+                                width="30px"
+                                class="close-icon"
+                                alt="">
+                            </div>
+                            <div class="search-term">
+                                {term4}
+                                <img src="/assets/image/cancel-filters.svg"
+                                height="24px"
+                                width="30px"
+                                class="close-icon"
+                                alt="">
+                            </div>
+                        </div>
+                        <div class="search-form__buttons">
+                            <button type="submit" class="govuk-button govuk-button__search-filters-form-apply-button"
+                            data-module="govuk-button">Apply</button>
+                            <a class="govuk-link govuk-link--transferring-filter"
+                            href="{self.route_url}/{transferring_body_id}">Clear all</a>
+                        </div>
+                    </div>
+                </div>"""
+
+        assert_contains_html(
+            search_filter_html,
+            html,
+            "div",
+            {
+                "class": "govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters"
+            },
+        )
