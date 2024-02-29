@@ -8,7 +8,7 @@
                        id="searchInput"
                        name="query"
                        type="text"
-                       value="{% if request.args.get('query') %}{{ request.args.get('query') }}{% endif %}">
+                       value="{% if filters['query'] %}{{ filters['query'] }}{% endif %}">
                 <button class="govuk-button govuk-button__search-button"
                         data-module="govuk-button"
                         type="submit">Search</button>

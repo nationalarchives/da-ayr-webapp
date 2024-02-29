@@ -84,7 +84,7 @@ def build_fuzzy_search_transferring_body_query(
 
     for term in query_string.split(","):
         if len(term.strip()) > 0:
-            filter_value = "%" + term.strip() + "%"
+            filter_value = "%" + term.lower().strip() + "%"
 
             fuzzy_filters = or_(
                 func.lower(sub_query.c.transferring_body).like(filter_value),
@@ -144,7 +144,7 @@ def build_fuzzy_search_summary_query(query_string: str):
 
     for term in query_string.split(","):
         if len(term.strip()) > 0:
-            filter_value = "%" + term.strip() + "%"
+            filter_value = "%" + term.lower().strip() + "%"
             fuzzy_filters = or_(
                 func.lower(sub_query.c.transferring_body).like(filter_value),
                 func.lower(sub_query.c.transferring_body_description).like(
