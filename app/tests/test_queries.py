@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 import pytest
 import werkzeug
@@ -13,7 +14,6 @@ from app.tests.factories import (
     BodyFactory,
     ConsignmentFactory,
     FileFactory,
-    FileMetadataFactory,
     SeriesFactory,
 )
 
@@ -184,7 +184,7 @@ class TestFuzzySearchTransferringBody:
 
 
 class TestGetFileMetadata:
-    def test_invalid_uuid_raises_not_found_error(self, client: FlaskClient):
+    def test_get_file_metadata_return_no_results(self, client: FlaskClient):
         """
         Given a UUID not corresponding to the id of a file in the database
         When get_file_metadata is called with it
@@ -194,86 +194,109 @@ class TestGetFileMetadata:
         with pytest.raises(werkzeug.exceptions.NotFound):
             get_file_metadata(non_existent_file_id)
 
-    def test_valid_uuid_returns_metadata(self, client: FlaskClient):
+    def test_get_file_metadata_return_results(
+        self, client: FlaskClient, record_files
+    ):
         """
         Given a file with associated metadata,
         When get_file_metadata is called with its UUID,
         Then a tuple of specific metadata for the file is returned
         """
-        file = FileFactory(
-            FileName="test_file.txt",
-            FilePath="data/content/test_file.txt",
-            FileType="file",
+        file = record_files[1]["file_object"]
+
+        assert get_file_metadata(file_id=file.FileId) == (
+            {
+                "file_id": file.FileId,
+                "file_name": file.FileName,
+                "file_path": file.FilePath,
+                "citeable_reference": file.CiteableReference,
+                "alternative_title": record_files[1]["alternative_title"].Value,
+                "description": record_files[1]["description"].Value,
+                "alternative_description": record_files[1][
+                    "alternative_description"
+                ].Value,
+                "closure_type": record_files[1]["closure_type"].Value,
+                "closure_start_date": str(
+                    datetime.strptime(
+                        record_files[1]["closure_start_date"].Value, "%Y-%m-%d"
+                    ).strftime("%d/%m/%Y")
+                ),
+                "closure_period": record_files[1]["closure_period"].Value,
+                "opening_date": str(
+                    datetime.strptime(
+                        record_files[1]["opening_date"].Value, "%Y-%m-%d"
+                    ).strftime("%d/%m/%Y")
+                ),
+                "date_last_modified": str(
+                    datetime.strptime(
+                        record_files[1]["date_last_modified"].Value, "%Y-%m-%d"
+                    ).strftime("%d/%m/%Y")
+                ),
+                "foi_exemption_code": record_files[1][
+                    "foi_exemption_code"
+                ].Value,
+                "transferring_body_id": file.consignment.series.body.BodyId,
+                "transferring_body": file.consignment.series.body.Name,
+                "series_id": file.consignment.series.SeriesId,
+                "series": file.consignment.series.Name,
+                "consignment_id": file.ConsignmentId,
+                "consignment_reference": file.consignment.ConsignmentReference,
+                "file_reference": file.FileReference,
+                "former_reference": record_files[1]["former_reference"].Value,
+                "translated_title": record_files[1]["translated_title"].Value,
+                "held_by": record_files[1]["held_by"].Value,
+                "legal_status": record_files[1]["legal_status"].Value,
+                "rights_copyright": record_files[1]["rights_copyright"].Value,
+                "language": record_files[1]["language"].Value,
+            }
         )
 
-        metadata = {
-            "date_last_modified": "2023-02-25T10:12:47",
-            "closure_type": "Closed",
-            "description": "Test description",
-            "held_by": "Test holder",
-            "legal_status": "Test legal status",
-            "rights_copyright": "Test copyright",
-            "language": "English",
-        }
-
-        [
-            FileMetadataFactory(
-                file=file,
-                PropertyName=property_name,
-                Value=value,
-            )
-            for property_name, value in metadata.items()
-        ]
-
-        assert get_file_metadata(file_id=file.FileId) == {
-            "file_id": file.FileId,
-            "file_name": "test_file.txt",
-            "file_path": "data/content/test_file.txt",
-            "status": "Closed",
-            "description": "Test description",
-            "date_last_modified": "2023-02-25T10:12:47",
-            "held_by": "Test holder",
-            "legal_status": "Test legal status",
-            "rights_copyright": "Test copyright",
-            "language": "English",
-            "consignment": file.consignment.ConsignmentReference,
-            "consignment_id": file.ConsignmentId,
-            "transferring_body": file.consignment.series.body.Name,
-            "transferring_body_id": file.consignment.series.body.BodyId,
-            "series": file.consignment.series.Name,
-            "series_id": file.consignment.series.SeriesId,
-        }
-
-    def test_valid_uuid_returns_none_for_any_metadata(
-        self, client: FlaskClient
+    def test_get_file_metadata_return_results_with_no_metadata(
+        self, client: FlaskClient, record_files
     ):
         """
-        Given a file with no associatedf file metadata,
+        Given a file with no associated file metadata,
         When get_file_metadata is called with its UUID,
         Then a dict of metadata for the file is returned
             and all the file metadata fields are None
         """
-        file = FileFactory(
-            FileName="test_file.txt",
-            FilePath="data/content/test_file.txt",
-            FileType="file",
-        )
+        file = record_files[3]["file_object"]
 
-        assert get_file_metadata(file_id=file.FileId) == {
-            "file_id": file.FileId,
-            "file_name": "test_file.txt",
-            "file_path": "data/content/test_file.txt",
-            "status": None,
-            "description": None,
-            "date_last_modified": None,
-            "held_by": None,
-            "legal_status": None,
-            "rights_copyright": None,
-            "language": None,
-            "consignment": file.consignment.ConsignmentReference,
-            "consignment_id": file.ConsignmentId,
-            "transferring_body": file.consignment.series.body.Name,
-            "transferring_body_id": file.consignment.series.body.BodyId,
-            "series": file.consignment.series.Name,
-            "series_id": file.consignment.series.SeriesId,
-        }
+        assert get_file_metadata(file_id=file.FileId) == (
+            {
+                "file_id": file.FileId,
+                "file_name": file.FileName,
+                "file_path": file.FilePath,
+                "citeable_reference": file.CiteableReference,
+                "alternative_title": record_files[3]["alternative_title"].Value,
+                "description": record_files[3]["description"].Value,
+                "alternative_description": record_files[3][
+                    "alternative_description"
+                ].Value,
+                "closure_type": record_files[3]["closure_type"].Value,
+                "closure_start_date": record_files[3][
+                    "closure_start_date"
+                ].Value,
+                "closure_period": record_files[3]["closure_period"].Value,
+                "opening_date": record_files[3]["opening_date"].Value,
+                "date_last_modified": record_files[3][
+                    "date_last_modified"
+                ].Value,
+                "foi_exemption_code": record_files[3][
+                    "foi_exemption_code"
+                ].Value,
+                "transferring_body_id": file.consignment.series.body.BodyId,
+                "transferring_body": file.consignment.series.body.Name,
+                "series_id": file.consignment.series.SeriesId,
+                "series": file.consignment.series.Name,
+                "consignment_id": file.ConsignmentId,
+                "consignment_reference": file.consignment.ConsignmentReference,
+                "file_reference": file.FileReference,
+                "former_reference": record_files[3]["former_reference"].Value,
+                "translated_title": record_files[3]["translated_title"].Value,
+                "held_by": record_files[3]["held_by"].Value,
+                "legal_status": record_files[3]["legal_status"].Value,
+                "rights_copyright": record_files[3]["rights_copyright"].Value,
+                "language": record_files[3]["language"].Value,
+            }
+        )
