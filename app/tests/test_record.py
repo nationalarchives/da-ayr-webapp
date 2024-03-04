@@ -10,6 +10,14 @@ class TestRecord:
     def route_url(self):
         return "/record"
 
+    @property
+    def db_date_format(self):
+        return "%Y-%m-%d"
+
+    @property
+    def default_date_format(self):
+        return "%d/%m/%Y"
+
     def test_record_invalid_id_raises_404(self, client: FlaskClient):
         """
         Given a UUID, `invalid_file_id`, not corresponding to the id
@@ -224,6 +232,9 @@ class TestRecord:
         file = record_files[0]["file_object"]
 
         mock_standard_user(client, file.consignment.series.body.Name)
+        date_last_modified = datetime.strptime(
+            record_files[0]["date_last_modified"].Value, self.db_date_format
+        ).strftime(self.default_date_format)
 
         response = client.get(f"{self.route_url}/{file.FileId}")
 
@@ -255,7 +266,7 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Record date</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {datetime.strptime(record_files[0]["date_last_modified"].Value,"%Y-%m-%d").strftime('%d/%m/%Y')}
+                            {date_last_modified}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -343,11 +354,14 @@ class TestRecord:
         mock_standard_user(client, file.consignment.series.body.Name)
 
         opening_date = datetime.strptime(
-            record_files[1]["opening_date"].Value, "%Y-%m-%d"
-        ).strftime("%d/%m/%Y")
+            record_files[1]["opening_date"].Value, self.db_date_format
+        ).strftime(self.default_date_format)
         closure_start_date = datetime.strptime(
-            record_files[1]["closure_start_date"].Value, "%Y-%m-%d"
-        ).strftime("%d/%m/%Y")
+            record_files[1]["closure_start_date"].Value, self.db_date_format
+        ).strftime(self.default_date_format)
+        date_last_modified = datetime.strptime(
+            record_files[1]["date_last_modified"].Value, self.db_date_format
+        ).strftime(self.default_date_format)
 
         response = client.get(f"{self.route_url}/{file.FileId}")
 
@@ -403,7 +417,7 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Record date</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {datetime.strptime(record_files[1]["date_last_modified"].Value,"%Y-%m-%d").strftime('%d/%m/%Y')}
+                            {date_last_modified}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -497,8 +511,16 @@ class TestRecord:
         mock_standard_user(client, file.consignment.series.body.Name)
 
         opening_date = datetime.strptime(
-            record_files[2]["opening_date"].Value, "%Y-%m-%d"
-        ).strftime("%d/%m/%Y")
+            record_files[1]["opening_date"].Value, self.db_date_format
+        ).strftime(self.default_date_format)
+
+        closure_start_date = datetime.strptime(
+            record_files[1]["closure_start_date"].Value, self.db_date_format
+        ).strftime(self.default_date_format)
+
+        date_last_modified = datetime.strptime(
+            record_files[1]["date_last_modified"].Value, self.db_date_format
+        ).strftime(self.default_date_format)
 
         response = client.get(f"{self.route_url}/{file.FileId}")
 
@@ -542,7 +564,7 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Closure start date</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {datetime.strptime(record_files[2]["closure_start_date"].Value,"%Y-%m-%d").strftime('%d/%m/%Y')}
+                            {closure_start_date}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -554,7 +576,7 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Record date</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {datetime.strptime(record_files[2]["date_last_modified"].Value,"%Y-%m-%d").strftime('%d/%m/%Y')}
+                            {date_last_modified}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
