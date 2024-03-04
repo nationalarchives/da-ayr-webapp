@@ -1,4 +1,10 @@
 <div class="browse-all-filter-from-dates">
+    {% if date_validation_errors %}
+        <div class="govuk-form-group">
+            {% for key, value in date_validation_errors.items() if key.startswith('date_from') %}{{ value }}{% endfor %}
+            <br>
+        </div>
+    {% endif %}
     <p class="govuk-body govuk-body--browse-all-date">Date from</p>
     <fieldset class="govuk-fieldset govuk-fieldset--date-from"
               role="group"
@@ -44,6 +50,12 @@
     </fieldset>
 </div>
 <div class="browse-all-filter-to-dates">
+    {% if date_validation_errors %}
+        <div class="govuk-form-group">
+            {% for key, value in date_validation_errors.items() if key.startswith('date_to') %}{{ value }}{% endfor %}
+            <br>
+        </div>
+    {% endif %}
     <p class="govuk-body govuk-body--browse-all-date">To date</p>
     <fieldset class="govuk-fieldset govuk-fieldset--date-to"
               role="group"

@@ -45,6 +45,7 @@ from app.main.util.filter_sort_builder import (
 )
 
 from .forms import SearchForm
+from .util.date_formatter import validate_dates
 
 
 @bp.route("/", methods=["GET"])
@@ -299,6 +300,15 @@ def browse_consignment(_id: uuid.UUID):
     page = int(request.args.get("page", 1))
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
 
+    date_validation_errors = validate_dates(
+        request.args.get("date_from_day", ""),
+        request.args.get("date_from_month", ""),
+        request.args.get("date_from_year", ""),
+        request.args.get("date_to_day", ""),
+        request.args.get("date_to_month", ""),
+        request.args.get("date_to_year", ""),
+    )
+
     consignment = Consignment.query.get(_id)
     body = consignment.series.body
     series = consignment.series
@@ -337,6 +347,7 @@ def browse_consignment(_id: uuid.UUID):
         current_page=page,
         browse_type="consignment",
         results=browse_results,
+        date_validation_errors=date_validation_errors,
         breadcrumb_values=breadcrumb_values,
         filters=filters,
         sorting_orders=sorting_orders,
