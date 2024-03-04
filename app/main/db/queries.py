@@ -487,19 +487,30 @@ def get_file_metadata(file_id: uuid.UUID):
 
 
 def _get_file_metadata_query(file_id: uuid.UUID):
-    query = db.session.query(
+    select = db.session.query(
         File.FileId.label("file_id"),
         File.FileName.label("file_name"),
         File.FilePath.label("file_path"),
+        File.FileReference.label("file_reference"),
+        File.CiteableReference.label("citeable_reference"),
         func.max(
             db.case(
                 (
-                    FileMetadata.PropertyName == "closure_type",
+                    FileMetadata.PropertyName == "former_reference_department",
+                    FileMetadata.Value,
+                ),
+                else_=None,
+            ),
+        ).label("former_reference"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "title_alternate",
                     FileMetadata.Value,
                 ),
                 else_=None,
             )
-        ).label("status"),
+        ).label("alternative_title"),
         func.max(
             db.case(
                 (
@@ -512,12 +523,75 @@ def _get_file_metadata_query(file_id: uuid.UUID):
         func.max(
             db.case(
                 (
-                    FileMetadata.PropertyName == "date_last_modified",
+                    FileMetadata.PropertyName == "description_alternate",
                     FileMetadata.Value,
                 ),
                 else_=None,
             )
+        ).label("alternative_description"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "closure_type",
+                    FileMetadata.Value,
+                ),
+                else_=None,
+            )
+        ).label("closure_type"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "closure_start_date",
+                    func.cast(FileMetadata.Value, DATE),
+                ),
+                else_=None,
+            )
+        ).label("closure_start_date"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "closure_period",
+                    FileMetadata.Value,
+                ),
+                else_=None,
+            )
+        ).label("closure_period"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "opening_date",
+                    func.cast(FileMetadata.Value, DATE),
+                ),
+                else_=None,
+            ),
+        ).label("opening_date"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "date_last_modified",
+                    func.cast(FileMetadata.Value, DATE),
+                ),
+                else_=None,
+            )
         ).label("date_last_modified"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "foi_exemption_code",
+                    FileMetadata.Value,
+                ),
+                else_=None,
+            )
+        ).label("foi_exemption_code"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "file_name_translation",
+                    FileMetadata.Value,
+                ),
+                else_=None,
+            )
+        ).label("translated_title"),
         func.max(
             db.case(
                 (
@@ -554,12 +628,12 @@ def _get_file_metadata_query(file_id: uuid.UUID):
                 else_=None,
             ),
         ).label("language"),
-        Consignment.ConsignmentId.label("consignment_id"),
-        Consignment.ConsignmentReference.label("consignment"),
         Body.Name.label("transferring_body"),
         Body.BodyId.label("transferring_body_id"),
         Series.SeriesId.label("series_id"),
         Series.Name.label("series"),
+        Consignment.ConsignmentId.label("consignment_id"),
+        Consignment.ConsignmentReference.label("consignment_reference"),
     )
 
     filters = [
@@ -567,8 +641,8 @@ def _get_file_metadata_query(file_id: uuid.UUID):
         func.lower(File.FileType) == "file",
     ]
 
-    query = (
-        query.join(
+    sub_query = (
+        select.join(
             FileMetadata, File.FileId == FileMetadata.FileId, isouter=True
         )
         .join(Consignment, File.ConsignmentId == Consignment.ConsignmentId)
@@ -584,6 +658,44 @@ def _get_file_metadata_query(file_id: uuid.UUID):
         .group_by(
             File.FileId, Body.BodyId, Series.SeriesId, Consignment.ConsignmentId
         )
+    ).subquery()
+
+    query = db.session.query(
+        sub_query.c.file_id,
+        sub_query.c.file_name,
+        sub_query.c.file_path,
+        sub_query.c.citeable_reference,
+        sub_query.c.alternative_title,
+        sub_query.c.description,
+        sub_query.c.alternative_description,
+        sub_query.c.closure_type,
+        func.to_char(
+            sub_query.c.closure_start_date,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("closure_start_date"),
+        sub_query.c.closure_period,
+        func.to_char(
+            sub_query.c.opening_date,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("opening_date"),
+        func.to_char(
+            sub_query.c.date_last_modified,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("date_last_modified"),
+        sub_query.c.foi_exemption_code,
+        sub_query.c.transferring_body_id,
+        sub_query.c.transferring_body,
+        sub_query.c.series_id,
+        sub_query.c.series,
+        sub_query.c.consignment_id,
+        sub_query.c.consignment_reference,
+        sub_query.c.file_reference,
+        sub_query.c.former_reference,
+        sub_query.c.translated_title,
+        sub_query.c.held_by,
+        sub_query.c.legal_status,
+        sub_query.c.rights_copyright,
+        sub_query.c.language,
     )
 
     return query

@@ -707,3 +707,273 @@ def browse_consignment_files():
         file_4,
         file_5,
     ]
+
+
+@pytest.fixture(scope="function")
+def record_files():
+    """
+
+    purpose of this function to return file objects to perform testing on
+      displaying record metadata based on the closure type status
+
+    returns 3 file objects associated with consignments
+
+    there is 1 body defined as Transferring bodies,
+
+    there is 1 series defined as Series in one body
+
+    there is a 1 consignment object associated with transferring body and series
+      consignment_1 associated to body_1 and series_1
+
+    there are 5 file objects (1 to 5) associated with consignment
+
+    file_1, file_2, file_3 associated to consignment_1
+    """
+
+    body_1 = BodyFactory(Name="first_body", Description="first_body")
+
+    series_1 = SeriesFactory(
+        Name="first_series", Description="first_series", body=body_1
+    )
+
+    consignment_1 = ConsignmentFactory(
+        series=series_1,
+        ConsignmentReference="TDR-2023-FI1",
+        TransferCompleteDatetime="2023-10-14",
+    )
+
+    # file with closure type - Open
+    file_1 = FileFactory(
+        consignment=consignment_1,
+        FileName="open_file.docx",
+        FileType="file",
+        FileReference="ABCDE",
+        FilePath="data/content/test_folder/open_file.docx",
+        CiteableReference="first_body/ABCDE",
+    )
+    file_1_metadata = {
+        "file_object": file_1,
+        "description": FileMetadataFactory(
+            file=file_1, PropertyName="description", Value="open document file"
+        ),
+        "closure_type": FileMetadataFactory(
+            file=file_1, PropertyName="closure_type", Value="Open"
+        ),
+        "date_last_modified": FileMetadataFactory(
+            file=file_1, PropertyName="date_last_modified", Value="2023-01-15"
+        ),
+        "former_reference": FileMetadataFactory(
+            file=file_1, PropertyName="former_reference_department", Value="-"
+        ),
+        "translated_title": FileMetadataFactory(
+            file=file_1, PropertyName="file_name_translation", Value="-"
+        ),
+        "held_by": FileMetadataFactory(
+            file=file_1,
+            PropertyName="held_by",
+            Value="The National Archives, Kew",
+        ),
+        "legal_status": FileMetadataFactory(
+            file=file_1, PropertyName="legal_status", Value="Public record(s)"
+        ),
+        "rights_copyright": FileMetadataFactory(
+            file=file_1,
+            PropertyName="rights_copyright",
+            Value="Crown copyright",
+        ),
+        "language": FileMetadataFactory(
+            file=file_1, PropertyName="language", Value="English"
+        ),
+    }
+
+    # file with closure type - Open , but has closure start date and closure period - as it was once closed
+    file_2 = FileFactory(
+        consignment=consignment_1,
+        FileName="open_file_once_closed.pdf",
+        FileType="file",
+        FileReference="ABCDE",
+        FilePath="data/content/test_folder/open_file_once_closed.pdf",
+        CiteableReference="first_body/ABCDE",
+    )
+    file_2_metadata = {
+        "file_object": file_2,
+        "alternative_title": FileMetadataFactory(
+            file=file_2, PropertyName="title_alternate", Value="alternate title"
+        ),
+        "description": FileMetadataFactory(
+            file=file_2,
+            PropertyName="description",
+            Value="open once closed document file",
+        ),
+        "alternative_description": FileMetadataFactory(
+            file=file_2, PropertyName="description_alternate", Value="-"
+        ),
+        "closure_type": FileMetadataFactory(
+            file=file_2, PropertyName="closure_type", Value="Open"
+        ),
+        "date_last_modified": FileMetadataFactory(
+            file=file_2, PropertyName="date_last_modified", Value="2023-01-15"
+        ),
+        "opening_date": FileMetadataFactory(
+            file=file_2, PropertyName="opening_date", Value="2023-02-25"
+        ),
+        "closure_start_date": FileMetadataFactory(
+            file=file_2, PropertyName="closure_start_date", Value="2023-01-15"
+        ),
+        "closure_period": FileMetadataFactory(
+            file=file_2, PropertyName="closure_period", Value="10"
+        ),
+        "foi_exemption_code": FileMetadataFactory(
+            file=file_2, PropertyName="foi_exemption_code", Value="14(2)(b)"
+        ),
+        "former_reference": FileMetadataFactory(
+            file=file_2,
+            PropertyName="former_reference_department",
+            Value="former reference",
+        ),
+        "translated_title": FileMetadataFactory(
+            file=file_2, PropertyName="file_name_translation", Value="-"
+        ),
+        "held_by": FileMetadataFactory(
+            file=file_2,
+            PropertyName="held_by",
+            Value="The National Archives, Kew",
+        ),
+        "legal_status": FileMetadataFactory(
+            file=file_2, PropertyName="legal_status", Value="Public record(s)"
+        ),
+        "rights_copyright": FileMetadataFactory(
+            file=file_2,
+            PropertyName="rights_copyright",
+            Value="Crown copyright",
+        ),
+        "language": FileMetadataFactory(
+            file=file_2, PropertyName="language", Value="English"
+        ),
+    }
+
+    # file with closure type - Closed
+    file_3 = FileFactory(
+        consignment=consignment_1,
+        FileName="closed_file.pdf",
+        FileType="file",
+        FileReference="ABCDE",
+        FilePath="data/content/test_folder/closed_file.pdf",
+        CiteableReference="first_body/ABCDE",
+    )
+    file_3_metadata = {
+        "file_object": file_3,
+        "alternative_title": FileMetadataFactory(
+            file=file_3, PropertyName="title_alternate", Value="alternate title"
+        ),
+        "description": FileMetadataFactory(
+            file=file_3,
+            PropertyName="description",
+            Value="closed document file",
+        ),
+        "alternative_description": FileMetadataFactory(
+            file=file_3, PropertyName="description_alternate", Value="-"
+        ),
+        "closure_type": FileMetadataFactory(
+            file=file_3, PropertyName="closure_type", Value="Closed"
+        ),
+        "date_last_modified": FileMetadataFactory(
+            file=file_3, PropertyName="date_last_modified", Value="2023-01-15"
+        ),
+        "opening_date": FileMetadataFactory(
+            file=file_3, PropertyName="opening_date", Value="2023-02-25"
+        ),
+        "closure_start_date": FileMetadataFactory(
+            file=file_3, PropertyName="closure_start_date", Value="2023-01-15"
+        ),
+        "closure_period": FileMetadataFactory(
+            file=file_3, PropertyName="closure_period", Value="10"
+        ),
+        "foi_exemption_code": FileMetadataFactory(
+            file=file_3, PropertyName="foi_exemption_code", Value="14(2)(b)"
+        ),
+        "former_reference": FileMetadataFactory(
+            file=file_3,
+            PropertyName="former_reference_department",
+            Value="former reference",
+        ),
+        "translated_title": FileMetadataFactory(
+            file=file_3, PropertyName="file_name_translation", Value="-"
+        ),
+        "held_by": FileMetadataFactory(
+            file=file_3,
+            PropertyName="held_by",
+            Value="The National Archives, Kew",
+        ),
+        "legal_status": FileMetadataFactory(
+            file=file_3, PropertyName="legal_status", Value="Public record(s)"
+        ),
+        "rights_copyright": FileMetadataFactory(
+            file=file_3,
+            PropertyName="rights_copyright",
+            Value="Crown copyright",
+        ),
+        "language": FileMetadataFactory(
+            file=file_3, PropertyName="language", Value="English"
+        ),
+    }
+
+    # file with no metadata
+    file_4 = FileFactory(
+        consignment=consignment_1,
+        FileName="file_no_metadata.docx",
+        FileType="file",
+        FileReference="ABCDE",
+        FilePath="data/content/test_folder/file_no_metadata.docx",
+        CiteableReference="first_body/ABCDE",
+    )
+    file_4_metadata = {
+        "file_object": file_4,
+        "alternative_title": FileMetadataFactory(
+            file=file_3, PropertyName="title_alternate", Value=None
+        ),
+        "description": FileMetadataFactory(
+            file=file_3, PropertyName="description", Value=None
+        ),
+        "alternative_description": FileMetadataFactory(
+            file=file_3, PropertyName="description_alternate", Value=None
+        ),
+        "closure_type": FileMetadataFactory(
+            file=file_3, PropertyName="closure_type", Value=None
+        ),
+        "date_last_modified": FileMetadataFactory(
+            file=file_3, PropertyName="date_last_modified", Value=None
+        ),
+        "opening_date": FileMetadataFactory(
+            file=file_3, PropertyName="opening_date", Value=None
+        ),
+        "closure_start_date": FileMetadataFactory(
+            file=file_3, PropertyName="closure_start_date", Value=None
+        ),
+        "closure_period": FileMetadataFactory(
+            file=file_3, PropertyName="closure_period", Value=None
+        ),
+        "foi_exemption_code": FileMetadataFactory(
+            file=file_3, PropertyName="foi_exemption_code", Value=None
+        ),
+        "former_reference": FileMetadataFactory(
+            file=file_3, PropertyName="former_reference_department", Value=None
+        ),
+        "translated_title": FileMetadataFactory(
+            file=file_3, PropertyName="file_name_translation", Value=None
+        ),
+        "held_by": FileMetadataFactory(
+            file=file_3, PropertyName="held_by", Value=None
+        ),
+        "legal_status": FileMetadataFactory(
+            file=file_3, PropertyName="legal_status", Value=None
+        ),
+        "rights_copyright": FileMetadataFactory(
+            file=file_3, PropertyName="rights_copyright", Value=None
+        ),
+        "language": FileMetadataFactory(
+            file=file_3, PropertyName="language", Value=None
+        ),
+    }
+
+    return [file_1_metadata, file_2_metadata, file_3_metadata, file_4_metadata]
