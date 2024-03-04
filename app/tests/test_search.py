@@ -399,221 +399,6 @@ class TestSearchTransferringBody:
             {"class": "search__container govuk-grid-column-full"},
         )
 
-    def test_search_transferring_body_superuser_breadcrumb_single_term(
-        self, client, mock_superuser, browse_consignment_files
-    ):
-        """
-        Given a superuser accessing the search transferring body page
-        When they make a GET request
-        Then they should see the breadcrumb values with Everything > results summary > transferring body > search term
-        on search page content.
-        """
-        mock_superuser(client)
-        query = "TDR-2023-FI1"
-
-        form_data = {"query": query}
-
-        transferring_body_id = browse_consignment_files[
-            0
-        ].consignment.series.body.BodyId
-        transferring_body = browse_consignment_files[
-            0
-        ].consignment.series.body.Name
-
-        response = client.get(
-            f"{self.route_url}/{transferring_body_id}", data=form_data
-        )
-
-        assert response.status_code == 200
-
-        html = response.data.decode()
-
-        search_html = f"""<div class="govuk-breadcrumbs  ">
-    <ol class="govuk-breadcrumbs__list">
-                <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">Everything</a>
-                </li>
-                <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record--transferring-body"
-                           href="{self.search_results_summary_route_url}?query={query.lower()}">Results summary</a>
-                </li>
-                <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record--transferring-body"
-                           href="{self.browse_transferring_body_route_url}/{transferring_body_id}">{transferring_body}</a>
-                </li>
-                <li class="govuk-breadcrumbs__list-item">
-                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{query.lower()}’</span>
-                </li>
-    </ol>
-</div>"""
-
-        assert_contains_html(
-            search_html,
-            html,
-            "div",
-            {"class": "govuk-breadcrumbs"},
-        )
-
-    def test_search_transferring_body_superuser_breadcrumb_multiple_terms(
-        self, client, mock_superuser, browse_consignment_files
-    ):
-        """
-        Given a superuser accessing the search transferring body page
-        When they make a GET request
-        Then they should see the breadcrumb values with Everything > results summary > transferring body > search term
-        on search page content.
-        """
-        mock_superuser(client)
-
-        term1 = "TDR-2023-FI1"
-        term2 = "first"
-        query = f"{term1},{term2}"
-
-        form_data = {"query": query}
-
-        transferring_body_id = browse_consignment_files[
-            0
-        ].consignment.series.body.BodyId
-        transferring_body = browse_consignment_files[
-            0
-        ].consignment.series.body.Name
-
-        response = client.get(
-            f"{self.route_url}/{transferring_body_id}", data=form_data
-        )
-
-        assert response.status_code == 200
-
-        html = response.data.decode()
-
-        search_html = f"""<div class="govuk-breadcrumbs  ">
-    <ol class="govuk-breadcrumbs__list">
-                <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">Everything</a>
-                </li>
-                <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record--transferring-body"
-                           href="{self.search_results_summary_route_url}?query={query.lower()}">Results summary</a>
-                </li>
-                <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record--transferring-body"
-                           href="{self.browse_transferring_body_route_url}/{transferring_body_id}">{transferring_body}</a>
-                </li>
-                <li class="govuk-breadcrumbs__list-item">
-    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{term1.lower()}’ + ‘{term2.lower()}’</span>
-                </li>
-    </ol>
-</div>"""
-
-        assert_contains_html(
-            search_html,
-            html,
-            "div",
-            {"class": "govuk-breadcrumbs"},
-        )
-
-    def test_search_transferring_body_standard_user_breadcrumb_single_term(
-        self, client, mock_standard_user, browse_consignment_files
-    ):
-        """
-        Given a superuser accessing the search transferring body page
-        When they make a GET request
-        Then they should see the breadcrumb values with Everything > results summary > transferring body > search term
-        on search page content.
-        """
-        query = "TDR-2023-FI1"
-
-        form_data = {"query": query}
-
-        transferring_body_id = browse_consignment_files[
-            0
-        ].consignment.series.body.BodyId
-
-        transferring_body = browse_consignment_files[
-            0
-        ].consignment.series.body.Name
-
-        mock_standard_user(client, transferring_body)
-
-        response = client.get(
-            f"{self.route_url}/{transferring_body_id}", data=form_data
-        )
-
-        assert response.status_code == 200
-
-        html = response.data.decode()
-
-        search_html = f"""<div class="govuk-breadcrumbs  ">
-    <ol class="govuk-breadcrumbs__list">
-                <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record--transferring-body"
-                           href="{self.browse_transferring_body_route_url}/{transferring_body_id}">{transferring_body}</a>
-                </li>
-                <li class="govuk-breadcrumbs__list-item">
-                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{query.lower()}’</span>
-                </li>
-    </ol>
-</div>"""
-
-        assert_contains_html(
-            search_html,
-            html,
-            "div",
-            {"class": "govuk-breadcrumbs"},
-        )
-
-    def test_search_transferring_body_standard_user_breadcrumb_multiple_terms(
-        self, client, mock_standard_user, browse_consignment_files
-    ):
-        """
-        Given a superuser accessing the search transferring body page
-        When they make a GET request
-        Then they should see the breadcrumb values with Everything > results summary > transferring body > search term
-        on search page content.
-        """
-        term1 = "TDR-2023-FI1"
-        term2 = "first"
-        query = f"{term1},{term2}"
-
-        form_data = {"query": query}
-
-        transferring_body_id = browse_consignment_files[
-            0
-        ].consignment.series.body.BodyId
-
-        transferring_body = browse_consignment_files[
-            0
-        ].consignment.series.body.Name
-
-        mock_standard_user(client, transferring_body)
-
-        response = client.get(
-            f"{self.route_url}/{transferring_body_id}", data=form_data
-        )
-
-        assert response.status_code == 200
-
-        html = response.data.decode()
-
-        search_html = f"""<div class="govuk-breadcrumbs  ">
-    <ol class="govuk-breadcrumbs__list">
-                <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record--transferring-body"
-                           href="{self.browse_transferring_body_route_url}/{transferring_body_id}">{transferring_body}</a>
-                </li>
-                <li class="govuk-breadcrumbs__list-item">
-    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{term1.lower()}’ + ‘{term2.lower()}’</span>
-                </li>
-    </ol>
-</div>"""
-
-        assert_contains_html(
-            search_html,
-            html,
-            "div",
-            {"class": "govuk-breadcrumbs"},
-        )
-
     def test_search_transferring_body_no_query(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
@@ -1142,12 +927,12 @@ class TestSearchTransferringBody:
         )
         assert not next_option
 
-    def test_search_transferring_body_breadcrumbs_superuser(
+    def test_search_transferring_body_breadcrumbs_superuser_single_term(
         self, client: FlaskClient, mock_superuser, browse_consignment_files
     ):
         """
         Given a superuser
-        When they make a request on the search page with the search term
+        When they make a request on the search transferring body page with the search term
         Then they should be redirected to search transferring body screen
         with search results summary page content
         and see a bread crumbs rendered as Everything > Results summary > Transferring body > ‘Search term’
@@ -1171,18 +956,72 @@ class TestSearchTransferringBody:
         search_html = f"""<div class="govuk-breadcrumbs  ">
     <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
+                        <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">Everything</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                     <a class="govuk-breadcrumbs__link--record--transferring-body"
-                           href="/search_results_summary?query={query}">Results summary</a>
+                           href="{self.search_results_summary_route_url}?query={query}">Results summary</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                         <a class="govuk-breadcrumbs__link--record--transferring-body"
-                           href="/browse/transferring_body/{transferring_body_id}">first_body</a>
+                           href="{self.browse_transferring_body_route_url}/{transferring_body_id}">first_body</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                     <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{query}’</span>
+                </li>
+    </ol>
+    </div>"""
+
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "govuk-breadcrumbs"},
+        )
+
+    def test_search_transferring_body_breadcrumbs_superuser_multiple_terms(
+        self, client: FlaskClient, mock_superuser, browse_consignment_files
+    ):
+        """
+        Given a superuser
+        When they make a request on the search transferring body page with the search term
+        Then they should be redirected to search transferring body screen
+        with search results summary page content
+        and see a bread crumbs rendered as Everything > Results summary > Transferring body > ‘Search term’
+        """
+        mock_superuser(client)
+
+        term1 = "fi"
+        term2 = "second"
+        query = term1 + "," + term2
+        form_data = {"query": query}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        search_html = f"""<div class="govuk-breadcrumbs  ">
+    <ol class="govuk-breadcrumbs__list">
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">Everything</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                    <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="{self.search_results_summary_route_url}?query={query}">Results summary</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                        <a class="govuk-breadcrumbs__link--record--transferring-body"
+                           href="{self.browse_transferring_body_route_url}/{transferring_body_id}">first_body</a>
+                </li>
+                <li class="govuk-breadcrumbs__list-item">
+                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{term1}’ + ‘{term2}’</span>
                 </li>
     </ol>
     </div>"""
@@ -1199,7 +1038,7 @@ class TestSearchTransferringBody:
     ):
         """
         Given a standard user
-        When they make a request on the search page with the search term
+        When they make a request on the search transferring body page with the search term
         Then they should be redirected to search transferring body screen
         with search results summary page content
         and see a bread crumbs rendered as Everything > Results summary > Transferring body > ‘Search term’
@@ -1225,7 +1064,7 @@ class TestSearchTransferringBody:
     <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
                         <a class="govuk-breadcrumbs__link--record--transferring-body"
-                           href="/browse/transferring_body/{transferring_body_id}">first_body</a>
+                           href="{self.browse_transferring_body_route_url}/{transferring_body_id}">first_body</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                     <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{query}’</span>
@@ -1245,7 +1084,7 @@ class TestSearchTransferringBody:
     ):
         """
         Given a standard user
-        When they make a request on the search page with the search term
+        When they make a request on the search transferring body page with the search term
         Then they should be redirected to search transferring body screen
         with search results summary page content
         and see a bread crumbs rendered as Everything > Results summary > Transferring body >
@@ -1254,9 +1093,9 @@ class TestSearchTransferringBody:
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
         )
-        query1 = "fi"
-        query2 = "st"
-        form_data = {"query": query1 + "," + query2}
+        term1 = "fi"
+        term2 = "st"
+        form_data = {"query": term1 + "," + term2}
 
         transferring_body_id = browse_consignment_files[
             0
@@ -1273,10 +1112,10 @@ class TestSearchTransferringBody:
     <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
                         <a class="govuk-breadcrumbs__link--record--transferring-body"
-                           href="/browse/transferring_body/{transferring_body_id}">first_body</a>
+                           href="{self.browse_transferring_body_route_url}/{transferring_body_id}">first_body</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
-                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{query1}’ + ‘{query2}’</span>
+                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{term1}’ + ‘{term2}’</span>
                 </li>
     </ol>
 </div>"""
@@ -1293,7 +1132,7 @@ class TestSearchTransferringBody:
     ):
         """
         Given a superuser
-        When they make a request on the search page with the search term
+        When they make a request on the search transferring body page with the search term
         Then they should be redirected to search transferring body screen
         with search results summary page content
         and see a bread crumbs rendered as Everything > Results summary > Transferring body > ‘Search term’
@@ -1320,7 +1159,7 @@ class TestSearchTransferringBody:
     <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
                         <a class="govuk-breadcrumbs__link--record--transferring-body"
-                           href="/browse/transferring_body/{transferring_body_id}">first_body</a>
+                           href="{self.browse_transferring_body_route_url}/{transferring_body_id}">first_body</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                     <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">‘{query}’</span>
@@ -1335,11 +1174,11 @@ class TestSearchTransferringBody:
             {"class": "govuk-breadcrumbs"},
         )
 
-    def test_search_transferring_body_filter_tray(
+    def test_search_transferring_body_display_filter_tray(
         self, client, mock_standard_user, browse_consignment_files
     ):
         """
-        Given a standard user accessing the search page
+        Given a standard user accessing the search transferring body page
         When they make a GET request
         Then they should see the filter tray component available on search page content.
         """
@@ -1351,11 +1190,9 @@ class TestSearchTransferringBody:
             0
         ].consignment.series.body.BodyId
 
-        term1 = "Some text"
-        term2 = "this is testing a long filename."
-        term3 = "Some text"
-        term4 = "Some text"
-        query = f"{term1},{term2},{term3},{term4}"
+        term1 = "TDR-2023-FI1"
+        term2 = "first"
+        query = f"{term1},{term2}"
 
         form_data = {"query": query}
         response = client.get(
@@ -1365,63 +1202,52 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
 
         html = response.data.decode()
+
         search_filter_html = f"""
         <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters">
-                    <div class="search-all-filter-container">
-                        <div class="browse-filter__header">
-                            <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
-                        </div>
-                        <div class="govuk-form-group govuk-form-group--search-all-filter">
-                            <label class="govuk-label" for="search_filter"></label>
-                            <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
-                            id="search_filter"
-                            name="search_filter"
-                            value=""
-                            type="text">
-                        </div>
-                        <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
-                        <div class="ayr-filter-tags">
-                            <div class="search-term">
-                                {term1}
-                                <img src="/assets/image/cancel-filters.svg"
-                                height="24px"
-                                width="30px"
-                                class="close-icon"
-                                alt="">
-                            </div>
-                            <div class="search-term">
-                            {term2}
-                            <img src="/assets/image/cancel-filters.svg"
-                            height="24px"
-                            width="30px"
-                            class="close-icon"
-                            alt="">
-                            </div>
-                            <div class="search-term">
-                                {term3}
-                                <img src="/assets/image/cancel-filters.svg"
-                                height="24px"
-                                width="30px"
-                                class="close-icon"
-                                alt="">
-                            </div>
-                            <div class="search-term">
-                                {term4}
-                                <img src="/assets/image/cancel-filters.svg"
-                                height="24px"
-                                width="30px"
-                                class="close-icon"
-                                alt="">
-                            </div>
-                        </div>
-                        <div class="search-form__buttons">
-                            <button type="submit" class="govuk-button govuk-button__search-filters-form-apply-button"
-                            data-module="govuk-button">Apply</button>
-                            <a class="govuk-link govuk-link--transferring-filter"
-                            href="{self.route_url}/{transferring_body_id}">Clear all</a>
-                        </div>
-                    </div>
-                </div>"""
+           <div class="search-all-filter-container">
+              <div class="browse-filter__header">
+                 <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
+              </div>
+              <div class="govuk-form-group govuk-form-group--search-all-filter">
+                  <label class="govuk-label" for="search_filter"></label>
+                  <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
+                        id="search_filter"
+                        name="search_filter"
+                        type="text">
+              </div>
+              <div class="search-form__buttons">
+              <button type="submit"
+                    class="govuk-button govuk-button__search-filters-form-apply-button"
+                    data-module="govuk-button">Apply</button>
+              <a class="govuk-link govuk-link--transferring-filter"
+                href="{self.route_url}/{transferring_body_id}">Clear all</a>
+              </div>
+              <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
+              <div class="ayr-filter-tags">
+                 <div class="search-term">
+                    <a href="{self.route_url}/{transferring_body_id}?query={term2}">
+                         {term1}
+                         <img src="/assets/image/cancel-filters.svg"
+                             height="24px"
+                             width="30px"
+                             class="close-icon"
+                             alt="">
+                    </a>
+                 </div>
+                 <div class="search-term">
+                    <a href="{self.route_url}/{transferring_body_id}?query={term1}">
+                         {term2}
+                         <img src="/assets/image/cancel-filters.svg"
+                             height="24px"
+                             width="30px"
+                             class="close-icon"
+                             alt="">
+                     </a>
+                 </div>
+              </div>
+           </div>
+        </div>"""
 
         assert_contains_html(
             search_filter_html,
@@ -1431,3 +1257,157 @@ class TestSearchTransferringBody:
                 "class": "govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters"
             },
         )
+
+    def test_search_transferring_body_display_multiple_search_terms_in_filter_tray(
+        self, client, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a standard user accessing the search transferring body page
+        When they make a GET request with multiple search terms
+        Then they should see the filter tray component filled with
+        individual entry of search term rendered in <div> tag
+        on page content.
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        term1 = "TDR-2023-FI1"
+        term2 = "first"
+        term3 = "second"
+        query = f"{term1},{term2},{term3}"
+
+        form_data = {"query": query}
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        search_filter_html = f"""<div class="ayr-filter-tags">
+                 <div class="search-term">
+                    <a href="{self.route_url}/{transferring_body_id}?query={term2},{term3}">
+                         {term1}
+                         <img src="/assets/image/cancel-filters.svg"
+                             height="24px"
+                             width="30px"
+                             class="close-icon"
+                             alt="">
+                    </a>
+                 </div>
+                 <div class="search-term">
+                    <a href="{self.route_url}/{transferring_body_id}?query={term1},{term3}">
+                         {term2}
+                         <img src="/assets/image/cancel-filters.svg"
+                             height="24px"
+                             width="30px"
+                             class="close-icon"
+                             alt="">
+                     </a>
+                 </div>
+                 <div class="search-term">
+                    <a href="{self.route_url}/{transferring_body_id}?query={term1},{term2}">
+                         {term3}
+                         <img src="/assets/image/cancel-filters.svg"
+                             height="24px"
+                             width="30px"
+                             class="close-icon"
+                             alt="">
+                    </a>
+                 </div>
+              </div>"""
+
+        assert_contains_html(
+            search_filter_html,
+            html,
+            "div",
+            {"class": "ayr-filter-tags"},
+        )
+
+    @pytest.mark.parametrize(
+        "query_params, expected_results",
+        [
+            (
+                "query=TDR-2023-FI1&search_filter=th",
+                [
+                    [
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                    ],
+                ],
+            ),
+            (
+                "query=TDR-2023-FI1&search_filter=second",
+                [
+                    [
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-'"
+                    ],
+                ],
+            ),
+            (
+                "query=TDR-2023-FI1&search_filter=docx",
+                [
+                    [
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                    ],
+                ],
+            ),
+            (
+                "query=TDR-2023-FI1&sort=file_name-asc&search_filter=docx",
+                [
+                    [
+                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023'"
+                    ],
+                ],
+            ),
+            (
+                "query=TDR-2023-FI1&sort=file_name-desc&search_filter=th",
+                [
+                    [
+                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-'"
+                    ],
+                ],
+            ),
+        ],
+    )
+    def test_search_transferring_body_with_search_filter_full_test(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_consignment_files,
+        query_params,
+        expected_results,
+    ):
+        """
+        Given a standard user with a search transferring body page
+        When they make a request with a query and search filter (additional search terms)
+        Then they should see search results based on query search and search term searched within the search
+        on the page.
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}?{query_params}"
+        )
+
+        assert response.status_code == 200
+
+        verify_search_transferring_body_header_row(response.data)
+        verify_data_rows(response.data, expected_results)
