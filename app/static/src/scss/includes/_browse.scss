@@ -74,12 +74,6 @@
       font-size: 1rem;
     }
   }
-
-  &-summary-list__row__browse-grid-list {
-    @include on-mobile {
-      display: none;
-    }
-  }
 }
 
 .browse {
@@ -124,7 +118,7 @@
   }
 
   &__sort-container {
-    margin-top: 3rem;
+    margin-top: 2rem;
 
     @include on-mobile {
       margin-top: 2rem;
@@ -305,11 +299,74 @@
   }
 }
 
+.desktop-table-hidden {
+  display: none;
+}
+
+.mobile-table-row {
+  display: none;
+}
+
+.govuk-details {
+  display: none;
+}
+
 // MOBILE STYLES
 
 @media screen and (width <=810px) {
-  .desktop {
+  .govuk-details {
+    display: block;
+  }
+
+  .browse-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mobile-filters {
+    order: 1;
+    padding: 0 15px 0 0;
+    width: auto;
+    display: block;
+    margin-top: 1.5rem;
+  }
+
+  .mobile-table {
+    order: 2;
+    width: auto;
+  }
+
+  .browse__sort-container {
+    margin-top: 0;
+  }
+
+  .mobile-table-hidden {
     display: none;
+  }
+
+  .mobile-table-row {
+    display: table-row;
+  }
+
+  .mobile-table-top-row {
+    border-bottom: none;
+  }
+
+  .mobile-table-bottom-row {
+    border-bottom: 1px solid #b1b4b6;
+    max-width: 10rem;
+  }
+
+  .desktop-table-hidden {
+    display: block;
+  }
+
+  .mobile-pagination {
+    order: 3;
+  }
+
+  .mobile-top-search-form {
+    display: flex;
   }
 
   .mobile {
@@ -323,6 +380,7 @@
   .govuk-button__search-button {
     width: 50%;
     margin-bottom: 1rem;
+    order: 4;
   }
 
   .browse__body {
@@ -353,13 +411,12 @@
   }
 
   .search__container {
-    display: flex;
+    display: block;
     align-items: center;
     justify-content: center;
     background-color: #f3f2f1;
     width: 100%;
     padding: 0;
-    position: absolute;
     left: 0;
     right: 0;
   }
@@ -369,18 +426,33 @@
   }
 
   .search__container__content {
-    width: 90vw;
+    width: 93vw;
+    margin: -15px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    background-color: #f3f2f1;
+  }
+
+  .search__heading {
+    order: 0;
+    margin-bottom: 0.3rem;
+    width: fit-content;
+  }
+
+  #search-input {
+    order: 2;
+  }
+
+  .govuk-body-s {
+    order: 3;
+    align-self: flex-start;
   }
 
   .mobile__search__text {
     width: 80vw;
     margin-bottom: 0.5rem;
     margin-top: 0.3rem;
-  }
-
-  .search__heading {
-    margin-bottom: 0.3rem;
-    width: fit-content;
   }
 
   .browse__available__text {
@@ -416,14 +488,8 @@
   }
 
   .filters-form {
-    display: none;
     float: none;
     padding: 0;
-  }
-
-  .mobile-filters {
-    display: block;
-    margin-top: 1.5rem;
   }
 
   .mobile-filters-form {
@@ -436,11 +502,7 @@
   }
 
   .govuk-button__sort-container-update-button {
-    width: 50%;
-  }
-
-  .sort-container__form {
-    display: none;
+    width: 100%;
   }
 
   .mobile-sort {
@@ -452,7 +514,7 @@
   }
 
   .browse-details {
-    display: none;
+    display: block;
   }
 
   .govuk-mobile-details_text {

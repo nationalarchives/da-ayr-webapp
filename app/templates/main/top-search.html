@@ -2,22 +2,21 @@
     <div class="search__container__content">
         <p class="govuk-body search__heading">Search for digital records</p>
         <form method="get" action="{{ url_for('main.search') }}">
-            <div class="govuk-form-group govuk-form-group__search-form">
-                <label for="searchInput"></label>
+            <div class="govuk-form-group govuk-form-group__search-form mobile-top-search-form">
                 <input class="govuk-input govuk-!-width-three-quarters"
-                       id="searchInput"
+                       id="search-input"
                        name="query"
                        type="text"
                        value="{% if filters['query'] %}{{ filters['query'] }}{% endif %}">
                 <button class="govuk-button govuk-button__search-button"
                         data-module="govuk-button"
                         type="submit">Search</button>
+                    {% if session["user_type"] == "all_access_user" %}
+                        <p class="govuk-body-s">Search by file name, transferring body, series or consignment reference.</p>
+                    {% else %}
+                        <p class="govuk-body-s">Search by file name, series or consignment reference.</p>
+                    {% endif %}
             </div>
-            {% if session["user_type"] == "all_access_user" %}
-                <p class="govuk-body-s">Search by file name, transferring body, series or consignment reference.</p>
-            {% else %}
-                <p class="govuk-body-s">Search by file name, series or consignment reference.</p>
-            {% endif %}
         </form>
     </div>
 </div>

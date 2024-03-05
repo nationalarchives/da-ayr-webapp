@@ -1,47 +1,25 @@
 {% for key, value in dict.items() %}
     {% if key != "opening_date" %}
-        {% if view_type == "desktop" %}
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">{{ key }}</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                    {% if value %}
-                        {% if key == "Status" %}
-                            {% if (value | lower == "closed") %}
-                                <span class="govuk-tag govuk-tag--red"><strong>{{ value }}</strong></span>
-                            {% else %}
-                                <span class="govuk-tag govuk-tag--green"><strong>{{ value }}</strong></span>
-                            {% endif %}
-                            {% if dict.get("Closure start date") %}
-                                {% if dict.get('opening_date') %}<span>Record opening date {{ dict.get('opening_date') }}</span>{% endif %}
-                            {% endif %}
+        <div class="govuk-summary-list__row govuk-summary-list__row--record">
+            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">{{ key }}</dt>
+            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                {% if value %}
+                    {% if key == "Status" %}
+                        {% if (value | lower == "closed") %}
+                            <span class="govuk-tag govuk-tag--red"><strong>{{ value }}</strong></span>
                         {% else %}
-                            {{ value }}
+                            <span class="govuk-tag govuk-tag--green"><strong>{{ value }}</strong></span>
+                        {% endif %}
+                        {% if dict.get("Closure start date") %}
+                            {% if dict.get('opening_date') %}<span>Record opening date {{ dict.get('opening_date') }}</span>{% endif %}
                         {% endif %}
                     {% else %}
-                        -
+                        {{ value }}
                     {% endif %}
-                </dd>
-            </div>
-        {% else %}
-            <div class="govuk-summary-list__row govuk-summary-list__row--mobile">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--mobile-table">{{ key }}</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--mobile">
-                    {% if value %}
-                        {% if key == "Status" %}
-                            {% if value == "Closed" %}
-                                <span class="govuk-tag govuk-tag--red"><strong>{{ value }}</strong></span>
-                                {% if dict.get('opening_date') %}<span>Record opening date {{ dict.get('opening_date') }}</span>{% endif %}
-                            {% else %}
-                                <span class="govuk-tag govuk-tag--green"><strong>{{ value }}</strong></span>
-                            {% endif %}
-                        {% else %}
-                            {{ value }}
-                        {% endif %}
-                    {% else %}
-                        -
-                    {% endif %}
-                </dd>
-            </div>
-        {% endif %}
+                {% else %}
+                    -
+                {% endif %}
+            </dd>
+        </div>
     {% endif %}
 {% endfor %}
