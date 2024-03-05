@@ -48,6 +48,31 @@ def verify_data_rows(data, expected_rows):
     assert [row_data] == expected_rows[0]
 
 
+def verify_consignment_data_rows(data, expected_rows):
+    """
+    This function checks data rows for a data table compared with expected rows
+    :param data: response data
+    :param expected_rows: expected rows to be compared
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    top_rows = table.find_all("tr", class_="mobile-table-top-row")
+
+    row_data = ""
+    for row in top_rows:
+        cells = row.find_all("td")
+        for cell_index, cell in enumerate(cells):
+            row_data += "'" + cell.text.replace("\n", " ").strip(" ") + "'"
+            if cell_index < len(cells) - 1:
+                row_data += ", "
+        row_data += ", "
+
+    # Remove the extra comma at the end of row_data
+    row_data = row_data.rstrip(", ")
+
+    assert [row_data] == expected_rows[0]
+
+
 class TestBrowse:
     @property
     def route_url(self):
