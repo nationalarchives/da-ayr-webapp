@@ -401,7 +401,8 @@ def search_results_summary():
             num_records_found = total_records
 
     return render_template(
-        "search-results-summary.html",
+        "search.html",
+        search_type="search-results-summary",
         form=form,
         current_page=page,
         filters=filters,
@@ -482,7 +483,8 @@ def search_transferring_body(_id: uuid.UUID):
             num_records_found = total_records
 
     return render_template(
-        "search-transferring-body.html",
+        "search.html",
+        search_type="search-transferring-body",
         form=form,
         current_page=page,
         filters=filters,

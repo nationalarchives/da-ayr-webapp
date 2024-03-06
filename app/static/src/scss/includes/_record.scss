@@ -205,6 +205,10 @@
   }
 }
 
+.record-page {
+  margin-top: -2rem;
+}
+
 /* Default styles for desktop */
 
 @mixin on-mobile {
@@ -339,5 +343,9 @@
         color: black;
       }
     }
+  }
+
+  .search__container__content {
+    margin-top: 0;
   }
 }

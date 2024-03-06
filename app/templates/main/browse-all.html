@@ -20,7 +20,7 @@
             {% endwith %}
         </div>
         <!-- TABLE -->
-        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds mobile-table">
+        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--two-thirds--mobile-table">
             <table class="govuk-table browse-grid__table" id="tbl_result">
                 <thead class="govuk-table__head">
                     <tr class="govuk-table__row">
@@ -29,11 +29,11 @@
                         <th scope="col" class="govuk-table__header">Series</th>
                         <th scope="col" class="govuk-table__header browse__table__right-align">Last record transferred</th>
                         <th scope="col"
-                            class="govuk-table__header browse__table__right-align mobile-table-hidden">
+                            class="govuk-table__header browse__table__right-align browse__table__mobile--hiden">
                             Records held
                         </th>
                         <th scope="col"
-                            class="govuk-table__header browse__table__right-align mobile-table-hidden">
+                            class="govuk-table__header browse__table__right-align browse__table__mobile--hiden">
                             Consignments within series
                         </th>
                     </tr>
@@ -48,8 +48,10 @@
                                 <a href="{{ url_for('main.browse_series', _id= record['series_id']) }}">{{ record["series"] }}</a>
                             </td>
                             <td class="govuk-table__cell browse__table__right-align">{{ record["last_record_transferred"] }}</td>
-                            <td class="govuk-table__cell browse__table__right-align mobile-table-hidden">{{ record["records_held"] }}</td>
-                            <td class="govuk-table__cell browse__table__right-align mobile-table-hidden">{{ record["consignment_in_series"] }}</td>
+                            <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hiden">{{ record["records_held"] }}</td>
+                            <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hiden">
+                                {{ record["consignment_in_series"] }}
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

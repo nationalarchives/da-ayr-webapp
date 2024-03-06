@@ -303,7 +303,7 @@
   display: none;
 }
 
-.mobile-table-row {
+.govuk-table__row__browse--mobile {
   display: none;
 }
 
@@ -340,11 +340,11 @@
     margin-top: 0;
   }
 
-  .mobile-table-hidden {
+  .browse__table__mobile--hiden {
     display: none;
   }
 
-  .mobile-table-row {
+  .govuk-table__row__browse--mobile {
     display: table-row;
   }
 
@@ -421,10 +421,6 @@
     right: 0;
   }
 
-  .mobile__search__container-block {
-    height: 16rem;
-  }
-
   .search__container__content {
     width: 93vw;
     margin: -15px;
@@ -483,96 +479,12 @@
     text-align: right;
   }
 
-  .empty-cell {
-    visibility: hidden;
-  }
-
-  .filters-form {
-    float: none;
-    padding: 0;
-  }
-
-  .mobile-filters-form {
-    display: block;
-    width: 100%;
-  }
-
-  .govuk-button__filters-form-apply-button {
-    width: 50%;
-  }
-
   .govuk-button__sort-container-update-button {
     width: 100%;
   }
 
-  .mobile-sort {
-    display: block;
-  }
-
-  .mobile-details {
-    display: block;
-  }
-
   .browse-details {
     display: block;
-  }
-
-  .govuk-mobile-details_text {
-    border-left: none;
-    padding: 0;
-  }
-
-  .govuk-mobile-details__summary {
-    background: #f3f2f1;
-    background-color: #f3f2f1;
-    box-shadow: none;
-    color: black;
-    height: 2rem;
-    margin-bottom: -1rem;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem;
-  }
-
-  .govuk-mobile-details__summary-text {
-    font-size: 1.3rem;
-    font-weight: 700;
-    padding: 10px 2px 2px 10px;
-    align-items: center;
-  }
-
-  .govuk-details__summary:focus {
-    box-shadow: #f3f2f1;
-  }
-
-  .govuk-mobile-details__summary:focus {
-    background-color: #f3f2f1;
-    box-shadow: #f3f2f1;
-    color: black;
-  }
-
-  .browse-filter__icon {
-    float: right;
-  }
-
-  .browse-filter-container {
-    padding: 10px;
-    min-width: 0;
-  }
-
-  .filters-form__series__container {
-    padding: 10px;
-    min-width: 0;
-  }
-
-  .filters-form__consignment-ref__container {
-    padding: 10px;
-    min-width: 0;
-  }
-
-  .filters-form__date__container {
-    padding: 10px;
-    min-width: 0;
   }
 
   thead {

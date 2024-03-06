@@ -14,21 +14,13 @@
                         id="browse-records">Browse records {{ num_records_found }}</h1>
                     <p class="govuk-body browse__body">You are viewing</p>
                     {% if browse_type == "browse" %}
-                        {% with view_type='desktop' %}
-                            {% include "browse-all.html" %}
-                        {% endwith %}
+                        {% include "browse-all.html" %}
                     {% elif browse_type == "transferring_body" %}
-                        {% with view_type='desktop' %}
-                            {% include "browse-transferring-body.html" %}
-                        {% endwith %}
+                        {% include "browse-transferring-body.html" %}
                     {% elif browse_type == "series" %}
-                        {% with view_type='desktop' %}
-                            {% include "browse-series.html" %}
-                        {% endwith %}
+                        {% include "browse-series.html" %}
                     {% elif browse_type == "consignment" %}
-                        {% with view_type='desktop' %}
-                            {% include "browse-consignment.html" %}
-                        {% endwith %}
+                        {% include "browse-consignment.html" %}
                     {% endif %}
                 </div>
             </div>

@@ -30,10 +30,10 @@
                 <thead class="govuk-table__head">
                     <tr class="govuk-table__row">
                         <th scope="col"
-                            class="govuk-table__header browse-grid__key__transferring-body mobile-table-hidden">
+                            class="govuk-table__header browse-grid__key__transferring-body browse__table__mobile--hiden">
                             Transferring body
                         </th>
-                        <th scope="col" class="govuk-table__header mobile-table-hidden">Series</th>
+                        <th scope="col" class="govuk-table__header browse__table__mobile--hiden">Series</th>
                         <th scope="col" class="govuk-table__header browse__table__right-align">Consignment transferred</th>
                         <th scope="col" class="govuk-table__header browse__table__right-align">Records in consignment</th>
                         <th scope="col" class="govuk-table__header browse__table__right-align">Consignment reference</th>
@@ -42,8 +42,8 @@
                 <tbody class="govuk-table__body">
                     {% for record in results %}
                         <tr class="govuk-table__row">
-                            <td class="govuk-table__cell mobile-table-hidden">{{ record["transferring_body"] }}</td>
-                            <td class="govuk-table__cell mobile-table-hidden">{{ record["series"] }}</td>
+                            <td class="govuk-table__cell browse__table__mobile--hiden">{{ record["transferring_body"] }}</td>
+                            <td class="govuk-table__cell browse__table__mobile--hiden">{{ record["series"] }}</td>
                             <td class="govuk-table__cell browse__table__right-align">{{ record["last_record_transferred"] }}</td>
                             <td class="govuk-table__cell browse__table__right-align">{{ record["records_held"] }}</td>
                             <td class="govuk-table__cell">
