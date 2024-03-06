@@ -41,11 +41,41 @@ def test_downloads_record_successfully_for_user_with_access_to_files_transferrin
         request to download record
     Then the response status code should be 200
     And the file should contain the expected content
+    And the the downloaded filename should be the File's CiteableReference
     """
     bucket_name = "test_bucket"
     file = FileFactory(
         FileType="file",
     )
+    create_mock_s3_bucket_with_object(bucket_name, file)
+    app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+    mock_standard_user(client, file.consignment.series.body.Name)
+    response = client.get(f"/download/{file.FileId}")
+
+    assert response.status_code == 200
+    assert (
+        response.headers["Content-Disposition"]
+        == f"attachment;filename={file.CiteableReference}"
+    )
+    assert response.data == b"record"
+
+
+@mock_aws
+def test_downloads_record_successfully_for_user_with_access_to_files_transferring_body_without_citable_reference(
+    app, client, mock_standard_user
+):
+    """
+    Given a File in the database with corresponding file in the s3 bucket
+        without a CiteableReference
+    When a standard user with access to the file's transferring body makes a
+        request to download record
+    Then the response status code should be 200
+    And the file should contain the expected content
+    And the the downloaded filename should be File's FileName
+    """
+    bucket_name = "test_bucket"
+    file = FileFactory(FileType="file", CiteableReference=None)
     create_mock_s3_bucket_with_object(bucket_name, file)
     app.config["RECORD_BUCKET_NAME"] = bucket_name
 
