@@ -51,20 +51,20 @@ def mock_standard_user():
 
 
 @pytest.fixture(scope="function")
-def mock_superuser():
+def mock_all_access_user():
     ayr_user_patcher = patch("app.main.authorize.permissions_helpers.AYRUser")
     patcher = patch(
         "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
     )
 
-    def _mock_superuser(client: FlaskClient):
+    def _mock_all_access_user(client: FlaskClient):
         groups = ["/ayr_user_type/view_all"]
 
         with client.session_transaction() as session:
             session["access_token"] = "valid_access_token"
             session["refresh_token"] = "valid_refresh_token"
             session["user_groups"] = groups
-            session["user_type"] = "superuser"
+            session["user_type"] = "all_access_user"
 
         mock_ayr_user = ayr_user_patcher.start()
         mock_keycloak = patcher.start()
@@ -75,7 +75,7 @@ def mock_superuser():
             "groups": groups,
         }
 
-    yield _mock_superuser
+    yield _mock_all_access_user
 
     ayr_user_patcher.stop()
     patcher.stop()

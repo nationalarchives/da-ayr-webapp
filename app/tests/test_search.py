@@ -73,15 +73,15 @@ class TestSearchRedirect:
     def route_url(self):
         return "/search"
 
-    def test_search_route_redirect_superuser(
-        self, client: FlaskClient, mock_superuser
+    def test_search_route_redirect_all_access_user(
+        self, client: FlaskClient, mock_all_access_user
     ):
         """
-        Given a superuser accessing the search route
+        Given an all_access_user accessing the search route
         When they make a GET request
         Then they should see the search results summary page content.
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         query = "fi"
         form_data = {"query": query}
@@ -132,26 +132,28 @@ class TesthSearchResultsSummary:
         return "/browse"
 
     def test_search_results_summary_get(
-        self, client: FlaskClient, mock_superuser
+        self, client: FlaskClient, mock_all_access_user
     ):
         """
-        Given a superuser accessing the search results summary page
+        Given an all_access_user accessing the search results summary page
         When they make a GET request
         Then they should see the search form and page content.
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
         response = client.get(f"{self.route_url}")
 
         assert response.status_code == 200
         assert b"Search for digital records" in response.data
 
-    def test_search_results_summary_top_search(self, client, mock_superuser):
+    def test_search_results_summary_top_search(
+        self, client, mock_all_access_user
+    ):
         """
-        Given a superuser accessing the search results summary page
+        Given an all_access_user accessing the search results summary page
         When they make a GET request
         Then they should see the top search component available on search page content.
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         response = client.get(f"{self.route_url}")
 
@@ -188,14 +190,14 @@ class TesthSearchResultsSummary:
         )
 
     def test_search_results_summary_no_query(
-        self, client: FlaskClient, mock_superuser
+        self, client: FlaskClient, mock_all_access_user
     ):
         """
-        Given a superuser accessing the search results summary page
+        Given an all_access_user accessing the search results summary page
         When they make a GET request without a query
         Then they should not see any results on the page.
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
         form_data = {"foo": "bar"}
         response = client.get(f"{self.route_url}", data=form_data)
 
@@ -203,14 +205,14 @@ class TesthSearchResultsSummary:
         assert b"records found" not in response.data
 
     def test_search_results_summary_with_no_results(
-        self, client: FlaskClient, mock_superuser
+        self, client: FlaskClient, mock_all_access_user
     ):
         """
-        Given a superuser with a search results summary query
+        Given an all_access_user with a search results summary query
         When they make a request on the search results summary page, and no results are found
         Then they should see not see any results on the page.
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         form_data = {"query": "bar"}
         response = client.get(f"{self.route_url}", data=form_data)
@@ -219,15 +221,18 @@ class TesthSearchResultsSummary:
         assert b"Records found 0"
 
     def test_search_results_summary_with_results_single_term(
-        self, client: FlaskClient, mock_superuser, browse_consignment_files
+        self,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_consignment_files,
     ):
         """
-        Given a superuser
+        Given an all_access_user
         When they make a request on the search results summary page with the single search term
         Then they should be redirected to search results summary screen
         with search results summary page content
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         form_data = {"query": "fi"}
 
@@ -245,15 +250,18 @@ class TesthSearchResultsSummary:
         verify_data_rows(response.data, expected_rows)
 
     def test_search_results_summary_with_results_multiple_terms(
-        self, client: FlaskClient, mock_superuser, browse_consignment_files
+        self,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_consignment_files,
     ):
         """
-        Given a superuser
+        Given an all_access_user
         When they make a request on the search results summary page with the single search term
         Then they should be redirected to search results summary screen
         with search results summary page content
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         form_data = {"query": "fi, body"}
 
@@ -271,16 +279,19 @@ class TesthSearchResultsSummary:
         verify_data_rows(response.data, expected_rows)
 
     def test_search_results_summary_breadcrumbs(
-        self, client: FlaskClient, mock_superuser, browse_consignment_files
+        self,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_consignment_files,
     ):
         """
-        Given a superuser
+        Given an all_access_user
         When they make a request on the search results summary page with the search term
         Then they should be redirected to search results summary screen
         and see breadcrumb values Everything > Results summary
         with search results summary page content
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         form_data = {"query": "fi"}
 
@@ -927,17 +938,20 @@ class TestSearchTransferringBody:
         )
         assert not next_option
 
-    def test_search_transferring_body_breadcrumbs_superuser_single_term(
-        self, client: FlaskClient, mock_superuser, browse_consignment_files
+    def test_search_transferring_body_breadcrumbs_all_access_user_single_term(
+        self,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_consignment_files,
     ):
         """
-        Given a superuser
+        Given an all_access_user
         When they make a request on the search transferring body page with the search term
         Then they should be redirected to search transferring body screen
         with search results summary page content
         and see a bread crumbs rendered as Everything > Results summary > Transferring body > ‘Search term’
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         query = "fi"
         form_data = {"query": query}
@@ -979,17 +993,20 @@ class TestSearchTransferringBody:
             {"class": "govuk-breadcrumbs"},
         )
 
-    def test_search_transferring_body_breadcrumbs_superuser_multiple_terms(
-        self, client: FlaskClient, mock_superuser, browse_consignment_files
+    def test_search_transferring_body_breadcrumbs_all_access_user_multiple_terms(
+        self,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_consignment_files,
     ):
         """
-        Given a superuser
+        Given an all_access_user
         When they make a request on the search transferring body page with the search term
         Then they should be redirected to search transferring body screen
         with search results summary page content
         and see a bread crumbs rendered as Everything > Results summary > Transferring body > ‘Search term’
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         term1 = "fi"
         term2 = "second"
@@ -1131,7 +1148,7 @@ class TestSearchTransferringBody:
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given a superuser
+        Given an all_access_user
         When they make a request on the search transferring body page with the search term
         Then they should be redirected to search transferring body screen
         with search results summary page content

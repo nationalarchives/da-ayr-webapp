@@ -1,5 +1,5 @@
 {% set breadcrumbs = {} %}
-{% if session["user_type"] == "superuser" %}
+{% if session["user_type"] == "all_access_user" %}
     {%- set _ = breadcrumbs.update({'everything': "Everything"}) -%}
     {%- set _ = breadcrumbs.update({'summary': [breadcrumb_values[0]["query"], "Results summary"]}) -%}
 {% endif %}

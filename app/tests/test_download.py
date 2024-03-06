@@ -114,13 +114,13 @@ def test_raises_404_for_user_without_access_to_files_transferring_body(
 
 
 @mock_aws
-def test_downloads_record_successfully_for_superuser(
-    app, client, mock_superuser
+def test_downloads_record_successfully_for_all_access_user(
+    app, client, mock_all_access_user
 ):
     """
     Given a File in the database
-    And a superuser
-    When the superuser makes a request to download record
+    And an all_access_user
+    When the all_access_user makes a request to download record
     Then the response status code should be 200
     """
     bucket_name = "test_bucket"
@@ -130,7 +130,7 @@ def test_downloads_record_successfully_for_superuser(
     create_mock_s3_bucket_with_object(bucket_name, file)
     app.config["RECORD_BUCKET_NAME"] = bucket_name
 
-    mock_superuser(client)
+    mock_all_access_user(client)
     response = client.get(f"/download/{file.FileId}")
 
     assert response.status_code == 200

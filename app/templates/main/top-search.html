@@ -13,7 +13,7 @@
                         data-module="govuk-button"
                         type="submit">Search</button>
             </div>
-            {% if session["user_type"] == "superuser" %}
+            {% if session["user_type"] == "all_access_user" %}
                 <p class="govuk-body-s">Search by file name, transferring body, series or consignment reference.</p>
             {% else %}
                 <p class="govuk-body-s">Search by file name, series or consignment reference.</p>

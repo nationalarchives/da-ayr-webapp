@@ -19,7 +19,7 @@ def test_sign_in(mock_keycloak, client):
 
 
 @patch("app.main.routes.get_keycloak_instance_from_flask_config")
-def test_callback_route_superuser(mock_keycloak, client):
+def test_callback_route_all_access_user(mock_keycloak, client):
     mock_keycloak.return_value.token.return_value = {
         "access_token": "valid_access_token",
         "refresh_token": "valid_refresh_token",
@@ -39,7 +39,7 @@ def test_callback_route_superuser(mock_keycloak, client):
 
     with client.session_transaction() as sess:
         assert "user_type" in sess
-        assert sess["user_type"] == "superuser"
+        assert sess["user_type"] == "all_access_user"
 
 
 @patch("app.main.routes.get_keycloak_instance_from_flask_config")

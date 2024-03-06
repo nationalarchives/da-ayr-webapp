@@ -253,7 +253,7 @@ class TestAccessTokenSignInRequiredDecorator:
                     == "new_active_refresh_token"
                 )
                 assert updated_session["user_groups"] == valid_groups
-                assert updated_session["user_type"] == "superuser"
+                assert updated_session["user_type"] == "all_access_user"
 
     @staticmethod
     @patch(
