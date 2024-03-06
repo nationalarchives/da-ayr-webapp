@@ -14,10 +14,10 @@ class AYRUser:
 
     @property
     def can_access_ayr(self):
-        return self.is_superuser or self.is_standard_user
+        return self.is_all_access_user or self.is_standard_user
 
     @property
-    def is_superuser(self) -> bool:
+    def is_all_access_user(self) -> bool:
         return "/ayr_user_type/view_all" in self.groups
 
     @property

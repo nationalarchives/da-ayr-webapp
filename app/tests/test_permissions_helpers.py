@@ -38,14 +38,14 @@ def test_raises_404_for_body_name_in_database_but_user_does_not_have_access_to(
         validate_body_user_groups_or_404("foo")
 
 
-def test_does_not_raise_404_for_body_name_not_in_database_or_assigned_to_user_for_superuser(
-    client, mock_superuser
+def test_does_not_raise_404_for_body_name_not_in_database_or_assigned_to_user_for_all_access_user(
+    client, mock_all_access_user
 ):
     """
-    Given a superuser
+    Given an all_access_user
     When validate_body_user_groups_or_404 is called with any body name, e.g. 'foo'
     Then the function should not raise a 404 exception
     """
-    mock_superuser(client)
+    mock_all_access_user(client)
 
     validate_body_user_groups_or_404("foo")

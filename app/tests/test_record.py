@@ -30,7 +30,7 @@ class TestRecord:
         assert response.status_code == 404
 
     def test_record_top_search(
-        self, client: FlaskClient, mock_superuser, record_files
+        self, client: FlaskClient, mock_all_access_user, record_files
     ):
         """
         Given a File in the database
@@ -39,7 +39,7 @@ class TestRecord:
         And the HTML content should show top search component
         on the page
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         file = record_files[0]["file_object"]
 

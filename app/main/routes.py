@@ -89,8 +89,8 @@ def callback():
     decoded_access_token = keycloak_openid.introspect(session["access_token"])
     session["user_groups"] = decoded_access_token["groups"]
     ayr_user = AYRUser(session.get("user_groups"))
-    if ayr_user.is_superuser:
-        session["user_type"] = "superuser"
+    if ayr_user.is_all_access_user:
+        session["user_type"] = "all_access_user"
     else:
         session["user_type"] = "standard_user"
 
@@ -116,7 +116,7 @@ def browse():
             f"/browse/transferring_body/{ayr_user.transferring_body.BodyId}"
         )
     else:
-        # all access user (superuser)
+        # all access user (all_access_user)
         for body in Body.query.all():
             transferring_bodies.append(body.Name)
 

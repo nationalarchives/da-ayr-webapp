@@ -76,13 +76,13 @@ class TestBrowse:
             "Location"
         ] == self.transferring_body_route_url + "/" + str(body.BodyId)
 
-    def test_browse_get_view(self, client: FlaskClient, mock_superuser):
+    def test_browse_get_view(self, client: FlaskClient, mock_all_access_user):
         """
-        Given a superuser accessing the browse page
+        Given an all_access_user accessing the browse page
         When they make a GET request
         Then they should see the browse page content.
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         response = client.get(f"{self.route_url}")
 
@@ -91,16 +91,16 @@ class TestBrowse:
         assert b"You are viewing" in response.data
         assert b"Everything available to you" in response.data
 
-    def test_browse_check_transferring_bodies_list_filled_for_super_user(
-        self, client: FlaskClient, browse_files, mock_superuser
+    def test_browse_check_transferring_bodies_list_filled_for_all_access_user(
+        self, client: FlaskClient, browse_files, mock_all_access_user
     ):
         """
-        Given a superuser accessing the browse page
+        Given an all_access_user accessing the browse page
         When they make a GET request
         Then they should see the browse page content
         and transferring body dropdown will be filled with list of all transferring bodies available in database
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         response = client.get(f"{self.route_url}")
 
@@ -131,14 +131,14 @@ class TestBrowse:
         )
 
     def test_browse_submit_search_query(
-        self, client: FlaskClient, mock_superuser, browse_files
+        self, client: FlaskClient, mock_all_access_user, browse_files
     ):
         """
-        Given a superuser accessing the browse page
+        Given an all_access_user accessing the browse page
         When they make a POST request
         Then they should see results in content.
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         query = "test"
         response = client.get(f"{self.route_url}", data={"query": query})
@@ -405,13 +405,13 @@ class TestBrowse:
     def test_browse_full_test(
         self,
         client: FlaskClient,
-        mock_superuser,
+        mock_all_access_user,
         browse_files,
         query_params,
         expected_results,
     ):
         """
-        Given a superuser accessing the browse page
+        Given an all_access_user accessing the browse page
         When they make a GET request
         and provide different filter values
         and sorting orders (asc, desc)
@@ -419,7 +419,7 @@ class TestBrowse:
         matching filter value(s) and the result sorted in sorting order
         on browse page content.
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         response = client.get(f"{self.route_url}?{query_params}")
 
@@ -429,15 +429,15 @@ class TestBrowse:
         verify_data_rows(response.data, expected_results)
 
     def test_browse_display_first_page(
-        self, client: FlaskClient, app, mock_superuser, browse_files
+        self, client: FlaskClient, app, mock_all_access_user, browse_files
     ):
         """
-        Given a superuser accessing the browse page
+        Given an all_access_user accessing the browse page
         When they make a GET request with page as a query string parameter
         Then they should see first page with five records on browse page content
         (excluding previous and incl. next page option).
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         app.config["DEFAULT_PAGE_SIZE"] = 2
 
@@ -465,14 +465,14 @@ class TestBrowse:
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
     def test_browse_display_middle_page(
-        self, client: FlaskClient, app, mock_superuser, browse_files
+        self, client: FlaskClient, app, mock_all_access_user, browse_files
     ):
         """
-        Given a superuser accessing the browse page
+        Given an all_access_user accessing the browse page
         When they make a GET request with page as a query string parameter
         Then they should see first page with five records on browse page content (incl. previous and next page options).
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         app.config["DEFAULT_PAGE_SIZE"] = 2
 
@@ -507,15 +507,15 @@ class TestBrowse:
         )
 
     def test_browse_display_last_page(
-        self, client: FlaskClient, app, mock_superuser, browse_files
+        self, client: FlaskClient, app, mock_all_access_user, browse_files
     ):
         """
-        Given a superuser accessing the browse page
+        Given an all_access_user accessing the browse page
         When they make a GET request with page as a query string parameter
         Then they should see last page with n records on browse page content
         (incl. previous and excluding next page option).
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         app.config["DEFAULT_PAGE_SIZE"] = 2
 
@@ -546,14 +546,14 @@ class TestBrowse:
         assert not next_option
 
     def test_browse_display_multiple_pages(
-        self, client: FlaskClient, app, mock_superuser, browse_files
+        self, client: FlaskClient, app, mock_all_access_user, browse_files
     ):
         """
-        Given a superuser accessing the browse page
+        Given an all_access_user accessing the browse page
         When they make a GET request with page as a query string parameter
         Then they should see first page with five records on browse page content (incl. previous and next page options).
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
 
         app.config["DEFAULT_PAGE_SIZE"] = 2
 

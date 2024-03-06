@@ -60,8 +60,8 @@ def access_token_sign_in_required(view_func):
                 decoded_access_token = keycloak_openid.introspect(access_token)
                 session["user_groups"] = decoded_access_token["groups"]
                 ayr_user = AYRUser(session.get("user_groups"))
-                if ayr_user.is_superuser:
-                    session["user_type"] = "superuser"
+                if ayr_user.is_all_access_user:
+                    session["user_type"] = "all_access_user"
                 else:
                     session["user_type"] = "standard_user"
 

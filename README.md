@@ -397,13 +397,13 @@ This also will generate a test coverage report.
 We have 2 fixtures used for mocking a user and their permissions in our non end to end, flask tests:
 
 - `mock_standard_user`
-- `mock_superuser`
+- `mock_all_access_user`
 
 which can be called like
 
 `mock_standard_user(client, "foo")`
 
-`mock_superuser(client)`
+`mock_all_access_user(client)`
 
 respectively.
 
@@ -412,13 +412,13 @@ These mock the `get_user_groups` permissions helper which abstracts away the ext
 - `mock_standard_user` gives the user and results in an AYRUser where:
   - `can_access_ayr`: True
   - `is_standard_user`: True
-  - `is_superuser`: False
+  - `is_all_access_user`: False
   - `transferring_bodies`: same list as pass in as second arg to mock_standard_user
 
 - `mock_standard_user` gives the user and results in an AYRUser where:
   - `can_access_ayr`: True
   - `is_standard_user`: False
-  - `is_superuser`: True
+  - `is_all_access_user`: True
   - `transferring_bodies`: None
 
 ### End To End Tests

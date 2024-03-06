@@ -7,24 +7,24 @@ class TestAYRUser:
         groups = ["/ayr_user_type/view_dept"]
         user = AYRUser(groups)
         assert user.is_standard_user
-        assert not user.is_superuser
+        assert not user.is_all_access_user
 
     def test_type_of_user_when_ayr_user_type_view_all_group(self):
         groups = ["/ayr_user_type/view_all"]
         user = AYRUser(groups)
-        assert user.is_superuser
+        assert user.is_all_access_user
         assert not user.is_standard_user
 
     def test_type_of_user_when_no_valid_ayr_user_group(self):
         groups = ["/ayr_user_type/foo"]
         user = AYRUser(groups)
-        assert not user.is_superuser
+        assert not user.is_all_access_user
         assert not user.is_standard_user
 
-    def test_can_access_ayr_when_superuser_and_no_bodies(self):
+    def test_can_access_ayr_when_all_access_user_and_no_bodies(self):
         groups = ["/ayr_user_type/view_all"]
         user = AYRUser(groups)
-        assert user.is_superuser
+        assert user.is_all_access_user
         assert user.transferring_body is None
         assert user.can_access_ayr
 
@@ -36,10 +36,10 @@ class TestAYRUser:
         assert user.transferring_body == body
         assert user.can_access_ayr
 
-    def test_cannot_access_ayr_when_superuser_and_some_bodies(self, app):
+    def test_cannot_access_ayr_when_all_access_user_and_some_bodies(self, app):
         groups = ["/ayr_user_type/view_all", "/transferring_body_user/foo"]
         user = AYRUser(groups)
-        assert user.is_superuser
+        assert user.is_all_access_user
         assert user.transferring_body is None
         assert user.can_access_ayr
 
@@ -74,7 +74,7 @@ class TestAYRUser:
         user = AYRUser(groups)
         assert user.transferring_body is None
 
-    def test_when_superuser_transferring_bodies_is_none(self, client):
+    def test_when_all_access_user_transferring_bodies_is_none(self, client):
         groups = ["/ayr_user_type/view_all", "/transferring_body_user/foo"]
         user = AYRUser(groups)
         assert user.transferring_body is None
