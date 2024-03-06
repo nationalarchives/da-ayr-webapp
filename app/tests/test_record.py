@@ -241,7 +241,7 @@ class TestRecord:
         assert response.status_code == 200
 
         html = response.data.decode()
-        breakpoint()
+
         expected_record_summary_html = f"""
         <dl class="govuk-summary-list govuk-summary-list--record">
                         <div class="govuk-summary-list__row"></div>
