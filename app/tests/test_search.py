@@ -1205,49 +1205,53 @@ class TestSearchTransferringBody:
 
         search_filter_html = f"""
         <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters">
-           <div class="search-all-filter-container">
-              <div class="browse-filter__header">
-                 <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
-              </div>
-              <div class="govuk-form-group govuk-form-group--search-all-filter">
-                  <label class="govuk-label" for="search_filter"></label>
-                  <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
-                        id="search_filter"
-                        name="search_filter"
-                        type="text">
-              </div>
-              <div class="search-form__buttons">
-              <button type="submit"
-                    class="govuk-button govuk-button__search-filters-form-apply-button"
-                    data-module="govuk-button">Apply</button>
-              <a class="govuk-link govuk-link--transferring-filter"
-                href="{self.route_url}/{transferring_body_id}">Clear all</a>
-              </div>
-              <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
-              <div class="ayr-filter-tags">
-                 <div class="search-term">
-                    <a href="{self.route_url}/{transferring_body_id}?query={term2}">
-                         {term1}
-                         <img src="/assets/image/cancel-filters.svg"
-                             height="24px"
-                             width="30px"
-                             class="close-icon"
-                             alt="">
-                    </a>
-                 </div>
-                 <div class="search-term">
-                    <a href="{self.route_url}/{transferring_body_id}?query={term1}">
-                         {term2}
-                         <img src="/assets/image/cancel-filters.svg"
-                             height="24px"
-                             width="30px"
-                             class="close-icon"
-                             alt="">
-                     </a>
-                 </div>
-              </div>
-           </div>
-        </div>"""
+                            <div class="search-all-filter-container">
+                                <div class="browse-filter__header">
+                                    <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
+                                </div>
+                                <div class="govuk-form-group govuk-form-group--search-all-filter">
+                                    <label class="govuk-label" for="search_filter"></label>
+                                    <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
+                                    id="search_filter"
+                                    name="search_filter"
+                                    type="text">
+                                </div>
+                                <div class="search-form__buttons">
+                                    <button type="submit"
+                                    class="govuk-button govuk-button__search-filters-form-apply-button"
+                                    data-module="govuk-button">Apply</button>
+                                    <a class="govuk-link govuk-link--transferring-filter"
+                                    href="{self.route_url}/{transferring_body_id}">Clear all</a>
+                                </div>
+                                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
+                                <div class="ayr-filter-tags">
+                                        <div class="search-term">
+                                            <button type="submit"
+                                            class="button-search-term"
+                                            data-module="search-term-button">
+                                        <a href="{self.route_url}/{transferring_body_id}?query={term2}">{term1}</a>
+                                            </button>
+                                            <img src="/assets/image/cancel-filters.svg"
+                                            height="1rem"
+                                            width="1rem"
+                                            class="close-icon"
+                                            alt="">
+                                        </div>
+                                        <div class="search-term">
+                                            <button type="submit"
+                                            class="button-search-term"
+                                            data-module="search-term-button">
+                                            <a href="{self.route_url}/{transferring_body_id}?query={term1}">{term2}</a>
+                                            </button>
+                                            <img src="/assets/image/cancel-filters.svg"
+                                            height="1rem"
+                                            width="1rem"
+                                            class="close-icon"
+                                            alt="">
+                                        </div>
+                                </div>
+                            </div>
+                        </div>"""
 
         assert_contains_html(
             search_filter_html,
@@ -1291,37 +1295,41 @@ class TestSearchTransferringBody:
         html = response.data.decode()
 
         search_filter_html = f"""<div class="ayr-filter-tags">
-                 <div class="search-term">
-                    <a href="{self.route_url}/{transferring_body_id}?query={term2},{term3}">
-                         {term1}
-                         <img src="/assets/image/cancel-filters.svg"
-                             height="24px"
-                             width="30px"
-                             class="close-icon"
-                             alt="">
-                    </a>
-                 </div>
-                 <div class="search-term">
-                    <a href="{self.route_url}/{transferring_body_id}?query={term1},{term3}">
-                         {term2}
-                         <img src="/assets/image/cancel-filters.svg"
-                             height="24px"
-                             width="30px"
-                             class="close-icon"
-                             alt="">
-                     </a>
-                 </div>
-                 <div class="search-term">
-                    <a href="{self.route_url}/{transferring_body_id}?query={term1},{term2}">
-                         {term3}
-                         <img src="/assets/image/cancel-filters.svg"
-                             height="24px"
-                             width="30px"
-                             class="close-icon"
-                             alt="">
-                    </a>
-                 </div>
-              </div>"""
+                                        <div class="search-term">
+                                            <button type="submit"
+                                            class="button-search-term"
+                                            data-module="search-term-button">
+                                    <a href="{self.route_url}/{transferring_body_id}?query={term2},{term3}">{term1}</a>
+                                            </button>
+                                            <img src="/assets/image/cancel-filters.svg"
+                                            height="1rem"
+                                            width="1rem"
+                                            class="close-icon"
+                                            alt="">
+                                        </div>
+                                        <div class="search-term">
+                                            <button type="submit"
+                                            class="button-search-term"
+                                            data-module="search-term-button">
+                                    <a href="{self.route_url}/{transferring_body_id}?query={term1},{term3}">{term2}</a>
+                                            </button>
+                                            <img src="/assets/image/cancel-filters.svg"
+                                            height="1rem"
+                                            width="1rem"
+                                            class="close-icon"
+                                            alt="">
+                                        </div>
+                                        <div class="search-term">
+                                            <button type="submit"
+                                            class="button-search-term"
+                                            data-module="search-term-button">
+                                    <a href="{self.route_url}/{transferring_body_id}?query={term1},{term2}">{term3}</a>
+                                            </button>
+                                            <img src="/assets/image/cancel-filters.svg"
+                                            height="1rem"
+                                            width="1rem"
+                                            class="close-icon"
+                                            alt="">"""
 
         assert_contains_html(
             search_filter_html,

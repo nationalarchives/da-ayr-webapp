@@ -136,14 +136,16 @@
                                             {% else %}
                                                 {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id'], query=new_query) %}
                                             {% endif %}
-                                            <a href="{{ search_term_url }}">
-                                                {{ search_terms[i] }}
-                                                <img src="{{ url_for('static', filename= 'image/cancel-filters.svg') }}"
-                                                     height="24px"
-                                                     width="30px"
-                                                     class="close-icon"
-                                                     alt="">
-                                            </a>
+                                            <button type="submit"
+                                                    class="button-search-term"
+                                                    data-module="search-term-button">
+                                                <a href="{{ search_term_url }}">{{ search_terms[i] }}</a>
+                                            </button>
+                                            <img src="{{ url_for('static', filename= 'image/cancel-filters.svg') }}"
+                                                 height="1rem"
+                                                 width="1rem"
+                                                 class="close-icon"
+                                                 alt="">
                                         </div>
                                     {% endfor %}
                                 </div>

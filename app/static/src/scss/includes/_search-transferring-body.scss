@@ -46,6 +46,27 @@
   }
 }
 
+.button-search-term {
+  border: none;
+  text-decoration: none;
+  background-color: inherit;
+
+  :hover {
+    background-color: #0b0c0c;
+  }
+
+  a {
+    border: none;
+    text-decoration: none;
+    color: #0b0c0c;
+    font-size: 1rem;
+
+    :visited {
+      color: #0b0c0c;
+    }
+  }
+}
+
 .govuk-table__cell {
   &--search-results {
     font-size: 1rem;
@@ -127,13 +148,6 @@
   width: 4rem;
 }
 
-.ayr-filter-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding-top: 0.9rem;
-}
-
 img.cancel-filter {
   fill: black;
   width: 20px;
@@ -208,9 +222,32 @@ a.govuk-link {
 }
 
 .close-icon {
-  fill: black; /* This sets the color of the SVG */
-  width: 24px; /* This sets the width of the SVG */
-  height: 24px; /* This sets the height of the SVG */
+  fill: black;
+  width: 1.125rem;
+  height: 1.125rem;
   cursor: pointer;
-  padding-left: 5px; /* Changes the cursor to a pointer when hovering over the SVG */
+  padding-left: 3px;
+}
+
+.ayr-filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 0.9rem;
+
+  :hover {
+    cursor: pointer;
+    background-color: #0b0c0c;
+    color: white;
+
+    a {
+      color: white;
+    }
+
+    img.close-icon {
+      filter: invert(100%) sepia(0%) saturate(7476%) hue-rotate(110deg)
+        brightness(98%) contrast(108%);
+      background-color: white;
+    }
+  }
 }
