@@ -241,7 +241,7 @@ class TestRecord:
         assert response.status_code == 200
 
         html = response.data.decode()
-
+        breakpoint()
         expected_record_summary_html = f"""
         <dl class="govuk-summary-list govuk-summary-list--record">
                         <div class="govuk-summary-list__row"></div>
@@ -282,7 +282,7 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Consignment ref.</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Consignment reference</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {file.consignment.ConsignmentReference}
                 </dd>
