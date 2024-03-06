@@ -557,7 +557,10 @@ def download_record(record_id: uuid.UUID):
 
     response = Response(
         s3_file_object["Body"].read(),
-        headers={"Content-Disposition": "attachment;filename=" + file.FileName},
+        headers={
+            "Content-Disposition": "attachment;filename="
+            + (file.CiteableReference or file.FileName)
+        },
     )
 
     return response
