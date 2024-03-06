@@ -59,6 +59,7 @@
     border: none;
     text-decoration: none;
     color: #0b0c0c;
+    font-size: 1rem;
 
     :visited {
       color: #0b0c0c;
@@ -222,10 +223,10 @@ a.govuk-link {
 
 .close-icon {
   fill: black;
-  width: 24px;
-  height: 24px;
+  width: 1.125rem;
+  height: 1.125rem;
   cursor: pointer;
-  padding-left: 5px;
+  padding-left: 3px;
 }
 
 .ayr-filter-tags {
