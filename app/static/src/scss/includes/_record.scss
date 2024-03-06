@@ -108,7 +108,7 @@
   &__key--record-table {
     white-space: nowrap;
     width: 0;
-    text-align: right;
+    text-align: left;
     font-size: 1rem;
     margin-left: 0;
   }
@@ -118,11 +118,11 @@
     text-align: left;
   }
 
-  &__row--record {
+  /* &__row--record {
     &:last-child {
       border-bottom: 2px solid #000;
     }
-  }
+  } */
 }
 
 .rights-container {
@@ -193,20 +193,22 @@
   &--red {
     font-size: 1rem;
     text-transform: capitalize;
-    color: #000;
-    font-weight: 100;
+    color: #942514;
+    font-weight: 400;
+    letter-spacing: 0;
   }
 
   &--green {
     font-size: 1rem;
     text-transform: capitalize;
-    color: #000;
-    font-weight: 100;
+    color: #005a30;
+    font-weight: 400;
+    letter-spacing: 0;
   }
 }
 
-.record-page {
-  margin-top: -2rem;
+.ayr-opening-date {
+  padding-left: 1rem;
 }
 
 /* Default styles for desktop */
@@ -272,9 +274,9 @@
     }
 
     &__row--mobile {
-      &:last-child {
+      /* &:last-child {
         border-bottom: 2px solid #000;
-      }
+      } */
       display: block;
     }
   }
