@@ -25,9 +25,7 @@
 {% endwith %}
 <form action="{{ url_for('main.search_transferring_body', _id = request.view_args['_id']) }}"
       method="get">
-    <input type="hidden"
-           name="query"
-           value="{{ filters['query'] }}">
+    <input type="hidden" name="query" value="{{ filters['query'] }}">
     <!-- SORT -->
     <div class="govuk-form-group sort-container__form">
         {% with dict = sorting_list %}
