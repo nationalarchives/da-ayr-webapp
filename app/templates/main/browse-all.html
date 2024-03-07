@@ -48,7 +48,9 @@
                                 <a href="{{ url_for('main.browse_series', _id= record['series_id']) }}">{{ record["series"] }}</a>
                             </td>
                             <td class="govuk-table__cell browse__table__right-align">{{ record["last_record_transferred"] }}</td>
-                            <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden">{{ record["records_held"] }}</td>
+                            <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden">
+                                {{ record["records_held"] }}
+                            </td>
                             <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden">
                                 {{ record["consignment_in_series"] }}
                             </td>
