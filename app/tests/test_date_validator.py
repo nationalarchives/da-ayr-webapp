@@ -118,7 +118,7 @@ class TestDateValidator:
         assert values[2] == "2000"
 
     def test_generate_date_values_with_date_from_values(
-        self, client: FlaskClient, mock_superuser
+        self, client: FlaskClient, mock_all_access_user
     ):
         """
         Given request arguments for date from filters
@@ -127,7 +127,7 @@ class TestDateValidator:
         with valid date from values get assigned to 1 to 3 items and 4 to 6 get assigned as zero value
         """
 
-        mock_superuser(client)
+        mock_all_access_user(client)
         query = "date_from_day=01&date_from_month=08&date_from_year=2023&date_to_day=&date_to_month=&date_to_year="
         response = client.get(f"{self.route_url}?{query}")
         assert response.status_code == 200
@@ -137,7 +137,7 @@ class TestDateValidator:
         assert values == {"1": 1, "2": 8, "3": 2023, "4": 0, "5": 0, "6": 0}
 
     def test_generate_date_values_with_date_to_values(
-        self, client: FlaskClient, mock_superuser
+        self, client: FlaskClient, mock_all_access_user
     ):
         """
         Given request arguments for date to filters
@@ -145,7 +145,7 @@ class TestDateValidator:
         Then it returns a dictionary object with 6 values
         with valid date to values get assigned to 4 to 6 items and 1 to 3 get assigned as zero value
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
         query = "date_from_day=&date_from_month=&date_from_year=&date_to_day=31&date_to_month=08&date_to_year=2023"
 
         response = client.get(f"{self.route_url}?{query}")
@@ -157,7 +157,7 @@ class TestDateValidator:
         assert values == {"1": 0, "2": 0, "3": 0, "4": 31, "5": 8, "6": 2023}
 
     def test_generate_date_values_with_date_from_and_date_to_values(
-        self, client: FlaskClient, mock_superuser
+        self, client: FlaskClient, mock_all_access_user
     ):
         """
         Given request arguments for date from and date to filters
@@ -165,7 +165,7 @@ class TestDateValidator:
         Then it returns a dictionary object with 6 values
         with valid date from values get assigned to 1 to 3 items and date to values get assigned to 4 to 6 items
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
         param1 = "date_from_day=01&date_from_month=08&date_from_year=2023"
         param2 = "date_to_day=27&date_to_month=02&date_to_year=2023"
         query = param1 + "&" + param2
@@ -261,7 +261,7 @@ class TestDateValidator:
     def test_generate_default_date_values_full_test(
         self,
         client: FlaskClient,
-        mock_superuser,
+        mock_all_access_user,
         query_params,
         expected_results,
     ):
@@ -271,7 +271,7 @@ class TestDateValidator:
         Then it returns a dictionary object with 6 values
         with valid date from values get assigned to 1 to 3 items and date to values get assigned to 4 to 6 items
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
         response = client.get(f"{self.route_url}?{query_params}")
         assert response.status_code == 200
         values = generate_default_date_values(
@@ -344,7 +344,7 @@ class TestDateValidator:
     def test_validate_dates_full_test(
         self,
         client: FlaskClient,
-        mock_superuser,
+        mock_all_access_user,
         query_params,
         expected_results,
     ):
@@ -354,7 +354,7 @@ class TestDateValidator:
         Then if date is not a valid date
         it returns various errors based on the data filter values
         """
-        mock_superuser(client)
+        mock_all_access_user(client)
         response = client.get(f"{self.route_url}?{query_params}")
         assert response.status_code == 200
         errors = validate_dates(
