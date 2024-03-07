@@ -179,7 +179,6 @@ As well as the confgiurable values discussed above, we also hardcode the followi
 
 - `TESTING` to `True` to disable error catching (further info [here](https://flask.palletsprojects.com/en/3.0.x/config/#TESTING)), and changes certain extension's logic as well as own on (e.g. disables forcing of https) to facilitate easier testing.
 - `SECRET_KEY` to `"TEST_SECRET_KEY"` so that Flask sessions work in the tests.
-- `WTF_CSRF_ENABLED` to `False` so that we do not need to worry about CSRF protection in our tests.
 
 ### The .flaskenv file
 
@@ -566,12 +565,6 @@ If a submitted form has any validation errors, an [error summary component](http
 ### Flash messages
 
 Messages created with Flask's `flash` function will be rendered using the GOV.UK Design System [notification banner component](https://design-system.service.gov.uk/components/notification-banner/). By default the blue "important" banner style will be used, unless a category of "success" is passed to use the green version.
-
-### CSRF protection
-
-Uses [Flask WTF](https://flask-wtf.readthedocs.io/en/stable/) to enable [Cross Site Request Forgery](https://en.wikipedia.org/wiki/Cross-site_request_forgery) protection per form and for the whole app.
-
-CSRF errors are handled by creating a [flash message](#flash-messages) notification banner to inform the user that the form they submitted has expired.
 
 ### HTTP security headers
 
