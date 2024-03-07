@@ -1,10 +1,10 @@
 import uuid
 
 from flask import current_app
-from sqlalchemy import DATE, and_, desc, func, or_
+from sqlalchemy import DATE, Date, and_, cast, desc, func, or_
 
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
-from app.main.util.date_formatter import validate_date_range
+from app.main.util.date_validator import validate_date_range
 
 
 def build_fuzzy_search_transferring_body_query(
@@ -714,3 +714,18 @@ def _build_date_range_filter(date_field, date_from, date_to):
         date_filter = func.to_char(date_field, "YYYY-MM-DD") <= date_to
 
     return date_filter
+
+
+def get_default_start_date(date_filter_field=None):
+    if date_filter_field:
+        default_date = (
+            db.session.query(cast(func.min(FileMetadata.Value), Date)).where(
+                FileMetadata.PropertyName == date_filter_field
+            )
+        ).scalar()
+    else:
+        default_date = db.session.query(
+            cast(func.min(Consignment.TransferCompleteDatetime), Date)
+        ).scalar()
+
+    return default_date

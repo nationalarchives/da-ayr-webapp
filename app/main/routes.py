@@ -45,7 +45,7 @@ from app.main.util.filter_sort_builder import (
 )
 
 from .forms import SearchForm
-from .util.date_formatter import validate_dates
+from .util.date_validator import generate_date_values, validate_dates
 
 
 @bp.route("/", methods=["GET"])
@@ -120,6 +120,12 @@ def browse():
         for body in Body.query.all():
             transferring_bodies.append(body.Name)
 
+        date_values = generate_date_values(request.args)
+
+        date_validation_errors = {}
+        if any(value != 0 for value in date_values.values()):
+            date_validation_errors = validate_dates(request.args)
+
         filters = build_filters(request.args)
         sorting_orders = build_sorting_orders(request.args)
 
@@ -149,6 +155,7 @@ def browse():
             current_page=page,
             browse_type="browse",
             results=browse_results,
+            date_validation_errors=date_validation_errors,
             transferring_bodies=transferring_bodies,
             filters=filters,
             sorting_orders=sorting_orders,
@@ -178,6 +185,13 @@ def browse_transferring_body(_id: uuid.UUID):
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
 
     breadcrumb_values = {0: {"transferring_body": Body.query.get(_id).Name}}
+
+    date_values = generate_date_values(request.args)
+
+    date_validation_errors = {}
+    if any(value != 0 for value in date_values.values()):
+        date_validation_errors = validate_dates(request.args)
+
     filters = build_filters(request.args)
     sorting_orders = build_sorting_orders(request.args)
 
@@ -208,6 +222,7 @@ def browse_transferring_body(_id: uuid.UUID):
         current_page=page,
         browse_type="transferring_body",
         results=browse_results,
+        date_validation_errors=date_validation_errors,
         breadcrumb_values=breadcrumb_values,
         filters=filters,
         sorting_orders=sorting_orders,
@@ -243,6 +258,12 @@ def browse_series(_id: uuid.UUID):
         2: {"series": series.Name},
     }
 
+    date_values = generate_date_values(request.args)
+
+    date_validation_errors = {}
+    if any(value != 0 for value in date_values.values()):
+        date_validation_errors = validate_dates(request.args)
+
     filters = build_filters(request.args)
     sorting_orders = build_sorting_orders(request.args)
 
@@ -273,6 +294,7 @@ def browse_series(_id: uuid.UUID):
         current_page=page,
         browse_type="series",
         results=browse_results,
+        date_validation_errors=date_validation_errors,
         breadcrumb_values=breadcrumb_values,
         filters=filters,
         sorting_orders=sorting_orders,
@@ -300,15 +322,6 @@ def browse_consignment(_id: uuid.UUID):
     page = int(request.args.get("page", 1))
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
 
-    date_validation_errors = validate_dates(
-        request.args.get("date_from_day", ""),
-        request.args.get("date_from_month", ""),
-        request.args.get("date_from_year", ""),
-        request.args.get("date_to_day", ""),
-        request.args.get("date_to_month", ""),
-        request.args.get("date_to_year", ""),
-    )
-
     consignment = Consignment.query.get(_id)
     body = consignment.series.body
     series = consignment.series
@@ -319,6 +332,25 @@ def browse_consignment(_id: uuid.UUID):
         3: {"series": series.Name},
         4: {"consignment_reference": consignment.ConsignmentReference},
     }
+
+    date_validation_errors = {}
+    date_values = generate_date_values(request.args)
+    date_filter_field = request.args.get("date_filter_field", "")
+
+    if len(date_filter_field) == 0 and any(
+        value != 0 for value in date_values.values()
+    ):
+        date_validation_errors = {
+            "date_filter_field": "Select either ‘Record date’ or ‘Record opening date’"
+        }
+    else:
+        if any(value != 0 for value in date_values.values()):
+            validate_future_date = (
+                True if not date_filter_field == "opening_date" else False
+            )
+            date_validation_errors = validate_dates(
+                request.args, validate_future_date
+            )
 
     filters = build_browse_consignment_filters(request.args)
     sorting_orders = build_sorting_orders(request.args)

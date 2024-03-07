@@ -18,7 +18,7 @@
                            id="date_from_day"
                            name="date_from_day"
                            type="text"
-                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_from'] %}{{ filters['date_range']['date_from'][0:2] }}{% endif %}{% endif %}"
+                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_from'] %}{{ filters['date_range']['date_from'][0:2].replace('#', '') }}{% endif %}{% endif %}"
                            inputmode="numeric">
                 </div>
             </div>
@@ -30,7 +30,7 @@
                            id="date_from_month"
                            name="date_from_month"
                            type="text"
-                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_from'] %}{{ filters['date_range']['date_from'][3:5] }}{% endif %}{% endif %}"
+                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_from'] %}{{ filters['date_range']['date_from'][3:5].replace('#', '') }}{% endif %}{% endif %}"
                            inputmode="numeric">
                 </div>
             </div>
@@ -42,7 +42,7 @@
                            id="date_from_year"
                            name="date_from_year"
                            type="text"
-                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_from'] %}{{ filters['date_range']['date_from'][6:10] }}{% endif %}{% endif %}"
+                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_from'] %}{{ filters['date_range']['date_from'][6:10].replace('#', '') }}{% endif %}{% endif %}"
                            inputmode="numeric">
                 </div>
             </div>
@@ -69,7 +69,7 @@
                            id="date_to_day"
                            name="date_to_day"
                            type="text"
-                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_to'] %}{{ filters['date_range']['date_to'][0:2] }}{% endif %}{% endif %}"
+                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_to'] %}{{ filters['date_range']['date_to'][0:2].replace('#', '') }}{% endif %}{% endif %}"
                            inputmode="numeric">
                 </div>
             </div>
@@ -81,7 +81,7 @@
                            id="date_to_month"
                            name="date_to_month"
                            type="text"
-                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_to'] %}{{ filters['date_range']['date_to'][3:5] }}{% endif %}{% endif %}"
+                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_to'] %}{{ filters['date_range']['date_to'][3:5].replace('#', '') }}{% endif %}{% endif %}"
                            inputmode="numeric">
                 </div>
             </div>
@@ -93,7 +93,7 @@
                            id="date_to_year"
                            name="date_to_year"
                            type="text"
-                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_to'] %}{{ filters['date_range']['date_to'][6:10] }}{% endif %}{% endif %}"
+                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_to'] %}{{ filters['date_range']['date_to'][6:10].replace('#', '') }}{% endif %}{% endif %}"
                            inputmode="numeric">
                 </div>
             </div>

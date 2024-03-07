@@ -1,3 +1,11 @@
+from app.main.db.queries import get_default_start_date
+from app.main.util.date_validator import (
+    generate_default_date_values,
+    get_date,
+    validate_dates,
+)
+
+
 def build_filters(args):
     filters = {}
     if args:
@@ -48,7 +56,8 @@ def build_browse_consignment_filters(args):
             filter_items.append({"record_status": record_status})
         if date_filter_field:
             filter_items.append({"date_filter_field": date_filter_field})
-            _build_date_range_filter(args, filter_items)
+
+        _build_date_range_filter(args, filter_items, date_filter_field)
 
         for f in filter_items:
             for key, value in f.items():
@@ -57,21 +66,50 @@ def build_browse_consignment_filters(args):
     return filters
 
 
-def _build_date_range_filter(args, filter_items):
-    date_from_day = args.get("date_from_day", "")
-    date_from_month = args.get("date_from_month", "")
-    date_from_year = args.get("date_from_year", "")
-    date_from = date_from_day + "/" + date_from_month + "/" + date_from_year
-    date_to_day = args.get("date_to_day", "")
-    date_to_month = args.get("date_to_month", "")
-    date_to_year = args.get("date_to_year", "")
-    date_to = date_to_day + "/" + date_to_month + "/" + date_to_year
+def _build_date_range_filter(args, filter_items, date_filter_field=None):
+    date_validation_errors = validate_dates(args)
 
-    if (date_from and date_from != "//") and (date_to and date_to != "//"):
-        filter_items.append(
-            {"date_range": {"date_from": date_from, "date_to": date_to}}
+    if len(date_validation_errors) == 0:
+        default_start_date = get_default_start_date(date_filter_field)
+        date_inputs = generate_default_date_values(args, default_start_date)
+    else:
+        dt_from = get_date(
+            args.get("date_from_day"),
+            args.get("date_from_month"),
+            args.get("date_from_year"),
+            "#",
         )
-    elif date_from and date_from != "//":
-        filter_items.append({"date_range": {"date_from": date_from}})
-    elif date_to and date_to != "//":
-        filter_items.append({"date_range": {"date_to": date_to}})
+        date_from = f"{dt_from[0]}/{dt_from[1]}/{dt_from[2]}"
+
+        dt_to = get_date(
+            args.get("date_to_day"),
+            args.get("date_to_month"),
+            args.get("date_to_year"),
+            "#",
+        )
+        date_to = f"{dt_to[0]}/{dt_to[1]}/{dt_to[2]}"
+
+        date_inputs = {"date_from": date_from, "date_to": date_to}
+
+    dt_from = None
+    dt_to = None
+    if date_inputs["date_from"]:
+        dt_from = date_inputs["date_from"].replace("#", "") != "//"
+    if date_inputs["date_to"]:
+        dt_to = date_inputs["date_to"].replace("#", "") != "//"
+
+    if dt_from and dt_to:
+        filter_items.append(
+            {
+                "date_range": {
+                    "date_from": date_inputs["date_from"],
+                    "date_to": date_inputs["date_to"],
+                }
+            }
+        )
+    elif dt_from:
+        filter_items.append(
+            {"date_range": {"date_from": date_inputs["date_from"]}}
+        )
+    elif dt_to:
+        filter_items.append({"date_range": {"date_to": date_inputs["date_to"]}})
