@@ -11,8 +11,8 @@ from app.main.util.date_validator import (
     validate_dates,
 )
 
-default_db_date_format = "%Y-%m-%d"
-default_date_format = "%d/%m/%Y"
+db_date_format = "%Y-%m-%d"
+python_date_format = "%d/%m/%Y"
 
 
 def default_start_date():
@@ -20,9 +20,9 @@ def default_start_date():
 
 
 def current_date():
-    return datetime.strptime(
-        str(date.today()), default_db_date_format
-    ).strftime(default_date_format)
+    return datetime.strptime(str(date.today()), db_date_format).strftime(
+        python_date_format
+    )
 
 
 class TestDateValidator:
@@ -209,7 +209,7 @@ class TestDateValidator:
                 "date_to_day=&date_to_month=03&date_to_year=2023",
                 {
                     "date_from": default_start_date().strftime(
-                        default_date_format
+                        python_date_format
                     ),
                     "date_to": "31/03/2023",
                 },
@@ -218,7 +218,7 @@ class TestDateValidator:
                 "date_to_day=&date_to_month=02&date_to_year=2024",
                 {
                     "date_from": default_start_date().strftime(
-                        default_date_format
+                        python_date_format
                     ),
                     "date_to": "29/02/2024",
                 },
@@ -227,7 +227,7 @@ class TestDateValidator:
                 "date_to_day=&date_to_month=&date_to_year=2023",
                 {
                     "date_from": default_start_date().strftime(
-                        default_date_format
+                        python_date_format
                     ),
                     "date_to": "31/12/2023",
                 },
@@ -236,7 +236,7 @@ class TestDateValidator:
                 "date_to_day=31&date_to_month=03&date_to_year=2023",
                 {
                     "date_from": default_start_date().strftime(
-                        default_date_format
+                        python_date_format
                     ),
                     "date_to": "31/03/2023",
                 },

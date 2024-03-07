@@ -2,8 +2,8 @@ from datetime import date, datetime
 
 from flask import current_app
 
-default_db_format = "%Y-%m-%d"
-default_date_format = "%d/%m/%Y"
+db_date_format = "%Y-%m-%d"
+python_date_format = "%d/%m/%Y"
 default_start_date = None
 check_future_date = True
 
@@ -15,9 +15,9 @@ def validate_date_range(date_range):
         if "date_from" in date_range:
             try:
                 dt_from = datetime.strptime(
-                    str(date_range["date_from"]), default_date_format
+                    str(date_range["date_from"]), python_date_format
                 )
-                date_from = dt_from.strftime(default_db_format)
+                date_from = dt_from.strftime(db_date_format)
             except ValueError:
                 current_app.logger.error(
                     "Invalid [date from] value being passed in date range"
@@ -26,9 +26,9 @@ def validate_date_range(date_range):
         if "date_to" in date_range:
             try:
                 dt_to = datetime.strptime(
-                    str(date_range["date_to"]), default_date_format
+                    str(date_range["date_to"]), python_date_format
                 )
-                date_to = dt_to.strftime(default_db_format)
+                date_to = dt_to.strftime(db_date_format)
             except ValueError:
                 current_app.logger.error(
                     "Invalid [date to] value being passed in date range"
@@ -95,13 +95,13 @@ def generate_default_date_values(args, start_date=None):
     date_to = None
     try:
         dt_check = date(date_values["3"], date_values["2"], date_values["1"])
-        date_from = dt_check.strftime(default_date_format)
+        date_from = dt_check.strftime(python_date_format)
     except ValueError:
         pass
 
     try:
         dt_check = date(date_values["6"], date_values["5"], date_values["4"])
-        date_to = dt_check.strftime(default_date_format)
+        date_to = dt_check.strftime(python_date_format)
     except ValueError:
         pass
 
@@ -181,13 +181,9 @@ def validate_dates(args, validate_future_date=True):
 
         if from_date and to_date:
             if from_date > to_date:
-                err = to_date.strftime(default_date_format)
+                err = to_date.strftime(python_date_format)
                 err_str = f"‘Date from’ must be the same as or before ‘{err}’"
                 errors = {"date_from": err_str}
-            # elif to_date < from_date:
-            #    err = from_date.strftime(default_date_format)
-            #    err_str = f"‘To date’ must be the same as or after ‘{err}’"
-            #    errors = {"date_from": err_str}
     else:
         errors.update(date_from_errs)
         errors.update(date_to_errs)
@@ -305,8 +301,8 @@ def _get_default_day_and_month(date_from_year, date_to_year):
         to_date = date(year, 12, 31)
 
     return {
-        "from_date": from_date.strftime(default_date_format),
-        "to_date": to_date.strftime(default_date_format),
+        "from_date": from_date.strftime(python_date_format),
+        "to_date": to_date.strftime(python_date_format),
     }
 
 
@@ -330,9 +326,9 @@ def _get_default_date(month, year, date_to_set):
 
     return {
         "from_date": (
-            from_date.strftime(default_date_format) if from_date else from_date
+            from_date.strftime(python_date_format) if from_date else from_date
         ),
         "to_date": (
-            to_date.strftime(default_date_format) if to_date else to_date
+            to_date.strftime(python_date_format) if to_date else to_date
         ),
     }

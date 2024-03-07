@@ -19,6 +19,8 @@ from app.tests.factories import (
 )
 
 per_page = 5
+db_date_format = "%Y-%m-%d"
+python_date_format = "%d/%m/%Y"
 
 
 class TestFuzzySearchTransferringBody:
@@ -219,19 +221,21 @@ class TestGetFileMetadata:
                 "closure_type": record_files[1]["closure_type"].Value,
                 "closure_start_date": str(
                     datetime.strptime(
-                        record_files[1]["closure_start_date"].Value, "%Y-%m-%d"
-                    ).strftime("%d/%m/%Y")
+                        record_files[1]["closure_start_date"].Value,
+                        db_date_format,
+                    ).strftime(python_date_format)
                 ),
                 "closure_period": record_files[1]["closure_period"].Value,
                 "opening_date": str(
                     datetime.strptime(
-                        record_files[1]["opening_date"].Value, "%Y-%m-%d"
-                    ).strftime("%d/%m/%Y")
+                        record_files[1]["opening_date"].Value, db_date_format
+                    ).strftime(python_date_format)
                 ),
                 "date_last_modified": str(
                     datetime.strptime(
-                        record_files[1]["date_last_modified"].Value, "%Y-%m-%d"
-                    ).strftime("%d/%m/%Y")
+                        record_files[1]["date_last_modified"].Value,
+                        db_date_format,
+                    ).strftime(python_date_format)
                 ),
                 "foi_exemption_code": record_files[1][
                     "foi_exemption_code"
@@ -304,13 +308,6 @@ class TestGetFileMetadata:
 
 
 class TestGetDefaultDate:
-    @property
-    def db_date_format(self):
-        return "%Y-%m-%d"
-
-    @property
-    def default_date_format(self):
-        return "%d/%m/%Y"
 
     def test_get_default_start_date_without_date_filter_field(
         self, client: FlaskClient, mock_standard_user, record_files
@@ -325,11 +322,11 @@ class TestGetDefaultDate:
         mock_standard_user(client, file.consignment.series.body.Name)
 
         default_date = datetime.strptime(
-            file.consignment.TransferCompleteDatetime, self.db_date_format
-        ).strftime(self.default_date_format)
+            file.consignment.TransferCompleteDatetime, db_date_format
+        ).strftime(python_date_format)
 
         assert default_date == get_default_start_date().strftime(
-            self.default_date_format
+            python_date_format
         )
 
     def test_get_default_start_date_with_date_filter_field_record_date(
@@ -345,12 +342,12 @@ class TestGetDefaultDate:
 
         mock_standard_user(client, file.consignment.series.body.Name)
         default_date = datetime.strptime(
-            record_files[0]["date_last_modified"].Value, self.db_date_format
-        ).strftime(self.default_date_format)
+            record_files[0]["date_last_modified"].Value, db_date_format
+        ).strftime(python_date_format)
 
         assert default_date == get_default_start_date(
             "date_last_modified"
-        ).strftime(self.default_date_format)
+        ).strftime(python_date_format)
 
     def test_get_default_start_date_with_date_filter_field_record_opening_date(
         self, client: FlaskClient, mock_standard_user, record_files
@@ -365,9 +362,9 @@ class TestGetDefaultDate:
 
         mock_standard_user(client, file.consignment.series.body.Name)
         default_date = datetime.strptime(
-            record_files[2]["opening_date"].Value, self.db_date_format
-        ).strftime(self.default_date_format)
+            record_files[2]["opening_date"].Value, db_date_format
+        ).strftime(python_date_format)
 
         assert default_date == get_default_start_date("opening_date").strftime(
-            self.default_date_format
+            python_date_format
         )

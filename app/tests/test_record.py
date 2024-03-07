@@ -4,19 +4,14 @@ from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
 
+db_date_format = "%Y-%m-%d"
+python_date_format = "%d/%m/%Y"
+
 
 class TestRecord:
     @property
     def route_url(self):
         return "/record"
-
-    @property
-    def db_date_format(self):
-        return "%Y-%m-%d"
-
-    @property
-    def default_date_format(self):
-        return "%d/%m/%Y"
 
     def test_record_invalid_id_raises_404(self, client: FlaskClient):
         """
@@ -232,8 +227,8 @@ class TestRecord:
 
         mock_standard_user(client, file.consignment.series.body.Name)
         date_last_modified = datetime.strptime(
-            record_files[0]["date_last_modified"].Value, self.db_date_format
-        ).strftime(self.default_date_format)
+            record_files[0]["date_last_modified"].Value, db_date_format
+        ).strftime(python_date_format)
 
         response = client.get(f"{self.route_url}/{file.FileId}")
 
@@ -353,14 +348,14 @@ class TestRecord:
         mock_standard_user(client, file.consignment.series.body.Name)
 
         opening_date = datetime.strptime(
-            record_files[1]["opening_date"].Value, self.db_date_format
-        ).strftime(self.default_date_format)
+            record_files[1]["opening_date"].Value, db_date_format
+        ).strftime(python_date_format)
         closure_start_date = datetime.strptime(
-            record_files[1]["closure_start_date"].Value, self.db_date_format
-        ).strftime(self.default_date_format)
+            record_files[1]["closure_start_date"].Value, db_date_format
+        ).strftime(python_date_format)
         date_last_modified = datetime.strptime(
-            record_files[1]["date_last_modified"].Value, self.db_date_format
-        ).strftime(self.default_date_format)
+            record_files[1]["date_last_modified"].Value, db_date_format
+        ).strftime(python_date_format)
 
         response = client.get(f"{self.route_url}/{file.FileId}")
 
@@ -510,16 +505,16 @@ class TestRecord:
         mock_standard_user(client, file.consignment.series.body.Name)
 
         opening_date = datetime.strptime(
-            record_files[1]["opening_date"].Value, self.db_date_format
-        ).strftime(self.default_date_format)
+            record_files[1]["opening_date"].Value, db_date_format
+        ).strftime(python_date_format)
 
         closure_start_date = datetime.strptime(
-            record_files[1]["closure_start_date"].Value, self.db_date_format
-        ).strftime(self.default_date_format)
+            record_files[1]["closure_start_date"].Value, db_date_format
+        ).strftime(python_date_format)
 
         date_last_modified = datetime.strptime(
-            record_files[1]["date_last_modified"].Value, self.db_date_format
-        ).strftime(self.default_date_format)
+            record_files[1]["date_last_modified"].Value, db_date_format
+        ).strftime(python_date_format)
 
         response = client.get(f"{self.route_url}/{file.FileId}")
 
