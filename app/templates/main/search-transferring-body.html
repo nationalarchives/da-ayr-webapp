@@ -7,6 +7,18 @@
 {% if breadcrumb_values[3] %}
     {%- set _ = breadcrumbs.update({'search_terms': breadcrumb_values[3]["search_terms"]}) -%}
 {% endif %}
+{% set sorting_list = {
+    "Series (A to Z)": "series-asc",
+    "Series (Z to A)": "series-desc",
+    "Consignment reference (most recent)": "consignment_reference-desc",
+    "Consignment reference (oldest)": "consignment_reference-asc",
+    "Title (A to Z)": "file_name-asc",
+    "Title (Z to A)": "file_name-desc",
+    "Record opening (sooner)": "opening_date-desc",
+    "Record opening (later)": "opening_date-asc",
+    "Record status (closed)": "closure_type-asc",
+    "Record status (open)": "closure_type-desc"
+} %}
 <!-- BREAD CRUMB -->
 {% with dict = breadcrumbs %}
     {% include "breadcrumb.html" %}
@@ -72,54 +84,54 @@
                 {% include "pagination.html" %}
             {% endwith %}
         </div>
-            <!-- FILTER TRAY -->
-            <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters">
-                <div class="search-all-filter-container">
-                    <div class="browse-filter__header">
-                        <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
-                    </div>
-                    <div class="govuk-form-group govuk-form-group--search-all-filter">
-                        <label class="govuk-label" for="search_filter"></label>
-                        <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
-                                id="search_filter"
-                                name="search_filter"
-                                type="text">
-                    </div>
-                    <div class="search-form__buttons">
-                        <button type="submit"
-                                class="govuk-button govuk-button__search-filters-form-apply-button"
-                                data-module="govuk-button">Apply</button>
-                        <a class="govuk-link govuk-link--transferring-filter"
-                            href="{{ url_for('main.search_transferring_body', _id = request.view_args['_id']) }}">Clear all</a>
-                    </div>
-                    <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
-                    <div class="ayr-filter-tags">
-                        {% for i in range(search_terms | length) %}
-                            <div class="search-term">
-                                {% if i == 0 %}
-                                    {% set new_query = filters['query'].replace(search_terms[i] ~ ',','') %}
-                                {% else %}
-                                    {% set new_query = filters['query'].replace(',' ~ search_terms[i],'') %}
-                                {% endif %}
-                                {% if search_terms | length == 1 %}
-                                    {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id']) %}
-                                {% else %}
-                                    {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id'], query=new_query) %}
-                                {% endif %}
-                                <button type="submit"
-                                        class="button-search-term"
-                                        data-module="search-term-button">
-                                    <a href="{{ search_term_url }}">{{ search_terms[i] }}</a>
-                                </button>
-                                <img src="{{ url_for('static', filename= 'image/cancel-filters.svg') }}"
-                                        height="1rem"
-                                        width="1rem"
-                                        class="close-icon"
-                                        alt="">
-                            </div>
-                        {% endfor %}
-                    </div>
+        <!-- FILTER TRAY -->
+        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters">
+            <div class="search-all-filter-container">
+                <div class="browse-filter__header">
+                    <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
+                </div>
+                <div class="govuk-form-group govuk-form-group--search-all-filter">
+                    <label class="govuk-label" for="search_filter"></label>
+                    <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
+                           id="search_filter"
+                           name="search_filter"
+                           type="text">
+                </div>
+                <div class="search-form__buttons">
+                    <button type="submit"
+                            class="govuk-button govuk-button__search-filters-form-apply-button"
+                            data-module="govuk-button">Apply</button>
+                    <a class="govuk-link govuk-link--transferring-filter"
+                       href="{{ url_for('main.search_transferring_body', _id = request.view_args['_id']) }}">Clear all</a>
+                </div>
+                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
+                <div class="ayr-filter-tags">
+                    {% for i in range(search_terms | length) %}
+                        <div class="search-term">
+                            {% if i == 0 %}
+                                {% set new_query = filters['query'].replace(search_terms[i] ~ ',','') %}
+                            {% else %}
+                                {% set new_query = filters['query'].replace(',' ~ search_terms[i],'') %}
+                            {% endif %}
+                            {% if search_terms | length == 1 %}
+                                {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id']) %}
+                            {% else %}
+                                {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id'], query=new_query) %}
+                            {% endif %}
+                            <button type="submit"
+                                    class="button-search-term"
+                                    data-module="search-term-button">
+                                <a href="{{ search_term_url }}">{{ search_terms[i] }}</a>
+                            </button>
+                            <img src="{{ url_for('static', filename= 'image/cancel-filters.svg') }}"
+                                 height="1rem"
+                                 width="1rem"
+                                 class="close-icon"
+                                 alt="">
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
+        </div>
     </div>
 </form>
