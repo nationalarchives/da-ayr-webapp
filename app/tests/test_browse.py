@@ -56,7 +56,7 @@ def verify_consignment_data_rows(data, expected_rows):
     """
     soup = BeautifulSoup(data, "html.parser")
     table = soup.find("table")
-    top_rows = table.find_all("tr", class_="mobile-table-top-row")
+    top_rows = table.find_all("tr", class_="browse__mobile-table__top-row")
 
     row_data = ""
     for row in top_rows:

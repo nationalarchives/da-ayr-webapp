@@ -299,10 +299,6 @@
   }
 }
 
-.desktop-table-hidden {
-  display: none;
-}
-
 .govuk-table__row__browse--mobile {
   display: none;
 }
@@ -348,17 +344,13 @@
     display: table-row;
   }
 
-  .mobile-table-top-row {
+  .browse__mobile-table__top-row {
     border-bottom: none;
   }
 
-  .mobile-table-bottom-row {
+  .browse__mobile-table__bottom-row {
     border-bottom: 1px solid #b1b4b6;
     max-width: 10rem;
-  }
-
-  .desktop-table-hidden {
-    display: block;
   }
 
   .mobile-pagination {
