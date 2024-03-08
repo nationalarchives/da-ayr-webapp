@@ -123,8 +123,8 @@ class TestDateValidator:
         """
         Given request arguments for date from filters
         When generate_date_values function called
-        Then it returns a dictionary object with 6 values
-        with valid date from values get assigned to 1 to 3 items and 4 to 6 get assigned as zero value
+        Then it returns a dictionary object with 6 values with
+        valid string values for items 1,2,3 and zeros for items 4,5,6
         """
 
         mock_all_access_user(client)
@@ -147,10 +147,10 @@ class TestDateValidator:
         self, client: FlaskClient, mock_all_access_user
     ):
         """
-        Given request arguments for date to filters
+        Given request arguments for date from filters
         When generate_date_values function called
-        Then it returns a dictionary object with 6 values
-        with valid date to values get assigned to 4 to 6 items and 1 to 3 get assigned as zero value
+        Then it returns a dictionary object with 6 values with
+        valid string values for items 4,5,6 and zeros for items 1,2,3
         """
         mock_all_access_user(client)
         query = "date_from_day=&date_from_month=&date_from_year=&date_to_day=31&date_to_month=08&date_to_year=2023"
@@ -174,10 +174,10 @@ class TestDateValidator:
         self, client: FlaskClient, mock_all_access_user
     ):
         """
-        Given request arguments for date from and date to filters
+        Given request arguments for date from filters
         When generate_date_values function called
-        Then it returns a dictionary object with 6 values
-        with valid date from values get assigned to 1 to 3 items and date to values get assigned to 4 to 6 items
+        Then it returns a dictionary object with 6 values with
+        valid string values
         """
         mock_all_access_user(client)
         param1 = "date_from_day=01&date_from_month=08&date_from_year=2023"
