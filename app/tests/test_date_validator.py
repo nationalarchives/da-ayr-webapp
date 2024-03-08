@@ -134,7 +134,14 @@ class TestDateValidator:
 
         values = generate_date_values(response.request.args)
 
-        assert values == {"1": 1, "2": 8, "3": 2023, "4": 0, "5": 0, "6": 0}
+        assert values == {
+            "1": "01",
+            "2": "08",
+            "3": "2023",
+            "4": "00",
+            "5": "00",
+            "6": "0000",
+        }
 
     def test_generate_date_values_with_date_to_values(
         self, client: FlaskClient, mock_all_access_user
@@ -154,7 +161,14 @@ class TestDateValidator:
 
         values = generate_date_values(response.request.args)
 
-        assert values == {"1": 0, "2": 0, "3": 0, "4": 31, "5": 8, "6": 2023}
+        assert values == {
+            "1": "00",
+            "2": "00",
+            "3": "0000",
+            "4": "31",
+            "5": "08",
+            "6": "2023",
+        }
 
     def test_generate_date_values_with_date_from_and_date_to_values(
         self, client: FlaskClient, mock_all_access_user
@@ -176,7 +190,14 @@ class TestDateValidator:
 
         values = generate_date_values(response.request.args)
 
-        assert values == {"1": 1, "2": 8, "3": 2023, "4": 27, "5": 2, "6": 2023}
+        assert values == {
+            "1": "01",
+            "2": "08",
+            "3": "2023",
+            "4": "27",
+            "5": "02",
+            "6": "2023",
+        }
 
     @pytest.mark.parametrize(
         "query_params, expected_results",
@@ -303,6 +324,18 @@ class TestDateValidator:
                 {"date_from": "‘Date from’ must be a real date"},
             ),
             (
+                "date_from_day=1x&date_from_month=14&date_from_year=2023",
+                {"date_from": "‘Date from’ must be a real date"},
+            ),
+            (
+                "date_from_day=01&date_from_month=1x&date_from_year=2023",
+                {"date_from": "‘Date from’ must be a real date"},
+            ),
+            (
+                "date_from_day=01&date_from_month=12&date_from_year=20xy",
+                {"date_from": "‘Date from’ must be a real date"},
+            ),
+            (
                 "date_from_day=31&date_from_month=12&date_from_year=2024",
                 {"date_from": "‘Date from’ must be in the past"},
             ),
@@ -327,8 +360,30 @@ class TestDateValidator:
                 {"date_to": "‘Date to’ must be a real date"},
             ),
             (
+                "date_to_day=2x&date_to_month=02&date_to_year=2023",
+                {"date_to": "‘Date to’ must be a real date"},
+            ),
+            (
+                "date_to_day=29&date_to_month=2x&date_to_year=2023",
+                {"date_to": "‘Date to’ must be a real date"},
+            ),
+            (
+                "date_to_day=29&date_to_month=02&date_to_year=20xy",
+                {"date_to": "‘Date to’ must be a real date"},
+            ),
+            (
                 "date_to_day=31&date_to_month=12&date_to_year=2024",
                 {"date_to": "‘Date to’ must be in the past"},
+            ),
+            (
+                (
+                    "date_from_day=1x&date_from_month=08&date_from_year=2023&"
+                    "date_to_day=01&date_to_month=2x&date_to_year=2022"
+                ),
+                {
+                    "date_from": "‘Date from’ must be a real date",
+                    "date_to": "‘Date to’ must be a real date",
+                },
             ),
             (
                 (

@@ -19,7 +19,8 @@
                            name="date_from_day"
                            type="text"
                            value="{% if filters['date_range'] %}{% if filters['date_range']['date_from'] %}{{ filters['date_range']['date_from'][0:2].replace('#', '') }}{% endif %}{% endif %}"
-                           inputmode="numeric">
+                           inputmode="numeric"
+                           maxlength="2">
                 </div>
             </div>
             <div class="govuk-date-input__item govuk-date-input__item--browse-all">
@@ -31,7 +32,8 @@
                            name="date_from_month"
                            type="text"
                            value="{% if filters['date_range'] %}{% if filters['date_range']['date_from'] %}{{ filters['date_range']['date_from'][3:5].replace('#', '') }}{% endif %}{% endif %}"
-                           inputmode="numeric">
+                           inputmode="numeric"
+                           maxlength="2">
                 </div>
             </div>
             <div class="govuk-date-input__item govuk-date-input__item--browse-all">
@@ -43,7 +45,8 @@
                            name="date_from_year"
                            type="text"
                            value="{% if filters['date_range'] %}{% if filters['date_range']['date_from'] %}{{ filters['date_range']['date_from'][6:10].replace('#', '') }}{% endif %}{% endif %}"
-                           inputmode="numeric">
+                           inputmode="numeric"
+                           maxlength="4">
                 </div>
             </div>
         </div>
@@ -70,7 +73,8 @@
                            name="date_to_day"
                            type="text"
                            value="{% if filters['date_range'] %}{% if filters['date_range']['date_to'] %}{{ filters['date_range']['date_to'][0:2].replace('#', '') }}{% endif %}{% endif %}"
-                           inputmode="numeric">
+                           inputmode="numeric"
+                           maxlength="2">
                 </div>
             </div>
             <div class="govuk-date-input__item govuk-date-input__item--browse-all">
@@ -82,7 +86,8 @@
                            name="date_to_month"
                            type="text"
                            value="{% if filters['date_range'] %}{% if filters['date_range']['date_to'] %}{{ filters['date_range']['date_to'][3:5].replace('#', '') }}{% endif %}{% endif %}"
-                           inputmode="numeric">
+                           inputmode="numeric"
+                           maxlength="2">
                 </div>
             </div>
             <div class="govuk-date-input__item govuk-date-input__item--browse-all">
@@ -94,7 +99,8 @@
                            name="date_to_year"
                            type="text"
                            value="{% if filters['date_range'] %}{% if filters['date_range']['date_to'] %}{{ filters['date_range']['date_to'][6:10].replace('#', '') }}{% endif %}{% endif %}"
-                           inputmode="numeric">
+                           inputmode="numeric"
+                           maxlength="4">
                 </div>
             </div>
         </div>

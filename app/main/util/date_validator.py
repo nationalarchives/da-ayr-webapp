@@ -60,9 +60,9 @@ def generate_date_values(args):
     )
 
     date_values = {
-        "1": int(date_from[0]) if date_from[0].isnumeric() else 0,
-        "2": int(date_from[1]) if date_from[1].isnumeric() else 0,
-        "3": int(date_from[2]) if date_from[2].isnumeric() else 0,
+        "1": date_from[0],
+        "2": date_from[1],
+        "3": date_from[2],
     }
 
     date_to = get_date(
@@ -73,9 +73,9 @@ def generate_date_values(args):
     )
     date_values.update(
         {
-            "4": int(date_to[0]) if date_from[0].isnumeric() else 0,
-            "5": int(date_to[1]) if date_from[1].isnumeric() else 0,
-            "6": int(date_to[2]) if date_from[2].isnumeric() else 0,
+            "4": date_to[0],
+            "5": date_to[1],
+            "6": date_to[2],
         }
     )
 
@@ -87,26 +87,21 @@ def generate_default_date_values(args, start_date=None):
     default_start_date = start_date if start_date else default_start_date
 
     date_values = generate_date_values(args)
+    date_values = {key: int(val) for key, val in date_values.items()}
 
     if all(value == 0 for value in date_values.values()):
         return {"date_from": "##/##/####", "date_to": "##/##/####"}
 
-    date_from = None
-    date_to = None
-    try:
-        dt_check = date(date_values["3"], date_values["2"], date_values["1"])
-        date_from = dt_check.strftime(python_date_format)
-    except ValueError:
-        pass
-
-    try:
-        dt_check = date(date_values["6"], date_values["5"], date_values["4"])
-        date_to = dt_check.strftime(python_date_format)
-    except ValueError:
-        pass
+    date_from = _create_date(
+        date_values["3"], date_values["2"], date_values["1"]
+    )
+    date_to = _create_date(date_values["6"], date_values["5"], date_values["4"])
 
     if date_from and date_to:
-        return {"date_from": date_from, "date_to": date_to}
+        return {
+            "date_from": date_from.strftime(python_date_format),
+            "date_to": date_to.strftime(python_date_format),
+        }
 
     if date_values["2"] > 0 and date_values["3"] > 0:
         dates = _get_default_date(date_values["2"], date_values["3"], "to_date")
@@ -138,50 +133,55 @@ def validate_dates(args, validate_future_date=True):
     )
 
     date_values = generate_date_values(args)
-    date_from_errs = {}
-    date_to_errs = {}
-
-    if date_values["1"] > 0 or date_values["2"] > 0 or date_values["3"] > 0:
-        date_from_errs = _validate_date(
-            date_values["1"],
-            date_values["2"],
-            date_values["3"],
-            "date_from",
-            "‘Date from’",
-        )
-    if date_values["4"] > 0 or date_values["5"] > 0 or date_values["6"] > 0:
-        date_to_errs = _validate_date(
-            date_values["4"],
-            date_values["5"],
-            date_values["6"],
-            "date_to",
-            "‘Date to’",
-        )
+    date_from_set = [
+        value for key, value in date_values.items() if key in "1,2,3"
+    ]
+    date_to_set = [
+        value for key, value in date_values.items() if key in "4,5,6"
+    ]
 
     errors = {}
 
+    if not all(value.isdigit() for value in date_from_set):
+        errors = {"date_from": "‘Date from’ must be a real date"}
+
+    if not all(value.isdigit() for value in date_to_set):
+        if len(errors) > 0:
+            errors.update({"date_to": "‘Date to’ must be a real date"})
+        else:
+            errors = {"date_to": "‘Date to’ must be a real date"}
+    if errors:
+        return errors
+
+    date_values = {key: int(val) for key, val in date_values.items()}
+
+    date_from_errs = _validate_date(
+        date_values["1"],
+        date_values["2"],
+        date_values["3"],
+        "date_from",
+        "‘Date from’",
+    )
+    date_to_errs = _validate_date(
+        date_values["4"],
+        date_values["5"],
+        date_values["6"],
+        "date_to",
+        "‘Date to’",
+    )
+
     if len(date_from_errs) == 0 and len(date_to_errs) == 0:
-        from_date = None
-        to_date = None
 
-        if (
-            date_values["1"] > 0
-            and date_values["2"] > 0
-            and date_values["3"] > 0
-        ):
-            from_date = date(
-                date_values["3"], date_values["2"], date_values["1"]
-            )
-        if (
-            date_values["4"] > 0
-            and date_values["5"] > 0
-            and date_values["6"] > 0
-        ):
-            to_date = date(date_values["6"], date_values["5"], date_values["4"])
+        date_from = _create_date(
+            date_values["3"], date_values["2"], date_values["1"]
+        )
+        date_to = _create_date(
+            date_values["6"], date_values["5"], date_values["4"]
+        )
 
-        if from_date and to_date:
-            if from_date > to_date:
-                err = to_date.strftime(python_date_format)
+        if date_from and date_to:
+            if date_from > date_to:
+                err = date_to.strftime(python_date_format)
                 err_str = f"‘Date from’ must be the same as or before ‘{err}’"
                 errors = {"date_from": err_str}
     else:
@@ -332,3 +332,10 @@ def _get_default_date(month, year, date_to_set):
             to_date.strftime(python_date_format) if to_date else to_date
         ),
     }
+
+
+def _create_date(year, month, day):
+    try:
+        return date(year, month, day)
+    except ValueError:
+        return None
