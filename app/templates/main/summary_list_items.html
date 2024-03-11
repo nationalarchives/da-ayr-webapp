@@ -23,7 +23,7 @@
                             {% if dict.get('opening_date') %}<span>Record opening date {{ dict.get('opening_date') }}</span>{% endif %}
                         {% endif %}
                     {% else %}
-                        —
+                        <span>Not provided</span>
                     {% endif %}
                 </dd>
             </div>
@@ -43,7 +43,7 @@
                             {{ value }}
                         {% endif %}
                     {% else %}
-                        —
+                        <span>Not provided</span>
                     {% endif %}
                 </dd>
             </div>
