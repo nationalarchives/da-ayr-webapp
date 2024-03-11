@@ -460,6 +460,106 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
         assert b"Records found 0"
 
+    def test_search_transferring_body_with_table_data_links(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a standard user with access to a body, and there are files from that body and another body
+            and a search query which matches a property from related file data
+        When they make a request on the search page with the search term
+        Then a table is populated with the n results with metadata fields for the files from there body.
+        """
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        form_data = {"query": "first_file"}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        browse_series_route_url = f"{self.browse_all_route_url}/series"
+        browse_consignment_route_url = (
+            f"{self.browse_all_route_url}/consignment"
+        )
+        record_route_url = "/record"
+
+        series_id = browse_consignment_files[0].consignment.series.SeriesId
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+        file_id = browse_consignment_files[0].FileId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+        assert b"Records found 1" in response.data
+
+        expected_rows = [
+            [
+                "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023'"
+            ],
+        ]
+
+        verify_search_transferring_body_header_row(response.data)
+        verify_data_rows(response.data, expected_rows)
+
+        html = response.data.decode()
+
+        expected_html = f"""
+        <table class="govuk-table">
+            <thead class="govuk-table__head">
+                <tr class="govuk-table__row">
+                    <th scope="col"
+                        class="govuk-table__header govuk-table__header--search-header">Series</th>
+                    <th scope="col"
+                        class="govuk-table__header govuk-table__header--search-header">
+                        Consignment Reference
+                    </th>
+                    <th scope="col"
+            class="govuk-table__header govuk-table__header--search-header govuk-table__header--search-header-title">
+                        Title
+                    </th>
+                    <th scope="col"
+                        class="govuk-table__header govuk-table__header--search-header">Status</th>
+                    <th scope="col"
+                        class="govuk-table__header govuk-table__header--search-header">
+                        Record opening
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="govuk-table__body">
+        <tr class="govuk-table__row">
+            <td class="govuk-table__cell govuk-table__cell--search-results">
+                <a href="{browse_series_route_url}/{series_id}">first_series</a>
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results govuk-table__cell--search-results-no-wrap">
+                <a href="{browse_consignment_route_url}/{consignment_id}">TDR-2023-FI1</a>
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results">
+                <a href="{record_route_url}/{file_id}">first_file.docx</a>
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results">
+                <strong class="govuk-tag govuk-tag--red">
+                    Closed
+                </strong>
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results">
+                    25/02/2023
+            </td>
+        </tr>
+            </tbody>
+        </table>
+        """
+
+        assert_contains_html(
+            expected_html,
+            html,
+            "table",
+            {"class": "govuk-table"},
+        )
+
     @pytest.mark.parametrize(
         "query_params, expected_results",
         [
