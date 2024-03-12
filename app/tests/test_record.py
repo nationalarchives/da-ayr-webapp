@@ -160,12 +160,12 @@ class TestRecord:
 
         expected_arrangement_html = f"""
         <div class="record-container">
-            <h3 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h3>
-            <ol>
-                <li class="govuk-body govuk-body__record-arrangement-list">{record_path_details[0]}</li>
-                <li class=" govuk-body govuk-body__record-arrangement-list">{record_path_details[1]}</li>
-                <li class="govuk-body govuk-body__record-arrangement-list">{record_path_details[2]}</li>
-                <li class="govuk-body govuk-body__record-arrangement-list">{record_path_details[3]}</li>
+            <h2 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h2>
+            <ol class="record-arrangement-list">
+                <li class="govuk-body__record-arrangement-list">{record_path_details[0]}</li>
+                <li class="govuk-body__record-arrangement-list">{record_path_details[1]}</li>
+                <li class="govuk-body__record-arrangement-list">{record_path_details[2]}</li>
+                <li class="govuk-body__record-arrangement-list">{record_path_details[3]}</li>
             </ol>
         </div>
         """
