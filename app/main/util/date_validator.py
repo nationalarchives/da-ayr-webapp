@@ -1,5 +1,4 @@
 import calendar
-import datetime
 from datetime import date
 
 PYTHON_DATE_FORMAT = "%d/%m/%Y"
@@ -181,7 +180,7 @@ def validate_date(  # noqa: C901
 
 
 def _valid_year(year):
-    return 1900 <= year <= datetime.date.today().year
+    return 1900 <= year
 
 
 def _valid_day(day, month, year):
