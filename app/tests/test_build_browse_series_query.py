@@ -66,7 +66,9 @@ class TestBrowseSeries:
             0
         ].consignment.series.SeriesId
 
-        filters = {"date_range": {"date_from": "01/01/2024"}}
+        filters = {
+            "date_from": "2024-01-01",
+        }
 
         query = build_browse_series_query(series_id=series_id, filters=filters)
         results = query.all()

@@ -70,7 +70,7 @@ class TestBrowseConsignment:
 
         filters = {
             "date_filter_field": "date_last_modified",
-            "date_range": {"date_from": "01/05/2024"},
+            "date_from": "2023-06-01",
         }
 
         query = build_browse_consignment_query(

@@ -290,8 +290,7 @@ class TestConsignment:
                 [
                     [
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023'"
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
                     ],
                 ],
             ),

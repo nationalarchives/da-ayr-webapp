@@ -1,10 +1,9 @@
 import uuid
 
 from flask import current_app
-from sqlalchemy import DATE, Date, and_, cast, desc, func, or_
+from sqlalchemy import DATE, and_, desc, func, or_
 
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
-from app.main.util.date_validator import validate_date_range
 
 
 def build_fuzzy_search_transferring_body_query(
@@ -409,31 +408,24 @@ def build_browse_consignment_query(
                     == record_status.lower()
                 )
 
-        date_range = filters.get("date_range")
-        if date_range:
-            date_filter_field = filters.get("date_filter_field")
-            if (
-                date_filter_field
-                and date_filter_field.lower() == "date_last_modified"
-            ):
-                dt_range = validate_date_range(date_range)
-                date_filter = _build_date_range_filter(
-                    sub_query.c.date_last_modified,
-                    dt_range["date_from"],
-                    dt_range["date_to"],
-                )
-                query = query.filter(date_filter)
-            elif (
-                date_filter_field
-                and date_filter_field.lower() == "opening_date"
-            ):
-                dt_range = validate_date_range(date_range)
-                date_filter = _build_date_range_filter(
-                    sub_query.c.opening_date,
-                    dt_range["date_from"],
-                    dt_range["date_to"],
-                )
-                query = query.filter(date_filter)
+        date_filter_field = filters.get("date_filter_field")
+        if (
+            date_filter_field
+            and date_filter_field.lower() == "date_last_modified"
+        ):
+            date_filter = _build_date_range_filter(
+                sub_query.c.date_last_modified,
+                filters.get("date_from"),
+                filters.get("date_to"),
+            )
+            query = query.filter(date_filter)
+        elif date_filter_field and date_filter_field.lower() == "opening_date":
+            date_filter = _build_date_range_filter(
+                sub_query.c.opening_date,
+                filters.get("date_from"),
+                filters.get("date_to"),
+            )
+            query = query.filter(date_filter)
 
     if sorting_orders:
         query = _build_sorting_orders(query, sub_query, sorting_orders)
@@ -455,14 +447,12 @@ def _build_browse_filters(query, sub_query, filters):
         filter_value = str(f"%{series}%").lower()
         query = query.filter(func.lower(sub_query.c.series).like(filter_value))
 
-    date_range = filters.get("date_range")
-    if date_range:
-        dt_range = validate_date_range(date_range)
-        date_filter = _build_date_range_filter(
-            sub_query.c.last_record_transferred,
-            dt_range["date_from"],
-            dt_range["date_to"],
-        )
+    date_filter = _build_date_range_filter(
+        sub_query.c.last_record_transferred,
+        filters.get("date_from"),
+        filters.get("date_to"),
+    )
+    if date_filter is not None:
         query = query.filter(date_filter)
 
     return query
@@ -714,18 +704,3 @@ def _build_date_range_filter(date_field, date_from, date_to):
         date_filter = func.to_char(date_field, "YYYY-MM-DD") <= date_to
 
     return date_filter
-
-
-def get_default_start_date(date_filter_field=None):
-    if date_filter_field:
-        default_date = (
-            db.session.query(cast(func.min(FileMetadata.Value), Date)).where(
-                FileMetadata.PropertyName == date_filter_field
-            )
-        ).scalar()
-    else:
-        default_date = db.session.query(
-            cast(func.min(Consignment.TransferCompleteDatetime), Date)
-        ).scalar()
-
-    return default_date

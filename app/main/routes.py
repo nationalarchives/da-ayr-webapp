@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 import boto3
 from flask import (
@@ -38,6 +39,7 @@ from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
 from app.main.forms import CookiesForm
+from app.main.util.date_validator import validate_dates
 from app.main.util.filter_sort_builder import (
     build_browse_consignment_filters,
     build_filters,
@@ -45,7 +47,6 @@ from app.main.util.filter_sort_builder import (
 )
 
 from .forms import SearchForm
-from .util.date_validator import generate_date_values, validate_dates
 
 
 @bp.route("/", methods=["GET"])
@@ -120,13 +121,26 @@ def browse():
         for body in Body.query.all():
             transferring_bodies.append(body.Name)
 
-        date_values = generate_date_values(request.args)
+        (
+            from_day,
+            from_month,
+            from_year,
+            to_day,
+            to_month,
+            to_year,
+            date_validation_errors,
+        ) = validate_dates(request.args)
+        from_date = to_date = None
+        if not (
+            date_validation_errors["date_from"]
+            or date_validation_errors["date_to"]
+        ):
+            if from_year and from_month and from_day:
+                from_date = date(from_year, from_month, from_day)
+            if to_year and to_month and to_day:
+                to_date = date(to_year, to_month, to_day)
 
-        date_validation_errors = {}
-        if any(value != 0 for value in date_values.values()):
-            date_validation_errors = validate_dates(request.args)
-
-        filters = build_filters(request.args)
+        filters = build_filters(request.args, from_date, to_date)
         sorting_orders = build_sorting_orders(request.args)
 
         # set default sort
@@ -186,13 +200,25 @@ def browse_transferring_body(_id: uuid.UUID):
 
     breadcrumb_values = {0: {"transferring_body": Body.query.get(_id).Name}}
 
-    date_values = generate_date_values(request.args)
+    (
+        from_day,
+        from_month,
+        from_year,
+        to_day,
+        to_month,
+        to_year,
+        date_validation_errors,
+    ) = validate_dates(request.args)
+    from_date = to_date = None
+    if not (
+        date_validation_errors["date_from"] or date_validation_errors["date_to"]
+    ):
+        if from_year and from_month and from_day:
+            from_date = date(from_year, from_month, from_day)
+        if to_year and to_month and to_day:
+            to_date = date(to_year, to_month, to_day)
 
-    date_validation_errors = {}
-    if any(value != 0 for value in date_values.values()):
-        date_validation_errors = validate_dates(request.args)
-
-    filters = build_filters(request.args)
+    filters = build_filters(request.args, from_date, to_date)
     sorting_orders = build_sorting_orders(request.args)
 
     # set default sort
@@ -258,13 +284,25 @@ def browse_series(_id: uuid.UUID):
         2: {"series": series.Name},
     }
 
-    date_values = generate_date_values(request.args)
+    (
+        from_day,
+        from_month,
+        from_year,
+        to_day,
+        to_month,
+        to_year,
+        date_validation_errors,
+    ) = validate_dates(request.args)
+    from_date = to_date = None
+    if not (
+        date_validation_errors["date_from"] or date_validation_errors["date_to"]
+    ):
+        if from_year and from_month and from_day:
+            from_date = date(from_year, from_month, from_day)
+        if to_year and to_month and to_day:
+            to_date = date(to_year, to_month, to_day)
 
-    date_validation_errors = {}
-    if any(value != 0 for value in date_values.values()):
-        date_validation_errors = validate_dates(request.args)
-
-    filters = build_filters(request.args)
+    filters = build_filters(request.args, from_date, to_date)
     sorting_orders = build_sorting_orders(request.args)
 
     # set default sort
@@ -333,26 +371,25 @@ def browse_consignment(_id: uuid.UUID):
         4: {"consignment_reference": consignment.ConsignmentReference},
     }
 
-    date_validation_errors = {}
-    date_values = generate_date_values(request.args)
-    date_filter_field = request.args.get("date_filter_field", "")
-
-    if len(date_filter_field) == 0 and any(
-        value != 0 for value in date_values.values()
+    (
+        from_day,
+        from_month,
+        from_year,
+        to_day,
+        to_month,
+        to_year,
+        date_validation_errors,
+    ) = validate_dates(request.args)
+    from_date = to_date = None
+    if not (
+        date_validation_errors["date_from"] or date_validation_errors["date_to"]
     ):
-        date_validation_errors = {
-            "date_filter_field": "Select either ‘Record date’ or ‘Record opening date’"
-        }
-    else:
-        if any(value != 0 for value in date_values.values()):
-            validate_future_date = (
-                True if not date_filter_field == "opening_date" else False
-            )
-            date_validation_errors = validate_dates(
-                request.args, validate_future_date
-            )
+        if from_year and from_month and from_day:
+            from_date = date(from_year, from_month, from_day)
+        if to_year and to_month and to_day:
+            to_date = date(to_year, to_month, to_day)
 
-    filters = build_browse_consignment_filters(request.args)
+    filters = build_browse_consignment_filters(request.args, from_date, to_date)
     sorting_orders = build_sorting_orders(request.args)
 
     # set default sort

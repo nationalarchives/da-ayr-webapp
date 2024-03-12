@@ -8,7 +8,6 @@ from flask.testing import FlaskClient
 from app.main.db.queries import (
     build_fuzzy_search_summary_query,
     build_fuzzy_search_transferring_body_query,
-    get_default_start_date,
     get_file_metadata,
 )
 from app.tests.factories import (
@@ -304,67 +303,4 @@ class TestGetFileMetadata:
                 "rights_copyright": record_files[3]["rights_copyright"].Value,
                 "language": record_files[3]["language"].Value,
             }
-        )
-
-
-class TestGetDefaultDate:
-
-    def test_get_default_start_date_without_date_filter_field(
-        self, client: FlaskClient, mock_standard_user, record_files
-    ):
-        """
-        Given a record_files fixture
-        When get_default_start_date is called without date_filter_field parameter value
-        Then it should return the consignment transfer complete date
-        as a default start date
-        """
-        file = record_files[0]["file_object"]
-        mock_standard_user(client, file.consignment.series.body.Name)
-
-        default_date = datetime.strptime(
-            file.consignment.TransferCompleteDatetime, db_date_format
-        ).strftime(python_date_format)
-
-        assert default_date == get_default_start_date().strftime(
-            python_date_format
-        )
-
-    def test_get_default_start_date_with_date_filter_field_record_date(
-        self, client: FlaskClient, mock_standard_user, record_files
-    ):
-        """
-        Given a record_files fixture
-        When get_default_start_date is called with date_filter_field parameter value as "date_last_modified"
-        Then it should return the date last modified
-        as a default start date
-        """
-        file = record_files[0]["file_object"]
-
-        mock_standard_user(client, file.consignment.series.body.Name)
-        default_date = datetime.strptime(
-            record_files[0]["date_last_modified"].Value, db_date_format
-        ).strftime(python_date_format)
-
-        assert default_date == get_default_start_date(
-            "date_last_modified"
-        ).strftime(python_date_format)
-
-    def test_get_default_start_date_with_date_filter_field_record_opening_date(
-        self, client: FlaskClient, mock_standard_user, record_files
-    ):
-        """
-        Given a record_files fixture
-        When get_default_start_date is called with date_filter_field parameter value as "opening_date"
-        Then it should return the opening date
-        as a default start date
-        """
-        file = record_files[2]["file_object"]
-
-        mock_standard_user(client, file.consignment.series.body.Name)
-        default_date = datetime.strptime(
-            record_files[2]["opening_date"].Value, db_date_format
-        ).strftime(python_date_format)
-
-        assert default_date == get_default_start_date("opening_date").strftime(
-            python_date_format
         )

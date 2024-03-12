@@ -427,7 +427,7 @@ class TestBrowse:
             ),
         ],
     )
-    def test_browse_full_test(
+    def test_browse_page(
         self,
         client: FlaskClient,
         mock_all_access_user,
