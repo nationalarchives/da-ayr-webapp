@@ -5,19 +5,19 @@ PYTHON_DATE_FORMAT = "%d/%m/%Y"
 DB_DATE_FORMAT = "%Y-%m-%d"
 
 
-def validate_dates(args, consignment_browse=False):
+def validate_dates(args, browse_consignment=False):
     errors = {}
 
     date_filter_field = args.get("date_filter_field", "")
 
-    if consignment_browse and date_filter_field not in [
-        "record_date",
-        "record_opening_date",
+    if browse_consignment and date_filter_field not in [
+        "date_last_modified",
+        "opening_date",
     ]:
         errors["date_filter_field"] = (
             "Select either ‘Record date’ or ‘Record opening date’"
         )
-        return None, None, errors
+        return None, None, None, None, None, None, errors
 
     check_future_date = date_filter_field != "opening_date"
 
@@ -25,7 +25,7 @@ def validate_dates(args, consignment_browse=False):
         args.get("date_from_day"),
         args.get("date_from_month"),
         args.get("date_from_year"),
-        "`Date from`",
+        "‘Date from’",
         check_future_date,
     )
     if not date_from_errs and (from_day or from_month or from_year):
@@ -37,7 +37,7 @@ def validate_dates(args, consignment_browse=False):
         args.get("date_to_day"),
         args.get("date_to_month"),
         args.get("date_to_year"),
-        "`Date to`",
+        "‘Date to’",
         check_future_date,
     )
     if not date_to_errs and (to_day or to_month or to_year):
@@ -57,20 +57,21 @@ def validate_dates(args, consignment_browse=False):
             date_to = date(to_year, to_month, to_day)
         if date_from and date_to and date_from > date_to:
             formatted_date_to = date_to.strftime(PYTHON_DATE_FORMAT)
-            err_str = f"`Date from` must be the same as or before ‘{formatted_date_to}’"
+            err_str = f"‘Date from’ must be the same as or before ‘{formatted_date_to}’"
             errors["date_from"].append(err_str)
 
     return from_day, from_month, from_year, to_day, to_month, to_year, errors
 
 
 def complete_date(day, month, year, from_or_to, check_future_date):
-    if not (day and month) and year:
+
+    if (not bool(day) and not bool(month)) and bool(year):
         month = 1 if from_or_to == "from" else 12
         day, month, year = _complete_day_for_month_and_year(
             month, year, from_or_to, check_future_date
         )
 
-    if not day and month and year:
+    if not bool(day) and bool(month) and bool(year):
         day, month, year = _complete_day_for_month_and_year(
             month, year, from_or_to, check_future_date
         )
@@ -81,11 +82,13 @@ def complete_date(day, month, year, from_or_to, check_future_date):
 def _complete_day_for_month_and_year(
     month, year, from_or_to, check_future_date
 ):
-    day = calendar.monthrange(year, month)[0 if from_or_to == "from" else -1]
+
+    day = 1 if from_or_to == "from" else calendar.monthrange(year, month)[1]
     new_date = date(year, month, day)
+
     if check_future_date:
         today = date.today()
-        if today > new_date:
+        if today < new_date:
             day, month, year = today.day, today.month, today.year
     return day, month, year
 
@@ -122,7 +125,7 @@ def validate_date(  # noqa: C901
             day,
             month,
             year,
-            [(f"{date_field_name} Year must be in full")],
+            [f"{date_field_name} year must be in full"],
         )
 
     if not month:
@@ -141,14 +144,14 @@ def validate_date(  # noqa: C901
             day,
             month,
             year,
-            [f"{date_field_name} must include a valid month"],
+            [f"{date_field_name} must include a month"],
         )
     if not _valid_month(month):
         return (
             day,
             month,
             year,
-            [f"{date_field_name} must include a valid month"],
+            [f"{date_field_name} must include a month"],
         )
 
     if not day:
@@ -204,15 +207,3 @@ def _get_last_day_of_month(month, year):
         last_day = 30
 
     return last_day
-
-
-# def format_date_elements_to_have_trailing_zeros_for_ui(day, month, year):
-#     day_var = int(
-#         day.rjust(2, "0") if len(str(day)) == 1 else day if day else 0 * 2
-#     )
-#     month_var = int(
-#         month.rjust(2, "0")
-#         if len(str(month)) == 1
-#         else month if month else 0 * 2
-#     )
-#     year_var = int(year.ljust(4, "0") if year and len(str(year)) > 0 else 0 * 4)
