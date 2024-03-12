@@ -3,31 +3,37 @@
 {% with dict = breadcrumbs %}
     {% include "breadcrumb.html" %}
 {% endwith %}
-<div class="govuk-grid-column-two-thirds">
-    <table class="govuk-table govuk-table--results-summary">
-        <thead class="govuk-table__head">
-            <tr class="govuk-table__row govuk-!-font-size-14">
-                <th scope="col"
-                    class="govuk-table__header govuk-table__header--results-summary">
-                    Results found within each Transferring body
-                </th>
-                <th scope="col"
-                    class="govuk-table__header  govuk-table__header--results-summary">Records found</th>
-            </tr>
-        </thead>
-        <tbody class="govuk-table__body">
-            {% for record in results %}
-                <tr class="govuk-table__row">
-                    <td class="govuk-table__cell govuk-table__cell--results-summary">
-                        <a href="{{ url_for('main.search_transferring_body', _id=record['transferring_body_id'] , query=filters['query']) }}">{{ record['transferring_body'] }}</a>
-                    </td>
-                    <td class="govuk-table__cell govuk-body govuk-table__cell--record-results">{{ record['records_held'] }}</td>
+{% if num_records_found > 0 %}
+    <div class="govuk-grid-column-two-thirds">
+        <table class="govuk-table govuk-table--results-summary">
+            <thead class="govuk-table__head">
+                <tr class="govuk-table__row govuk-!-font-size-14">
+                    <th scope="col"
+                        class="govuk-table__header govuk-table__header--results-summary">
+                        Results found within each Transferring body
+                    </th>
+                    <th scope="col"
+                        class="govuk-table__header  govuk-table__header--results-summary">Records found</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-<!-- PAGINATION -->
-{% with view_name='main.search_results_summary' %}
-    {% include "pagination.html" %}
-{% endwith %}
+            </thead>
+            <tbody class="govuk-table__body">
+                {% for record in results %}
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__cell--results-summary">
+                            <a href="{{ url_for('main.search_transferring_body', _id=record['transferring_body_id'] , query=filters['query']) }}">{{ record['transferring_body'] }}</a>
+                        </td>
+                        <td class="govuk-table__cell govuk-body govuk-table__cell--record-results">{{ record['records_held'] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- PAGINATION -->
+    {% with view_name='main.search_results_summary' %}
+        {% include "pagination.html" %}
+    {% endwith %}
+{% else %}
+    {% with view_type = "search" %}
+        {% include "no-results-found.html" %}
+    {% endwith %}
+{% endif %}
