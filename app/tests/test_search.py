@@ -1343,28 +1343,32 @@ class TestSearchTransferringBody:
                                 <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
                                 <div class="ayr-filter-tags">
                                         <div class="search-term">
-                                            <button type="submit"
+                                            <button type="button"
                                             class="button-search-term"
                                             data-module="search-term-button">
-                                        <a href="{self.route_url}/{transferring_body_id}?query={term2}">{term1}</a>
+                                                <a href="{self.route_url}/{transferring_body_id}?query={term2}">
+                                                    {term1}
+                                                    <img src="/assets/image/cancel-filters.svg"
+                                                    height="30px"
+                                                    width="30px"
+                                                    class="close-icon"
+                                                    alt="">
+                                                </a>
                                             </button>
-                                            <img src="/assets/image/cancel-filters.svg"
-                                            height="1rem"
-                                            width="1rem"
-                                            class="close-icon"
-                                            alt="">
                                         </div>
                                         <div class="search-term">
-                                            <button type="submit"
+                                            <button type="button"
                                             class="button-search-term"
                                             data-module="search-term-button">
-                                            <a href="{self.route_url}/{transferring_body_id}?query={term1}">{term2}</a>
+                                                <a href="{self.route_url}/{transferring_body_id}?query={term1}">
+                                                    {term2}
+                                                    <img src="/assets/image/cancel-filters.svg"
+                                                        height="30px"
+                                                        width="30px"
+                                                        class="close-icon"
+                                                        alt="">
+                                                </a>
                                             </button>
-                                            <img src="/assets/image/cancel-filters.svg"
-                                            height="1rem"
-                                            width="1rem"
-                                            class="close-icon"
-                                            alt="">
                                         </div>
                                 </div>
                             </div>
@@ -1413,40 +1417,46 @@ class TestSearchTransferringBody:
 
         search_filter_html = f"""<div class="ayr-filter-tags">
                                         <div class="search-term">
-                                            <button type="submit"
+                                            <button type="button"
                                             class="button-search-term"
                                             data-module="search-term-button">
-                                    <a href="{self.route_url}/{transferring_body_id}?query={term2},{term3}">{term1}</a>
-                                            </button>
+                                    <a href="{self.route_url}/{transferring_body_id}?query={term2},{term3}">
+                                            {term1}
                                             <img src="/assets/image/cancel-filters.svg"
-                                            height="1rem"
-                                            width="1rem"
+                                            height="30px"
+                                            width="30px"
                                             class="close-icon"
                                             alt="">
+                                            </a>
+                                            </button>
                                         </div>
                                         <div class="search-term">
-                                            <button type="submit"
+                                            <button type="button"
                                             class="button-search-term"
                                             data-module="search-term-button">
-                                    <a href="{self.route_url}/{transferring_body_id}?query={term1},{term3}">{term2}</a>
-                                            </button>
+                                    <a href="{self.route_url}/{transferring_body_id}?query={term1},{term3}">
+                                            {term2}
                                             <img src="/assets/image/cancel-filters.svg"
-                                            height="1rem"
-                                            width="1rem"
+                                            height="30px"
+                                            width="30px"
                                             class="close-icon"
                                             alt="">
+                                            </a>
+                                            </button>
                                         </div>
                                         <div class="search-term">
-                                            <button type="submit"
+                                            <button type="button"
                                             class="button-search-term"
                                             data-module="search-term-button">
-                                    <a href="{self.route_url}/{transferring_body_id}?query={term1},{term2}">{term3}</a>
-                                            </button>
+                                    <a href="{self.route_url}/{transferring_body_id}?query={term1},{term2}">
+                                            {term3}
                                             <img src="/assets/image/cancel-filters.svg"
-                                            height="1rem"
-                                            width="1rem"
+                                            height="30px"
+                                            width="30px"
                                             class="close-icon"
-                                            alt="">"""
+                                            alt="">
+                                            </a>
+                                            </button>"""
 
         assert_contains_html(
             search_filter_html,

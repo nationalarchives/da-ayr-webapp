@@ -50,6 +50,7 @@
   border: none;
   text-decoration: none;
   background-color: inherit;
+  padding: 0;
 
   :hover {
     background-color: #0b0c0c;
@@ -59,7 +60,7 @@
     border: none;
     text-decoration: none;
     color: #0b0c0c;
-    font-size: 1rem;
+    font-size: 1.125rem;
 
     :visited {
       color: #0b0c0c;
@@ -223,10 +224,10 @@ a.govuk-link {
 
 .close-icon {
   fill: black;
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 1.5rem;
+  height: 1.5rem;
   cursor: pointer;
-  padding-left: 3px;
+  vertical-align: middle;
 }
 
 .ayr-filter-tags {
