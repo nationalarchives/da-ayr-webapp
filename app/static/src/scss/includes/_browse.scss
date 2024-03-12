@@ -74,12 +74,6 @@
       font-size: 1rem;
     }
   }
-
-  &-summary-list__row__browse-grid-list {
-    @include on-mobile {
-      display: none;
-    }
-  }
 }
 
 .browse {
@@ -124,7 +118,7 @@
   }
 
   &__sort-container {
-    margin-top: 3rem;
+    margin-top: 2rem;
 
     @include on-mobile {
       margin-top: 2rem;
@@ -305,11 +299,72 @@
   }
 }
 
+.govuk-table__row__browse--mobile {
+  display: none;
+}
+
+.govuk-details {
+  display: none;
+}
+
 // MOBILE STYLES
 
 @media screen and (width <=810px) {
-  .desktop {
+  .govuk-grid-column-one-third {
+    &--browse-all-filters {
+      order: 1;
+      padding: 0 15px 0 0 !important;
+      width: auto;
+      display: block;
+      margin-top: 1.5rem;
+    }
+
+    &--consignment-filters {
+      order: 1;
+      padding: 0 15px 0 0 !important;
+      width: auto;
+      display: block;
+      margin-top: 1.5rem;
+    }
+  }
+
+  .govuk-details {
+    display: block;
+  }
+
+  .browse-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .browse-grid--mobile-table {
+    order: 2;
+    width: auto;
+  }
+
+  .browse__sort-container {
+    margin-top: 0;
+  }
+
+  .browse__table__mobile--hidden {
     display: none;
+  }
+
+  .govuk-table__row__browse--mobile {
+    display: table-row;
+  }
+
+  .browse__mobile-table__top-row {
+    border-bottom: none;
+  }
+
+  .browse__mobile-table__bottom-row {
+    border-bottom: 1px solid #b1b4b6;
+    max-width: 10rem;
+  }
+
+  .mobile-pagination {
+    order: 3;
   }
 
   .mobile {
@@ -323,6 +378,7 @@
   .govuk-button__search-button {
     width: 50%;
     margin-bottom: 1rem;
+    order: 4;
   }
 
   .browse__body {
@@ -353,34 +409,44 @@
   }
 
   .search__container {
-    display: flex;
+    display: block;
     align-items: center;
     justify-content: center;
     background-color: #f3f2f1;
     width: 100%;
     padding: 0;
-    position: absolute;
     left: 0;
     right: 0;
   }
 
-  .mobile__search__container-block {
-    height: 16rem;
+  .search__container__content {
+    width: 93vw;
+    margin: -15px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    background-color: #f3f2f1;
   }
 
-  .search__container__content {
-    width: 90vw;
+  .search__heading {
+    order: 0;
+    margin-bottom: 0.3rem;
+    width: fit-content;
+  }
+
+  #search-input {
+    order: 2;
+  }
+
+  .govuk-body-s {
+    order: 3;
+    align-self: flex-start;
   }
 
   .mobile__search__text {
     width: 80vw;
     margin-bottom: 0.5rem;
     margin-top: 0.3rem;
-  }
-
-  .search__heading {
-    margin-bottom: 0.3rem;
-    width: fit-content;
   }
 
   .browse__available__text {
@@ -411,106 +477,12 @@
     text-align: right;
   }
 
-  .empty-cell {
-    visibility: hidden;
-  }
-
-  .filters-form {
-    display: none;
-    float: none;
-    padding: 0;
-  }
-
-  .mobile-filters {
-    display: block;
-    margin-top: 1.5rem;
-  }
-
-  .mobile-filters-form {
-    display: block;
+  .govuk-button__sort-container-update-button {
     width: 100%;
   }
 
-  .govuk-button__filters-form-apply-button {
-    width: 50%;
-  }
-
-  .govuk-button__sort-container-update-button {
-    width: 50%;
-  }
-
-  .sort-container__form {
-    display: none;
-  }
-
-  .mobile-sort {
-    display: block;
-  }
-
-  .mobile-details {
-    display: block;
-  }
-
   .browse-details {
-    display: none;
-  }
-
-  .govuk-mobile-details_text {
-    border-left: none;
-    padding: 0;
-  }
-
-  .govuk-mobile-details__summary {
-    background: #f3f2f1;
-    background-color: #f3f2f1;
-    box-shadow: none;
-    color: black;
-    height: 2rem;
-    margin-bottom: -1rem;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem;
-  }
-
-  .govuk-mobile-details__summary-text {
-    font-size: 1.3rem;
-    font-weight: 700;
-    padding: 10px 2px 2px 10px;
-    align-items: center;
-  }
-
-  .govuk-details__summary:focus {
-    box-shadow: #f3f2f1;
-  }
-
-  .govuk-mobile-details__summary:focus {
-    background-color: #f3f2f1;
-    box-shadow: #f3f2f1;
-    color: black;
-  }
-
-  .browse-filter__icon {
-    float: right;
-  }
-
-  .browse-filter-container {
-    padding: 10px;
-    min-width: 0;
-  }
-
-  .filters-form__series__container {
-    padding: 10px;
-    min-width: 0;
-  }
-
-  .filters-form__consignment-ref__container {
-    padding: 10px;
-    min-width: 0;
-  }
-
-  .filters-form__date__container {
-    padding: 10px;
-    min-width: 0;
+    display: block;
   }
 
   thead {

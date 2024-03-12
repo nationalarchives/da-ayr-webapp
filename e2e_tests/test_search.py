@@ -119,7 +119,7 @@ class TestSearchTransferringBody:
         authenticated_page.goto(
             f"{self.route_url}/{self.transferring_body_id}?query="
         )
-        authenticated_page.fill("#searchInput", "dtp")
+        authenticated_page.fill("#search-input", "dtp")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
         authenticated_page.get_by_label("Sort by").select_option(
             "consignment_reference-desc"
@@ -170,13 +170,13 @@ class TestSearchTransferringBody:
         authenticated_page.goto(
             f"{self.route_url}/{self.transferring_body_id}?query="
         )
-        authenticated_page.fill("#searchInput", "dtp,tdr-2023-tmt")
+        authenticated_page.fill("#search-input", "dtp,tdr-2023-tmt")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
 
         expect(
             authenticated_page.locator("text=Search for digital records")
         ).to_be_visible()
-        expect(authenticated_page.locator("#searchInput")).to_have_value("dtp")
+        expect(authenticated_page.locator("#search-input")).to_have_value("dtp")
 
         table = authenticated_page.locator("table")
 
@@ -212,7 +212,7 @@ class TestSearchTransferringBody:
         authenticated_page.goto(
             f"{self.route_url}/{self.transferring_body_id}?query="
         )
-        authenticated_page.fill("#searchInput", "dtp")
+        authenticated_page.fill("#search-input", "dtp")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
         assert (
             authenticated_page.locator(".govuk-pagination").first.get_attribute(
@@ -227,7 +227,7 @@ class TestSearchTransferringBody:
         authenticated_page.goto(
             f"{self.route_url}/{self.transferring_body_id}?query="
         )
-        authenticated_page.fill("#searchInput", "dtp")
+        authenticated_page.fill("#search-input", "dtp")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
 
         pagination_element = authenticated_page.query_selector(
@@ -241,7 +241,7 @@ class TestSearchTransferringBody:
         authenticated_page.goto(
             f"{self.route_url}/{self.transferring_body_id}?query="
         )
-        authenticated_page.fill("#searchInput", "dtp")
+        authenticated_page.fill("#search-input", "dtp")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
 
         assert (
@@ -271,7 +271,7 @@ class TestSearchTransferringBody:
         authenticated_page.goto(
             f"{self.route_url}/{self.transferring_body_id}?query="
         )
-        authenticated_page.fill("#searchInput", "dtp")
+        authenticated_page.fill("#search-input", "dtp")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
 
         page_links = authenticated_page.locator(".govuk-pagination__link").all()
@@ -295,7 +295,7 @@ class TestSearchTransferringBody:
         authenticated_page.goto(
             f"{self.route_url}/{self.transferring_body_id}?query="
         )
-        authenticated_page.fill("#searchInput", "dtp")
+        authenticated_page.fill("#search-input", "dtp")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
 
         assert (
@@ -325,7 +325,7 @@ class TestSearchTransferringBody:
         authenticated_page.goto(
             f"{self.route_url}/{self.transferring_body_id}?query="
         )
-        authenticated_page.fill("#searchInput", "dtp")
+        authenticated_page.fill("#search-input", "dtp")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
 
         assert (
@@ -354,7 +354,7 @@ class TestSearchTransferringBody:
         authenticated_page.goto(
             f"{self.route_url}/{self.transferring_body_id}?query="
         )
-        authenticated_page.fill("#searchInput", "dtp")
+        authenticated_page.fill("#search-input", "dtp")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
 
         assert (
@@ -380,7 +380,7 @@ class TestSearchTransferringBody:
         authenticated_page.goto(
             f"{self.route_url}/{self.transferring_body_id}?query="
         )
-        authenticated_page.fill("#searchInput", "dtp")
+        authenticated_page.fill("#search-input", "dtp")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
 
         assert (
@@ -406,7 +406,7 @@ class TestSearchTransferringBody:
         authenticated_page.goto(
             f"{self.route_url}/{self.transferring_body_id}?query="
         )
-        authenticated_page.fill("#searchInput", "dtp")
+        authenticated_page.fill("#search-input", "dtp")
         authenticated_page.get_by_role("button").get_by_text("Search").click()
 
         assert (

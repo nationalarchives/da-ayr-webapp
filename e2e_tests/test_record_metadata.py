@@ -33,8 +33,8 @@ def test_back_link(authenticated_page: Page):
     Then the user should be navigated back to the results page
     """
     authenticated_page.goto("/search")
-    authenticated_page.locator("#searchInput").click()
-    authenticated_page.locator("#searchInput").fill("pptx")
+    authenticated_page.locator("#search-input").click()
+    authenticated_page.locator("#search-input").fill("pptx")
     authenticated_page.get_by_role("button", name="Search").click()
     expect(authenticated_page.get_by_text("record(s) found")).to_be_visible()
     authenticated_page.get_by_role(
@@ -53,8 +53,8 @@ def test_searched_record_metadata(authenticated_page: Page):
         "File name"
     """
     authenticated_page.goto("/search")
-    authenticated_page.locator("#searchInput").click()
-    authenticated_page.locator("#searchInput").fill("pptx")
+    authenticated_page.locator("#search-input").click()
+    authenticated_page.locator("#search-input").fill("pptx")
     authenticated_page.get_by_role("button", name="Search").click()
     expect(authenticated_page.get_by_text("record(s) found")).to_be_visible()
     authenticated_page.get_by_role(

@@ -17,7 +17,7 @@
 {% endwith %}
 <form action="{{ url_for('main.browse_series', _id=request.view_args['_id']) }}"
       method="get">
-    {% if view_type == "desktop" %}
+    <div class="browse-layout">
         <!-- SORT -->
         <div class="govuk-form-group sort-container__form">
             {% with dict = sorting_list %}
@@ -25,13 +25,15 @@
             {% endwith %}
         </div>
         <!-- TABLE -->
-        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
+        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
             <table class="govuk-table browse-grid__table" id="tbl_result">
                 <thead class="govuk-table__head">
                     <tr class="govuk-table__row">
                         <th scope="col"
-                            class="govuk-table__header browse-grid__key__transferring-body">Transferring body</th>
-                        <th scope="col" class="govuk-table__header">Series</th>
+                            class="govuk-table__header browse-grid__key__transferring-body browse__table__mobile--hidden">
+                            Transferring body
+                        </th>
+                        <th scope="col" class="govuk-table__header browse__table__mobile--hidden">Series</th>
                         <th scope="col" class="govuk-table__header browse__table__right-align">Consignment transferred</th>
                         <th scope="col" class="govuk-table__header browse__table__right-align">Records in consignment</th>
                         <th scope="col" class="govuk-table__header browse__table__right-align">Consignment reference</th>
@@ -40,8 +42,8 @@
                 <tbody class="govuk-table__body">
                     {% for record in results %}
                         <tr class="govuk-table__row">
-                            <td class="govuk-table__cell">{{ record["transferring_body"] }}</td>
-                            <td class="govuk-table__cell">{{ record["series"] }}</td>
+                            <td class="govuk-table__cell browse__table__mobile--hidden">{{ record["transferring_body"] }}</td>
+                            <td class="govuk-table__cell browse__table__mobile--hidden">{{ record["series"] }}</td>
                             <td class="govuk-table__cell browse__table__right-align">{{ record["last_record_transferred"] }}</td>
                             <td class="govuk-table__cell browse__table__right-align">{{ record["records_held"] }}</td>
                             <td class="govuk-table__cell">
@@ -75,82 +77,11 @@
             </div>
         </div>
         <!-- PAGINATION -->
-        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
-            {% with view_name= 'main.browse_series', id = request.view_args['_id'] %}
+        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds mobile-pagination">
+            {% with view_name='main.browse_series', id=request.view_args['_id'] %}
                 {% include "pagination.html" %}
             {% endwith %}
         </div>
         <!-- END PAGINATION -->
-    {% else %}
-        <!-- MOBILE FILTERS -->
-        <div class="mobile-filters">
-            <details class="govuk-details">
-                <summary class="govuk-mobile-details__summary">
-                    <span class="govuk-mobile-details__summary-text">
-                        Filter
-                        <img src="{{ url_for('static', filename='image/filter-icon.svg') }}"
-                             height="32px"
-                             width="32px"
-                             class="browse-filter__icon"
-                             alt="filter-icon">
-                    </span>
-                </summary>
-                <div class="govuk-details__text govuk-mobile-details_text">
-                    <div class="govuk-grid-column-one-third filters-form mobile-filters-form">
-                        <div class="filters-form__date__container">
-                            <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Date consignment transferred</h3>
-                            {% include "date-filters.html" %}
-                            <div class="filters-form__buttons">
-                                <button type="submit"
-                                        class="govuk-button govuk-button__browse-all-filters-form-apply-button"
-                                        data-module="govuk-button">Apply filters</button>
-                                <a class="govuk-link govuk-link--browse-all-filter"
-                                   href="{{ url_for('main.browse_series',_id = request.view_args['_id'], sort=request.args.get('sort')) }}">Clear filters</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </details>
-        </div>
-        <!-- MOBILE SORT -->
-        <div class="govuk-form-group sort-container__form mobile-sort">
-            {% with dict = sorting_list %}
-                {% include "sorting-list.html" %}
-            {% endwith %}
-        </div>
-        <!-- MOBILE TABLE -->
-        <table class="govuk-table govuk-mobile-table" id="tbl_result">
-            <thead class="govuk-table__head govuk-mobile-table__head-border">
-                <tr class="govuk-table__row">
-                    <th scope="col" class="govuk-table__header">Consignment transferred date</th>
-                    <th scope="col" class="govuk-table__header govuk-table__header__right">Records in consignment</th>
-                    <th scope="col" class="govuk-table__header govuk-table__header__right">Consignment reference</th>
-                </tr>
-            </thead>
-            <tbody class="govuk-table__body">
-                {% for record in results %}
-                    <tr class="govuk-table__row">
-                        <td class="govuk-table__cell">
-                            <div>{{ record["last_record_transferred"] }}</div>
-                        </td>
-                        <td class="govuk-table__cell">
-                            <div class="right-align">{{ record["records_held"] }}</div>
-                        </td>
-                        <td class="govuk-table__cell">
-                            <div class="right-align">
-                                <a href="{{ url_for('main.browse_consignment', _id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
-                            </div>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <!-- PAGINATION -->
-        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
-            {% with view_name='main.browse_series', id = request.view_args['_id'] %}
-                {% include "pagination.html" %}
-            {% endwith %}
-        </div>
-        <!-- END PAGINATION -->
-    {% endif %}
+    </div>
 </form>

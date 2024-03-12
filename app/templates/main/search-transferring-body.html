@@ -7,155 +7,134 @@
 {% if breadcrumb_values[3] %}
     {%- set _ = breadcrumbs.update({'search_terms': breadcrumb_values[3]["search_terms"]}) -%}
 {% endif %}
-{% extends "base.html" %}
-{%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
-{% block pageTitle %}Dashboard – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
-{% block beforeContent %}{{ super() }}{% endblock %}
-{% block content %}
-    {% set sorting_list = {
-        "Series (A to Z)": "series-asc",
-        "Series (Z to A)": "series-desc",
-        "Consignment reference (most recent)": "consignment_reference-desc",
-        "Consignment reference (oldest)": "consignment_reference-asc",
-        "Title (A to Z)": "file_name-asc",
-        "Title (Z to A)": "file_name-desc",
-        "Record opening (sooner)": "opening_date-desc",
-        "Record opening (later)": "opening_date-asc",
-        "Record status (closed)": "closure_type-asc",
-        "Record status (open)": "closure_type-desc"
-    } %}
-    <!-- SEARCH  -->
-    <form action="{{ url_for('main.search_transferring_body', _id = request.view_args['_id']) }}"
-          method="get">
-        <div class="govuk-grid-row govuk-grid-row--search">
-            {{ super() }}
-            <div class="govuk-width-container">
-                <div class="govuk-grid-row">{% include "top-search.html" %}</div>
-                <div class="mobile__search__container-block"></div>
-                {% if filters["query"] | length >0 %}
-                    <h2 class="govuk-heading-m">Records found {{ num_records_found }}</h2>
-                    <p class="govuk-body browse__body">You are viewing</p>
-                    <!-- BREAD CRUMB -->
-                    {% with dict = breadcrumbs %}
-                        {% include "breadcrumb.html" %}
-                    {% endwith %}
-                    <!-- SORT -->
-                    <div class="govuk-form-group sort-container__form">
-                        {% with dict = sorting_list %}
-                            {% include "sorting-list.html" %}
-                        {% endwith %}
-                    </div>
-                    <div class="govuk-grid-row">
-                        <!-- TABLE -->
-                        <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--search-results">
-                            <table class="govuk-table">
-                                <thead class="govuk-table__head">
-                                    <tr class="govuk-table__row">
-                                        <th scope="col"
-                                            class="govuk-table__header govuk-table__header--search-header">Series</th>
-                                        <th scope="col"
-                                            class="govuk-table__header govuk-table__header--search-header">
-                                            Consignment Reference
-                                        </th>
-                                        <th scope="col"
-                                            class="govuk-table__header govuk-table__header--search-header govuk-table__header--search-header-title">
-                                            Title
-                                        </th>
-                                        <th scope="col"
-                                            class="govuk-table__header govuk-table__header--search-header">Status</th>
-                                        <th scope="col"
-                                            class="govuk-table__header govuk-table__header--search-header">
-                                            Record opening
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="govuk-table__body">
-                                    {% for record in results %}
-                                        <tr class="govuk-table__row">
-                                            <td class="govuk-table__cell govuk-table__cell--search-results">
-                                                <a href="{{ url_for('main.browse_series', _id=record['series_id']) }}">{{ record["series"] }}</a>
-                                            </td>
-                                            <td class="govuk-table__cell govuk-table__cell--search-results govuk-table__cell--search-results-no-wrap">
-                                                <a href="{{ url_for('main.browse_consignment', _id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
-                                            </td>
-                                            <td class="govuk-table__cell govuk-table__cell--search-results">
-                                                <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
-                                            </td>
-                                            <td class="govuk-table__cell govuk-table__cell--search-results">
-                                                <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
-                                                    {{ record['closure_type'] }}
-                                                </strong>
-                                            </td>
-                                            <td class="govuk-table__cell govuk-table__cell--search-results">
-                                                {% if record['opening_date'] %}
-                                                    {{ record['opening_date'] }}
-                                                {% else %}
-                                                    -
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                            <!-- PAGINATION -->
-                            {% with view_name='main.search_transferring_body', id = request.view_args['_id'] %}
-                                {% include "pagination.html" %}
-                            {% endwith %}
+{% set sorting_list = {
+    "Series (A to Z)": "series-asc",
+    "Series (Z to A)": "series-desc",
+    "Consignment reference (most recent)": "consignment_reference-desc",
+    "Consignment reference (oldest)": "consignment_reference-asc",
+    "Title (A to Z)": "file_name-asc",
+    "Title (Z to A)": "file_name-desc",
+    "Record opening (sooner)": "opening_date-desc",
+    "Record opening (later)": "opening_date-asc",
+    "Record status (closed)": "closure_type-asc",
+    "Record status (open)": "closure_type-desc"
+} %}
+<!-- BREAD CRUMB -->
+{% with dict = breadcrumbs %}
+    {% include "breadcrumb.html" %}
+{% endwith %}
+<form action="{{ url_for('main.search_transferring_body', _id = request.view_args['_id']) }}"
+      method="get">
+    <input type="hidden" name="query" value="{{ filters['query'] }}">
+    <!-- SORT -->
+    <div class="govuk-form-group sort-container__form">
+        {% with dict = sorting_list %}
+            {% include "sorting-list.html" %}
+        {% endwith %}
+    </div>
+    <div class="govuk-grid-row">
+        <!-- TABLE -->
+        <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--search-results">
+            <table class="govuk-table">
+                <thead class="govuk-table__head">
+                    <tr class="govuk-table__row">
+                        <th scope="col"
+                            class="govuk-table__header govuk-table__header--search-header">Series</th>
+                        <th scope="col"
+                            class="govuk-table__header govuk-table__header--search-header">Consignment Reference</th>
+                        <th scope="col"
+                            class="govuk-table__header govuk-table__header--search-header govuk-table__header--search-header-title">
+                            Title
+                        </th>
+                        <th scope="col"
+                            class="govuk-table__header govuk-table__header--search-header">Status</th>
+                        <th scope="col"
+                            class="govuk-table__header govuk-table__header--search-header">Record opening</th>
+                    </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                    {% for record in results %}
+                        <tr class="govuk-table__row">
+                            <td class="govuk-table__cell govuk-table__cell--search-results">
+                                <a href="{{ url_for('main.browse_series', _id=record['series_id']) }}">{{ record["series"] }}</a>
+                            </td>
+                            <td class="govuk-table__cell govuk-table__cell--search-results govuk-table__cell--search-results-no-wrap">
+                                <a href="{{ url_for('main.browse_consignment', _id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
+                            </td>
+                            <td class="govuk-table__cell govuk-table__cell--search-results">
+                                <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                            </td>
+                            <td class="govuk-table__cell govuk-table__cell--search-results">
+                                <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
+                                    {{ record['closure_type'] }}
+                                </strong>
+                            </td>
+                            <td class="govuk-table__cell govuk-table__cell--search-results">
+                                {% if record['opening_date'] %}
+                                    {{ record['opening_date'] }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <!-- PAGINATION -->
+            {% with view_name='main.search_transferring_body', id = request.view_args['_id'] %}
+                {% include "pagination.html" %}
+            {% endwith %}
+        </div>
+        <!-- FILTER TRAY -->
+        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters">
+            <div class="search-all-filter-container">
+                <div class="browse-filter__header">
+                    <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
+                </div>
+                <div class="govuk-form-group govuk-form-group--search-all-filter">
+                    <label class="govuk-label" for="search_filter"></label>
+                    <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
+                           id="search_filter"
+                           name="search_filter"
+                           type="text">
+                </div>
+                <div class="search-form__buttons">
+                    <button type="submit"
+                            class="govuk-button govuk-button__search-filters-form-apply-button"
+                            data-module="govuk-button">Apply</button>
+                    <a class="govuk-link govuk-link--transferring-filter"
+                       href="{{ url_for('main.search_transferring_body', _id = request.view_args['_id']) }}">Clear all</a>
+                </div>
+                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
+                <div class="ayr-filter-tags">
+                    {% for i in range(search_terms | length) %}
+                        <div class="search-term">
+                            {% if i == 0 %}
+                                {% set new_query = filters['query'].replace(search_terms[i] ~ ',','') %}
+                            {% else %}
+                                {% set new_query = filters['query'].replace(',' ~ search_terms[i],'') %}
+                            {% endif %}
+                            {% if search_terms | length == 1 %}
+                                {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id']) %}
+                            {% else %}
+                                {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id'], query=new_query) %}
+                            {% endif %}
+                            <button type="button"
+                                    class="button-search-term"
+                                    data-module="search-term-button">
+                                <a href="{{ search_term_url }}">
+                                    {{ search_terms[i] }}
+                                    <img src="{{ url_for('static', filename= 'image/cancel-filters.svg') }}"
+                                         height="30px"
+                                         width="30px"
+                                         class="close-icon"
+                                         alt="">
+                                </a>
+                            </button>
                         </div>
-                        <!-- FILTER TRAY -->
-                        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters">
-                            <div class="search-all-filter-container">
-                                <div class="browse-filter__header">
-                                    <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
-                                </div>
-                                <div class="govuk-form-group govuk-form-group--search-all-filter">
-                                    <label class="govuk-label" for="search_filter"></label>
-                                    <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
-                                           id="search_filter"
-                                           name="search_filter"
-                                           type="text">
-                                </div>
-                                <div class="search-form__buttons">
-                                    <button type="submit"
-                                            class="govuk-button govuk-button__search-filters-form-apply-button"
-                                            data-module="govuk-button">Apply</button>
-                                    <a class="govuk-link govuk-link--transferring-filter"
-                                       href="{{ url_for('main.search_transferring_body', _id = request.view_args['_id']) }}">Clear all</a>
-                                </div>
-                                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
-                                <div class="ayr-filter-tags">
-                                    {% for i in range(search_terms | length) %}
-                                        <div class="search-term">
-                                            {% if i == 0 %}
-                                                {% set new_query = filters['query'].replace(search_terms[i] ~ ',','') %}
-                                            {% else %}
-                                                {% set new_query = filters['query'].replace(',' ~ search_terms[i],'') %}
-                                            {% endif %}
-                                            {% if search_terms | length == 1 %}
-                                                {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id']) %}
-                                            {% else %}
-                                                {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id'], query=new_query) %}
-                                            {% endif %}
-                                            <button type="button"
-                                                    class="button-search-term"
-                                                    data-module="search-term-button">
-                                                <a href="{{ search_term_url }}">
-                                                    {{ search_terms[i] }}
-                                                    <img src="{{ url_for('static', filename= 'image/cancel-filters.svg') }}"
-                                                         height="30px"
-                                                         width="30px"
-                                                         class="close-icon"
-                                                         alt="">
-                                                </a>
-                                            </button>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
-    </form>
-{% endblock %}
+    </div>
+</form>

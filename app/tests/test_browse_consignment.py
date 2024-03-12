@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
-from app.tests.test_browse import verify_data_rows
+from app.tests.test_browse import verify_consignment_data_rows
 
 
 def verify_consignment_view_header_row(data):
@@ -337,4 +337,4 @@ class TestConsignment:
         assert response.status_code == 200
 
         verify_consignment_view_header_row(response.data)
-        verify_data_rows(response.data, expected_results)
+        verify_consignment_data_rows(response.data, expected_results)

@@ -165,19 +165,18 @@ class TesthSearchResultsSummary:
         <p class="govuk-body search__heading">Search for digital records</p>
         <form method="get" action="/search">
             <div class="govuk-form-group govuk-form-group__search-form">
-                <label for="searchInput"></label>
                 <input class="govuk-input govuk-!-width-three-quarters"
-                       id="searchInput"
+                       id="search-input"
                        name="query"
                        type="text"
                        value="">
                 <button class="govuk-button govuk-button__search-button"
                         data-module="govuk-button"
                         type="submit">Search</button>
-            </div>
             <p class="govuk-body-s">
                 Search by file name, transferring body, series or consignment reference.
             </p>
+            </div>
         </form>
     </div>
 </div>"""
@@ -386,19 +385,18 @@ class TestSearchTransferringBody:
         <p class="govuk-body search__heading">Search for digital records</p>
         <form method="get" action="/search">
             <div class="govuk-form-group govuk-form-group__search-form">
-                <label for="searchInput"></label>
                 <input class="govuk-input govuk-!-width-three-quarters"
-                       id="searchInput"
+                       id="search-input"
                        name="query"
                        type="text"
                        value="">
                 <button class="govuk-button govuk-button__search-button"
                         data-module="govuk-button"
                         type="submit">Search</button>
-            </div>
             <p class="govuk-body-s">
                 Search by file name, series or consignment reference.
             </p>
+            </div>
         </form>
     </div>
 </div>"""

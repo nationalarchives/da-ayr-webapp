@@ -35,6 +35,12 @@
       flex-direction: column;
     }
   }
+
+  .search__page {
+    margin-right: 0;
+    margin-left: 0;
+    margin-top: -2rem;
+  }
 }
 
 .govuk-heading-s {
@@ -51,6 +57,7 @@
   text-decoration: none;
   background-color: inherit;
   padding: 0;
+  color: black;
 
   :hover {
     background-color: #0b0c0c;
