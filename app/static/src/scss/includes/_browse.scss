@@ -310,6 +310,24 @@
 // MOBILE STYLES
 
 @media screen and (width <=810px) {
+  .govuk-grid-column-one-third {
+    &--browse-all-filters {
+      order: 1;
+      padding: 0 15px 0 0 !important;
+      width: auto;
+      display: block;
+      margin-top: 1.5rem;
+    }
+
+    &--consignment-filters {
+      order: 1;
+      padding: 0 15px 0 0 !important;
+      width: auto;
+      display: block;
+      margin-top: 1.5rem;
+    }
+  }
+
   .govuk-details {
     display: block;
   }
@@ -317,14 +335,6 @@
   .browse-layout {
     display: flex;
     flex-direction: column;
-  }
-
-  .mobile-filters {
-    order: 1;
-    padding: 0 15px 0 0;
-    width: auto;
-    display: block;
-    margin-top: 1.5rem;
   }
 
   .mobile-table {
