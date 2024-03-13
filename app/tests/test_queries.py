@@ -18,6 +18,8 @@ from app.tests.factories import (
 )
 
 per_page = 5
+db_date_format = "%Y-%m-%d"
+python_date_format = "%d/%m/%Y"
 
 
 class TestFuzzySearchTransferringBody:
@@ -218,19 +220,21 @@ class TestGetFileMetadata:
                 "closure_type": record_files[1]["closure_type"].Value,
                 "closure_start_date": str(
                     datetime.strptime(
-                        record_files[1]["closure_start_date"].Value, "%Y-%m-%d"
-                    ).strftime("%d/%m/%Y")
+                        record_files[1]["closure_start_date"].Value,
+                        db_date_format,
+                    ).strftime(python_date_format)
                 ),
                 "closure_period": record_files[1]["closure_period"].Value,
                 "opening_date": str(
                     datetime.strptime(
-                        record_files[1]["opening_date"].Value, "%Y-%m-%d"
-                    ).strftime("%d/%m/%Y")
+                        record_files[1]["opening_date"].Value, db_date_format
+                    ).strftime(python_date_format)
                 ),
                 "date_last_modified": str(
                     datetime.strptime(
-                        record_files[1]["date_last_modified"].Value, "%Y-%m-%d"
-                    ).strftime("%d/%m/%Y")
+                        record_files[1]["date_last_modified"].Value,
+                        db_date_format,
+                    ).strftime(python_date_format)
                 ),
                 "foi_exemption_code": record_files[1][
                     "foi_exemption_code"

@@ -121,6 +121,11 @@
                             <h3 class="govuk-heading-s govuk-heading-s--consignment-filter">Dates</h3>
                             <div class="govuk-form-group govuk-form-group__consignment-form-group">
                                 <fieldset class="govuk-fieldset">
+                                    {% if date_validation_errors %}
+                                        <div class="govuk-form-group">
+                                            {% for key, value in date_validation_errors.items() if key.startswith('date_filter_field') %}{{ value }}{% endfor %}
+                                        </div>
+                                    {% endif %}
                                     <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
                                         <div class="govuk-radios__item">
                                             <input class="govuk-radios__input" id="date_last_modified" name="date_filter_field"

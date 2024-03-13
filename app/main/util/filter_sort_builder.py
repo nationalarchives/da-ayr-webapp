@@ -1,7 +1,7 @@
-def build_filters(args):
+def build_filters(args, date_from, date_to):
     filters = {}
+    filter_items = []
     if args:
-        filter_items = []
         transferring_body = args.get("transferring_body_filter", "").lower()
 
         if transferring_body and transferring_body != "all":
@@ -11,11 +11,12 @@ def build_filters(args):
         if series:
             filter_items.append({"series": series})
 
-        _build_date_range_filter(args, filter_items)
+    if date_from or date_to:
+        _build_date_range_filter(date_from, date_to, filter_items)
 
-        for f in filter_items:
-            for key, value in f.items():
-                filters[key] = value
+    for f in filter_items:
+        for key, value in f.items():
+            filters[key] = value
 
     return filters
 
@@ -37,41 +38,37 @@ def build_sorting_orders(args):
     return sorting_orders
 
 
-def build_browse_consignment_filters(args):
+def build_browse_consignment_filters(args, date_from, date_to):
     filters = {}
+    filter_items = []
+    date_filter_field = args.get("date_filter_field")
     if args:
-        filter_items = []
         record_status = args.get("record_status")
-        date_filter_field = args.get("date_filter_field")
 
         if record_status:
             filter_items.append({"record_status": record_status})
         if date_filter_field:
             filter_items.append({"date_filter_field": date_filter_field})
-            _build_date_range_filter(args, filter_items)
 
-        for f in filter_items:
-            for key, value in f.items():
-                filters[key] = value
+    if date_from or date_to:
+        _build_date_range_filter(date_from, date_to, filter_items)
+
+    for f in filter_items:
+        for key, value in f.items():
+            filters[key] = value
 
     return filters
 
 
-def _build_date_range_filter(args, filter_items):
-    date_from_day = args.get("date_from_day", "")
-    date_from_month = args.get("date_from_month", "")
-    date_from_year = args.get("date_from_year", "")
-    date_from = date_from_day + "/" + date_from_month + "/" + date_from_year
-    date_to_day = args.get("date_to_day", "")
-    date_to_month = args.get("date_to_month", "")
-    date_to_year = args.get("date_to_year", "")
-    date_to = date_to_day + "/" + date_to_month + "/" + date_to_year
+db_date_format = "%Y-%m-%d"
 
-    if (date_from and date_from != "//") and (date_to and date_to != "//"):
-        filter_items.append(
-            {"date_range": {"date_from": date_from, "date_to": date_to}}
-        )
-    elif date_from and date_from != "//":
-        filter_items.append({"date_range": {"date_from": date_from}})
-    elif date_to and date_to != "//":
-        filter_items.append({"date_range": {"date_to": date_to}})
+
+def _build_date_range_filter(date_from, date_to, filter_items):
+    filter_items.append(
+        {
+            "date_from": (
+                date_from.strftime(db_date_format) if date_from else None
+            ),
+            "date_to": date_to.strftime(db_date_format) if date_to else None,
+        }
+    )

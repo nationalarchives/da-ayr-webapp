@@ -38,6 +38,7 @@ from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
 from app.main.forms import CookiesForm
+from app.main.util.date_filters_validator import validate_date_filters
 from app.main.util.filter_sort_builder import (
     build_browse_consignment_filters,
     build_filters,
@@ -119,7 +120,17 @@ def browse():
         for body in Body.query.all():
             transferring_bodies.append(body.Name)
 
-        filters = build_filters(request.args)
+        date_validation_errors = []
+        from_date = None
+        to_date = None
+        date_filters = {}
+
+        if len(request.args) > 0:
+            date_validation_errors, from_date, to_date, date_filters = (
+                validate_date_filters(request.args)
+            )
+
+        filters = build_filters(request.args, from_date, to_date)
         sorting_orders = build_sorting_orders(request.args)
 
         # set default sort
@@ -148,8 +159,10 @@ def browse():
             current_page=page,
             browse_type="browse",
             results=browse_results,
+            date_validation_errors=date_validation_errors,
             transferring_bodies=transferring_bodies,
             filters=filters,
+            date_filters=date_filters,
             sorting_orders=sorting_orders,
             num_records_found=num_records_found,
             query_string_parameters={
@@ -177,7 +190,18 @@ def browse_transferring_body(_id: uuid.UUID):
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
 
     breadcrumb_values = {0: {"transferring_body": Body.query.get(_id).Name}}
-    filters = build_filters(request.args)
+
+    date_validation_errors = []
+    from_date = None
+    to_date = None
+    date_filters = {}
+
+    if len(request.args) > 0:
+        date_validation_errors, from_date, to_date, date_filters = (
+            validate_date_filters(request.args)
+        )
+
+    filters = build_filters(request.args, from_date, to_date)
     sorting_orders = build_sorting_orders(request.args)
 
     # set default sort
@@ -207,8 +231,10 @@ def browse_transferring_body(_id: uuid.UUID):
         current_page=page,
         browse_type="transferring_body",
         results=browse_results,
+        date_validation_errors=date_validation_errors,
         breadcrumb_values=breadcrumb_values,
         filters=filters,
+        date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
         query_string_parameters={
@@ -242,7 +268,17 @@ def browse_series(_id: uuid.UUID):
         2: {"series": series.Name},
     }
 
-    filters = build_filters(request.args)
+    date_validation_errors = []
+    from_date = None
+    to_date = None
+    date_filters = {}
+
+    if len(request.args) > 0:
+        date_validation_errors, from_date, to_date, date_filters = (
+            validate_date_filters(request.args)
+        )
+
+    filters = build_filters(request.args, from_date, to_date)
     sorting_orders = build_sorting_orders(request.args)
 
     # set default sort
@@ -272,8 +308,10 @@ def browse_series(_id: uuid.UUID):
         current_page=page,
         browse_type="series",
         results=browse_results,
+        date_validation_errors=date_validation_errors,
         breadcrumb_values=breadcrumb_values,
         filters=filters,
+        date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
         query_string_parameters={
@@ -310,7 +348,17 @@ def browse_consignment(_id: uuid.UUID):
         4: {"consignment_reference": consignment.ConsignmentReference},
     }
 
-    filters = build_browse_consignment_filters(request.args)
+    date_validation_errors = []
+    from_date = None
+    to_date = None
+    date_filters = {}
+
+    if len(request.args) > 0:
+        date_validation_errors, from_date, to_date, date_filters = (
+            validate_date_filters(request.args, browse_consignment=True)
+        )
+
+    filters = build_browse_consignment_filters(request.args, from_date, to_date)
     sorting_orders = build_sorting_orders(request.args)
 
     # set default sort
@@ -337,8 +385,10 @@ def browse_consignment(_id: uuid.UUID):
         current_page=page,
         browse_type="consignment",
         results=browse_results,
+        date_validation_errors=date_validation_errors,
         breadcrumb_values=breadcrumb_values,
         filters=filters,
+        date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
         query_string_parameters={

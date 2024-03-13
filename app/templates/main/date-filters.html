@@ -1,4 +1,9 @@
 <div class="browse-all-filter-from-dates">
+    {% if date_validation_errors %}
+        <div class="govuk-form-group">
+            {% for err in date_validation_errors['date_from'] %}{{ err }}{% endfor %}
+        </div>
+    {% endif %}
     <p class="govuk-body govuk-body--browse-all-date">Date from</p>
     <fieldset class="govuk-fieldset govuk-fieldset--date-from"
               role="group"
@@ -12,8 +17,9 @@
                            id="date_from_day"
                            name="date_from_day"
                            type="text"
-                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_from'] %}{{ filters['date_range']['date_from'][0:2] }}{% endif %}{% endif %}"
-                           inputmode="numeric">
+                           value="{% if date_filters['from_day'] %}{{ date_filters['from_day'] }}{% endif %}"
+                           inputmode="numeric"
+                           maxlength="2">
                 </div>
             </div>
             <div class="govuk-date-input__item govuk-date-input__item--browse-all">
@@ -24,8 +30,9 @@
                            id="date_from_month"
                            name="date_from_month"
                            type="text"
-                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_from'] %}{{ filters['date_range']['date_from'][3:5] }}{% endif %}{% endif %}"
-                           inputmode="numeric">
+                           value="{% if date_filters['from_month'] %}{{ date_filters['from_month'] }}{% endif %}"
+                           inputmode="numeric"
+                           maxlength="2">
                 </div>
             </div>
             <div class="govuk-date-input__item govuk-date-input__item--browse-all">
@@ -36,14 +43,20 @@
                            id="date_from_year"
                            name="date_from_year"
                            type="text"
-                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_from'] %}{{ filters['date_range']['date_from'][6:10] }}{% endif %}{% endif %}"
-                           inputmode="numeric">
+                           value="{% if date_filters['from_year'] %}{{ date_filters['from_year'] }}{% endif %}"
+                           inputmode="numeric"
+                           maxlength="4">
                 </div>
             </div>
         </div>
     </fieldset>
 </div>
 <div class="browse-all-filter-to-dates">
+    {% if date_validation_errors %}
+        <div class="govuk-form-group">
+            {% for err in date_validation_errors['date_to'] %}{{ err }}{% endfor %}
+        </div>
+    {% endif %}
     <p class="govuk-body govuk-body--browse-all-date">To date</p>
     <fieldset class="govuk-fieldset govuk-fieldset--date-to"
               role="group"
@@ -57,8 +70,9 @@
                            id="date_to_day"
                            name="date_to_day"
                            type="text"
-                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_to'] %}{{ filters['date_range']['date_to'][0:2] }}{% endif %}{% endif %}"
-                           inputmode="numeric">
+                           value="{% if date_filters['to_day'] %}{{ date_filters['to_day'] }}{% endif %}"
+                           inputmode="numeric"
+                           maxlength="2">
                 </div>
             </div>
             <div class="govuk-date-input__item govuk-date-input__item--browse-all">
@@ -69,8 +83,9 @@
                            id="date_to_month"
                            name="date_to_month"
                            type="text"
-                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_to'] %}{{ filters['date_range']['date_to'][3:5] }}{% endif %}{% endif %}"
-                           inputmode="numeric">
+                           value="{% if date_filters['to_month'] %}{{ date_filters['to_month'] }}{% endif %}"
+                           inputmode="numeric"
+                           maxlength="2">
                 </div>
             </div>
             <div class="govuk-date-input__item govuk-date-input__item--browse-all">
@@ -81,8 +96,9 @@
                            id="date_to_year"
                            name="date_to_year"
                            type="text"
-                           value="{% if filters['date_range'] %}{% if filters['date_range']['date_to'] %}{{ filters['date_range']['date_to'][6:10] }}{% endif %}{% endif %}"
-                           inputmode="numeric">
+                           value="{% if date_filters['to_year'] %}{{ date_filters['to_year'] }}{% endif %}"
+                           inputmode="numeric"
+                           maxlength="4">
                 </div>
             </div>
         </div>
