@@ -3,6 +3,12 @@ from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
+from app.tests.factories import (
+    BodyFactory,
+    ConsignmentFactory,
+    FileFactory,
+    SeriesFactory,
+)
 from app.tests.test_browse import verify_consignment_data_rows
 
 
@@ -338,3 +344,25 @@ class TestConsignment:
 
         verify_consignment_view_header_row(response.data)
         verify_consignment_data_rows(response.data, expected_results)
+
+    def test_browse_consignment_standard_user_accessing_consignment_from_different_transferring_body(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+    ):
+        """
+        Given a Consignment in a Body with Name "foo" and id consignment_id
+        And a standard user with access to Body "bar"
+        When they make a GET request to `browse/{consignment_id}`
+        Then they should receive a 404 response
+        """
+        consignment = ConsignmentFactory(
+            series=SeriesFactory(body=BodyFactory(Name="foo"))
+        )
+        FileFactory(consignment=consignment)
+
+        mock_standard_user(client, "bar")
+
+        response = client.get(f"{self.route_url}/{consignment.ConsignmentId}")
+
+        assert response.status_code == 404
