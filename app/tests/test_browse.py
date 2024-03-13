@@ -19,8 +19,8 @@ def verify_browse_view_header_row(data):
         [
             "Transferring body",
             "Series",
-            "Last record transferred",
-            "Records held",
+            "Last consignment transferred",
+            "Records held in series",
             "Consignments within series",
         ],
     )
@@ -370,7 +370,7 @@ class TestBrowse:
                 ],
             ),
             (
-                "transferring_body-asc",
+                "sort=transferring_body-asc",
                 [
                     [
                         "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
@@ -437,6 +437,26 @@ class TestBrowse:
                         "'fifth_body', 'fifth_series', '21/09/2023', '6', '2', "
                         "'fourth_body', 'fourth_series', '03/08/2023', '6', '2', "
                         "'third_body', 'third_series', '17/06/2023', '3', '2', "
+                        "'second_body', 'second_series', '26/04/2023', '7', '2'"
+                    ],
+                ],
+            ),
+            (
+                "sort=records_held-desc&transferring_body_filter=s",
+                [
+                    [
+                        "'second_body', 'second_series', '26/04/2023', '7', '2', "
+                        "'first_body', 'first_series', '07/02/2023', '3', '2', "
+                        "'sixth_body', 'sixth_series', '14/10/2023', '2', '1'"
+                    ],
+                ],
+            ),
+            (
+                "sort=records_held-asc&transferring_body_filter=s",
+                [
+                    [
+                        "'sixth_body', 'sixth_series', '14/10/2023', '2', '1', "
+                        "'first_body', 'first_series', '07/02/2023', '3', '2', "
                         "'second_body', 'second_series', '26/04/2023', '7', '2'"
                     ],
                 ],

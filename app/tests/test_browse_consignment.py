@@ -23,7 +23,7 @@ def verify_consignment_view_header_row(data):
     expected_row = (
         [
             "Record date",
-            "Filename",
+            "Title",
             "Status",
             "Record opening date",
         ],
