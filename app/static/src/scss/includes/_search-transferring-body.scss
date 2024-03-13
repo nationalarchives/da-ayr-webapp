@@ -259,3 +259,56 @@ a.govuk-link {
     }
   }
 }
+
+.search__mobile-heading {
+  display: none;
+}
+
+.search__mobile-row {
+  display: none;
+}
+
+@media screen and (width <=810px) {
+  .search-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .govuk-grid-row {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .govuk-grid-column-one-third--search-all-filters {
+    order: 1;
+  }
+
+  .govuk-grid-column-two-thirds--search-results {
+    order: 2;
+  }
+
+  .search-all-filter-container {
+    min-width: 0 !important;
+  }
+
+  .search__table__mobile--hidden {
+    display: none;
+  }
+
+  .search__mobile-table__top-row {
+    border-bottom: none;
+  }
+
+  .search__mobile-heading {
+    display: table-cell;
+    padding-left: 0;
+  }
+
+  .search__desktop-heading {
+    display: none;
+  }
+
+  .search__mobile-row {
+    display: table-row;
+  }
+}

@@ -18,6 +18,7 @@ def verify_search_transferring_body_header_row(data):
     expected_row = (
         [
             "Series",
+            "Series / File name / Consignment ref",
             "Consignment reference",
             "File name",
             "Status",
