@@ -184,12 +184,14 @@ def browse_transferring_body(_id: uuid.UUID):
     Returns:
         A rendered HTML page with transferring body records.
     """
-    form = SearchForm()
+    body = Body.query.get(_id)
+    validate_body_user_groups_or_404(body.Name)
 
+    breadcrumb_values = {0: {"transferring_body": body.Name}}
+
+    form = SearchForm()
     page = int(request.args.get("page", 1))
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
-
-    breadcrumb_values = {0: {"transferring_body": Body.query.get(_id).Name}}
 
     date_validation_errors = []
     from_date = None
@@ -256,17 +258,19 @@ def browse_series(_id: uuid.UUID):
     Returns:
         A rendered HTML page with series records.
     """
-    form = SearchForm()
-    page = int(request.args.get("page", 1))
-    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
-
     series = Series.query.get(_id)
     body = series.body
+    validate_body_user_groups_or_404(body.Name)
+
     breadcrumb_values = {
         0: {"transferring_body_id": body.BodyId},
         1: {"transferring_body": body.Name},
         2: {"series": series.Name},
     }
+
+    form = SearchForm()
+    page = int(request.args.get("page", 1))
+    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
 
     date_validation_errors = []
     from_date = None
@@ -333,12 +337,10 @@ def browse_consignment(_id: uuid.UUID):
     Returns:
         A rendered HTML page with consignment records.
     """
-    form = SearchForm()
-    page = int(request.args.get("page", 1))
-    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
-
     consignment = Consignment.query.get(_id)
     body = consignment.series.body
+    validate_body_user_groups_or_404(body.Name)
+
     series = consignment.series
     breadcrumb_values = {
         0: {"transferring_body_id": body.BodyId},
@@ -347,6 +349,10 @@ def browse_consignment(_id: uuid.UUID):
         3: {"series": series.Name},
         4: {"consignment_reference": consignment.ConsignmentReference},
     }
+
+    form = SearchForm()
+    page = int(request.args.get("page", 1))
+    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
 
     date_validation_errors = []
     from_date = None
@@ -430,10 +436,10 @@ def search():
 def search_results_summary():
     form = SearchForm()
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
+    page = int(request.args.get("page", 1))
 
     query = request.form.get("query", "") or request.args.get("query", "")
 
-    page = int(request.args.get("page", 1))
     filters = {"query": query.strip()}
     search_results = None
     num_records_found = 0
