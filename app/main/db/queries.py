@@ -408,6 +408,7 @@ def build_browse_consignment_query(
                     == record_status.lower()
                 )
 
+        date_filter = None
         date_filter_field = filters.get("date_filter_field")
         if (
             date_filter_field
@@ -418,13 +419,14 @@ def build_browse_consignment_query(
                 filters.get("date_from"),
                 filters.get("date_to"),
             )
-            query = query.filter(date_filter)
         elif date_filter_field and date_filter_field.lower() == "opening_date":
             date_filter = _build_date_range_filter(
                 sub_query.c.opening_date,
                 filters.get("date_from"),
                 filters.get("date_to"),
             )
+
+        if date_filter is not None:
             query = query.filter(date_filter)
 
     if sorting_orders:
