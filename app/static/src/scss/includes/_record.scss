@@ -250,7 +250,7 @@
   width: var(--border-width);
   left: calc((var(--ball-size) / 2) + (var(--border-width) / 2));
   top: calc(var(--ball-size) + var(--border-width));
-  bottom: -3px; /*  Minus the --border-width (can't make this negative in CSS so have had to hard-code it)  */
+  bottom: calc(var(--border-width) * -1);
   background-color: var(--colour);
 }
 
