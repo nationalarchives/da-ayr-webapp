@@ -116,6 +116,38 @@ class TestBrowse:
         assert b"You are viewing" in response.data
         assert b"Everything available to you" in response.data
 
+    def test_browse_filter_no_results(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given an all_access_user accessing the browse page
+        When they make a GET request with filter value
+        Then if no data returned based on filter value
+        they should see the browse page content with no results found.
+        """
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}?series_filter=junk")
+
+        html = response.data.decode()
+
+        expected_html = """
+        <ul class="govuk-list govuk-list--bullet">
+        <li>
+            Try changing or removing one or more applied
+                filters.
+        </li>
+        <li>Alternatively, use the breadcrumbs to navigate back to the browse view.</li>
+    </ul>"""
+        assert response.status_code == 200
+        assert b"No results found" in response.data
+        assert_contains_html(
+            expected_html,
+            html,
+            "ul",
+            {"class": "govuk-list govuk-list--bullet"},
+        )
+
     def test_browse_check_transferring_bodies_list_filled_for_all_access_user(
         self, client: FlaskClient, browse_files, mock_all_access_user
     ):
@@ -176,12 +208,6 @@ class TestBrowse:
     @pytest.mark.parametrize(
         "query_params, expected_results",
         [
-            (
-                "series_filter=junk",
-                [
-                    [""],
-                ],
-            ),
             (
                 "",
                 [

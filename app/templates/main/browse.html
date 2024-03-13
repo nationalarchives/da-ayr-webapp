@@ -11,7 +11,13 @@
             <div class="govuk-grid-column-full govuk-grid-column-full__browse-details">
                 <div class="browse-details">
                     <h1 class="govuk-heading-l browse__records-found__text"
-                        id="browse-records">Browse records {{ num_records_found }}</h1>
+                        id="browse-records">
+                        {% if num_records_found > 0 %}
+                            Browse records {{ num_records_found }}
+                        {% else %}
+                            No results found
+                        {% endif %}
+                    </h1>
                     <p class="govuk-body browse__body">You are viewing</p>
                     {% if browse_type == "browse" %}
                         {% include "browse-all.html" %}

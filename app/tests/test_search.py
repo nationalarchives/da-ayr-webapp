@@ -213,11 +213,26 @@ class TesthSearchResultsSummary:
         """
         mock_all_access_user(client)
 
-        form_data = {"query": "bar"}
+        form_data = {"query": "junk"}
         response = client.get(f"{self.route_url}", data=form_data)
+        html = response.data.decode()
 
+        expected_html = """
+        <ul class="govuk-list govuk-list--bullet">
+        <li>
+            Try changing or removing one or more applied
+                search terms.
+        </li>
+        <li>Alternatively, use the breadcrumbs to navigate back to the browse view.</li>
+    </ul>"""
         assert response.status_code == 200
-        assert b"Records found 0"
+        assert b"No results found" in response.data
+        assert_contains_html(
+            expected_html,
+            html,
+            "ul",
+            {"class": "govuk-list govuk-list--bullet"},
+        )
 
     def test_search_results_summary_with_results_single_term(
         self,
@@ -445,7 +460,7 @@ class TestSearchTransferringBody:
             client, browse_consignment_files[0].consignment.series.body.Name
         )
 
-        form_data = {"query": "bar"}
+        form_data = {"query": "junk"}
 
         transferring_body_id = browse_consignment_files[
             0
@@ -455,8 +470,24 @@ class TestSearchTransferringBody:
             f"{self.route_url}/{transferring_body_id}", data=form_data
         )
 
+        html = response.data.decode()
+
+        expected_html = """
+        <ul class="govuk-list govuk-list--bullet">
+        <li>
+            Try changing or removing one or more applied
+                search terms.
+        </li>
+        <li>Alternatively, use the breadcrumbs to navigate back to the browse view.</li>
+    </ul>"""
         assert response.status_code == 200
-        assert b"Records found 0"
+        assert b"No results found" in response.data
+        assert_contains_html(
+            expected_html,
+            html,
+            "ul",
+            {"class": "govuk-list govuk-list--bullet"},
+        )
 
     def test_search_transferring_body_with_table_data_links(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
@@ -561,12 +592,6 @@ class TestSearchTransferringBody:
     @pytest.mark.parametrize(
         "query_params, expected_results",
         [
-            (
-                "query=junk",
-                [
-                    [""],
-                ],
-            ),
             (
                 "query=TDR-2023-FI1",
                 [

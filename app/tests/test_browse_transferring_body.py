@@ -83,15 +83,53 @@ class TestBrowseTransferringBody:
             {"class": "govuk-breadcrumbs"},
         )
 
+    def test_browse_transferring_body_filter_no_results(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_transferring_body_files,
+    ):
+        """
+        Given a user accessing the browse transferring body page
+        When they make a GET request with a transferring body id and provide filter value in query string
+        Then if no data returned based on filter value
+        they should see the browse transferring body page content with no results found.
+        """
+        transferring_body_id = browse_transferring_body_files[
+            0
+        ].consignment.series.body.BodyId
+
+        mock_standard_user(
+            client,
+            browse_transferring_body_files[0].consignment.series.body.Name,
+        )
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}?series_filter=junk"
+        )
+
+        html = response.data.decode()
+
+        expected_html = """
+        <ul class="govuk-list govuk-list--bullet">
+        <li>
+            Try changing or removing one or more applied
+                filters.
+        </li>
+        <li>Alternatively, use the breadcrumbs to navigate back to the browse view.</li>
+    </ul>"""
+        assert response.status_code == 200
+        assert b"No results found" in response.data
+        assert_contains_html(
+            expected_html,
+            html,
+            "ul",
+            {"class": "govuk-list govuk-list--bullet"},
+        )
+
     @pytest.mark.parametrize(
         "query_params, expected_results",
         [
-            (
-                "series_filter=junk",
-                [
-                    [""],
-                ],
-            ),
             (
                 "",
                 [

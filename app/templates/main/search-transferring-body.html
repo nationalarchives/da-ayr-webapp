@@ -26,17 +26,15 @@
 <form action="{{ url_for('main.search_transferring_body', _id = request.view_args['_id']) }}"
       method="get">
     <input type="hidden" name="query" value="{{ filters['query'] }}">
-    <!-- SORT -->
-    {% if num_records_found > 0 %}
-        <div class="govuk-form-group sort-container__form">
-            {% with dict = sorting_list %}
-                {% include "sorting-list.html" %}
-            {% endwith %}
-        </div>
-    {% endif %}
     <div class="govuk-grid-row">
-        <!-- TABLE -->
+        <!-- SORT -->
         {% if num_records_found > 0 %}
+            <div class="govuk-form-group sort-container__form">
+                {% with dict = sorting_list %}
+                    {% include "sorting-list.html" %}
+                {% endwith %}
+            </div>
+            <!-- TABLE -->
             <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--search-results">
                 <table class="govuk-table">
                     <thead class="govuk-table__head">

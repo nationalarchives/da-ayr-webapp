@@ -95,15 +95,46 @@ class TestConsignment:
             {"class": "govuk-breadcrumbs"},
         )
 
+    def test_browse_consignment_filter_no_results(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user accessing the browse consignment page
+        When they make a GET request with a transferring body id and provide filter value in query string
+        Then if no data returned based on filter value
+        they should see the browse consignment page content with no results found.
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        params = "date_filter_field=date_last_modified&date_from_day=01&date_from_month=03&date_from_year=2024"
+        response = client.get(f"{self.route_url}/{consignment_id}?{params}")
+
+        html = response.data.decode()
+
+        expected_html = """
+        <ul class="govuk-list govuk-list--bullet">
+        <li>
+            Try changing or removing one or more applied
+                filters.
+        </li>
+        <li>Alternatively, use the breadcrumbs to navigate back to the browse view.</li>
+    </ul>"""
+        assert response.status_code == 200
+        assert b"No results found" in response.data
+        assert_contains_html(
+            expected_html,
+            html,
+            "ul",
+            {"class": "govuk-list govuk-list--bullet"},
+        )
+
     @pytest.mark.parametrize(
         "query_params, expected_results",
         [
-            (
-                "date_filter_field=date_last_modified&date_from_day=01&date_from_month=05&date_from_year=2024",
-                [
-                    [""],
-                ],
-            ),
             (
                 "",
                 [
