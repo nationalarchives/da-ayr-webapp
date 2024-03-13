@@ -269,13 +269,6 @@
 //  MOBILE STYLES //
 
 @media screen and (width <=810px) {
-  .record-details {
-    padding-top: 0;
-    display: flex;
-    flex-direction: column;
-    margin-top: 0;
-  }
-
   .govuk-grid-column-one-third {
     &--record {
       width: 100%;
@@ -345,14 +338,6 @@
 
   .mobile-record-layout-record-arrangement {
     order: 3;
-  }
-
-  .record-details {
-    padding-top: 0;
-    display: flex;
-    flex-direction: column;
-    margin-top: 0;
-    order: 5;
   }
 
   .rights-container {
