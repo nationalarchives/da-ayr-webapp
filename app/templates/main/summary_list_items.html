@@ -6,18 +6,20 @@
                 {% if value %}
                     {% if key == "Status" %}
                         {% if (value | lower == "closed") %}
-                            <span class="govuk-tag govuk-tag--red"><strong>{{ value }}</strong></span>
+                            <span class="govuk-tag govuk-tag--red">{{ value }}</span>
                         {% else %}
-                            <span class="govuk-tag govuk-tag--green"><strong>{{ value }}</strong></span>
+                            <span class="govuk-tag govuk-tag--green">{{ value }}</span>
                         {% endif %}
                         {% if dict.get("Closure start date") %}
-                            {% if dict.get('opening_date') %}<span>Record opening date {{ dict.get('opening_date') }}</span>{% endif %}
+                            {% if dict.get('opening_date') %}
+                                <span class="ayr-opening-date">Record opening date {{ dict.get('opening_date') }}</span>
+                            {% endif %}
                         {% endif %}
                     {% else %}
                         {{ value }}
                     {% endif %}
                 {% else %}
-                    -
+                    <span>Not provided</span>
                 {% endif %}
             </dd>
         </div>
