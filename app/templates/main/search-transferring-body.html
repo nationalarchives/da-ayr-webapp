@@ -26,65 +26,73 @@
 <form action="{{ url_for('main.search_transferring_body', _id = request.view_args['_id']) }}"
       method="get">
     <input type="hidden" name="query" value="{{ filters['query'] }}">
-    <!-- SORT -->
-    <div class="govuk-form-group sort-container__form">
-        {% with dict = sorting_list %}
-            {% include "sorting-list.html" %}
-        {% endwith %}
-    </div>
     <div class="govuk-grid-row">
-        <!-- TABLE -->
-        <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--search-results">
-            <table class="govuk-table">
-                <thead class="govuk-table__head">
-                    <tr class="govuk-table__row">
-                        <th scope="col"
-                            class="govuk-table__header govuk-table__header--search-header">Series</th>
-                        <th scope="col"
-                            class="govuk-table__header govuk-table__header--search-header">Consignment Reference</th>
-                        <th scope="col"
-                            class="govuk-table__header govuk-table__header--search-header govuk-table__header--search-header-title">
-                            Title
-                        </th>
-                        <th scope="col"
-                            class="govuk-table__header govuk-table__header--search-header">Status</th>
-                        <th scope="col"
-                            class="govuk-table__header govuk-table__header--search-header">Record opening</th>
-                    </tr>
-                </thead>
-                <tbody class="govuk-table__body">
-                    {% for record in results %}
+        <!-- SORT -->
+        {% if num_records_found > 0 %}
+            <div class="govuk-form-group sort-container__form">
+                {% with dict = sorting_list %}
+                    {% include "sorting-list.html" %}
+                {% endwith %}
+            </div>
+            <!-- TABLE -->
+            <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--search-results">
+                <table class="govuk-table">
+                    <thead class="govuk-table__head">
                         <tr class="govuk-table__row">
-                            <td class="govuk-table__cell govuk-table__cell--search-results">
-                                <a href="{{ url_for('main.browse_series', _id=record['series_id']) }}">{{ record["series"] }}</a>
-                            </td>
-                            <td class="govuk-table__cell govuk-table__cell--search-results govuk-table__cell--search-results-no-wrap">
-                                <a href="{{ url_for('main.browse_consignment', _id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
-                            </td>
-                            <td class="govuk-table__cell govuk-table__cell--search-results">
-                                <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
-                            </td>
-                            <td class="govuk-table__cell govuk-table__cell--search-results">
-                                <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
-                                    {{ record['closure_type'] }}
-                                </strong>
-                            </td>
-                            <td class="govuk-table__cell govuk-table__cell--search-results">
-                                {% if record['opening_date'] %}
-                                    {{ record['opening_date'] }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
+                            <th scope="col"
+                                class="govuk-table__header govuk-table__header--search-header">Series</th>
+                            <th scope="col"
+                                class="govuk-table__header govuk-table__header--search-header">
+                                Consignment Reference
+                            </th>
+                            <th scope="col"
+                                class="govuk-table__header govuk-table__header--search-header govuk-table__header--search-header-title">
+                                Title
+                            </th>
+                            <th scope="col"
+                                class="govuk-table__header govuk-table__header--search-header">Status</th>
+                            <th scope="col"
+                                class="govuk-table__header govuk-table__header--search-header">Record opening</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <!-- PAGINATION -->
-            {% with view_name='main.search_transferring_body', id = request.view_args['_id'] %}
-                {% include "pagination.html" %}
+                    </thead>
+                    <tbody class="govuk-table__body">
+                        {% for record in results %}
+                            <tr class="govuk-table__row">
+                                <td class="govuk-table__cell govuk-table__cell--search-results">
+                                    <a href="{{ url_for('main.browse_series', _id=record['series_id']) }}">{{ record["series"] }}</a>
+                                </td>
+                                <td class="govuk-table__cell govuk-table__cell--search-results govuk-table__cell--search-results-no-wrap">
+                                    <a href="{{ url_for('main.browse_consignment', _id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
+                                </td>
+                                <td class="govuk-table__cell govuk-table__cell--search-results">
+                                    <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                </td>
+                                <td class="govuk-table__cell govuk-table__cell--search-results">
+                                    <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
+                                        {{ record['closure_type'] }}
+                                    </strong>
+                                </td>
+                                <td class="govuk-table__cell govuk-table__cell--search-results">
+                                    {% if record['opening_date'] %}
+                                        {{ record['opening_date'] }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <!-- PAGINATION -->
+                {% with view_name='main.search_transferring_body', id = request.view_args['_id'] %}
+                    {% include "pagination.html" %}
+                {% endwith %}
+            </div>
+        {% else %}
+            {% with view_type = "search" %}
+                {% include "no-results-found.html" %}
             {% endwith %}
-        </div>
+        {% endif %}
         <!-- FILTER TRAY -->
         <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters">
             <div class="search-all-filter-container">
