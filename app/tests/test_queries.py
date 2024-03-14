@@ -96,7 +96,7 @@ class TestFuzzySearchTransferringBody:
                 browse_consignment_files[3].FileId,
                 browse_consignment_files[3].FileName,
                 "Closed",
-                "12/04/2023",
+                "25/03/2070",
             ),
         ]
         assert results == expected_results
