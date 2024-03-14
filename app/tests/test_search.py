@@ -21,7 +21,7 @@ def verify_search_transferring_body_header_row(data):
             "Consignment Reference",
             "Title",
             "Status",
-            "Record opening",
+            "Record opening date",
         ],
     )
     assert [
@@ -554,7 +554,7 @@ class TestSearchTransferringBody:
                         class="govuk-table__header govuk-table__header--search-header">Status</th>
                     <th scope="col"
                         class="govuk-table__header govuk-table__header--search-header">
-                        Record opening
+                        Record opening date
                     </th>
                 </tr>
             </thead>
