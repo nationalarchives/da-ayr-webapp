@@ -23,7 +23,7 @@ def verify_consignment_view_header_row(data):
     expected_row = (
         [
             "Record date",
-            "Filename",
+            "Title",
             "Status",
             "Record opening date",
         ],
@@ -146,47 +146,76 @@ class TestConsignment:
                 [
                     [
                         "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'15/01/2023', 'second_file.ppt', 'Open', '-'"
                     ],
                 ],
             ),
             (
-                "date_from_day=01&date_from_month=01&date_from_year=2020",
+                "date_filter_field=date_last_modified&date_from_day=01&date_from_month=01&date_from_year=2020",
                 [
                     [
                         "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'15/01/2023', 'second_file.ppt', 'Open', '-'"
                     ],
                 ],
             ),
             (
-                "date_to_day=10&date_to_month=03&date_to_year=2023",
+                "date_filter_field=date_last_modified&date_to_day=20&date_to_month=05&date_to_year=2023",
                 [
                     [
                         "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'15/01/2023', 'second_file.ppt', 'Open', '-'"
                     ],
                 ],
             ),
             (
-                "date_from_day=01&date_from_month=01&date_from_year=2020&date_to_day=10"
-                "&date_to_month=03&date_to_year=2023",
+                "date_filter_field=date_last_modified&date_from_day=01&date_from_month=01&date_from_year=2020"
+                "&date_to_day=20&date_to_month=05&date_to_year=2023",
                 [
                     [
                         "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'15/01/2023', 'second_file.ppt', 'Open', '-'"
+                    ],
+                ],
+            ),
+            (
+                "date_filter_field=opening_date&date_from_day=01&date_from_month=03&date_from_year=2023",
+                [
+                    [
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
+                    ],
+                ],
+            ),
+            (
+                "date_filter_field=opening_date&date_to_day=30&date_to_month=03&date_to_year=2070",
+                [
+                    [
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023'"
+                    ],
+                ],
+            ),
+            (
+                "date_filter_field=opening_date&date_from_day=01&date_from_month=01&date_from_year=2020"
+                "&date_to_day=10&date_to_month=04&date_to_year=2090",
+                [
+                    [
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
+                        "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023'"
                     ],
                 ],
             ),
@@ -195,8 +224,8 @@ class TestConsignment:
                 [
                     [
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
                         "'15/01/2023', 'second_file.ppt', 'Open', '-'"
                     ],
@@ -209,8 +238,8 @@ class TestConsignment:
                         "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
                         "'15/01/2023', 'second_file.ppt', 'Open', '-', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
                 ],
             ),
@@ -219,8 +248,8 @@ class TestConsignment:
                 [
                     [
                         "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'15/01/2023', 'second_file.ppt', 'Open', '-'"
                     ],
@@ -232,8 +261,8 @@ class TestConsignment:
                     [
                         "'15/01/2023', 'second_file.ppt', 'Open', '-', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'20/05/2023', 'fifth_file.doc', 'Open', '-'"
                     ],
                 ],
@@ -244,9 +273,9 @@ class TestConsignment:
                     [
                         "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'15/01/2023', 'second_file.ppt', 'Open', '-', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
                 ],
             ),
@@ -254,9 +283,9 @@ class TestConsignment:
                 "sort=file_name-desc",
                 [
                     [
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'15/01/2023', 'second_file.ppt', 'Open', '-', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'20/05/2023', 'fifth_file.doc', 'Open', '-'"
                     ],
@@ -269,8 +298,8 @@ class TestConsignment:
                         "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
                         "'15/01/2023', 'second_file.ppt', 'Open', '-', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
                 ],
             ),
@@ -282,7 +311,7 @@ class TestConsignment:
                     [
                         "'15/01/2023', 'second_file.ppt', 'Open', '-', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
                 ],
             ),
@@ -294,8 +323,8 @@ class TestConsignment:
                         "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
                         "'15/01/2023', 'second_file.ppt', 'Open', '-', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
                 ],
             ),
@@ -306,7 +335,7 @@ class TestConsignment:
                     [
                         "'15/01/2023', 'second_file.ppt', 'Open', '-', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
                 ],
             ),
@@ -316,29 +345,30 @@ class TestConsignment:
                 [
                     [
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
                 ],
             ),
             (
                 "sort=opening_date-asc&record_status=all&date_filter_field=opening_date"
-                "&date_to_day=03&date_to_month=04&date_to_year=2023",
+                "&date_to_day=03&date_to_month=04&date_to_year=2091",
                 [
                     [
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
                 ],
             ),
             (
                 "sort=closure_type-desc&record_status=all&date_filter_field=opening_date"
                 "&date_from_day=10&date_from_month=03&date_from_year=2023&date_to_day=20"
-                "&date_to_month=10&date_to_year=2023",
+                "&date_to_month=10&date_to_year=2090",
                 [
                     [
-                        "'12/04/2023', 'fourth_file.xls', 'Closed', '12/04/2023', "
-                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2023'"
+                        "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
+                        "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
                 ],
             ),

@@ -5,7 +5,9 @@
     "Series (A to Z)": "series-asc",
     "Series (Z to A)": "series-desc",
     "Date consignment transferred (most recent first)": "last_record_transferred-desc",
-    "Date consignment transferred (oldest first)": "last_record_transferred-asc"
+    "Date consignment transferred (oldest first)": "last_record_transferred-asc",
+    "Records held in series (most first)": "records_held-desc",
+    "Records held in series (least first)": "records_held-asc"
 } %}
 <!-- BREAD CRUMB -->
 {% with dict = breadcrumbs %}
@@ -28,10 +30,10 @@
                             <th scope="col"
                                 class="govuk-table__header browse-grid__key__transferring-body">Transferring body</th>
                             <th scope="col" class="govuk-table__header">Series</th>
-                            <th scope="col" class="govuk-table__header browse__table__right-align">Last record transferred</th>
+                            <th scope="col" class="govuk-table__header browse__table__right-align">Last consignment transferred</th>
                             <th scope="col"
                                 class="govuk-table__header browse__table__right-align browse__table__mobile--hidden">
-                                Records held
+                                Records held in series
                             </th>
                             <th scope="col"
                                 class="govuk-table__header browse__table__right-align browse__table__mobile--hidden">

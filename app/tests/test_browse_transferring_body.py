@@ -25,8 +25,8 @@ def verify_transferring_body_view_header_row(data):
         [
             "Transferring body",
             "Series",
-            "Last record transferred",
-            "Records held",
+            "Last consignment transferred",
+            "Records held in series",
             "Consignments within series",
         ],
     )
