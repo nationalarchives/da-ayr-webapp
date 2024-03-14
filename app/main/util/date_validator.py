@@ -15,7 +15,7 @@ def validate_dates(args, browse_consignment=False):
         "opening_date",
     ]:
         errors["date_filter_field"] = (
-            "Select either ‘Record date’ or ‘Record opening date’"
+            "Select either ‘Date of record’ or ‘Record opening date’"
         )
         return None, None, None, None, None, None, errors
 

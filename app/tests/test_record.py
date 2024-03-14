@@ -258,7 +258,7 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Record date</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Date of record</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {date_last_modified}
                 </dd>
@@ -409,7 +409,7 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Record date</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Date of record</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {date_last_modified}
                 </dd>
@@ -568,7 +568,7 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Record date</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Date of record</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {date_last_modified}
                 </dd>
