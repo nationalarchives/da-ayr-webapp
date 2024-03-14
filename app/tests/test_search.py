@@ -19,7 +19,7 @@ def verify_search_transferring_body_header_row(data):
         [
             "Series",
             "Consignment Reference",
-            "Title",
+            "File name",
             "Status",
             "Record opening date",
         ],
@@ -548,7 +548,7 @@ class TestSearchTransferringBody:
                     </th>
                     <th scope="col"
             class="govuk-table__header govuk-table__header--search-header govuk-table__header--search-header-title">
-                        Title
+                        File name
                     </th>
                     <th scope="col"
                         class="govuk-table__header govuk-table__header--search-header">Status</th>

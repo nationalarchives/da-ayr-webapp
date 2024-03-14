@@ -7,8 +7,8 @@
 } %}
 {% if record['closure_type'] | lower == 'closed' or (record['closure_type'] | lower == 'open' and record['closure_start_date'] != None) %}
     {% set list_items = {
-            "Title": record['file_name'],
-            "Alternative title": record['alternative_title'],
+            "File name": record['file_name'],
+            "Alternative file name": record['alternative_title'],
             "Description": record['description'],
             "Alternative description": record['alternative_description'],
             "Status": record['closure_type'],
@@ -22,7 +22,7 @@
             "Consignment reference": record['consignment_reference'],
             "File reference": record['file_reference'],
             "Former reference": record['former_reference'],
-            "Translated title": record['translated_title'],
+            "Translated file name": record['translated_title'],
             "Held by": record['held_by'],
             "Legal status": record['legal_status'],
             "Rights copyright": record['rights_copyright'],
@@ -30,7 +30,7 @@
         } %}
 {% else %}
     {% set list_items = {
-            "Title": record['file_name'],
+            "File name": record['file_name'],
             "Description": record['description'],
             "Status": record['closure_type'],
             "Date of record": record['date_last_modified'],
@@ -39,7 +39,7 @@
             "Consignment reference": record['consignment_reference'],
             "File reference": record['file_reference'],
             "Former reference": record['former_reference'],
-            "Translated title": record['translated_title'],
+            "Translated file name": record['translated_title'],
             "Held by": record['held_by'],
             "Legal status": record['legal_status'],
             "Rights copyright": record['rights_copyright'],
