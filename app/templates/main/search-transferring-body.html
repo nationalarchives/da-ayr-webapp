@@ -111,7 +111,7 @@
                             class="govuk-button govuk-button__search-filters-form-apply-button"
                             data-module="govuk-button">Apply</button>
                     <a class="govuk-link govuk-link--transferring-filter"
-                       href="{{ url_for('main.search_transferring_body', _id = request.view_args['_id']) }}">Clear all</a>
+                       href="{% if session['user_type'] == 'all_access_user' %}{{ url_for('main.browse') }}{% else %}{{ url_for('main.browse_transferring_body', _id = request.view_args['_id']) }}{% endif %}">Clear all</a>
                 </div>
                 <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
                 <div class="ayr-filter-tags">

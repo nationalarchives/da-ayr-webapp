@@ -1314,13 +1314,105 @@ class TestSearchTransferringBody:
             {"class": "govuk-breadcrumbs"},
         )
 
-    def test_search_transferring_body_display_filter_tray(
+    def test_search_transferring_body_display_filter_tray_all_access_user(
+        self, client, mock_all_access_user, browse_consignment_files
+    ):
+        """
+        Given an all access user accessing the search transferring body page
+        When they make a GET request
+        Then they should see the filter tray component available on search page content
+        and 'Clear all' link should redirect the user to 'browse all' page.
+        """
+        mock_all_access_user(client)
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        term1 = "TDR-2023-FI1"
+        term2 = "first"
+        query = f"{term1},{term2}"
+
+        form_data = {"query": query}
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        search_filter_html = f"""
+        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters">
+                            <div class="search-all-filter-container">
+                                <div class="browse-filter__header">
+                                    <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
+                                </div>
+                                <div class="govuk-form-group govuk-form-group--search-all-filter">
+                                    <label class="govuk-label" for="search_filter"></label>
+                                    <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
+                                    id="search_filter"
+                                    name="search_filter"
+                                    type="text">
+                                </div>
+                                <div class="search-form__buttons">
+                                    <button type="submit"
+                                    class="govuk-button govuk-button__search-filters-form-apply-button"
+                                    data-module="govuk-button">Apply</button>
+                                    <a class="govuk-link govuk-link--transferring-filter"
+                                    href="{self.browse_all_route_url}">Clear all</a>
+                                </div>
+                                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
+                                <div class="ayr-filter-tags">
+                                        <div class="search-term">
+                                            <button type="button"
+                                            class="button-search-term"
+                                            data-module="search-term-button">
+                                                <a href="{self.route_url}/{transferring_body_id}?query={term2}">
+                                                    {term1}
+                                                    <img src="/assets/image/cancel-filters.svg"
+                                                    height="30px"
+                                                    width="30px"
+                                                    class="close-icon"
+                                                    alt="">
+                                                </a>
+                                            </button>
+                                        </div>
+                                        <div class="search-term">
+                                            <button type="button"
+                                            class="button-search-term"
+                                            data-module="search-term-button">
+                                                <a href="{self.route_url}/{transferring_body_id}?query={term1}">
+                                                    {term2}
+                                                    <img src="/assets/image/cancel-filters.svg"
+                                                        height="30px"
+                                                        width="30px"
+                                                        class="close-icon"
+                                                        alt="">
+                                                </a>
+                                            </button>
+                                        </div>
+                                </div>
+                            </div>
+                        </div>"""
+
+        assert_contains_html(
+            search_filter_html,
+            html,
+            "div",
+            {
+                "class": "govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters"
+            },
+        )
+
+    def test_search_transferring_body_display_filter_tray_standard_user(
         self, client, mock_standard_user, browse_consignment_files
     ):
         """
         Given a standard user accessing the search transferring body page
         When they make a GET request
-        Then they should see the filter tray component available on search page content.
+        Then they should see the filter tray component available on search page content
+        and 'Clear all' link should redirect the user to 'browse transferring body' page.
         """
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -1361,7 +1453,7 @@ class TestSearchTransferringBody:
                                     class="govuk-button govuk-button__search-filters-form-apply-button"
                                     data-module="govuk-button">Apply</button>
                                     <a class="govuk-link govuk-link--transferring-filter"
-                                    href="{self.route_url}/{transferring_body_id}">Clear all</a>
+                                href="{self.browse_transferring_body_route_url}/{transferring_body_id}">Clear all</a>
                                 </div>
                                 <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
                                 <div class="ayr-filter-tags">
