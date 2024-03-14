@@ -656,7 +656,7 @@ class TestDateValidator:
                     None,
                     None,
                     {
-                        "date_filter_field": "Select either ‘Record date’ or ‘Record opening date’",
+                        "date_filter_field": "Select either ‘Date of record’ or ‘Record opening date’",
                     },
                 ),
             ),

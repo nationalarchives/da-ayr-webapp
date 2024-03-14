@@ -22,7 +22,7 @@ def verify_consignment_view_header_row(data):
     headers = table.find_all("th")
     expected_row = (
         [
-            "Record date",
+            "Date of record",
             "Title",
             "Status",
             "Record opening date",
