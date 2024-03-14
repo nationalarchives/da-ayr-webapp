@@ -86,10 +86,10 @@
                 </div>
                 <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-record-arrangement">
                     <div class="record-container">
-                        <h3 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h3>
-                        <ol>
+                        <h2 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h2>
+                        <ol class="record-arrangement-list">
                             {% for file_level in record["file_path"].split("/") %}
-                                <li class="govuk-body govuk-body__record-arrangement-list">{{ file_level }}</li>
+                                <li class="govuk-body__record-arrangement-list">{{ file_level }}</li>
                             {% endfor %}
                         </ol>
                     </div>

@@ -74,7 +74,6 @@
   }
 
   &__record-header {
-    padding-top: 0.6rem;
     display: flex;
     justify-content: center;
   }
@@ -139,8 +138,7 @@
   background-color: #f0f0f0;
   display: block;
   margin-top: 1.25rem;
-  padding-top: 0.6rem;
-  padding-bottom: 6.5rem;
+  padding: 1rem;
 }
 
 .govuk-body {
@@ -213,7 +211,62 @@
   padding-left: 1rem;
 }
 
-//  MEDIA QUERIES FOR MOBILE STYLES //
+.record-container .record-arrangement-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+
+  --ball-size: 13px;
+  --border-width: 3px;
+  --colour: #005ea5;
+}
+
+.record-container .record-arrangement-list li {
+  position: relative;
+  padding: 0 0 20px calc(var(--ball-size) + 1rem);
+  font-family: Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.2rem;
+  text-wrap: wrap;
+}
+
+.record-container .record-arrangement-list li::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  width: var(--ball-size);
+  height: var(--ball-size);
+  left: 0;
+  top: 0;
+  border-radius: 100%;
+  border: var(--border-width) solid var(--colour);
+  z-index: 2;
+}
+
+.record-container .record-arrangement-list li::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  width: var(--border-width);
+  left: calc((var(--ball-size) / 2) + (var(--border-width) / 2));
+  top: calc(var(--ball-size) + var(--border-width));
+  bottom: calc(var(--border-width) * -1);
+  background-color: var(--colour);
+}
+
+.record-container .record-arrangement-list li:last-child {
+  font-weight: bold;
+}
+
+.record-container .record-arrangement-list li:last-child::after {
+  display: none;
+}
+
+.record-page {
+  margin-top: -2rem;
+}
+
+//  MOBILE STYLES //
 
 @media screen and (width <=810px) {
   .govuk-grid-column-one-third {
@@ -224,6 +277,7 @@
 
   .record-page {
     display: flex;
+    margin-top: -2rem;
   }
 
   .govuk-grid-column-two-thirds {
@@ -286,14 +340,6 @@
     order: 3;
   }
 
-  .record-details {
-    padding-top: 0;
-    display: flex;
-    flex-direction: column;
-    margin-top: 0;
-    order: 5;
-  }
-
   .rights-container {
     display: flex;
     order: 3;
@@ -306,6 +352,7 @@
     flex-direction: column;
     order: 5;
     white-space: nowrap;
+    padding: 0.5rem;
   }
 
   .mobile__search__container-block {
@@ -352,6 +399,7 @@
 
   .record-page {
     display: flex;
+    margin-top: -2rem;
   }
 
   .record-container {
