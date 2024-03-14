@@ -122,4 +122,17 @@ def create_app(config_class, database_uri=None):
         authenticated_view = getattr(g, "access_token_sign_in_required", False)
         return dict(authenticated_view=authenticated_view)
 
+    @app.after_request
+    def add_no_caching_headers(r):
+        """
+        Add headers to tell browsers not to cache the pages to protected routes
+        """
+        if g.get("access_token_sign_in_required"):
+            r.headers["Cache-Control"] = (
+                "public, max-age=0, no-cache, no-store, must-revalidate"
+            )
+            r.headers["Pragma"] = "no-cache"
+            r.headers["Expires"] = "0"
+        return r
+
     return app
