@@ -40,44 +40,39 @@ def access_token_sign_in_required(view_func):
     def decorated_view(*args, **kwargs):
         g.access_token_sign_in_required = True  # Set attribute on g
 
+        access_token = session.get("access_token")
+        refresh_token = session.get("refresh_token")
         try:
-            access_token = session.get("access_token")
-            refresh_token = session.get("refresh_token")
-            try:
-                (
-                    access_token,
-                    refresh_token,
-                    tokens_are_refreshed,
-                ) = _validate_or_refresh_tokens(access_token, refresh_token)
-            except InvalidAccessToken:
-                session.clear()
-                return redirect(url_for("main.sign_in"))
+            (
+                access_token,
+                refresh_token,
+                tokens_are_refreshed,
+            ) = _validate_or_refresh_tokens(access_token, refresh_token)
+        except InvalidAccessToken:
+            session.clear()
+            return redirect(url_for("main.sign_in"))
 
-            if tokens_are_refreshed:
-                session["access_token"] = access_token
-                session["refresh_token"] = refresh_token
-                keycloak_openid = get_keycloak_instance_from_flask_config()
-                decoded_access_token = keycloak_openid.introspect(access_token)
-                session["user_groups"] = decoded_access_token["groups"]
-                ayr_user = AYRUser(session.get("user_groups"))
-                if ayr_user.is_all_access_user:
-                    session["user_type"] = "all_access_user"
-                else:
-                    session["user_type"] = "standard_user"
+        if tokens_are_refreshed:
+            session["access_token"] = access_token
+            session["refresh_token"] = refresh_token
+            keycloak_openid = get_keycloak_instance_from_flask_config()
+            decoded_access_token = keycloak_openid.introspect(access_token)
+            session["user_groups"] = decoded_access_token["groups"]
+            ayr_user = AYRUser(session.get("user_groups"))
+            if ayr_user.is_all_access_user:
+                session["user_type"] = "all_access_user"
+            else:
+                session["user_type"] = "standard_user"
 
-            ayr_user = AYRUser(session["user_groups"])
+        ayr_user = AYRUser(session["user_groups"])
 
-            if not ayr_user.can_access_ayr:
-                flash(
-                    "TNA User is logged in but does not have access to AYR. Please contact your admin."
-                )  # FIXME: this flash doesn't currently show when first redirected, only on a new page load
-                return redirect(url_for("main.index"))
+        if not ayr_user.can_access_ayr:
+            flash(
+                "TNA User is logged in but does not have access to AYR. Please contact your admin."
+            )  # FIXME: this flash doesn't currently show when first redirected, only on a new page load
+            return redirect(url_for("main.index"))
 
-            return view_func(*args, **kwargs)
-        finally:
-            g.access_token_sign_in_required = (
-                False  # Clear attribute after view execution
-            )
+        return view_func(*args, **kwargs)
 
     decorated_view.access_token_sign_in_required = True
 
