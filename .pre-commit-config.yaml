@@ -9,6 +9,7 @@ repos:
     -   id: check-yaml
     -   id: check-json
     -   id: check-added-large-files
+        args: ['--maxkb=650']
     -   id: check-merge-conflict
 
 - repo: https://github.com/Riverside-Healthcare/djLint

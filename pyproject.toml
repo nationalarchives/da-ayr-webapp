@@ -30,6 +30,7 @@ flask-sqlalchemy = "^3.1.1"
 psycopg2-binary = "^2.9.9"
 setuptools = "^69.2.0"
 zappa = "^0.58.0"
+pytest-playwright-snapshot = "^1.0"
 
 [tool.poetry.group.dev.dependencies]
 testing-postgresql = "^1.3.0"
