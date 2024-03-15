@@ -29,7 +29,7 @@ from playwright.sync_api import Page
         ("/record/41f94132-dbdf-43e4-a327-cc5bae432f98", "record.png"),
     ],
 )
-def test_no_visual_regression(
+def test_css_no_visual_regression(
     url, screenshot_file, authenticated_page: Page, assert_snapshot
 ):
     """
