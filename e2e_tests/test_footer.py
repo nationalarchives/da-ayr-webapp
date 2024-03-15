@@ -1,33 +1,34 @@
 import pytest
 from playwright.sync_api import Page, expect
 
+service_name = "AYR - Access Your Records – GOV.UK"
 # Define list of footer links and their expected URLS
 
 footer_links = [
     (
         "How to use this service",
         "/how-to-use-this-service",
-        "How to use this service – AYR - Access Your Records – GOV.UK",
+        f"How to use this service – {service_name}",
     ),
     (
         "Terms of use",
         "/terms-of-use",
-        "Terms of use – AYR - Access Your Records – GOV.UK",
+        f"Terms of use – {service_name}",
     ),
     (
         "Privacy",
         "/privacy",
-        "Privacy notice – AYR - Access Your Records – GOV.UK",
+        f"Privacy – {service_name}",
     ),
     (
         "Cookies policy",
         "/cookies",
-        "Cookies – AYR - Access Your Records – GOV.UK",
+        f"Cookies – {service_name}",
     ),
     (
         "Accessibility",
         "/accessibility",
-        "Accessibility statement – AYR - Access Your Records – GOV.UK",
+        f"Accessibility – {service_name}",
     ),
 ]
 
