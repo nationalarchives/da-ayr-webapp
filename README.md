@@ -464,10 +464,10 @@ In addition, we recommend that any tests that have dependencies on data, do not 
 
 - To utilise the playwright debugger, you can set the `PWDEBUG=1` environment variable, e.g.
 
-`PWDEBUG=1 poetry run pytest e2e_tests/test_search.py --base-url=http://localhost:5000 --headed`
+`PWDEBUG=1 poetry run pytest e2e_tests/test_search.py --base-url=https://localhost:5000 --headed`
 
 1. individual tests in file with multiple tests (use -k):
-poetry run pytest e2e_tests/test_record_metadata.py -k test_page_title_and_header --base-url=http://localhost:5000 --headed --slowmo 2000
+poetry run pytest e2e_tests/test_record_metadata.py -k test_page_title_and_header --base-url=https://localhost:5000 --headed --slowmo 2000
 
 ### Generate playwright tests using GUI
 
