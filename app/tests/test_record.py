@@ -240,7 +240,7 @@ class TestRecord:
         <dl class="govuk-summary-list govuk-summary-list--record">
                         <div class="govuk-summary-list__row"></div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Title</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">File name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {file.FileName}
                 </dd>
@@ -294,7 +294,7 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Translated title</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Translated file name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {record_files[0]["translated_title"].Value}
                 </dd>
@@ -367,13 +367,13 @@ class TestRecord:
         <dl class="govuk-summary-list govuk-summary-list--record">
                         <div class="govuk-summary-list__row"></div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Title</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">File name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {file.FileName}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative title</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative file name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {record_files[1]["alternative_title"].Value}
                 </dd>
@@ -451,7 +451,7 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Translated title</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Translated file name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                         {record_files[1]["translated_title"].Value}
                 </dd>
@@ -526,13 +526,13 @@ class TestRecord:
         <dl class="govuk-summary-list govuk-summary-list--record">
                         <div class="govuk-summary-list__row"></div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Title</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">File name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {file.FileName}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative title</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative file name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {record_files[2]["alternative_title"].Value}
                 </dd>
@@ -610,7 +610,7 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Translated title</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Translated file name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                         {record_files[2]["translated_title"].Value}
                 </dd>
