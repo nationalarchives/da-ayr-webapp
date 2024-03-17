@@ -420,18 +420,20 @@ These mock the `get_user_groups` permissions helper which abstracts away the ext
   - `is_all_access_user`: True
   - `transferring_bodies`: None
 
-### End To End Tests
+### End-To-End Tests
 
 We have a separate End To End suite of [Playwright](https://playwright.dev/python/docs/intro) tests in the `e2e_tests/` directory. These are also written in python and use the `pytest-playwright` `PyPi` package to run the tests as specified in the poetry dependencies.
 
-In addition to installing the package, before you run the tests for the first time on your machine, you will need to run `playwright install` to install the required browsers for the end to end tests.
+In addition to installing the package, before you run the tests for the first time on your machine, you will need to run `playwright install` to install the required browsers for the end-to-end tests.
 
 Before running our Playwright tests,
 
-- `AYR_TEST_USERNAME`
-- `AYR_TEST_PASSWORD`
+- `AYR_AAU_USER_NAME`
+- `AYR_AAU_USER_PASSWORD`
+- `AYR_STANDARD_USER_NAME`
+- `AYR_STANDARD_USER_PASSWORD`
 
-with appropriate test user credentials for the instance you want to test
+set environment variables with appropriate test user credentials for the instance you want to test
 
 Note: a `.env.e2e_tests.template` file has been provided, which you can then `cp .env.e2e_tests.template .env.e2e_tests`, then fill, and then source `source .env.e2e_tests`
 
