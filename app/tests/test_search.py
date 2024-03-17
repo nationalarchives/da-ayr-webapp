@@ -537,7 +537,7 @@ class TestSearchTransferringBody:
         html = response.data.decode()
 
         expected_html = f"""
-        <table class="govuk-table">
+        <table class="govuk-table" id="tbl_result">
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
                     <th scope="col"
