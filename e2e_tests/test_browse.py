@@ -16,13 +16,33 @@ class TestBrowse:
     def route_url(self):
         return "/browse"
 
-    def test_has_title(self, aau_user_page: Page):
+    def test_browse_has_title(self, aau_user_page: Page):
         aau_user_page.goto(f"{self.route_url}")
 
         assert (
             aau_user_page.title()
             == "Browse – AYR - Access Your Records – GOV.UK"
         )
+
+    def test_browse_no_results_found(self, aau_user_page: Page):
+        aau_user_page.locator("#series_filter").click()
+        aau_user_page.locator("#series_filter").fill("junk")
+        aau_user_page.get_by_role("button", name="Apply filters").click()
+
+        assert aau_user_page.inner_html("text='No results found'")
+        assert aau_user_page.inner_html("text='Help with your search'")
+        assert aau_user_page.inner_html(
+            "text='Try changing or removing one or more applied filters.'"
+        )
+        assert aau_user_page.inner_html(
+            "text='Alternatively, use the breadcrumbs to navigate back to the browse view.'"
+        )
+
+    def test_browse_breadcrumb(self, aau_user_page: Page):
+        aau_user_page.goto(f"{self.route_url}")
+
+        assert aau_user_page.inner_html("text='You are viewing'")
+        assert aau_user_page.inner_html("text='Everything available to you'")
 
     def test_browse_filter_functionality_with_query_string_parameters(
         self, aau_user_page: Page
@@ -54,26 +74,6 @@ class TestBrowse:
 
         verify_header_row(header_rows)
         assert rows == expected_rows
-
-    def test_browse_no_results_returned(self, aau_user_page: Page):
-        aau_user_page.locator("#series_filter").click()
-        aau_user_page.locator("#series_filter").fill("junk")
-        aau_user_page.get_by_role("button", name="Apply filters").click()
-
-        assert aau_user_page.inner_html("text='No results found'")
-        assert aau_user_page.inner_html("text='Help with your search'")
-        assert aau_user_page.inner_html(
-            "text='Try changing or removing one or more applied filters.'"
-        )
-        assert aau_user_page.inner_html(
-            "text='Alternatively, use the breadcrumbs to navigate back to the browse view.'"
-        )
-
-    def test_browse_breadcrumb(self, aau_user_page: Page):
-        aau_user_page.goto(f"{self.route_url}")
-
-        assert aau_user_page.inner_html("text='You are viewing'")
-        assert aau_user_page.inner_html("text='Everything available to you'")
 
     def test_browse_sort_functionality_by_transferring_body_descending(
         self, aau_user_page: Page
@@ -114,9 +114,6 @@ class TestBrowse:
             "MOCK1 Department"
         )
         aau_user_page.get_by_role("button", name="Apply filters").click()
-        aau_user_page.get_by_label("Sort by").select_option(
-            "last_record_transferred-desc"
-        )
         aau_user_page.get_by_role("button", name="Apply", exact=True).click()
 
         header_rows = aau_user_page.locator(

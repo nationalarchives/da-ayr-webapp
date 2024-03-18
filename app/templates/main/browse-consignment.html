@@ -60,14 +60,6 @@
                                     {% endif %}
                                 </td>
                             </tr>
-                            <tr class="govuk-table__row govuk-table__row__browse--mobile">
-                                <td class="govuk-table__cell browse__mobile-table__bottom-row">
-                                    <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
-                                </td>
-                                <td class="govuk-table__cell govuk-table__cell--ayr browse__table__mobile--hidden"></td>
-                                <td class="govuk-table__cell browse__mobile-table__bottom-row"></td>
-                                <td class="govuk-table__cell right-align browse__mobile-table__bottom-row"></td>
-                            </tr>
                         {% endfor %}
                     </tbody>
                 </table>

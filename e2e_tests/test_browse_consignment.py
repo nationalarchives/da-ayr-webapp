@@ -1,93 +1,326 @@
 from playwright.sync_api import Page
 
 
+def verify_header_row(header_rows):
+    assert header_rows[0] == [
+        "Date of record",
+        "File name",
+        "Status",
+        "Record opening date",
+    ]
+
+
 class TestBrowseConsignment:
     @property
     def route_url(self):
         return "/browse/consignment"
 
+    @property
+    def consignment_id(self):
+        return "d2de07cf-9188-4916-a7cf-a0631ab0c906"
+
+    def test_browse_consignment_has_title(self, standard_user_page: Page):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+
+        assert (
+            standard_user_page.title()
+            == "Browse – AYR - Access Your Records – GOV.UK"
+        )
+
+    def test_browse_consignment_404_for_no_access(
+        self, standard_user_page: Page
+    ):
+        consignment_id = "99dc7ced-1683-4421-b9d5-eb90e9d9bd51"
+
+        standard_user_page.goto(f"{self.route_url}/{consignment_id}")
+
+        assert standard_user_page.inner_html("text='Page not found'")
+        assert standard_user_page.inner_html(
+            "text='If you typed the web address, check it is correct.'"
+        )
+        assert standard_user_page.inner_html(
+            "text='If you pasted the web address, check you copied the entire address.'"
+        )
+
+    def test_browse_consignment_no_results_found(
+        self, standard_user_page: Page
+    ):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+        standard_user_page.locator("label").filter(
+            has_text="Date of record"
+        ).click()
+        standard_user_page.locator("#date_to_day").fill("31")
+        standard_user_page.locator("#date_to_month").fill("7")
+        standard_user_page.locator("#date_to_year").fill("2022")
+
+        standard_user_page.get_by_role("button", name="Apply filters").click()
+
+        assert standard_user_page.inner_html("text='No results found'")
+        assert standard_user_page.inner_html("text='Help with your search'")
+        assert standard_user_page.inner_html(
+            "text='Try changing or removing one or more applied filters.'"
+        )
+        assert standard_user_page.inner_html(
+            "text='Alternatively, use the breadcrumbs to navigate back to the browse view.'"
+        )
+
+    def test_browse_consignment_breadcrumb(self, standard_user_page: Page):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+
+        assert standard_user_page.inner_html("text='You are viewing'")
+        assert standard_user_page.inner_html("text='Everything'")
+        assert standard_user_page.inner_html("text='Testing A'")
+        assert standard_user_page.inner_html("text='TSTA 1'")
+        assert standard_user_page.inner_html("text='TDR-2023-TMT'")
+
+    def test_browse_consignment_no_pagination(self, standard_user_page: Page):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+
+        standard_user_page.get_by_label("Closed only").check()
+
+        standard_user_page.get_by_role("button", name="Apply filters").click()
+
+        assert not standard_user_page.get_by_label("Page 1").is_visible()
+        assert not standard_user_page.get_by_label("Page 2").is_visible()
+        assert not standard_user_page.get_by_role(
+            "link", name="Nextpage"
+        ).is_visible()
+
+    def test_browse_consignment_has_pagination_with_next_page(
+        self, standard_user_page: Page
+    ):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+        standard_user_page.get_by_label("All records").check()
+        standard_user_page.locator("label").filter(
+            has_text="Date of record"
+        ).click()
+        standard_user_page.locator("#date_from_day").fill("1")
+        standard_user_page.locator("#date_from_month").fill("8")
+        standard_user_page.locator("#date_from_year").fill("2022")
+
+        standard_user_page.get_by_role("button", name="Apply filters").click()
+
+        assert standard_user_page.get_by_label("Page 1").is_visible()
+        assert standard_user_page.get_by_label("Page 2").is_visible()
+        assert standard_user_page.get_by_label("Page 3").is_visible()
+        assert standard_user_page.get_by_role(
+            "link", name="Nextpage"
+        ).is_visible()
+
+    def test_browse_consignment_has_pagination_with_previous_and_next_page(
+        self, standard_user_page: Page
+    ):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+        standard_user_page.get_by_label("All records").check()
+        standard_user_page.locator("label").filter(
+            has_text="Date of record"
+        ).click()
+        standard_user_page.locator("#date_from_day").fill("1")
+        standard_user_page.locator("#date_from_month").fill("8")
+        standard_user_page.locator("#date_from_year").fill("2022")
+
+        standard_user_page.get_by_role("button", name="Apply filters").click()
+
+        standard_user_page.get_by_role("link", name="Nextpage").click()
+
+        assert standard_user_page.get_by_role(
+            "link", name="Previouspage"
+        ).is_visible()
+        assert standard_user_page.get_by_label("Page 1").is_visible()
+        assert standard_user_page.get_by_label("Page 2").is_visible()
+        assert standard_user_page.get_by_label("Page 3").is_visible()
+        assert standard_user_page.get_by_role(
+            "link", name="Nextpage"
+        ).is_visible()
+
+    def test_browse_consignment_has_pagination_with_previous_page(
+        self, standard_user_page: Page
+    ):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+        standard_user_page.get_by_label("All records").check()
+        standard_user_page.locator("label").filter(
+            has_text="Date of record"
+        ).click()
+        standard_user_page.locator("#date_from_day").fill("1")
+        standard_user_page.locator("#date_from_month").fill("8")
+        standard_user_page.locator("#date_from_year").fill("2022")
+
+        standard_user_page.get_by_role("button", name="Apply filters").click()
+
+        standard_user_page.get_by_label("Page 3").click()
+
+        assert standard_user_page.get_by_role(
+            "link", name="Previouspage"
+        ).is_visible()
+        assert standard_user_page.get_by_label("Page 1").is_visible()
+        assert standard_user_page.get_by_label("Page 2").is_visible()
+        assert standard_user_page.get_by_label("Page 3").is_visible()
+
     def test_browse_consignment_filter_functionality_with_query_string_parameters(
-        self, aau_user_page: Page
+        self, standard_user_page: Page
     ):
-        aau_user_page.goto(
-            f"{self.route_url}/99dc7ced-1683-4421-b9d5-eb90e9d9bd51?sort=closure_type-asc&date_from_day"
-            "=01&date_from_month=03&date_from_year=2023&date_to_day=&date_to_month=&date_to_year="
+        standard_user_page.goto(
+            f"{self.route_url}/{self.consignment_id}?sort=date_last_modified-desc&record_status=all&"
+            f"date_filter_field=date_last_modified&date_from_day=01&date_from_month=01&date_from_year=2022&"
+            f"date_to_day=&date_to_month=&date_to_year="
         )
 
-        table = aau_user_page.locator("#tbl_result").first
-        headers = table.locator("thead th").all_text_contents()
-        rows = table.locator("tbody tr")
-        cols = rows.first.locator("td")
-
-        assert headers == [
-            "Date of record",
-            "Filename",
-            "Status",
-            "Record opening date",
-        ]
-
-        assert rows.count() == 1
-
-        assert cols.nth(0).inner_text() == "28/07/2023"
-        assert cols.nth(1).inner_text() == "testfile1"
-        assert cols.nth(2).inner_text() == "Open"
-        assert cols.nth(3).inner_text() == "-"
-
-    def test_browse_consignment_sort_and_filter_functionality(
-        self, aau_user_page: Page
-    ):
-        aau_user_page.goto(
-            f"{self.route_url}/99dc7ced-1683-4421-b9d5-eb90e9d9bd51"
+        header_rows = standard_user_page.locator(
+            "#tbl_result tr:visible"
+        ).evaluate_all(
+            """els => els.slice(0).map(el =>
+              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
+            )"""
         )
-        aau_user_page.get_by_label("Day").first.fill("01")
-        aau_user_page.get_by_label("Month").first.fill("07")
-        aau_user_page.get_by_label("Year").first.fill("2023")
-        aau_user_page.get_by_role("button", name="Apply filters").click()
-        aau_user_page.get_by_label("Sort by").select_option("closure_type-asc")
-        aau_user_page.get_by_role("button", name="Apply filters").click()
 
-        table = aau_user_page.locator("#tbl_result").first
-        headers = table.locator("thead th").all_text_contents()
-        rows = table.locator("tbody tr")
-        cols = rows.first.locator("td")
+        rows = standard_user_page.locator(
+            "#tbl_result tr:visible"
+        ).evaluate_all(
+            """els => els.slice(1).map(el =>
+              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+            )"""
+        )
 
-        assert headers == [
-            "Date of record",
-            "Filename",
-            "Status",
-            "Record opening date",
+        assert len(rows) == 5
+
+        expected_rows = [
+            ["03/08/2022", "delivery-form-digital.doc", "Open", "-"],
+            ["03/08/2022", "Digital Transfer training email .msg", "Open", "-"],
+            ["03/08/2022", "Draft DDRO 05.docx", "Open", "-"],
+            [
+                "03/08/2022",
+                "DTP_ Digital Transfer process diagram UG.docx",
+                "Open",
+                "-",
+            ],
+            ["03/08/2022", "base_de_donnees.png", "Open", "-"],
         ]
 
-        assert rows.count() == 1
+        verify_header_row(header_rows)
+        assert rows == expected_rows
 
-        assert cols.nth(0).inner_text() == "28/07/2023"
-        assert cols.nth(1).inner_text() == "testfile1"
-        assert cols.nth(2).inner_text() == "Open"
-        assert cols.nth(3).inner_text() == "-"
+    def test_browse_consignment_sort_functionality_by_record_status_descending(
+        self, standard_user_page: Page
+    ):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+        standard_user_page.get_by_label("Sort by").select_option(
+            "closure_type-asc"
+        )
+        standard_user_page.locator("label").filter(
+            has_text="Date of record"
+        ).click()
+        standard_user_page.locator("#date_from_day").fill("01")
+        standard_user_page.locator("#date_from_month").fill("01")
+        standard_user_page.locator("#date_from_year").fill("2022")
+        standard_user_page.get_by_role(
+            "button", name="Apply", exact=True
+        ).click()
+
+        header_rows = standard_user_page.locator(
+            "#tbl_result tr:visible"
+        ).evaluate_all(
+            """els => els.slice(0).map(el =>
+              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
+            )"""
+        )
+
+        rows = standard_user_page.locator(
+            "#tbl_result tr:visible"
+        ).evaluate_all(
+            """els => els.slice(1).map(el =>
+              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+            )"""
+        )
+
+        assert len(rows) == 5
+
+        expected_rows = [
+            ["03/08/2022", "Presentation.pptx", "Closed", "04/08/2122"],
+            [
+                "03/08/2022",
+                "Emergency Contact Details Paul Young.docx",
+                "Closed",
+                "26/12/2121",
+            ],
+            ["03/08/2022", "Digital Transfer training email .msg", "Open", "-"],
+            [
+                "03/08/2022",
+                "DTP_ Digital Transfer process diagram UG.docx",
+                "Open",
+                "-",
+            ],
+            ["03/08/2022", "Draft DDRO 05.docx", "Open", "-"],
+        ]
+
+        verify_header_row(header_rows)
+        assert rows == expected_rows
+
+    def test_browse_consignment_filter_functionality_with_record_opening_date_filter(
+        self, standard_user_page: Page
+    ):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+        standard_user_page.locator("label").filter(
+            has_text="Record opening date"
+        ).click()
+        standard_user_page.locator("#date_from_day").fill("01")
+        standard_user_page.locator("#date_from_month").fill("01")
+        standard_user_page.locator("#date_from_year").fill("2022")
+        standard_user_page.get_by_role(
+            "button", name="Apply", exact=True
+        ).click()
+
+        header_rows = standard_user_page.locator(
+            "#tbl_result tr:visible"
+        ).evaluate_all(
+            """els => els.slice(0).map(el =>
+              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
+            )"""
+        )
+
+        rows = standard_user_page.locator(
+            "#tbl_result tr:visible"
+        ).evaluate_all(
+            """els => els.slice(1).map(el =>
+              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+            )"""
+        )
+
+        assert len(rows) == 2
+
+        expected_rows = [
+            [
+                "03/08/2022",
+                "Emergency Contact Details Paul Young.docx",
+                "Closed",
+                "26/12/2121",
+            ],
+            ["03/08/2022", "Presentation.pptx", "Closed", "04/08/2122"],
+        ]
+
+        verify_header_row(header_rows)
+        assert rows == expected_rows
 
     def test_browse_consignment_clear_filter_functionality(
-        self, aau_user_page: Page
+        self, standard_user_page: Page
     ):
-        aau_user_page.goto(
-            f"{self.route_url}/99dc7ced-1683-4421-b9d5-eb90e9d9bd51"
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+        standard_user_page.get_by_label("Sort by").select_option(
+            "file_name-asc"
         )
-        aau_user_page.get_by_label("Sort by").select_option("file_name-asc")
-        aau_user_page.get_by_role(
+        standard_user_page.get_by_role(
             "button", name="Apply", exact=True
-        ).first.click()
-        aau_user_page.get_by_label("Day").first.fill("01")
-        aau_user_page.get_by_role("button", name="Apply filters").click()
-        aau_user_page.get_by_role("link", name="Clear filters").click()
+        ).click()
+        standard_user_page.get_by_role("link", name="Clear filters").click()
 
-        assert aau_user_page.inner_text("#date_from_day") == ""
-        assert aau_user_page.inner_text("#date_from_month") == ""
-        assert aau_user_page.inner_text("#date_from_year") == ""
-        assert aau_user_page.inner_text("#date_to_day") == ""
-        assert aau_user_page.inner_text("#date_to_month") == ""
-        assert aau_user_page.inner_text("#date_to_year") == ""
+        assert standard_user_page.inner_text("#date_from_day") == ""
+        assert standard_user_page.inner_text("#date_from_month") == ""
+        assert standard_user_page.inner_text("#date_from_year") == ""
+        assert standard_user_page.inner_text("#date_to_day") == ""
+        assert standard_user_page.inner_text("#date_to_month") == ""
+        assert standard_user_page.inner_text("#date_to_year") == ""
         assert (
-            aau_user_page.get_by_label("", exact=True)
-            .nth(1)
-            .evaluate("el => el.options[el.selectedIndex].text")
-            == "Records filename (A to Z)"
+            standard_user_page.get_by_label("Sort by", exact=True).evaluate(
+                "el => el.options[el.selectedIndex].text"
+            )
+            == "Filename (A to Z)"
         )
