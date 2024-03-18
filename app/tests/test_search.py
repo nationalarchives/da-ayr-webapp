@@ -50,7 +50,7 @@ def verify_search_results_summary_header_row(data):
     ] == expected_row[0]
 
 
-def verify_data_rows(data, expected_rows):
+def verify_search_results_summary_data_rows(data, expected_rows):
     """
     this function check data rows for data table compared with expected rows
     :param data: response data
@@ -64,6 +64,25 @@ def verify_data_rows(data, expected_rows):
     for row_index, row in enumerate(rows):
         row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
         if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+
+    assert [row_data] == expected_rows[0]
+
+
+def verify_data_rows(data, expected_rows):
+    """
+    this function check data rows for data table compared with expected rows
+    :param data: response data
+    :param expected_rows: expected rows to be compared
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    top_rows = table.find_all("td", class_="search__mobile-table__top-row")
+
+    row_data = ""
+    for row_index, row in enumerate(top_rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(top_rows) - 1:
             row_data = row_data + ", "
 
     assert [row_data] == expected_rows[0]
@@ -262,7 +281,7 @@ class TesthSearchResultsSummary:
         ]
 
         verify_search_results_summary_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
+        verify_search_results_summary_data_rows(response.data, expected_rows)
 
     def test_search_results_summary_with_results_multiple_terms(
         self,
@@ -291,7 +310,7 @@ class TesthSearchResultsSummary:
         ]
 
         verify_search_results_summary_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
+        verify_search_results_summary_data_rows(response.data, expected_rows)
 
     def test_search_results_summary_breadcrumbs(
         self,
@@ -542,13 +561,18 @@ class TestSearchTransferringBody:
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
                     <th scope="col"
-                        class="govuk-table__header govuk-table__header--search-header">Series</th>
-                    <th scope="col"
-                        class="govuk-table__header govuk-table__header--search-header">
+                        class="govuk-table__header govuk-table__header--search-header
+                        search__desktop-heading">Series</th>
+                    <th class="govuk-table__header govuk-table__header--search-header
+                    search__mobile-heading" scope="col">
+                        Series / File name / Consignment ref
+                    </th>
+                    <th class="govuk-table__header govuk-table__header--search-header
+                    search__table__mobile--hidden" scope="col">
                         Consignment reference
                     </th>
-                    <th scope="col"
-            class="govuk-table__header govuk-table__header--search-header govuk-table__header--search-header-title">
+                    <th class="govuk-table__header govuk-table__header--search-header
+                    govuk-table__header--search-header-title search__table__mobile--hidden" scope="col">
                         File name
                     </th>
                     <th scope="col"
@@ -561,22 +585,52 @@ class TestSearchTransferringBody:
             </thead>
             <tbody class="govuk-table__body">
         <tr class="govuk-table__row">
-            <td class="govuk-table__cell govuk-table__cell--search-results">
+            <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row">
                 <a href="{browse_series_route_url}/{series_id}">first_series</a>
             </td>
-            <td class="govuk-table__cell govuk-table__cell--search-results govuk-table__cell--search-results-no-wrap">
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            govuk-table__cell--search-results-no-wrap search__mobile-table__top-row search__table__mobile--hidden">
                 <a href="{browse_consignment_route_url}/{consignment_id}">TDR-2023-FI1</a>
             </td>
-            <td class="govuk-table__cell govuk-table__cell--search-results">
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            search__mobile-table__top-row search__table__mobile--hidden">
                 <a href="{record_route_url}/{file_id}">first_file.docx</a>
             </td>
-            <td class="govuk-table__cell govuk-table__cell--search-results">
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            search__mobile-table__top-row">
                 <strong class="govuk-tag govuk-tag--red">
                     Closed
                 </strong>
             </td>
-            <td class="govuk-table__cell govuk-table__cell--search-results">
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            right-align search__mobile-table__top-row">
                     25/02/2023
+            </td>
+            </tr>
+            <tr class="govuk-table__row search__mobile-row">
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            search__mobile-table__middle-row">
+                <a href="{record_route_url}/{file_id}">
+                first_file.docx
+                </a>
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            search__mobile-table__middle-row">
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            search__mobile-table__middle-row">
+            </td>
+            </tr>
+            <tr class="govuk-table__row search__mobile-row">
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            govuk-table__cell--search-results-no-wrap">
+                <a href="{browse_consignment_route_url}/{consignment_id}">
+                TDR-2023-FI1
+                </a>
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results">
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results">
             </td>
         </tr>
             </tbody>
@@ -1344,7 +1398,7 @@ class TestSearchTransferringBody:
         html = response.data.decode()
 
         search_filter_html = f"""
-        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters">
+        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters mobile-filters">
                             <div class="search-all-filter-container">
                                 <div class="browse-filter__header">
                                     <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
@@ -1402,7 +1456,7 @@ class TestSearchTransferringBody:
             html,
             "div",
             {
-                "class": "govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters"
+                "class": "govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters mobile-filters"
             },
         )
 
@@ -1437,7 +1491,7 @@ class TestSearchTransferringBody:
         html = response.data.decode()
 
         search_filter_html = f"""
-        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters">
+        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters mobile-filters">
                             <div class="search-all-filter-container">
                                 <div class="browse-filter__header">
                                     <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
@@ -1495,7 +1549,7 @@ class TestSearchTransferringBody:
             html,
             "div",
             {
-                "class": "govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters"
+                "class": "govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters mobile-filters"
             },
         )
 

@@ -70,10 +70,10 @@
                                     <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row">
                                         <a href="{{ url_for('main.browse_series', _id=record['series_id']) }}">{{ record["series"] }}</a>
                                     </td>
-                                    <td class="govuk-table__cell govuk-table__cell--search-results govuk-table__cell--search-results-no-wrap search__table__mobile--hidden">
+                                    <td class="govuk-table__cell govuk-table__cell--search-results govuk-table__cell--search-results-no-wrap search__mobile-table__top-row search__table__mobile--hidden">
                                         <a href="{{ url_for('main.browse_consignment', _id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
                                     </td>
-                                    <td class="govuk-table__cell govuk-table__cell--search-results search__table__mobile--hidden">
+                                    <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row search__table__mobile--hidden">
                                         <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
                                     </td>
                                     <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row">
@@ -90,11 +90,11 @@
                                     </td>
                                 </tr>
                                 <tr class="govuk-table__row search__mobile-row">
-                                    <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row">
+                                    <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__middle-row">
                                         <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
                                     </td>
-                                    <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row"></td>
-                                    <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row"></td>
+                                    <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__middle-row"></td>
+                                    <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__middle-row"></td>
                                 </tr>
                                 <tr class="govuk-table__row search__mobile-row">
                                     <td class="govuk-table__cell govuk-table__cell--search-results govuk-table__cell--search-results-no-wrap">
