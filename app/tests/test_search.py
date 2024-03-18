@@ -18,7 +18,7 @@ def verify_search_transferring_body_header_row(data):
     expected_row = (
         [
             "Series",
-            "Consignment Reference",
+            "Consignment reference",
             "File name",
             "Status",
             "Record opening date",
@@ -537,14 +537,14 @@ class TestSearchTransferringBody:
         html = response.data.decode()
 
         expected_html = f"""
-        <table class="govuk-table">
+        <table class="govuk-table" id="tbl_result">
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
                     <th scope="col"
                         class="govuk-table__header govuk-table__header--search-header">Series</th>
                     <th scope="col"
                         class="govuk-table__header govuk-table__header--search-header">
-                        Consignment Reference
+                        Consignment reference
                     </th>
                     <th scope="col"
             class="govuk-table__header govuk-table__header--search-header govuk-table__header--search-header-title">

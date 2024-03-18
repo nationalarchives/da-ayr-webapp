@@ -6,23 +6,23 @@ class TestBrowse:
     def route_url(self):
         return "/browse"
 
-    def test_has_title(self, authenticated_page: Page):
-        authenticated_page.goto(f"{self.route_url}")
+    def test_has_title(self, aau_user_page: Page):
+        aau_user_page.goto(f"{self.route_url}")
 
         assert (
-            authenticated_page.title()
+            aau_user_page.title()
             == "Browse – AYR - Access Your Records – GOV.UK"
         )
 
     def test_browse_filter_functionality_with_query_string_parameters(
-        self, authenticated_page: Page
+        self, aau_user_page: Page
     ):
-        authenticated_page.goto(
+        aau_user_page.goto(
             f"{self.route_url}?transferring_body_filter=all&series_filter=&date_from_day"
             "01=&date_from_month=07&date_from_year=2023&date_to_day=31&date_to_month=07&date_to_year=2023"
         )
 
-        table = authenticated_page.locator("#tbl_result").first
+        table = aau_user_page.locator("#tbl_result").first
         headers = table.locator("thead th").all_text_contents()
         rows = table.locator("tbody tr")
         cols = rows.first.locator("td")
@@ -43,20 +43,18 @@ class TestBrowse:
         assert cols.nth(3).inner_text() == "1"
         assert cols.nth(4).inner_text() == "1"
 
-    def test_browse_sort_and_filter_functionality(
-        self, authenticated_page: Page
-    ):
-        authenticated_page.goto(f"{self.route_url}")
-        authenticated_page.get_by_label("", exact=True).nth(1).select_option(
+    def test_browse_sort_and_filter_functionality(self, aau_user_page: Page):
+        aau_user_page.goto(f"{self.route_url}")
+        aau_user_page.get_by_label("", exact=True).nth(1).select_option(
             "MOCK1 Department"
         )
-        authenticated_page.get_by_role("button", name="Apply filters").click()
-        authenticated_page.get_by_label("Sort by").select_option(
+        aau_user_page.get_by_role("button", name="Apply filters").click()
+        aau_user_page.get_by_label("Sort by").select_option(
             "last_record_transferred-desc"
         )
-        authenticated_page.get_by_role("button", name="Apply filters").click()
+        aau_user_page.get_by_role("button", name="Apply filters").click()
 
-        table = authenticated_page.locator("#tbl_result").first
+        table = aau_user_page.locator("#tbl_result").first
         headers = table.locator("thead th").all_text_contents()
         rows = table.locator("tbody tr")
         cols = rows.first.locator("td")
@@ -78,13 +76,13 @@ class TestBrowse:
         assert cols.nth(4).inner_text() == "1"
 
     def test_browse_sort_and_filter_functionality_with_series_filter_wildcard_character(
-        self, authenticated_page: Page
+        self, aau_user_page: Page
     ):
-        authenticated_page.goto(f"{self.route_url}")
-        authenticated_page.get_by_label("", exact=True).nth(2).fill("1")
-        authenticated_page.get_by_role("button", name="Apply filters").click()
+        aau_user_page.goto(f"{self.route_url}")
+        aau_user_page.get_by_label("", exact=True).nth(2).fill("1")
+        aau_user_page.get_by_role("button", name="Apply filters").click()
 
-        table = authenticated_page.locator("#tbl_result").first
+        table = aau_user_page.locator("#tbl_result").first
         headers = table.locator("thead th").all_text_contents()
         rows = table.locator("tbody tr")
         cols = rows.nth(0).locator("td")
@@ -113,28 +111,28 @@ class TestBrowse:
         assert cols.nth(3).inner_text() == "73"
         assert cols.nth(4).inner_text() == "7"
 
-    def test_browse_clear_filter_functionality(self, authenticated_page: Page):
-        authenticated_page.goto(f"{self.route_url}")
-        authenticated_page.get_by_label("Sort by").select_option(
+    def test_browse_clear_filter_functionality(self, aau_user_page: Page):
+        aau_user_page.goto(f"{self.route_url}")
+        aau_user_page.get_by_label("Sort by").select_option(
             "transferring_body-desc"
         )
-        authenticated_page.get_by_role(
+        aau_user_page.get_by_role(
             "button", name="Apply", exact=True
         ).first.click()
-        authenticated_page.get_by_label("", exact=True).nth(1).select_option(
+        aau_user_page.get_by_label("", exact=True).nth(1).select_option(
             "Testing A"
         )
-        authenticated_page.get_by_role("button", name="Apply filters").click()
-        authenticated_page.get_by_role("link", name="Clear filters").click()
-        assert authenticated_page.inner_text("#series_filter") == ""
-        assert authenticated_page.inner_text("#date_from_day") == ""
-        assert authenticated_page.inner_text("#date_from_month") == ""
-        assert authenticated_page.inner_text("#date_from_year") == ""
-        assert authenticated_page.inner_text("#date_to_day") == ""
-        assert authenticated_page.inner_text("#date_to_month") == ""
-        assert authenticated_page.inner_text("#date_to_year") == ""
+        aau_user_page.get_by_role("button", name="Apply filters").click()
+        aau_user_page.get_by_role("link", name="Clear filters").click()
+        assert aau_user_page.inner_text("#series_filter") == ""
+        assert aau_user_page.inner_text("#date_from_day") == ""
+        assert aau_user_page.inner_text("#date_from_month") == ""
+        assert aau_user_page.inner_text("#date_from_year") == ""
+        assert aau_user_page.inner_text("#date_to_day") == ""
+        assert aau_user_page.inner_text("#date_to_month") == ""
+        assert aau_user_page.inner_text("#date_to_year") == ""
         assert (
-            authenticated_page.get_by_label("Sort by", exact=True).evaluate(
+            aau_user_page.get_by_label("Sort by", exact=True).evaluate(
                 "el => el.options[el.selectedIndex].text"
             )
             == "Transferring body (Z to A)"

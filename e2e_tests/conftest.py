@@ -5,12 +5,27 @@ from playwright.sync_api import Page
 
 
 @pytest.fixture()
-def authenticated_page(page) -> Page:
+def aau_user_page(page) -> Page:
     page.goto("/sign-in")
-    page.get_by_label("Email address").fill(os.environ.get("AYR_TEST_USERNAME"))
-    page.get_by_label("Password").fill(os.environ.get("AYR_TEST_PASSWORD"))
+    page.get_by_label("Email address").fill(
+        os.environ.get("AYR_AAU_USER_USERNAME")
+    )
+    page.get_by_label("Password").fill(os.environ.get("AYR_AAU_USER_PASSWORD"))
     page.get_by_role("button", name="Sign in").click()
     page.wait_for_url("/browse")
+    return page
+
+
+@pytest.fixture()
+def standard_user_page(page) -> Page:
+    page.goto("/sign-in")
+    page.get_by_label("Email address").fill(
+        os.environ.get("AYR_STANDARD_USER_USERNAME")
+    )
+    page.get_by_label("Password").fill(
+        os.environ.get("AYR_STANDARD_USER_PASSWORD")
+    )
+    page.get_by_role("button", name="Sign in").click()
     return page
 
 
