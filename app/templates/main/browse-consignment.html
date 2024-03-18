@@ -118,29 +118,31 @@
                         <div class="consignment-filter-dates-container">
                             <h3 class="govuk-heading-s govuk-heading-s--consignment-filter">Dates</h3>
                             <div class="govuk-form-group govuk-form-group__consignment-form-group">
-                                <fieldset class="govuk-fieldset">
+                                <div class="govuk-form-group {% if date_validation_errors %} {% if date_validation_errors.get('date_filter_field') %}govuk-form-group--error{% endif %}{% endif %}">
                                     {% if date_validation_errors %}
-                                        <div class="govuk-form-group">
-                                            {% for key, value in date_validation_errors.items() if key.startswith('date_filter_field') %}{{ value }}{% endfor %}
-                                        </div>
+                                        {% if date_validation_errors.get('date_filter_field') %}
+                                            <p class="govuk-error-message">{{ date_validation_errors['date_filter_field'] }}</p>
+                                        {% endif %}
                                     {% endif %}
-                                    <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
-                                        <div class="govuk-radios__item">
-                                            <input class="govuk-radios__input" id="date_last_modified" name="date_filter_field"
-                                                type="radio" value="date_last_modified" {% if
-                                                filters["date_filter_field"]=='date_last_modified' %}checked{% endif %}>
-                                                <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
-                                                       for="date_last_modified">Date of record</label>
-                                            </div>
+                                    <fieldset class="govuk-fieldset">
+                                        <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
                                             <div class="govuk-radios__item">
-                                                <input class="govuk-radios__input" id="opening_date" name="date_filter_field" type="radio"
-                                                    value="opening_date" {% if filters["date_filter_field"]=='opening_date'
-                                                    %}checked{% endif %}>
+                                                <input class="govuk-radios__input" id="date_last_modified" name="date_filter_field"
+                                                    type="radio" value="date_last_modified" {% if
+                                                    filters["date_filter_field"]=='date_last_modified' %}checked{% endif %}>
                                                     <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
-                                                           for="opening_date">Record opening date</label>
+                                                           for="date_last_modified">Date of record</label>
                                                 </div>
-                                            </div>
-                                        </fieldset>
+                                                <div class="govuk-radios__item">
+                                                    <input class="govuk-radios__input" id="opening_date" name="date_filter_field" type="radio"
+                                                        value="opening_date" {% if filters["date_filter_field"]=='opening_date'
+                                                        %}checked{% endif %}>
+                                                        <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
+                                                               for="opening_date">Record opening date</label>
+                                                    </div>
+                                                </div>
+                                            </fieldset>
+                                        </div>
                                     </div>
                                     {% include "date-filters.html" %}
                                     <div class="filters-form__buttons">
