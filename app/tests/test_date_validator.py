@@ -1,4 +1,5 @@
 from datetime import date
+from unittest.mock import patch
 
 import pytest
 
@@ -466,17 +467,17 @@ class TestDateValidator:
             ),
             (
                 {
-                    "date_from_day": "01",
-                    "date_from_month": "08",
-                    "date_from_year": "2023",
+                    "date_from_day": "31",
+                    "date_from_month": "12",
+                    "date_from_year": "2022",
                     "date_to_day": "01",
                     "date_to_month": "12",
                     "date_to_year": "2022",
                 },
                 (
-                    1,
-                    8,
-                    2023,
+                    31,
+                    12,
+                    2022,
                     1,
                     12,
                     2022,
@@ -490,8 +491,10 @@ class TestDateValidator:
             ),
         ],
     )
+    @patch("app.main.util.date_validator.date")
     def test_validate_dates_full_test(
         self,
+        mock_date,
         request_args,
         expected_results,
     ):
@@ -501,6 +504,8 @@ class TestDateValidator:
         Then if date is not a valid date
         it returns various errors based on the data filter values
         """
+        mock_date.today.return_value = date(2023, 1, 1)
+        mock_date.side_effect = lambda *args, **kw: date(*args, **kw)
         assert validate_dates(request_args) == expected_results
 
     @pytest.mark.parametrize(
@@ -535,8 +540,8 @@ class TestDateValidator:
                     None,
                     None,
                     None,
-                    31,
-                    12,
+                    1,
+                    1,
                     2023,
                     {
                         "date_from": [],
@@ -548,7 +553,7 @@ class TestDateValidator:
                 {
                     "date_to_day": "",
                     "date_to_month": "2",
-                    "date_to_year": "2024",
+                    "date_to_year": "2020",
                 },
                 (
                     None,
@@ -556,7 +561,7 @@ class TestDateValidator:
                     None,
                     29,
                     2,
-                    2024,
+                    2020,
                     {
                         "date_from": [],
                         "date_to": [],
@@ -567,12 +572,12 @@ class TestDateValidator:
                 {
                     "date_from_day": "",
                     "date_from_month": "2",
-                    "date_from_year": "2023",
+                    "date_from_year": "2022",
                 },
                 (
                     1,
                     2,
-                    2023,
+                    2022,
                     None,
                     None,
                     None,
@@ -586,7 +591,7 @@ class TestDateValidator:
                 {
                     "date_to_day": "",
                     "date_to_month": "2",
-                    "date_to_year": "2023",
+                    "date_to_year": "2021",
                 },
                 (
                     None,
@@ -594,7 +599,7 @@ class TestDateValidator:
                     None,
                     28,
                     2,
-                    2023,
+                    2021,
                     {
                         "date_from": [],
                         "date_to": [],
@@ -605,15 +610,15 @@ class TestDateValidator:
                 {
                     "date_to_day": "",
                     "date_to_month": "",
-                    "date_to_year": "2024",
+                    "date_to_year": "2020",
                 },
                 (
                     None,
                     None,
                     None,
-                    date.today().day,
-                    date.today().month,
-                    2024,
+                    31,
+                    12,
+                    2020,
                     {
                         "date_from": [],
                         "date_to": [],
@@ -622,8 +627,10 @@ class TestDateValidator:
             ),
         ],
     )
+    @patch("app.main.util.date_validator.date")
     def test_validate_dates_return_complete_date_full_test(
         self,
+        mock_date,
         request_args,
         expected_results,
     ):
@@ -633,6 +640,8 @@ class TestDateValidator:
         Then specific date values i.e. month or year, month and year given
         it returns valid completed date for date filter values
         """
+        mock_date.today.return_value = date(2023, 1, 1)
+        mock_date.side_effect = lambda *args, **kw: date(*args, **kw)
         assert validate_dates(request_args) == expected_results
 
     @pytest.mark.parametrize(
@@ -665,18 +674,18 @@ class TestDateValidator:
                     "date_filter_field": "date_last_modified",
                     "date_from_day": "01",
                     "date_from_month": "08",
-                    "date_from_year": "2023",
+                    "date_from_year": "2022",
                     "date_to_day": "31",
                     "date_to_month": "08",
-                    "date_to_year": "2023",
+                    "date_to_year": "2022",
                 },
                 (
                     1,
                     8,
-                    2023,
+                    2022,
                     31,
                     8,
-                    2023,
+                    2022,
                     {
                         "date_from": [],
                         "date_to": [],
@@ -708,8 +717,10 @@ class TestDateValidator:
             ),
         ],
     )
+    @patch("app.main.util.date_validator.date")
     def test_validate_dates_with_browse_consignment(
         self,
+        mock_date,
         request_args,
         expected_results,
     ):
@@ -719,6 +730,8 @@ class TestDateValidator:
         Then it returns an error if no date filter field provided
         else it returns valid date filter values
         """
+        mock_date.today.return_value = date(2023, 1, 1)
+        mock_date.side_effect = lambda *args, **kw: date(*args, **kw)
         assert (
             validate_dates(request_args, browse_consignment=True)
             == expected_results
