@@ -300,6 +300,57 @@ class TestBrowseConsignment:
         verify_header_row(header_rows)
         assert rows == expected_rows
 
+    def test_browse_consignment_date_filter_validation_date_from(
+        self, standard_user_page: Page
+    ):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+        standard_user_page.locator("label").filter(
+            has_text="Date of record"
+        ).click()
+        standard_user_page.locator("#date_from_day").fill("1")
+        standard_user_page.locator("#date_from_month").fill("12")
+        standard_user_page.locator("#date_from_year").fill("2024")
+        standard_user_page.get_by_role("button", name="Apply filters").click()
+
+        assert standard_user_page.get_by_text(
+            "‘Date from’ must be in the past"
+        ).is_visible()
+
+    def test_browse_consignment_date_filter_validation_to_date(
+        self, standard_user_page: Page
+    ):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+        standard_user_page.locator("label").filter(
+            has_text="Date of record"
+        ).click()
+        standard_user_page.locator("#date_to_day").fill("31")
+        standard_user_page.locator("#date_to_month").fill("12")
+        standard_user_page.locator("#date_to_year").fill("2024")
+        standard_user_page.get_by_role("button", name="Apply filters").click()
+
+        assert standard_user_page.get_by_text(
+            "‘Date to’ must be in the past"
+        ).is_visible()
+
+    def test_browse_consignment_date_filter_validation_date_from_and_to_date(
+        self, standard_user_page: Page
+    ):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+        standard_user_page.locator("label").filter(
+            has_text="Date of record"
+        ).click()
+        standard_user_page.locator("#date_from_day").fill("1")
+        standard_user_page.locator("#date_from_month").fill("1")
+        standard_user_page.locator("#date_from_year").fill("2023")
+        standard_user_page.locator("#date_to_day").fill("31")
+        standard_user_page.locator("#date_to_month").fill("12")
+        standard_user_page.locator("#date_to_year").fill("2022")
+        standard_user_page.get_by_role("button", name="Apply filters").click()
+
+        assert standard_user_page.get_by_text(
+            "‘Date from’ must be the same as or before ‘31/12/2022’"
+        ).is_visible()
+
     def test_browse_consignment_clear_filter_functionality(
         self, standard_user_page: Page
     ):

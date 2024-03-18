@@ -202,6 +202,44 @@ class TestBrowse:
         verify_header_row(header_rows)
         assert rows == expected_rows
 
+    def test_browse_date_filter_validation_date_from(self, aau_user_page: Page):
+        aau_user_page.goto(f"{self.route_url}")
+        aau_user_page.locator("#date_from_day").fill("1")
+        aau_user_page.locator("#date_from_month").fill("12")
+        aau_user_page.locator("#date_from_year").fill("2024")
+        aau_user_page.get_by_role("button", name="Apply filters").click()
+
+        assert aau_user_page.get_by_text(
+            "‘Date from’ must be in the past"
+        ).is_visible()
+
+    def test_browse_date_filter_validation_to_date(self, aau_user_page: Page):
+        aau_user_page.goto(f"{self.route_url}")
+        aau_user_page.locator("#date_to_day").fill("31")
+        aau_user_page.locator("#date_to_month").fill("12")
+        aau_user_page.locator("#date_to_year").fill("2024")
+        aau_user_page.get_by_role("button", name="Apply filters").click()
+
+        assert aau_user_page.get_by_text(
+            "‘Date to’ must be in the past"
+        ).is_visible()
+
+    def test_browse_date_filter_validation_date_from_and_to_date(
+        self, aau_user_page: Page
+    ):
+        aau_user_page.goto(f"{self.route_url}")
+        aau_user_page.locator("#date_from_day").fill("1")
+        aau_user_page.locator("#date_from_month").fill("1")
+        aau_user_page.locator("#date_from_year").fill("2023")
+        aau_user_page.locator("#date_to_day").fill("31")
+        aau_user_page.locator("#date_to_month").fill("12")
+        aau_user_page.locator("#date_to_year").fill("2022")
+        aau_user_page.get_by_role("button", name="Apply filters").click()
+
+        assert aau_user_page.get_by_text(
+            "‘Date from’ must be the same as or before ‘31/12/2022’"
+        ).is_visible()
+
     def test_browse_clear_filter_functionality(self, aau_user_page: Page):
         aau_user_page.goto(f"{self.route_url}")
         aau_user_page.get_by_label("Sort by").select_option(
