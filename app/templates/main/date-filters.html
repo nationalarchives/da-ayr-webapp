@@ -1,7 +1,7 @@
 <br>
 <div class="browse-all-filter-from-dates">
     <div class="govuk-form-group {% if date_validation_errors %}{% if date_validation_errors.get('date_from') %}govuk-form-group--error{% endif %}{% endif %}">
-        <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Date from</h3>
+        <p class="govuk-body govuk-body--browse-all-date">Date from</p>
         {% if date_validation_errors %}
             {% if date_validation_errors.get('date_from') %}
                 <p class="govuk-error-message">{{ date_validation_errors['date_from'][0] }}</p>
@@ -56,7 +56,7 @@
 </div>
 <div class="browse-all-filter-to-dates">
     <div class="govuk-form-group {% if date_validation_errors %} {% if date_validation_errors.get('date_to') %}govuk-form-group--error{% endif %}{% endif %}">
-        <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">To Date</h3>
+        <p class="govuk-body govuk-body--browse-all-date">To Date</p>
         {% if date_validation_errors %}
             {% if date_validation_errors.get('date_to') %}
                 <p class="govuk-error-message">{{ date_validation_errors['date_to'][0] }}</p>
