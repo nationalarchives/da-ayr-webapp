@@ -235,3 +235,31 @@
     margin-right: 0.6rem;
   }
 }
+
+//  MOBILE STYLES //
+
+@media screen and (width <=810px) {
+  .consignment-filter-dates-container {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .browse-all-filter-from-dates {
+    display: inline-flex;
+    margin-left: 2.2rem;
+    margin-top: 1rem;
+  }
+
+  .browse-all-filter-to-dates {
+    display: inline-flex;
+    margin-left: 2.2rem;
+  }
+
+  .filters-form__buttons {
+    align-items: center;
+    width: auto;
+    margin-top: 1rem;
+    margin-left: 1rem;
+    display: flex;
+  }
+}
