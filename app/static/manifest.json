@@ -1,0 +1,16 @@
+{
+    "name": "Access Your Records - AYR",
+    "short_name": "AYR",
+    "description": "Access your records service",
+    "icons": [
+      {
+        "src": "images/favicon.ico",
+        "sizes": "48x48",
+        "type": "image/ico"
+      }
+    ],
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#ffffff"
+  }
