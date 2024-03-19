@@ -124,11 +124,16 @@ def browse():
         from_date = None
         to_date = None
         date_filters = {}
+        date_error_fields = []
 
         if len(request.args) > 0:
-            date_validation_errors, from_date, to_date, date_filters = (
-                validate_date_filters(request.args)
-            )
+            (
+                date_validation_errors,
+                from_date,
+                to_date,
+                date_filters,
+                date_error_fields,
+            ) = validate_date_filters(request.args)
 
         filters = build_filters(request.args, from_date, to_date)
         sorting_orders = build_sorting_orders(request.args)
@@ -160,6 +165,7 @@ def browse():
             browse_type="browse",
             results=browse_results,
             date_validation_errors=date_validation_errors,
+            date_error_fields=date_error_fields,
             transferring_bodies=transferring_bodies,
             filters=filters,
             date_filters=date_filters,
@@ -197,11 +203,16 @@ def browse_transferring_body(_id: uuid.UUID):
     from_date = None
     to_date = None
     date_filters = {}
+    date_error_fields = []
 
     if len(request.args) > 0:
-        date_validation_errors, from_date, to_date, date_filters = (
-            validate_date_filters(request.args)
-        )
+        (
+            date_validation_errors,
+            from_date,
+            to_date,
+            date_filters,
+            date_error_fields,
+        ) = validate_date_filters(request.args)
 
     filters = build_filters(request.args, from_date, to_date)
     sorting_orders = build_sorting_orders(request.args)
@@ -234,6 +245,7 @@ def browse_transferring_body(_id: uuid.UUID):
         browse_type="transferring_body",
         results=browse_results,
         date_validation_errors=date_validation_errors,
+        date_error_fields=date_error_fields,
         breadcrumb_values=breadcrumb_values,
         filters=filters,
         date_filters=date_filters,
@@ -276,11 +288,16 @@ def browse_series(_id: uuid.UUID):
     from_date = None
     to_date = None
     date_filters = {}
+    date_error_fields = []
 
     if len(request.args) > 0:
-        date_validation_errors, from_date, to_date, date_filters = (
-            validate_date_filters(request.args)
-        )
+        (
+            date_validation_errors,
+            from_date,
+            to_date,
+            date_filters,
+            date_error_fields,
+        ) = validate_date_filters(request.args)
 
     filters = build_filters(request.args, from_date, to_date)
     sorting_orders = build_sorting_orders(request.args)
@@ -313,6 +330,7 @@ def browse_series(_id: uuid.UUID):
         browse_type="series",
         results=browse_results,
         date_validation_errors=date_validation_errors,
+        date_error_fields=date_error_fields,
         breadcrumb_values=breadcrumb_values,
         filters=filters,
         date_filters=date_filters,
@@ -358,11 +376,17 @@ def browse_consignment(_id: uuid.UUID):
     from_date = None
     to_date = None
     date_filters = {}
+    date_error_fields = []
 
     if len(request.args) > 0:
-        date_validation_errors, from_date, to_date, date_filters = (
-            validate_date_filters(request.args, browse_consignment=True)
-        )
+        if len([k for k, v in request.args.items() if "date" in k]):
+            (
+                date_validation_errors,
+                from_date,
+                to_date,
+                date_filters,
+                date_error_fields,
+            ) = validate_date_filters(request.args, browse_consignment=True)
 
     filters = build_browse_consignment_filters(request.args, from_date, to_date)
     sorting_orders = build_sorting_orders(request.args)
@@ -392,6 +416,7 @@ def browse_consignment(_id: uuid.UUID):
         browse_type="consignment",
         results=browse_results,
         date_validation_errors=date_validation_errors,
+        date_error_fields=date_error_fields,
         breadcrumb_values=breadcrumb_values,
         filters=filters,
         date_filters=date_filters,

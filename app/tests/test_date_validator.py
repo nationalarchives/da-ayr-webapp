@@ -27,6 +27,7 @@ class TestDateValidator:
                         "date_from": ["‘Date from’ must include a year"],
                         "date_to": [],
                     },
+                    ["date_from_year"],
                 ),
             ),
             (
@@ -46,6 +47,7 @@ class TestDateValidator:
                         "date_from": ["‘Date from’ must include a year"],
                         "date_to": [],
                     },
+                    ["date_from_year"],
                 ),
             ),
             (
@@ -62,9 +64,10 @@ class TestDateValidator:
                     None,
                     None,
                     {
-                        "date_from": ["‘Date from’ must include a month"],
+                        "date_from": ["‘Date from’ must be a real date"],
                         "date_to": [],
                     },
+                    ["date_from_month"],
                 ),
             ),
             (
@@ -84,6 +87,7 @@ class TestDateValidator:
                         "date_from": ["‘Date from’ must be a real date"],
                         "date_to": [],
                     },
+                    ["date_from_day"],
                 ),
             ),
             (
@@ -103,6 +107,7 @@ class TestDateValidator:
                         "date_from": ["‘Date from’ must be a real date"],
                         "date_to": [],
                     },
+                    ["date_from_day"],
                 ),
             ),
             (
@@ -119,9 +124,10 @@ class TestDateValidator:
                     None,
                     None,
                     {
-                        "date_from": ["‘Date from’ must include a month"],
+                        "date_from": ["‘Date from’ must be a real date"],
                         "date_to": [],
                     },
+                    ["date_from_month"],
                 ),
             ),
             (
@@ -141,6 +147,7 @@ class TestDateValidator:
                         "date_from": ["‘Date from’ must include a month"],
                         "date_to": [],
                     },
+                    ["date_from_month"],
                 ),
             ),
             (
@@ -160,6 +167,7 @@ class TestDateValidator:
                         "date_from": ["‘Date from’ must include a year"],
                         "date_to": [],
                     },
+                    ["date_from_year"],
                 ),
             ),
             (
@@ -179,6 +187,7 @@ class TestDateValidator:
                         "date_from": ["‘Date from’ must include a month"],
                         "date_to": [],
                     },
+                    ["date_from_month"],
                 ),
             ),
             (
@@ -198,6 +207,7 @@ class TestDateValidator:
                         "date_from": ["‘Date from’ year must be in full"],
                         "date_to": [],
                     },
+                    ["date_from_year"],
                 ),
             ),
             (
@@ -217,6 +227,7 @@ class TestDateValidator:
                         "date_from": ["‘Date from’ must be in the past"],
                         "date_to": [],
                     },
+                    ["date_from"],
                 ),
             ),
             (
@@ -232,6 +243,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": ["‘Date to’ must include a year"],
                     },
+                    ["date_to_year"],
                 ),
             ),
             (
@@ -251,6 +263,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": ["‘Date to’ must include a year"],
                     },
+                    ["date_to_year"],
                 ),
             ),
             (
@@ -270,6 +283,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": ["‘Date to’ must be a real date"],
                     },
+                    ["date_to_day"],
                 ),
             ),
             (
@@ -289,6 +303,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": ["‘Date to’ must be a real date"],
                     },
+                    ["date_to_day"],
                 ),
             ),
             (
@@ -308,6 +323,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": ["‘Date to’ must be a real date"],
                     },
+                    ["date_to_day"],
                 ),
             ),
             (
@@ -325,8 +341,9 @@ class TestDateValidator:
                     2023,
                     {
                         "date_from": [],
-                        "date_to": ["‘Date to’ must include a month"],
+                        "date_to": ["‘Date to’ must be a real date"],
                     },
+                    ["date_to_month"],
                 ),
             ),
             (
@@ -346,6 +363,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": ["‘Date to’ must be a real date"],
                     },
+                    ["date_to_day"],
                 ),
             ),
             (
@@ -365,6 +383,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": ["‘Date to’ must be a real date"],
                     },
+                    ["date_to_day"],
                 ),
             ),
             (
@@ -384,6 +403,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": ["‘Date to’ must be a real date"],
                     },
+                    ["date_to_day"],
                 ),
             ),
             (
@@ -403,6 +423,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": ["‘Date to’ must include a month"],
                     },
+                    ["date_to_month"],
                 ),
             ),
             (
@@ -422,6 +443,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": ["‘Date to’ must include a year"],
                     },
+                    ["date_to_year"],
                 ),
             ),
             (
@@ -441,6 +463,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": ["‘Date to’ must be in the past"],
                     },
+                    ["date_to"],
                 ),
             ),
             (
@@ -463,6 +486,7 @@ class TestDateValidator:
                         "date_from": ["‘Date from’ must be a real date"],
                         "date_to": ["‘Date to’ must include a month"],
                     },
+                    ["date_from_day", "date_to_month"],
                 ),
             ),
             (
@@ -487,6 +511,7 @@ class TestDateValidator:
                         ],
                         "date_to": [],
                     },
+                    ["date_from"],
                 ),
             ),
         ],
@@ -528,6 +553,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": [],
                     },
+                    [],
                 ),
             ),
             (
@@ -547,6 +573,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": [],
                     },
+                    [],
                 ),
             ),
             (
@@ -566,6 +593,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": [],
                     },
+                    [],
                 ),
             ),
             (
@@ -585,6 +613,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": [],
                     },
+                    [],
                 ),
             ),
             (
@@ -604,6 +633,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": [],
                     },
+                    [],
                 ),
             ),
             (
@@ -623,6 +653,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": [],
                     },
+                    [],
                 ),
             ),
         ],
@@ -667,6 +698,7 @@ class TestDateValidator:
                     {
                         "date_filter_field": "Select either ‘Date of record’ or ‘Record opening date’",
                     },
+                    [],
                 ),
             ),
             (
@@ -690,6 +722,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": [],
                     },
+                    [],
                 ),
             ),
             (
@@ -713,6 +746,7 @@ class TestDateValidator:
                         "date_from": [],
                         "date_to": [],
                     },
+                    [],
                 ),
             ),
         ],
