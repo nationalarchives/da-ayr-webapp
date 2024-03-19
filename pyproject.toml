@@ -12,7 +12,6 @@ skips = ["B105"]
 [tool.poetry.dependencies]
 python = "^3.11"
 cssmin = "0.2.0"
-email-validator = "2.1.1"
 flask-compress = "1.14"
 flask-limiter = "3.5.1"
 flask-talisman = "1.1.0"
