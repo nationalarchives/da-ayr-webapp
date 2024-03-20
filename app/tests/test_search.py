@@ -29,7 +29,6 @@ def verify_search_desktop_transferring_body_header_row(data):
     ] == expected_row[0]
 
 
-
 def verify_search_results_summary_header_row(data):
     """
     this function check header row column values against expected row
