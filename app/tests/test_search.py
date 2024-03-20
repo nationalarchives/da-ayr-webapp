@@ -29,28 +29,6 @@ def verify_search_desktop_transferring_body_header_row(data):
     ] == expected_row[0]
 
 
-def verify_search_mobile_transferring_body_header_row(data):
-    """
-    this function check header row column values against expected row
-    :param data: response data
-    """
-    soup = BeautifulSoup(data, "html.parser")
-    table = soup.find("table")
-    headers = table.find_all("th", class_="search__desktop-heading")
-
-    expected_row = (
-        [
-            "Series",
-            "Consignment reference",
-            "File name",
-            "Status",
-            "Record opening date",
-        ],
-    )
-    assert [
-        header.text.replace("\n", " ").strip(" ") for header in headers
-    ] == expected_row[0]
-
 
 def verify_search_results_summary_header_row(data):
     """
