@@ -67,6 +67,27 @@
                     </div>
                 </div>
                 <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--record-table mobile-record-details">
+                    {% if download_status %}
+                        <div class="hods-alert hods-alert--{% if download_status == 'failed' %}failed{% else %}success{% endif %}">
+                            {% if download_status == "failed" %}
+                                <h2 class="hods-alert__heading">Download unsuccessful</h2>
+                                <p class="govuk-body-s govuk-body-s__record-view">
+                                    We are aware of this issue and are working to resolve it. Please try downloading the file again later.
+                                </p>
+                            {% else %}
+                                <h2 class="hods-alert__heading">Download successfully</h2>
+                                <p class="govuk-body-m govuk-body-m__record-view">
+                                    <span class="file-name--style">'{{ record['file_name'] }}'</span> has been downloaded.
+                                    {% if citeable_reference %}<span>The citeable reference for this_file is: {{ citeable_reference }}</span>{% endif %}
+                                </p>
+                                <br>
+                                <p class="govuk-body-m govuk-body-m__record-view">
+                                    Please ensure that this file is managed responsibility to avoid any information being shared with anyone unauthorised to access it. Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use</a> for guidance.
+                                </p>
+                            {% endif %}
+                        </div>
+                        <br>
+                    {% endif %}
                     <h1 class="govuk-heading-m govuk-heading-m__record-details">Record details</h1>
                     <dl class="govuk-summary-list govuk-summary-list--record">
                         <div class="govuk-summary-list__row"></div>
@@ -78,7 +99,7 @@
                 <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-rights">
                     <div class="rights-container">
                         <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-                        <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
+                        <a href="{{ url_for('main.record', record_id=record['file_id'], download_file=True) }}"
                            class="govuk-button govuk-button__download--record"
                            data-module="govuk-button">Download record</a>
                         {% if download_filename %}

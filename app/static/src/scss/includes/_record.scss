@@ -459,3 +459,29 @@
     }
   }
 }
+
+.hods-alert {
+  padding: 15px;
+  border-left: 10px;
+
+  &--success {
+    border-color: #28a197;
+    background-color: #c6ece9;
+  }
+
+  &--failed {
+    border-color: #c42b2b;
+    background-color: #f3dede;
+  }
+
+  &__heading {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 15px;
+  }
+}
+
+.file-name--style {
+  font-style: italic;
+}

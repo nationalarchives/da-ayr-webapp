@@ -1,6 +1,8 @@
+import io
 import uuid
 
 import boto3
+import botocore
 from flask import (
     Response,
     abort,
@@ -574,7 +576,7 @@ def search_transferring_body(_id: uuid.UUID):
     )
 
 
-@bp.route("/record/<uuid:record_id>", methods=["GET"])
+@bp.route("/record/<uuid:record_id>", methods=["GET", "POST"])
 @access_token_sign_in_required
 def record(record_id: uuid.UUID):
     """
@@ -610,6 +612,28 @@ def record(record_id: uuid.UUID):
         5: {"consignment_reference": consignment.ConsignmentReference},
         6: {"file_name": file.FileName},
     }
+    download_file = request.args.get("download_file", False)
+    # download_status = request.args.get("download_status", "")
+    # start_download = request.headers.get("start_download", False)
+    download_status = ""
+    if download_file:
+        key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+        # print('start download', start_download)
+        # if start_download:
+        #    print('i was here')
+        #    file_data = download_file_from_s3_bucket(key)
+        #    download_file_name = file.CiteableReference or file.FileName
+        #    return send_file(file_data, as_attachment=True, download_name=download_file_name)
+        # else:
+        # file_data = download_file_from_s3_bucket(key)
+        # if file_data is not None:
+        if check_file_exists_in_s3_bucket(key):
+            # return send_file(file_data, as_attachment=True, download_name=download_file_name)
+            download_status = "success"
+            redirect_url = redirect(url_for("main.record", record_id=record_id))
+            return redirect_url
+        else:
+            download_status = "failed"
 
     download_filename = None
     if file.CiteableReference:
@@ -624,8 +648,38 @@ def record(record_id: uuid.UUID):
         record=file_metadata,
         breadcrumb_values=breadcrumb_values,
         download_filename=download_filename,
+        download_status=download_status,
         filters={},
     )
+
+
+def check_file_exists_in_s3_bucket(key):
+    s3_client = boto3.client("s3")
+    bucket = current_app.config["RECORD_BUCKET_NAME"]
+    file_exist = False
+    try:
+        s3_file_object = s3_client.get_object(Bucket=bucket, Key=key)
+        if s3_file_object:
+            return True
+    except Exception as e:
+        print(e.message)
+        file_exist = False
+    return file_exist
+
+
+def download_file_from_s3_bucket(key):
+    s3_client = boto3.client("s3")
+    bucket = current_app.config["RECORD_BUCKET_NAME"]
+
+    try:
+        s3_client.get_object(Bucket=bucket, Key=key)
+        data = io.BytesIO()
+        s3_client.download_fileobj(Bucket=bucket, Key=key, Fileobj=data)
+        data.seek(0)
+        return data.read()
+    except botocore.exceptions.ClientError as e:
+        print(e.message)
+        return None
 
 
 @bp.route("/download/<uuid:record_id>")
@@ -643,8 +697,6 @@ def download_record(record_id: uuid.UUID):
 
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
-    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
-
     download_filename = file.FileName
 
     if file.CiteableReference:
@@ -653,14 +705,24 @@ def download_record(record_id: uuid.UUID):
                 file.CiteableReference + "." + file.FileName.rsplit(".", 1)[1]
             )
 
-    response = Response(
-        s3_file_object["Body"].read(),
-        headers={
-            "Content-Disposition": "attachment;filename=" + download_filename
-        },
-    )
+    try:
+        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
 
-    return response
+        response = Response(
+            s3_file_object["Body"].read(),
+            headers={
+                "Content-Disposition": "attachment;filename="
+                + download_filename
+            },
+        )
+        return response
+    except Exception as e:
+        print(e)
+        return redirect(
+            url_for(
+                "main.record", record_id=record_id, download_status="failed"
+            )
+        )
 
 
 @bp.route("/signed-out", methods=["GET"])
