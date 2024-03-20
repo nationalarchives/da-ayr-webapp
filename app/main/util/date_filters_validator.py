@@ -20,12 +20,12 @@ def validate_date_filters(args, browse_consignment=False):
 
     if browse_consignment and "date_filter_field" in date_validation_errors:
         date_filters = {
-            "from_day": args.get("date_from_day"),
-            "from_month": args.get("date_from_month"),
-            "from_year": args.get("date_from_year"),
-            "to_day": args.get("date_to_day"),
-            "to_month": args.get("date_to_month"),
-            "to_year": args.get("date_to_year"),
+            "from_day": from_day,
+            "from_month": from_month,
+            "from_year": from_year,
+            "to_day": to_day,
+            "to_month": to_month,
+            "to_year": to_year,
         }
         return (
             date_validation_errors,

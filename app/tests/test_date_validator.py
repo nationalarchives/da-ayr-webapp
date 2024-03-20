@@ -689,12 +689,12 @@ class TestDateValidator:
                     "date_to_year": "2023",
                 },
                 (
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
+                    "01",
+                    "08",
+                    "2023",
+                    "31",
+                    "08",
+                    "2023",
                     {
                         "date_filter_field": "Select either ‘Date of record’ or ‘Record opening date’",
                     },
