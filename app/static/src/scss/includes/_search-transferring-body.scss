@@ -268,6 +268,10 @@ a.govuk-link {
   display: none;
 }
 
+.search__desktop-heading {
+  display: table-cell;
+}
+
 @media screen and (width <=810px) {
   .search-layout {
     display: flex;
@@ -303,13 +307,13 @@ a.govuk-link {
     border-bottom: none;
   }
 
+  .search__desktop-heading {
+    display: none;
+  }
+
   .search__mobile-heading {
     display: table-cell;
     padding-left: 0;
-  }
-
-  .search__desktop-heading {
-    display: none;
   }
 
   .search__mobile-row {
