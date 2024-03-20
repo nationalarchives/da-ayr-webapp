@@ -590,11 +590,11 @@ class TestSearchTransferringBody:
                         Series / File name / Consignment reference
                     </th>
                     <th class="govuk-table__header govuk-table__header--search-header
-                    search__table__mobile--hidden search__desktop-heading" scope="col">
+                    search__desktop-heading" scope="col">
                         Consignment reference
                     </th>
                     <th class="govuk-table__header govuk-table__header--search-header
-                    govuk-table__header--search-header-title search__table__mobile--hidden
+                    govuk-table__header--search-header-title
                     search__desktop-heading" scope="col">
                         File name
                     </th>
