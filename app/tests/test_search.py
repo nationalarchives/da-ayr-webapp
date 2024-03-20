@@ -6,19 +6,18 @@ from flask.testing import FlaskClient
 from app.tests.assertions import assert_contains_html
 
 
-def verify_search_transferring_body_header_row(data):
+def verify_search_desktop_transferring_body_header_row(data):
     """
     this function check header row column values against expected row
     :param data: response data
     """
     soup = BeautifulSoup(data, "html.parser")
     table = soup.find("table")
-    headers = table.find_all("th")
+    headers = table.find_all("th", class_="search__desktop-heading")
 
     expected_row = (
         [
             "Series",
-            "Series / File name / Consignment ref",
             "Consignment reference",
             "File name",
             "Status",
@@ -551,7 +550,7 @@ class TestSearchTransferringBody:
             ],
         ]
 
-        verify_search_transferring_body_header_row(response.data)
+        verify_search_desktop_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
         html = response.data.decode()
@@ -568,17 +567,19 @@ class TestSearchTransferringBody:
                         Series / File name / Consignment ref
                     </th>
                     <th class="govuk-table__header govuk-table__header--search-header
-                    search__table__mobile--hidden" scope="col">
+                    search__table__mobile--hidden search__desktop-heading" scope="col">
                         Consignment reference
                     </th>
                     <th class="govuk-table__header govuk-table__header--search-header
-                    govuk-table__header--search-header-title search__table__mobile--hidden" scope="col">
+                    govuk-table__header--search-header-title search__table__mobile--hidden
+                    search__desktop-heading" scope="col">
                         File name
                     </th>
                     <th scope="col"
-                        class="govuk-table__header govuk-table__header--search-header">Status</th>
+                        class="govuk-table__header govuk-table__header--search-header
+                        search__desktop-heading">Status</th>
                     <th scope="col"
-                        class="govuk-table__header govuk-table__header--search-header">
+                        class="govuk-table__header govuk-table__header--search-header search__desktop-heading">
                         Record opening date
                     </th>
                 </tr>
@@ -847,7 +848,7 @@ class TestSearchTransferringBody:
 
         assert response.status_code == 200
 
-        verify_search_transferring_body_header_row(response.data)
+        verify_search_desktop_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_results)
 
     def test_search_transferring_body_results_display_single_page(
@@ -891,7 +892,7 @@ class TestSearchTransferringBody:
             ],
         ]
 
-        verify_search_transferring_body_header_row(response.data)
+        verify_search_desktop_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
         assert (
@@ -939,7 +940,7 @@ class TestSearchTransferringBody:
             ],
         ]
 
-        verify_search_transferring_body_header_row(response.data)
+        verify_search_desktop_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
         # check pagination
@@ -999,7 +1000,7 @@ class TestSearchTransferringBody:
             ],
         ]
 
-        verify_search_transferring_body_header_row(response.data)
+        verify_search_desktop_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
         assert not previous_option
@@ -1051,7 +1052,7 @@ class TestSearchTransferringBody:
             ],
         ]
 
-        verify_search_transferring_body_header_row(response.data)
+        verify_search_desktop_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
         assert (
@@ -1107,7 +1108,7 @@ class TestSearchTransferringBody:
             ],
         ]
 
-        verify_search_transferring_body_header_row(response.data)
+        verify_search_desktop_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_rows)
 
         assert (
@@ -1714,5 +1715,5 @@ class TestSearchTransferringBody:
 
         assert response.status_code == 200
 
-        verify_search_transferring_body_header_row(response.data)
+        verify_search_desktop_transferring_body_header_row(response.data)
         verify_data_rows(response.data, expected_results)
