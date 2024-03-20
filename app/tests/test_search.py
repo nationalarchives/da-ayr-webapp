@@ -29,6 +29,25 @@ def verify_search_desktop_transferring_body_header_row(data):
     ] == expected_row[0]
 
 
+def verify_search_desktop_data_rows(data, expected_rows):
+    """
+    this function check data rows for data table compared with expected rows
+    :param data: response data
+    :param expected_rows: expected rows to be compared
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    top_rows = table.find_all("td", class_="search__mobile-table__top-row")
+
+    row_data = ""
+    for row_index, row in enumerate(top_rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(top_rows) - 1:
+            row_data = row_data + ", "
+
+    assert [row_data] == expected_rows[0]
+
+
 def verify_search_results_summary_header_row(data):
     """
     this function check header row column values against expected row
@@ -63,25 +82,6 @@ def verify_search_results_summary_data_rows(data, expected_rows):
     for row_index, row in enumerate(rows):
         row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
         if row_index < len(rows) - 1:
-            row_data = row_data + ", "
-
-    assert [row_data] == expected_rows[0]
-
-
-def verify_data_rows(data, expected_rows):
-    """
-    this function check data rows for data table compared with expected rows
-    :param data: response data
-    :param expected_rows: expected rows to be compared
-    """
-    soup = BeautifulSoup(data, "html.parser")
-    table = soup.find("table")
-    top_rows = table.find_all("td", class_="search__mobile-table__top-row")
-
-    row_data = ""
-    for row_index, row in enumerate(top_rows):
-        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-        if row_index < len(top_rows) - 1:
             row_data = row_data + ", "
 
     assert [row_data] == expected_rows[0]
@@ -551,7 +551,7 @@ class TestSearchTransferringBody:
         ]
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
+        verify_search_desktop_data_rows(response.data, expected_rows)
 
         html = response.data.decode()
 
@@ -849,7 +849,7 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_data_rows(response.data, expected_results)
+        verify_search_desktop_data_rows(response.data, expected_results)
 
     def test_search_transferring_body_results_display_single_page(
         self,
@@ -893,7 +893,7 @@ class TestSearchTransferringBody:
         ]
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
+        verify_search_desktop_data_rows(response.data, expected_rows)
 
         assert (
             b'<nav class="govuk-pagination govuk-pagination--centred" role="navigation" aria-label="Pagination">'
@@ -941,7 +941,7 @@ class TestSearchTransferringBody:
         ]
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
+        verify_search_desktop_data_rows(response.data, expected_rows)
 
         # check pagination
         assert b'aria-label="Page 1"' in response.data
@@ -1001,7 +1001,7 @@ class TestSearchTransferringBody:
         ]
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
+        verify_search_desktop_data_rows(response.data, expected_rows)
 
         assert not previous_option
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"
@@ -1053,7 +1053,7 @@ class TestSearchTransferringBody:
         ]
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
+        verify_search_desktop_data_rows(response.data, expected_rows)
 
         assert (
             " ".join(page_options[0].text.replace("\n", "").split())
@@ -1109,7 +1109,7 @@ class TestSearchTransferringBody:
         ]
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
+        verify_search_desktop_data_rows(response.data, expected_rows)
 
         assert (
             " ".join(previous_option.text.replace("\n", "").split())
@@ -1716,4 +1716,4 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_data_rows(response.data, expected_results)
+        verify_search_desktop_data_rows(response.data, expected_results)
