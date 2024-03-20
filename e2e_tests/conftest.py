@@ -7,6 +7,9 @@ from playwright.sync_api import Page
 @pytest.fixture()
 def aau_user_page(page) -> Page:
     page.goto("/sign-in")
+    page.wait_for_url(
+        "https://auth.tdr-staging.nationalarchives.gov.uk/realms/tdr/protocol/openid-connect/auth\?client_id\=ayr-beta\&response_type\=code\&redirect_uri\=https://test-one.np.ayr.nationalarchives.gov.uk/callback\&scope\=group_mapper_client_scope\&state\="
+    )
     page.get_by_label("Email address").fill(
         os.environ.get("AYR_AAU_USER_USERNAME")
     )
@@ -19,6 +22,9 @@ def aau_user_page(page) -> Page:
 @pytest.fixture()
 def standard_user_page(page) -> Page:
     page.goto("/sign-in")
+    page.wait_for_url(
+        "https://auth.tdr-staging.nationalarchives.gov.uk/realms/tdr/protocol/openid-connect/auth\?client_id\=ayr-beta\&response_type\=code\&redirect_uri\=https://test-one.np.ayr.nationalarchives.gov.uk/callback\&scope\=group_mapper_client_scope\&state\="
+    )
     page.get_by_label("Email address").fill(
         os.environ.get("AYR_STANDARD_USER_USERNAME")
     )

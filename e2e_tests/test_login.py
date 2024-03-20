@@ -15,8 +15,13 @@ def test_sign_in_succeeds_when_valid_credentials(page: Page):
     And they should be on the '/browse' page.
     """
     page.goto("/sign-in")
-    page.get_by_label("Email address").fill(os.environ.get("AYR_TEST_USERNAME"))
-    page.get_by_label("Password").fill(os.environ.get("AYR_TEST_PASSWORD"))
+    page.wait_for_url(
+        "https://auth.tdr-staging.nationalarchives.gov.uk/realms/tdr/protocol/openid-connect/auth\?client_id\=ayr-beta\&response_type\=code\&redirect_uri\=https://test-one.np.ayr.nationalarchives.gov.uk/callback\&scope\=group_mapper_client_scope\&state\="
+    )
+    page.get_by_label("Email address").fill(
+        os.environ.get("AYR_AAU_USER_USERNAME")
+    )
+    page.get_by_label("Password").fill(os.environ.get("AYR_AAU_USER_PASSWORD"))
     page.get_by_role("button", name="Sign in").click()
     expect(page).to_have_url("/browse")
     cookies = page.context.cookies()
