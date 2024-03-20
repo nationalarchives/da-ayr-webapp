@@ -564,7 +564,7 @@ class TestSearchTransferringBody:
                         search__desktop-heading">Series</th>
                     <th class="govuk-table__header govuk-table__header--search-header
                     search__mobile-heading" scope="col">
-                        Series / File name / Consignment ref
+                        Series / File name / Consignment reference
                     </th>
                     <th class="govuk-table__header govuk-table__header--search-header
                     search__table__mobile--hidden search__desktop-heading" scope="col">
