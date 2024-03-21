@@ -25,11 +25,6 @@ def verify_browse_view_header_row(data):
         ],
     )
 
-    print("actual")
-    print([header.text.replace("\n", " ").strip(" ") for header in headers])
-    print("actual")
-    print(expected_row[0])
-
     assert [
         header.text.replace("\n", " ").strip(" ") for header in headers
     ] == expected_row[0]
@@ -664,7 +659,6 @@ class TestBrowse:
         )
         assert not next_option
 
-    # tbd
     def test_browse_display_multiple_pages(
         self, client: FlaskClient, app, mock_all_access_user, browse_files
     ):
