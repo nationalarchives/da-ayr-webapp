@@ -585,7 +585,7 @@ class TestSearchTransferringBody:
                 </tr>
             </thead>
             <tbody class="govuk-table__body">
-        <tr class="govuk-table__row">
+        <tr class="govuk-table__row top-row">
             <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row">
                 <a href="{browse_series_route_url}/{series_id}">first_series</a>
             </td>

@@ -129,17 +129,15 @@ class TestSearchTransferringBody:
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
 
-        header_rows = aau_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
+        header_rows = aau_user_page.locator("#tbl_result").evaluate_all(
             """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
+            [...el.querySelectorAll('th.search__desktop-heading')].map(e => e.textContent.trim())
             )"""
         )
 
-        rows = aau_user_page.locator("#tbl_result tr:visible").evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+        rows = aau_user_page.locator("#tbl_result tr.top-row").evaluate_all(
+            """els => els.slice(0).map(el =>
+              [...el.querySelectorAll('td.search__mobile-table__top-row')].map(e => e.textContent.trim())
             )"""
         )
 
@@ -178,6 +176,7 @@ class TestSearchTransferringBody:
         ]
 
         verify_search_transferring_body_header_row(header_rows)
+
         assert rows == expected_rows
 
     def test_search_transferring_body_search_multiple_terms(
@@ -194,17 +193,15 @@ class TestSearchTransferringBody:
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
 
-        header_rows = aau_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
+        header_rows = aau_user_page.locator("#tbl_result").evaluate_all(
             """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
+            [...el.querySelectorAll('th.search__desktop-heading')].map(e => e.textContent.trim())
             )"""
         )
 
-        rows = aau_user_page.locator("#tbl_result tr:visible").evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+        rows = aau_user_page.locator("#tbl_result tr.top-row").evaluate_all(
+            """els => els.slice(0).map(el =>
+              [...el.querySelectorAll('td.search__mobile-table__top-row')].map(e => e.textContent.trim())
             )"""
         )
 

@@ -68,7 +68,7 @@
                         </thead>
                         <tbody class="govuk-table__body">
                             {% for record in results %}
-                                <tr class="govuk-table__row">
+                                <tr class="govuk-table__row top-row">
                                     <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row">
                                         <a href="{{ url_for('main.browse_series', _id=record['series_id']) }}">{{ record["series"] }}</a>
                                     </td>
