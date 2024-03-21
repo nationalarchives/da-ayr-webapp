@@ -428,9 +428,9 @@ In addition to installing the package, before you run the tests for the first ti
 
 Before running our Playwright tests,
 
-- `AYR_AAU_USER_NAME`
+- `AYR_AAU_USER_USERNAME`
 - `AYR_AAU_USER_PASSWORD`
-- `AYR_STANDARD_USER_NAME`
+- `AYR_STANDARD_USER_USERNAME`
 - `AYR_STANDARD_USER_PASSWORD`
 
 set environment variables with appropriate test user credentials for the instance you want to test

@@ -33,6 +33,7 @@ class TestDateFiltersValidator:
                         "to_month": "08",
                         "to_year": "2023",
                     },
+                    "",
                 ),
             ),
             (
@@ -52,6 +53,7 @@ class TestDateFiltersValidator:
                     None,
                     None,
                     {"from_day": 29, "from_month": "02", "from_year": "2023"},
+                    ["date_from_day"],
                 ),
             ),
             (
@@ -71,6 +73,7 @@ class TestDateFiltersValidator:
                     date(2023, 1, 1),
                     None,
                     {"from_day": "01", "from_month": "01", "from_year": "2023"},
+                    "",
                 ),
             ),
             (
@@ -90,6 +93,7 @@ class TestDateFiltersValidator:
                     date(2023, 3, 6),
                     None,
                     {"from_day": "06", "from_month": "03", "from_year": "2023"},
+                    "",
                 ),
             ),
             (
@@ -109,6 +113,7 @@ class TestDateFiltersValidator:
                     None,
                     date(2023, 2, 28),
                     {"to_day": 28, "to_month": "02", "to_year": "2023"},
+                    "",
                 ),
             ),
             (
@@ -128,6 +133,7 @@ class TestDateFiltersValidator:
                     None,
                     date(2023, 2, 5),
                     {"to_day": "05", "to_month": "02", "to_year": "2023"},
+                    "",
                 ),
             ),
             (
@@ -147,6 +153,7 @@ class TestDateFiltersValidator:
                     None,
                     None,
                     {"to_day": "05", "to_month": "02", "to_year": 0},
+                    ["date_to_year"],
                 ),
             ),
             (
@@ -166,6 +173,7 @@ class TestDateFiltersValidator:
                     None,
                     date(2024, 2, 29),
                     {"to_day": 29, "to_month": "02", "to_year": "2024"},
+                    "",
                 ),
             ),
         ],
@@ -194,6 +202,33 @@ class TestDateFiltersValidator:
                     "date_filter_field": "",
                     "date_from_day": "01",
                     "date_from_month": "08",
+                    "date_from_year": "",
+                    "date_to_day": "",
+                    "date_to_month": "",
+                    "date_to_year": "",
+                },
+                (
+                    {
+                        "date_filter_field": "Select either ‘Date of record’ or ‘Record opening date’",
+                    },
+                    None,
+                    None,
+                    {
+                        "from_day": "01",
+                        "from_month": "08",
+                        "from_year": "",
+                        "to_day": "",
+                        "to_month": "",
+                        "to_year": "",
+                    },
+                    [],
+                ),
+            ),
+            (
+                {
+                    "date_filter_field": "",
+                    "date_from_day": "01",
+                    "date_from_month": "08",
                     "date_from_year": "2023",
                     "date_to_day": "31",
                     "date_to_month": "08",
@@ -205,7 +240,15 @@ class TestDateFiltersValidator:
                     },
                     None,
                     None,
-                    {},
+                    {
+                        "from_day": 1,
+                        "from_month": 8,
+                        "from_year": 2023,
+                        "to_day": 31,
+                        "to_month": 8,
+                        "to_year": 2023,
+                    },
+                    [],
                 ),
             ),
             (
@@ -233,6 +276,7 @@ class TestDateFiltersValidator:
                         "to_month": "08",
                         "to_year": "2023",
                     },
+                    "",
                 ),
             ),
             (
@@ -260,6 +304,7 @@ class TestDateFiltersValidator:
                         "to_month": 12,
                         "to_year": "2025",
                     },
+                    "",
                 ),
             ),
         ],

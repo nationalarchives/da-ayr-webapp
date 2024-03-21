@@ -1,106 +1,111 @@
+<br>
 <div class="browse-all-filter-from-dates">
-    {% if date_validation_errors %}
-        <div class="govuk-form-group">
-            {% for err in date_validation_errors['date_from'] %}{{ err }}{% endfor %}
-        </div>
-    {% endif %}
-    <p class="govuk-body govuk-body--browse-all-date">Date from</p>
-    <fieldset class="govuk-fieldset govuk-fieldset--date-from"
-              role="group"
-              aria-describedby="date-from">
-        <div class="govuk-date-input govuk-date-input--browse-all-date-to">
-            <div class="govuk-date-input__item govuk-date-input__item--browse-all">
-                <div class="govuk-form-group">
-                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                           for="date_from_day">Day</label>
-                    <input class="govuk-input govuk-date-input__input govuk-input--width-2"
-                           id="date_from_day"
-                           name="date_from_day"
-                           type="text"
-                           value="{% if date_filters['from_day'] %}{{ date_filters['from_day'] }}{% endif %}"
-                           inputmode="numeric"
-                           maxlength="2">
+    <div class="govuk-form-group {% if date_validation_errors %}{% if date_validation_errors.get('date_from') %}govuk-form-group--error{% endif %}{% endif %}">
+        <p class="govuk-body govuk-body--browse-all-date">Date from</p>
+        {% if date_validation_errors %}
+            {% if date_validation_errors.get('date_from') %}
+                <p class="govuk-error-message">{{ date_validation_errors['date_from'][0] }}</p>
+            {% endif %}
+        {% endif %}
+        <fieldset class="govuk-fieldset govuk-fieldset--date-from"
+                  role="group"
+                  aria-describedby="date-from">
+            <div class="govuk-date-input govuk-date-input--browse-all-date-from">
+                <div class="govuk-date-input__item govuk-date-input__item--browse-all">
+                    <div class="govuk-form-group">
+                        <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                               for="date_from_day">Day</label>
+                        <input class="govuk-input govuk-date-input__input govuk-input--width-2 {% if date_error_fields %}{% if 'date_from_day' in date_error_fields or 'date_from' in date_error_fields %}govuk-input--error{% endif %}{% endif %}"
+                               id="date_from_day"
+                               name="date_from_day"
+                               type="text"
+                               value="{% if date_filters['from_day'] %}{{ date_filters['from_day'] }}{% endif %}"
+                               inputmode="numeric"
+                               maxlength="2">
+                    </div>
+                </div>
+                <div class="govuk-date-input__item govuk-date-input__item--browse-all">
+                    <div class="govuk-form-group">
+                        <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                               for="date_from_month">Month</label>
+                        <input class="govuk-input govuk-date-input__input govuk-input--width-2 {% if date_error_fields %}{% if 'date_from_month' in date_error_fields or 'date_from' in date_error_fields %}govuk-input--error{% endif %}{% endif %}"
+                               id="date_from_month"
+                               name="date_from_month"
+                               type="text"
+                               value="{% if date_filters['from_month'] %}{{ date_filters['from_month'] }}{% endif %}"
+                               inputmode="numeric"
+                               maxlength="2">
+                    </div>
+                </div>
+                <div class="govuk-date-input__item govuk-date-input__item--browse-all">
+                    <div class="govuk-form-group">
+                        <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                               for="date_from_year">Year</label>
+                        <input class="govuk-input govuk-date-input__input govuk-input--width-4 {% if date_error_fields %}{% if 'date_from_year' in date_error_fields or 'date_from' in date_error_fields %}govuk-input--error{% endif %}{% endif %}"
+                               id="date_from_year"
+                               name="date_from_year"
+                               type="text"
+                               value="{% if date_filters['from_year'] %}{{ date_filters['from_year'] }}{% endif %}"
+                               inputmode="numeric"
+                               maxlength="4">
+                    </div>
                 </div>
             </div>
-            <div class="govuk-date-input__item govuk-date-input__item--browse-all">
-                <div class="govuk-form-group">
-                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                           for="date_from_month">Month</label>
-                    <input class="govuk-input govuk-date-input__input govuk-input--width-2"
-                           id="date_from_month"
-                           name="date_from_month"
-                           type="text"
-                           value="{% if date_filters['from_month'] %}{{ date_filters['from_month'] }}{% endif %}"
-                           inputmode="numeric"
-                           maxlength="2">
-                </div>
-            </div>
-            <div class="govuk-date-input__item govuk-date-input__item--browse-all">
-                <div class="govuk-form-group">
-                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                           for="date_from_year">Year</label>
-                    <input class="govuk-input govuk-date-input__input govuk-input--width-4"
-                           id="date_from_year"
-                           name="date_from_year"
-                           type="text"
-                           value="{% if date_filters['from_year'] %}{{ date_filters['from_year'] }}{% endif %}"
-                           inputmode="numeric"
-                           maxlength="4">
-                </div>
-            </div>
-        </div>
-    </fieldset>
+        </fieldset>
+    </div>
 </div>
 <div class="browse-all-filter-to-dates">
-    {% if date_validation_errors %}
-        <div class="govuk-form-group">
-            {% for err in date_validation_errors['date_to'] %}{{ err }}{% endfor %}
-        </div>
-    {% endif %}
-    <p class="govuk-body govuk-body--browse-all-date">To date</p>
-    <fieldset class="govuk-fieldset govuk-fieldset--date-to"
-              role="group"
-              aria-describedby="date-to">
-        <div class="govuk-date-input govuk-date-input--browse-all-date-to">
-            <div class="govuk-date-input__item govuk-date-input__item--browse-all">
-                <div class="govuk-form-group">
-                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                           for="date_to_day">Day</label>
-                    <input class="govuk-input govuk-date-input__input govuk-input--width-2"
-                           id="date_to_day"
-                           name="date_to_day"
-                           type="text"
-                           value="{% if date_filters['to_day'] %}{{ date_filters['to_day'] }}{% endif %}"
-                           inputmode="numeric"
-                           maxlength="2">
+    <div class="govuk-form-group {% if date_validation_errors %} {% if date_validation_errors.get('date_to') %}govuk-form-group--error{% endif %}{% endif %}">
+        <p class="govuk-body govuk-body--browse-all-date">To Date</p>
+        {% if date_validation_errors %}
+            {% if date_validation_errors.get('date_to') %}
+                <p class="govuk-error-message">{{ date_validation_errors['date_to'][0] }}</p>
+            {% endif %}
+        {% endif %}
+        <fieldset class="govuk-fieldset govuk-fieldset--date-to"
+                  role="group"
+                  aria-describedby="date-to">
+            <div class="govuk-date-input govuk-date-input--browse-all-date-to">
+                <div class="govuk-date-input__item govuk-date-input__item--browse-all">
+                    <div class="govuk-form-group">
+                        <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                               for="date_to_day">Day</label>
+                        <input class="govuk-input govuk-date-input__input govuk-input--width-2 {% if date_error_fields %}{% if 'date_to_day' in date_error_fields %}govuk-input--error{% endif %}{% endif %}"
+                               id="date_to_day"
+                               name="date_to_day"
+                               type="text"
+                               value="{% if date_filters['to_day'] %}{{ date_filters['to_day'] }}{% endif %}"
+                               inputmode="numeric"
+                               maxlength="2">
+                    </div>
+                </div>
+                <div class="govuk-date-input__item govuk-date-input__item--browse-all">
+                    <div class="govuk-form-group">
+                        <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                               for="date_to_month">Month</label>
+                        <input class="govuk-input govuk-date-input__input govuk-input--width-2 {% if date_error_fields %}{% if 'date_to_month' in date_error_fields %}govuk-input--error{% endif %}{% endif %}"
+                               id="date_to_month"
+                               name="date_to_month"
+                               type="text"
+                               value="{% if date_filters['to_month'] %}{{ date_filters['to_month'] }}{% endif %}"
+                               inputmode="numeric"
+                               maxlength="2">
+                    </div>
+                </div>
+                <div class="govuk-date-input__item govuk-date-input__item--browse-all">
+                    <div class="govuk-form-group">
+                        <label class="govuk-label govuk-date-input__label filters-form__date__label"
+                               for="date_to_year">Year</label>
+                        <input class="govuk-input govuk-date-input__input govuk-input--width-4 {% if date_error_fields %}{% if 'date_to_year' in date_error_fields %}govuk-input--error{% endif %}{% endif %}"
+                               id="date_to_year"
+                               name="date_to_year"
+                               type="text"
+                               value="{% if date_filters['to_year'] %}{{ date_filters['to_year'] }}{% endif %}"
+                               inputmode="numeric"
+                               maxlength="4">
+                    </div>
                 </div>
             </div>
-            <div class="govuk-date-input__item govuk-date-input__item--browse-all">
-                <div class="govuk-form-group">
-                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                           for="date_to_month">Month</label>
-                    <input class="govuk-input govuk-date-input__input govuk-input--width-2"
-                           id="date_to_month"
-                           name="date_to_month"
-                           type="text"
-                           value="{% if date_filters['to_month'] %}{{ date_filters['to_month'] }}{% endif %}"
-                           inputmode="numeric"
-                           maxlength="2">
-                </div>
-            </div>
-            <div class="govuk-date-input__item govuk-date-input__item--browse-all">
-                <div class="govuk-form-group">
-                    <label class="govuk-label govuk-date-input__label filters-form__date__label"
-                           for="date_to_year">Year</label>
-                    <input class="govuk-input govuk-date-input__input govuk-input--width-4"
-                           id="date_to_year"
-                           name="date_to_year"
-                           type="text"
-                           value="{% if date_filters['to_year'] %}{{ date_filters['to_year'] }}{% endif %}"
-                           inputmode="numeric"
-                           maxlength="4">
-                </div>
-            </div>
-        </div>
-    </fieldset>
+        </fieldset>
+    </div>
 </div>
