@@ -238,3 +238,25 @@
     -webkit-text-fill-color: #1d70b8;
   }
 }
+
+.browse__all__mobile__header {
+  display: none;
+}
+
+.browse__all__desktop__header {
+  display: table-cell;
+}
+
+@media screen and (width <=810px) {
+  .browse-grid__key__transferring-body {
+    width: auto;
+  }
+
+  .browse__all__desktop__header {
+    display: none;
+  }
+
+  .browse__all__mobile__header {
+    display: table-cell;
+  }
+}

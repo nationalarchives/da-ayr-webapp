@@ -1,0 +1,33 @@
+.browse__transferring-body__mobile__header {
+  display: none;
+}
+
+.browse__transferring-body__desktop__header {
+  display: table-cell;
+}
+
+.browse__table__desktop--hidden {
+  display: none;
+}
+
+@media screen and (width <=810px) {
+  .browse__transferring-body__desktop__header {
+    display: none;
+  }
+
+  .browse__transferring-body__mobile__header {
+    display: table-cell;
+  }
+
+  .browse__table__mobile-left-align {
+    text-align: left;
+  }
+
+  .browse__table__desktop--hidden {
+    display: table-row;
+  }
+
+  .browse__mobile-table__top-row {
+    border-bottom: none;
+  }
+}
