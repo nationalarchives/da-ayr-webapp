@@ -5,28 +5,10 @@ PYTHON_DATE_FORMAT = "%d/%m/%Y"
 DB_DATE_FORMAT = "%Y-%m-%d"
 
 
-def validate_dates(args, browse_consignment=False):
+def validate_dates(args):
     errors = {}
     error_fields = []
     date_filter_field = args.get("date_filter_field", "")
-
-    if browse_consignment and date_filter_field not in [
-        "date_last_modified",
-        "opening_date",
-    ]:
-        errors["date_filter_field"] = (
-            "Select either ‘Date of record’ or ‘Record opening date’"
-        )
-        return (
-            args.get("date_from_day"),
-            args.get("date_from_month"),
-            args.get("date_from_year"),
-            args.get("date_to_day"),
-            args.get("date_to_month"),
-            args.get("date_to_year"),
-            errors,
-            error_fields,
-        )
 
     check_future_date = date_filter_field != "opening_date"
 
