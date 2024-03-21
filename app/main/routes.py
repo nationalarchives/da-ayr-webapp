@@ -10,6 +10,7 @@ from flask import (
     redirect,
     render_template,
     request,
+    send_file,
     session,
     url_for,
 )
@@ -612,28 +613,24 @@ def record(record_id: uuid.UUID):
         5: {"consignment_reference": consignment.ConsignmentReference},
         6: {"file_name": file.FileName},
     }
+
     download_file = request.args.get("download_file", False)
     # download_status = request.args.get("download_status", "")
     # start_download = request.headers.get("start_download", False)
     download_status = ""
+
     if download_file:
+        print("i should be here")
         key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-        # print('start download', start_download)
-        # if start_download:
-        #    print('i was here')
-        #    file_data = download_file_from_s3_bucket(key)
-        #    download_file_name = file.CiteableReference or file.FileName
-        #    return send_file(file_data, as_attachment=True, download_name=download_file_name)
-        # else:
-        # file_data = download_file_from_s3_bucket(key)
-        # if file_data is not None:
-        if check_file_exists_in_s3_bucket(key):
-            # return send_file(file_data, as_attachment=True, download_name=download_file_name)
-            download_status = "success"
-            redirect_url = redirect(url_for("main.record", record_id=record_id))
-            return redirect_url
-        else:
-            download_status = "failed"
+        download_file_name = file.CiteableReference or file.FileName
+        file_data = download_file_from_s3_bucket(key)
+        file_data = send_file(
+            file_data, as_attachment=True, download_name=download_file_name
+        )
+        download_status = "success"
+        # return response
+    else:
+        file_data = None
 
     download_filename = None
     if file.CiteableReference:
@@ -650,6 +647,7 @@ def record(record_id: uuid.UUID):
         download_filename=download_filename,
         download_status=download_status,
         filters={},
+        file_data=file_data,
     )
 
 
@@ -680,6 +678,46 @@ def download_file_from_s3_bucket(key):
     except botocore.exceptions.ClientError as e:
         print(e.message)
         return None
+
+
+@bp.route("/download/<uuid:record_id>")
+@access_token_sign_in_required
+def confirm_download(record_id: uuid.UUID):
+    file = File.query.get_or_404(record_id)
+
+    validate_body_user_groups_or_404(file.consignment.series.body.Name)
+
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+
+    try:
+        if check_file_exists_in_s3_bucket(key):
+            return redirect(
+                url_for(
+                    "main.record",
+                    record_id=record_id,
+                    download_status="success",
+                    download_file=True,
+                )
+            )
+        else:
+            return redirect(
+                url_for(
+                    "main.record",
+                    record_id=record_id,
+                    download_status="success",
+                    download_file=False,
+                )
+            )
+    except Exception as e:
+        print(e)
+        return redirect(
+            url_for(
+                "main.record",
+                record_id=record_id,
+                download_status="failed",
+                downlad_file=False,
+            )
+        )
 
 
 @bp.route("/download/<uuid:record_id>")
@@ -720,7 +758,10 @@ def download_record(record_id: uuid.UUID):
         print(e)
         return redirect(
             url_for(
-                "main.record", record_id=record_id, download_status="failed"
+                "main.record",
+                record_id=record_id,
+                download_status="failed",
+                file_data=None,
             )
         )
 
