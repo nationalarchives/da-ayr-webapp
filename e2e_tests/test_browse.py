@@ -11,6 +11,16 @@ def verify_header_row(header_rows):
     ]
 
 
+def verify_browse_all_header_row(header_rows):
+    assert header_rows == [
+        "Transferring body",
+        "Series",
+        "Last consignment transferred",
+        "Records held in series",
+        "Consignments within series",
+    ]
+
+
 class TestBrowse:
     @property
     def route_url(self):
@@ -47,14 +57,18 @@ class TestBrowse:
         header_rows = aau_user_page.locator(
             "#tbl_result tr:visible"
         ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
+            """els => els.map(el => {
+                var headerCells = [...el.querySelectorAll('th')];
+                headerCells.shift();
+                return headerCells.map(e => e.textContent.trim());
+            })"""
         )
 
-        rows = aau_user_page.locator("#tbl_result tr:visible").evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+        rows = aau_user_page.locator(
+            ".govuk-table__body .browse__table__all_desktop__row"
+        ).evaluate_all(
+            """els => els.map(el =>
+                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
             )"""
         )
 
@@ -77,14 +91,18 @@ class TestBrowse:
         header_rows = aau_user_page.locator(
             "#tbl_result tr:visible"
         ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
+            """els => els.map(el => {
+                var headerCells = [...el.querySelectorAll('th')];
+                headerCells.shift();
+                return headerCells.map(e => e.textContent.trim());
+            })"""
         )
 
-        rows = aau_user_page.locator("#tbl_result tr:visible").evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+        rows = aau_user_page.locator(
+            ".govuk-table__body .browse__table__all_desktop__row"
+        ).evaluate_all(
+            """els => els.map(el =>
+                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
             )"""
         )
 
@@ -108,14 +126,18 @@ class TestBrowse:
         header_rows = aau_user_page.locator(
             "#tbl_result tr:visible"
         ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
+            """els => els.map(el => {
+                var headerCells = [...el.querySelectorAll('th')];
+                headerCells.shift();
+                return headerCells.map(e => e.textContent.trim());
+            })"""
         )
 
-        rows = aau_user_page.locator("#tbl_result tr:visible").evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+        rows = aau_user_page.locator(
+            ".govuk-table__body .browse__table__all_desktop__row"
+        ).evaluate_all(
+            """els => els.map(el =>
+                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
             )"""
         )
 
@@ -136,14 +158,18 @@ class TestBrowse:
         header_rows = aau_user_page.locator(
             "#tbl_result tr:visible"
         ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
+            """els => els.map(el => {
+                var headerCells = [...el.querySelectorAll('th')];
+                headerCells.shift();
+                return headerCells.map(e => e.textContent.trim());
+            })"""
         )
 
-        rows = aau_user_page.locator("#tbl_result tr:visible").evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+        rows = aau_user_page.locator(
+            ".govuk-table__body .browse__table__all_desktop__row"
+        ).evaluate_all(
+            """els => els.map(el =>
+                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
             )"""
         )
 
@@ -167,14 +193,18 @@ class TestBrowse:
         header_rows = aau_user_page.locator(
             "#tbl_result tr:visible"
         ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
+            """els => els.map(el => {
+                var headerCells = [...el.querySelectorAll('th')];
+                headerCells.shift();
+                return headerCells.map(e => e.textContent.trim());
+            })"""
         )
 
-        rows = aau_user_page.locator("#tbl_result tr:visible").evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+        rows = aau_user_page.locator(
+            ".govuk-table__body .browse__table__all_desktop__row"
+        ).evaluate_all(
+            """els => els.map(el =>
+                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
             )"""
         )
 

@@ -93,11 +93,23 @@ class TestBrowseTransferringBody:
             )"""
         )
 
-        rows = standard_user_page.locator(
+        header_rows = standard_user_page.locator(
             "#tbl_result tr:visible"
         ).evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+            """els => els.map(el => {
+                var headerCells = [...el.querySelectorAll('th')];
+                if (headerCells.length >= 3) {
+                    headerCells.splice(2, 1);
+                }
+                return headerCells.map(e => e.textContent.trim());
+            })"""
+        )
+
+        rows = standard_user_page.locator(
+            ".govuk-table__body .browse__table__desktop"
+        ).evaluate_all(
+            """els => els.map(el =>
+                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
             )"""
         )
 
@@ -118,16 +130,20 @@ class TestBrowseTransferringBody:
         header_rows = standard_user_page.locator(
             "#tbl_result tr:visible"
         ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
+            """els => els.map(el => {
+                var headerCells = [...el.querySelectorAll('th')];
+                if (headerCells.length >= 3) {
+                    headerCells.splice(2, 1);
+                }
+                return headerCells.map(e => e.textContent.trim());
+            })"""
         )
 
         rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
+            ".govuk-table__body .browse__table__desktop"
         ).evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+            """els => els.map(el =>
+                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
             )"""
         )
 
@@ -149,16 +165,20 @@ class TestBrowseTransferringBody:
         header_rows = standard_user_page.locator(
             "#tbl_result tr:visible"
         ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
+            """els => els.map(el => {
+                var headerCells = [...el.querySelectorAll('th')];
+                if (headerCells.length >= 3) {
+                    headerCells.splice(2, 1);
+                }
+                return headerCells.map(e => e.textContent.trim());
+            })"""
         )
 
         rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
+            ".govuk-table__body .browse__table__desktop"
         ).evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+            """els => els.map(el =>
+                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
             )"""
         )
 
@@ -177,16 +197,20 @@ class TestBrowseTransferringBody:
         header_rows = standard_user_page.locator(
             "#tbl_result tr:visible"
         ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
+            """els => els.map(el => {
+                var headerCells = [...el.querySelectorAll('th')];
+                if (headerCells.length >= 3) {
+                    headerCells.splice(2, 1);
+                }
+                return headerCells.map(e => e.textContent.trim());
+            })"""
         )
 
         rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
+            ".govuk-table__body .browse__table__desktop"
         ).evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+            """els => els.map(el =>
+                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
             )"""
         )
 
@@ -207,16 +231,20 @@ class TestBrowseTransferringBody:
         header_rows = standard_user_page.locator(
             "#tbl_result tr:visible"
         ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
+            """els => els.map(el => {
+                var headerCells = [...el.querySelectorAll('th')];
+                if (headerCells.length >= 3) {
+                    headerCells.splice(2, 1);
+                }
+                return headerCells.map(e => e.textContent.trim());
+            })"""
         )
 
         rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
+            ".govuk-table__body .browse__table__desktop"
         ).evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
+            """els => els.map(el =>
+                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
             )"""
         )
 
