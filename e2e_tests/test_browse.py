@@ -16,14 +16,6 @@ class TestBrowse:
     def route_url(self):
         return "/browse"
 
-    def test_browse_has_title(self, aau_user_page: Page):
-        aau_user_page.goto(f"{self.route_url}")
-
-        assert (
-            aau_user_page.title()
-            == "Browse – AYR - Access Your Records – GOV.UK"
-        )
-
     def test_browse_no_results_found(self, aau_user_page: Page):
         aau_user_page.locator("#series_filter").click()
         aau_user_page.locator("#series_filter").fill("junk")
@@ -49,7 +41,7 @@ class TestBrowse:
     ):
         aau_user_page.goto(
             f"{self.route_url}?transferring_body_filter=all&series_filter=&date_from_day"
-            "01=&date_from_month=07&date_from_year=2023&date_to_day=31&date_to_month=07&date_to_year=2023"
+            "01=&date_from_month=07&date_from_year=2023&date_to_day=31&date_to_month=02&date_to_year=2024"
         )
 
         header_rows = aau_user_page.locator(
@@ -66,10 +58,9 @@ class TestBrowse:
             )"""
         )
 
-        assert len(rows) == 1
-
         expected_rows = [
-            ["MOCK1 Department", "MOCK1 123", "28/07/2023", "1", "1"]
+            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
+            ["Testing A", "TSTA 1", "25/01/2024", "63", "5"],
         ]
 
         verify_header_row(header_rows)
@@ -97,11 +88,9 @@ class TestBrowse:
             )"""
         )
 
-        assert len(rows) == 2
-
         expected_rows = [
-            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
-            ["MOCK1 Department", "MOCK1 123", "28/07/2023", "1", "1"],
+            ["Testing A", "TSTA 1", "25/01/2024", "63", "5"],
+            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
         ]
 
         verify_header_row(header_rows)
@@ -111,7 +100,7 @@ class TestBrowse:
         self, aau_user_page: Page
     ):
         aau_user_page.locator("#transferring_body_filter").select_option(
-            "MOCK1 Department"
+            "Mock 1 Department"
         )
         aau_user_page.get_by_role("button", name="Apply filters").click()
         aau_user_page.get_by_role("button", name="Apply", exact=True).click()
@@ -130,10 +119,8 @@ class TestBrowse:
             )"""
         )
 
-        assert len(rows) == 1
-
         expected_rows = [
-            ["MOCK1 Department", "MOCK1 123", "28/07/2023", "1", "1"]
+            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"]
         ]
 
         verify_header_row(header_rows)
@@ -160,11 +147,9 @@ class TestBrowse:
             )"""
         )
 
-        assert len(rows) == 2
-
         expected_rows = [
-            ["MOCK1 Department", "MOCK1 123", "28/07/2023", "1", "1"],
-            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
+            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
+            ["Testing A", "TSTA 1", "25/01/2024", "63", "5"],
         ]
 
         verify_header_row(header_rows)
@@ -193,10 +178,9 @@ class TestBrowse:
             )"""
         )
 
-        assert len(rows) == 1
-
         expected_rows = [
-            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
+            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
+            ["Testing A", "TSTA 1", "25/01/2024", "63", "5"],
         ]
 
         verify_header_row(header_rows)

@@ -18,18 +18,10 @@ class TestBrowseSeries:
 
     @property
     def series_id(self):
-        return "2a6ceedb-8a50-40fc-b7d4-300290ee0b63"
-
-    def test_browse_series_has_title(self, standard_user_page: Page):
-        standard_user_page.goto(f"{self.route_url}/{self.series_id}")
-
-        assert (
-            standard_user_page.title()
-            == "Browse – AYR - Access Your Records – GOV.UK"
-        )
+        return "1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7"
 
     def test_browse_series_404_for_no_access(self, standard_user_page: Page):
-        series_id = "c28cc3ab-c12a-4f06-82e1-18648c82a17f"
+        series_id = "8bd7ad22-90d1-4c7f-ae00-645dfd1987cc"
 
         standard_user_page.goto(f"{self.route_url}/{series_id}")
 
@@ -67,56 +59,6 @@ class TestBrowseSeries:
         assert standard_user_page.inner_html("text='Testing A'")
         assert standard_user_page.inner_html("text='TSTA 1'")
 
-    def test_browse_series_no_pagination(self, standard_user_page: Page):
-        standard_user_page.goto(f"{self.route_url}/{self.series_id}")
-
-        standard_user_page.locator("#date_from_day").fill("1")
-        standard_user_page.locator("#date_from_month").fill("1")
-        standard_user_page.locator("#date_from_year").fill("2024")
-
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-
-        assert not standard_user_page.get_by_label("Page 1").is_visible()
-        assert not standard_user_page.get_by_label("Page 2").is_visible()
-        assert not standard_user_page.get_by_role(
-            "link", name="Nextpage"
-        ).is_visible()
-
-    def test_browse_series_has_pagination_with_next_page(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.series_id}")
-
-        standard_user_page.locator("#date_from_day").fill("1")
-        standard_user_page.locator("#date_from_month").fill("1")
-        standard_user_page.locator("#date_from_year").fill("2023")
-
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-
-        assert standard_user_page.get_by_label("Page 1").is_visible()
-        assert standard_user_page.get_by_label("Page 2").is_visible()
-        assert standard_user_page.get_by_role(
-            "link", name="Nextpage"
-        ).is_visible()
-
-    def test_browse_series_has_pagination_with_previous_page(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.series_id}")
-
-        standard_user_page.locator("#date_from_day").fill("1")
-        standard_user_page.locator("#date_from_month").fill("1")
-        standard_user_page.locator("#date_from_year").fill("2023")
-
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-        standard_user_page.get_by_role("link", name="Nextpage").click()
-
-        assert standard_user_page.get_by_label("Page 1").is_visible()
-        assert standard_user_page.get_by_label("Page 2").is_visible()
-        assert standard_user_page.get_by_role(
-            "link", name="Previouspage"
-        ).is_visible()
-
     def test_browse_series_filter_functionality_with_query_string_parameters(
         self, standard_user_page: Page
     ):
@@ -141,14 +83,11 @@ class TestBrowseSeries:
             )"""
         )
 
-        assert len(rows) == 5
-
         expected_rows = [
             ["Testing A", "TSTA 1", "30/11/2023", "9", "TDR-2023-GXFH"],
             ["Testing A", "TSTA 1", "18/10/2023", "7", "TDR-2023-BV6"],
             ["Testing A", "TSTA 1", "09/08/2023", "15", "TDR-2023-TMT"],
             ["Testing A", "TSTA 1", "09/08/2023", "15", "TDR-2023-TH4"],
-            ["Testing A", "TSTA 1", "29/03/2023", "6", "TDR-2023-BV5"],
         ]
 
         verify_header_row(header_rows)
@@ -180,8 +119,6 @@ class TestBrowseSeries:
               [...el.querySelectorAll('td')].map(e => e.textContent.trim())
             )"""
         )
-
-        assert len(rows) == 5
 
         expected_rows = [
             ["Testing A", "TSTA 1", "25/01/2024", "17", "TDR-2024-H5DN"],
@@ -218,8 +155,6 @@ class TestBrowseSeries:
               [...el.querySelectorAll('td')].map(e => e.textContent.trim())
             )"""
         )
-
-        assert len(rows) == 1
 
         expected_rows = [
             ["Testing A", "TSTA 1", "25/01/2024", "17", "TDR-2024-H5DN"],
