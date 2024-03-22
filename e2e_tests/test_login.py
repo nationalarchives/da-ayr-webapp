@@ -36,21 +36,18 @@ def test_sign_in_succeeds_when_valid_credentials(page: Page):
         access_token, options={"verify_signature": False}
     )
     assert set(decoded_token_dict.keys()) == {
-        "iss",
-        "sid",
-        "iat",
-        "typ",
         "exp",
-        "azp",
-        "preferred_username",
-        "sub",
+        "iat",
         "auth_time",
-        "session_state",
         "jti",
+        "iss",
+        "sub",
+        "typ",
+        "azp",
+        "session_state",
         "scope",
+        "sid",
         "groups",
-        "upn",
-        "address",
     }
 
 
