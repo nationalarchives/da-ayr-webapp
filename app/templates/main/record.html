@@ -67,6 +67,13 @@
                     </div>
                 </div>
                 <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--record-table mobile-record-details">
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            <ul class="flashes">
+                                {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+                            </ul>
+                        {% endif %}
+                    {% endwith %}
                     {% if download_status %}
                         <div class="hods-alert hods-alert--{% if download_status == 'failed' %}failed{% else %}success{% endif %}">
                             {% if download_status == "failed" %}
