@@ -184,6 +184,7 @@ class TesthSearchResultsSummary:
         <p class="govuk-body search__heading">Search for digital records</p>
         <form method="get" action="/search">
             <div class="govuk-form-group govuk-form-group__search-form">
+             <label class="govuk-label" for="search-input"></label>
                 <input class="govuk-input govuk-!-width-three-quarters"
                        id="search-input"
                        name="query"
@@ -419,6 +420,7 @@ class TestSearchTransferringBody:
         <p class="govuk-body search__heading">Search for digital records</p>
         <form method="get" action="/search">
             <div class="govuk-form-group govuk-form-group__search-form">
+            <label class="govuk-label" for="search-input"></label>
                 <input class="govuk-input govuk-!-width-three-quarters"
                        id="search-input"
                        name="query"
