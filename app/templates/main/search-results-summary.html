@@ -1,39 +1,70 @@
-{% set breadcrumbs = {"everything": "Everything", "body": "Results summary"} %}
-<!-- BREAD CRUMB -->
-{% with dict = breadcrumbs %}
-    {% include "breadcrumb.html" %}
-{% endwith %}
-{% if num_records_found > 0 %}
-    <div class="govuk-grid-column-two-thirds">
-        <table class="govuk-table govuk-table--results-summary" id="tbl_result">
-            <thead class="govuk-table__head">
-                <tr class="govuk-table__row govuk-!-font-size-14">
-                    <th scope="col"
-                        class="govuk-table__header govuk-table__header--results-summary">
-                        Results found within each Transferring body
-                    </th>
-                    <th scope="col"
-                        class="govuk-table__header  govuk-table__header--results-summary">Records found</th>
-                </tr>
-            </thead>
-            <tbody class="govuk-table__body">
-                {% for record in results %}
-                    <tr class="govuk-table__row">
-                        <td class="govuk-table__cell govuk-table__cell--results-summary">
-                            <a href="{{ url_for('main.search_transferring_body', _id=record['transferring_body_id'] , query=filters['query']) }}">{{ record['transferring_body'] }}</a>
-                        </td>
-                        <td class="govuk-table__cell govuk-body govuk-table__cell--record-results">{{ record['records_held'] }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+{% extends "base.html" %}
+{% block pageTitle %}Search results summary – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
+{%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
+{% block beforeContent %}{{ super() }}{% endblock %}
+{% block content %}
+    <!-- SEARCH  -->
+    <div class="govuk-grid-row browse__page desktop mobile">
+        {{ super() }}
+        {% include "top-search.html" %}
+        <!-- TABLE -->
+        <div class="govuk-grid-column-full govuk-grid-column-full--mobile-search">
+            <div class="browse-details">
+                <h1 class="govuk-heading-l browse__records-found__text"
+                    id="browse-records">
+                    {% if num_records_found > 0 %}
+                        Records found {{ num_records_found }}
+                    {% else %}
+                        No results found
+                    {% endif %}
+                </h1>
+                <p class="govuk-body browse__body">You are viewing</p>
+                {% set breadcrumbs = {"everything": "Everything", "body": "Results summary"} %}
+                <!-- BREAD CRUMB -->
+                {% with dict = breadcrumbs %}
+                    {% include "breadcrumb.html" %}
+                {% endwith %}
+                {% if num_records_found > 0 %}
+                    <div class="govuk-grid-column-two-thirds">
+                        <table class="govuk-table govuk-table--results-summary" id="tbl_result">
+                            <thead class="govuk-table__head">
+                                <tr class="govuk-table__row govuk-!-font-size-14">
+                                    <th scope="col"
+                                        class="govuk-table__header govuk-table__header--results-summary">
+                                        Results found within each Transferring body
+                                    </th>
+                                    <th scope="col"
+                                        class="govuk-table__header  govuk-table__header--results-summary">
+                                        Records found
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="govuk-table__body">
+                                {% for record in results %}
+                                    <tr class="govuk-table__row">
+                                        <td class="govuk-table__cell govuk-table__cell--results-summary">
+                                            <a href="{{ url_for('main.search_transferring_body', _id=record['transferring_body_id'] , query=filters['query']) }}">{{
+                                            record['transferring_body'] }}</a>
+                                        </td>
+                                        <td class="govuk-table__cell govuk-body govuk-table__cell--record-results">
+                                            {{
+                                            record['records_held'] }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- PAGINATION -->
+                    {% with view_name='main.search_results_summary' %}
+                        {% include "pagination.html" %}
+                    {% endwith %}
+                {% else %}
+                    {% with view_type = "search" %}
+                        {% include "no-results-found.html" %}
+                    {% endwith %}
+                {% endif %}
+            </div>
+        </div>
     </div>
-    <!-- PAGINATION -->
-    {% with view_name='main.search_results_summary' %}
-        {% include "pagination.html" %}
-    {% endwith %}
-{% else %}
-    {% with view_type = "search" %}
-        {% include "no-results-found.html" %}
-    {% endwith %}
-{% endif %}
+{% endblock %}
