@@ -47,4 +47,4 @@ def test_css_no_visual_regression(
     aau_user_page.goto(url)
     aau_user_page.wait_for_load_state("domcontentloaded")
     screenshot = aau_user_page.screenshot(full_page=True)
-    assert_snapshot(screenshot, screenshot_file)
+    assert_snapshot(screenshot, name=screenshot_file)
