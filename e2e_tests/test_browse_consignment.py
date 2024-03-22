@@ -165,18 +165,14 @@ class TestBrowseConsignment:
             f"date_to_day=&date_to_month=&date_to_year="
         )
 
-        header_rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
+        header_rows = standard_user_page.locator("#tbl_result").evaluate_all(
+            """els => els.slice(0).map(el => [...el.querySelectorAll('th')].map(e => e.textContent.trim()))"""
         )
 
         rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
+            "#tbl_result tr.browse__mobile-table__top-row"
         ).evaluate_all(
-            """els => els.slice(1).map(el =>
+            """els => els.slice(0).map(el =>
               [...el.querySelectorAll('td')].map(e => e.textContent.trim())
             )"""
         )
@@ -216,18 +212,14 @@ class TestBrowseConsignment:
             "button", name="Apply", exact=True
         ).click()
 
-        header_rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
+        header_rows = standard_user_page.locator("#tbl_result").evaluate_all(
+            """els => els.slice(0).map(el => [...el.querySelectorAll('th')].map(e => e.textContent.trim()))"""
         )
 
         rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
+            "#tbl_result tr.browse__mobile-table__top-row"
         ).evaluate_all(
-            """els => els.slice(1).map(el =>
+            """els => els.slice(0).map(el =>
               [...el.querySelectorAll('td')].map(e => e.textContent.trim())
             )"""
         )
@@ -269,18 +261,14 @@ class TestBrowseConsignment:
             "button", name="Apply", exact=True
         ).click()
 
-        header_rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
+        header_rows = standard_user_page.locator("#tbl_result").evaluate_all(
+            """els => els.slice(0).map(el => [...el.querySelectorAll('th')].map(e => e.textContent.trim()))"""
         )
 
         rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
+            "#tbl_result tr.browse__mobile-table__top-row"
         ).evaluate_all(
-            """els => els.slice(1).map(el =>
+            """els => els.slice(0).map(el =>
               [...el.querySelectorAll('td')].map(e => e.textContent.trim())
             )"""
         )
