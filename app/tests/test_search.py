@@ -164,6 +164,13 @@ class TesthSearchResultsSummary:
         assert response.status_code == 200
         assert b"Search for digital records" in response.data
 
+        soup = BeautifulSoup(response.text, "html.parser")
+        title_tag = soup.title
+        assert (
+            title_tag.string
+            == "Search results summary – AYR - Access Your Records – GOV.UK"
+        )
+
     def test_search_results_summary_top_search(
         self, client, mock_all_access_user
     ):
@@ -392,6 +399,13 @@ class TestSearchTransferringBody:
         assert b"Search" in response.data
         assert b"Search for digital records" in response.data
         assert b"Search" in response.data
+
+        soup = BeautifulSoup(response.text, "html.parser")
+        title_tag = soup.title
+        assert (
+            title_tag.string
+            == "Search results – AYR - Access Your Records – GOV.UK"
+        )
 
     def test_search_transferring_body_top_search(
         self, client, mock_standard_user, browse_consignment_files
