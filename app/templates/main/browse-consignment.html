@@ -152,7 +152,9 @@
                                             </fieldset>
                                         </div>
                                     </div>
-                                    {% include "date-filters.html" %}
+                                    {% with view_type="consignment" %}
+                                        {% include "date-filters.html" %}
+                                    {% endwith %}
                                     <div class="filters-form__buttons">
                                         <button type="submit"
                                                 class="govuk-button govuk-button__browse-all-filters-form-apply-button"
