@@ -317,6 +317,19 @@ More info on relecting database tables can be found [here](https://flask-sqlalch
 
 Further, to this, we do define models and columns from the corresponding tables we do use in our queries we use so that when developing we will know what attributes are available but this has to be manually kept in sync with the externally determined schema through discussion with the maintainers of the Metadata Store database.
 
+### Dev database dump
+
+Provided is the file `dev-data.sql` which can be used to restore a database on a postgres instance.
+This is the database that is assumed to be used for our end to end tests which depend on data.
+To use this database, you will need to:
+
+1. connect to a database on a postgres instance with the user you want to own the new database: `psql -U username`
+2. create a new database, e.g. `CREATE DATABASE ayr;`
+3. exit from the `psql` connection
+4. restore the data dump `dev-data.sql` with `psql -U username -d ayr -f dev-data.sql`
+
+NOTE: The db info used here will need to be used in the config as detailed in the config section.
+
 ## Keycloak Local Setup
 
 It is possible to set up a local Keylcoak instance for development of Keycloak authentication pages. This repository: https://github.com/nationalarchives/tdr-auth-server/blob/master/README.md contains a readme which can be used to setup Keycloak or follow the steps below.
