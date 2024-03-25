@@ -9,7 +9,6 @@ from app.tests.factories import (
     FileFactory,
     SeriesFactory,
 )
-from app.tests.test_browse import verify_data_rows
 
 
 def verify_series_view_header_row(data):
@@ -19,7 +18,7 @@ def verify_series_view_header_row(data):
     """
     soup = BeautifulSoup(data, "html.parser")
     table = soup.find("table")
-    headers = table.find_all("th")
+    headers = table.find_all("th", class_="browse__series__desktop__header")
 
     expected_row = (
         [
@@ -30,9 +29,35 @@ def verify_series_view_header_row(data):
             "Consignment reference",
         ],
     )
+
     assert [
         header.text.replace("\n", " ").strip(" ") for header in headers
     ] == expected_row[0]
+
+
+def verify_series_data_rows(data, expected_rows):
+    """
+    This function checks data rows for a data table compared with expected rows
+    :param data: response data
+    :param expected_rows: expected rows to be compared
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    top_rows = table.find_all("tr", class_="browse__mobile-table__top-row")
+
+    row_data = ""
+    for row in top_rows:
+        cells = row.find_all("td")
+        for cell_index, cell in enumerate(cells):
+            row_data += "'" + cell.text.replace("\n", " ").strip(" ") + "'"
+            if cell_index < len(cells) - 1:
+                row_data += ", "
+        row_data += ", "
+
+    # Remove the extra comma at the end of row_data
+    row_data = row_data.rstrip(", ")
+
+    assert [row_data] == expected_rows[0]
 
 
 class TestSeries:
@@ -267,7 +292,7 @@ class TestSeries:
         assert response.status_code == 200
 
         verify_series_view_header_row(response.data)
-        verify_data_rows(response.data, expected_results)
+        verify_series_data_rows(response.data, expected_results)
 
     def test_browse_series_standard_user_accessing_series_from_different_transferring_body(
         self,

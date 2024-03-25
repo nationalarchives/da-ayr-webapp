@@ -1,0 +1,31 @@
+.browse__series__mobile__header {
+  display: none;
+}
+
+.browse__series__desktop__header {
+  display: table-cell;
+
+  &--text-align {
+    text-align: right;
+  }
+}
+
+.govuk-table__cell {
+  &--consignment-reference {
+    white-space: nowrap;
+  }
+}
+
+@media screen and (width <=810px) {
+  .browse__series__desktop__header {
+    display: none;
+  }
+
+  .browse__series__mobile__header {
+    display: table-cell;
+
+    &--text-align {
+      text-align: left;
+    }
+  }
+}

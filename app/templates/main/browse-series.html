@@ -31,24 +31,29 @@
                     <thead class="govuk-table__head">
                         <tr class="govuk-table__row">
                             <th scope="col"
-                                class="govuk-table__header browse-grid__key__transferring-body browse__table__mobile--hidden">
-                                Transferring body
-                            </th>
-                            <th scope="col" class="govuk-table__header browse__table__mobile--hidden">Series</th>
+                                class="govuk-table__header browse__series__desktop__header">Transferring body</th>
                             <th scope="col"
-                                class="govuk-table__header browse__table__right-align browse__table__mobile--hidden">
+                                class="govuk-table__header browse__series__desktop__header">Series</th>
+                            <th scope="col"
+                                class="govuk-table__header browse__series__desktop__header browse__series__desktop__header--text-align">
                                 Consignment transferred
                             </th>
-                            <th scope="col" class="govuk-table__header">Consignment transferred</th>
-                            <th scope="col" class="govuk-table__header browse__table__right-align">Records in consignment</th>
                             <th scope="col"
-                                class="govuk-table__header browse-grid__key__consignment-reference-desktop browse__table__mobile--hidden">
-                                Consignment reference
+                                class="govuk-table__header browse__series__mobile__header browse__series__mobile__header--text-align">
+                                Consignment transferred
                             </th>
                             <th scope="col"
-                                class="govuk-table__header browse-grid__key__consignment-reference-mobile">
-                                Consignment reference
+                                class="govuk-table__header browse__table__right-align browse__series__desktop__header">
+                                Records in consignment
                             </th>
+                            <th scope="col"
+                                class="govuk-table__header browse__table__right-align browse__series__mobile__header">
+                                Records in consignment
+                            </th>
+                            <th scope="col"
+                                class="govuk-table__header browse__series__desktop__header">Consignment reference</th>
+                            <th scope="col"
+                                class="govuk-table__header browse__series__mobile__header">Consignment reference</th>
                         </tr>
                     </thead>
                     <tbody class="govuk-table__body">
@@ -62,7 +67,7 @@
                                 <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden">
                                     {{ record["records_held"] }}
                                 </td>
-                                <td class="govuk-table__cell browse__table__mobile--hidden">
+                                <td class="govuk-table__cell browse__table__mobile--hidden govuk-table__cell--consignment-reference">
                                     <a href="{{ url_for('main.browse_consignment', _id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
                                 </td>
                             </tr>

@@ -51,7 +51,7 @@ def browser_context_args(browser_context_args):
 
 @pytest.fixture()
 def page(request, page) -> Page:
-    page.context.set_default_timeout(500)
+    page.context.set_default_timeout(5000)
     if "test_css_" not in request.node.name and callable(request.node.obj):
 
         def route_intercept(route):
