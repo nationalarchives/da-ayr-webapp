@@ -106,7 +106,7 @@
                 <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-rights">
                     <div class="rights-container">
                         <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-                        <a href="{{ url_for('main.record', record_id=record['file_id'], download_file=True) }}"
+                        <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
                            class="govuk-button govuk-button__download--record"
                            data-module="govuk-button">Download record</a>
                         {% if download_filename %}
