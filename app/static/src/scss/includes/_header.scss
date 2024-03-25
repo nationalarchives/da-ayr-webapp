@@ -8,9 +8,11 @@
   font-family: Arial, sans-serif !important;
 
   &__logo--ayr {
+    width: 100%;
     @include on-mobile {
       padding: 0;
       margin: 0;
+      width: 100%;
     }
   }
 
@@ -19,7 +21,7 @@
   }
 
   &__logotype--ayr {
-    white-space: nowrap;
+    white-space: normal;
     margin-top: 0;
     margin-bottom: 0;
 
