@@ -52,9 +52,7 @@ class TestSearchResultsSummary:
             )"""
         )
 
-        assert len(rows) == 1
-
-        expected_rows = [["Testing A", "12"]]
+        expected_rows = [["Mock 1 Department", "16"], ["Testing A", "12"]]
 
         verify_search_results_summary_header_row(header_rows)
         assert rows == expected_rows
@@ -88,8 +86,6 @@ class TestSearchResultsSummary:
             )"""
         )
 
-        assert len(rows) == 1
-
         expected_rows = [["Testing A", "4"]]
 
         verify_search_results_summary_header_row(header_rows)
@@ -111,7 +107,7 @@ class TestSearchTransferringBody:
 
     @property
     def transferring_body_id(self):
-        return "c969a99f-dd61-4890-a8b4-6556d5d69915"
+        return "c3e3fd83-4d52-4638-a085-1f4e4e4dfa50"
 
     def test_search_transferring_body_search_single_term(
         self, aau_user_page: Page
@@ -140,8 +136,6 @@ class TestSearchTransferringBody:
               [...el.querySelectorAll('td.search__mobile-table__top-row')].map(e => e.textContent.trim())
             )"""
         )
-
-        assert len(rows) == 5
 
         expected_rows = [
             [
@@ -204,8 +198,6 @@ class TestSearchTransferringBody:
               [...el.querySelectorAll('td.search__mobile-table__top-row')].map(e => e.textContent.trim())
             )"""
         )
-
-        assert len(rows) == 4
 
         expected_rows = [
             [

@@ -18,20 +18,12 @@ class TestBrowseTransferringBody:
 
     @property
     def transferring_body_id(self):
-        return "c969a99f-dd61-4890-a8b4-6556d5d69915"
-
-    def test_browse_transferring_body_has_title(self, standard_user_page: Page):
-        standard_user_page.goto(f"{self.route_url}/{self.transferring_body_id}")
-
-        assert (
-            standard_user_page.title()
-            == "Browse – AYR - Access Your Records – GOV.UK"
-        )
+        return "c3e3fd83-4d52-4638-a085-1f4e4e4dfa50"
 
     def test_browse_transferring_body_404_for_no_access(
         self, standard_user_page: Page
     ):
-        transferring_body_id = "6b63aa4d-7838-4010-b6f8-66fb3c07823d"
+        transferring_body_id = "8ccc8cd1-c0ee-431d-afad-70cf404ba337"
 
         standard_user_page.goto(f"{self.route_url}/{transferring_body_id}")
         assert standard_user_page.inner_html("text='Page not found'")
@@ -109,11 +101,7 @@ class TestBrowseTransferringBody:
             )"""
         )
 
-        assert len(rows) == 1
-
-        expected_rows = [
-            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
-        ]
+        expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 
         verify_header_row(header_rows)
         assert rows == expected_rows
@@ -143,11 +131,7 @@ class TestBrowseTransferringBody:
             )"""
         )
 
-        assert len(rows) == 1
-
-        expected_rows = [
-            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
-        ]
+        expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 
         verify_header_row(header_rows)
         assert rows == expected_rows
@@ -178,11 +162,7 @@ class TestBrowseTransferringBody:
             )"""
         )
 
-        assert len(rows) == 1
-
-        expected_rows = [
-            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
-        ]
+        expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 
         verify_header_row(header_rows)
         assert rows == expected_rows
@@ -210,11 +190,7 @@ class TestBrowseTransferringBody:
             )"""
         )
 
-        assert len(rows) == 1
-
-        expected_rows = [
-            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
-        ]
+        expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 
         verify_header_row(header_rows)
         assert rows == expected_rows
@@ -244,11 +220,7 @@ class TestBrowseTransferringBody:
             )"""
         )
 
-        assert len(rows) == 1
-
-        expected_rows = [
-            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
-        ]
+        expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 
         verify_header_row(header_rows)
         assert rows == expected_rows

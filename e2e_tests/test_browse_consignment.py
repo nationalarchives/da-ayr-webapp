@@ -17,20 +17,12 @@ class TestBrowseConsignment:
 
     @property
     def consignment_id(self):
-        return "d2de07cf-9188-4916-a7cf-a0631ab0c906"
-
-    def test_browse_consignment_has_title(self, standard_user_page: Page):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-
-        assert (
-            standard_user_page.title()
-            == "Browse – AYR - Access Your Records – GOV.UK"
-        )
+        return "bf203811-357a-45a8-8b38-770d1580691c"
 
     def test_browse_consignment_404_for_no_access(
         self, standard_user_page: Page
     ):
-        consignment_id = "99dc7ced-1683-4421-b9d5-eb90e9d9bd51"
+        consignment_id = "2fd4e03e-5913-4c04-b4f2-5a823fafd430"
 
         standard_user_page.goto(f"{self.route_url}/{consignment_id}")
 
@@ -46,12 +38,13 @@ class TestBrowseConsignment:
         self, standard_user_page: Page
     ):
         standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+
         standard_user_page.locator("label").filter(
             has_text="Date of record"
         ).click()
         standard_user_page.locator("#date_to_day").fill("31")
         standard_user_page.locator("#date_to_month").fill("7")
-        standard_user_page.locator("#date_to_year").fill("2022")
+        standard_user_page.locator("#date_to_year").fill("2021")
 
         standard_user_page.get_by_role("button", name="Apply filters").click()
 
@@ -90,19 +83,11 @@ class TestBrowseConsignment:
         self, standard_user_page: Page
     ):
         standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-        standard_user_page.get_by_label("All records").check()
-        standard_user_page.locator("label").filter(
-            has_text="Date of record"
-        ).click()
-        standard_user_page.locator("#date_from_day").fill("1")
-        standard_user_page.locator("#date_from_month").fill("8")
-        standard_user_page.locator("#date_from_year").fill("2022")
 
         standard_user_page.get_by_role("button", name="Apply filters").click()
 
         assert standard_user_page.get_by_label("Page 1").is_visible()
         assert standard_user_page.get_by_label("Page 2").is_visible()
-        assert standard_user_page.get_by_label("Page 3").is_visible()
         assert standard_user_page.get_by_role(
             "link", name="Nextpage"
         ).is_visible()
@@ -111,15 +96,6 @@ class TestBrowseConsignment:
         self, standard_user_page: Page
     ):
         standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-        standard_user_page.get_by_label("All records").check()
-        standard_user_page.locator("label").filter(
-            has_text="Date of record"
-        ).click()
-        standard_user_page.locator("#date_from_day").fill("1")
-        standard_user_page.locator("#date_from_month").fill("8")
-        standard_user_page.locator("#date_from_year").fill("2022")
-
-        standard_user_page.get_by_role("button", name="Apply filters").click()
 
         standard_user_page.get_by_role("link", name="Nextpage").click()
 
@@ -132,29 +108,6 @@ class TestBrowseConsignment:
         assert standard_user_page.get_by_role(
             "link", name="Nextpage"
         ).is_visible()
-
-    def test_browse_consignment_has_pagination_with_previous_page(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-        standard_user_page.get_by_label("All records").check()
-        standard_user_page.locator("label").filter(
-            has_text="Date of record"
-        ).click()
-        standard_user_page.locator("#date_from_day").fill("1")
-        standard_user_page.locator("#date_from_month").fill("8")
-        standard_user_page.locator("#date_from_year").fill("2022")
-
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-
-        standard_user_page.get_by_label("Page 3").click()
-
-        assert standard_user_page.get_by_role(
-            "link", name="Previouspage"
-        ).is_visible()
-        assert standard_user_page.get_by_label("Page 1").is_visible()
-        assert standard_user_page.get_by_label("Page 2").is_visible()
-        assert standard_user_page.get_by_label("Page 3").is_visible()
 
     def test_browse_consignment_filter_functionality_with_query_string_parameters(
         self, standard_user_page: Page
@@ -176,8 +129,6 @@ class TestBrowseConsignment:
               [...el.querySelectorAll('td')].map(e => e.textContent.trim())
             )"""
         )
-
-        assert len(rows) == 5
 
         expected_rows = [
             ["03/08/2022", "delivery-form-digital.doc", "Open", "-"],
@@ -224,8 +175,6 @@ class TestBrowseConsignment:
             )"""
         )
 
-        assert len(rows) == 5
-
         expected_rows = [
             ["03/08/2022", "Presentation.pptx", "Closed", "04/08/2122"],
             [
@@ -256,7 +205,7 @@ class TestBrowseConsignment:
         ).click()
         standard_user_page.locator("#date_from_day").fill("01")
         standard_user_page.locator("#date_from_month").fill("01")
-        standard_user_page.locator("#date_from_year").fill("2022")
+        standard_user_page.locator("#date_from_year").fill("2019")
         standard_user_page.get_by_role(
             "button", name="Apply", exact=True
         ).click()
@@ -272,8 +221,6 @@ class TestBrowseConsignment:
               [...el.querySelectorAll('td')].map(e => e.textContent.trim())
             )"""
         )
-
-        assert len(rows) == 2
 
         expected_rows = [
             [

@@ -34,7 +34,7 @@ from playwright.sync_api import Page
     ],
 )
 def test_css_no_visual_regression(
-    url, screenshot_file, authenticated_page: Page, assert_snapshot
+    url, screenshot_file, aau_user_page: Page, assert_snapshot
 ):
     """
     Given a page in the AYR webapp
@@ -44,7 +44,7 @@ def test_css_no_visual_regression(
     If any of these tests break due to intended changes to the design of the page,
     run pytest with `--update-snapshots --headed` flags to update the stored screenshot
     """
-    authenticated_page.goto(url)
-    assert_snapshot(
-        authenticated_page.screenshot(full_page=True), screenshot_file
-    )
+    aau_user_page.goto(url)
+    aau_user_page.wait_for_load_state("domcontentloaded")
+    screenshot = aau_user_page.screenshot(full_page=True)
+    assert_snapshot(screenshot, name=screenshot_file)
