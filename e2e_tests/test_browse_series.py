@@ -71,14 +71,13 @@ class TestBrowseSeries:
             "#tbl_result tr:visible"
         ).evaluate_all(
             """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
+              [...el.querySelectorAll('th.browse__series__desktop__header')].map(e => e.textContent.trim())
             )"""
         )
-
         rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
+            "#tbl_result tr.browse__mobile-table__top-row"
         ).evaluate_all(
-            """els => els.slice(1).map(el =>
+            """els => els.slice(0).map(el =>
               [...el.querySelectorAll('td')].map(e => e.textContent.trim())
             )"""
         )
@@ -108,14 +107,13 @@ class TestBrowseSeries:
             "#tbl_result tr:visible"
         ).evaluate_all(
             """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
+              [...el.querySelectorAll('th.browse__series__desktop__header')].map(e => e.textContent.trim())
             )"""
         )
-
         rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
+            "#tbl_result tr.browse__mobile-table__top-row"
         ).evaluate_all(
-            """els => els.slice(1).map(el =>
+            """els => els.slice(0).map(el =>
               [...el.querySelectorAll('td')].map(e => e.textContent.trim())
             )"""
         )
@@ -144,14 +142,13 @@ class TestBrowseSeries:
             "#tbl_result tr:visible"
         ).evaluate_all(
             """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
+              [...el.querySelectorAll('th.browse__series__desktop__header')].map(e => e.textContent.trim())
             )"""
         )
-
         rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
+            "#tbl_result tr.browse__mobile-table__top-row"
         ).evaluate_all(
-            """els => els.slice(1).map(el =>
+            """els => els.slice(0).map(el =>
               [...el.querySelectorAll('td')].map(e => e.textContent.trim())
             )"""
         )
