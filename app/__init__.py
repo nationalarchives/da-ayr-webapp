@@ -2,6 +2,7 @@ from flask import Flask, g
 from flask_compress import Compress
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_s3 import FlaskS3
 from flask_talisman import Talisman
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
@@ -14,6 +15,7 @@ limiter = Limiter(
     get_remote_address, default_limits=["2 per second", "60 per minute"]
 )
 talisman = Talisman()
+s3 = FlaskS3()
 
 
 def null_to_dash(value):
@@ -49,8 +51,7 @@ def create_app(config_class, database_uri=None):
 
     # Set content security policy
     csp = {
-        "default-src": "'self'",
-        "script-src": ["'self'"],
+        "default-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']}",
     }
 
     # setup database uri for testing
@@ -60,6 +61,7 @@ def create_app(config_class, database_uri=None):
     # Initialise app extensions
     setup_logging(app)
     db.init_app(app)
+    s3.init_app(app)
     compress.init_app(app)
     limiter.init_app(app)
     talisman.init_app(app, content_security_policy=csp, force_https=force_https)
