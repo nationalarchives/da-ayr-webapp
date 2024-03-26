@@ -55,29 +55,23 @@ class TestBrowse:
         )
 
         header_rows = aau_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.map(el => {
-                var headerCells = [...el.querySelectorAll('th')];
-                headerCells.shift();
-                return headerCells.map(e => e.textContent.trim());
-            })"""
-        )
+            "thead.govuk-table__head th[class*=browse__all__desktop__header]"
+        ).evaluate_all("""els => els.map(e => e.textContent.trim())""")
 
         rows = aau_user_page.locator(
-            ".govuk-table__body .browse__table__all_desktop__row"
+            ".govuk-table__row.browse__table__all_desktop__row"
         ).evaluate_all(
             """els => els.map(el =>
-                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
+              [...el.querySelectorAll('td.browse__table__all_desktop')].map(e => e.textContent.trim())
             )"""
         )
 
         expected_rows = [
-            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
-            ["Testing A", "TSTA 1", "25/01/2024", "63", "5"],
+            ["MOCK1 Department", "MOCK1 123", "28/07/2023", "1", "1"],
+            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
         ]
 
-        verify_header_row(header_rows)
+        verify_browse_all_header_row(header_rows)
         assert rows == expected_rows
 
     def test_browse_sort_functionality_by_transferring_body_descending(
@@ -89,63 +83,51 @@ class TestBrowse:
         aau_user_page.get_by_role("button", name="Apply", exact=True).click()
 
         header_rows = aau_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.map(el => {
-                var headerCells = [...el.querySelectorAll('th')];
-                headerCells.shift();
-                return headerCells.map(e => e.textContent.trim());
-            })"""
-        )
+            "thead.govuk-table__head th[class*=browse__all__desktop__header]"
+        ).evaluate_all("""els => els.map(e => e.textContent.trim())""")
 
         rows = aau_user_page.locator(
-            ".govuk-table__body .browse__table__all_desktop__row"
+            ".govuk-table__row.browse__table__all_desktop__row"
         ).evaluate_all(
             """els => els.map(el =>
-                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
+              [...el.querySelectorAll('td.browse__table__all_desktop')].map(e => e.textContent.trim())
             )"""
         )
 
         expected_rows = [
-            ["Testing A", "TSTA 1", "25/01/2024", "63", "5"],
-            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
+            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
+            ["MOCK1 Department", "MOCK1 123", "28/07/2023", "1", "1"],
         ]
 
-        verify_header_row(header_rows)
+        verify_browse_all_header_row(header_rows)
         assert rows == expected_rows
 
     def test_browse_filter_functionality_with_transferring_body_filter(
         self, aau_user_page: Page
     ):
         aau_user_page.locator("#transferring_body_filter").select_option(
-            "Mock 1 Department"
+            "MOCK1 Department"
         )
         aau_user_page.get_by_role("button", name="Apply filters").click()
         aau_user_page.get_by_role("button", name="Apply", exact=True).click()
 
         header_rows = aau_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.map(el => {
-                var headerCells = [...el.querySelectorAll('th')];
-                headerCells.shift();
-                return headerCells.map(e => e.textContent.trim());
-            })"""
-        )
+            "thead.govuk-table__head th[class*=browse__all__desktop__header]"
+        ).evaluate_all("""els => els.map(e => e.textContent.trim())""")
 
         rows = aau_user_page.locator(
-            ".govuk-table__body .browse__table__all_desktop__row"
+            ".govuk-table__row.browse__table__all_desktop__row"
         ).evaluate_all(
             """els => els.map(el =>
-                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
+              [...el.querySelectorAll('td.browse__table__all_desktop')].map(e => e.textContent.trim())
             )"""
         )
 
         expected_rows = [
-            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"]
+            ["MOCK1 Department", "MOCK1 123", "28/07/2023", "1", "1"],
         ]
 
-        verify_header_row(header_rows)
+        verify_browse_all_header_row(header_rows)
         assert rows == expected_rows
 
     def test_browse_filter_functionality_with_series_filter_wildcard_character(
@@ -156,29 +138,23 @@ class TestBrowse:
         aau_user_page.get_by_role("button", name="Apply filters").click()
 
         header_rows = aau_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.map(el => {
-                var headerCells = [...el.querySelectorAll('th')];
-                headerCells.shift();
-                return headerCells.map(e => e.textContent.trim());
-            })"""
-        )
+            "thead.govuk-table__head th[class*=browse__all__desktop__header]"
+        ).evaluate_all("""els => els.map(e => e.textContent.trim())""")
 
         rows = aau_user_page.locator(
-            ".govuk-table__body .browse__table__all_desktop__row"
+            ".govuk-table__row.browse__table__all_desktop__row"
         ).evaluate_all(
             """els => els.map(el =>
-                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
+              [...el.querySelectorAll('td.browse__table__all_desktop')].map(e => e.textContent.trim())
             )"""
         )
 
         expected_rows = [
-            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
-            ["Testing A", "TSTA 1", "25/01/2024", "63", "5"],
+            ["MOCK1 Department", "MOCK1 123", "28/07/2023", "1", "1"],
+            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
         ]
 
-        verify_header_row(header_rows)
+        verify_browse_all_header_row(header_rows)
         assert rows == expected_rows
 
     def test_browse_filter_functionality_with_date_filter(
@@ -191,29 +167,22 @@ class TestBrowse:
         aau_user_page.get_by_role("button", name="Apply filters").click()
 
         header_rows = aau_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.map(el => {
-                var headerCells = [...el.querySelectorAll('th')];
-                headerCells.shift();
-                return headerCells.map(e => e.textContent.trim());
-            })"""
-        )
+            "thead.govuk-table__head th[class*=browse__all__desktop__header]"
+        ).evaluate_all("""els => els.map(e => e.textContent.trim())""")
 
         rows = aau_user_page.locator(
-            ".govuk-table__body .browse__table__all_desktop__row"
+            ".govuk-table__row.browse__table__all_desktop__row"
         ).evaluate_all(
             """els => els.map(el =>
-                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
+              [...el.querySelectorAll('td.browse__table__all_desktop')].map(e => e.textContent.trim())
             )"""
         )
 
         expected_rows = [
-            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
-            ["Testing A", "TSTA 1", "25/01/2024", "63", "5"],
+            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
         ]
 
-        verify_header_row(header_rows)
+        verify_browse_all_header_row(header_rows)
         assert rows == expected_rows
 
     def test_browse_date_filter_validation_date_from(self, aau_user_page: Page):
