@@ -9,7 +9,7 @@ class BaseConfig(object):
     CONTACT_PHONE = "contact phone"
     DEPARTMENT_NAME = "The National Archives"
     DEPARTMENT_URL = "https://www.nationalarchives.gov.uk/"
-    SERVICE_NAME = "AYR - Access Your Records"
+    SERVICE_NAME = "AYR – Access Your Records"
     SERVICE_PHASE = "BETA"
     SERVICE_URL = "https://ayr.nationalarchives.gov.uk/"
 

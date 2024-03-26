@@ -21,7 +21,7 @@ footer_links = [
         f"Privacy – {service_name}",
     ),
     (
-        "Cookies policy",
+        "Cookies",
         "/cookies",
         f"Cookies – {service_name}",
     ),
