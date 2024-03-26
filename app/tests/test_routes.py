@@ -4,7 +4,7 @@ from flask.testing import FlaskClient
 from app.tests.assertions import assert_contains_html
 
 
-class TestRoute:
+class TestRoutes:
     def test_cookies_get(self, app, client: FlaskClient):
         """
         Given a standard user accessing the cookies page
@@ -17,7 +17,7 @@ class TestRoute:
         html = response.data.decode()
 
         expected_html = """
-    <table class="govuk-table">
+<table class="govuk-table" id="tbl_cookies">
         <thead class="govuk-table__head">
             <tr class="govuk-table__row">
                 <th scope="col" class="govuk-table__header govuk-!-width-one-third">Cookie name</th>
@@ -27,12 +27,13 @@ class TestRoute:
         </thead>
         <tbody class="govuk-table__body">
             <tr class="govuk-table__row">
-                <th scope="row" class="govuk-table__header govuk-!-font-size-14">session</th>
+                <td class="govuk-table__cell"><strong>session</strong></td>
                 <td class="govuk-table__cell">A cookie that holds information for authorisation purpose</td>
                 <td class="govuk-table__cell">Expires when you exit the browser</td>
             </tr>
         </tbody>
-    </table>"""
+    </table>
+    """
 
         assert response.status_code == 200
         assert b"Cookies" in response.data
