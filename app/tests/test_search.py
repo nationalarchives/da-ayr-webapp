@@ -572,7 +572,7 @@ class TestSearchTransferringBody:
         html = response.data.decode()
 
         expected_html = f"""
-        <table class="govuk-table" id="tbl_result">
+        <table class="govuk-table" id="tbl_result" aria-label="Record search results">
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
                     <th scope="col"
