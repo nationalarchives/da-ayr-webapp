@@ -1,4 +1,3 @@
-{% set breadcrumbs = {"everything": "Everything available to you"} %}
 {% set sorting_list = {
     "Transferring body (A to Z)": "transferring_body-asc",
     "Transferring body (Z to A)": "transferring_body-desc",
@@ -9,10 +8,7 @@
     "Records held in series (most first)": "records_held-desc",
     "Records held in series (least first)": "records_held-asc"
 } %}
-<!-- BREAD CRUMB -->
-{% with dict = breadcrumbs %}
-    {% include "breadcrumb.html" %}
-{% endwith %}
+<p class="govuk-body govuk-body--browse-all-signpost">Everything available to you</p>
 <form action="{{ url_for('main.browse') }}" method="get">
     <div class="browse-layout">
         <!-- SORT -->

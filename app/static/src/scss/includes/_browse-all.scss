@@ -158,6 +158,11 @@
     margin-top: 2rem;
     margin-right: 0.6rem;
   }
+
+  &--browse-all-signpost {
+    @include signposting-text;
+    margin-top: 15px;
+  }
 }
 
 .govuk-form-group {
