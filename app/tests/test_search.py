@@ -151,7 +151,7 @@ class TesthSearchResultsSummary:
         return "/browse"
 
     def test_search_results_summary_get(
-        self, client: FlaskClient, mock_all_access_user
+        self, app, client: FlaskClient, mock_all_access_user
     ):
         """
         Given an all_access_user accessing the search results summary page
@@ -168,7 +168,7 @@ class TesthSearchResultsSummary:
         title_tag = soup.title
         assert (
             title_tag.string
-            == "Search results summary – AYR - Access Your Records – GOV.UK"
+            == f"Search results summary – {app.config['SERVICE_NAME']} – GOV.UK"
         )
 
     def test_search_results_summary_top_search(
@@ -378,7 +378,11 @@ class TestSearchTransferringBody:
         return f"{self.browse_all_route_url}/transferring_body"
 
     def test_search_transferring_body_get(
-        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+        self,
+        app,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_consignment_files,
     ):
         """
         Given a standard user accessing the search transferring body page
@@ -404,7 +408,7 @@ class TestSearchTransferringBody:
         title_tag = soup.title
         assert (
             title_tag.string
-            == "Search results – AYR - Access Your Records – GOV.UK"
+            == f"Search results – {app.config['SERVICE_NAME']} – GOV.UK"
         )
 
     def test_search_transferring_body_top_search(

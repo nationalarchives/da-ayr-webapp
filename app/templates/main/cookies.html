@@ -1,145 +1,133 @@
 {% extends "base.html" %}
 {%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
 {%- from 'govuk_frontend_jinja/components/table/macro.html' import govukTable -%}
-{% block pageTitle %}
-    {%- if form.errors %}Error:
-    {% endif -%}
-    Cookies – {{ config['SERVICE_NAME'] }} – GOV.UK
-{% endblock %}
-{% block beforeContent %}
-    {{ super() }}
-    {{ govukBackLink({
-    'text': "Back",
-    'href': url_for("main.index")
-    }) }}
-{% endblock %}
+{% block pageTitle %}Cookies – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block content %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
             {{ super() }}
             <h1 class="govuk-heading-l">Cookies</h1>
-            <p class="govuk-body">Cookies are small files saved on your phone, tablet or computer when you visit a website.</p>
             <p class="govuk-body">
-                We use cookies to make {{ config['SERVICE_NAME'] }} work and collect information about how you use our
-                service.
+                Cookies are small files saved on your computer, phone or tablet that allow us to store information about
+                how you use our website, such as the pages you visit or any preferences you set. They help us to provide
+                you with a better experience. Read more about cookies used on
+                <a class="govuk-link"
+                   href="https://nationalarchives.gov.uk/legal/cookies/">The National Archives</a>
+                website.
             </p>
+            <p class="govuk-body">
+                Within the {{ config['SERVICE_NAME'] }} service, we only use cookies that are essential in order to make the
+                service work. They cannot be used to identify you personally.
+            </p>
+            <h2 class="govuk-heading-m">Why do we use cookies?</h2>
+            <p class="govuk-body">
+                We use cookies to improve the services that we provide and to ensure they work for you
+                by:
+            </p>
+            <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+                <li>
+                    Enabling a service to recognise your device so you don’t have to give the same information several
+                    times during one task
+                </li>
+                <li>
+                    Recognising that you may already have provided a username and password so you don’t need to do it
+                    for every web page requested
+                </li>
+            </ul>
+            <p class="govuk-body">
+                We classify the cookies we use within the {{ config['SERVICE_NAME'] }} service in the
+                following categories:
+            </p>
+            <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+                <li>Analytics cookies (optional, although none are currently used within the {{ config['SERVICE_NAME'] }} service)</li>
+                <li>Functional (optional, although none are currently used within the {{ config['SERVICE_NAME'] }} service)</li>
+                <li>Essential cookies (non-optional)</li>
+            </ul>
+            <p class="govuk-body">We do not use any cookies for marketing or targeting purposes.</p>
             <h2 class="govuk-heading-m">Essential cookies</h2>
             <p class="govuk-body">
-                Essential cookies keep your information secure while you use {{ config['SERVICE_NAME'] }}. We do not need
-                to ask permission to use them.
+                These are necessary to make our site work. You can disable them by changing your
+                browser preferences. However, you should be aware that doing so will mean some parts of the website
+                will stop working for you.
             </p>
-            {{ govukTable({
-            "head": [
-            {
-            "text": "Name"
-            },
-            {
-            "text": "Purpose"
-            },
-            {
-            "text": "Expires"
-            }
-            ],
-            "rows": [
-            [
-            {
-            "text": "cookie_policy"
-            },
-            {
-            "text": "Saves your cookie consent settings"
-            },
-            {
-            "text": "1 year"
-            }
-            ],
-            [
-            {
-            "text": "session"
-            },
-            {
-            "text": "Temporary storage"
-            },
-            {
-            "text": "Session"
-            }
-            ]
-            ]
-            }) }}
-            <h2 class="govuk-heading-m">Functional cookies</h2>
+            <table class="govuk-table" id="tbl_cookies">
+                <thead class="govuk-table__head">
+                    <tr class="govuk-table__row">
+                        <th scope="col" class="govuk-table__header govuk-!-width-one-third">Cookie name</th>
+                        <th scope="col" class="govuk-table__header govuk-!-width-one-third">What it does/typical content</th>
+                        <th scope="col" class="govuk-table__header govuk-!-width-one-third">Duration</th>
+                    </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">session</td>
+                        <td class="govuk-table__cell">A cookie that holds information for authorisation purpose</td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">KEYCLOAK_SESSION_LEGACY</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of the session as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">KEYCLOAK_SESSION</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of the session as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">KEYCLOAK_IDENTITY_LEGACY</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of elements related to your identity as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">KEYCLOAK_IDENTITY</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of elements related to your identity as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">AUTH_SESSION_ID_LEGACY</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of the session identity as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">AUTH_SESSION_ID</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of the session identity as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">KC_RESTART</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of the session as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">KC_AUTH_STATE</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of the session as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h2 class="govuk-heading-m">Third party cookies</h2>
             <p class="govuk-body">
-                Functional cookies allow you to take advantage of some functionality, for example remembering
-                settings between visits. The service will work without them.
+                These are cookies set by a website other than nationalarchives.gov.uk. They are set
+                when you click on a third party link such as SmartSurvey. You cannot set your preferences for these on
+                our site, but you can block them directly from your browser.
             </p>
-            {{ govukTable({
-            "head": [
-            {
-            "text": "Name"
-            },
-            {
-            "text": "Purpose"
-            },
-            {
-            "text": "Expires"
-            }
-            ],
-            "rows": [
-            [
-            {
-            "text": "foo"
-            },
-            {
-            "text": "bar"
-            },
-            {
-            "text": "baz"
-            }
-            ]
-            ]
-            }) }}
-            <h2 class="govuk-heading-m">Analytics cookies</h2>
-            <p class="govuk-body">
-                With your permission, we use Google Analytics to collect data about how you use {{ config['SERVICE_NAME'] }}. This
-                information helps us to improve our service.
-            </p>
-            <p class="govuk-body">Google is not allowed to use or share our analytics data with anyone.</p>
-            <p class="govuk-body">Google Analytics stores anonymised information about:</p>
-            <ul class="govuk-list govuk-list--bullet">
-                <li>how you got to {{ config['SERVICE_NAME'] }}</li>
-                <li>the pages you visit on {{ config['SERVICE_NAME'] }} and how long you spend on them</li>
-                <li>any errors you see while using {{ config['SERVICE_NAME'] }}</li>
-            </ul>
-            {{ govukTable({
-            "head": [
-            {
-            "text": "Name"
-            },
-            {
-            "text": "Purpose"
-            },
-            {
-            "text": "Expires"
-            }
-            ],
-            "rows": [
-            [
-            {
-            "text": "foo"
-            },
-            {
-            "text": "bar"
-            },
-            {
-            "text": "baz"
-            }
-            ]
-            ]
-            }) }}
-            <h2 class="govuk-heading-m">Change your cookie settings</h2>
-            <form action="" method="post" novalidate>
-                {{ form.functional }}
-                {{ form.analytics }}
-                {{ form.save }}
-            </form>
         </div>
     </div>
 {% endblock %}
