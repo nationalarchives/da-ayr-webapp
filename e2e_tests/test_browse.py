@@ -67,8 +67,8 @@ class TestBrowse:
         )
 
         expected_rows = [
-            ["MOCK1 Department", "MOCK1 123", "28/07/2023", "1", "1"],
-            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
+            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
+            ["Testing A", "TSTA 1", "25/01/2024", "63", "5"],
         ]
 
         verify_browse_all_header_row(header_rows)
@@ -95,8 +95,8 @@ class TestBrowse:
         )
 
         expected_rows = [
-            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
-            ["MOCK1 Department", "MOCK1 123", "28/07/2023", "1", "1"],
+            ["Testing A", "TSTA 1", "25/01/2024", "63", "5"],
+            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
         ]
 
         verify_browse_all_header_row(header_rows)
@@ -106,7 +106,7 @@ class TestBrowse:
         self, aau_user_page: Page
     ):
         aau_user_page.locator("#transferring_body_filter").select_option(
-            "MOCK1 Department"
+            "Mock 1 Department"
         )
         aau_user_page.get_by_role("button", name="Apply filters").click()
         aau_user_page.get_by_role("button", name="Apply", exact=True).click()
@@ -124,7 +124,7 @@ class TestBrowse:
         )
 
         expected_rows = [
-            ["MOCK1 Department", "MOCK1 123", "28/07/2023", "1", "1"],
+            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"]
         ]
 
         verify_browse_all_header_row(header_rows)
@@ -150,8 +150,8 @@ class TestBrowse:
         )
 
         expected_rows = [
-            ["MOCK1 Department", "MOCK1 123", "28/07/2023", "1", "1"],
-            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
+            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
+            ["Testing A", "TSTA 1", "25/01/2024", "63", "5"],
         ]
 
         verify_browse_all_header_row(header_rows)
@@ -179,7 +179,8 @@ class TestBrowse:
         )
 
         expected_rows = [
-            ["Testing A", "TSTA 1", "25/01/2024", "73", "7"],
+            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
+            ["Testing A", "TSTA 1", "25/01/2024", "63", "5"],
         ]
 
         verify_browse_all_header_row(header_rows)
