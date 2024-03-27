@@ -159,11 +159,8 @@
     margin-right: 0.6rem;
   }
 
-  &--browse-all-breadcrumb {
-    font-weight: bold;
-    font-size: 1.5rem;
-    text-decoration: None;
-    line-height: 1.3rem;
+  &--browse-all-signpost {
+    @include signposting-text;
     margin-top: 15px;
   }
 }
