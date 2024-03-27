@@ -1,7 +1,41 @@
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
-from app.tests.assertions import assert_contains_html
+
+def verify_cookies_header_row(data):
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    headers = table.find_all("th")
+
+    expected_row = (
+        [
+            "Cookie name",
+            "What it does/typical content",
+            "Duration",
+        ],
+    )
+    assert [
+        header.text.replace("\n", " ").strip(" ") for header in headers
+    ] == expected_row[0]
+
+
+def verify_cookies_data_rows(data, expected_rows):
+    """
+    this function check data rows for data table compared with expected rows
+    :param data: response data
+    :param expected_rows: expected rows to be compared
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    rows = table.find_all("td")
+
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+
+    assert [row_data] == expected_rows[0]
 
 
 class TestRoutes:
@@ -11,29 +45,7 @@ class TestRoutes:
         When they make a GET request
         Then they should see cookies page content
         """
-
         response = client.get("/cookies")
-
-        html = response.data.decode()
-
-        expected_html = """
-<table class="govuk-table" id="tbl_cookies">
-        <thead class="govuk-table__head">
-            <tr class="govuk-table__row">
-                <th scope="col" class="govuk-table__header govuk-!-width-one-third">Cookie name</th>
-                <th scope="col" class="govuk-table__header govuk-!-width-one-third">What it does/typical content</th>
-                <th scope="col" class="govuk-table__header govuk-!-width-one-third">Duration</th>
-            </tr>
-        </thead>
-        <tbody class="govuk-table__body">
-            <tr class="govuk-table__row">
-                <td class="govuk-table__cell"><strong>session</strong></td>
-                <td class="govuk-table__cell">A cookie that holds information for authorisation purpose</td>
-                <td class="govuk-table__cell">Expires when you exit the browser</td>
-            </tr>
-        </tbody>
-    </table>
-    """
 
         assert response.status_code == 200
         assert b"Cookies" in response.data
@@ -47,9 +59,26 @@ class TestRoutes:
             == f"Cookies – {app.config['SERVICE_NAME']} – GOV.UK"
         )
 
-        assert_contains_html(
-            expected_html,
-            html,
-            "table",
-            {"class": "govuk-table"},
-        )
+        expected_rows = [
+            [
+                "'session', 'A cookie that holds information for authorisation purpose', 'Expires when you exit the "
+                "browser', 'KEYCLOAK_SESSION_LEGACY', 'A cookie set by the authorisation component of the service that "
+                "keeps track of the session as you use the service', 'Expires when you exit the browser', "
+                "'KEYCLOAK_SESSION', 'A cookie set by the authorisation component of the service that keeps track of "
+                "the session as you use the service', 'Expires when you exit the browser', 'KEYCLOAK_IDENTITY_LEGACY', "
+                "'A cookie set by the authorisation component of the service that keeps track of elements related to "
+                "your identity as you use the service', 'Expires when you exit the browser', 'KEYCLOAK_IDENTITY', "
+                "'A cookie set by the authorisation component of the service that keeps track of elements related to "
+                "your identity as you use the service', 'Expires when you exit the browser', 'AUTH_SESSION_ID_LEGACY', "
+                "'A cookie set by the authorisation component of the service that keeps track of the session identity "
+                "as you use the service', 'Expires when you exit the browser', 'AUTH_SESSION_ID', 'A cookie set by the "
+                "authorisation component of the service that keeps track of the session identity as you use the "
+                "service', 'Expires when you exit the browser', 'KC_RESTART', 'A cookie set by the authorisation "
+                "component of the service that keeps track of the session as you use the service', 'Expires when you "
+                "exit the browser', 'KC_AUTH_STATE', 'A cookie set by the authorisation component of the service that "
+                "keeps track of the session as you use the service', 'Expires when you exit the browser'"
+            ]
+        ]
+
+        verify_cookies_header_row(response.data)
+        verify_cookies_data_rows(response.data, expected_rows)

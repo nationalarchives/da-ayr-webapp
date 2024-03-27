@@ -2,13 +2,6 @@
 {%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
 {%- from 'govuk_frontend_jinja/components/table/macro.html' import govukTable -%}
 {% block pageTitle %}Cookies – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
-{% block beforeContent %}
-    {{ super() }}
-    {{ govukBackLink({
-    'text': "Back",
-    'href': url_for("main.index")
-    }) }}
-{% endblock %}
 {% block content %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
@@ -67,10 +60,64 @@
                 </thead>
                 <tbody class="govuk-table__body">
                     <tr class="govuk-table__row">
-                        <td class="govuk-table__cell">
-                            <strong>session</strong>
-                        </td>
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">session</td>
                         <td class="govuk-table__cell">A cookie that holds information for authorisation purpose</td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">KEYCLOAK_SESSION_LEGACY</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of the session as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">KEYCLOAK_SESSION</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of the session as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">KEYCLOAK_IDENTITY_LEGACY</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of elements related to your identity as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">KEYCLOAK_IDENTITY</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of elements related to your identity as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">AUTH_SESSION_ID_LEGACY</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of the session identity as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">AUTH_SESSION_ID</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of the session identity as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">KC_RESTART</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of the session as you use the service
+                        </td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell govuk-table__header govuk-!-font-size-14">KC_AUTH_STATE</td>
+                        <td class="govuk-table__cell">
+                            A cookie set by the authorisation component of the service that keeps track of the session as you use the service
+                        </td>
                         <td class="govuk-table__cell">Expires when you exit the browser</td>
                     </tr>
                 </tbody>

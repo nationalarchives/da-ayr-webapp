@@ -37,6 +37,54 @@ class TestRoutes:
                 "A cookie that holds information for authorisation purpose",
                 "Expires when you exit the browser",
             ],
+            [
+                "KEYCLOAK_SESSION_LEGACY",
+                "A cookie set by the authorisation component of the service that keeps track of the session as you "
+                "use the service",
+                "Expires when you exit the browser",
+            ],
+            [
+                "KEYCLOAK_SESSION",
+                "A cookie set by the authorisation component of the service that keeps track of the session as you "
+                "use the service",
+                "Expires when you exit the browser",
+            ],
+            [
+                "KEYCLOAK_IDENTITY_LEGACY",
+                "A cookie set by the authorisation component of the service that keeps track of elements related to "
+                "your identity as you use the service",
+                "Expires when you exit the browser",
+            ],
+            [
+                "KEYCLOAK_IDENTITY",
+                "A cookie set by the authorisation component of the service that keeps track of elements related to "
+                "your identity as you use the service",
+                "Expires when you exit the browser",
+            ],
+            [
+                "AUTH_SESSION_ID_LEGACY",
+                "A cookie set by the authorisation component of the service that keeps track of the session identity "
+                "as you use the service",
+                "Expires when you exit the browser",
+            ],
+            [
+                "AUTH_SESSION_ID",
+                "A cookie set by the authorisation component of the service that keeps track of the session identity "
+                "as you use the service",
+                "Expires when you exit the browser",
+            ],
+            [
+                "KC_RESTART",
+                "A cookie set by the authorisation component of the service that keeps track of the session as you "
+                "use the service",
+                "Expires when you exit the browser",
+            ],
+            [
+                "KC_AUTH_STATE",
+                "A cookie set by the authorisation component of the service that keeps track of the session as you "
+                "use the service",
+                "Expires when you exit the browser",
+            ],
         ]
 
         assert rows == expected_rows
