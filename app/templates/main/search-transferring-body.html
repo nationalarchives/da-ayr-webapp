@@ -171,7 +171,7 @@
                                                     {% set new_query = filters['query'].replace(',' ~ search_terms[i],'') %}
                                                 {% endif %}
                                                 {% if search_terms | length == 1 %}
-                                                    {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id']) %}
+                                                    {% set search_term_url = url_for('main.browse_transferring_body', _id = request.view_args['_id']) %}
                                                 {% else %}
                                                     {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id'], query=new_query) %}
                                                 {% endif %}
