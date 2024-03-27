@@ -227,6 +227,25 @@ class TestSearchTransferringBody:
         verify_search_transferring_body_header_row(header_rows)
         assert rows == expected_rows
 
+    def test_search_transferring_body_remove_all_terms_redirect_to_browse_transferring_body(
+        self, aau_user_page: Page
+    ):
+        """
+        Given a user on the search transferring body page
+        When they interact with the search form and submit a query with a search term
+        and then remove the search term
+        Then they should be redirected to browse transferring body page.
+        """
+        aau_user_page.goto(f"{self.browse_route_url}")
+        aau_user_page.locator("#search-input").click()
+        aau_user_page.locator("#search-input").fill("dtp")
+        aau_user_page.get_by_role("button", name="Search").click()
+        aau_user_page.get_by_role("link", name="Testing A").click()
+        aau_user_page.get_by_role("link", name="dtp", exact=True).click()
+
+        url = f"{self.browse_transferring_body_route_url}/{self.transferring_body_id}"
+        expect(aau_user_page).to_have_url(url)
+
     def test_search_transferring_body_aau_user_and_click_on_clear_all(
         self, aau_user_page: Page
     ):
