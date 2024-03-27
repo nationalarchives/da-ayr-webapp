@@ -13,7 +13,7 @@ def verify_browse_view_header_row(data):
     """
     soup = BeautifulSoup(data, "html.parser")
     table = soup.find("table")
-    headers = table.find_all("th")
+    headers = table.find_all("th", class_="browse__all__desktop__header")
 
     expected_row = (
         [
@@ -24,6 +24,7 @@ def verify_browse_view_header_row(data):
             "Consignments within series",
         ],
     )
+
     assert [
         header.text.replace("\n", " ").strip(" ") for header in headers
     ] == expected_row[0]
@@ -48,6 +49,49 @@ def verify_data_rows(data, expected_rows):
     assert [row_data] == expected_rows[0]
 
 
+def verify_browse_all_data_rows(data, expected_rows):
+    """
+    this function check data rows for data table compared with expected rows
+    :param data: response data
+    :param expected_rows: expected rows to be compared
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    rows = table.find_all("td", class_="browse__table__all_desktop")
+
+    row_data = ""
+    for row_index, row in enumerate(rows):
+        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
+        if row_index < len(rows) - 1:
+            row_data = row_data + ", "
+
+    assert [row_data] == expected_rows[0]
+
+
+def verify_browse_transferring_body_data_rows(data, expected_rows):
+    """
+    this function check data rows for data table compared with expected rows
+    :param data: response data
+    :param expected_rows: expected rows to be compared
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    table = soup.find("table")
+    top_rows = table.find_all("tr", class_="browse__table__desktop")
+
+    row_data = ""
+    for row in top_rows:
+        cells = row.find_all("td")
+        for cell_index, cell in enumerate(cells):
+            row_data += "'" + cell.text.replace("\n", " ").strip(" ") + "'"
+            if cell_index < len(cells) - 1:
+                row_data += ", "
+        row_data += ", "
+
+    row_data = row_data.rstrip(", ")
+
+    assert [row_data] == expected_rows[0]
+
+
 def verify_consignment_data_rows(data, expected_rows):
     """
     This function checks data rows for a data table compared with expected rows
@@ -67,7 +111,6 @@ def verify_consignment_data_rows(data, expected_rows):
                 row_data += ", "
         row_data += ", "
 
-    # Remove the extra comma at the end of row_data
     row_data = row_data.rstrip(", ")
 
     assert [row_data] == expected_rows[0]
@@ -497,7 +540,7 @@ class TestBrowse:
         assert response.status_code == 200
 
         verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_results)
+        verify_browse_all_data_rows(response.data, expected_results)
 
     def test_browse_display_first_page(
         self, client: FlaskClient, app, mock_all_access_user, browse_files
@@ -530,7 +573,7 @@ class TestBrowse:
         ]
 
         verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
+        verify_browse_all_data_rows(response.data, expected_rows)
 
         assert not previous_option
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"
@@ -566,7 +609,7 @@ class TestBrowse:
         ]
 
         verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
+        verify_browse_all_data_rows(response.data, expected_rows)
 
         assert (
             " ".join(page_options[0].text.replace("\n", "").split())
@@ -608,7 +651,7 @@ class TestBrowse:
         ]
 
         verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
+        verify_browse_all_data_rows(response.data, expected_rows)
 
         assert (
             " ".join(previous_option.text.replace("\n", "").split())
@@ -647,7 +690,7 @@ class TestBrowse:
         ]
 
         verify_browse_view_header_row(response.data)
-        verify_data_rows(response.data, expected_rows)
+        verify_browse_all_data_rows(response.data, expected_rows)
 
         assert not previous_option
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"

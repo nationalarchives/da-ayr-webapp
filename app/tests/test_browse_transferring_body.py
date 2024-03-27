@@ -9,7 +9,7 @@ from app.tests.factories import (
     FileFactory,
     SeriesFactory,
 )
-from app.tests.test_browse import verify_data_rows
+from app.tests.test_browse import verify_browse_transferring_body_data_rows
 
 
 def verify_transferring_body_view_header_row(data):
@@ -19,7 +19,9 @@ def verify_transferring_body_view_header_row(data):
     """
     soup = BeautifulSoup(data, "html.parser")
     table = soup.find("table")
-    headers = table.find_all("th")
+    headers = table.find_all(
+        "th", class_="browse__transferring-body__desktop__header"
+    )
 
     expected_row = (
         [
@@ -310,7 +312,9 @@ class TestBrowseTransferringBody:
         assert response.status_code == 200
 
         verify_transferring_body_view_header_row(response.data)
-        verify_data_rows(response.data, expected_results)
+        verify_browse_transferring_body_data_rows(
+            response.data, expected_results
+        )
 
     def test_browse_transferring_body_standard_user_accessing_different_transferring_body(
         self,
