@@ -199,6 +199,33 @@ class TestDateFiltersValidator:
         [
             (
                 {
+                    "date_filter_field": "date_last_modified",
+                    "date_from_day": "",
+                    "date_from_month": "",
+                    "date_from_year": "",
+                    "date_to_day": "",
+                    "date_to_month": "",
+                    "date_to_year": "",
+                },
+                (
+                    {
+                        "date_filter_field": "Please enter value(s) in ‘Date from’ or ‘Date to’ field",
+                    },
+                    None,
+                    None,
+                    {
+                        "from_day": "",
+                        "from_month": "",
+                        "from_year": "",
+                        "to_day": "",
+                        "to_month": "",
+                        "to_year": "",
+                    },
+                    [],
+                ),
+            ),
+            (
+                {
                     "date_filter_field": "",
                     "date_from_day": "01",
                     "date_from_month": "08",

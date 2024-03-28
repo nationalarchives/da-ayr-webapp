@@ -18,18 +18,12 @@ def validate_date_filters(args, browse_consignment=False):
         error_field,
     ) = validate_dates(args)
 
-    date_filter_field = args.get("date_filter_field", "")
-
-    if browse_consignment and date_filter_field not in [
-        "date_last_modified",
-        "opening_date",
-    ]:
-        error_field = []
-        date_validation_errors.clear()
-        date_validation_errors["date_filter_field"] = (
-            "Select either ‘Date of record’ or ‘Record opening date’"
+    if browse_consignment:
+        date_validation_errors = _check_consignment_date_filters(
+            args, date_validation_errors
         )
 
+    if "date_filter_field" in date_validation_errors:
         date_filters = {
             "from_day": from_day,
             "from_month": from_month,
@@ -38,7 +32,7 @@ def validate_date_filters(args, browse_consignment=False):
             "to_month": to_month,
             "to_year": to_year,
         }
-
+        error_field = []
         return (
             date_validation_errors,
             from_date,
@@ -88,6 +82,32 @@ def validate_date_filters(args, browse_consignment=False):
             )
 
     return date_validation_errors, from_date, to_date, date_filters, error_field
+
+
+def _check_consignment_date_filters(args, date_validation_errors):
+    date_filter_field = args.get("date_filter_field", "")
+
+    # create dictionary for date fields only
+    date_fields = {k: v for k, v in args.items() if "date" in k}
+    if "date_filter_field" in date_fields:
+        date_fields.pop("date_filter_field", None)
+
+    if date_filter_field not in [
+        "date_last_modified",
+        "opening_date",
+    ]:
+        if len([k for k, v in date_fields.items() if len(v) > 0]):
+            date_validation_errors.clear()
+            date_validation_errors["date_filter_field"] = (
+                "Select either ‘Date of record’ or ‘Record opening date’"
+            )
+    else:
+        if not len([k for k, v in date_fields.items() if len(v) > 0]):
+            date_validation_errors.clear()
+            date_validation_errors["date_filter_field"] = (
+                "Please enter value(s) in ‘Date from’ or ‘Date to’ field"
+            )
+    return date_validation_errors
 
 
 def _format_date_elements(day, month, year):
