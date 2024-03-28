@@ -235,6 +235,52 @@ class TestBrowseConsignment:
         verify_header_row(header_rows)
         assert rows == expected_rows
 
+    def test_browse_consignment_date_validation_with_record_status_selection_change(
+        self, standard_user_page: Page
+    ):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+        standard_user_page.get_by_text("Open only").click()
+        standard_user_page.get_by_role(
+            "button", name="Apply", exact=True
+        ).click()
+
+        assert not standard_user_page.get_by_text(
+            "Select either ‘Date of record’ or ‘Record opening date’"
+        ).is_visible()
+        assert not standard_user_page.get_by_text(
+            "Please enter value(s) in ‘Date from’ or ‘Date to’ field"
+        ).is_visible()
+
+    def test_browse_consignment_date_validation_with_empty_date_fields_and_date_filter_selected(
+        self, standard_user_page: Page
+    ):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+        standard_user_page.locator("label").filter(
+            has_text="Date of record"
+        ).click()
+        standard_user_page.get_by_role(
+            "button", name="Apply", exact=True
+        ).click()
+
+        assert standard_user_page.get_by_text(
+            "Please enter value(s) in ‘Date from’ or ‘Date to’ field"
+        ).is_visible()
+
+    def test_browse_consignment_date_validation_with_date_fields_and_no_date_filter_selected(
+        self, standard_user_page: Page
+    ):
+        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
+        standard_user_page.locator("#date_from_day").fill("01")
+        standard_user_page.locator("#date_from_month").fill("01")
+        standard_user_page.locator("#date_from_year").fill("2019")
+        standard_user_page.get_by_role(
+            "button", name="Apply", exact=True
+        ).click()
+
+        assert standard_user_page.get_by_text(
+            "Select either ‘Date of record’ or ‘Record opening date’"
+        ).is_visible()
+
     def test_browse_consignment_date_filter_validation_date_from(
         self, standard_user_page: Page
     ):

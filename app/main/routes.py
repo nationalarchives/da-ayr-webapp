@@ -375,14 +375,13 @@ def browse_consignment(_id: uuid.UUID):
     date_error_fields = []
 
     if len(request.args) > 0:
-        if len([k for k, v in request.args.items() if "date" in k]):
-            (
-                date_validation_errors,
-                from_date,
-                to_date,
-                date_filters,
-                date_error_fields,
-            ) = validate_date_filters(request.args, browse_consignment=True)
+        (
+            date_validation_errors,
+            from_date,
+            to_date,
+            date_filters,
+            date_error_fields,
+        ) = validate_date_filters(request.args, browse_consignment=True)
 
     filters = build_browse_consignment_filters(request.args, from_date, to_date)
     sorting_orders = build_sorting_orders(request.args)

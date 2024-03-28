@@ -7,6 +7,27 @@ def validate_date_filters(args, browse_consignment=False):
     from_date = to_date = None
     date_filters = {}
 
+    if browse_consignment:
+        date_validation_errors = _check_consignment_date_filters(args)
+
+        if "date_filter_field" in date_validation_errors:
+            date_filters = {
+                "from_day": args.get("date_from_day"),
+                "from_month": args.get("date_from_month"),
+                "from_year": args.get("date_from_year"),
+                "to_day": args.get("date_to_day"),
+                "to_month": args.get("date_to_month"),
+                "to_year": args.get("date_to_year"),
+            }
+            return (
+                date_validation_errors,
+                from_date,
+                to_date,
+                date_filters,
+                [],
+            )
+
+    # date validation
     (
         from_day,
         from_month,
@@ -17,35 +38,6 @@ def validate_date_filters(args, browse_consignment=False):
         date_validation_errors,
         error_field,
     ) = validate_dates(args)
-
-    date_filter_field = args.get("date_filter_field", "")
-
-    if browse_consignment and date_filter_field not in [
-        "date_last_modified",
-        "opening_date",
-    ]:
-        error_field = []
-        date_validation_errors.clear()
-        date_validation_errors["date_filter_field"] = (
-            "Select either ‘Date of record’ or ‘Record opening date’"
-        )
-
-        date_filters = {
-            "from_day": from_day,
-            "from_month": from_month,
-            "from_year": from_year,
-            "to_day": to_day,
-            "to_month": to_month,
-            "to_year": to_year,
-        }
-
-        return (
-            date_validation_errors,
-            from_date,
-            to_date,
-            date_filters,
-            error_field,
-        )
 
     if not (
         date_validation_errors["date_from"] or date_validation_errors["date_to"]
@@ -88,6 +80,30 @@ def validate_date_filters(args, browse_consignment=False):
             )
 
     return date_validation_errors, from_date, to_date, date_filters, error_field
+
+
+def _check_consignment_date_filters(args):
+    date_validation_errors = {}
+    date_filter_field = args.get("date_filter_field", "")
+
+    date_fields = {k: v for k, v in args.items() if "date" in k and v}
+    if "date_filter_field" in date_fields:
+        date_fields.pop("date_filter_field", None)
+
+    if date_filter_field not in [
+        "date_last_modified",
+        "opening_date",
+    ]:
+        if date_fields:
+            date_validation_errors["date_filter_field"] = (
+                "Select either ‘Date of record’ or ‘Record opening date’"
+            )
+    else:
+        if not date_fields:
+            date_validation_errors["date_filter_field"] = (
+                "Please enter value(s) in ‘Date from’ or ‘Date to’ field"
+            )
+    return date_validation_errors
 
 
 def _format_date_elements(day, month, year):
