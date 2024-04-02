@@ -5,11 +5,19 @@ from playwright.sync_api import Page
 @pytest.mark.parametrize(
     "url,screenshot_file,viewport",
     [
-        ("/how-to-use-this-service", "how_to_use_this_service.png", {"width": 1280, "height": 4000}),
+        (
+            "/how-to-use-this-service",
+            "how_to_use_this_service.png",
+            {"width": 1280, "height": 4000},
+        ),
         ("/terms-of-use", "terms_of_use.png", {"width": 1280, "height": 4000}),
         ("/privacy", "privacy.png", {"width": 1280, "height": 4000}),
         ("/cookies", "cookies.png", {"width": 1280, "height": 4000}),
-        ("/accessibility", "accessibility.png", {"width": 1280, "height": 4000}),
+        (
+            "/accessibility",
+            "accessibility.png",
+            {"width": 1280, "height": 4000},
+        ),
         ("/signed-out", "signed_out.png", {"width": 1280, "height": 4000}),
         ("/", "start.png", {"width": 1280, "height": 4000}),
         ("/browse", "browse.png", {"width": 1280, "height": 4000}),
@@ -28,13 +36,21 @@ from playwright.sync_api import Page
             "browse_consignment.png",
             {"width": 1280, "height": 4000},
         ),
-        ("/search_results_summary?query=a", "search_results_summary.png", {"width": 1280, "height": 4000}),
+        (
+            "/search_results_summary?query=a",
+            "search_results_summary.png",
+            {"width": 1280, "height": 4000},
+        ),
         (
             "/search/transferring_body/8ccc8cd1-c0ee-431d-afad-70cf404ba337?query=a&sort=series-asc&search_filter=test",
             "search_transferring_body.png",
             {"width": 1280, "height": 4000},
         ),
-        ("/record/41f94132-dbdf-43e4-a327-cc5bae432f98", "record.png", {"width": 1280, "height": 4000}),
+        (
+            "/record/41f94132-dbdf-43e4-a327-cc5bae432f98",
+            "record.png",
+            {"width": 1280, "height": 4000},
+        ),
     ],
 )
 def test_css_no_visual_regression(
@@ -54,14 +70,27 @@ def test_css_no_visual_regression(
     screenshot = aau_user_page.screenshot(full_page=True)
     assert_snapshot(screenshot, name=screenshot_file)
 
+
 @pytest.mark.parametrize(
     "url,screenshot_file,viewport",
     [
-        ("/how-to-use-this-service", "how_to_use_this_service_mobile.png", {"width": 390, "height": 664}),
-        ("/terms-of-use", "terms_of_use_mobile.png", {"width": 390, "height": 664}),
+        (
+            "/how-to-use-this-service",
+            "how_to_use_this_service_mobile.png",
+            {"width": 390, "height": 664},
+        ),
+        (
+            "/terms-of-use",
+            "terms_of_use_mobile.png",
+            {"width": 390, "height": 664},
+        ),
         ("/privacy", "privacy_mobile.png", {"width": 390, "height": 664}),
         ("/cookies", "cookies_mobile.png", {"width": 390, "height": 664}),
-        ("/accessibility", "accessibility_mobile.png", {"width": 390, "height": 664}),
+        (
+            "/accessibility",
+            "accessibility_mobile.png",
+            {"width": 390, "height": 664},
+        ),
         ("/signed-out", "signed_out_mobile.png", {"width": 390, "height": 664}),
         ("/", "start_mobile.png", {"width": 390, "height": 664}),
         ("/browse", "browse_mobile.png", {"width": 390, "height": 664}),
@@ -80,13 +109,21 @@ def test_css_no_visual_regression(
             "browse_consignment_mobile.png",
             {"width": 390, "height": 664},
         ),
-        ("/search_results_summary?query=a", "search_results_summary_mobile.png", {"width": 390, "height": 664}),
+        (
+            "/search_results_summary?query=a",
+            "search_results_summary_mobile.png",
+            {"width": 390, "height": 664},
+        ),
         (
             "/search/transferring_body/8ccc8cd1-c0ee-431d-afad-70cf404ba337?query=a&sort=series-asc&search_filter=test",
             "search_transferring_body_mobile.png",
             {"width": 390, "height": 664},
         ),
-        ("/record/41f94132-dbdf-43e4-a327-cc5bae432f98", "record_mobile.png", {"width": 390, "height": 664}),
+        (
+            "/record/41f94132-dbdf-43e4-a327-cc5bae432f98",
+            "record_mobile.png",
+            {"width": 390, "height": 664},
+        ),
     ],
 )
 def test_css_no_visual_regression_mobile(
