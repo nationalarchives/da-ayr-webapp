@@ -162,6 +162,10 @@ Properties configurable at runtime:
 - `SECRET_KEY`: Secret key used for Flask session and security.
 - `DEFAULT_PAGE_SIZE`: set value for no. of records to show on browse/search view.
 - `DEFAULT_DATE_FORMAT`: set value to show date in specific format cross the application. i.e. "DD/MM/YYYY"
+- `RECORD_BUCKET_NAME`: name of s3 bucket that holds all of the record objects themselves
+- `FLASKS3_ACTIVE`: whether to fetch static assets from s3/Cloudfront rather than the usual `url_for`.
+- `FLASKS3_CDN_DOMAIN`: CDN domain to fetch assets from if `FLASKS3_ACTIVE` is set to `True`
+- `FLASKS3_BUCKET_NAME`: S3 bucket assets are uploaded to and served to Cloudfront from.
 
 Calculated values:
 

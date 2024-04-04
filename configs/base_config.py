@@ -82,5 +82,17 @@ class BaseConfig(object):
     def RECORD_BUCKET_NAME(self):
         return self._get_config_value("RECORD_BUCKET_NAME")
 
+    @property
+    def FLASKS3_ACTIVE(self):
+        return self._get_config_value("FLASKS3_ACTIVE") == "True"
+
+    @property
+    def FLASKS3_CDN_DOMAIN(self):
+        return self._get_config_value("FLASKS3_CDN_DOMAIN")
+
+    @property
+    def FLASKS3_BUCKET_NAME(self):
+        return self._get_config_value("FLASKS3_BUCKET_NAME")
+
     def _get_config_value(self, variable_name):
         pass
