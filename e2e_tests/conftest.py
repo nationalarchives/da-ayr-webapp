@@ -99,10 +99,3 @@ def page(request, page) -> Page:
 
         page.route("**/*", route_intercept)
     return page
-
-
-# @pytest.mark.parametrize("browser_name", ["chromium", "firefox", "webkit"])
-# def test_example(aau_user_page, browser_name):
-#     # Use aau_user_page fixture to login
-#     # Use browser_name parameter to select the browser
-#     assert aau_user_page.title() == "Expected Title"
