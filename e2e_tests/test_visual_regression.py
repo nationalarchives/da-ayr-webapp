@@ -64,11 +64,19 @@ def test_css_no_visual_regression(
     If any of these tests break due to intended changes to the design of the page,
     run pytest with `--update-snapshots --headed` flags to update the stored screenshot
     """
+    browser_context_str = str(aau_user_page.context)
+
+    start_index = browser_context_str.find("name=") + len("name=")
+    end_index = browser_context_str.find(" ", start_index)
+    current_browser = browser_context_str[start_index:end_index]
+
     aau_user_page.set_viewport_size(viewport)
     aau_user_page.goto(url)
     aau_user_page.wait_for_load_state("domcontentloaded")
     screenshot = aau_user_page.screenshot(full_page=True)
-    assert_snapshot(screenshot, name=screenshot_file)
+    assert_snapshot(
+        screenshot, name=f"{current_browser}-{screenshot_file}", threshold=0.1
+    )
 
 
 @pytest.mark.parametrize(
@@ -141,8 +149,16 @@ def test_css_no_visual_regression_mobile(
     If any of these tests break due to intended changes to the design of the page,
     run pytest with `--update-snapshots --headed` flags to update the stored screenshot
     """
+    browser_context_str = str(aau_user_page.context)
+
+    start_index = browser_context_str.find("name=") + len("name=")
+    end_index = browser_context_str.find(" ", start_index)
+    current_browser = browser_context_str[start_index:end_index]
+
     aau_user_page.set_viewport_size(viewport)
     aau_user_page.goto(url)
     aau_user_page.wait_for_load_state("domcontentloaded")
     screenshot = aau_user_page.screenshot(full_page=True)
-    assert_snapshot(screenshot, name=screenshot_file)
+    assert_snapshot(
+        screenshot, name=f"{current_browser}-{screenshot_file}", threshold=0.1
+    )

@@ -103,6 +103,8 @@ class TestBrowseSeries:
             "button", name="Apply", exact=True
         ).click()
 
+        standard_user_page.wait_for_selector("#tbl_result")
+
         header_rows = standard_user_page.locator(
             "#tbl_result tr:visible"
         ).evaluate_all(
@@ -138,6 +140,8 @@ class TestBrowseSeries:
         standard_user_page.locator("#date_from_year").fill("2024")
         standard_user_page.get_by_role("button", name="Apply filters").click()
 
+        standard_user_page.wait_for_selector("#tbl_result")
+
         header_rows = standard_user_page.locator(
             "#tbl_result tr:visible"
         ).evaluate_all(
@@ -169,6 +173,8 @@ class TestBrowseSeries:
         standard_user_page.locator("#date_from_year").fill("2024")
         standard_user_page.get_by_role("button", name="Apply filters").click()
 
+        standard_user_page.wait_for_selector(".govuk-error-message")
+
         assert standard_user_page.get_by_text(
             "‘Date from’ must be in the past"
         ).is_visible()
@@ -181,6 +187,8 @@ class TestBrowseSeries:
         standard_user_page.locator("#date_to_month").fill("12")
         standard_user_page.locator("#date_to_year").fill("2024")
         standard_user_page.get_by_role("button", name="Apply filters").click()
+
+        standard_user_page.wait_for_selector(".govuk-error-message")
 
         assert standard_user_page.get_by_text(
             "‘Date to’ must be in the past"
@@ -197,6 +205,8 @@ class TestBrowseSeries:
         standard_user_page.locator("#date_to_month").fill("12")
         standard_user_page.locator("#date_to_year").fill("2022")
         standard_user_page.get_by_role("button", name="Apply filters").click()
+
+        standard_user_page.wait_for_selector(".govuk-error-message")
 
         assert standard_user_page.get_by_text(
             "‘Date from’ must be the same as or before ‘31/12/2022’"
