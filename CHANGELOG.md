@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 It is part of the [TRE template repository](https://github.com/nationalarchives/da-tre-template)
 
+## [1.1.0] - 2023-04-08
+
+### Added
+
+- Add ability to serve static assets from cloudfront with flask-s3
+
+### Changed
+
+- Bump moto from 5.0.3 to 5.0.4
+- Bump pillow from 10.2.0 to 10.3.0
+- configure playwright e2e tests to run on multiple browsers
+
+### Fixed
+
+- browse consignment date validation issues fixed
+- visual regression tests viewports fixed
+
 ## [1.0.1] - 2023-03-28
 
 ### Fixed
