@@ -319,6 +319,7 @@ class TestSearchTransferringBody:
         aau_user_page.locator("#search-input").fill("a")
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
+        aau_user_page.wait_for_selector(".govuk-pagination")
 
         assert (
             aau_user_page.locator(".govuk-pagination").first.get_attribute(
@@ -341,6 +342,7 @@ class TestSearchTransferringBody:
         aau_user_page.locator("#search-input").fill("a")
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
+        aau_user_page.wait_for_selector(".govuk-pagination")
 
         assert (
             aau_user_page.locator(".govuk-pagination").first.get_attribute(
@@ -375,6 +377,7 @@ class TestSearchTransferringBody:
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
         aau_user_page.get_by_label("Page 2").click()
+        aau_user_page.wait_for_selector(".govuk-pagination")
 
         assert (
             aau_user_page.locator(".govuk-pagination").first.get_attribute(
@@ -384,7 +387,6 @@ class TestSearchTransferringBody:
         )
         links = aau_user_page.locator(".govuk-pagination__link-title").all()
 
-        aau_user_page.wait_for_selector(".govuk-pagination")
         assert links[0].text_content() == "Previouspage"
 
     def test_search_transferring_body_pagination_get_next_page(
@@ -402,6 +404,7 @@ class TestSearchTransferringBody:
         aau_user_page.locator("#search-input").fill("a")
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
+        aau_user_page.wait_for_selector(".govuk-pagination")
 
         assert (
             aau_user_page.locator(".govuk-pagination").first.get_attribute(
@@ -436,6 +439,7 @@ class TestSearchTransferringBody:
         aau_user_page.locator("#search-input").fill("a")
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
+        aau_user_page.wait_for_selector(".govuk-pagination")
 
         assert (
             aau_user_page.locator(".govuk-pagination").first.get_attribute(
@@ -471,6 +475,7 @@ class TestSearchTransferringBody:
         aau_user_page.locator("#search-input").fill("a")
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
+        aau_user_page.wait_for_selector(".govuk-pagination")
 
         assert (
             aau_user_page.locator(".govuk-pagination").first.get_attribute(
@@ -505,6 +510,7 @@ class TestSearchTransferringBody:
         aau_user_page.locator("#search-input").fill("a")
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
+        aau_user_page.wait_for_selector(".govuk-pagination")
 
         assert (
             aau_user_page.locator(".govuk-pagination").first.get_attribute(
@@ -515,11 +521,15 @@ class TestSearchTransferringBody:
 
         aau_user_page.get_by_label("Page 2", exact=True).click()
 
+        aau_user_page.wait_for_selector(".govuk-pagination")
+
         links = aau_user_page.locator(".govuk-pagination__link-title").all()
 
         assert links[1].text_content() == "Nextpage"
 
         aau_user_page.get_by_label("Page 3", exact=True).click()
+
+        aau_user_page.wait_for_selector(".govuk-pagination")
 
         url = f"{self.route_url}/{self.transferring_body_id}?page=3&query=a"
         expect(aau_user_page).to_have_url(url)
@@ -540,6 +550,7 @@ class TestSearchTransferringBody:
         aau_user_page.locator("#search-input").fill("a")
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
+        aau_user_page.wait_for_selector(".govuk-pagination")
 
         assert (
             aau_user_page.locator(".govuk-pagination").first.get_attribute(

@@ -18,7 +18,7 @@ def aau_user_page(
     else:
         raise ValueError(f"Unsupported browser type: {browser_type}")
 
-    browser_instance = browser.launch()
+    browser_instance = browser.launch(headless=True)
 
     context = browser_instance.new_context(**browser_context_args)
     page = context.new_page()
@@ -49,7 +49,7 @@ def standard_user_page(
     else:
         raise ValueError(f"Unsupported browser type: {browser_type}")
 
-    browser_instance = browser.launch()
+    browser_instance = browser.launch(headless=True)
 
     context = browser_instance.new_context(**browser_context_args)
     page = context.new_page()
