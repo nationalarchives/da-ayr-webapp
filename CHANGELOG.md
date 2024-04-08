@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 It is part of the [TRE template repository](https://github.com/nationalarchives/da-tre-template)
 
+## [1.0.1] - 2023-03-28
+
+### Fixed
+
+- removing all search terms in search results route now returns you to the top level browse route as expected
+- removed extra padding on search results summary and no results found pages
+
 ## [1.0.0] - 2023-03-27
 
 ### Added
