@@ -2,11 +2,12 @@ import io
 import uuid
 
 import boto3
-import botocore
+import botocore.exceptions
 from flask import (
     Response,
     abort,
     current_app,
+    flash,
     redirect,
     render_template,
     request,
@@ -629,7 +630,7 @@ def record(record_id: uuid.UUID):
         )
         # with open(download_file_name, 'w') as f:
         #     f.write(str(file_data))
-        # flash("Download Successfully ", "success")
+        flash("Download Successfully ", download_status)
         return response
     else:
         file_data = None
@@ -662,7 +663,7 @@ def check_file_exists_in_s3_bucket(key):
         if s3_file_object:
             return True
     except Exception as e:
-        print(e.message)
+        print(str(e))
         file_exist = False
     return file_exist
 
@@ -678,7 +679,7 @@ def download_file_from_s3_bucket(key):
         data.seek(0)
         return data.read()
     except botocore.exceptions.ClientError as e:
-        print(e.message)
+        print(str(e))
         return None
 
 
