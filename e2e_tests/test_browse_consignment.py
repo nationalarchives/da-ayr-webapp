@@ -73,11 +73,11 @@ class TestBrowseConsignment:
 
         standard_user_page.get_by_role("button", name="Apply filters").click()
 
+        next_button = standard_user_page.locator(".govuk-pagination__next a")
+
         assert not standard_user_page.get_by_label("Page 1").is_visible()
         assert not standard_user_page.get_by_label("Page 2").is_visible()
-        assert not standard_user_page.get_by_role(
-            "link", name="Nextpage"
-        ).is_visible()
+        assert not next_button.is_visible()
 
     def test_browse_consignment_has_pagination_with_next_page(
         self, standard_user_page: Page
@@ -86,28 +86,32 @@ class TestBrowseConsignment:
 
         standard_user_page.get_by_role("button", name="Apply filters").click()
 
+        standard_user_page.wait_for_selector(".govuk-pagination")
+        next_button = standard_user_page.locator(".govuk-pagination__next a")
+        assert next_button.is_visible()
         assert standard_user_page.get_by_label("Page 1").is_visible()
         assert standard_user_page.get_by_label("Page 2").is_visible()
-        assert standard_user_page.get_by_role(
-            "link", name="Nextpage"
-        ).is_visible()
 
     def test_browse_consignment_has_pagination_with_previous_and_next_page(
         self, standard_user_page: Page
     ):
         standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
 
-        standard_user_page.get_by_role("link", name="Nextpage").click()
+        standard_user_page.wait_for_selector(".govuk-pagination")
 
-        assert standard_user_page.get_by_role(
-            "link", name="Previouspage"
-        ).is_visible()
+        previous_button = standard_user_page.locator(
+            ".govuk-pagination__prev a"
+        )
+        next_button = standard_user_page.locator(".govuk-pagination__next a")
+        next_button.click()
+
+        standard_user_page.wait_for_selector(".govuk-pagination")
+
+        assert previous_button.is_visible()
+        assert next_button.is_visible()
         assert standard_user_page.get_by_label("Page 1").is_visible()
         assert standard_user_page.get_by_label("Page 2").is_visible()
         assert standard_user_page.get_by_label("Page 3").is_visible()
-        assert standard_user_page.get_by_role(
-            "link", name="Nextpage"
-        ).is_visible()
 
     def test_browse_consignment_filter_functionality_with_query_string_parameters(
         self, standard_user_page: Page
@@ -262,6 +266,8 @@ class TestBrowseConsignment:
             "button", name="Apply", exact=True
         ).click()
 
+        standard_user_page.wait_for_selector(".govuk-error-message")
+
         assert standard_user_page.get_by_text(
             "Please enter value(s) in ‘Date from’ or ‘Date to’ field"
         ).is_visible()
@@ -276,6 +282,8 @@ class TestBrowseConsignment:
         standard_user_page.get_by_role(
             "button", name="Apply", exact=True
         ).click()
+
+        standard_user_page.wait_for_selector(".govuk-error-message")
 
         assert standard_user_page.get_by_text(
             "Select either ‘Date of record’ or ‘Record opening date’"
@@ -293,6 +301,8 @@ class TestBrowseConsignment:
         standard_user_page.locator("#date_from_year").fill("2024")
         standard_user_page.get_by_role("button", name="Apply filters").click()
 
+        standard_user_page.wait_for_selector(".govuk-error-message")
+
         assert standard_user_page.get_by_text(
             "‘Date from’ must be in the past"
         ).is_visible()
@@ -308,6 +318,8 @@ class TestBrowseConsignment:
         standard_user_page.locator("#date_to_month").fill("12")
         standard_user_page.locator("#date_to_year").fill("2024")
         standard_user_page.get_by_role("button", name="Apply filters").click()
+
+        standard_user_page.wait_for_selector(".govuk-error-message")
 
         assert standard_user_page.get_by_text(
             "‘Date to’ must be in the past"
@@ -327,6 +339,8 @@ class TestBrowseConsignment:
         standard_user_page.locator("#date_to_month").fill("12")
         standard_user_page.locator("#date_to_year").fill("2022")
         standard_user_page.get_by_role("button", name="Apply filters").click()
+
+        standard_user_page.wait_for_selector(".govuk-error-message")
 
         assert standard_user_page.get_by_text(
             "‘Date from’ must be the same as or before ‘31/12/2022’"

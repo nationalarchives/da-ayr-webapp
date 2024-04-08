@@ -193,6 +193,8 @@ class TestBrowse:
         aau_user_page.locator("#date_from_year").fill("2024")
         aau_user_page.get_by_role("button", name="Apply filters").click()
 
+        aau_user_page.wait_for_selector(".govuk-error-message")
+
         assert aau_user_page.get_by_text(
             "‘Date from’ must be in the past"
         ).is_visible()
@@ -203,6 +205,8 @@ class TestBrowse:
         aau_user_page.locator("#date_to_month").fill("12")
         aau_user_page.locator("#date_to_year").fill("2024")
         aau_user_page.get_by_role("button", name="Apply filters").click()
+
+        aau_user_page.wait_for_selector(".govuk-error-message")
 
         assert aau_user_page.get_by_text(
             "‘Date to’ must be in the past"
@@ -219,6 +223,8 @@ class TestBrowse:
         aau_user_page.locator("#date_to_month").fill("12")
         aau_user_page.locator("#date_to_year").fill("2022")
         aau_user_page.get_by_role("button", name="Apply filters").click()
+
+        aau_user_page.wait_for_selector(".govuk-error-message")
 
         assert aau_user_page.get_by_text(
             "‘Date from’ must be the same as or before ‘31/12/2022’"
