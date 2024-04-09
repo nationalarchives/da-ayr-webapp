@@ -25,6 +25,7 @@
     white-space: nowrap;
     font-size: 1.3rem;
     margin-bottom: 0.5rem;
+    font-weight: 700;
   }
 }
 
@@ -49,6 +50,10 @@
     margin-top: 1rem;
     padding-top: 0;
     font-size: 1rem;
+  }
+
+  &--series {
+    font-weight: 700;
   }
 }
 

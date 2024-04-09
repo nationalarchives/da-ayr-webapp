@@ -46,10 +46,9 @@ class TestRecord:
 
         search_html = """<div class="search__container govuk-grid-column-full">
         <div class="search__container__content">
-            <p class="govuk-body search__heading">Search for digital records</p>
+            <label class="govuk-label search__heading" for="search-input">Search for digital records</label>
             <form method="get" action="/search">
                 <div class="govuk-form-group govuk-form-group__search-form">
-                <label class="govuk-label" for="search-input"></label>
                     <input class="govuk-input govuk-!-width-three-quarters"
                            id="search-input"
                            name="query"

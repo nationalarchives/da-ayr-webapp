@@ -188,10 +188,9 @@ class TesthSearchResultsSummary:
         html = response.data.decode()
         search_html = """<div class="search__container govuk-grid-column-full">
     <div class="search__container__content">
-        <p class="govuk-body search__heading">Search for digital records</p>
+        <label class="govuk-label search__heading" for="search-input">Search for digital records</label>
         <form method="get" action="/search">
             <div class="govuk-form-group govuk-form-group__search-form">
-             <label class="govuk-label" for="search-input"></label>
                 <input class="govuk-input govuk-!-width-three-quarters"
                        id="search-input"
                        name="query"
@@ -435,10 +434,9 @@ class TestSearchTransferringBody:
 
         search_html = """<div class="search__container govuk-grid-column-full">
     <div class="search__container__content">
-        <p class="govuk-body search__heading">Search for digital records</p>
+        <label class="govuk-label search__heading" for="search-input">Search for digital records</label>
         <form method="get" action="/search">
             <div class="govuk-form-group govuk-form-group__search-form">
-            <label class="govuk-label" for="search-input"></label>
                 <input class="govuk-input govuk-!-width-three-quarters"
                        id="search-input"
                        name="query"
@@ -1422,10 +1420,12 @@ class TestSearchTransferringBody:
         <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters mobile-filters">
                             <div class="search-all-filter-container">
                                 <div class="browse-filter__header">
-                                    <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
-                                </div>
+                                        <h2 class="govuk-heading-m govuk-heading-m--search">
+                                            <label class="govuk-label govuk-heading-m govuk-heading-m--search"
+                                            for="search_filter">Search within results</label>
+                                        </h2>
+                                    </div>
                                 <div class="govuk-form-group govuk-form-group--search-all-filter">
-                                    <label class="govuk-label" for="search_filter"></label>
                                     <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
                                     id="search_filter"
                                     name="search_filter"
@@ -1515,10 +1515,12 @@ class TestSearchTransferringBody:
         <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters mobile-filters">
                             <div class="search-all-filter-container">
                                 <div class="browse-filter__header">
-                                    <h2 class="govuk-heading-m govuk-heading-m--search">Search within results</h2>
-                                </div>
+                                        <h2 class="govuk-heading-m govuk-heading-m--search">
+                                            <label class="govuk-label govuk-heading-m govuk-heading-m--search"
+                                            for="search_filter">Search within results</label>
+                                        </h2>
+                                    </div>
                                 <div class="govuk-form-group govuk-form-group--search-all-filter">
-                                    <label class="govuk-label" for="search_filter"></label>
                                     <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
                                     id="search_filter"
                                     name="search_filter"
