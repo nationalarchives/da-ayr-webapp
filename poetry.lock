@@ -2223,13 +2223,13 @@ cli = ["click (>=5.0)"]
 
 [[package]]
 name = "python-keycloak"
-version = "3.9.1"
+version = "3.11.1"
 description = "python-keycloak is a Python package providing access to the Keycloak API."
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = "<4.0,>=3.8"
 files = [
-    {file = "python_keycloak-3.9.1-py3-none-any.whl", hash = "sha256:898d1fc73560171d3870251f981e069f854cc67bc0a51b96703355512d8d3cf3"},
-    {file = "python_keycloak-3.9.1.tar.gz", hash = "sha256:50c8073172ca0630f3569c6b631134216b60f4e347cc5bb669a57e6ffba50f7e"},
+    {file = "python_keycloak-3.11.1-py3-none-any.whl", hash = "sha256:3567a79edb6ad75955737469a756f33392349ad4e910875318c266ea4ef54926"},
+    {file = "python_keycloak-3.11.1.tar.gz", hash = "sha256:3caa2f457837718e015c032d71dd6068f7c99cc9410466228be7aeebc7d514a0"},
 ]
 
 [package.dependencies]
@@ -3037,4 +3037,4 @@ wheel = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "d704a5d512bf57932dc837ec75cd1cfd1b0dd9dc259f6b3fa5521f72c3d90584"
+content-hash = "a5fbfc49805495916da7ee2a1a3d3a6debe3fd4f4697c8efbe199a802a7b3ac2"
