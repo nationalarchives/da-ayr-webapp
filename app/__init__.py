@@ -54,7 +54,7 @@ def create_app(config_class, database_uri=None):
         "default-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']}",
         "script-src": """'self'
  'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='
- 'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='""",
+ 'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='""",  # pragma: allowlist secret
     }
 
     # setup database uri for testing
