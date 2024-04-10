@@ -3,7 +3,8 @@
 .govuk-grid-column-one-third {
   &--ayr-content {
     position: sticky;
-    max-height: 100dvh;
+    max-height: calc(100dvh - 1rem);
+    overflow: auto;
     display: flex;
     flex-direction: column;
     top: 1rem;
