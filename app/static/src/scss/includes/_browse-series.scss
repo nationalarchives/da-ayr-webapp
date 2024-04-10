@@ -1,13 +1,19 @@
-.browse__series__mobile__header {
-  display: none;
+.browse__series {
+  &__mobile__header {
+    display: none;
+  }
+
+  &__desktop__header {
+    display: table-cell;
+
+    &--text-align {
+      text-align: right;
+    }
+  }
 }
 
-.browse__series__desktop__header {
-  display: table-cell;
-
-  &--text-align {
-    text-align: right;
-  }
+.browse__table__series--nowrap {
+  white-space: nowrap;
 }
 
 .govuk-table__cell {
@@ -17,15 +23,21 @@
 }
 
 @media screen and (width <=810px) {
-  .browse__series__desktop__header {
-    display: none;
+  .browse__series {
+    &__desktop__header {
+      display: none;
+    }
+
+    &__mobile__header {
+      display: table-cell;
+
+      &--text-align {
+        text-align: left;
+      }
+    }
   }
 
-  .browse__series__mobile__header {
-    display: table-cell;
-
-    &--text-align {
-      text-align: left;
-    }
+  .browse__table__series--nowrap {
+    white-space: wrap;
   }
 }
