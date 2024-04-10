@@ -1,9 +1,16 @@
-/* SCSS for Privacy page */
+/* SCSS for static content template */
 
 .govuk-grid-column-one-third {
   &--ayr-content {
     position: sticky;
+    max-height: calc(100dvh - 1rem);
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
     top: 1rem;
+    @media screen and (width <=810px) {
+      position: static;
+    }
   }
 }
 
