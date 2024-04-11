@@ -3,10 +3,6 @@
 .govuk-grid-column-one-third {
   &--ayr-content {
     position: sticky;
-    max-height: calc(100dvh - 1rem);
-    overflow: auto;
-    display: flex;
-    flex-direction: column;
     top: 1rem;
     @media screen and (width <=810px) {
       position: static;
@@ -22,14 +18,15 @@
 
 .anchor-link-list-ayr {
   margin: 0 0 3rem;
-  padding: 1.5rem;
+  padding: 1rem;
+  padding-bottom: 0.5rem;
   overflow: auto;
   background-color: #f2f2f2;
 }
 
 .govuk-heading-s {
   &--ayr-content {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
   }
 }
 
