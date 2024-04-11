@@ -3006,13 +3006,13 @@ files = [
 
 [[package]]
 name = "zappa"
-version = "0.58.0"
+version = "0.59.0"
 description = "Server-less Python Web Services for AWS Lambda and API Gateway"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "zappa-0.58.0-py3-none-any.whl", hash = "sha256:67781f1f92518944e8d6b7622414a34e85bc0cbb37bcd36047aa17276bca459f"},
-    {file = "zappa-0.58.0.tar.gz", hash = "sha256:33738da7a73098e4328685d5c32c13b85769bc1fc67795105249ac6259348a03"},
+    {file = "zappa-0.59.0-py3-none-any.whl", hash = "sha256:4f5f2459ce0acb72a9aa2241ce0aa48661d651196055738769017eaad8422017"},
+    {file = "zappa-0.59.0.tar.gz", hash = "sha256:239c25eb949cadafc6dc2efe94230191d3e99c1bf437529d99bb933ff409d55e"},
 ]
 
 [package.dependencies]
@@ -3037,4 +3037,4 @@ wheel = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "ba04d252db9ddff72ab33d97a33743d02282cd959863f5bd7ea9667adeddd944"
+content-hash = "5da1875fcbf9092a1a1c2bbd6302ad7b2f66e2b7881f713c0edb2ec8e3c1595a"
