@@ -368,5 +368,5 @@ class TestBrowseConsignment:
             standard_user_page.get_by_label("Sort by", exact=True).evaluate(
                 "el => el.options[el.selectedIndex].text"
             )
-            == "Filename (A to Z)"
+            == "File name (A to Z)"
         )
