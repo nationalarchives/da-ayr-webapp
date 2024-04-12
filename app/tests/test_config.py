@@ -32,7 +32,6 @@ def test_local_env_vars_config_initialized(monkeypatch):
     )
     monkeypatch.setenv("DEFAULT_PAGE_SIZE", "test_default_page_size")
     monkeypatch.setenv("DEFAULT_DATE_FORMAT", "test_default_date_format")
-    monkeypatch.setenv("RATELIMIT_STORAGE_URI", "test_ratelimit_storage_uri")
     monkeypatch.setenv("RECORD_BUCKET_NAME", "test_record_bucket_name")
     monkeypatch.setenv("FLASKS3_ACTIVE", "False")
     monkeypatch.setenv("FLASKS3_CDN_DOMAIN", "test_flasks3_cdn_domain")
@@ -54,7 +53,6 @@ def test_local_env_vars_config_initialized(monkeypatch):
     assert config.SECRET_KEY == "test_secret_key"  # pragma: allowlist secret
     assert config.DEFAULT_PAGE_SIZE == "test_default_page_size"
     assert config.DEFAULT_DATE_FORMAT == "test_default_date_format"
-    assert config.RATELIMIT_STORAGE_URI == "test_ratelimit_storage_uri"
     assert config.RECORD_BUCKET_NAME == "test_record_bucket_name"
     assert config.FLASKS3_ACTIVE is False
     assert config.FLASKS3_CDN_DOMAIN == "test_flasks3_cdn_domain"
@@ -79,7 +77,6 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
             "FLASKS3_ACTIVE": "False",
             "FLASKS3_CDN_DOMAIN": "test_flasks3_cdn_domain",
             "FLASKS3_BUCKET_NAME": "test_flasks3_bucket_name",
-            "RATELIMIT_STORAGE_URI": "test_ratelimit_storage_uri",
             "DEFAULT_DATE_FORMAT": "test_default_date_format",
             "SECRET_KEY": "test_secret_key",  # pragma: allowlist secret
             "DB_PORT": "5432",

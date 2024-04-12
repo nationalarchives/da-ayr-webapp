@@ -135,7 +135,6 @@ where `_get_config_value` is treated as an abstract method which is implemented 
 
 Hardcoded values:
 
-- `RATELIMIT_HEADERS_ENABLED`: Rate-limiting headers configuration. Is `True`.
 - `SESSION_COOKIE_HTTPONLY`: Configure session cookies to be HTTP-only. Is `True`.
 - `SESSION_COOKIE_SECURE`: Configure session cookies to be secure. Is `True`.
 - `CONTACT_EMAIL`: Email address for contact information.
@@ -158,7 +157,6 @@ Properties configurable at runtime:
 - `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
 - `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.
 - `KEYCLOAK_CLIENT_SECRET`: The client secret used for Keycloak authentication.
-- `RATELIMIT_STORAGE_URI`: The URI for the Redis storage used for rate limiting.
 - `SECRET_KEY`: Secret key used for Flask session and security.
 - `DEFAULT_PAGE_SIZE`: set value for no. of records to show on browse/search view.
 - `DEFAULT_DATE_FORMAT`: set value to show date in specific format cross the application. i.e. "DD/MM/YYYY"
@@ -468,11 +466,6 @@ In addition, we recommend that any tests that have dependencies on data, do not 
 
 ### Useful playwright pytest run modes
 
-#### slowmo
-
-- Since our webapp has rate limiting, you may need to run playwright with --slowmo flag, e.g.
-`pytest e2e_tests/ --base-url=https://localhost:5000 --slowmo 200`
-
 #### headed
 
 - To view the browser when the tests are running, you can add the `--headed` flag, e.g.
@@ -486,7 +479,7 @@ In addition, we recommend that any tests that have dependencies on data, do not 
 `PWDEBUG=1 poetry run pytest e2e_tests/test_search.py --base-url=https://localhost:5000 --headed`
 
 1. individual tests in file with multiple tests (use -k):
-poetry run pytest e2e_tests/test_record_metadata.py -k test_page_title_and_header --base-url=https://localhost:5000 --headed --slowmo 2000
+poetry run pytest e2e_tests/test_record_metadata.py -k test_page_title_and_header --base-url=https://localhost:5000 --headed
 
 ### Generate playwright tests using GUI
 
@@ -605,12 +598,6 @@ A strict default [Content Security Policy](https://developer.mozilla.org/en-US/d
 ### Response compression
 
 Uses [Flask Compress](https://github.com/colour-science/flask-compress) to compress response data. This inspects the `Accept-Encoding` request header, compresses using either gzip, deflate or brotli algorithms and sets the `Content-Encoding` response header. HTML, CSS, XML, JSON and JavaScript MIME types will all be compressed.
-
-### Rate limiting
-
-Uses [Flask Limiter](https://flask-limiter.readthedocs.io/en/stable/) to set request rate limits on routes. The default rate limit is 2 requests per second _and_ 60 requests per minute (whichever is hit first) based on the client's remote IP address. Every time a request exceeds the rate limit, the view function will not get called and instead a [HTTP 429](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429) status will be returned.
-
-Rate limit storage can be backed by [Redis](https://redis.io/) using the `RATELIMIT_STORAGE_URL` config value in `config.py`, or fall back to in-memory if not present. Rate limit information will also be added to various [response headers](https://flask-limiter.readthedocs.io/en/stable/#rate-limiting-headers).
 
 ## Support
 
