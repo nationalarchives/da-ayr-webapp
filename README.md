@@ -190,109 +190,6 @@ In addition to the `.env` file discussed above, which can be created from templa
 
 Both the `.env` and `.flask_env` are loaded automatically when we run the flask application as outlined in the following section, thanks to the use of `python-dotenv`. More information on Flask environment variable hierarchies can be found [here](https://flask.palletsprojects.com/en/2.3.x/cli/#environment-variables-from-dotenv).
 
-## Deployment
-
-Here we detail a way to run the server-side rendered Flask webapp via a "serverless" AWS Lambda-API Gateway setup.
-
-Specific details on how this architecture works can be found in our service diagram that can be shared upon request to a maintainer of this repo.
-
-To implement this we are currently using [Zappa](https://github.com/zappa/Zappa), as defined in our poetry depedencies. Note this is required to be part of the main dependencies group since it is not just a CLI tool but in fact has it's own code which is run in the Lambda once the application code is packaged and deployed to AWS.
-
-### Zappa Configuration
-
-Zappa is configurable, and can be configured differently for different deployment stages. In particular, each deployment stage's configuration is separated  by the top level environment key in the `zappa_settings.json` file.
-
-In this repo we provide a `zappa_settings.json.template` which provides all the configuration variables except for a few values which we need to set as environment variables first so that we can use them to create our custom config from the template.
-
-This config makes a few assumptions about each AWS account being deployed to:
-
-- The Secrets Manager has been populated with all needed configuration values as detailed in [the flask configuration section above](#flask-app-configuration-details) as key value pairs in a secret with id specified by the environment variable `AWS_SM_CONFIG_SECRET_ID`.
-- An RDS database and proxy exists.
-- A VPC exists which contains a private subnet connected to the internet via a NAT Gateway and a security group exists with outbound rules to the the RDS database proxy.
-- A valid certificate exists in the AWS account for the domain we want to use for the deployment.
-
-You could decide to set up this infrastructure through terraform or cloudformation to make things easier to reproduce.
-
-Set these environment variables:
-
-- `ZAPPA_SANDBOX_DEPLOYMENT_PROFILE_NAME` specifies the profile name we want to use to update the sandbox deployment stage with.
-- `ZAPPA_SANDBOX_LAMBDA_VPC_PRIVATE_SUBNET_ID` specifies the VPC private subnet we want our lambda to use in the sandbox deployment
-- `ZAPPA_SANDBOX_LAMBDA_VPC_SECURITY_GROUP_ID` specifies the VPC security group we want to our lambda to use in the sandbox deployment
-- `ZAPPA_SANDBOX_CERTIFICATE_ARN` specifies the AWS  certificate we want to certify our domain with
-- `ZAPPA_SANDBOX_WEBAPP_DOMAIN` specifies the domain we want to deploy the webapp to
-
-Once all of these environment variables are set, create a `zappa_settings.json` from them by running:
-
-  ```shell
-  envsubst < zappa_settings.json.template > zappa_settings.json
-  ```
-
-Note 1: the name of each deployment stage we want to deploy to is defined as a top-level key in the `zappa_settings.json` e.g. `sandbox`.
-
-Note 2: As part of our template, we refer to `lambda_policy.json` which defines the IAM Policy for the Lambda execution role so that it can access certain AWS resources such as Secrets Manager.
-
-Note 3: As part of our template, we refer to `apigateway_policy.json` which defines the IAM Policy for the APIGateway resource created, but we only define a template file, `apigateway_policy.json.template`, so that we do not commit any IPs to source control. Details on filling out the whitelist from an environment variable is detailed below.
-
-### Zappa deployments
-
-Zappa packages the active virtual environment, in our case our poetry environment, into a zipfile package which will be pushed to run on AWS Lambda.
-AWS Lambda has a size limit of 250MB for the unzipped code so we want to make sure we make the package as lean as possible.
-
-Before running a zappa deployment, make sure you clean out the environment so that it is as lean as possible:
-
-- remove all files unnecessary for running the application. We recommend stashing any files that aren't committed to the repo.
-- remove all dependencies unneeded for running the application, you can do that with: `poetry install --without dev --sync`
-
-#### Initial Deployments
-
-Fill out the IP Whitelist in the APIGateway Policy from the environment variable `APIGATEWAY_WHITELISTED_IPS` to allow these IP addresses access to the webapp via the APIGateway with:
-
-```shell
-envsubst < apigateway_policy.json.template > apigateway_policy.json
-```
-
-Note: make sure `APIGATEWAY_WHITELISTED_IPS` is exported as an environment variable in your current terminal like: `export APIGATEWAY_WHITELISTED_IPS='["IP_1/32","IP_2/32","IP_3/32"]'`
-
-Once your settings are configured, you can package and deploy your application to a deployment stage with a single command:
-
-```shell
-zappa deploy <DEPLOYMENT_STAGE>
-```
-
-We then need to run
-
-```shell
-zappa certify
-```
-
-to certify the domains used in each deployment utilising the certificate specified in each section.
-
-Note: Once the application has been deployed once to a particular stage, then it can't be deployed again. You will need to run `zappa undeploy <DEPLOYMENT_STAGE` first. However, more often than not, you will only need to update the deployment, as detailed below.
-
-#### Only Update Flask Code
-
-If your application has already been deployed and you only need to upload new Python code, but not touch the underlying routes, you can simply run:
-
-```shell
-zappa update <DEPLOYMENT_STAGE>
-```
-
-This creates a new archive, uploads it to S3 and updates the Lambda function to use the new code, but doesn't touch the API Gateway routes.
-
-#### Debugging a deployment
-
-You can watch the logs of a deployment by calling the tail management command:
-
-```shell
-zappa tail <DEPLOYMENT_STAGE>
-```
-
-This is especially useful if a deployment fails.
-
-### CI/CD
-
-We do not currently update any deployment automatically in our CI/CD pipeline, but we will soon.
-
 ## Metadata Store Postgres Database
 
 The webapp is set up to read data from an externally defined postgres database referred to as the Metadata Store.
@@ -307,7 +204,7 @@ The database is assumed to be a PostgreSQL database.
 
 This could be spun up by PostgreSQL or from Amazon RDS, for example.
 
-When choosing the configuration choice `AWS_SECRETS_MANAGER`, we assume the database is an RDS database with an RDS proxy sitting in front, in the same AWS account as the Secrets Manager and lambda and resides in a VPC which the lambda is in so that the webapp hosted in the lambda can communicate with it securely, as mentioned in the [Zappa configuration section](#zappa-configuration).
+When choosing the configuration choice `AWS_SECRETS_MANAGER`, we assume the database is an RDS database with an RDS proxy sitting in front, in the same AWS account as the Secrets Manager and lambda and resides in a VPC which the lambda is in so that the webapp hosted in the lambda can communicate with it securely.
 
 ### Database Tables, Schema and Data
 
