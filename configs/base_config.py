@@ -2,7 +2,6 @@ from urllib.parse import quote_plus
 
 
 class BaseConfig(object):
-    RATELIMIT_HEADERS_ENABLED = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SECURE = True
     CONTACT_EMAIL = "contact email"
@@ -61,10 +60,6 @@ class BaseConfig(object):
     @property
     def KEYCLOAK_CLIENT_SECRET(self):
         return self._get_config_value("KEYCLOAK_CLIENT_SECRET")
-
-    @property
-    def RATELIMIT_STORAGE_URI(self):
-        return self._get_config_value("RATELIMIT_STORAGE_URI")
 
     @property
     def SECRET_KEY(self):
