@@ -1436,7 +1436,7 @@ class TestSearchTransferringBody:
                                     class="govuk-button govuk-button__search-filters-form-apply-button"
                                     data-module="govuk-button">Apply</button>
                                     <a class="govuk-link govuk-link--transferring-filter"
-                                    href="{self.browse_all_route_url}">Clear all</a>
+                                    href="{self.browse_all_route_url}#browse-records">Clear all</a>
                                 </div>
                                 <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
                                 <div class="ayr-filter-tags">
@@ -1531,8 +1531,8 @@ class TestSearchTransferringBody:
                                     class="govuk-button govuk-button__search-filters-form-apply-button"
                                     data-module="govuk-button">Apply</button>
                                     <a class="govuk-link govuk-link--transferring-filter"
-                                href="{self.browse_transferring_body_route_url}/{transferring_body_id}">Clear all</a>
-                                </div>
+                                href="{self.browse_transferring_body_route_url}/{transferring_body_id}#browse-records">
+                                Clear all</a></div>
                                 <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
                                 <div class="ayr-filter-tags">
                                         <div class="search-term">

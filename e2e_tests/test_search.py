@@ -265,7 +265,9 @@ class TestSearchTransferringBody:
         aau_user_page.get_by_role("link", name="Testing A").click()
         aau_user_page.get_by_role("link", name="Clear all").click()
 
-        expect(aau_user_page).to_have_url(self.browse_route_url)
+        expect(aau_user_page).to_have_url(
+            f"{self.browse_route_url}#browse-records"
+        )
 
     def test_search_transferring_body_standard_user_and_click_on_clear_all(
         self, standard_user_page: Page
@@ -276,7 +278,7 @@ class TestSearchTransferringBody:
         and the click on clear all option
         Then they should be redirected to browse all page.
         """
-        url = f"{self.browse_transferring_body_route_url}/{self.transferring_body_id}"
+        url = f"{self.browse_transferring_body_route_url}/{self.transferring_body_id}#browse-records"
         standard_user_page.goto(url)
         standard_user_page.locator("#search-input").click()
         standard_user_page.locator("#search-input").fill("dtp,tdr-2023-tmt")
