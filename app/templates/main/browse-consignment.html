@@ -18,7 +18,7 @@
 {% with dict = breadcrumbs %}
     {% include "breadcrumb.html" %}
 {% endwith %}
-<form action="{{ url_for('main.browse_consignment', _id=request.view_args['_id']) }}"
+<form action="{{ url_for('main.browse_consignment', _id=request.view_args['_id'], _anchor='browse-records') }}"
       method="get">
     <div class="browse-layout">
         <!-- SORT -->
@@ -47,7 +47,7 @@
                             <tr class="govuk-table__row browse__mobile-table__top-row">
                                 <td class="govuk-table__cell browse__mobile-table__top-row">{{ record["date_last_modified"] }}</td>
                                 <td class="govuk-table__cell govuk-table__cell--ayr browse__table__mobile--hidden">
-                                    <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                    <a href="{{ url_for('main.record', record_id=record['file_id'], _anchor='browse-records') }}">{{ record["file_name"] }}</a>
                                 </td>
                                 <td class="govuk-table__cell browse__mobile-table__top-row">
                                     <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
@@ -64,7 +64,7 @@
                             </tr>
                             <tr class="govuk-table__row govuk-table__row__browse--mobile">
                                 <td class="govuk-table__cell browse__mobile-table__bottom-row">
-                                    <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                    <a href="{{ url_for('main.record', record_id=record['file_id'], _anchor='browse-records') }}">{{ record["file_name"] }}</a>
                                 </td>
                                 <td class="govuk-table__cell govuk-table__cell--ayr browse__table__mobile--hidden"></td>
                                 <td class="govuk-table__cell browse__mobile-table__bottom-row"></td>
@@ -162,7 +162,7 @@
                                                 class="govuk-button govuk-button__browse-all-filters-form-apply-button"
                                                 data-module="govuk-button">Apply filters</button>
                                         <a class="govuk-link govuk-link--consignment-filter"
-                                           href="{{ url_for('main.browse_consignment',_id = request.view_args['_id'], sort=request.args.get('sort')) }}">Clear filters</a>
+                                           href="{{ url_for('main.browse_consignment',_id = request.view_args['_id'], sort=request.args.get('sort'), _anchor='browse-records') }}">Clear filters</a>
                                     </div>
                                 </div>
                             </div>

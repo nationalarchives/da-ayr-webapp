@@ -14,7 +14,7 @@
 {% with dict = breadcrumbs %}
     {% include "breadcrumb.html" %}
 {% endwith %}
-<form action="{{ url_for('main.browse_transferring_body', _id=request.view_args['_id']) }}"
+<form action="{{ url_for('main.browse_transferring_body', _id=request.view_args['_id'], _anchor='browse-records') }}"
       method="get">
     <div class="browse-layout">
         <!-- SORT -->
@@ -62,7 +62,7 @@
                                     {{ record["transferring_body"] }}
                                 </td>
                                 <td class="govuk-table__cell govuk-table__cell--ayr browse__mobile-table__top-row">
-                                    <a href="{{ url_for('main.browse_series', _id=record['series_id']) }}">{{ record["series"] }}</a>
+                                    <a href="{{ url_for('main.browse_series', _id=record['series_id'], _anchor='browse-records') }}">{{ record["series"] }}</a>
                                 </td>
                                 <td class="govuk-table__cell browse__table__right-align browse__mobile-table__top-row"></td>
                                 <td class="govuk-table__cell browse__table__right-align browse__mobile-table__top-row"></td>
@@ -73,7 +73,7 @@
                                     {{ record["transferring_body"] }}
                                 </td>
                                 <td class="govuk-table__cell govuk-table__cell--ayr browse__table__mobile--hidden">
-                                    <a href="{{ url_for('main.browse_series', _id=record['series_id']) }}">{{ record["series"] }}</a>
+                                    <a href="{{ url_for('main.browse_series', _id=record['series_id'], _anchor='browse-records') }}">{{ record["series"] }}</a>
                                 </td>
                                 <td class="govuk-table__cell browse__table__right-align browse__table__mobile-left-align">
                                     {{ record["last_record_transferred"] }}
@@ -121,7 +121,7 @@
                             class="govuk-button govuk-button__browse-all-filters-form-apply-button"
                             data-module="govuk-button">Apply filters</button>
                     <a class="govuk-link govuk-link--browse-all-filter"
-                       href="{{ url_for('main.browse_transferring_body', _id=request.view_args['_id'], sort=request.args.get('sort')) }}">Clear filters</a>
+                       href="{{ url_for('main.browse_transferring_body', _id=request.view_args['_id'], sort=request.args.get('sort'), _anchor='browse-records') }}">Clear filters</a>
                 </div>
             </div>
         </div>
