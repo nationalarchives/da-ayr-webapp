@@ -4,9 +4,9 @@ from playwright.sync_api import Page
 def verify_header_row(header_rows):
     assert header_rows[0] == [
         "Transferring body",
-        "Series",
-        "Last consignment transferred",
-        "Records held in series",
+        "Series reference",
+        "Last transfer date",
+        "Record total",
         "Consignments within series",
     ]
 
@@ -57,7 +57,7 @@ class TestBrowseTransferringBody:
         standard_user_page.goto(f"{self.route_url}/{self.transferring_body_id}")
 
         assert standard_user_page.inner_html("text='You are viewing'")
-        assert standard_user_page.inner_html("text='Everything'")
+        assert standard_user_page.inner_html("text='All available records'")
         assert standard_user_page.inner_html("text='Testing A'")
 
     def test_browse_transferring_body_no_pagination(
@@ -329,5 +329,5 @@ class TestBrowseTransferringBody:
             standard_user_page.get_by_label("Sort by", exact=True).evaluate(
                 "el => el.options[el.selectedIndex].text"
             )
-            == "Series (Z to A)"
+            == "Series reference (Z to A)"
         )

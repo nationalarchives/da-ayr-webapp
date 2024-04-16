@@ -26,9 +26,9 @@ def verify_transferring_body_view_header_row(data):
     expected_row = (
         [
             "Transferring body",
-            "Series",
-            "Last consignment transferred",
-            "Records held in series",
+            "Series reference",
+            "Last transfer date",
+            "Record total",
             "Consignments within series",
         ],
     )
@@ -52,7 +52,7 @@ class TestBrowseTransferringBody:
         Given a user accessing the browse page
         When they make a GET request with a transferring body id
         Then they should see results based on transferring body filter on browse page content.
-        And breadcrumb should show 'Everything' > transferring body name
+        And breadcrumb should show 'All available records' > transferring body name
         """
         transferring_body_id = browse_transferring_body_files[
             0
@@ -74,7 +74,7 @@ class TestBrowseTransferringBody:
         <div class="govuk-breadcrumbs">
             <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
-                <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
+                <a class="govuk-breadcrumbs__link--record" href="/browse">All available records</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                 <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">

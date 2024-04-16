@@ -1,22 +1,12 @@
 from playwright.sync_api import Page
 
 
-def verify_header_row(header_rows):
-    assert header_rows[0] == [
-        "Transferring body",
-        "Series",
-        "Last consignment transferred",
-        "Records held in series",
-        "Consignments within series",
-    ]
-
-
 def verify_browse_all_header_row(header_rows):
     assert header_rows == [
         "Transferring body",
-        "Series",
-        "Last consignment transferred",
-        "Records held in series",
+        "Series reference",
+        "Last transfer date",
+        "Record total",
         "Consignments within series",
     ]
 
@@ -44,7 +34,7 @@ class TestBrowse:
         aau_user_page.goto(f"{self.route_url}")
 
         assert aau_user_page.inner_html("text='You are viewing'")
-        assert aau_user_page.inner_html("text='Everything available to you'")
+        assert aau_user_page.inner_html("text='All available records'")
 
     def test_browse_filter_functionality_with_query_string_parameters(
         self, aau_user_page: Page

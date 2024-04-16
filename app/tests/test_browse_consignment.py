@@ -56,7 +56,8 @@ class TestConsignment:
         Given a user accessing the browse page
         When they make a GET request with a consignment id
         Then they should see results based on consignment filter on browse page content.
-        And breadcrumb should show 'Everything' > transferring body name > series name > consignment reference
+        And breadcrumb should show 'All available records' > transferring body name > series name
+        > consignment reference
         """
         consignment_id = browse_consignment_files[0].consignment.ConsignmentId
 

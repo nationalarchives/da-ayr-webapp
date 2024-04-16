@@ -1,14 +1,14 @@
 {% set sorting_list = {
     "Transferring body (A to Z)": "transferring_body-asc",
     "Transferring body (Z to A)": "transferring_body-desc",
-    "Series (A to Z)": "series-asc",
-    "Series (Z to A)": "series-desc",
-    "Date consignment transferred (most recent first)": "last_record_transferred-desc",
-    "Date consignment transferred (oldest first)": "last_record_transferred-asc",
-    "Records held in series (most first)": "records_held-desc",
-    "Records held in series (least first)": "records_held-asc"
+    "Series reference (A to Z)": "series-asc",
+    "Series reference (Z to A)": "series-desc",
+    "Transfer date (newest)": "last_record_transferred-desc",
+    "Transfer date (oldest)": "last_record_transferred-asc",
+    "Record total (most)": "records_held-desc",
+    "Record total (least)": "records_held-asc"
 } %}
-<p class="govuk-body govuk-body--browse-all-signpost">Everything available to you</p>
+<p class="govuk-body govuk-body--browse-all-signpost">All available records</p>
 <form action="{{ url_for('main.browse', _anchor='browse-records') }}"
       method="get">
     <div class="browse-layout">
@@ -28,20 +28,20 @@
                         <tr class="govuk-table__row">
                             <th scope="col"
                                 class="govuk-table__header browse-grid__key__transferring-body browse__all__mobile__header">
-                                Transferring body / Series
+                                Transferring body / Series reference
                             </th>
                             <th scope="col"
                                 class="govuk-table__header browse-grid__key__transferring-body browse__all__desktop__header">
                                 Transferring body
                             </th>
-                            <th scope="col" class="govuk-table__header browse__all__desktop__header">Series</th>
+                            <th scope="col" class="govuk-table__header browse__all__desktop__header">Series reference</th>
                             <th scope="col"
                                 class="govuk-table__header browse__table__right-align browse__all__desktop__header browse__all__mobile__header">
-                                Last consignment transferred
+                                Last transfer date
                             </th>
                             <th scope="col"
                                 class="govuk-table__header browse__table__right-align browse__table__mobile--hidden browse__all__desktop__header">
-                                Records held in series
+                                Record total
                             </th>
                             <th scope="col"
                                 class="govuk-table__header browse__table__right-align browse__table__mobile--hidden browse__all__desktop__header">
@@ -106,7 +106,7 @@
                          alt="">
                 </div>
                 <h3 class="govuk-heading-s govuk-heading-s--series">
-                    <label class="govuk-label" for="transferring_body_filter">Transferring body</label>
+                    <label class="govuk-label" for="transferring_body_filter">Select transferring body</label>
                 </h3>
                 <div class="govuk-form-group filters-form__group filters-form__transferring-body-group">
                     <select class="govuk-select govuk-select__filters-form-transferring-body-select"
@@ -129,7 +129,7 @@
             </div>
             <div class="browse-all-filter-container browse-all-filter-container--file-type">
                 <h3 class="govuk-heading-s govuk-heading-s--series">
-                    <label class="govuk-label" for="series_filter">Series</label>
+                    <label class="govuk-label" for="series_filter">Series reference</label>
                 </h3>
                 <div class="govuk-form-group govuk-form-group--browse-all-filter">
                     <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
@@ -140,7 +140,7 @@
                 </div>
             </div>
             <div class="browse-all-filter-container">
-                <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Date consignment transferred</h3>
+                <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Transfer date</h3>
                 {% include "date-filters.html" %}
                 <div class="filters-form__buttons">
                     <button type="submit"
