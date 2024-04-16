@@ -2,7 +2,6 @@ from playwright.sync_api import Page
 
 
 def verify_header_row(header_rows):
-    breakpoint()
     assert header_rows[0] == [
         "Transferring body",
         "Series reference",
@@ -68,8 +67,12 @@ class TestBrowseSeries:
             "=01&date_from_month=01&date_from_year=2023&date_to_day=31&date_to_month=12&date_to_year=2023"
         )
 
-        header_rows = standard_user_page.locator("#tbl_result").evaluate_all(
-            """els => els.slice(0).map(el => [...el.querySelectorAll('th')].map(e => e.textContent.trim()))"""
+        header_rows = standard_user_page.locator(
+            "#tbl_result tr:visible"
+        ).evaluate_all(
+            """els => els.slice(0).map(el =>
+              [...el.querySelectorAll('th.browse__series__desktop__header')].map(e => e.textContent.trim())
+            )"""
         )
         rows = standard_user_page.locator(
             "#tbl_result tr.browse__mobile-table__top-row"
