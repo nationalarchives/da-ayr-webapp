@@ -97,10 +97,6 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
         inspect.getmembers(config)
 
     assert str(error.value) == "'DEFAULT_DATE_FORMAT'"
-    # assert (
-    #    str(error.value)
-    #    == "variable name : 'DEFAULT_DATE_FORMAT' has not been set in .env file"
-    # )
 
 
 @mock_aws
