@@ -35,9 +35,9 @@ class AWSSecretsManagerConfig(BaseConfig):
         return secrets_dict
 
     def _get_config_value(self, variable_name):
-        if self.secrets_dict[variable_name] is not None:
-            return self.secrets_dict[variable_name]
-        else:
-            raise Exception(
-                f"variable name : '{variable_name}' has not been set in AWS Secrets Manager"
-            )
+        return self.secrets_dict[variable_name]
+        # if self.secrets_dict[variable_name] is not KeyError:
+        # else:
+        #     raise Exception(
+        #         f"variable name : '{variable_name}' has not been set in AWS Secrets Manager"
+        #    )

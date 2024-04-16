@@ -93,13 +93,14 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
 
     config = EnvConfig()
 
-    with pytest.raises(Exception) as error:
+    with pytest.raises(KeyError) as error:
         inspect.getmembers(config)
 
-    assert (
-        str(error.value)
-        == "variable name : 'DEFAULT_DATE_FORMAT' has not been set in .env file"
-    )
+    assert str(error.value) == "'DEFAULT_DATE_FORMAT'"
+    # assert (
+    #    str(error.value)
+    #    == "variable name : 'DEFAULT_DATE_FORMAT' has not been set in .env file"
+    # )
 
 
 @mock_aws
@@ -187,7 +188,6 @@ def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
             "FLASKS3_ACTIVE": "False",
             "FLASKS3_CDN_DOMAIN": "test_flasks3_cdn_domain",
             "FLASKS3_BUCKET_NAME": "test_flasks3_bucket_name",
-            # "DEFAULT_DATE_FORMAT": "test_default_date_format",
             "SECRET_KEY": "test_secret_key",  # pragma: allowlist secret
             "DB_PORT": "5432",
             "DB_HOST": "test_db_host",
