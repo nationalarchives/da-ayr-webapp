@@ -2,11 +2,12 @@ from playwright.sync_api import Page
 
 
 def verify_header_row(header_rows):
+    breakpoint()
     assert header_rows[0] == [
         "Transferring body",
-        "Series",
-        "Consignment transferred",
-        "Records in consignment",
+        "Series reference",
+        "Last transfer date",
+        "Record total",
         "Consignment reference",
     ]
 
@@ -55,7 +56,7 @@ class TestBrowseSeries:
         standard_user_page.goto(f"{self.route_url}/{self.series_id}")
 
         assert standard_user_page.inner_html("text='You are viewing'")
-        assert standard_user_page.inner_html("text='Everything'")
+        assert standard_user_page.inner_html("text='All available records'")
         assert standard_user_page.inner_html("text='Testing A'")
         assert standard_user_page.inner_html("text='TSTA 1'")
 
@@ -67,12 +68,8 @@ class TestBrowseSeries:
             "=01&date_from_month=01&date_from_year=2023&date_to_day=31&date_to_month=12&date_to_year=2023"
         )
 
-        header_rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th.browse__series__desktop__header')].map(e => e.textContent.trim())
-            )"""
+        header_rows = standard_user_page.locator("#tbl_result").evaluate_all(
+            """els => els.slice(0).map(el => [...el.querySelectorAll('th')].map(e => e.textContent.trim()))"""
         )
         rows = standard_user_page.locator(
             "#tbl_result tr.browse__mobile-table__top-row"
@@ -234,5 +231,5 @@ class TestBrowseSeries:
             standard_user_page.get_by_label("Sort by", exact=True).evaluate(
                 "el => el.options[el.selectedIndex].text"
             )
-            == "Records held in consignment (most first)"
+            == "Records total (most)"
         )
