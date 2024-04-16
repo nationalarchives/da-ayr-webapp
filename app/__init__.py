@@ -25,9 +25,9 @@ def null_to_dash(value):
 
 def create_app(config_class, database_uri=None):
     app = Flask(__name__, static_url_path="/assets")
-    app.config.from_object(config_class())
-
-    inspect.getmembers(config_class())
+    config = config_class()
+    inspect.getmembers(config)
+    app.config.from_object(config)
 
     force_https = False if app.config["TESTING"] else True
 
