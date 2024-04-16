@@ -23,9 +23,9 @@ def verify_series_view_header_row(data):
     expected_row = (
         [
             "Transferring body",
-            "Series",
-            "Consignment transferred",
-            "Records in consignment",
+            "Series reference",
+            "Last transfer date",
+            "Record total",
             "Consignment reference",
         ],
     )
@@ -72,7 +72,7 @@ class TestSeries:
         Given a user accessing the browse page
         When they make a GET request with a series id
         Then they should see results based on series filter on browse page content.
-        And breadcrumb should show 'Everything' > transferring body name > series name
+        And breadcrumb should show 'All available records' > transferring body name > series name
         """
         series_id = browse_files[0].consignment.series.SeriesId
 
@@ -89,7 +89,7 @@ class TestSeries:
         <div class="govuk-breadcrumbs">
             <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
-                <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
+                <a class="govuk-breadcrumbs__link--record" href="/browse">All available records</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                 <a class="govuk-breadcrumbs__link--record--transferring-body"

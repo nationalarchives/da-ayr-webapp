@@ -1,15 +1,15 @@
 {% set breadcrumbs = {
-    "everything":"Everything",
+    "everything":"All available records",
     "body": [breadcrumb_values[0]["transferring_body_id"], breadcrumb_values[1]["transferring_body"]],
     "series": breadcrumb_values[2]["series"]
 } %}
 {% set sorting_list = {
-    "Date consignment transferred (most recent first)": "last_record_transferred-desc",
-    "Date consignment transferred (oldest first)": "last_record_transferred-asc",
-    "Consignment reference (most recent first)": "consignment_reference-desc",
-    "Consignment reference (earliest first)": "consignment_reference-asc",
-    "Records held in consignment (most first)": "records_held-desc",
-    "Records held in consignment (least first)": "records_held-asc"
+    "Transfer date (newest)": "last_record_transferred-desc",
+    "Transfer date (oldest)": "last_record_transferred-asc",
+    "Consignment reference (newest)": "consignment_reference-desc",
+    "Consignment reference (oldest)": "consignment_reference-asc",
+    "Records total (most)": "records_held-desc",
+    "Records total (least)": "records_held-asc"
 } %}
 <!-- BREAD CRUMB -->
 {% with dict = breadcrumbs %}
@@ -35,22 +35,22 @@
                             <th scope="col"
                                 class="govuk-table__header browse__series__desktop__header">Transferring body</th>
                             <th scope="col"
-                                class="govuk-table__header browse__series__desktop__header">Series</th>
+                                class="govuk-table__header browse__series__desktop__header">Series reference</th>
                             <th scope="col"
                                 class="govuk-table__header browse__series__desktop__header browse__series__desktop__header--text-align">
-                                Consignment transferred
+                                Last transfer date
                             </th>
                             <th scope="col"
                                 class="govuk-table__header browse__series__mobile__header browse__series__mobile__header--text-align">
-                                Consignment transferred
+                                Last transfer date
                             </th>
                             <th scope="col"
                                 class="govuk-table__header browse__table__right-align browse__series__desktop__header">
-                                Records in consignment
+                                Record total
                             </th>
                             <th scope="col"
                                 class="govuk-table__header browse__table__right-align browse__series__mobile__header">
-                                Records in consignment
+                                Record total
                             </th>
                             <th scope="col"
                                 class="govuk-table__header browse__series__desktop__header">Consignment reference</th>
@@ -102,7 +102,7 @@
                          class="browse-all-filter__icon"
                          alt="">
                 </div>
-                <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Date consignment transferred</h3>
+                <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Transfer date</h3>
                 {% include "date-filters.html" %}
                 <div class="filters-form__buttons">
                     <button type="submit"
