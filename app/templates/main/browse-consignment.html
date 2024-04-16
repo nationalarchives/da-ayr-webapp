@@ -1,12 +1,12 @@
 {% set breadcrumbs = {
-    "everything":"Everything",
+    "everything":"All records available",
     "body": [breadcrumb_values[0]["transferring_body_id"], breadcrumb_values[1]["transferring_body"]],
     "series": [breadcrumb_values[2]["series_id"], breadcrumb_values[3]["series"]],
     "consignment": breadcrumb_values[4]["consignment_reference"]
 } %}
 {% set sorting_list = {
-    "Date of record (most recent first)": "date_last_modified-desc",
-    "Date of record (oldest first)": "date_last_modified-asc",
+    "Date of record (newest)": "date_last_modified-desc",
+    "Date of record (oldest)": "date_last_modified-asc",
     "File name (A to Z)": "file_name-asc",
     "File name (Z to A)": "file_name-desc",
     "Record opening date (sooner)": "opening_date-asc",
@@ -100,7 +100,7 @@
                                     type="radio" value="closed" {% if filters["record_status"]=='closed' %}checked{%
                                     endif %}>
                                     <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
-                                           for="recordStatus-closed">Closed only</label>
+                                           for="recordStatus-closed">Closed</label>
                                 </div>
                                 <div class="govuk-radios__item govuk-radios__item--consignment-radio-buttons">
                                     <input class="govuk-radios__input"
@@ -110,7 +110,7 @@
                                            value="open"
                                            {% if filters["record_status"]=='open' %}checked{% endif %}>
                                     <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
-                                           for="recordStatus-open">Open only</label>
+                                           for="recordStatus-open">Open</label>
                                 </div>
                                 <div class="govuk-radios__item govuk-radios__item--consignment">
                                     <input class="govuk-radios__input" id="recordStatus-all" name="record_status" type="radio"

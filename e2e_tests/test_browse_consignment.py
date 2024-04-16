@@ -61,7 +61,7 @@ class TestBrowseConsignment:
         standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
 
         assert standard_user_page.inner_html("text='You are viewing'")
-        assert standard_user_page.inner_html("text='Everything'")
+        assert standard_user_page.inner_html("text='All records available'")
         assert standard_user_page.inner_html("text='Testing A'")
         assert standard_user_page.inner_html("text='TSTA 1'")
         assert standard_user_page.inner_html("text='TDR-2023-TMT'")
@@ -69,7 +69,7 @@ class TestBrowseConsignment:
     def test_browse_consignment_no_pagination(self, standard_user_page: Page):
         standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
 
-        standard_user_page.get_by_label("Closed only").check()
+        standard_user_page.get_by_label("Closed").check()
 
         standard_user_page.get_by_role("button", name="Apply filters").click()
 
@@ -243,7 +243,7 @@ class TestBrowseConsignment:
         self, standard_user_page: Page
     ):
         standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-        standard_user_page.get_by_text("Open only").click()
+        standard_user_page.get_by_label("Open", exact=True).click()
         standard_user_page.get_by_role(
             "button", name="Apply", exact=True
         ).click()
