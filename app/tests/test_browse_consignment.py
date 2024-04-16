@@ -77,7 +77,7 @@ class TestConsignment:
         <div class="govuk-breadcrumbs">
             <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
-                    <a class="govuk-breadcrumbs__link--record" href="/browse">Everything</a>
+                    <a class="govuk-breadcrumbs__link--record" href="/browse">All records available</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                     <a class="govuk-breadcrumbs__link--record--transferring-body"
