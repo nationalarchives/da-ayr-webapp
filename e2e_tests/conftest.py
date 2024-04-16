@@ -1,26 +1,11 @@
 import os
 
 import pytest
-from playwright.sync_api import Page, Playwright
+from playwright.sync_api import Page
 
 
-@pytest.fixture(params=["firefox", "chromium", "webkit"])
-def page(request, playwright: Playwright, browser_context_args) -> Page:
-    browser_type = request.param
-    if browser_type == "firefox":
-        browser = playwright.firefox
-    elif browser_type == "chromium":
-        browser = playwright.chromium
-    elif browser_type == "webkit":
-        browser = playwright.webkit
-    else:
-        raise ValueError(f"Unsupported browser type: {browser_type}")
-
-    browser_instance = browser.launch(headless=False)
-
-    context = browser_instance.new_context(**browser_context_args)
-    page = context.new_page()
-
+@pytest.fixture
+def page(page, request) -> Page:
     page.context.set_default_timeout(5000)
     if "test_css_" not in request.node.name and callable(request.node.obj):
 
@@ -31,20 +16,21 @@ def page(request, playwright: Playwright, browser_context_args) -> Page:
 
         page.route("**/*", route_intercept)
 
-    yield page
-
-    context.close()
-    browser_instance.close()
+    return page
 
 
 @pytest.fixture
-def create_user_page(page) -> Page:
+def create_user_page(
+    page, browser_name
+) -> (
+    Page
+):  # FIXME: browser_name specified until https://github.com/microsoft/playwright-pytest/issues/172 fixed
+    # so that multiple browser flags in cli are honoured
     def _create_user_page(username, password) -> Page:
         page.goto("/sign-in")
         page.get_by_label("Email address").fill(username)
         page.get_by_label("Password").fill(password)
         page.get_by_role("button", name="Sign in").click()
-        page.wait_for_url("/browse")
         return page
 
     return _create_user_page

@@ -363,6 +363,14 @@ In addition, we recommend that any tests that have dependencies on data, do not 
 
 ### Useful playwright pytest run modes
 
+#### browser
+
+- To run the tests on specific browsers, as long as they have been installed already with `playwright install` you can add as many `--browser` flags as you want, e.g.
+
+`pytest e2e_tests/ --base-url=https://localhost:5000 --browser chromium --browser firefox --browser webkit`
+
+will run all the tests against `chromium`, `firefox` and `webkit`
+
 #### headed
 
 - To view the browser when the tests are running, you can add the `--headed` flag, e.g.
