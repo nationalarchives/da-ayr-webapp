@@ -1,3 +1,5 @@
+import inspect
+
 from flask import Flask, g
 from flask_compress import Compress
 from flask_s3 import FlaskS3
@@ -24,6 +26,8 @@ def null_to_dash(value):
 def create_app(config_class, database_uri=None):
     app = Flask(__name__, static_url_path="/assets")
     app.config.from_object(config_class())
+
+    inspect.getmembers(config_class())
 
     force_https = False if app.config["TESTING"] else True
 
