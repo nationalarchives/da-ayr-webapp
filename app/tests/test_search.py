@@ -17,7 +17,7 @@ def verify_search_desktop_transferring_body_header_row(data):
 
     expected_row = (
         [
-            "Series",
+            "Series reference",
             "Consignment reference",
             "File name",
             "Status",
@@ -328,7 +328,7 @@ class TesthSearchResultsSummary:
         Given an all_access_user
         When they make a request on the search results summary page with the search term
         Then they should be redirected to search results summary screen
-        and see breadcrumb values Everything > Results summary
+        and see breadcrumb values All available records > Results summary
         with search results summary page content
         """
         mock_all_access_user(client)
@@ -344,7 +344,7 @@ class TesthSearchResultsSummary:
         search_html = f"""<div class="govuk-breadcrumbs  ">
     <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">Everything</a>
+                <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">All available records</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                     <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">Results summary</span>
@@ -579,10 +579,10 @@ class TestSearchTransferringBody:
                 <tr class="govuk-table__row">
                     <th scope="col"
                         class="govuk-table__header govuk-table__header--search-header
-                        search__desktop-heading">Series</th>
+                        search__desktop-heading">Series reference</th>
                     <th class="govuk-table__header govuk-table__header--search-header
                     search__mobile-heading" scope="col">
-                        Series / File name / Consignment reference
+                        Series reference / File name / Consignment reference
                     </th>
                     <th class="govuk-table__header govuk-table__header--search-header
                     search__desktop-heading" scope="col">
@@ -1146,7 +1146,7 @@ class TestSearchTransferringBody:
         When they make a request on the search transferring body page with the search term
         Then they should be redirected to search transferring body screen
         with search results summary page content
-        and see a bread crumbs rendered as Everything > Results summary > Transferring body > ‘Search term’
+        and see a bread crumbs rendered as All available records > Results summary > Transferring body > ‘Search term’
         """
         mock_all_access_user(client)
 
@@ -1167,7 +1167,7 @@ class TestSearchTransferringBody:
         search_html = f"""<div class="govuk-breadcrumbs  ">
     <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">Everything</a>
+                <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">All available records</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                     <a class="govuk-breadcrumbs__link--record--transferring-body"
@@ -1201,7 +1201,7 @@ class TestSearchTransferringBody:
         When they make a request on the search transferring body page with the search term
         Then they should be redirected to search transferring body screen
         with search results summary page content
-        and see a bread crumbs rendered as Everything > Results summary > Transferring body > ‘Search term’
+        and see a bread crumbs rendered as All available records > Results summary > Transferring body > ‘Search term’
         """
         mock_all_access_user(client)
 
@@ -1224,7 +1224,7 @@ class TestSearchTransferringBody:
         search_html = f"""<div class="govuk-breadcrumbs  ">
     <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
-                        <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">Everything</a>
+                <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">All available records</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                     <a class="govuk-breadcrumbs__link--record--transferring-body"
@@ -1255,7 +1255,7 @@ class TestSearchTransferringBody:
         When they make a request on the search transferring body page with the search term
         Then they should be redirected to search transferring body screen
         with search results summary page content
-        and see a bread crumbs rendered as Everything > Results summary > Transferring body > ‘Search term’
+        and see a bread crumbs rendered as All available records > Results summary > Transferring body > ‘Search term’
         """
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -1301,7 +1301,7 @@ class TestSearchTransferringBody:
         When they make a request on the search transferring body page with the search term
         Then they should be redirected to search transferring body screen
         with search results summary page content
-        and see a bread crumbs rendered as Everything > Results summary > Transferring body >
+        and see a bread crumbs rendered as All available records > Results summary > Transferring body >
         ‘Search term’ + ‘Search term’
         """
         mock_standard_user(
@@ -1349,7 +1349,7 @@ class TestSearchTransferringBody:
         When they make a request on the search transferring body page with the search term
         Then they should be redirected to search transferring body screen
         with search results summary page content
-        and see a bread crumbs rendered as Everything > Results summary > Transferring body > ‘Search term’
+        and see a bread crumbs rendered as All available records > Results summary > Transferring body > ‘Search term’
         """
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -1434,9 +1434,9 @@ class TestSearchTransferringBody:
                                 <div class="search-form__buttons">
                                     <button type="submit"
                                     class="govuk-button govuk-button__search-filters-form-apply-button"
-                                    data-module="govuk-button">Apply</button>
+                                    data-module="govuk-button">Apply terms</button>
                                     <a class="govuk-link govuk-link--transferring-filter"
-                                    href="{self.browse_all_route_url}#browse-records">Clear all</a>
+                                    href="{self.browse_all_route_url}#browse-records">Clear all terms</a>
                                 </div>
                                 <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
                                 <div class="ayr-filter-tags">
@@ -1529,10 +1529,10 @@ class TestSearchTransferringBody:
                                 <div class="search-form__buttons">
                                     <button type="submit"
                                     class="govuk-button govuk-button__search-filters-form-apply-button"
-                                    data-module="govuk-button">Apply</button>
+                                    data-module="govuk-button">Apply terms</button>
                                     <a class="govuk-link govuk-link--transferring-filter"
                                 href="{self.browse_transferring_body_route_url}/{transferring_body_id}#browse-records">
-                                Clear all</a></div>
+                                Clear all terms</a></div>
                                 <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
                                 <div class="ayr-filter-tags">
                                         <div class="search-term">
