@@ -186,7 +186,7 @@ def browse_transferring_body(_id: uuid.UUID):
     Returns:
         A rendered HTML page with transferring body records.
     """
-    body = Body.query.get(_id)
+    body = db.session.get(Body, _id)
     validate_body_user_groups_or_404(body.Name)
 
     breadcrumb_values = {0: {"transferring_body": body.Name}}
@@ -266,7 +266,7 @@ def browse_series(_id: uuid.UUID):
     Returns:
         A rendered HTML page with series records.
     """
-    series = Series.query.get(_id)
+    series = db.session.get(Series, _id)
     body = series.body
     validate_body_user_groups_or_404(body.Name)
 
@@ -351,7 +351,7 @@ def browse_consignment(_id: uuid.UUID):
     Returns:
         A rendered HTML page with consignment records.
     """
-    consignment = Consignment.query.get(_id)
+    consignment = db.session.get(Consignment, _id)
     body = consignment.series.body
     validate_body_user_groups_or_404(body.Name)
 
@@ -513,7 +513,7 @@ def search_transferring_body(_id: uuid.UUID):
     breadcrumb_values = {
         0: {"query": ""},
         1: {"transferring_body_id": _id},
-        2: {"transferring_body": Body.query.get(_id).Name},
+        2: {"transferring_body": db.session.get(Body, _id).Name},
     }
     search_terms = []
 
@@ -593,7 +593,7 @@ def record(record_id: uuid.UUID):
 
     file_metadata = get_file_metadata(record_id)
 
-    file = File.query.get(record_id)
+    file = db.session.get(File, record_id)
     consignment = file.consignment
     body = consignment.series.body
     series = consignment.series
