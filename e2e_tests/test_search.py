@@ -10,7 +10,7 @@ def verify_search_results_summary_header_row(header_rows):
 
 def verify_search_transferring_body_header_row(header_rows):
     assert header_rows[0] == [
-        "Series",
+        "Series reference",
         "Consignment reference",
         "File name",
         "Status",

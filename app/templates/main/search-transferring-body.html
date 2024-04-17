@@ -21,7 +21,7 @@
                 <p class="govuk-body browse__body">You are viewing</p>
                 {% set breadcrumbs = {} %}
                 {% if session["user_type"] == "all_access_user" %}
-                    {%- set _ = breadcrumbs.update({'everything': "Everything"}) -%}
+                    {%- set _ = breadcrumbs.update({'everything': "All available records"}) -%}
                     {%- set _ = breadcrumbs.update({'summary': [breadcrumb_values[0]["query"], "Results summary"]}) -%}
                 {% endif %}
                 {%- set _ = breadcrumbs.update({'body': [breadcrumb_values[1]["transferring_body_id"], breadcrumb_values[2]["transferring_body"]] }) -%}
@@ -29,12 +29,12 @@
                     {%- set _ = breadcrumbs.update({'search_terms': breadcrumb_values[3]["search_terms"]}) -%}
                 {% endif %}
                 {% set sorting_list = {
-                    "Series (A to Z)": "series-asc",
-                    "Series (Z to A)": "series-desc",
-                    "Consignment reference (most recent)": "consignment_reference-desc",
+                    "Series reference (A to Z)": "series-asc",
+                    "Series reference (Z to A)": "series-desc",
+                    "Consignment reference (newest)": "consignment_reference-desc",
                     "Consignment reference (oldest)": "consignment_reference-asc",
-                    "Title (A to Z)": "file_name-asc",
-                    "Title (Z to A)": "file_name-desc",
+                    "File name (A to Z)": "file_name-asc",
+                    "File name (Z to A)": "file_name-desc",
                     "Record opening date (sooner)": "opening_date-desc",
                     "Record opening date (later)": "opening_date-asc",
                     "Record status (closed)": "closure_type-asc",
@@ -65,11 +65,11 @@
                                             <tr class="govuk-table__row">
                                                 <th scope="col"
                                                     class="govuk-table__header govuk-table__header--search-header search__desktop-heading">
-                                                    Series
+                                                    Series reference
                                                 </th>
                                                 <th scope="col"
                                                     class="govuk-table__header govuk-table__header--search-header search__mobile-heading">
-                                                    Series / File name / Consignment reference
+                                                    Series reference / File name / Consignment reference
                                                 </th>
                                                 <th scope="col"
                                                     class="govuk-table__header govuk-table__header--search-header search__desktop-heading">
@@ -159,9 +159,9 @@
                                     <div class="search-form__buttons">
                                         <button type="submit"
                                                 class="govuk-button govuk-button__search-filters-form-apply-button"
-                                                data-module="govuk-button">Apply</button>
+                                                data-module="govuk-button">Apply terms</button>
                                         <a class="govuk-link govuk-link--transferring-filter"
-                                           href="{% if session['user_type'] == 'all_access_user' %}{{ url_for('main.browse', _anchor='browse-records') }}{% else %}{{ url_for('main.browse_transferring_body', _id = request.view_args['_id'], _anchor='browse-records') }}{% endif %}">Clear all</a>
+                                           href="{% if session['user_type'] == 'all_access_user' %}{{ url_for('main.browse', _anchor='browse-records') }}{% else %}{{ url_for('main.browse_transferring_body', _id = request.view_args['_id'], _anchor='browse-records') }}{% endif %}">Clear all terms</a>
                                     </div>
                                     <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
                                     <div class="ayr-filter-tags">
