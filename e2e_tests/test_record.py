@@ -192,4 +192,4 @@ class TestRecord:
         with standard_user_page.expect_download() as download_record:
             standard_user_page.get_by_text("Download record").click()
         download = download_record.value
-        assert "TSTA 1_ZD5B3S" == download.suggested_filename
+        assert "TSTA 1_ZD5B3S.doc" == download.suggested_filename

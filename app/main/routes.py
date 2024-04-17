@@ -637,11 +637,18 @@ def download_record(record_id: uuid.UUID):
 
     s3_file_object = s3.get_object(Bucket=bucket, Key=key)
 
+    download_filename = file.FileName
+
+    if file.CiteableReference:
+        if len(file.FileName.rsplit(".", 1)) > 1:
+            download_filename = (
+                file.CiteableReference + "." + file.FileName.rsplit(".", 1)[1]
+            )
+
     response = Response(
         s3_file_object["Body"].read(),
         headers={
-            "Content-Disposition": "attachment;filename="
-            + (file.CiteableReference or file.FileName)
+            "Content-Disposition": "attachment;filename=" + download_filename
         },
     )
 
