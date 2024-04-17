@@ -18,9 +18,9 @@ def verify_browse_view_header_row(data):
     expected_row = (
         [
             "Transferring body",
-            "Series",
-            "Last consignment transferred",
-            "Records held in series",
+            "Series reference",
+            "Last transfer date",
+            "Record total",
             "Consignments within series",
         ],
     )
@@ -157,7 +157,7 @@ class TestBrowse:
         assert response.status_code == 200
         assert b"Search for digital records" in response.data
         assert b"You are viewing" in response.data
-        assert b"Everything available to you" in response.data
+        assert b"All available records" in response.data
 
     def test_browse_filter_no_results(
         self, client: FlaskClient, mock_all_access_user
