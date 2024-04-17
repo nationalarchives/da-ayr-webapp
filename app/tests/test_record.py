@@ -80,7 +80,7 @@ class TestRecord:
         When a standard user with request to view the record page
         Then the response status code should be 200
         And the HTML content should show the breadcrumb values as
-         Everything > transferring body > series > consignment reference > file name
+         All available records > transferring body > series > consignment reference > file name
         on the page
         """
         file = record_files[0]["file_object"]
@@ -106,7 +106,7 @@ class TestRecord:
         <div class="govuk-breadcrumbs govuk-breadcrumbs--file">
             <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
-                <a class="govuk-breadcrumbs__link--record" href="{browse_all_route_url}">Everything</a>
+                <a class="govuk-breadcrumbs__link--record" href="{browse_all_route_url}">All available records</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                 <a class="govuk-breadcrumbs__link--record--transferring-body"
@@ -270,7 +270,7 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series reference</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {file.consignment.series.Name}
                 </dd>
@@ -427,7 +427,7 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series reference</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {file.consignment.series.Name}
                 </dd>
@@ -586,7 +586,7 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series reference</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {file.consignment.series.Name}
                 </dd>
