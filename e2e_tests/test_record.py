@@ -28,7 +28,7 @@ class TestRecord:
         standard_user_page.goto(f"{self.route_url}/{self.record_id}")
 
         assert standard_user_page.inner_html("text='You are viewing'")
-        assert standard_user_page.inner_html("text='Everything'")
+        assert standard_user_page.inner_html("text='All available records'")
         assert standard_user_page.inner_html("text='Testing A'")
         assert standard_user_page.inner_html("text='TSTA 1'")
         assert standard_user_page.inner_html("text='TDR-2024-H5DN'")
@@ -56,7 +56,9 @@ class TestRecord:
         assert standard_user_page.get_by_text(
             "Transferring body", exact=True
         ).is_visible()
-        assert standard_user_page.get_by_text("Series", exact=True).is_visible()
+        assert standard_user_page.get_by_text(
+            "Series reference", exact=True
+        ).is_visible()
         assert standard_user_page.get_by_text(
             "Consignment reference", exact=True
         ).is_visible()
@@ -137,7 +139,9 @@ class TestRecord:
         assert standard_user_page.get_by_text(
             "Transferring body", exact=True
         ).is_visible()
-        assert standard_user_page.get_by_text("Series", exact=True).is_visible()
+        assert standard_user_page.get_by_text(
+            "Series reference", exact=True
+        ).is_visible()
         assert standard_user_page.get_by_text(
             "Consignment reference", exact=True
         ).is_visible()
