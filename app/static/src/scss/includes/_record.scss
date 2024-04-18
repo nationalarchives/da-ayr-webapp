@@ -142,6 +142,13 @@
 }
 
 .govuk-body {
+  &--download-filename {
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 200;
+    color: black;
+  }
+
   &--terms-of-use {
     align-self: center;
     justify-content: center;

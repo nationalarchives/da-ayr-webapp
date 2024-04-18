@@ -976,4 +976,56 @@ def record_files():
         ),
     }
 
-    return [file_1_metadata, file_2_metadata, file_3_metadata, file_4_metadata]
+    # file without citeable reference
+    file_5 = FileFactory(
+        consignment=consignment_1,
+        FileName="file_no_metadata.docx",
+        FileType="file",
+        FileReference="ABCDE",
+        FilePath="data/content/test_folder/file_without_citeable_reference.docx",
+        CiteableReference=None,
+    )
+    file_5_metadata = {
+        "file_object": file_5,
+        "description": FileMetadataFactory(
+            file=file_5,
+            PropertyName="description",
+            Value="file without citeable reference",
+        ),
+        "closure_type": FileMetadataFactory(
+            file=file_5, PropertyName="closure_type", Value="Open"
+        ),
+        "date_last_modified": FileMetadataFactory(
+            file=file_5, PropertyName="date_last_modified", Value="2023-01-15"
+        ),
+        "former_reference": FileMetadataFactory(
+            file=file_5, PropertyName="former_reference_department", Value="-"
+        ),
+        "translated_title": FileMetadataFactory(
+            file=file_5, PropertyName="file_name_translation", Value="-"
+        ),
+        "held_by": FileMetadataFactory(
+            file=file_5,
+            PropertyName="held_by",
+            Value="The National Archives, Kew",
+        ),
+        "legal_status": FileMetadataFactory(
+            file=file_5, PropertyName="legal_status", Value="Public record(s)"
+        ),
+        "rights_copyright": FileMetadataFactory(
+            file=file_5,
+            PropertyName="rights_copyright",
+            Value="Crown copyright",
+        ),
+        "language": FileMetadataFactory(
+            file=file_5, PropertyName="language", Value="English"
+        ),
+    }
+
+    return [
+        file_1_metadata,
+        file_2_metadata,
+        file_3_metadata,
+        file_4_metadata,
+        file_5_metadata,
+    ]
