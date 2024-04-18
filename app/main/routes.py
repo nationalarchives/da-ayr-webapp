@@ -3,6 +3,7 @@ import uuid
 import boto3
 from flask import (
     Response,
+    abort,
     current_app,
     redirect,
     render_template,
@@ -587,7 +588,10 @@ def record(record_id: uuid.UUID):
         A rendered HTML page with record details.
     """
     form = SearchForm()
-    file = File.query.get_or_404(record_id)
+    file = db.session.get(File, record_id)
+
+    if file is None:
+        abort(404)
 
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
@@ -619,7 +623,10 @@ def record(record_id: uuid.UUID):
 @bp.route("/download/<uuid:record_id>")
 @access_token_sign_in_required
 def download_record(record_id: uuid.UUID):
-    file = File.query.get_or_404(record_id)
+    file = db.session.get(File, record_id)
+
+    if file is None:
+        abort(404)
 
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
