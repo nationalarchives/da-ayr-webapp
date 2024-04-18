@@ -177,11 +177,13 @@ class TestBrowse:
         expected_html = """
         <ul class="govuk-list govuk-list--bullet">
         <li>
-            Try changing or removing one or more applied
-                filters.
+        Try changing or removing one or more applied
+                    filters.
         </li>
-        <li>Alternatively, use the breadcrumbs to navigate back to the browse view.</li>
-    </ul>"""
+        <li>
+        Alternatively, use the breadcrumbs to navigate back to the browse view.
+        </li>
+        </ul>"""
         assert response.status_code == 200
         assert b"No results found" in response.data
         assert_contains_html(

@@ -1,16 +1,18 @@
 <div class="govuk-!-padding-bottom-9"></div>
 <div class="govuk-!-padding-bottom-5"></div>
 <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds__search-results-summary">
-    <h2 class="govuk-heading-m">Help with your search</h2>
-    <ul class="govuk-list govuk-list--bullet">
-        <li>
-            Try changing or removing one or more applied
-            {% if view_type == "search" %}
-                search terms.
-            {% else %}
-                filters.
-            {% endif %}
-        </li>
-        <li>Alternatively, use the breadcrumbs to navigate back to the browse view.</li>
-    </ul>
+    <div class="main-content" id="main-content" role="main">
+        <h2 class="govuk-heading-m">Help with your search</h2>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>
+                Try changing or removing one or more applied
+                {% if view_type == "search" %}
+                    search terms.
+                {% else %}
+                    filters.
+                {% endif %}
+            </li>
+            <li>Alternatively, use the breadcrumbs to navigate back to the browse view.</li>
+        </ul>
+    </div>
 </div>

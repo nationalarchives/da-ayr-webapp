@@ -141,7 +141,7 @@ class TestSearchRedirect:
         )
 
 
-class TesthSearchResultsSummary:
+class TestSearchResultsSummary:
     @property
     def route_url(self):
         return "/search_results_summary"
@@ -246,11 +246,13 @@ class TesthSearchResultsSummary:
         expected_html = """
         <ul class="govuk-list govuk-list--bullet">
         <li>
-            Try changing or removing one or more applied
-                search terms.
+        Try changing or removing one or more applied
+                    search terms.
         </li>
-        <li>Alternatively, use the breadcrumbs to navigate back to the browse view.</li>
-    </ul>"""
+        <li>
+        Alternatively, use the breadcrumbs to navigate back to the browse view.
+        </li>
+        </ul>"""
         assert response.status_code == 200
         assert b"No results found" in response.data
         assert_contains_html(
@@ -512,11 +514,13 @@ class TestSearchTransferringBody:
         expected_html = """
         <ul class="govuk-list govuk-list--bullet">
         <li>
-            Try changing or removing one or more applied
-                search terms.
+        Try changing or removing one or more applied
+                    search terms.
         </li>
-        <li>Alternatively, use the breadcrumbs to navigate back to the browse view.</li>
-    </ul>"""
+        <li>
+        Alternatively, use the breadcrumbs to navigate back to the browse view.
+        </li>
+        </ul>"""
         assert response.status_code == 200
         assert b"No results found" in response.data
         assert_contains_html(
@@ -603,6 +607,7 @@ class TestSearchTransferringBody:
                 </tr>
             </thead>
             <tbody class="govuk-table__body">
+            <div class="main-content" id="main-content" role="main">
         <tr class="govuk-table__row top-row">
             <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row">
                 <a href="{browse_series_route_url}/{series_id}">first_series</a>
@@ -652,6 +657,7 @@ class TestSearchTransferringBody:
             <td class="govuk-table__cell govuk-table__cell--search-results">
             </td>
         </tr>
+        </div>
             </tbody>
         </table>
         """

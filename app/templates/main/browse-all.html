@@ -50,42 +50,44 @@
                         </tr>
                     </thead>
                     <tbody class="govuk-table__body">
-                        {% for record in results %}
-                            <tr class="govuk-table__row browse__table__desktop--hidden">
-                                <td class="govuk-table__cell browse__mobile-table__top-row">
-                                    <a href="{{ url_for('main.browse_transferring_body', _id=record['transferring_body_id'],  _anchor='browse-records') }}">{{ record["transferring_body"] }}</a>
-                                </td>
-                                <td class="govuk-table__cell browse__table__mobile--hidden">
-                                    <a href="{{ url_for('main.browse_series', _id= record['series_id'], _anchor='browse-records') }}">{{ record["series"] }}</a>
-                                </td>
-                                <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden">
-                                    {{ record["last_record_transferred"] }}
-                                </td>
-                                <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden">
-                                    {{ record["records_held"] }}
-                                </td>
-                                <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden">
-                                    {{ record["consignment_in_series"] }}
-                                </td>
-                            </tr>
-                            <tr class="govuk-table__row browse__table__all_desktop__row">
-                                <td class="govuk-table__cell browse__table__mobile--hidden browse__table__all_desktop">
-                                    <a href="{{ url_for('main.browse_transferring_body', _id=record['transferring_body_id'], _anchor='browse-records') }}">{{ record["transferring_body"] }}</a>
-                                </td>
-                                <td class="govuk-table__cell browse__table__all_desktop">
-                                    <a href="{{ url_for('main.browse_series', _id= record['series_id'], _anchor='browse-records') }}">{{ record["series"] }}</a>
-                                </td>
-                                <td class="govuk-table__cell browse__table__right-align browse__table__all_desktop">
-                                    {{ record["last_record_transferred"] }}
-                                </td>
-                                <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden browse__table__all_desktop">
-                                    {{ record["records_held"] }}
-                                </td>
-                                <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden browse__table__all_desktop">
-                                    {{ record["consignment_in_series"] }}
-                                </td>
-                            </tr>
-                        {% endfor %}
+                        <div class="main-content" id="main-content" role="main">
+                            {% for record in results %}
+                                <tr class="govuk-table__row browse__table__desktop--hidden">
+                                    <td class="govuk-table__cell browse__mobile-table__top-row">
+                                        <a href="{{ url_for('main.browse_transferring_body', _id=record['transferring_body_id']) }}">{{ record["transferring_body"] }}</a>
+                                    </td>
+                                    <td class="govuk-table__cell browse__table__mobile--hidden">
+                                        <a href="{{ url_for('main.browse_series', _id= record['series_id']) }}">{{ record["series"] }}</a>
+                                    </td>
+                                    <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden">
+                                        {{ record["last_record_transferred"] }}
+                                    </td>
+                                    <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden">
+                                        {{ record["records_held"] }}
+                                    </td>
+                                    <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden">
+                                        {{ record["consignment_in_series"] }}
+                                    </td>
+                                </tr>
+                                <tr class="govuk-table__row browse__table__all_desktop__row">
+                                    <td class="govuk-table__cell browse__table__mobile--hidden browse__table__all_desktop">
+                                        <a href="{{ url_for('main.browse_transferring_body', _id=record['transferring_body_id']) }}">{{ record["transferring_body"] }}</a>
+                                    </td>
+                                    <td class="govuk-table__cell browse__table__all_desktop">
+                                        <a href="{{ url_for('main.browse_series', _id= record['series_id']) }}">{{ record["series"] }}</a>
+                                    </td>
+                                    <td class="govuk-table__cell browse__table__right-align browse__table__all_desktop">
+                                        {{ record["last_record_transferred"] }}
+                                    </td>
+                                    <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden browse__table__all_desktop">
+                                        {{ record["records_held"] }}
+                                    </td>
+                                    <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden browse__table__all_desktop">
+                                        {{ record["consignment_in_series"] }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </div>
                     </tbody>
                 </table>
                 <!-- PAGINATION -->
