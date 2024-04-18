@@ -10,6 +10,7 @@
             "File name": record['file_name'],
             "Alternative file name": record['alternative_title'],
             "Description": record['description'],
+            "Citeable reference": record['citeable_reference'],
             "Alternative description": record['alternative_description'],
             "Status": record['closure_type'],
             "opening_date": record['opening_date'],
@@ -32,6 +33,7 @@
     {% set list_items = {
             "File name": record['file_name'],
             "Description": record['description'],
+            "Citeable reference": record['citeable_reference'],
             "Status": record['closure_type'],
             "Date of record": record['date_last_modified'],
             "Transferring body": record['transferring_body'],

@@ -49,6 +49,9 @@ class TestRecord:
         assert standard_user_page.get_by_text(
             "Description", exact=True
         ).is_visible()
+        assert standard_user_page.get_by_text(
+            "Citeable reference", exact=True
+        ).is_visible()
         assert standard_user_page.get_by_text("Status", exact=True).is_visible()
         assert standard_user_page.get_by_text(
             "Date of record", exact=True
@@ -116,6 +119,9 @@ class TestRecord:
         ).is_visible()
         assert standard_user_page.get_by_text(
             "Description", exact=True
+        ).is_visible()
+        assert standard_user_page.get_by_text(
+            "Citeable reference", exact=True
         ).is_visible()
         assert standard_user_page.get_by_text(
             "Alternative description", exact=True

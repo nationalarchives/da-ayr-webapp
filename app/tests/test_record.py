@@ -252,6 +252,12 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Citeable reference</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {file.CiteableReference}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                 <span class="govuk-tag govuk-tag--green">{record_files[0]["closure_type"].Value}</span>
@@ -382,6 +388,12 @@ class TestRecord:
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Description</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {record_files[1]["description"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Citeable reference</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {file.CiteableReference}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -541,6 +553,12 @@ class TestRecord:
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Description</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {record_files[2]["description"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Citeable reference</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {file.CiteableReference}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
