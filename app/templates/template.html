@@ -1,3 +1,4 @@
+{# djlint:off H016,H030,H031 #}
 {% from "govuk_frontend_jinja/components/skip-link/macro.html" import govukSkipLink -%}
 {% from "govuk_frontend_jinja/components/header/macro.html" import govukHeader -%}
 {% from "govuk_frontend_jinja/components/footer/macro.html" import govukFooter -%}
@@ -6,7 +7,9 @@
       class="govuk-template {%- if htmlClasses %}{{ htmlClasses }}{% endif %}">
     <head>
         <meta charset="utf-8">
+        {# djlint:off #}
         <title {%- if pageTitleLang %}lang="{{ pageTitleLang }}"{% endif %}>{% block pageTitle %}GOV.UK - The best place to find government services and information{% endblock %}</title>
+        {# djlint:on #}
         <meta name="viewport"
               content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="theme-color"
