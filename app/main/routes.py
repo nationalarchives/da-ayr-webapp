@@ -611,11 +611,19 @@ def record(record_id: uuid.UUID):
         6: {"file_name": file.FileName},
     }
 
+    download_filename = None
+    if file.CiteableReference:
+        if len(file.FileName.rsplit(".", 1)) > 1:
+            download_filename = (
+                file.CiteableReference + "." + file.FileName.rsplit(".", 1)[1]
+            )
+
     return render_template(
         "record.html",
         form=form,
         record=file_metadata,
         breadcrumb_values=breadcrumb_values,
+        download_filename=download_filename,
         filters={},
     )
 

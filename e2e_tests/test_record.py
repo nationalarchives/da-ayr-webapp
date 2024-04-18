@@ -187,6 +187,16 @@ class TestRecord:
             .is_visible()
         )
 
+    def test_record_download_with_citeable_reference(
+        self, standard_user_page: Page
+    ):
+        standard_user_page.goto(f"{self.route_url}/{self.record_id}")
+
+        # Verify downloaded record details visible
+        assert standard_user_page.get_by_text(
+            "The downloaded record will be"
+        ).is_visible()
+
     def test_record_download_record(self, standard_user_page: Page):
         standard_user_page.goto(f"{self.route_url}/{self.record_id}")
         assert standard_user_page.get_by_role(
