@@ -80,7 +80,7 @@ class TestRecord:
         When a standard user with request to view the record page
         Then the response status code should be 200
         And the HTML content should show the breadcrumb values as
-         Everything > transferring body > series > consignment reference > file name
+         All available records > transferring body > series > consignment reference > file name
         on the page
         """
         file = record_files[0]["file_object"]
@@ -106,7 +106,7 @@ class TestRecord:
         <div class="govuk-breadcrumbs govuk-breadcrumbs--file">
             <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
-                <a class="govuk-breadcrumbs__link--record" href="{browse_all_route_url}">Everything</a>
+                <a class="govuk-breadcrumbs__link--record" href="{browse_all_route_url}">All available records</a>
                 </li>
                 <li class="govuk-breadcrumbs__list-item">
                 <a class="govuk-breadcrumbs__link--record--transferring-body"
@@ -177,7 +177,7 @@ class TestRecord:
             {"class": "record-container"},
         )
 
-    def test_record_download_record(
+    def test_record_download_record_without_citeable_reference(
         self, client: FlaskClient, mock_standard_user, record_files
     ):
         """
@@ -187,7 +187,7 @@ class TestRecord:
         And the HTML content should see record download component
         on the page
         """
-        file = record_files[0]["file_object"]
+        file = record_files[4]["file_object"]
         mock_standard_user(client, file.consignment.series.body.Name)
 
         response = client.get(f"{self.route_url}/{file.FileId}")
@@ -202,6 +202,46 @@ class TestRecord:
             <a href="/download/{file.FileId}"
                 class="govuk-button govuk-button__download--record"
                 data-module="govuk-button">Download record</a>
+            <p class="govuk-body govuk-body--terms-of-use">
+                Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
+            </p>
+        </div>
+        """
+
+        assert_contains_html(
+            expected_download_html, html, "div", {"class": "rights-container"}
+        )
+
+    def test_record_download_record_with_citeable_reference(
+        self, client: FlaskClient, mock_standard_user, record_files
+    ):
+        """
+        Given a File in the database
+        When a standard user with request to view the record page
+        Then the response status code should be 200
+        And the HTML content should see record download component
+        on the page
+        """
+        file = record_files[0]["file_object"]
+        download_filename = f"{file.CiteableReference}.docx"
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        expected_download_html = f"""
+        <div class="rights-container">
+            <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
+            <a href="/download/{file.FileId}"
+                class="govuk-button govuk-button__download--record"
+                data-module="govuk-button">Download record</a>
+            <p class="govuk-body govuk-body--download-filename">
+                The downloaded record will be named<br>
+                <strong>{download_filename}</strong>
+            </p>
             <p class="govuk-body govuk-body--terms-of-use">
                 Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
             </p>
@@ -252,6 +292,12 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Citeable reference</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {file.CiteableReference}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                 <span class="govuk-tag govuk-tag--green">{record_files[0]["closure_type"].Value}</span>
@@ -270,7 +316,7 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series reference</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {file.consignment.series.Name}
                 </dd>
@@ -385,6 +431,12 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Citeable reference</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {file.CiteableReference}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative description</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {record_files[1]["alternative_description"].Value}
@@ -427,7 +479,7 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series reference</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {file.consignment.series.Name}
                 </dd>
@@ -544,6 +596,12 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Citeable reference</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {file.CiteableReference}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative description</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {record_files[2]["alternative_description"].Value}
@@ -586,7 +644,7 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series</dt>
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series reference</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {file.consignment.series.Name}
                 </dd>
