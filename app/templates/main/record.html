@@ -67,13 +67,15 @@
                     </div>
                 </div>
                 <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--record-table mobile-record-details">
-                    <h1 class="govuk-heading-m govuk-heading-m__record-details">Record details</h1>
-                    <dl class="govuk-summary-list govuk-summary-list--record">
-                        <div class="govuk-summary-list__row"></div>
-                        {% with dict = list_items %}
-                            {% include "summary_list_items.html" %}
-                        {% endwith %}
-                    </dl>
+                    <div class="main-content" id="main-content" role="main">
+                        <h1 class="govuk-heading-m govuk-heading-m__record-details">Record details</h1>
+                        <dl class="govuk-summary-list govuk-summary-list--record">
+                            <div class="govuk-summary-list__row"></div>
+                            {% with dict = list_items %}
+                                {% include "summary_list_items.html" %}
+                            {% endwith %}
+                        </dl>
+                    </div>
                 </div>
                 <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-rights">
                     <div class="rights-container">

@@ -1,19 +1,21 @@
 {% extends "base.html" %}
 {%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
 {% block content %}
-    <main class="govuk-main-wrapper govuk-main-wrapper--ayr-content">
+    <div class="govuk-main-wrapper--ayr-content">
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-one-third govuk-grid-column-one-third--ayr-content">
-                <div class="anchor-link-list-ayr">
-                    <h3 class="govuk-heading-s govuk-heading-s--ayr-content">Contents</h3>
-                    <ul class="govuk-list">
-                        {% block content_list %}{% endblock %}
-                    </ul>
+                <div class="main-content" id="main-content" role="main">
+                    <div class="anchor-link-list-ayr">
+                        <h3 class="govuk-heading-s govuk-heading-s--ayr-content">Contents</h3>
+                        <ul class="govuk-list">
+                            {% block content_list %}{% endblock %}
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="govuk-grid-column-two-thirds">
                 {% block static_content %}{% endblock %}
             </div>
         </div>
-    </main>
+    </div>
 {% endblock %}
