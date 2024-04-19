@@ -102,6 +102,7 @@
 .govuk-summary-list {
   &--record {
     table-layout: auto;
+    border-top: 1px solid #b1b4b6;
   }
 
   &__key--record-table {
