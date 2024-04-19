@@ -278,7 +278,6 @@ class TestRecord:
 
         expected_record_summary_html = f"""
         <dl class="govuk-summary-list govuk-summary-list--record">
-                        <div class="govuk-summary-list__row"></div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">File name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
@@ -411,7 +410,6 @@ class TestRecord:
 
         expected_record_summary_html = f"""
         <dl class="govuk-summary-list govuk-summary-list--record">
-                        <div class="govuk-summary-list__row"></div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">File name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
@@ -576,7 +574,6 @@ class TestRecord:
 
         expected_record_summary_html = f"""
         <dl class="govuk-summary-list govuk-summary-list--record">
-                        <div class="govuk-summary-list__row"></div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">File name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
