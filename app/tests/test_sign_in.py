@@ -25,7 +25,8 @@ def test_callback_route_all_access_user(mock_keycloak, client):
         "refresh_token": "valid_refresh_token",
     }
     mock_keycloak.return_value.introspect.return_value = {
-        "groups": ["/ayr_user_type/view_all"]
+        "groups": ["/ayr_user_type/view_all"],
+        "sub": "test_all_access_user",
     }
 
     with client.session_transaction() as sess:
@@ -40,6 +41,7 @@ def test_callback_route_all_access_user(mock_keycloak, client):
     with client.session_transaction() as sess:
         assert "user_type" in sess
         assert sess["user_type"] == "all_access_user"
+        assert sess["user_id"] == "test_all_access_user"
 
 
 @patch("app.main.routes.get_keycloak_instance_from_flask_config")
@@ -49,7 +51,8 @@ def test_callback_route_standard_user(mock_keycloak, client):
         "refresh_token": "valid_refresh_token",
     }
     mock_keycloak.return_value.introspect.return_value = {
-        "groups": ["/ayr_user_type/view_dept"]
+        "groups": ["/ayr_user_type/view_dept"],
+        "sub": "test_standard_user",
     }
 
     with client.session_transaction() as sess:
