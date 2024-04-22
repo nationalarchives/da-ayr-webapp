@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import boto3
@@ -662,7 +663,7 @@ def download_record(record_id: uuid.UUID):
     )
     user_id = session["user_id"]
     log_download_data = {"user_id": user_id, "file": key}
-    current_app.logger.info(log_download_data)
+    current_app.logger.info(json.dumps(log_download_data))
     return response
 
 
