@@ -1,3 +1,5 @@
+import json
+
 import boto3
 from flask.testing import FlaskClient
 from moto import mock_aws
@@ -37,7 +39,7 @@ class TestDownload:
 
     @mock_aws
     def test_download_record_standard_user_with_citable_reference_with_file_extension(
-        self, app, client, mock_standard_user
+        self, app, client, mock_standard_user, caplog
     ):
         """
         Given a File in the database with corresponding file in the s3 bucket
@@ -64,9 +66,19 @@ class TestDownload:
         )
         assert response.data == b"record"
 
+        with client.session_transaction() as session:
+            user_id = session["user_id"]
+
+        key = file.consignment.ConsignmentReference + "/" + str(file.FileId)
+
+        msg = json.dumps({"user_id": user_id, "file": key})
+
+        assert caplog.records[0].levelname == "INFO"
+        assert caplog.records[0].message == msg
+
     @mock_aws
     def test_download_record_standard_user_with_citable_reference_without_file_extension(
-        self, app, client, mock_standard_user
+        self, app, client, mock_standard_user, caplog
     ):
         """
         Given a File in the database with corresponding file in the s3 bucket
@@ -95,9 +107,19 @@ class TestDownload:
         )
         assert response.data == b"record"
 
+        with client.session_transaction() as session:
+            user_id = session["user_id"]
+
+        key = file.consignment.ConsignmentReference + "/" + str(file.FileId)
+
+        msg = json.dumps({"user_id": user_id, "file": key})
+
+        assert caplog.records[0].levelname == "INFO"
+        assert caplog.records[0].message == msg
+
     @mock_aws
     def test_download_record_standard_user_without_citable_reference(
-        self, app, client, mock_standard_user
+        self, app, client, mock_standard_user, caplog
     ):
         """
         Given a File in the database with corresponding file in the s3 bucket
@@ -125,6 +147,16 @@ class TestDownload:
             == f"attachment;filename={file.FileName}"
         )
         assert response.data == b"record"
+
+        with client.session_transaction() as session:
+            user_id = session["user_id"]
+
+        key = file.consignment.ConsignmentReference + "/" + str(file.FileId)
+
+        msg = json.dumps({"user_id": user_id, "file": key})
+
+        assert caplog.records[0].levelname == "INFO"
+        assert caplog.records[0].message == msg
 
     @mock_aws
     def test_raises_404_for_standard_user_without_access_to_files_transferring_body(
