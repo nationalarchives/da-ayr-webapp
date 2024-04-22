@@ -2,58 +2,151 @@
 {% block pageTitle %}How to use this service – {{ config['SERVICE_NAME'] }} –  GOV.UK{% endblock %}
 {% block content_list %}
     <li class="govuk-list__ayr-content">
-        <a class="govuk-link govuk-link__ayr-content" href="#">Anchor link one</a>
+        <a class="govuk-link govuk-link__ayr-content" href="#getting-started">Getting started</a>
     </li>
     <li class="govuk-list__ayr-content">
-        <a class="govuk-link govuk-link__ayr-content" href="#">Anchor link two this is a really long link test</a>
+        <a class="govuk-link govuk-link__ayr-content"
+           href="#accessing-my-account">Accessing my AYR account</a>
     </li>
     <li class="govuk-list__ayr-content">
-        <a class="govuk-link govuk-link__ayr-content" href="#">Anchor link three</a>
+        <a class="govuk-link govuk-link__ayr-content" href="#finding-records">Finding records using search and browse</a>
     </li>
     <li class="govuk-list__ayr-content">
-        <a class="govuk-link govuk-link__ayr-content" href="#">Anchor link four</a>
+        <a class="govuk-link govuk-link__ayr-content" href="#contact-us">How to contact us about this service</a>
     </li>
 {% endblock %}
 {% block static_content %}
-    <h1 class="govuk-heading-l">How to use this service</h1>
+    <h1 class="govuk-heading-l">How to use the Access Your Records Service</h1>
     <p class="govuk-body-s">
-        Last updated on <time datetime="YYYY-MM-DD">XX Month 2024.</time>
+        Last updated on <time datetime="2024-04-15">15 April 2024.</time>
     </p>
-    <h2 class="govuk-heading-m">Anchor link one heading</h2>
+    <h2 class="govuk-heading-m" id="getting-started">Getting started</h2>
+    <h3 class="govuk-heading-s">What is AYR</h3>
     <p class="govuk-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+        Access Your Records (AYR) is a secure digital access service from The National Archives (TNA) that enables public record bodies to search, browse and download public records. Only digital records that have been transferred to TNA for permanent preservation via the Transfer Digital Records (TDR) service will be made available through AYR. Unlike the Discovery catalogue, you can access records that are both open and closed using this service.
     </p>
+    <h2 class="govuk-heading-m" id="accessing-my-account">Accessing my AYR account</h2>
+    <h3 class="govuk-heading-s">What browsers are supported?</h3>
     <p class="govuk-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Facilisis sed odio morbi quis commodo odio aenean. Id diam maecenas ultricies mi eget mauris pharetra. Sit amet aliquam id diam maecenas ultricies mi eget mauris. Penatibus et magnis dis parturient montes nascetur. Vivamus at augue eget arcu dictum varius. Lectus arcu bibendum at varius vel pharetra vel turpis. Consectetur lorem donec massa sapien faucibus et molestie.
-    </p>
-    <h2 class="govuk-heading-m">Anchor link two heading</h2>
-    <p class="govuk-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Vel turpis nunc eget lorem dolor sed. In mollis nunc sed id semper risus in hendrerit gravida. Praesent elementum facilisis leo vel fringilla. Amet consectetur adipiscing elit duis tristique sollicitudin nibh sit.
-    </p>
-    <p class="govuk-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Dolor sit amet consectetur adipiscing elit duis. Ac feugiat sed lectus vestibulum mattis ullamcorper velit. Sodales ut eu sem integer vitae. Gravida dictum fusce ut placerat orci nulla pellentesque. Dui vivamus arcu felis bibendum ut tristique et. Sed egestas egestas fringilla phasellus faucibus. Tristique sollicitudin nibh sit amet. Fringilla urna porttitor rhoncus dolor purus non enim praesent elementum. Condimentum id venenatis a condimentum.
-    </p>
-    <h2 class="govuk-heading-m">Anchor link three heading</h2>
-    <p class="govuk-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Amet est placerat in egestas erat imperdiet sed euismod. Aenean pharetra magna ac placerat vestibulum.
+        We do not support Internet Explorer. We advise you to use the latest browser version of Edge, Chrome or Firefox to ensure you can use this service and all of its features.
     </p>
     <p class="govuk-body">
-        Arcu non sodales neque sodales. Donec adipiscing tristique risus nec feugiat. Ac placerat vestibulum lectus mauris ultrices eros in cursus turpis. Volutpat est velit egestas dui id ornare arcu odio. Risus in hendrerit gravida rutrum quisque non tellus orci ac. Et malesuada fames ac turpis egestas integer eget aliquet. Adipiscing commodo elit at imperdiet. Habitasse platea dictumst quisque sagittis. Sit amet tellus cras adipiscing enim eu. Ut eu sem integer vitae. Elit ullamcorper dignissim cras tincidunt lobortis feugiat. Velit egestas dui id ornare arcu. Quam lacus suspendisse faucibus interdum posuere lorem ipsum dolor sit.
+        <h3 class="govuk-heading-s">Which email should I use to sign in?</h3>
+        <p class="govuk-body">
+            Use the email used to create your account. If your email address changes, send full details of the change to <a href="mailto:tdr@nationalarchives.gov.uk" class="govuk-link">tdr@nationalarchives.gov.uk</a>
+        </p>
+    </p>
+    <h3 class="govuk-heading-s">My password does not work</h3>
+    <p class="govuk-body">
+        If you forget your password or need to reset it, select the ‘Forgot Your Password?' link on the sign-in page to request a reset and follow the on-screen instructions. For any other password issue, email <a href="mailto:tdr@nationalarchives.gov.uk" class="govuk-link">tdr@nationalarchives.gov.uk</a>.
+    </p>
+    <h3 class="govuk-heading-s">What is Multi-Factor Authentication (MFA)?</h3>
+    <p class="govuk-body">
+        To keep the service and your account secure, you are required to sign in each time using Multi-Factor Authentication (MFA). This uses two separate pieces of information to authenticate and grant access to the service. In AYR you must sign in each time using your password and a unique generated ‘one-time passcode’ (OTP) that confirms who you are. This can be set up with a free-to-download authenticator app on your smartphone device, such as Google Authenticator, Microsoft Authenticator, or FreeOTP. Other authenticators are also available.
     </p>
     <p class="govuk-body">
-        Egestas maecenas pharetra convallis posuere morbi leo urna molestie. Dui faucibus in ornare quam viverra orci sagittis eu. Egestas erat imperdiet sed euismod nisi porta lorem mollis. Integer enim neque volutpat ac tincidunt. Vitae congue mauris rhoncus aenean. Tincidunt arcu non sodales neque sodales ut etiam. Blandit massa enim nec dui nunc mattis enim ut tellus. Sit amet mauris commodo quis imperdiet massa tincidunt nunc pulvinar. Euismod elementum nisi quis eleifend quam. Cursus sit amet dictum sit amet justo donec. Urna molestie at elementum eu facilisis sed odio.
+        Free-to-download apps are available from the App Store for iPhone, or Google Play for Android.
     </p>
-    <h2 class="govuk-heading-m">Anchor link four heading</h2>
+    <h3 class="govuk-heading-s">How do I set up MFA and my one-time passcode (OTP)?</h3>
     <p class="govuk-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Pharetra convallis posuere morbi leo urna. Egestas tellus rutrum tellus pellentesque eu tincidunt. Euismod lacinia at quis risus sed vulputate odio ut enim. Feugiat nisl pretium fusce id velit. Enim sit amet venenatis urna cursus eget nunc.
+        When you register as a new AYR user, follow the registration steps in the User Help Guide to set up an AYR account in the authenticator app on a smartphone that you have access to. You only need to configure this once for it to generate a code for each time you sign in.
+    </p>
+    <h3 class="govuk-heading-s">Where do I get my OTP code?</h3>
+    <p class="govuk-body">
+        In the authenticator app, select the AYR account that you set up and you'll see an OTP generated every 30 to 60 seconds. Ensure you have enough time to use the code to complete the sign-in process before the code refreshes.
+    </p>
+    <h3 class="govuk-heading-s">When setting up the authenticator app, my configuration failed - what should I do?</h3>
+    <p class="govuk-body">
+        If the authentication app fails to configure when adding a new account for AYR on your device, delete the failed AYR account within the app and try again. For guidance on how to do this on each device, follow the instructions below.
+    </p>
+    <p class="govuk-body">For Android:</p>
+    <ol class="govuk-body">
+        <li>Open the authenticator app on the device and tap 'Generate code'.</li>
+        <li>On the 'Generate code' screen, press and hold the account you want to remove.</li>
+        <li>When prompted, tap remove.</li>
+    </ol>
+    <p class="govuk-body">For iOS:</p>
+    <ol class="govuk-body">
+        <li>Open the authenticator app on the device and tap 'Generate code'.</li>
+        <li>On the 'Generate code' screen, press the account you wish to remove and swipe it to the left.</li>
+        <li>
+            If you are using the Microsoft Authenticator, look for the settings cog in the top corner and tap it to see the option that says ‘Remove account’.
+        </li>
+    </ol>
+    <p class="govuk-body">If you need further support on the app, your local IT support desk may be able to assist.</p>
+    <h3 class="govuk-heading-s">I am not able to use my phone camera to scan the QR code</h3>
+    <p class="govuk-body">Some device users may need to enable camera access in Settings.</p>
+    <p class="govuk-body">
+        Alternatively, a 9-digit key code can be manually entered into the app. Once you have the code, you can enter it into the app. To do this:
+    </p>
+    <ol class="govuk-body">
+        <li>
+            Select the 'I want to enter a key instead' link underneath the QR code displayed on the page to generate the code.
+        </li>
+        <li>Within your authenticator app select the 'Enter a setup key' option.</li>
+        <li>Enter the key code as shown into the app to create your unique OTP account for TDR sign-in.</li>
+        <li>You should now be able to see a 6-digit code that will refresh at regular intervals.</li>
+    </ol>
+    <h3 class="govuk-heading-s">My account registration link has expired</h3>
+    <p class="govuk-body">
+        If your ‘Update Your Account’ link has expired before use, email <a href="mailto:tdr@nationalarchives.gov.uk" class="govuk-link">tdr@nationalarchives.gov.uk</a> from your work email account and ask for a new link. Allow up to two working days for your request to be processed.
+    </p>
+    <h3 class="govuk-heading-s">Can I share my sign-in information?</h3>
+    <p class="govuk-body">
+        You must not share your personal sign-in information with anyone else. Always keep your details safe and secure.
+    </p>
+    <h2 class="govuk-heading-m" id="finding-records">Finding records using search and browse</h2>
+    <h3 class="govuk-heading-s">How do I search for records?</h3>
+    <p class="govuk-body">
+        AYR allows you to search for any records that you have access to. You can view records based on transferring body or department, series, the TDR consignment reference, the date the record was transferred to TNA or the file name. AYR holds both open and closed digital records.
     </p>
     <p class="govuk-body">
-        Tincidunt ornare massa eget egestas purus viverra accumsan. Non arcu risus quis varius. Purus faucibus ornare suspendisse sed. Pellentesque adipiscing commodo elit at imperdiet dui accumsan sit. Elementum sagittis vitae et leo duis ut diam. Nulla at volutpat diam ut venenatis tellus in. Tempus imperdiet nulla malesuada pellentesque elit. Morbi blandit cursus risus at ultrices mi. Rhoncus dolor purus non enim praesent elementum facilisis leo vel. Maecenas volutpat blandit aliquam etiam. Nulla facilisi cras fermentum odio eu feugiat. Lorem sed risus ultricies tristique nulla aliquet enim.
+        To search for a record, enter a file name, transferring body, series or consignment reference into the search bar and select ‘Search’.
     </p>
+    <h3 class="govuk-heading-s">How do I browse through records?</h3>
     <p class="govuk-body">
-        Odio aenean sed adipiscing diam donec adipiscing tristique risus nec. Donec massa sapien faucibus et molestie ac. Faucibus ornare suspendisse sed nisi lacus sed viverra tellus in. A lacus vestibulum sed arcu non odio. Pharetra convallis posuere morbi leo urna molestie at elementum eu. Malesuada nunc vel risus commodo viverra maecenas. Sollicitudin nibh sit amet commodo nulla facilisi nullam. In egestas erat imperdiet sed euismod nisi porta lorem. Nisi porta lorem mollis aliquam ut porttitor leo a diam. Etiam non quam lacus suspendisse faucibus. Morbi tristique senectus et netus. Bibendum arcu vitae elementum curabitur vitae. Scelerisque eu ultrices vitae auctor eu augue ut lectus arcu. Lacus luctus accumsan tortor posuere ac ut consequat.
+        AYR will recognise the department you belong to when you sign in to the service. The browse section will display all the records available to you. You can select through transferring body, series or TDR consignment references to find records. Alternatively, you can filter the results by transferring body, series or consignment reference using the filter panel on the right side of the screen. You can also limit records by the date the record was transferred to TNA via TDR or the last date the record was modified.
     </p>
-    <div>
-        <a href="#top" class="govuk-link govuk-link--ayr">Back to top</a>
+    <h3 class="govuk-heading-s">I cannot find my records</h3>
+    <p class="govuk-body">
+        AYR is a read-only system that allows users to search for digital records that have been transferred via TDR. If you cannot find a record using the search or browse functions, contact TDR or a record transfer advisor to see if there was a problem with your digital transfer. You can also use the Discovery catalogue to search for open digital records and records transferred via a hard drive which are not available on the AYR service.
+    </p>
+    <h3 class="govuk-heading-s">How do I view my records?</h3>
+    <p class="govuk-body">
+        When you select a record to view, the service will display any available metadata that was included during the record transfer via TDR. This includes open and closed file name, descriptions, and closure status. AYR will not make changes or updates to transferred metadata, even if it is incorrect.
+    </p>
+    <h3 class="govuk-heading-s">Can I download records?</h3>
+    <p class="govuk-body">
+        AYR allows you to download the records you have permission to access. Some of these records may be over 20 years old and the software to open them may no longer exist. There is currently no preview option in AYR to view records before downloading.
+    </p>
+    <h2 class="govuk-heading-m" id="contact-us">How to contact us about this service</h2>
+    <p class="govuk-body">By email:</p>
+    <p class="govuk-body">
+        You can contact us by email at <a href="mailto:tdr@nationalarchives.gov.uk" class="govuk-link">tdr@nationalarchives.gov.uk</a>
+    </p>
+    <p class="govuk-body">By live chat:</p>
+    <p class="govuk-body">
+        You can also use our live online chat service which is open Tuesday to Saturday, between 09:00 and 17:00. Refer to <a href="https://www.nationalarchives.gov.uk/contact-us/">The National Archives contact page</a> for details.
+    </p>
+    <p class="govuk-body">By post:</p>
+    <p class="govuk-body">If you need to contact us via post, write to:</p>
+    <address>
+        <p class="govuk-body">
+            Digital Access Team c/o
+            <br>
+            Digital Archiving Department
+            <br>
+            The National Archives,
+            <br>
+            Kew, Richmond,
+            <br>
+            Surrey
+            <br>
+            TW9 4DU
+            <br>
+        </p>
+    </address>
+    <div class="govuk-!-margin-top-9">
+        <a href="#top" class="govuk-link">Back to top</a>
     </div>
 {% endblock %}
