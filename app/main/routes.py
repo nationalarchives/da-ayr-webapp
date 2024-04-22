@@ -661,9 +661,9 @@ def download_record(record_id: uuid.UUID):
             "Content-Disposition": "attachment;filename=" + download_filename
         },
     )
-    user_id = session["user_id"]
-    log_download_data = {"user_id": user_id, "file": key}
-    current_app.logger.info(json.dumps(log_download_data))
+    current_app.logger.info(
+        json.dumps({"user_id": session["user_id"], "file": key})
+    )
     return response
 
 
