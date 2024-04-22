@@ -1,4 +1,3 @@
-import json
 import uuid
 
 import boto3
@@ -86,6 +85,7 @@ def callback():
     session["refresh_token"] = access_token_response["refresh_token"]
     decoded_access_token = keycloak_openid.introspect(session["access_token"])
     session["user_groups"] = decoded_access_token["groups"]
+    session["user_id"] = decoded_access_token["sub"]
     ayr_user = AYRUser(session.get("user_groups"))
     if ayr_user.is_all_access_user:
         session["user_type"] = "all_access_user"
@@ -660,11 +660,9 @@ def download_record(record_id: uuid.UUID):
             "Content-Disposition": "attachment;filename=" + download_filename
         },
     )
-    keycloak_openid = get_keycloak_instance_from_flask_config()
-    decoded_access_token = keycloak_openid.introspect(session["access_token"])
-    user_id = decoded_access_token["sub"]
+    user_id = session["user_id"]
     log_download_data = {"user_id": user_id, "file": key}
-    print(json.dumps(log_download_data))
+    current_app.logger.info(log_download_data)
     return response
 
 
