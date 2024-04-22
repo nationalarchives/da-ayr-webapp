@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import boto3
@@ -659,7 +660,11 @@ def download_record(record_id: uuid.UUID):
             "Content-Disposition": "attachment;filename=" + download_filename
         },
     )
-
+    keycloak_openid = get_keycloak_instance_from_flask_config()
+    decoded_access_token = keycloak_openid.introspect(session["access_token"])
+    user_id = decoded_access_token["sub"]
+    log_download_data = {"user_id": user_id, "file": key}
+    print(json.dumps(log_download_data))
     return response
 
 
