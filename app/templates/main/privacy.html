@@ -2,56 +2,167 @@
 {% block pageTitle %}Privacy – {{ config['SERVICE_NAME'] }} –  GOV.UK{% endblock %}
 {% block content_list %}
     <li class="govuk-list__ayr-content">
-        <a class="govuk-link govuk-link__ayr-content" href="#">Anchor link one</a>
+        <a class="govuk-link govuk-link__ayr-content" href="#data-collected">What data we collect from you</a>
     </li>
     <li class="govuk-list__ayr-content">
-        <a class="govuk-link govuk-link__ayr-content" href="#">Anchor link two this is a really long link test</a>
+        <a class="govuk-link govuk-link__ayr-content" href="#data-needed">Why we need your data</a>
     </li>
     <li class="govuk-list__ayr-content">
-        <a class="govuk-link govuk-link__ayr-content" href="#">Anchor link three</a>
+        <a class="govuk-link govuk-link__ayr-content" href="#data-usage">What we do with your data</a>
     </li>
     <li class="govuk-list__ayr-content">
-        <a class="govuk-link govuk-link__ayr-content" href="#">Anchor link four</a>
+        <a class="govuk-link govuk-link__ayr-content" href="#data-retention">How long we keep your data for</a>
+    </li>
+    <li class="govuk-list__ayr-content">
+        <a class="govuk-link govuk-link__ayr-content" href="#data-processing">Where your data is processed and stored</a>
+    </li>
+    <li class="govuk-list__ayr-content">
+        <a class="govuk-link govuk-link__ayr-content" href="#data-protection">How we protect your data and keep it secure</a>
+    </li>
+    <li class="govuk-list__ayr-content">
+        <a class="govuk-link govuk-link__ayr-content" href="#rights">Your rights</a>
+    </li>
+    <li class="govuk-list__ayr-content">
+        <a class="govuk-link govuk-link__ayr-content" href="#notice-changes">Changes to this notice</a>
+    </li>
+    <li class="govuk-list__ayr-content">
+        <a class="govuk-link govuk-link__ayr-content"
+           href="#questions-complaints">Questions and complaints</a>
     </li>
 {% endblock %}
 {% block static_content %}
-    <h1 class="govuk-heading-l">Privacy</h1>
+    <h1 class="govuk-heading-l">Privacy Notice for Access Your Records</h1>
     <p class="govuk-body-s">
-        Last updated on <time datetime="YYYY-MM-DD">XX Month 2024.</time>
+        Last updated on <time datetime="2024-04-15">15 April 2024.</time>
     </p>
-    <h2 class="govuk-heading-m">Anchor link one heading</h2>
+    <h2 class="govuk-heading-m" id="data-collected">What data we collect from you</h2>
+    <p class="govuk-body">The personal data we collect from you will include:</p>
+    <ul class="govuk-body">
+        <li>your name</li>
+        <li>your work email address</li>
+    </ul>
+    <p class="govuk-body">The legal basis under UK GDPR for processing this data is:</p>
+    <ul class="govuk-body">
+        <li>legal obligation</li>
+        <li>legitimate interests</li>
+    </ul>
     <p class="govuk-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+        The National Archives (TNA) requires you to sign in to the system so that we can provide the correct level of access and monitor which documents have been accessed.
+    </p>
+    <h2 class="govuk-heading-m" id="data-needed">Why we need your data</h2>
+    <p class="govuk-body">We need your data to:</p>
+    <ul class="govuk-body">
+        <li>make sure we have accurate information about who accesses digital records and which records are accessed</li>
+        <li>maintain the safety and security of all sensitive records</li>
+    </ul>
+    <h2 class="govuk-heading-m" id="data-usage">What we do with your data</h2>
+    <p class="govuk-body">AYR is a record access system. The data processed is used by:</p>
+    <ul class="govuk-body">
+        <li>Keycloak (authentication software)</li>
+        <li>Access Your Records Service</li>
+    </ul>
+    <p class="govuk-body">We will not:</p>
+    <ul class="govuk-body">
+        <li>sell or rent your data to third parties</li>
+        <li>share your data with third parties for marketing purposes</li>
+    </ul>
+    <p class="govuk-body">
+        We will share your data if we’re required to do so by law – for example, by court order, or to prevent fraud or other crime.
+    </p>
+    <h2 class="govuk-heading-m" id="data-retention">How long we keep your data for</h2>
+    <p class="govuk-body">We will only keep your personal data for as long as:</p>
+    <ul class="govuk-body">
+        <li>the law requires us to</li>
+        <li>we need it for the purposes listed above</li>
+    </ul>
+    <p class="govuk-body">
+        We will regularly review our user list and remove any accounts that have been inactive for one year or when we have been notified that you have left your department.
+    </p>
+    <h2 class="govuk-heading-m" id="data-processing">Where your data is processed and stored</h2>
+    <p class="govuk-body">
+        All personal data is processed, stored and managed entirely in the United Kingdom, and will not be transferred outside of it. This means that it is covered by UK data protection regulations.
+    </p>
+    <h2 class="govuk-heading-m" id="data-protection">How we protect your data and keep it secure</h2>
+    <p class="govuk-body">
+        We are committed to doing all that we can to keep your data secure. We set up systems and processes to prevent unauthorised access or disclosure of the data we collect about you – for example, we protect your data using varying levels of encryption.
+    </p>
+    <h2 class="govuk-heading-m" id="rights">Your rights</h2>
+    <p class="govuk-body">You have the right to request:</p>
+    <ul class="govuk-body">
+        <li>information about how your personal data is processed</li>
+        <li>
+            <a href="https://ico.org.uk/for-the-public/getting-copies-of-your-information-subject-access-request/"
+               class="govuk-link">a copy of that personal data</a>– this copy will be provided in a structured, commonly used and machine-readable format
+        </li>
+        <li>that anything inaccurate in your personal data is corrected immediately</li>
+    </ul>
+    <p class="govuk-body">You can also:</p>
+    <ul class="govuk-body">
+        <li>raise an objection about how your personal data is processed</li>
+        <li>request that your personal data is erased if there is no longer a justification for it</li>
+        <li>
+            ask that we only process your data in certain circumstances to <a href="https://ico.org.uk/for-the-public/your-right-to-limit-how-organisations-use-your-data/"
+    class="govuk-link">limit how we use your data</a>
+        </li>
+    </ul>
+    <h2 class="govuk-heading-m" id="notice-changes">Changes to this notice</h2>
+    <p class="govuk-body">
+        We may change this privacy notice and any changes will apply to you and your data immediately. If these changes affect how your personal data is processed, TNA will take reasonable steps to make sure you know. When we make changes to this notice, the ‘last updated’ date at the top of this page will reflect when the change is made and effective from.
+    </p>
+    <h2 class="govuk-heading-m" id="questions-complaints">Questions and complaints</h2>
+    <p class="govuk-body">
+        Contact the Data Protection Officer, <a href="mailto:linda.stewart@nationalarchives.gov.uk"
+    class="govuk-link">Linda Stewart</a>, if you:
+    </p>
+    <ul class="govuk-body">
+        <li>have any questions about anything in this document</li>
+        <li>think that your personal data has been misused or mishandled</li>
+        <li>
+            want to <a href="https://ico.org.uk/for-the-public/make-a-subject-access-request/"
+    class="govuk-link">make a subject access request (SAR)</a>
+        </li>
+    </ul>
+    <p class="govuk-body">By email:</p>
+    <p class="govuk-body">
+        You can contact us by email at <a href="mailto:tdr@nationalarchives.gov.uk" class="govuk-link">tdr@nationalarchives.gov.uk</a>
+    </p>
+    <p class="govuk-body">By live chat:</p>
+    <p class="govuk-body">
+        You can also use our live online chat service which is open Tuesday to Saturday, between 09:00 and 17:00. Refer to <a href="https://www.nationalarchives.gov.uk/contact-us/"
+    class="govuk-link">The National Archives contact page</a> for details.
+    </p>
+    <p class="govuk-body">By post:</p>
+    <p class="govuk-body">If you need to contact us via post, write to:</p>
+    <address>
+        <p class="govuk-body">
+            Digital Access Team c/o
+            <br>
+            Digital Archiving Department
+            <br>
+            The National Archives,
+            <br>
+            Kew, Richmond,
+            <br>
+            Surrey
+            <br>
+            TW9 4DU
+            <br>
+        </p>
+    </address>
+    <p class="govuk-body">
+        If you need to make a complaint to an independent regulator, you can contact the Information Commissioner’s Office at:
     </p>
     <p class="govuk-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Facilisis sed odio morbi quis commodo odio aenean. Id diam maecenas ultricies mi eget mauris pharetra. Sit amet aliquam id diam maecenas ultricies mi eget mauris. Penatibus et magnis dis parturient montes nascetur. Vivamus at augue eget arcu dictum varius. Lectus arcu bibendum at varius vel pharetra vel turpis. Consectetur lorem donec massa sapien faucibus et molestie.
-    </p>
-    <h2 class="govuk-heading-m">Anchor link two heading</h2>
-    <p class="govuk-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Vel turpis nunc eget lorem dolor sed. In mollis nunc sed id semper risus in hendrerit gravida. Praesent elementum facilisis leo vel fringilla. Amet consectetur adipiscing elit duis tristique sollicitudin nibh sit.
+        Email <a href="mailto:icocasework@ico.org.uk" class="govuk-link">icocasework@ico.org.uk</a>
     </p>
     <p class="govuk-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Dolor sit amet consectetur adipiscing elit duis. Ac feugiat sed lectus vestibulum mattis ullamcorper velit. Sodales ut eu sem integer vitae. Gravida dictum fusce ut placerat orci nulla pellentesque. Dui vivamus arcu felis bibendum ut tristique et. Sed egestas egestas fringilla phasellus faucibus. Tristique sollicitudin nibh sit amet. Fringilla urna porttitor rhoncus dolor purus non enim praesent elementum. Condimentum id venenatis a condimentum.
-    </p>
-    <h2 class="govuk-heading-m">Anchor link three heading</h2>
-    <p class="govuk-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Amet est placerat in egestas erat imperdiet sed euismod. Aenean pharetra magna ac placerat vestibulum.
+        Website <a href="https://ico.org.uk/make-a-complaint/" class="govuk-link">Make a complaint | ICO</a>
     </p>
     <p class="govuk-body">
-        Arcu non sodales neque sodales. Donec adipiscing tristique risus nec feugiat. Ac placerat vestibulum lectus mauris ultrices eros in cursus turpis. Volutpat est velit egestas dui id ornare arcu odio. Risus in hendrerit gravida rutrum quisque non tellus orci ac. Et malesuada fames ac turpis egestas integer eget aliquet. Adipiscing commodo elit at imperdiet. Habitasse platea dictumst quisque sagittis. Sit amet tellus cras adipiscing enim eu. Ut eu sem integer vitae. Elit ullamcorper dignissim cras tincidunt lobortis feugiat. Velit egestas dui id ornare arcu. Quam lacus suspendisse faucibus interdum posuere lorem ipsum dolor sit.
+        Telephone <a href="tel:0303 123 1113" class="govuk-link">0303 123 1113</a>
     </p>
     <p class="govuk-body">
-        Egestas maecenas pharetra convallis posuere morbi leo urna molestie. Dui faucibus in ornare quam viverra orci sagittis eu. Egestas erat imperdiet sed euismod nisi porta lorem mollis. Integer enim neque volutpat ac tincidunt. Vitae congue mauris rhoncus aenean. Tincidunt arcu non sodales neque sodales ut etiam. Blandit massa enim nec dui nunc mattis enim ut tellus. Sit amet mauris commodo quis imperdiet massa tincidunt nunc pulvinar. Euismod elementum nisi quis eleifend quam. Cursus sit amet dictum sit amet justo donec. Urna molestie at elementum eu facilisis sed odio.
-    </p>
-    <h2 class="govuk-heading-m">Anchor link four heading</h2>
-    <p class="govuk-body">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Pharetra convallis posuere morbi leo urna. Egestas tellus rutrum tellus pellentesque eu tincidunt. Euismod lacinia at quis risus sed vulputate odio ut enim. Feugiat nisl pretium fusce id velit. Enim sit amet venenatis urna cursus eget nunc.
-    </p>
-    <p class="govuk-body">
-        Tincidunt ornare massa eget egestas purus viverra accumsan. Non arcu risus quis varius. Purus faucibus ornare suspendisse sed. Pellentesque adipiscing commodo elit at imperdiet dui accumsan sit. Elementum sagittis vitae et leo duis ut diam. Nulla at volutpat diam ut venenatis tellus in. Tempus imperdiet nulla malesuada pellentesque elit. Morbi blandit cursus risus at ultrices mi. Rhoncus dolor purus non enim praesent elementum facilisis leo vel. Maecenas volutpat blandit aliquam etiam. Nulla facilisi cras fermentum odio eu feugiat. Lorem sed risus ultricies tristique nulla aliquet enim.
-    </p>
-    <p class="govuk-body">
-        Odio aenean sed adipiscing diam donec adipiscing tristique risus nec. Donec massa sapien faucibus et molestie ac. Faucibus ornare suspendisse sed nisi lacus sed viverra tellus in. A lacus vestibulum sed arcu non odio. Pharetra convallis posuere morbi leo urna molestie at elementum eu. Malesuada nunc vel risus commodo viverra maecenas. Sollicitudin nibh sit amet commodo nulla facilisi nullam. In egestas erat imperdiet sed euismod nisi porta lorem. Nisi porta lorem mollis aliquam ut porttitor leo a diam. Etiam non quam lacus suspendisse faucibus. Morbi tristique senectus et netus. Bibendum arcu vitae elementum curabitur vitae. Scelerisque eu ultrices vitae auctor eu augue ut lectus arcu. Lacus luctus accumsan tortor posuere ac ut consequat.
+        Textphone <a href="tel:01625 545 860" class="govuk-link">01625 545 860</a>
     </p>
     <div class="govuk-!-margin-top-9">
         <a href="#top" class="govuk-link">Back to top</a>
