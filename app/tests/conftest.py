@@ -31,6 +31,7 @@ def mock_standard_user():
             session["refresh_token"] = "valid_refresh_token"
             session["user_groups"] = groups
             session["user_type"] = "standard_user"
+            session["user_id"] = "test_standard_user"
 
         mock_ayr_user = ayr_user_patcher.start()
         mock_keycloak = patcher.start()
@@ -65,6 +66,7 @@ def mock_all_access_user():
             session["refresh_token"] = "valid_refresh_token"
             session["user_groups"] = groups
             session["user_type"] = "all_access_user"
+            session["user_id"] = "test_aau_user"
 
         mock_ayr_user = ayr_user_patcher.start()
         mock_keycloak = patcher.start()
