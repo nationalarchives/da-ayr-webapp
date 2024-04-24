@@ -73,6 +73,11 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                <!-- PAGINATION -->
+                {% with view_name= 'main.browse_consignment', id = request.view_args['_id'] %}
+                    {% include "pagination.html" %}
+                {% endwith %}
+                <!-- END PAGINATION -->
             </div>
         {% else %}
             {% with view_type = "browse" %}
@@ -168,14 +173,5 @@
                             </div>
                         </div>
                         <!-- END FILTERS -->
-                        <!-- PAGINATION -->
-                        {% if num_records_found > 0 %}
-                            <div class="govuk-grid-column-two-thirds browse-grid--two-thirds mobile-pagination">
-                                {% with view_name= 'main.browse_consignment', id = request.view_args['_id'] %}
-                                    {% include "pagination.html" %}
-                                {% endwith %}
-                            </div>
-                        {% endif %}
-                        <!-- END PAGINATION -->
                     </div>
                 </form>

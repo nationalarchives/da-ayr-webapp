@@ -88,6 +88,11 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                <!-- PAGINATION -->
+                {% with view_name='main.browse' %}
+                    {% include "pagination.html" %}
+                {% endwith %}
+                <!-- END PAGINATION -->
             </div>
         {% else %}
             {% with view_type = "browse" %}
@@ -151,14 +156,5 @@
                 </div>
             </div>
         </div>
-        <!-- PAGINATION -->
-        {% if num_records_found > 0 %}
-            <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
-                {% with view_name='main.browse' %}
-                    {% include "pagination.html" %}
-                {% endwith %}
-            </div>
-        {% endif %}
-        <!-- END PAGINATION -->
     </div>
 </form>
