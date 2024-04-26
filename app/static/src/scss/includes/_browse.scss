@@ -172,7 +172,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #f3f2f1;
+    background-color: $container-grey;
     margin-bottom: 2.3rem;
 
     &__content {
@@ -195,7 +195,7 @@
 
 .browse-filter {
   &-container {
-    background-color: #f3f2f1;
+    background-color: $container-grey;
     padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
@@ -253,21 +253,21 @@
   }
 
   &__series__container {
-    background-color: #f3f2f1;
+    background-color: $container-grey;
     padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
   }
 
   &__consignment-ref__container {
-    background-color: #f3f2f1;
+    background-color: $container-grey;
     padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
   }
 
   &__date__container {
-    background-color: #f3f2f1;
+    background-color: $container-grey;
     padding: 0.5rem;
     min-width: 100%;
   }
@@ -444,7 +444,7 @@
       display: block;
       align-items: center;
       justify-content: center;
-      background-color: #f3f2f1;
+      background-color: $container-grey;
       width: 100%;
       padding: 0;
       left: 0;
@@ -457,7 +457,7 @@
       padding: 15px;
       display: flex;
       flex-direction: column;
-      background-color: #f3f2f1;
+      background-color: $container-grey;
     }
 
     &__heading {
