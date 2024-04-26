@@ -31,7 +31,7 @@
 }
 
 .search-records {
-  background-color: $light_grey;
+  background-color: $light-grey;
   height: 9rem;
   padding-top: 1.5rem;
 }
@@ -128,7 +128,7 @@
 }
 
 .rights-container {
-  background-color: $light_grey;
+  background-color: $light-grey;
   margin-top: 1.8rem;
   display: flex;
   flex-direction: column;
@@ -136,7 +136,7 @@
 }
 
 .record-container {
-  background-color: $light_grey;
+  background-color: $light-grey;
   display: block;
   margin-top: 1.25rem;
   padding: 1rem;
@@ -201,7 +201,7 @@
   &--red {
     font-size: 1rem;
     text-transform: capitalize;
-    color: $status_red;
+    color: $status-red;
     font-weight: 400;
     letter-spacing: 0;
   }
@@ -209,7 +209,7 @@
   &--green {
     font-size: 1rem;
     text-transform: capitalize;
-    color: $status_green;
+    color: $status-green;
     font-weight: 400;
     letter-spacing: 0;
   }
@@ -226,7 +226,7 @@
 
   --ball-size: 13px;
   --border-width: 3px;
-  --colour: $timeline_blue;
+  --colour: $timeline-blue;
 }
 
 .record-container .record-arrangement-list li {
@@ -247,7 +247,7 @@
   left: 0;
   top: 0;
   border-radius: 100%;
-  border: var(--border-width) solid $timeline_blue;
+  border: var(--border-width) solid $timeline-blue;
   z-index: 2;
 }
 
@@ -259,7 +259,7 @@
   left: calc((var(--ball-size) / 2) + (var(--border-width) / 2));
   top: calc(var(--ball-size) + var(--border-width));
   bottom: calc(var(--border-width) * -1);
-  background-color: $timeline_blue;
+  background-color: $timeline-blue;
 }
 
 .record-container .record-arrangement-list li:last-child {
