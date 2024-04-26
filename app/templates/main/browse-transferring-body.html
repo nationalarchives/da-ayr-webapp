@@ -88,6 +88,11 @@
                         </div>
                     </tbody>
                 </table>
+                <!-- PAGINATION -->
+                {% with view_name='main.browse_transferring_body', id = request.view_args['_id'] %}
+                    {% include "pagination.html" %}
+                {% endwith %}
+                <!-- END PAGINATION -->
             </div>
         {% else %}
             {% with view_type = "browse" %}
