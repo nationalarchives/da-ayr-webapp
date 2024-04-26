@@ -31,7 +31,7 @@
 }
 
 .search-records {
-  background-color: #f0f0f0;
+  background-color: $light_grey;
   height: 9rem;
   padding-top: 1.5rem;
 }
@@ -102,7 +102,7 @@
 .govuk-summary-list {
   &--record {
     table-layout: auto;
-    border-top: 1px solid #b1b4b6;
+    border-top: 1px solid $grey;
   }
 
   &__key--record-table {
@@ -128,7 +128,7 @@
 }
 
 .rights-container {
-  background-color: #f0f0f0;
+  background-color: $light_grey;
   margin-top: 1.8rem;
   display: flex;
   flex-direction: column;
@@ -136,7 +136,7 @@
 }
 
 .record-container {
-  background-color: #f0f0f0;
+  background-color: $light_grey;
   display: block;
   margin-top: 1.25rem;
   padding: 1rem;
@@ -201,7 +201,7 @@
   &--red {
     font-size: 1rem;
     text-transform: capitalize;
-    color: #942514;
+    color: $status_red;
     font-weight: 400;
     letter-spacing: 0;
   }
@@ -209,7 +209,7 @@
   &--green {
     font-size: 1rem;
     text-transform: capitalize;
-    color: #005a30;
+    color: $status_green;
     font-weight: 400;
     letter-spacing: 0;
   }
@@ -226,7 +226,7 @@
 
   --ball-size: 13px;
   --border-width: 3px;
-  --colour: #005ea5;
+  --colour: $timeline_blue;
 }
 
 .record-container .record-arrangement-list li {
@@ -247,7 +247,7 @@
   left: 0;
   top: 0;
   border-radius: 100%;
-  border: var(--border-width) solid var(--colour);
+  border: var(--border-width) solid $timeline_blue;
   z-index: 2;
 }
 
@@ -259,7 +259,7 @@
   left: calc((var(--ball-size) / 2) + (var(--border-width) / 2));
   top: calc(var(--ball-size) + var(--border-width));
   bottom: calc(var(--border-width) * -1);
-  background-color: var(--colour);
+  background-color: $timeline_blue;
 }
 
 .record-container .record-arrangement-list li:last-child {
@@ -277,30 +277,39 @@
 //  MOBILE STYLES //
 
 @media screen and (width <=810px) {
-  .govuk-grid-column-one-third {
-    &--record {
-      width: 100%;
+  .govuk-grid {
+    &-column-one-third {
+      &--record {
+        width: 100%;
+      }
+    }
+
+    &-column-two-thirds {
+      &--record-table {
+        display: flex;
+        flex-direction: column;
+        width: 100% !important;
+        order: 4;
+      }
+    }
+
+    &-column-full__page-nav {
+      order: 2;
+      margin-bottom: 0.5rem;
+      padding-left: 2rem;
+    }
+
+    &-row {
+      &--mobile {
+        display: flex;
+        flex-direction: column;
+      }
     }
   }
 
   .record-page {
     display: flex;
     margin-top: -2rem;
-  }
-
-  .govuk-grid-column-two-thirds {
-    &--record-table {
-      display: flex;
-      flex-direction: column;
-      width: 100% !important;
-      order: 4;
-    }
-  }
-
-  .govuk-grid-column-full__page-nav {
-    order: 2;
-    margin-bottom: 0.5rem;
-    padding-left: 2rem;
   }
 
   .govuk-summary-list {
@@ -324,28 +333,23 @@
     }
   }
 
-  .govuk-grid-row {
-    &--mobile {
+  .mobile-record {
+    &-layout {
       display: flex;
       flex-direction: column;
     }
-  }
 
-  .mobile-record-layout {
-    display: flex;
-    flex-direction: column;
-  }
+    &-details {
+      order: 2;
+    }
 
-  .mobile-record-details {
-    order: 2;
-  }
+    &-layout-rights {
+      order: 1;
+    }
 
-  .mobile-record-layout-rights {
-    order: 1;
-  }
-
-  .mobile-record-layout-record-arrangement {
-    order: 3;
+    &-layout-record-arrangement {
+      order: 3;
+    }
   }
 
   .rights-container {
@@ -417,21 +421,23 @@
     white-space: nowrap;
   }
 
-  .mobile-record-layout {
-    display: flex;
-    flex-direction: column;
-  }
+  .mobile-record {
+    &-layout {
+      display: flex;
+      flex-direction: column;
+    }
 
-  .mobile-record-details {
-    order: 2;
-  }
+    &-details {
+      order: 2;
+    }
 
-  .mobile-record-layout-rights {
-    order: 1;
-  }
+    &-layout-rights {
+      order: 1;
+    }
 
-  .mobile-record-layout-record-arrangement {
-    order: 3;
+    &-layout-record-arrangement {
+      order: 3;
+    }
   }
 
   .govuk-summary-list {

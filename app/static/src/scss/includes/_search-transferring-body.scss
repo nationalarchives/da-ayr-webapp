@@ -1,18 +1,20 @@
-.govuk-grid-row {
-  &--search {
-    margin-top: -2rem;
+.govuk-grid {
+  &-row {
+    &--search {
+      margin-top: -2rem;
+    }
   }
-}
 
-.govuk-grid-column-full {
-  &--search-results {
-    padding-top: 1.4rem;
+  &-column-full {
+    &--search-results {
+      padding-top: 1.4rem;
+    }
   }
-}
 
-.govuk-grid-column-two-thirds {
-  &--search-results {
-    margin-top: 1rem;
+  &-column-two-thirds {
+    &--search-results {
+      margin-top: 1rem;
+    }
   }
 }
 
@@ -100,11 +102,11 @@
     }
 
     a {
-      color: #1d70b8;
+      color: $link_blue;
       margin-bottom: -1rem;
 
       &:visited {
-        color: #1d70b8;
+        color: $link_blue;
       }
 
       // this is a temp fix, the overall problem is that .govuk-table__cell is overwritten in multiple places, should be fixed with css refactoring
@@ -188,7 +190,7 @@ a.govuk-link {
     font-size: 0.9rem;
 
     &:visited {
-      color: #1d70b8;
+      color: $link_blue;
     }
   }
 }
@@ -270,16 +272,18 @@ a.govuk-link {
   }
 }
 
-.search__mobile-heading {
-  display: none;
-}
+.search {
+  &__mobile-heading {
+    display: none;
+  }
 
-.search__mobile-row {
-  display: none;
-}
+  &__mobile-row {
+    display: none;
+  }
 
-.search__desktop-heading {
-  display: table-cell;
+  &__desktop-heading {
+    display: table-cell;
+  }
 }
 
 @media screen and (width <=810px) {
@@ -288,45 +292,49 @@ a.govuk-link {
     flex-direction: column;
   }
 
-  .govuk-grid-row {
-    display: flex;
-    flex-direction: column;
+  .govuk-grid {
+    &-row {
+      display: flex;
+      flex-direction: column;
+    }
+
+    &column-one-third--search-all-filters {
+      order: 1;
+    }
+
+    &-column-two-thirds--search-results {
+      order: 2;
+    }
   }
 
-  .govuk-grid-column-one-third--search-all-filters {
-    order: 1;
-  }
+  .search {
+    &-all-filter-container {
+      min-width: 0 !important;
+    }
 
-  .govuk-grid-column-two-thirds--search-results {
-    order: 2;
-  }
+    &__table__mobile--hidden {
+      display: none;
+    }
 
-  .search-all-filter-container {
-    min-width: 0 !important;
-  }
+    &__mobile-table__top-row {
+      border-bottom: none;
+    }
 
-  .search__table__mobile--hidden {
-    display: none;
-  }
+    &__mobile-table__middle-row {
+      border-bottom: none;
+    }
 
-  .search__mobile-table__top-row {
-    border-bottom: none;
-  }
+    &__desktop-heading {
+      display: none;
+    }
 
-  .search__mobile-table__middle-row {
-    border-bottom: none;
-  }
+    &__mobile-heading {
+      display: table-cell;
+      padding-left: 0;
+    }
 
-  .search__desktop-heading {
-    display: none;
-  }
-
-  .search__mobile-heading {
-    display: table-cell;
-    padding-left: 0;
-  }
-
-  .search__mobile-row {
-    display: table-row;
+    &__mobile-row {
+      display: table-row;
+    }
   }
 }

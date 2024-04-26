@@ -74,6 +74,14 @@
       font-size: 1rem;
     }
   }
+
+  &-table__row__browse--mobile {
+    display: none;
+  }
+
+  &-details {
+    display: none;
+  }
 }
 
 .browse {
@@ -297,14 +305,6 @@
   }
 }
 
-.govuk-table__row__browse--mobile {
-  display: none;
-}
-
-.govuk-details {
-  display: none;
-}
-
 // MOBILE STYLES
 
 @media screen and (width <=810px) {
@@ -330,22 +330,32 @@
     display: block;
   }
 
-  .browse-layout {
-    display: flex;
-    flex-direction: column;
-  }
+  .browse {
+    &-layout {
+      display: flex;
+      flex-direction: column;
+    }
 
-  .browse-grid--mobile-table {
-    order: 2;
-    width: auto;
-  }
+    &-grid--mobile-table {
+      order: 2;
+      width: auto;
+    }
 
-  .browse__sort-container {
-    margin-top: 0;
-  }
+    &__sort-container {
+      margin-top: 0;
+    }
 
-  .browse__table__mobile--hidden {
-    display: none;
+    &__table__mobile--hidden {
+      display: none;
+    }
+
+    &__body {
+      margin-bottom: 0.5rem !important;
+    }
+
+    &__table__series-row {
+      margin-bottom: 0.5rem;
+    }
   }
 
   .govuk-table__row__browse--mobile {
@@ -357,34 +367,57 @@
   }
 
   .browse__mobile-table__bottom-row {
-    border-bottom: 1px solid #b1b4b6;
+    border-bottom: 1px solid $grey;
     max-width: 10rem;
-  }
-
-  .mobile-pagination {
-    order: 3;
   }
 
   .mobile {
     display: block;
+
+    &-pagination {
+      order: 3;
+    }
   }
 
-  .govuk-template__body {
-    overflow: visible;
-  }
+  .govuk {
+    &-template__body {
+      overflow: visible;
+    }
 
-  .govuk-button__search-button {
-    width: 50%;
-    margin-bottom: 1rem;
-    order: 4;
-  }
+    &-button__search-button {
+      width: 50%;
+      margin-bottom: 1rem;
+      order: 4;
+    }
 
-  .browse__body {
-    margin-bottom: 0.5rem !important;
-  }
+    &-body-s {
+      order: 3;
+      align-self: flex-start;
+    }
 
-  .browse__table__series-row {
-    margin-bottom: 0.5rem;
+    &-mobile-summary-list {
+      display: block;
+      font-size: 1rem;
+      width: 100%;
+    }
+
+    &-summary-list__row {
+      /* display: flex; */
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    &-summary-list__key {
+      flex: 0;
+    }
+
+    &-summary-list__value {
+      flex: 0;
+    }
+
+    &-button__sort-container-update-button {
+      width: 100%;
+    }
   }
 
   .govuk-mobile-table {
@@ -406,39 +439,36 @@
     flex-direction: column;
   }
 
-  .search__container {
-    display: block;
-    align-items: center;
-    justify-content: center;
-    background-color: #f3f2f1;
-    width: 100%;
-    padding: 0;
-    left: 0;
-    right: 0;
-  }
+  .search {
+    &__container {
+      display: block;
+      align-items: center;
+      justify-content: center;
+      background-color: #f3f2f1;
+      width: 100%;
+      padding: 0;
+      left: 0;
+      right: 0;
+    }
 
-  .search__container__content {
-    width: 100%;
-    margin: -15px;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    background-color: #f3f2f1;
-  }
+    &__container__content {
+      width: 100%;
+      margin: -15px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      background-color: #f3f2f1;
+    }
 
-  .search__heading {
-    order: 0;
-    margin-bottom: 0.3rem;
-    width: fit-content;
+    &__heading {
+      order: 0;
+      margin-bottom: 0.3rem;
+      width: fit-content;
+    }
   }
 
   #search-input {
     order: 2;
-  }
-
-  .govuk-body-s {
-    order: 3;
-    align-self: flex-start;
   }
 
   .mobile__search__text {
@@ -451,32 +481,8 @@
     font-size: 1.2rem;
   }
 
-  .govuk-mobile-summary-list {
-    display: block;
-    font-size: 1rem;
-    width: 100%;
-  }
-
-  .govuk-summary-list__row {
-    /* display: flex; */
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-
-  .govuk-summary-list__key {
-    flex: 0;
-  }
-
-  .govuk-summary-list__value {
-    flex: 0;
-  }
-
   .right-align {
     text-align: right;
-  }
-
-  .govuk-button__sort-container-update-button {
-    width: 100%;
   }
 
   .browse-details {
