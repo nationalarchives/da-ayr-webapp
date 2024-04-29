@@ -9,8 +9,7 @@ def test_signed_out_page(client):
     html = response.data.decode()
 
     assert (
-        b'<h1 class="govuk-heading-l">You have successfully signed out</h1>'
-        in response.data
+        b'<h1 class="govuk-heading-l">You have signed out</h1>' in response.data
     )
     assert (
         b'<p class="govuk-body-l">Thank you for using Access Your Records.</p>'
@@ -19,7 +18,7 @@ def test_signed_out_page(client):
 
     expected_button_html = (
         '<a href="/sign-in" role="button" class="govuk-button govuk-button--sign-in-again" '
-        'data-module="govuk-button">Sign back in</a>'
+        'data-module="govuk-button">Sign in</a>'
     )
     assert_contains_html(
         expected_button_html,
