@@ -1,6 +1,6 @@
 .browse-all-filter {
   &-container {
-    background-color: $container-grey;
+    background-color: $colour-container-normal;
     padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
@@ -67,21 +67,21 @@
   }
 
   &__series__container {
-    background-color: $container-grey;
+    background-color: $colour-container-normal;
     padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
   }
 
   &__browse-all-ref__container {
-    background-color: $container-grey;
+    background-color: $colour-container-normal;
     padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
   }
 
   &__date__container {
-    background-color: $container-grey;
+    background-color: $colour-container-normal;
     padding: 0.5rem;
     min-width: 100%;
   }
@@ -112,7 +112,7 @@
   }
 
   &__filetype__container {
-    background-color: $container-grey;
+    background-color: $colour-container-normal;
     padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
@@ -120,112 +120,114 @@
   }
 }
 
-.govuk-heading-s {
-  &--series {
-    margin-bottom: 0;
-    padding-top: 0;
-    font-size: 1rem;
+.govuk {
+  &-heading-s {
+    &--series {
+      margin-bottom: 0;
+      padding-top: 0;
+      font-size: 1rem;
+    }
+
+    &--browse-all-filter {
+      font-size: 1rem;
+      padding-top: 0.3rem;
+      margin-bottom: 0.3rem;
+    }
   }
 
-  &--browse-all-filter {
-    font-size: 1rem;
-    padding-top: 0.3rem;
-    margin-bottom: 0.3rem;
-  }
-}
+  &-body {
+    &--series {
+      font-size: 0.8rem;
+      white-space: nowrap;
+      color: black;
+      margin-bottom: 0;
+    }
 
-.govuk-body {
-  &--series {
-    font-size: 0.8rem;
-    white-space: nowrap;
-    color: black;
-    margin-bottom: 0;
-  }
+    &--browse-all-date {
+      display: inline;
+      font-size: 1rem;
+      white-space: nowrap;
+      margin-top: 2rem;
+      margin-right: 0.6rem;
+    }
 
-  &--browse-all-date {
-    display: inline;
-    font-size: 1rem;
-    white-space: nowrap;
-    margin-top: 2rem;
-    margin-right: 0.6rem;
-  }
-
-  &--browse-all-signpost {
-    @include signposting-text;
-    margin-top: 15px;
-  }
-}
-
-.govuk-form-group {
-  &--browse-all-filter {
-    margin-bottom: 0;
+    &--browse-all-signpost {
+      @include signposting-text;
+      margin-top: 15px;
+    }
   }
 
-  &__browse-all-form-group {
-    display: inline-block;
-    margin-bottom: 0;
-  }
-}
+  &-form-group {
+    &--browse-all-filter {
+      margin-bottom: 0;
+    }
 
-.govuk-link {
-  &--browse-all-filter {
-    margin-left: 1rem;
-    margin-bottom: 0.6rem;
-  }
-}
-
-.govuk-button {
-  &__browse-all-filters-form-apply-button {
-    margin-left: 0;
-    margin-bottom: 10px;
-    margin-top: 0;
-  }
-}
-
-.govuk-fieldset {
-  &--record-status {
-    margin-bottom: 0;
-    margin-top: 0;
-  }
-}
-
-.govuk-heading-m {
-  &--browse-all-filter-title {
-    margin-bottom: 10px;
-  }
-}
-
-.govuk-radios {
-  &__label--browse-all {
-    padding: 5px 10px 1 1px !important;
-    font-size: 1rem;
+    &__browse-all-form-group {
+      display: inline-block;
+      margin-bottom: 0;
+    }
   }
 
-  &--small {
-    padding: 0 0 10px;
-  }
-}
-
-.govuk-input {
-  &--browse-all-input {
-    width: 95%;
-  }
-}
-
-.govuk-date-input {
-  &--browse-all-date-to {
-    margin-left: 0;
+  &-link {
+    &--browse-all-filter {
+      margin-left: 1rem;
+      margin-bottom: 0.6rem;
+    }
   }
 
-  &__item--browse-all {
-    margin-right: 0.6rem;
+  &-button {
+    &__browse-all-filters-form-apply-button {
+      margin-left: 0;
+      margin-bottom: 10px;
+      margin-top: 0;
+    }
   }
-}
 
-.govuk-table__cell {
-  &--ayr a {
-    color: $link-blue;
-    -webkit-text-fill-color: $link-blue;
+  &-fieldset {
+    &--record-status {
+      margin-bottom: 0;
+      margin-top: 0;
+    }
+  }
+
+  &-heading-m {
+    &--browse-all-filter-title {
+      margin-bottom: 10px;
+    }
+  }
+
+  &-radios {
+    &__label--browse-all {
+      padding: 5px 10px 1 1px !important;
+      font-size: 1rem;
+    }
+
+    &--small {
+      padding: 0 0 10px;
+    }
+  }
+
+  &-input {
+    &--browse-all-input {
+      width: 95%;
+    }
+  }
+
+  &-date-input {
+    &--browse-all-date-to {
+      margin-left: 0;
+    }
+
+    &__item--browse-all {
+      margin-right: 0.6rem;
+    }
+  }
+
+  &-table__cell {
+    &--ayr a {
+      color: $colour-link-visited;
+      -webkit-text-fill-color: $colour-link-visited;
+    }
   }
 }
 

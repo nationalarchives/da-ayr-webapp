@@ -30,12 +30,6 @@
   }
 }
 
-.search-records {
-  background-color: $light-grey;
-  height: 9rem;
-  padding-top: 1.5rem;
-}
-
 .govuk-button {
   &--record-search {
     margin-right: auto;
@@ -78,10 +72,6 @@
     justify-content: center;
   }
 
-  &__search-records {
-    margin-bottom: 0;
-  }
-
   &__record-view {
     margin-top: 2rem;
     margin-bottom: 0.6rem;
@@ -92,17 +82,10 @@
   }
 }
 
-.govuk-body-s {
-  &__search-records {
-    margin-top: 0;
-    padding-top: 0;
-  }
-}
-
 .govuk-summary-list {
   &--record {
     table-layout: auto;
-    border-top: 1px solid $grey;
+    border-top: 1px solid $colour-border-normal;
   }
 
   &__key--record-table {
@@ -128,7 +111,7 @@
 }
 
 .rights-container {
-  background-color: $light-grey;
+  background-color: $colour-container-normal;
   margin-top: 1.8rem;
   display: flex;
   flex-direction: column;
@@ -136,7 +119,7 @@
 }
 
 .record-container {
-  background-color: $light-grey;
+  background-color: $colour-container-normal;
   display: block;
   margin-top: 1.25rem;
   padding: 1rem;
@@ -201,7 +184,7 @@
   &--red {
     font-size: 1rem;
     text-transform: capitalize;
-    color: $status-red;
+    color: $colour-status-closed;
     font-weight: 400;
     letter-spacing: 0;
   }
@@ -209,7 +192,7 @@
   &--green {
     font-size: 1rem;
     text-transform: capitalize;
-    color: $status-green;
+    color: $colour-status-open;
     font-weight: 400;
     letter-spacing: 0;
   }
@@ -226,7 +209,7 @@
 
   --ball-size: 13px;
   --border-width: 3px;
-  --colour: $timeline-blue;
+  --colour: $colour-timeline-normal;
 }
 
 .record-container .record-arrangement-list li {
@@ -247,7 +230,7 @@
   left: 0;
   top: 0;
   border-radius: 100%;
-  border: var(--border-width) solid $timeline-blue;
+  border: var(--border-width) solid $colour-timeline-normal;
   z-index: 2;
 }
 
@@ -259,7 +242,7 @@
   left: calc((var(--ball-size) / 2) + (var(--border-width) / 2));
   top: calc(var(--ball-size) + var(--border-width));
   bottom: calc(var(--border-width) * -1);
-  background-color: $timeline-blue;
+  background-color: $colour-timeline-normal;
 }
 
 .record-container .record-arrangement-list li:last-child {

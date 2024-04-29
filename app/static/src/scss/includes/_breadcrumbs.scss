@@ -63,38 +63,38 @@
   }
 
   &__link--record {
-    color: $link-blue;
+    color: $colour-link-visited;
     font-size: 1rem;
     font-weight: 400;
     margin-top: 0;
 
     &--series {
       white-space: nowrap;
-      color: $link-blue;
+      color: $colour-link-visited;
 
       &:visited {
-        color: $link-blue;
-        -webkit-text-fill-color: $link-blue;
+        color: $colour-link-visited;
+        -webkit-text-fill-color: $colour-link-visited;
       }
     }
 
     &--transferring-body {
       flex-wrap: wrap;
-      color: $link-blue;
+      color: $colour-link-visited;
 
       &:visited {
-        color: $link-blue;
-        -webkit-text-fill-color: $link-blue;
+        color: $colour-link-visited;
+        -webkit-text-fill-color: $colour-link-visited;
       }
     }
 
     &--consignment {
       white-space: nowrap;
-      color: $link-blue;
+      color: $colour-link-visited;
 
       &:visited {
-        color: $link-blue;
-        -webkit-text-fill-color: $link-blue;
+        color: $colour-link-visited;
+        -webkit-text-fill-color: $colour-link-visited;
       }
     }
   }

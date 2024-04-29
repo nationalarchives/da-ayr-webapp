@@ -67,17 +67,17 @@
   color: black;
 
   :hover {
-    background-color: #0b0c0c;
+    background-color: $colour-link-normal;
   }
 
   a {
     border: none;
     text-decoration: none;
-    color: #0b0c0c;
+    color: $colour-link-normal;
     font-size: 1.125rem;
 
     :visited {
-      color: #0b0c0c;
+      color: $colour-link-normal;
     }
   }
 }
@@ -102,11 +102,11 @@
     }
 
     a {
-      color: $link-blue;
+      color: $colour-link-visited;
       margin-bottom: -1rem;
 
       &:visited {
-        color: $link-blue;
+        color: $colour-link-visited;
       }
 
       // this is a temp fix, the overall problem is that .govuk-table__cell is overwritten in multiple places, should be fixed with css refactoring
@@ -139,7 +139,7 @@
 }
 
 .search-all-filter-container {
-  background-color: $container-grey;
+  background-color: $colour-container-normal;
   padding: 0.5rem;
   padding-bottom: 1.5rem;
   min-width: 100%;
@@ -148,24 +148,6 @@
   display: flex;
   flex-direction: column;
   height: auto;
-}
-
-.ayr-filter__tag {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-weight: 400;
-  font-size: 1rem;
-  line-height: 1.1429;
-  border: 1px solid #0b0c0c;
-  color: #0b0c0c;
-  display: inline-block;
-  margin-top: 5px;
-  padding: 5px;
-  text-decoration: none;
-  padding-right: 1.8rem;
-  height: 1.2rem;
-  padding-top: 10px;
-  width: 4rem;
 }
 
 img.cancel-filter {
@@ -190,7 +172,7 @@ a.govuk-link {
     font-size: 0.9rem;
 
     &:visited {
-      color: $link-blue;
+      color: $colour-link-visited;
     }
   }
 }
@@ -257,7 +239,7 @@ a.govuk-link {
 
   :hover {
     cursor: pointer;
-    background-color: #0b0c0c;
+    background-color: $colour-link-normal;
     color: white;
 
     a {
