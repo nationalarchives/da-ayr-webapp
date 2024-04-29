@@ -31,12 +31,6 @@ class TestBrowseConsignment:
                 "20/05/2023",
                 "Open",
                 None,
-                browse_consignment_files[4].consignment.series.body.BodyId,
-                browse_consignment_files[4].consignment.series.body.Name,
-                browse_consignment_files[4].consignment.series.SeriesId,
-                browse_consignment_files[4].consignment.series.Name,
-                browse_consignment_files[4].consignment.ConsignmentId,
-                browse_consignment_files[4].consignment.ConsignmentReference,
             ),
             (
                 browse_consignment_files[1].FileId,
@@ -44,12 +38,6 @@ class TestBrowseConsignment:
                 "15/01/2023",
                 "Open",
                 None,
-                browse_consignment_files[1].consignment.series.body.BodyId,
-                browse_consignment_files[1].consignment.series.body.Name,
-                browse_consignment_files[1].consignment.series.SeriesId,
-                browse_consignment_files[1].consignment.series.Name,
-                browse_consignment_files[1].consignment.ConsignmentId,
-                browse_consignment_files[1].consignment.ConsignmentReference,
             ),
         ]
         assert results == expected_results

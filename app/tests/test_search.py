@@ -730,7 +730,7 @@ class TestSearchTransferringBody:
                 ],
             ),
             (
-                "query=docx&sort=consignment-reference-asc",
+                "query=docx&sort=consignment_reference-asc",
                 [
                     [
                         "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
@@ -739,7 +739,7 @@ class TestSearchTransferringBody:
                 ],
             ),
             (
-                "query=docx&sort=consignment-reference-desc",
+                "query=docx&sort=consignment_reference-desc",
                 [
                     [
                         "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "

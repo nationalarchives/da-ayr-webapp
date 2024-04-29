@@ -30,11 +30,7 @@ class TestBrowseSeries:
 
         expected_results = [
             (
-                browse_transferring_body_files[
-                    0
-                ].consignment.series.body.BodyId,
                 browse_transferring_body_files[0].consignment.series.body.Name,
-                browse_transferring_body_files[0].consignment.series.SeriesId,
                 browse_transferring_body_files[0].consignment.series.Name,
                 "14/10/2023",
                 1,

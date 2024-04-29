@@ -107,7 +107,7 @@ class TestFuzzySearchTransferringBody:
         """
         Given a filter value that does not match any field used for search terms
             in any file in the database
-        When build_browse_all_query is called with it and is executed
+        When build_browse_query is called with it and is executed
         Then an empty list is returned
         """
         body = BodyFactory(Name="foo", Description="foo")
@@ -239,12 +239,6 @@ class TestGetFileMetadata:
                 "foi_exemption_code": record_files[1][
                     "foi_exemption_code"
                 ].Value,
-                "transferring_body_id": file.consignment.series.body.BodyId,
-                "transferring_body": file.consignment.series.body.Name,
-                "series_id": file.consignment.series.SeriesId,
-                "series": file.consignment.series.Name,
-                "consignment_id": file.ConsignmentId,
-                "consignment_reference": file.consignment.ConsignmentReference,
                 "file_reference": file.FileReference,
                 "former_reference": record_files[1]["former_reference"].Value,
                 "translated_title": record_files[1]["translated_title"].Value,
@@ -252,6 +246,9 @@ class TestGetFileMetadata:
                 "legal_status": record_files[1]["legal_status"].Value,
                 "rights_copyright": record_files[1]["rights_copyright"].Value,
                 "language": record_files[1]["language"].Value,
+                "transferring_body": file.consignment.series.body.Name,
+                "series": file.consignment.series.Name,
+                "consignment_reference": file.consignment.ConsignmentReference,
             }
         )
 
@@ -289,12 +286,6 @@ class TestGetFileMetadata:
                 "foi_exemption_code": record_files[3][
                     "foi_exemption_code"
                 ].Value,
-                "transferring_body_id": file.consignment.series.body.BodyId,
-                "transferring_body": file.consignment.series.body.Name,
-                "series_id": file.consignment.series.SeriesId,
-                "series": file.consignment.series.Name,
-                "consignment_id": file.ConsignmentId,
-                "consignment_reference": file.consignment.ConsignmentReference,
                 "file_reference": file.FileReference,
                 "former_reference": record_files[3]["former_reference"].Value,
                 "translated_title": record_files[3]["translated_title"].Value,
@@ -302,5 +293,8 @@ class TestGetFileMetadata:
                 "legal_status": record_files[3]["legal_status"].Value,
                 "rights_copyright": record_files[3]["rights_copyright"].Value,
                 "language": record_files[3]["language"].Value,
+                "transferring_body": file.consignment.series.body.Name,
+                "series": file.consignment.series.Name,
+                "consignment_reference": file.consignment.ConsignmentReference,
             }
         )
