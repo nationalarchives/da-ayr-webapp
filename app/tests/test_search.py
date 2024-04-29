@@ -618,7 +618,7 @@ class TestSearchTransferringBody:
             </td>
             <td class="govuk-table__cell govuk-table__cell--search-results
             search__mobile-table__top-row search__table__mobile--hidden">
-                <a href="{record_route_url}/{file_id}">first_file.docx</a>
+                <a class="word-break" href="{record_route_url}/{file_id}">first_file.docx</a>
             </td>
             <td class="govuk-table__cell govuk-table__cell--search-results
             search__mobile-table__top-row">
@@ -634,7 +634,7 @@ class TestSearchTransferringBody:
             <tr class="govuk-table__row search__mobile-row">
             <td class="govuk-table__cell govuk-table__cell--search-results
             search__mobile-table__middle-row">
-                <a href="{record_route_url}/{file_id}">
+                <a class="word-break" href="{record_route_url}/{file_id}">
                 first_file.docx
                 </a>
             </td>
