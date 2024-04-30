@@ -226,7 +226,7 @@
 
 //  MOBILE STYLES //
 
-@media screen and (width <=810px) {
+@media screen and (width <= $breakpoint-medium) {
   .consignment-filter-dates-container {
     display: flex;
     flex-direction: column;

@@ -241,7 +241,7 @@
   }
 }
 
-@media screen and (width <=810px) {
+@media screen and (width <= $breakpoint-medium) {
   .browse-grid__key__transferring-body {
     width: auto;
   }

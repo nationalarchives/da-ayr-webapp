@@ -31,7 +31,7 @@
   }
 }
 
-@media screen and (width <=810px) {
+@media screen and (width <= $breakpoint-medium) {
   .govuk-grid-row {
     &--search {
       display: flex;
@@ -268,7 +268,7 @@ a.govuk-link {
   }
 }
 
-@media screen and (width <=810px) {
+@media screen and (width <= $breakpoint-medium) {
   .search-layout {
     display: flex;
     flex-direction: column;

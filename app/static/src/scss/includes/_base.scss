@@ -8,7 +8,7 @@
   text-decoration: none;
 }
 
-@media screen and (width <=810px) {
+@media screen and (width <= $breakpoint-medium) {
   .sign-out {
     margin: 0.5rem 0;
     align-self: flex-end;

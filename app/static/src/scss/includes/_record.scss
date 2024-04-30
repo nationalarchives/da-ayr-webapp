@@ -259,7 +259,7 @@
 
 //  MOBILE STYLES //
 
-@media screen and (width <=810px) {
+@media screen and (width <= $breakpoint-medium) {
   .govuk-grid {
     &-column-one-third {
       &--record {
@@ -382,7 +382,7 @@
   }
 }
 
-@media (400px <= width <= 640px) {
+@media (400px <= width <= $breakpoint-small) {
   .govuk-grid-column-two-thirds {
     &--record-table {
       display: flex;

@@ -1,6 +1,6 @@
 /* Default styles for desktop */
 @mixin on-mobile {
-  @media screen and (width <=810px) {
+  @media screen and (width <= $breakpoint-medium) {
     @content;
   }
 }
@@ -307,7 +307,7 @@
 
 // MOBILE STYLES
 
-@media screen and (width <=810px) {
+@media screen and (width <= $breakpoint-medium) {
   .govuk-grid-column-one-third {
     &--browse-all-filters {
       order: 1;
