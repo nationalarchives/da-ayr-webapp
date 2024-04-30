@@ -25,10 +25,9 @@ from app.main.authorize.permissions_helpers import (
 )
 from app.main.db.models import Body, Consignment, File, Series, db
 from app.main.db.queries import (
-    build_browse_all_query,
     build_browse_consignment_query,
+    build_browse_query,
     build_browse_series_query,
-    build_browse_transferring_body_query,
     build_fuzzy_search_summary_query,
     build_fuzzy_search_transferring_body_query,
     get_file_metadata,
@@ -141,7 +140,7 @@ def browse():
         if len(sorting_orders) == 0:
             sorting_orders["transferring_body"] = "asc"
 
-        query = build_browse_all_query(
+        query = build_browse_query(
             filters=filters,
             sorting_orders=sorting_orders,
         )
@@ -220,7 +219,7 @@ def browse_transferring_body(_id: uuid.UUID):
     if len(sorting_orders) == 0:
         sorting_orders["series"] = "asc"
 
-    query = build_browse_transferring_body_query(
+    query = build_browse_query(
         transferring_body_id=_id,
         filters=filters,
         sorting_orders=sorting_orders,

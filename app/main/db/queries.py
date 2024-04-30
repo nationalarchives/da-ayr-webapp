@@ -40,12 +40,9 @@ def build_fuzzy_search_transferring_body_query(
                 ),
             ).label("opening_date"),
         )
-        .join(Series, Series.BodyId == Body.BodyId)
-        .join(
-            Consignment,
-            Consignment.SeriesId == Series.SeriesId,
-        )
-        .join(File, File.ConsignmentId == Consignment.ConsignmentId)
+        .join(File.consignment)
+        .join(Consignment.series)
+        .join(Series.body)
         .join(FileMetadata, File.FileId == FileMetadata.FileId, isouter=True)
         .where(func.lower(File.FileType) == "file")
         .group_by(
@@ -113,12 +110,9 @@ def build_fuzzy_search_summary_query(query_string: str):
             Body.Description.label("transferring_body_description"),
             func.count(File.FileName.label("file_name")).label("records_held"),
         )
-        .join(Series, Series.BodyId == Body.BodyId)
-        .join(
-            Consignment,
-            Consignment.SeriesId == Series.SeriesId,
-        )
-        .join(File, File.ConsignmentId == Consignment.ConsignmentId)
+        .join(File.consignment)
+        .join(Consignment.series)
+        .join(Series.body)
         .group_by(Body.BodyId)
         .order_by(Body.Name)
     ).subquery()
@@ -159,7 +153,9 @@ def build_fuzzy_search_summary_query(query_string: str):
     return query
 
 
-def build_browse_all_query(filters=None, sorting_orders=None):
+def build_browse_query(
+    transferring_body_id=None, filters=None, sorting_orders=None
+):
     sub_query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
@@ -174,9 +170,9 @@ def build_browse_all_query(filters=None, sorting_orders=None):
             ),
             func.count(func.distinct(File.FileId)).label("records_held"),
         )
-        .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Series, Series.SeriesId == Consignment.SeriesId)
-        .join(Body, Body.BodyId == Series.BodyId)
+        .join(File.consignment)
+        .join(Consignment.series)
+        .join(Series.body)
         .where(func.lower(File.FileType) == "file")
         .group_by(Body.BodyId, Series.SeriesId)
     ).subquery()
@@ -194,58 +190,10 @@ def build_browse_all_query(filters=None, sorting_orders=None):
         sub_query.c.records_held,
     )
 
-    if filters:
-        query = _build_browse_filters(query, sub_query, filters)
-
-    if sorting_orders:
-        query = _build_sorting_orders(query, sub_query, sorting_orders)
-    else:
-        query = query.order_by(
-            sub_query.c.transferring_body, sub_query.c.series
+    if transferring_body_id:
+        query = query.filter(
+            sub_query.c.transferring_body_id == transferring_body_id
         )
-
-    return query
-
-
-def build_browse_transferring_body_query(
-    transferring_body_id, filters=None, sorting_orders=None
-):
-    sub_query = (
-        db.session.query(
-            Body.BodyId.label("transferring_body_id"),
-            Body.Name.label("transferring_body"),
-            Series.SeriesId.label("series_id"),
-            Series.Name.label("series"),
-            func.max(Consignment.TransferCompleteDatetime).label(
-                "last_record_transferred"
-            ),
-            func.count(func.distinct(Consignment.ConsignmentReference)).label(
-                "consignment_in_series"
-            ),
-            func.count(func.distinct(File.FileId)).label("records_held"),
-        )
-        .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Series, Series.SeriesId == Consignment.SeriesId)
-        .join(Body, Body.BodyId == Series.BodyId)
-        .where(
-            (func.lower(File.FileType) == "file")
-            & (Body.BodyId == transferring_body_id)
-        )
-        .group_by(Body.BodyId, Series.SeriesId)
-    ).subquery()
-
-    query = db.session.query(
-        sub_query.c.transferring_body_id,
-        sub_query.c.transferring_body,
-        sub_query.c.series_id,
-        sub_query.c.series,
-        func.to_char(
-            sub_query.c.last_record_transferred,
-            current_app.config["DEFAULT_DATE_FORMAT"],
-        ).label("last_record_transferred"),
-        sub_query.c.consignment_in_series,
-        sub_query.c.records_held,
-    )
 
     if filters:
         query = _build_browse_filters(query, sub_query, filters)
@@ -263,9 +211,7 @@ def build_browse_transferring_body_query(
 def build_browse_series_query(series_id, filters=None, sorting_orders=None):
     sub_query = (
         db.session.query(
-            Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
-            Series.SeriesId.label("series_id"),
             Series.Name.label("series"),
             func.max(Consignment.TransferCompleteDatetime).label(
                 "last_record_transferred"
@@ -274,9 +220,9 @@ def build_browse_series_query(series_id, filters=None, sorting_orders=None):
             Consignment.ConsignmentId.label("consignment_id"),
             Consignment.ConsignmentReference.label("consignment_reference"),
         )
-        .join(Consignment, Consignment.ConsignmentId == File.ConsignmentId)
-        .join(Series, Series.SeriesId == Consignment.SeriesId)
-        .join(Body, Body.BodyId == Series.BodyId)
+        .join(File.consignment)
+        .join(Consignment.series)
+        .join(Series.body)
         .where(
             (func.lower(File.FileType) == "file")
             & (Series.SeriesId == series_id)
@@ -285,9 +231,7 @@ def build_browse_series_query(series_id, filters=None, sorting_orders=None):
     ).subquery()
 
     query = db.session.query(
-        sub_query.c.transferring_body_id,
         sub_query.c.transferring_body,
-        sub_query.c.series_id,
         sub_query.c.series,
         func.to_char(
             sub_query.c.last_record_transferred,
@@ -346,12 +290,6 @@ def build_browse_consignment_query(
                 else_=None,
             ),
         ).label("opening_date"),
-        Consignment.ConsignmentId.label("consignment_id"),
-        Consignment.ConsignmentReference.label("consignment_reference"),
-        Body.Name.label("transferring_body"),
-        Body.BodyId.label("transferring_body_id"),
-        Series.SeriesId.label("series_id"),
-        Series.Name.label("series"),
     )
 
     query_filters = [
@@ -363,19 +301,9 @@ def build_browse_consignment_query(
         select.join(
             FileMetadata, File.FileId == FileMetadata.FileId, isouter=True
         )
-        .join(Consignment, File.ConsignmentId == Consignment.ConsignmentId)
-        .join(
-            Series,
-            Series.SeriesId == Consignment.SeriesId,
-        )
-        .join(
-            Body,
-            Body.BodyId == Series.BodyId,
-        )
+        .join(File.consignment)
         .filter(*query_filters)
-        .group_by(
-            File.FileId, Body.BodyId, Series.SeriesId, Consignment.ConsignmentId
-        )
+        .group_by(File.FileId)
         .order_by(File.FileName)
     ).subquery()
 
@@ -391,12 +319,6 @@ def build_browse_consignment_query(
             sub_query.c.opening_date,
             current_app.config["DEFAULT_DATE_FORMAT"],
         ).label("opening_date"),
-        sub_query.c.transferring_body_id,
-        sub_query.c.transferring_body,
-        sub_query.c.series_id,
-        sub_query.c.series,
-        sub_query.c.consignment_id,
-        sub_query.c.consignment_reference,
     )
 
     if filters:
@@ -620,12 +542,6 @@ def _get_file_metadata_query(file_id: uuid.UUID):
                 else_=None,
             ),
         ).label("language"),
-        Body.Name.label("transferring_body"),
-        Body.BodyId.label("transferring_body_id"),
-        Series.SeriesId.label("series_id"),
-        Series.Name.label("series"),
-        Consignment.ConsignmentId.label("consignment_id"),
-        Consignment.ConsignmentReference.label("consignment_reference"),
     )
 
     filters = [
@@ -637,58 +553,49 @@ def _get_file_metadata_query(file_id: uuid.UUID):
         select.join(
             FileMetadata, File.FileId == FileMetadata.FileId, isouter=True
         )
-        .join(Consignment, File.ConsignmentId == Consignment.ConsignmentId)
-        .join(
-            Series,
-            Series.SeriesId == Consignment.SeriesId,
-        )
-        .join(
-            Body,
-            Body.BodyId == Series.BodyId,
-        )
         .filter(*filters)
-        .group_by(
-            File.FileId, Body.BodyId, Series.SeriesId, Consignment.ConsignmentId
-        )
+        .group_by(File.FileId)
     ).subquery()
 
-    query = db.session.query(
-        sub_query.c.file_id,
-        sub_query.c.file_name,
-        sub_query.c.file_path,
-        sub_query.c.citeable_reference,
-        sub_query.c.alternative_title,
-        sub_query.c.description,
-        sub_query.c.alternative_description,
-        sub_query.c.closure_type,
-        func.to_char(
-            sub_query.c.closure_start_date,
-            current_app.config["DEFAULT_DATE_FORMAT"],
-        ).label("closure_start_date"),
-        sub_query.c.closure_period,
-        func.to_char(
-            sub_query.c.opening_date,
-            current_app.config["DEFAULT_DATE_FORMAT"],
-        ).label("opening_date"),
-        func.to_char(
-            sub_query.c.date_last_modified,
-            current_app.config["DEFAULT_DATE_FORMAT"],
-        ).label("date_last_modified"),
-        sub_query.c.foi_exemption_code,
-        sub_query.c.transferring_body_id,
-        sub_query.c.transferring_body,
-        sub_query.c.series_id,
-        sub_query.c.series,
-        sub_query.c.consignment_id,
-        sub_query.c.consignment_reference,
-        sub_query.c.file_reference,
-        sub_query.c.former_reference,
-        sub_query.c.translated_title,
-        sub_query.c.held_by,
-        sub_query.c.legal_status,
-        sub_query.c.rights_copyright,
-        sub_query.c.language,
-    )
+    query = (
+        db.session.query(
+            sub_query.c.file_id,
+            sub_query.c.file_name,
+            sub_query.c.file_path,
+            sub_query.c.citeable_reference,
+            sub_query.c.alternative_title,
+            sub_query.c.description,
+            sub_query.c.alternative_description,
+            sub_query.c.closure_type,
+            func.to_char(
+                sub_query.c.closure_start_date,
+                current_app.config["DEFAULT_DATE_FORMAT"],
+            ).label("closure_start_date"),
+            sub_query.c.closure_period,
+            func.to_char(
+                sub_query.c.opening_date,
+                current_app.config["DEFAULT_DATE_FORMAT"],
+            ).label("opening_date"),
+            func.to_char(
+                sub_query.c.date_last_modified,
+                current_app.config["DEFAULT_DATE_FORMAT"],
+            ).label("date_last_modified"),
+            sub_query.c.foi_exemption_code,
+            sub_query.c.file_reference,
+            sub_query.c.former_reference,
+            sub_query.c.translated_title,
+            sub_query.c.held_by,
+            sub_query.c.legal_status,
+            sub_query.c.rights_copyright,
+            sub_query.c.language,
+            Body.Name.label("transferring_body"),
+            Series.Name.label("series"),
+            Consignment.ConsignmentReference.label("consignment_reference"),
+        )
+        .join(File.consignment)
+        .join(Consignment.series)
+        .join(Series.body)
+    ).where(sub_query.c.file_id == File.FileId)
 
     return query
 
