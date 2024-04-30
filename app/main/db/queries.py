@@ -75,8 +75,7 @@ def build_fuzzy_search_transferring_body_query(
     )
 
     query = query.filter(
-        sub_query.c.transferring_body_id
-        == transferring_body_id  # using custom join with subquery
+        sub_query.c.transferring_body_id == transferring_body_id
     )
 
     for term in query_string.split(","):
@@ -124,9 +123,7 @@ def build_fuzzy_search_summary_query(query_string: str):
             sub_query.c.transferring_body,
             func.count(sub_query.c.records_held).label("records_held"),
         )
-        .join(
-            Series, Series.BodyId == sub_query.c.transferring_body_id
-        )  # using custom join with subquery
+        .join(Series, Series.BodyId == sub_query.c.transferring_body_id)
         .join(
             Consignment,
             Consignment.SeriesId == Series.SeriesId,
@@ -598,9 +595,7 @@ def _get_file_metadata_query(file_id: uuid.UUID):
         .join(File.consignment)
         .join(Consignment.series)
         .join(Series.body)
-    ).where(
-        sub_query.c.file_id == File.FileId
-    )  # using custom join with subquery
+    ).where(sub_query.c.file_id == File.FileId)
 
     return query
 
