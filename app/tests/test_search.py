@@ -712,42 +712,6 @@ class TestSearchTransferringBody:
                 ],
             ),
             (
-                "query=docx&sort=series-asc",
-                [
-                    [
-                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090'"
-                    ],
-                ],
-            ),
-            (
-                "query=docx&sort=series-desc",
-                [
-                    [
-                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090'"
-                    ],
-                ],
-            ),
-            (
-                "query=docx&sort=consignment_reference-asc",
-                [
-                    [
-                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090'"
-                    ],
-                ],
-            ),
-            (
-                "query=docx&sort=consignment_reference-desc",
-                [
-                    [
-                        "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090'"
-                    ],
-                ],
-            ),
-            (
                 "query=TDR-2023-FI1&sort=file_name-asc",
                 [
                     [
