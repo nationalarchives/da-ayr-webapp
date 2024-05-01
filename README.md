@@ -29,6 +29,7 @@ in which you can run all of the following commands. Alternatively you can prefix
 
 ### Install PostgreSQL
 
+PostgrSQL is a dependency required for running unit tests, which are reliant on [testing.postgresql](https://github.com/tk0miya/testing.postgresql).
 [Download & Install PostgreSQL](https://www.postgresql.org/download/)
 
 To verify that PostgreSQL is installed on your machine you can use:
@@ -42,8 +43,6 @@ and
 ```shell
 initdb --version
 ```
-
-The latter command (initdb) is required for the application to function correctly.
 
 Optionally, you can also install pgAdmin for easier administration and monitoring of the PostgreSQL database. PgAdmin is a tool that provides a modern GUI and tools that make it easier to perform actions.
 
