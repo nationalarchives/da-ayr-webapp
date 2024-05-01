@@ -27,6 +27,30 @@ poetry shell
 
 in which you can run all of the following commands. Alternatively you can prefix all of the following commands with `poetry run`.
 
+### Install PostgreSQL
+
+[Download & Install PostgreSQL](https://www.postgresql.org/download/)
+
+To verify that PostgreSQL is installed on your machine you can use:
+
+```shell
+psql --version
+```
+
+and
+
+```shell
+initdb --version
+```
+
+The latter command (initdb) is required for the application to function correctly.
+
+### Set up commit signing
+
+GitHub rulesets for the AYR repo prevent pull requests that contain unsigned commits from being merged with the main branch. To avoid having to modify PRs that contain unsigned commits, you should configure signed commits before making a first PR using the guide below.
+
+[Configure signed commits using the TDR dev documentation](https://github.com/nationalarchives/tdr-dev-documentation/blob/master/manual/development-setup/signed-commits.md)
+
 ### Get GOV.UK Frontend assets
 
 For convenience a shell script has been provided to download and extract the GOV.UK Frontend distribution assets
