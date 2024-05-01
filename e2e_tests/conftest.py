@@ -41,7 +41,8 @@ def aau_user_page(create_user_page) -> Page:
     username = os.environ.get("AYR_AAU_USER_USERNAME")
     password = os.environ.get("AYR_AAU_USER_PASSWORD")
     page = create_user_page(username, password)
-    return page
+    yield page
+    page.goto("/sign-out")
 
 
 @pytest.fixture
@@ -49,7 +50,8 @@ def standard_user_page(create_user_page) -> Page:
     username = os.environ.get("AYR_STANDARD_USER_USERNAME")
     password = os.environ.get("AYR_STANDARD_USER_PASSWORD")
     page = create_user_page(username, password)
-    return page
+    yield page
+    page.goto("/sign-out")
 
 
 @pytest.fixture(scope="session")
