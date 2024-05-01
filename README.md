@@ -45,6 +45,10 @@ initdb --version
 
 The latter command (initdb) is required for the application to function correctly.
 
+Optionally, you can also install pgAdmin for easier administration and monitoring of the PostgreSQL database. PgAdmin is a tool that provides a modern GUI and tools that make it easier to perform actions.
+
+[(Optional) Download & Install pgAdmin](https://www.pgadmin.org/download/)
+
 ### Set up commit signing
 
 GitHub rulesets for the AYR repo prevent pull requests that contain unsigned commits from being merged with the main branch. To avoid having to modify PRs that contain unsigned commits, you should configure signed commits before making a first PR using the guide below.
