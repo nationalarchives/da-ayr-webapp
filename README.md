@@ -27,6 +27,33 @@ poetry shell
 
 in which you can run all of the following commands. Alternatively you can prefix all of the following commands with `poetry run`.
 
+### Install PostgreSQL
+
+PostgrSQL is a dependency required for running unit tests, which are reliant on [testing.postgresql](https://github.com/tk0miya/testing.postgresql).
+[Download & Install PostgreSQL](https://www.postgresql.org/download/)
+
+To verify that PostgreSQL is installed on your machine you can use:
+
+```shell
+psql --version
+```
+
+and
+
+```shell
+initdb --version
+```
+
+Optionally, you can also install pgAdmin for easier administration and monitoring of the PostgreSQL database. PgAdmin is a tool that provides a modern GUI and tools that make it easier to perform actions.
+
+[(Optional) Download & Install pgAdmin](https://www.pgadmin.org/download/)
+
+### Set up commit signing
+
+GitHub rulesets for the AYR repo prevent pull requests that contain unsigned commits from being merged with the main branch. To avoid having to modify PRs that contain unsigned commits, you should configure signed commits before making a first PR using the guide below.
+
+[Configure signed commits using the TDR dev documentation](https://github.com/nationalarchives/tdr-dev-documentation/blob/master/manual/development-setup/signed-commits.md)
+
 ### Get GOV.UK Frontend assets
 
 For convenience a shell script has been provided to download and extract the GOV.UK Frontend distribution assets
