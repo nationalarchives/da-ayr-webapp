@@ -7,7 +7,7 @@ class TestRoutes:
         assert response.ok
         assert response.status_code == 200
 
-    def test_route_cookies_post(self, standard_user_page: Page):
+    def test_route_cookies(self, standard_user_page: Page):
         response = standard_user_page.goto("/cookies")
         assert response.ok
         assert response.status_code == 200
