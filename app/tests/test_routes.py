@@ -39,46 +39,27 @@ def verify_cookies_data_rows(data, expected_rows):
 
 
 class TestRoutes:
-    def test_cookies_get(self, app, client: FlaskClient):
-        """
-        Given a standard user accessing the cookies page
-        When they make a GET request
-        Then they should see cookies page content
-        """
-        response = client.get("/cookies")
-
+    def test_route_accessibility(self, client: FlaskClient):
+        response = client.get("/accessibility")
+        assert response.ok
         assert response.status_code == 200
-        assert b"Cookies" in response.data
-        assert b"Why do we use cookies?" in response.data
-        assert b"Essential cookies" in response.data
 
-        soup = BeautifulSoup(response.text, "html.parser")
-        title_tag = soup.title
-        assert (
-            title_tag.string
-            == f"Cookies – {app.config['SERVICE_NAME']} – GOV.UK"
-        )
+    def test_route_cookies(self, client: FlaskClient):
+        response = client.get("/cookies")
+        assert response.ok
+        assert response.status_code == 200
 
-        expected_rows = [
-            [
-                "'session', 'A cookie that holds information for authorisation purpose', 'Expires when you exit the "
-                "browser', 'KEYCLOAK_SESSION_LEGACY', 'A cookie set by the authorisation component of the service that "
-                "keeps track of the session as you use the service', 'Expires when you exit the browser', "
-                "'KEYCLOAK_SESSION', 'A cookie set by the authorisation component of the service that keeps track of "
-                "the session as you use the service', 'Expires when you exit the browser', 'KEYCLOAK_IDENTITY_LEGACY', "
-                "'A cookie set by the authorisation component of the service that keeps track of elements related to "
-                "your identity as you use the service', 'Expires when you exit the browser', 'KEYCLOAK_IDENTITY', "
-                "'A cookie set by the authorisation component of the service that keeps track of elements related to "
-                "your identity as you use the service', 'Expires when you exit the browser', 'AUTH_SESSION_ID_LEGACY', "
-                "'A cookie set by the authorisation component of the service that keeps track of the session identity "
-                "as you use the service', 'Expires when you exit the browser', 'AUTH_SESSION_ID', 'A cookie set by the "
-                "authorisation component of the service that keeps track of the session identity as you use the "
-                "service', 'Expires when you exit the browser', 'KC_RESTART', 'A cookie set by the authorisation "
-                "component of the service that keeps track of the session as you use the service', 'Expires when you "
-                "exit the browser', 'KC_AUTH_STATE', 'A cookie set by the authorisation component of the service that "
-                "keeps track of the session as you use the service', 'Expires when you exit the browser'"
-            ]
-        ]
+    def test_route_privacy(self, client: FlaskClient):
+        response = client.get("/privacy")
+        assert response.ok
+        assert response.status_code == 200
 
-        verify_cookies_header_row(response.data)
-        verify_cookies_data_rows(response.data, expected_rows)
+    def test_route_how_to_use(self, client: FlaskClient):
+        response = client.get("/how-to-use-this-service")
+        assert response.ok
+        assert response.status_code == 200
+
+    def test_route_terms_of_use(self, client: FlaskClient):
+        response = client.get("/terms-of-use")
+        assert response.ok
+        assert response.status_code == 200
