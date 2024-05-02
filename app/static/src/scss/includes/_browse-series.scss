@@ -22,7 +22,7 @@
   }
 }
 
-@media screen and (width <=810px) {
+@media screen and (width <= $breakpoint-medium) {
   .browse__series {
     &__desktop__header {
       display: none;

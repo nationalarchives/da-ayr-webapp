@@ -1,7 +1,7 @@
 /* SCSS for Footer */
 
 @mixin on-mobile {
-  @media screen and (width <=640px) {
+  @media screen and (width <= $breakpoint-small) {
     @content;
   }
 }

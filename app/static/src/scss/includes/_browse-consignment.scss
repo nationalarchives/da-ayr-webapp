@@ -1,6 +1,6 @@
 .consignment-filter {
   &-container {
-    background-color: #f3f2f1;
+    background-color: $colour-container-normal;
     padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
@@ -73,21 +73,21 @@
   }
 
   &__series__container {
-    background-color: #f3f2f1;
+    background-color: $colour-container-normal;
     padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
   }
 
   &__consignment-ref__container {
-    background-color: #f3f2f1;
+    background-color: $colour-container-normal;
     padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
   }
 
   &__date__container {
-    background-color: #f3f2f1;
+    background-color: $colour-container-normal;
     padding: 0.5rem;
     min-width: 100%;
   }
@@ -118,16 +118,12 @@
   }
 
   &__filetype__container {
-    background-color: #f3f2f1;
+    background-color: $colour-container-normal;
     padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
     display: inline-flex;
   }
-}
-
-.file-type-doc--container {
-  padding-right: 0.6rem;
 }
 
 .govuk-heading-s {
@@ -230,7 +226,7 @@
 
 //  MOBILE STYLES //
 
-@media screen and (width <=810px) {
+@media screen and (width <= $breakpoint-medium) {
   .consignment-filter-dates-container {
     display: flex;
     flex-direction: column;

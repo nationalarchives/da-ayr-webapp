@@ -23,10 +23,10 @@
   }
 
   a {
-    color: #1d70b8;
+    color: $colour-link-visited;
 
     &:visited {
-      color: #1d70b8;
+      color: $colour-link-visited;
     }
   }
 

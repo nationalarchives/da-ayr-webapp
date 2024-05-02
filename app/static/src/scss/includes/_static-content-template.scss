@@ -4,7 +4,7 @@
   &--ayr-content {
     position: sticky;
     top: 1rem;
-    @media screen and (width <=810px) {
+    @media screen and (width <= $breakpoint-medium) {
       position: static;
     }
   }
@@ -21,7 +21,7 @@
   padding: 1rem;
   padding-bottom: 0.5rem;
   overflow: auto;
-  background-color: #f2f2f2;
+  background-color: $colour-container-normal;
 }
 
 .govuk-heading-s {
@@ -34,11 +34,11 @@
   &__ayr-content {
     margin-bottom: 1rem;
     font-size: 1rem;
-    color: #1d70b8;
+    color: $colour-link-visited;
   }
 
   &__back-to-top a {
-    color: #1d70b8;
+    color: $colour-link-visited;
     font-size: 1rem;
   }
 }
