@@ -41,25 +41,20 @@ def verify_cookies_data_rows(data, expected_rows):
 class TestRoutes:
     def test_route_accessibility(self, client: FlaskClient):
         response = client.get("/accessibility")
-        assert response.ok
         assert response.status_code == 200
 
     def test_route_cookies(self, client: FlaskClient):
         response = client.get("/cookies")
-        assert response.ok
         assert response.status_code == 200
 
     def test_route_privacy(self, client: FlaskClient):
         response = client.get("/privacy")
-        assert response.ok
         assert response.status_code == 200
 
     def test_route_how_to_use(self, client: FlaskClient):
         response = client.get("/how-to-use-this-service")
-        assert response.ok
         assert response.status_code == 200
 
     def test_route_terms_of_use(self, client: FlaskClient):
         response = client.get("/terms-of-use")
-        assert response.ok
         assert response.status_code == 200
