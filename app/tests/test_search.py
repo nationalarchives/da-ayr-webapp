@@ -642,7 +642,7 @@ class TestSearchTransferringBody:
                     </strong>
                 </td>
                 <td class="govuk-table__cell govuk-table__cell--search-results
-                right-align search__mobile-table__top-row">
+                browse__table__right-align search__mobile-table__top-row">
                         25/02/2023
                 </td>
             </tr>
@@ -690,10 +690,10 @@ class TestSearchTransferringBody:
                 "query=TDR-2023-FI1",
                 [
                     [
-                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―', "
                         "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '25/03/2070', "
-                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '―', "
                         "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
                 ],
@@ -702,7 +702,7 @@ class TestSearchTransferringBody:
                 "query=TDR-2023-FI1,th",
                 [
                     [
-                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―', "
                         "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
@@ -712,7 +712,7 @@ class TestSearchTransferringBody:
                 "query=TDR-2023-FI1,second",
                 [
                     [
-                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-'"
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '―'"
                     ],
                 ],
             ),
@@ -729,10 +729,10 @@ class TestSearchTransferringBody:
                 "query=TDR-2023-FI1&sort=file_name-asc",
                 [
                     [
-                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―', "
                         "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '25/03/2070', "
-                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '―', "
                         "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
                 ],
@@ -742,10 +742,10 @@ class TestSearchTransferringBody:
                 [
                     [
                         "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090', "
-                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '―', "
                         "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-'"
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―'"
                     ],
                 ],
             ),
@@ -753,8 +753,8 @@ class TestSearchTransferringBody:
                 "query=TDR-2023-FI1&sort=opening_date-desc",
                 [
                     [
-                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
-                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '―', "
                         "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023'"
@@ -768,8 +768,8 @@ class TestSearchTransferringBody:
                         "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090', "
-                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
-                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-'"
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '―'"
                     ],
                 ],
             ),
@@ -780,8 +780,8 @@ class TestSearchTransferringBody:
                         "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090', "
-                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
-                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-'"
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '―'"
                     ]
                 ],
             ),
@@ -789,8 +789,8 @@ class TestSearchTransferringBody:
                 "query=TDR-2023-FI1&sort=closure_type-desc",
                 [
                     [
-                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
-                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―', "
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '―', "
                         "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090'"
@@ -812,7 +812,7 @@ class TestSearchTransferringBody:
                     [
                         "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090', "
-                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-'"
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―'"
                     ],
                 ],
             ),
@@ -886,10 +886,10 @@ class TestSearchTransferringBody:
 
         expected_rows = [
             [
-                "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―', "
                 "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023', "
                 "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '25/03/2070', "
-                "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-', "
+                "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '―', "
                 "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090'"
             ],
         ]
@@ -937,7 +937,7 @@ class TestSearchTransferringBody:
 
         expected_rows = [
             [
-                "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―', "
                 "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023'"
             ],
         ]
@@ -997,7 +997,7 @@ class TestSearchTransferringBody:
 
         expected_rows = [
             [
-                "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―', "
                 "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023'"
             ],
         ]
@@ -1050,7 +1050,7 @@ class TestSearchTransferringBody:
         expected_rows = [
             [
                 "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '25/03/2070', "
-                "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-'"
+                "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '―'"
             ],
         ]
 
@@ -1401,60 +1401,69 @@ class TestSearchTransferringBody:
         html = response.data.decode()
 
         search_filter_html = f"""
-        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters mobile-filters">
-                            <div class="search-all-filter-container">
-                                <div class="browse-filter__header">
-                                        <h2 class="govuk-heading-m govuk-heading-m--search">
-                                            <label class="govuk-label govuk-heading-m govuk-heading-m--search"
-                                            for="search_filter">Search within results</label>
-                                        </h2>
-                                    </div>
-                                <div class="govuk-form-group govuk-form-group--search-all-filter">
-                                    <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
-                                    id="search_filter"
-                                    name="search_filter"
-                                    type="text">
-                                </div>
-                                <div class="search-form__buttons">
-                                    <button type="submit"
-                                    class="govuk-button govuk-button__search-filters-form-apply-button"
-                                    data-module="govuk-button">Apply terms</button>
-                                    <a class="govuk-link govuk-link--transferring-filter"
-                                    href="{self.browse_all_route_url}#browse-records">Clear all terms</a>
-                                </div>
-                                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
-                                <div class="ayr-filter-tags">
-                                        <div class="search-term">
-                                            <button type="button"
-                                            class="button-search-term"
-                                            data-module="search-term-button">
-                                                <a href="{self.route_url}/{transferring_body_id}?query={term2}">
-                                                    {term1}
-                                                    <img src="/assets/image/cancel-filters.svg"
-                                                    height="30px"
-                                                    width="30px"
-                                                    class="close-icon"
-                                                    alt="">
-                                                </a>
-                                            </button>
-                                        </div>
-                                        <div class="search-term">
-                                            <button type="button"
-                                            class="button-search-term"
-                                            data-module="search-term-button">
-                                                <a href="{self.route_url}/{transferring_body_id}?query={term1}">
-                                                    {term2}
-                                                    <img src="/assets/image/cancel-filters.svg"
-                                                        height="30px"
-                                                        width="30px"
-                                                        class="close-icon"
-                                                        alt="">
-                                                </a>
-                                            </button>
-                                        </div>
-                                </div>
-                            </div>
-                        </div>"""
+        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
+            <div class="browse-all-filter-container">
+                <div class="browse-filter__header">
+                    <h2 class="govuk-heading-m govuk-heading-m--search">
+                        <label class="govuk-label govuk-heading-m govuk-heading-m--search"
+                        for="search_filter">Search within results</label>
+                    </h2>
+                </div>
+
+                <div class="govuk-form-group govuk-form-group--search-all-filter">
+                    <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
+                    id="search_filter" name="search_filter" type="text">
+                </div>
+
+                <div class="search-form__buttons">
+                    <button type="submit"
+                    class="govuk-button govuk-button__search-filters-form-apply-button"
+                    data-module="govuk-button">
+                        Apply terms
+                    </button>
+                    <a class="govuk-link govuk-link--transferring-filter"
+                      href="{self.browse_all_route_url}#browse-records">
+                      Clear all terms
+                    </a>
+                </div>
+
+                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
+
+                <div class="ayr-filter-tags">
+
+                    <div class="search-term">
+                        <button type="button"
+                        class="button-search-term"
+                        data-module="search-term-button">
+                            <a href="{self.route_url}/{transferring_body_id}?query={term2}">
+                                {term1}
+                                <img src="/assets/image/cancel-filters.svg"
+                                height="30px"
+                                width="30px"
+                                class="close-icon"
+                                alt="">
+                            </a>
+                        </button>
+                    </div>
+
+                    <div class="search-term">
+                        <button type="button"
+                        class="button-search-term"
+                        data-module="search-term-button">
+                            <a href="{self.route_url}/{transferring_body_id}?query={term1}">
+                                {term2}
+                                <img src="/assets/image/cancel-filters.svg"
+                                    height="30px"
+                                    width="30px"
+                                    class="close-icon"
+                                    alt="">
+                            </a>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """
 
         assert_contains_html(
             search_filter_html,
@@ -1496,60 +1505,70 @@ class TestSearchTransferringBody:
         html = response.data.decode()
 
         search_filter_html = f"""
-        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters mobile-filters">
-                            <div class="search-all-filter-container">
-                                <div class="browse-filter__header">
-                                        <h2 class="govuk-heading-m govuk-heading-m--search">
-                                            <label class="govuk-label govuk-heading-m govuk-heading-m--search"
-                                            for="search_filter">Search within results</label>
-                                        </h2>
-                                    </div>
-                                <div class="govuk-form-group govuk-form-group--search-all-filter">
-                                    <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
-                                    id="search_filter"
-                                    name="search_filter"
-                                    type="text">
-                                </div>
-                                <div class="search-form__buttons">
-                                    <button type="submit"
-                                    class="govuk-button govuk-button__search-filters-form-apply-button"
-                                    data-module="govuk-button">Apply terms</button>
-                                    <a class="govuk-link govuk-link--transferring-filter"
-                                href="{self.browse_transferring_body_route_url}/{transferring_body_id}#browse-records">
-                                Clear all terms</a></div>
-                                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
-                                <div class="ayr-filter-tags">
-                                        <div class="search-term">
-                                            <button type="button"
-                                            class="button-search-term"
-                                            data-module="search-term-button">
-                                                <a href="{self.route_url}/{transferring_body_id}?query={term2}">
-                                                    {term1}
-                                                    <img src="/assets/image/cancel-filters.svg"
-                                                    height="30px"
-                                                    width="30px"
-                                                    class="close-icon"
-                                                    alt="">
-                                                </a>
-                                            </button>
-                                        </div>
-                                        <div class="search-term">
-                                            <button type="button"
-                                            class="button-search-term"
-                                            data-module="search-term-button">
-                                                <a href="{self.route_url}/{transferring_body_id}?query={term1}">
-                                                    {term2}
-                                                    <img src="/assets/image/cancel-filters.svg"
-                                                        height="30px"
-                                                        width="30px"
-                                                        class="close-icon"
-                                                        alt="">
-                                                </a>
-                                            </button>
-                                        </div>
-                                </div>
-                            </div>
-                        </div>"""
+        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
+            <div class="browse-all-filter-container">
+                <div class="browse-filter__header">
+                    <h2 class="govuk-heading-m govuk-heading-m--search">
+                        <label class="govuk-label govuk-heading-m govuk-heading-m--search"
+                        for="search_filter">Search within results</label>
+                    </h2>
+                </div>
+
+                <div class="govuk-form-group govuk-form-group--search-all-filter">
+                    <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
+                    id="search_filter" name="search_filter" type="text">
+                </div>
+
+                <div class="search-form__buttons">
+                    <button
+                    type="submit"
+                    class="govuk-button govuk-button__search-filters-form-apply-button"
+                    data-module="govuk-button">
+                        Apply terms
+                    </button>
+                    <a class="govuk-link govuk-link--transferring-filter"
+                      href="{self.browse_transferring_body_route_url}/{transferring_body_id}#browse-records">
+                      Clear all terms
+                    </a>
+                </div>
+
+                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
+
+                <div class="ayr-filter-tags">
+
+                    <div class="search-term">
+                        <button type="button"
+                        class="button-search-term"
+                        data-module="search-term-button">
+                            <a href="{self.route_url}/{transferring_body_id}?query={term2}">
+                                {term1}
+                                <img src="/assets/image/cancel-filters.svg"
+                                height="30px"
+                                width="30px"
+                                class="close-icon"
+                                alt="">
+                            </a>
+                        </button>
+                    </div>
+
+                    <div class="search-term">
+                        <button type="button"
+                        class="button-search-term"
+                        data-module="search-term-button">
+                            <a href="{self.route_url}/{transferring_body_id}?query={term1}">
+                                {term2}
+                                <img src="/assets/image/cancel-filters.svg"
+                                    height="30px"
+                                    width="30px"
+                                    class="close-icon"
+                                    alt="">
+                            </a>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """
 
         assert_contains_html(
             search_filter_html,
@@ -1649,7 +1668,7 @@ class TestSearchTransferringBody:
                 "query=TDR-2023-FI1&search_filter=th",
                 [
                     [
-                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-', "
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―', "
                         "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
@@ -1659,7 +1678,7 @@ class TestSearchTransferringBody:
                 "query=TDR-2023-FI1&search_filter=second",
                 [
                     [
-                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '-'"
+                        "'first_series', 'TDR-2023-FI1', 'second_file.ppt', 'Open', '―'"
                     ],
                 ],
             ),
@@ -1687,7 +1706,7 @@ class TestSearchTransferringBody:
                     [
                         "'first_series', 'TDR-2023-FI1', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'first_series', 'TDR-2023-FI1', 'fourth_file.xls', 'Closed', '25/03/2070', "
-                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '-'"
+                        "'first_series', 'TDR-2023-FI1', 'fifth_file.doc', 'Open', '―'"
                     ],
                 ],
             ),
