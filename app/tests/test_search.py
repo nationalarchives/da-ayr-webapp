@@ -191,17 +191,17 @@ class TestSearchResultsSummary:
         <label class="govuk-label search__heading" for="search-input">Search for digital records</label>
         <form method="get" action="/search">
             <div class="govuk-form-group govuk-form-group__search-form">
-                <input class="govuk-input govuk-!-width-three-quarters"
-                       id="search-input"
-                       name="query"
-                       type="text"
-                       value="">
-                <button class="govuk-button govuk-button__search-button"
-                        data-module="govuk-button"
-                        type="submit">Search</button>
-            <p class="govuk-body-s">
-                Search by file name, transferring body, series or consignment reference.
-            </p>
+                <input
+                    class="govuk-input govuk-!-width-three-quarters"
+                    id="search-input" name="query"
+                    type="text"
+                    value="tdr">
+                <button
+                    class="govuk-button govuk-button__search-button" data-module="govuk-button"
+                    type="submit">
+                        Search
+                </button>
+                <p class="govuk-body-s">Search by file name, transferring body, series or consignment reference.</p>
             </div>
         </form>
     </div>
