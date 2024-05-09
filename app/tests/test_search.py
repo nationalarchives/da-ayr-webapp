@@ -191,17 +191,17 @@ class TestSearchResultsSummary:
         <label class="govuk-label search__heading" for="search-input">Search for digital records</label>
         <form method="get" action="/search">
             <div class="govuk-form-group govuk-form-group__search-form">
-                <input
-                    class="govuk-input govuk-!-width-three-quarters"
-                    id="search-input" name="query"
-                    type="text"
-                    value="tdr">
-                <button
-                    class="govuk-button govuk-button__search-button" data-module="govuk-button"
-                    type="submit">
-                        Search
-                </button>
-                <p class="govuk-body-s">Search by file name, transferring body, series or consignment reference.</p>
+                <input class="govuk-input govuk-!-width-three-quarters"
+                       id="search-input"
+                       name="query"
+                       type="text"
+                       value="">
+                <button class="govuk-button govuk-button__search-button"
+                        data-module="govuk-button"
+                        type="submit">Search</button>
+            <p class="govuk-body-s">
+                Search by file name, transferring body, series or consignment reference.
+            </p>
             </div>
         </form>
     </div>
@@ -578,100 +578,86 @@ class TestSearchTransferringBody:
         html = response.data.decode()
 
         expected_html = f"""
-        <table class="govuk-table browse-grid__table" id="tbl_result" aria-label="Browse records">
+        <table class="govuk-table" id="tbl_result" aria-label="Record search results">
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
-                    <th
-                        scope="col"
-                        class="govuk-table__header browse-grid__key__transferring-body browse__all__desktop__header">
-                        Series reference
-                    </th>
-                    <th
-                        scope="col"
-                        class="govuk-table__header govuk-table__header--search-header search__mobile-heading">
+                    <th scope="col"
+                        class="govuk-table__header govuk-table__header--search-header
+                        search__desktop-heading">Series reference</th>
+                    <th class="govuk-table__header govuk-table__header--search-header
+                    search__mobile-heading" scope="col">
                         Series reference / File name / Consignment reference
                     </th>
-                    <th
-                        scope="col"
-                        class="govuk-table__header govuk-table__header--search-header search__desktop-heading">
+                    <th class="govuk-table__header govuk-table__header--search-header
+                    search__desktop-heading" scope="col">
                         Consignment reference
                     </th>
-                    <th
-                        scope="col"
-                        class="govuk-table__header
-                        govuk-table__header--search-header
-                        govuk-table__header--search-header-title
-                        search__desktop-heading">
+                    <th class="govuk-table__header govuk-table__header--search-header
+                    govuk-table__header--search-header-title
+                    search__desktop-heading" scope="col">
                         File name
                     </th>
-                    <th
-                        scope="col"
-                        class="govuk-table__header
-                        govuk-table__header--search-header
-                        search__desktop-heading
-                        search__mobile-heading">
-                        Status
-                    </th>
-                    <th
-                        scope="col"
-                        class="govuk-table__header
-                        govuk-table__header--search-header
-                        search__desktop-heading
-                        search__mobile-heading">
-                        Record opening date
+                    <th scope="col"
+                        class="govuk-table__header govuk-table__header--search-header
+                        search__desktop-heading search__mobile-heading">Status</th>
+                    <th scope="col"
+                        class="govuk-table__header govuk-table__header--search-header search__desktop-heading
+                        search__mobile-heading">Record opening date
                     </th>
                 </tr>
             </thead>
             <tbody class="govuk-table__body">
-            <tr class="govuk-table__row top-row">
-                <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row">
-                    <a href="{browse_series_route_url}/{series_id}">first_series</a>
-                </td>
-                <td class="govuk-table__cell govuk-table__cell--search-results
-                govuk-table__cell--search-results-no-wrap search__mobile-table__top-row search__table__mobile--hidden">
-                    <a href="{browse_consignment_route_url}/{consignment_id}">TDR-2023-FI1</a>
-                </td>
-                <td class="govuk-table__cell govuk-table__cell--search-results
-                search__mobile-table__top-row search__table__mobile--hidden">
-                    <a class="word-break" href="{record_route_url}/{file_id}">first_file.docx</a>
-                </td>
-                <td class="govuk-table__cell govuk-table__cell--search-results
-                search__mobile-table__top-row">
-                    <strong class="govuk-tag govuk-tag--red">
-                        Closed
-                    </strong>
-                </td>
-                <td class="govuk-table__cell govuk-table__cell--search-results
-                browse__table__right-align search__mobile-table__top-row">
-                        25/02/2023
-                </td>
+            <div class="main-content" id="main-content" role="main">
+        <tr class="govuk-table__row top-row">
+            <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row">
+                <a href="{browse_series_route_url}/{series_id}">first_series</a>
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            govuk-table__cell--search-results-no-wrap search__mobile-table__top-row search__table__mobile--hidden">
+                <a href="{browse_consignment_route_url}/{consignment_id}">TDR-2023-FI1</a>
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            search__mobile-table__top-row search__table__mobile--hidden">
+                <a class="word-break" href="{record_route_url}/{file_id}">first_file.docx</a>
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            search__mobile-table__top-row">
+                <strong class="govuk-tag govuk-tag--red">
+                    Closed
+                </strong>
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            right-align search__mobile-table__top-row">
+                    25/02/2023
+            </td>
             </tr>
             <tr class="govuk-table__row search__mobile-row">
-                <td class="govuk-table__cell govuk-table__cell--search-results
-                search__mobile-table__middle-row">
-                    <a class="word-break" href="{record_route_url}/{file_id}">
-                    first_file.docx
-                    </a>
-                </td>
-                <td class="govuk-table__cell govuk-table__cell--search-results
-                search__mobile-table__middle-row">
-                </td>
-                <td class="govuk-table__cell govuk-table__cell--search-results
-                search__mobile-table__middle-row">
-                </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            search__mobile-table__middle-row">
+                <a class="word-break" href="{record_route_url}/{file_id}">
+                first_file.docx
+                </a>
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            search__mobile-table__middle-row">
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            search__mobile-table__middle-row">
+            </td>
             </tr>
             <tr class="govuk-table__row search__mobile-row">
-                <td class="govuk-table__cell govuk-table__cell--search-results
-                govuk-table__cell--search-results-no-wrap">
-                    <a href="{browse_consignment_route_url}/{consignment_id}">
-                    TDR-2023-FI1
-                    </a>
-                </td>
-                <td class="govuk-table__cell govuk-table__cell--search-results">
-                </td>
-                <td class="govuk-table__cell govuk-table__cell--search-results">
-                </td>
-            </tr>
+            <td class="govuk-table__cell govuk-table__cell--search-results
+            govuk-table__cell--search-results-no-wrap">
+                <a href="{browse_consignment_route_url}/{consignment_id}">
+                TDR-2023-FI1
+                </a>
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results">
+            </td>
+            <td class="govuk-table__cell govuk-table__cell--search-results">
+            </td>
+        </tr>
+        </div>
             </tbody>
         </table>
         """
@@ -1401,69 +1387,60 @@ class TestSearchTransferringBody:
         html = response.data.decode()
 
         search_filter_html = f"""
-        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
-            <div class="browse-all-filter-container">
-                <div class="browse-filter__header">
-                    <h2 class="govuk-heading-m govuk-heading-m--search">
-                        <label class="govuk-label govuk-heading-m govuk-heading-m--search"
-                        for="search_filter">Search within results</label>
-                    </h2>
-                </div>
-
-                <div class="govuk-form-group govuk-form-group--search-all-filter">
-                    <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
-                    id="search_filter" name="search_filter" type="text">
-                </div>
-
-                <div class="search-form__buttons">
-                    <button type="submit"
-                    class="govuk-button govuk-button__search-filters-form-apply-button"
-                    data-module="govuk-button">
-                        Apply terms
-                    </button>
-                    <a class="govuk-link govuk-link--transferring-filter"
-                      href="{self.browse_all_route_url}#browse-records">
-                      Clear all terms
-                    </a>
-                </div>
-
-                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
-
-                <div class="ayr-filter-tags">
-
-                    <div class="search-term">
-                        <button type="button"
-                        class="button-search-term"
-                        data-module="search-term-button">
-                            <a href="{self.route_url}/{transferring_body_id}?query={term2}">
-                                {term1}
-                                <img src="/assets/image/cancel-filters.svg"
-                                height="30px"
-                                width="30px"
-                                class="close-icon"
-                                alt="">
-                            </a>
-                        </button>
-                    </div>
-
-                    <div class="search-term">
-                        <button type="button"
-                        class="button-search-term"
-                        data-module="search-term-button">
-                            <a href="{self.route_url}/{transferring_body_id}?query={term1}">
-                                {term2}
-                                <img src="/assets/image/cancel-filters.svg"
-                                    height="30px"
-                                    width="30px"
-                                    class="close-icon"
-                                    alt="">
-                            </a>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        """
+        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters mobile-filters">
+                            <div class="search-all-filter-container">
+                                <div class="browse-filter__header">
+                                        <h2 class="govuk-heading-m govuk-heading-m--search">
+                                            <label class="govuk-label govuk-heading-m govuk-heading-m--search"
+                                            for="search_filter">Search within results</label>
+                                        </h2>
+                                    </div>
+                                <div class="govuk-form-group govuk-form-group--search-all-filter">
+                                    <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
+                                    id="search_filter"
+                                    name="search_filter"
+                                    type="text">
+                                </div>
+                                <div class="search-form__buttons">
+                                    <button type="submit"
+                                    class="govuk-button govuk-button__search-filters-form-apply-button"
+                                    data-module="govuk-button">Apply terms</button>
+                                    <a class="govuk-link govuk-link--transferring-filter"
+                                    href="{self.browse_all_route_url}#browse-records">Clear all terms</a>
+                                </div>
+                                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
+                                <div class="ayr-filter-tags">
+                                        <div class="search-term">
+                                            <button type="button"
+                                            class="button-search-term"
+                                            data-module="search-term-button">
+                                                <a href="{self.route_url}/{transferring_body_id}?query={term2}">
+                                                    {term1}
+                                                    <img src="/assets/image/cancel-filters.svg"
+                                                    height="30px"
+                                                    width="30px"
+                                                    class="close-icon"
+                                                    alt="">
+                                                </a>
+                                            </button>
+                                        </div>
+                                        <div class="search-term">
+                                            <button type="button"
+                                            class="button-search-term"
+                                            data-module="search-term-button">
+                                                <a href="{self.route_url}/{transferring_body_id}?query={term1}">
+                                                    {term2}
+                                                    <img src="/assets/image/cancel-filters.svg"
+                                                        height="30px"
+                                                        width="30px"
+                                                        class="close-icon"
+                                                        alt="">
+                                                </a>
+                                            </button>
+                                        </div>
+                                </div>
+                            </div>
+                        </div>"""
 
         assert_contains_html(
             search_filter_html,
@@ -1505,70 +1482,60 @@ class TestSearchTransferringBody:
         html = response.data.decode()
 
         search_filter_html = f"""
-        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
-            <div class="browse-all-filter-container">
-                <div class="browse-filter__header">
-                    <h2 class="govuk-heading-m govuk-heading-m--search">
-                        <label class="govuk-label govuk-heading-m govuk-heading-m--search"
-                        for="search_filter">Search within results</label>
-                    </h2>
-                </div>
-
-                <div class="govuk-form-group govuk-form-group--search-all-filter">
-                    <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
-                    id="search_filter" name="search_filter" type="text">
-                </div>
-
-                <div class="search-form__buttons">
-                    <button
-                    type="submit"
-                    class="govuk-button govuk-button__search-filters-form-apply-button"
-                    data-module="govuk-button">
-                        Apply terms
-                    </button>
-                    <a class="govuk-link govuk-link--transferring-filter"
-                      href="{self.browse_transferring_body_route_url}/{transferring_body_id}#browse-records">
-                      Clear all terms
-                    </a>
-                </div>
-
-                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
-
-                <div class="ayr-filter-tags">
-
-                    <div class="search-term">
-                        <button type="button"
-                        class="button-search-term"
-                        data-module="search-term-button">
-                            <a href="{self.route_url}/{transferring_body_id}?query={term2}">
-                                {term1}
-                                <img src="/assets/image/cancel-filters.svg"
-                                height="30px"
-                                width="30px"
-                                class="close-icon"
-                                alt="">
-                            </a>
-                        </button>
-                    </div>
-
-                    <div class="search-term">
-                        <button type="button"
-                        class="button-search-term"
-                        data-module="search-term-button">
-                            <a href="{self.route_url}/{transferring_body_id}?query={term1}">
-                                {term2}
-                                <img src="/assets/image/cancel-filters.svg"
-                                    height="30px"
-                                    width="30px"
-                                    class="close-icon"
-                                    alt="">
-                            </a>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        """
+        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--search-all-filters mobile-filters">
+                            <div class="search-all-filter-container">
+                                <div class="browse-filter__header">
+                                        <h2 class="govuk-heading-m govuk-heading-m--search">
+                                            <label class="govuk-label govuk-heading-m govuk-heading-m--search"
+                                            for="search_filter">Search within results</label>
+                                        </h2>
+                                    </div>
+                                <div class="govuk-form-group govuk-form-group--search-all-filter">
+                                    <input class="govuk-input govuk-!-width-full govuk-input--search-all-input"
+                                    id="search_filter"
+                                    name="search_filter"
+                                    type="text">
+                                </div>
+                                <div class="search-form__buttons">
+                                    <button type="submit"
+                                    class="govuk-button govuk-button__search-filters-form-apply-button"
+                                    data-module="govuk-button">Apply terms</button>
+                                    <a class="govuk-link govuk-link--transferring-filter"
+                                href="{self.browse_transferring_body_route_url}/{transferring_body_id}#browse-records">
+                                Clear all terms</a></div>
+                                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
+                                <div class="ayr-filter-tags">
+                                        <div class="search-term">
+                                            <button type="button"
+                                            class="button-search-term"
+                                            data-module="search-term-button">
+                                                <a href="{self.route_url}/{transferring_body_id}?query={term2}">
+                                                    {term1}
+                                                    <img src="/assets/image/cancel-filters.svg"
+                                                    height="30px"
+                                                    width="30px"
+                                                    class="close-icon"
+                                                    alt="">
+                                                </a>
+                                            </button>
+                                        </div>
+                                        <div class="search-term">
+                                            <button type="button"
+                                            class="button-search-term"
+                                            data-module="search-term-button">
+                                                <a href="{self.route_url}/{transferring_body_id}?query={term1}">
+                                                    {term2}
+                                                    <img src="/assets/image/cancel-filters.svg"
+                                                        height="30px"
+                                                        width="30px"
+                                                        class="close-icon"
+                                                        alt="">
+                                                </a>
+                                            </button>
+                                        </div>
+                                </div>
+                            </div>
+                        </div>"""
 
         assert_contains_html(
             search_filter_html,
