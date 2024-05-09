@@ -578,86 +578,100 @@ class TestSearchTransferringBody:
         html = response.data.decode()
 
         expected_html = f"""
-        <table class="govuk-table" id="tbl_result" aria-label="Record search results">
+        <table class="govuk-table browse-grid__table" id="tbl_result" aria-label="Browse records">
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
-                    <th scope="col"
-                        class="govuk-table__header govuk-table__header--search-header
-                        search__desktop-heading">Series reference</th>
-                    <th class="govuk-table__header govuk-table__header--search-header
-                    search__mobile-heading" scope="col">
+                    <th
+                        scope="col"
+                        class="govuk-table__header browse-grid__key__transferring-body browse__all__desktop__header">
+                        Series reference
+                    </th>
+                    <th
+                        scope="col"
+                        class="govuk-table__header govuk-table__header--search-header search__mobile-heading">
                         Series reference / File name / Consignment reference
                     </th>
-                    <th class="govuk-table__header govuk-table__header--search-header
-                    search__desktop-heading" scope="col">
+                    <th
+                        scope="col"
+                        class="govuk-table__header govuk-table__header--search-header search__desktop-heading">
                         Consignment reference
                     </th>
-                    <th class="govuk-table__header govuk-table__header--search-header
-                    govuk-table__header--search-header-title
-                    search__desktop-heading" scope="col">
+                    <th
+                        scope="col"
+                        class="govuk-table__header
+                        govuk-table__header--search-header
+                        govuk-table__header--search-header-title
+                        search__desktop-heading">
                         File name
                     </th>
-                    <th scope="col"
-                        class="govuk-table__header govuk-table__header--search-header
-                        search__desktop-heading search__mobile-heading">Status</th>
-                    <th scope="col"
-                        class="govuk-table__header govuk-table__header--search-header search__desktop-heading
-                        search__mobile-heading">Record opening date
+                    <th
+                        scope="col"
+                        class="govuk-table__header
+                        govuk-table__header--search-header
+                        search__desktop-heading
+                        search__mobile-heading">
+                        Status
+                    </th>
+                    <th
+                        scope="col"
+                        class="govuk-table__header
+                        govuk-table__header--search-header
+                        search__desktop-heading
+                        search__mobile-heading">
+                        Record opening date
                     </th>
                 </tr>
             </thead>
             <tbody class="govuk-table__body">
-            <div class="main-content" id="main-content" role="main">
-        <tr class="govuk-table__row top-row">
-            <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row">
-                <a href="{browse_series_route_url}/{series_id}">first_series</a>
-            </td>
-            <td class="govuk-table__cell govuk-table__cell--search-results
-            govuk-table__cell--search-results-no-wrap search__mobile-table__top-row search__table__mobile--hidden">
-                <a href="{browse_consignment_route_url}/{consignment_id}">TDR-2023-FI1</a>
-            </td>
-            <td class="govuk-table__cell govuk-table__cell--search-results
-            search__mobile-table__top-row search__table__mobile--hidden">
-                <a class="word-break" href="{record_route_url}/{file_id}">first_file.docx</a>
-            </td>
-            <td class="govuk-table__cell govuk-table__cell--search-results
-            search__mobile-table__top-row">
-                <strong class="govuk-tag govuk-tag--red">
-                    Closed
-                </strong>
-            </td>
-            <td class="govuk-table__cell govuk-table__cell--search-results
-            right-align search__mobile-table__top-row">
-                    25/02/2023
-            </td>
+            <tr class="govuk-table__row top-row">
+                <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row">
+                    <a href="{browse_series_route_url}/{series_id}">first_series</a>
+                </td>
+                <td class="govuk-table__cell govuk-table__cell--search-results
+                govuk-table__cell--search-results-no-wrap search__mobile-table__top-row search__table__mobile--hidden">
+                    <a href="{browse_consignment_route_url}/{consignment_id}">TDR-2023-FI1</a>
+                </td>
+                <td class="govuk-table__cell govuk-table__cell--search-results
+                search__mobile-table__top-row search__table__mobile--hidden">
+                    <a class="word-break" href="{record_route_url}/{file_id}">first_file.docx</a>
+                </td>
+                <td class="govuk-table__cell govuk-table__cell--search-results
+                search__mobile-table__top-row">
+                    <strong class="govuk-tag govuk-tag--red">
+                        Closed
+                    </strong>
+                </td>
+                <td class="govuk-table__cell govuk-table__cell--search-results
+                right-align search__mobile-table__top-row">
+                        25/02/2023
+                </td>
             </tr>
             <tr class="govuk-table__row search__mobile-row">
-            <td class="govuk-table__cell govuk-table__cell--search-results
-            search__mobile-table__middle-row">
-                <a class="word-break" href="{record_route_url}/{file_id}">
-                first_file.docx
-                </a>
-            </td>
-            <td class="govuk-table__cell govuk-table__cell--search-results
-            search__mobile-table__middle-row">
-            </td>
-            <td class="govuk-table__cell govuk-table__cell--search-results
-            search__mobile-table__middle-row">
-            </td>
+                <td class="govuk-table__cell govuk-table__cell--search-results
+                search__mobile-table__middle-row">
+                    <a class="word-break" href="{record_route_url}/{file_id}">
+                    first_file.docx
+                    </a>
+                </td>
+                <td class="govuk-table__cell govuk-table__cell--search-results
+                search__mobile-table__middle-row">
+                </td>
+                <td class="govuk-table__cell govuk-table__cell--search-results
+                search__mobile-table__middle-row">
+                </td>
             </tr>
             <tr class="govuk-table__row search__mobile-row">
-            <td class="govuk-table__cell govuk-table__cell--search-results
-            govuk-table__cell--search-results-no-wrap">
-                <a href="{browse_consignment_route_url}/{consignment_id}">
-                TDR-2023-FI1
-                </a>
-            </td>
-            <td class="govuk-table__cell govuk-table__cell--search-results">
-            </td>
-            <td class="govuk-table__cell govuk-table__cell--search-results">
-            </td>
-        </tr>
-        </div>
+                <td class="govuk-table__cell govuk-table__cell--search-results
+                govuk-table__cell--search-results-no-wrap">
+                    <a href="{browse_consignment_route_url}/{consignment_id}">
+                    TDR-2023-FI1
+                    </a>
+                </td>
+                <td class="govuk-table__cell govuk-table__cell--search-results">
+                </td>
+                <td class="govuk-table__cell govuk-table__cell--search-results">
+                </td>
+            </tr>
             </tbody>
         </table>
         """
