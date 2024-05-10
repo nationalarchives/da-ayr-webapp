@@ -182,7 +182,8 @@
                                             {% endif %}
                                             <button type="button"
                                                     class="button-search-term"
-                                                    data-module="search-term-button">
+                                                    data-module="search-term-button"
+                                                    aria-label="Remove filter for '{{ search_terms[i] }}'">
                                                 <a href="{{ search_term_url }}">
                                                     {{ search_terms[i] }}
                                                     <img src="{{ url_for('static', filename= 'image/cancel-filters.svg') }}"

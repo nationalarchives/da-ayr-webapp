@@ -1360,7 +1360,12 @@ class TestSearchTransferringBody:
                 <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
                 <div class="ayr-filter-tags">
                         <div class="search-term">
-                            <button type="button" class="button-search-term" data-module="search-term-button">
+                            <button
+                                type="button"
+                                class="button-search-term"
+                                data-module="search-term-button"
+                                aria-label="Remove filter for '{term1}'"
+                            >
                                 <a href="{self.route_url}/{transferring_body_id}?query={term2}">
                                     {term1}
                                     <img
@@ -1374,7 +1379,12 @@ class TestSearchTransferringBody:
                         </div>
 
                         <div class="search-term">
-                            <button type="button" class="button-search-term" data-module="search-term-button">
+                            <button
+                                type="button"
+                                class="button-search-term"
+                                data-module="search-term-button"
+                                aria-label="Remove filter for '{term2}'"
+                            >
                                 <a href="{self.route_url}/{transferring_body_id}?query={term1}">
                                     {term2}
                                     <img
@@ -1463,7 +1473,12 @@ class TestSearchTransferringBody:
                 <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
                 <div class="ayr-filter-tags">
                         <div class="search-term">
-                            <button type="button" class="button-search-term" data-module="search-term-button">
+                            <button
+                                type="button"
+                                class="button-search-term"
+                                data-module="search-term-button"
+                                aria-label="Remove filter for '{term1}'"
+                            >
                                 <a href="{self.route_url}/{transferring_body_id}?query={term2}">
                                     {term1}
                                     <img
@@ -1478,7 +1493,12 @@ class TestSearchTransferringBody:
                         </div>
 
                         <div class="search-term">
-                            <button type="button" class="button-search-term" data-module="search-term-button">
+                            <button
+                                type="button"
+                                class="button-search-term"
+                                data-module="search-term-button"
+                                aria-label="Remove filter for '{term2}'"
+                            >
                                 <a href="{self.route_url}/{transferring_body_id}?query={term1}">
                                     {term2}
                                     <img
@@ -1541,7 +1561,9 @@ class TestSearchTransferringBody:
                                         <div class="search-term">
                                             <button type="button"
                                             class="button-search-term"
-                                            data-module="search-term-button">
+                                            data-module="search-term-button"
+                                            aria-label="Remove filter for '{term1}'"
+                                        >
                                     <a href="{self.route_url}/{transferring_body_id}?query={term2},{term3}">
                                             {term1}
                                             <img src="/assets/image/cancel-filters.svg"
@@ -1555,7 +1577,9 @@ class TestSearchTransferringBody:
                                         <div class="search-term">
                                             <button type="button"
                                             class="button-search-term"
-                                            data-module="search-term-button">
+                                            data-module="search-term-button"
+                                            aria-label="Remove filter for '{term2}'"
+                                        >
                                     <a href="{self.route_url}/{transferring_body_id}?query={term1},{term3}">
                                             {term2}
                                             <img src="/assets/image/cancel-filters.svg"
@@ -1568,8 +1592,10 @@ class TestSearchTransferringBody:
                                         </div>
                                         <div class="search-term">
                                             <button type="button"
-                                            class="button-search-term"
-                                            data-module="search-term-button">
+                                                class="button-search-term"
+                                                data-module="search-term-button"
+                                                aria-label="Remove filter for '{term3}'"
+                                            >
                                     <a href="{self.route_url}/{transferring_body_id}?query={term1},{term2}">
                                             {term3}
                                             <img src="/assets/image/cancel-filters.svg"
