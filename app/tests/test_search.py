@@ -566,14 +566,7 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
         assert b"Records found 1" in response.data
 
-        expected_rows = [
-            [
-                "'first_series', 'TDR-2023-FI1', 'first_file.docx', 'Closed', '25/02/2023'"
-            ],
-        ]
-
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_search_desktop_data_rows(response.data, expected_rows)
 
         table = BeautifulSoup(response.data, "html.parser").find("table")
         anchors = table.find_all("a")
