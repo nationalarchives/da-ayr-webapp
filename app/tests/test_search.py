@@ -579,10 +579,6 @@ class TestSearchTransferringBody:
         anchors = table.find_all("a")
         rows = table.find_all("td")
 
-        # these tests should probably be style and class agnostic, so intead of testing pure HTML,
-        # which is tedious, I've changed it to be a lot more generic
-
-        # we expect a number of anchors with certain hrefs and text
         expected_anchors_hrefs = [
             f"""{browse_series_route_url}/{series_id}""",
             f"""{browse_consignment_route_url}/{consignment_id}""",
@@ -606,12 +602,10 @@ class TestSearchTransferringBody:
             "TDR-2023-FI1",
         ]
 
-        # assert our anchors contain the right text and hrefs
         assert [anchor["href"] for anchor in anchors] == expected_anchors_hrefs
         assert [
             anchor.get_text() for anchor in anchors
         ] == expected_anchors_text
-        # testting the text for each row, stripping it of white spaces and new lines and asserting against expected rows
         assert (
             list(filter(None, [row.get_text(strip=True) for row in rows]))
             == expected_all_rows_text
