@@ -98,9 +98,11 @@
                          alt="">
                 </div>
                 <!-- RECORD STATUS -->
-                <h3 class="govuk-heading-s govuk-heading-s--consignment-filter">Record status</h3>
                 <div class="govuk-form-group govuk-form-group__consignment-form-group">
                     <fieldset class="govuk-fieldset govuk-fieldset--record-status">
+                        <legend class="govuk-!-margin-0 govuk-!-padding-0">
+                            <h3 class="govuk-heading-s govuk-heading-s--consignment-filter">Record status</h3>
+                        </legend>
                         <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
                             <div class="govuk-radios__item govuk-radios__item--consignment-radio-buttons">
                                 <input class="govuk-radios__input" id="recordStatus-closed" name="record_status"
@@ -133,7 +135,6 @@
                     <div class="consignment-filter-container">
                         <!-- DATES -->
                         <div class="consignment-filter-dates-container">
-                            <h3 class="govuk-heading-s govuk-heading-s--consignment-filter">Record dates</h3>
                             <div class="govuk-form-group govuk-form-group__consignment-form-group">
                                 <div class="govuk-form-group {% if date_validation_errors %} {% if date_validation_errors.get('date_filter_field') %}govuk-form-group--error{% endif %}{% endif %}">
                                     {% if date_validation_errors %}
@@ -142,6 +143,9 @@
                                         {% endif %}
                                     {% endif %}
                                     <fieldset class="govuk-fieldset">
+                                        <legend class="govuk-!-margin-0 govuk-!-padding-0">
+                                            <h3 class="govuk-heading-s govuk-heading-s--consignment-filter">Record dates</h3>
+                                        </legend>
                                         <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
                                             <div class="govuk-radios__item">
                                                 <input class="govuk-radios__input" id="date_last_modified" name="date_filter_field"
