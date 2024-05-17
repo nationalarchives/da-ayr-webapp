@@ -20,12 +20,7 @@ def page(page, request) -> Page:
 
 
 @pytest.fixture
-def create_user_page(
-    page, browser_name
-) -> (
-    Page
-):  # FIXME: browser_name specified until https://github.com/microsoft/playwright-pytest/issues/172 fixed
-    # so that multiple browser flags in cli are honoured
+def create_user_page(page, browser_name) -> Page:
     def _create_user_page(username, password) -> Page:
         page.goto("/sign-in")
         page.get_by_label("Email address").fill(username)

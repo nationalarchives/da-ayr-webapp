@@ -6,13 +6,10 @@ WORKDIR /e2e_tests
 
 # seems like poetry doesn't pick up pyproject.toml for some unapparent reason - same with the readme, might break if removed
 COPY pyproject.toml pyproject.toml
-RUN touch README.md
 
 RUN pip install poetry
 RUN poetry install
 RUN poetry run playwright install --with-deps
 
 # runs the e2e visual regression tests for webkit, firefox and chromium
-CMD poetry run pytest test_visual_regression.py --base-url=https://host.docker.internal:5000/ --browser webkit --update-snapshots; \
-    poetry run pytest test_visual_regression.py --base-url=https://host.docker.internal:5000/ --browser firefox --update-snapshots; \
-    poetry run pytest test_visual_regression.py --base-url=https://host.docker.internal:5000/ --browser chromium --update-snapshots
+CMD poetry run pytest test_visual_regression.py --base-url=https://host.docker.internal:5000/ --browser webkit --browser firefox --browser chromium --update-snapshots
