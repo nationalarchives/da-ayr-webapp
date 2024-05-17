@@ -388,7 +388,7 @@ To enable this flexibility we suggest any Playwright tests added to the repo use
 
 In addition, we recommend that any tests that have dependencies on data, do not make assumptions about any particular database or instance involved, and instead do the test data set up and teardown as part of the test suite.
 
-### Visual regression e2e tests
+### Visual regression E2E tests
 
 In order to ensure a consistent and stable testing environment, we make use of a [Docker](https://www.docker.com/products/docker-desktop/) image (and subsequently container) that is defined in structure inside of `e2e_tests/dockerfile`. Please note that the process of building and running the Docker container requires the same environment variables as the regular E2E tests talked about above. The `e2e_tests` directory contains a couple scripts that make the process of building and running the container simple:
 
