@@ -398,7 +398,7 @@ First, switch current working directory to `e2e_tests`
 cd e2e_tests/
 ```
 
-Then, to build and run the E2E visual regression suite 
+Then, to build and run the E2E visual regression suite
 
 ```shell
 bash e2e_tests.reg_build_and_run.sh
