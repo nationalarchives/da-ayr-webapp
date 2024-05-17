@@ -20,9 +20,21 @@
 }
 
 .govuk-link {
+
   &__ayr {
     margin-bottom: 1rem;
     font-size: 1rem;
+  }
+
+  &__1-rem-mb-font {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  &__no-visited-color {
+    &:visited {
+      color: $colour-link-default;
+    }
   }
 
   &--accessibility {
