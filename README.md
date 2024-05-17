@@ -388,6 +388,30 @@ To enable this flexibility we suggest any Playwright tests added to the repo use
 
 In addition, we recommend that any tests that have dependencies on data, do not make assumptions about any particular database or instance involved, and instead do the test data set up and teardown as part of the test suite.
 
+### Visual regression e2e tests
+
+In order to ensure a consistent and stable testing environment, we make use of a [Docker](https://www.docker.com/products/docker-desktop/) image (and subsequently container) that is defined in structure inside of `e2e_tests/dockerfile`. Please note that the process of building and running the Docker container requires the same environment variables as the regular E2E tests talked about above. The `e2e_tests` directory contains a couple scripts that make the process of building and running the container simple:
+
+First, switch current working directory to `e2e_tests`
+
+```shell
+cd e2e_tests/
+```
+
+Then, to build and run the E2E visual regression suite 
+
+```shell
+bash e2e_tests.reg_build_and_run.sh
+```
+
+To just run the E2E tests once the container has already been built
+
+```shell
+bash e2e_tests.reg_run.sh
+```
+
+Whilst the Docker container is running, snapshots of visual regression for pages that have been modified will be automatically saved inside of `e2e_tests/snapshots/test_css_no_visual_regression` and `e2e_tests/snapshots/test_css_no_visual_regression_mobile`.
+
 ### Useful playwright pytest run modes
 
 #### browser
