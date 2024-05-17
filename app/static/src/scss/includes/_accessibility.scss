@@ -26,23 +26,27 @@
   }
 
   &--accessibility {
-    color: $colour-link-visited;
+    color: $colour-link-default;
     font-size: 1rem;
   }
 
   &:visited {
-    color: $colour-link-visited;
+    color: $colour-link-default;
+  }
+
+  &:hover {
+    color: $colour-link-hover;
   }
 
   &:active {
-    color: $colour-link-visited;
+    color: $colour-link-default;
   }
 
-  color: $colour-link-visited;
+  color: $colour-link-default;
 }
 
 .govuk-tna-link {
-  color: $colour-link-visited;
+  color: $colour-link-default;
 }
 
 .li::marker {
