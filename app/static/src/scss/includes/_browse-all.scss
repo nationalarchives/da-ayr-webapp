@@ -225,8 +225,8 @@
 
   &-table__cell {
     &--ayr a {
-      color: $colour-link-visited;
-      -webkit-text-fill-color: $colour-link-visited;
+      color: $colour-link-default;
+      -webkit-text-fill-color: $colour-link-default;
     }
   }
 }

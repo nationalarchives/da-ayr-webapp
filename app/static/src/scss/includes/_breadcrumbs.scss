@@ -63,38 +63,38 @@
   }
 
   &__link--record {
-    color: $colour-link-visited;
+    color: $colour-link-default;
     font-size: 1rem;
     font-weight: 400;
     margin-top: 0;
 
     &--series {
       white-space: nowrap;
-      color: $colour-link-visited;
+      color: $colour-link-default;
 
       &:visited {
-        color: $colour-link-visited;
-        -webkit-text-fill-color: $colour-link-visited;
+        color: $colour-link-default;
+        -webkit-text-fill-color: $colour-link-default;
       }
     }
 
     &--transferring-body {
       flex-wrap: wrap;
-      color: $colour-link-visited;
+      color: $colour-link-default;
 
       &:visited {
-        color: $colour-link-visited;
-        -webkit-text-fill-color: $colour-link-visited;
+        color: $colour-link-default;
+        -webkit-text-fill-color: $colour-link-default;
       }
     }
 
     &--consignment {
       white-space: nowrap;
-      color: $colour-link-visited;
+      color: $colour-link-default;
 
       &:visited {
-        color: $colour-link-visited;
-        -webkit-text-fill-color: $colour-link-visited;
+        color: $colour-link-default;
+        -webkit-text-fill-color: $colour-link-default;
       }
     }
   }
