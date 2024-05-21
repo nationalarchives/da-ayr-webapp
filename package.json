@@ -17,6 +17,6 @@
     "stylelint-selector-bem-pattern": "^3.0.1"
   },
   "dependencies": {
-    "npm": "^10.8.0"
+    "npm": "^10.5.2"
   }
 }
