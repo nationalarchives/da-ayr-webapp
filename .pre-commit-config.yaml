@@ -57,6 +57,15 @@ repos:
         language: system
         pass_filenames: false
 
+-   repo: local
+    hooks:
+    -   id: pa11y-ci-precommit
+        name: Pa11y CI
+        entry: custom_hooks/pa11y_ci_precommit.sh
+        language: system
+        pass_filenames: false
+        verbose: true
+
 - repo: https://github.com/thibaudcolas/pre-commit-stylelint
   rev: v16.2.1
   hooks:
