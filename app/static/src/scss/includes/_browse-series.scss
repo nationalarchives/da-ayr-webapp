@@ -22,6 +22,7 @@
   }
 
   &.word-break {
+    word-wrap: break-word;
     word-break: break-word;
   }
 }
