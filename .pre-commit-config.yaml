@@ -65,6 +65,7 @@ repos:
         language: system
         pass_filenames: false
         verbose: true
+        stages: [commit, push, manual]
 
 - repo: https://github.com/thibaudcolas/pre-commit-stylelint
   rev: v16.2.1

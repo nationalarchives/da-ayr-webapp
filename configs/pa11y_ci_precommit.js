@@ -2,7 +2,7 @@ const base_url = "https://127.0.0.1:5000";
 
 module.exports = {
   defaults: {
-    timeout: 5000,
+    timeout: 2000,
     useIncognitoBrowserContext: false,
     chromeLaunchConfig: {
       ignoreHTTPSErrors: true,
