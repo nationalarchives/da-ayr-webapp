@@ -81,7 +81,3 @@ repos:
     - id: prettier
       types_or: [css, javascript, scss]
       args: ['--write']
-
-ci:
-  skip:
-    - pa11y-ci-precommit
