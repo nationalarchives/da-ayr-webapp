@@ -4,12 +4,10 @@
   "scripts": {
     "dev": "sass --watch app/static/src/scss:app/static/src/css",
     "lint": "prettier --write 'app/static/src/scss/**/*.scss' && stylelint --fix 'app/static/src/scss/**/*.scss'",
-    "build": "sass --style=compressed app/static/src/scss:app/static/src/css",
-    "precommit": "pa11y-ci --config configs/pa11y_ci_precommit.js"
+    "build": "sass --style=compressed app/static/src/scss:app/static/src/css"
   },
   "license": "MIT",
   "devDependencies": {
-    "pa11y-ci": "^3.1.0",
     "prettier": "^3.0.3",
     "sass": "^1.69.5",
     "stylelint": "^15.11.0",
