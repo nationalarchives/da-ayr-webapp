@@ -1,3 +1,9 @@
 .govuk-pagination--centred {
   justify-content: center;
 }
+
+.govuk-pagination__link {
+  &:visited {
+    color: $colour-link-default;
+  }
+}
