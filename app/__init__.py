@@ -51,7 +51,8 @@ def create_app(config_class, database_uri=None):
     # Set content security policy
     csp = {
         "default-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']}",
-        "script-src": "'self'"
+        "img-src": "'self' https://stacks.stanford.edu http://localhost:3000",
+        "script-src": "'self'" + " 1234" + "unsafe-inline"
         + " 'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='"  # pragma: allowlist secret
         + " 'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
     }
@@ -65,7 +66,7 @@ def create_app(config_class, database_uri=None):
     db.init_app(app)
     s3.init_app(app)
     compress.init_app(app)
-    talisman.init_app(app, content_security_policy=csp, force_https=force_https)
+    # talisman.init_app(app, content_security_policy=csp, force_https=force_https)
     WTFormsHelpers(app)
 
     # setup database components

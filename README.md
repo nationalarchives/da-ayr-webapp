@@ -566,3 +566,33 @@ Uses [Flask Compress](https://github.com/colour-science/flask-compress) to compr
 This software is provided _"as-is"_ without warranty. Support is provided on a _"best endeavours"_ basis by the maintainers and open source community.
 
 Please see the [contribution guidelines](CONTRIBUTING.md) for how to raise a bug report or feature request.
+
+
+
+## IIIF
+
+### Universal Viewer
+
+https://docs.universalviewer.io/#md:-getting-started
+Universal Viewer can be used via the cdn or via npm
+
+```
+npm install
+```
+
+### TinyIIIF Setup
+
+https://github.com/samvera/node-iiif
+
+https://github.com/samvera/node-iiif/blob/main/examples/tiny-iiif/README.md
+
+
+Using a generated IIIF Manifest or setting up a IIIF TinyIIIF server
+
+1. Generate IIIF Manifest
+2. Install a suitable IIIF viewer (Universal Viewer or Openseadragon)
+3. Navigate to record.html to view the iiif manifest.
+4. Pre-generated manifests are available in 
+```
+app/static/universalviewer/manifests
+```
