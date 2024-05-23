@@ -594,6 +594,7 @@ def record(record_id: uuid.UUID):
     form = SearchForm()
     file = db.session.get(File, record_id)
 
+
     if file is None:
         abort(404)
 
@@ -602,6 +603,7 @@ def record(record_id: uuid.UUID):
     file_metadata = get_file_metadata(record_id)
 
     file = db.session.get(File, record_id)
+    file_type="iiif"
     consignment = file.consignment
     body = consignment.series.body
     series = consignment.series
@@ -629,6 +631,7 @@ def record(record_id: uuid.UUID):
         breadcrumb_values=breadcrumb_values,
         download_filename=download_filename,
         filters={},
+        file_type=file_type
     )
 
 
@@ -708,3 +711,9 @@ def terms_of_use():
 @bp.app_errorhandler(HTTPException)
 def http_exception(error):
     return render_template(f"{error.code}.html"), error.code
+
+
+# Define the route for IIIF image requests
+@bp.route('/iiif/<path:image_id>')
+def iiif_image(image_id):
+    return iiif.handle_request(image_id)

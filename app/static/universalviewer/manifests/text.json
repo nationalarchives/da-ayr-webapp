@@ -1,0 +1,29 @@
+{
+    "@context": "http://iiif.io/api/presentation/3/context.json",
+    "id": "https://example.com/manifest.json",
+    "type": "Manifest",
+    "label": "Text File Manifest",
+    "items": [
+      {
+        "id": "https://example.com/canvas",
+        "type": "Canvas",
+        "label": "Text File",
+        "width": 800,
+        "height": 600,
+        "items": [
+          {
+            "id": "https://example.com/annotation/page1",
+            "type": "Annotation",
+            "motivation": "painting",
+            "body": {
+              "id": "https://example.com/path/to/your/text-file.txt",
+              "type": "Text",
+              "format": "text/plain",
+              "label": "Page 1"
+            }
+          }
+        ]
+      }
+    ]
+  }
+  
