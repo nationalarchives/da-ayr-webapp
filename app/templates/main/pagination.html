@@ -4,7 +4,7 @@
          aria-label="Pagination">
         {% if results.has_prev == True %}
             <div class="govuk-pagination__prev">
-                <a class="govuk-link govuk-pagination__link"
+                <a class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
                    href="{% if id != None %} {{ url_for(view_name, _id=id, page=current_page-1, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=current_page-1, **query_string_parameters) }} {% endif %}"
                    rel="prev">
                     <svg class="govuk-pagination__icon govuk-pagination__icon--prev"
@@ -26,13 +26,13 @@
                 {% if page %}
                     {% if page != current_page %}
                         <li class="govuk-pagination__item">
-                            <a class="govuk-link govuk-pagination__link"
+                            <a class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
                                href="{% if id != None %} {{ url_for(view_name, _id=id , page=page, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=page, **query_string_parameters) }}{% endif %}"
                                aria-label="Page {{ page }}">{{ page }}</a>
                         </li>
                     {% else %}
                         <li class="govuk-pagination__item govuk-pagination__item--current">
-                            <a class="govuk-link govuk-pagination__link"
+                            <a class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
                                href="{% if id != None %} {{ url_for(view_name, _id=id , page=page, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=page, **query_string_parameters) }} {% endif %}"
                                aria-label="Page {{ page }}">{{ page }}</a>
                         </li>
@@ -44,7 +44,7 @@
         </ul>
         {% if results.has_next == True %}
             <div class="govuk-pagination__next">
-                <a class="govuk-link govuk-pagination__link"
+                <a class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
                    href="{% if id != None %} {{ url_for(view_name, _id=id , page=current_page+1, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=current_page+1, **query_string_parameters) }}{% endif %}"
                    rel="next">
                     <span class="govuk-pagination__link-title">Next<span class="govuk-visually-hidden">page</span></span>

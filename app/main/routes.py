@@ -172,6 +172,7 @@ def browse():
             query_string_parameters={
                 k: v for k, v in request.args.items() if k not in "page"
             },
+            id=None,
         )
 
 
@@ -488,6 +489,7 @@ def search_results_summary():
         query_string_parameters={
             k: v for k, v in request.args.items() if k not in "page"
         },
+        id=None,
     )
 
 

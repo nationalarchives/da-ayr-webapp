@@ -58,11 +58,11 @@
                                 </div>
                             </tbody>
                         </table>
+                        <!-- PAGINATION -->
+                        {% with view_name='main.search_results_summary' %}
+                            {% include "pagination.html" %}
+                        {% endwith %}
                     </div>
-                    <!-- PAGINATION -->
-                    {% with view_name='main.search_results_summary' %}
-                        {% include "pagination.html" %}
-                    {% endwith %}
                 {% else %}
                     {% with view_type = "search" %}
                         {% include "no-results-found.html" %}
