@@ -4,6 +4,10 @@ from flask import url_for
 from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
+from app.tests.test_browse import (
+    decompose_desktop_invisible_elements,
+    verify_desktop_data_rows,
+)
 
 
 def verify_search_desktop_transferring_body_header_row(data):
@@ -12,8 +16,9 @@ def verify_search_desktop_transferring_body_header_row(data):
     :param data: response data
     """
     soup = BeautifulSoup(data, "html.parser")
+    decompose_desktop_invisible_elements(soup)
     table = soup.find("table")
-    headers = table.find_all("th", class_="search__desktop-heading")
+    headers = table.find_all("th")
 
     expected_row = (
         [
@@ -29,31 +34,13 @@ def verify_search_desktop_transferring_body_header_row(data):
     ] == expected_row[0]
 
 
-def verify_search_desktop_data_rows(data, expected_rows):
-    """
-    this function check data rows for data table compared with expected rows
-    :param data: response data
-    :param expected_rows: expected rows to be compared
-    """
-    soup = BeautifulSoup(data, "html.parser")
-    table = soup.find("table")
-    top_rows = table.find_all("td", class_="search__mobile-table__top-row")
-
-    row_data = ""
-    for row_index, row in enumerate(top_rows):
-        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-        if row_index < len(top_rows) - 1:
-            row_data = row_data + ", "
-
-    assert [row_data] == expected_rows[0]
-
-
 def verify_search_results_summary_header_row(data):
     """
     this function check header row column values against expected row
     :param data: response data
     """
     soup = BeautifulSoup(data, "html.parser")
+    decompose_desktop_invisible_elements(soup)
     table = soup.find("table")
     headers = table.find_all("th")
 
@@ -66,25 +53,6 @@ def verify_search_results_summary_header_row(data):
     assert [
         header.text.replace("\n", " ").strip(" ") for header in headers
     ] == expected_row[0]
-
-
-def verify_search_results_summary_data_rows(data, expected_rows):
-    """
-    this function check data rows for data table compared with expected rows
-    :param data: response data
-    :param expected_rows: expected rows to be compared
-    """
-    soup = BeautifulSoup(data, "html.parser")
-    table = soup.find("table")
-    rows = table.find_all("td")
-
-    row_data = ""
-    for row_index, row in enumerate(rows):
-        row_data = row_data + "'" + row.text.replace("\n", " ").strip(" ") + "'"
-        if row_index < len(rows) - 1:
-            row_data = row_data + ", "
-
-    assert [row_data] == expected_rows[0]
 
 
 class TestSearchRedirect:
@@ -289,7 +257,7 @@ class TestSearchResultsSummary:
         ]
 
         verify_search_results_summary_header_row(response.data)
-        verify_search_results_summary_data_rows(response.data, expected_rows)
+        verify_desktop_data_rows(response.data, expected_rows)
 
     def test_search_results_summary_with_results_multiple_terms(
         self,
@@ -318,7 +286,7 @@ class TestSearchResultsSummary:
         ]
 
         verify_search_results_summary_header_row(response.data)
-        verify_search_results_summary_data_rows(response.data, expected_rows)
+        verify_desktop_data_rows(response.data, expected_rows)
 
     def test_search_results_summary_breadcrumbs(
         self,
@@ -569,6 +537,7 @@ class TestSearchTransferringBody:
         verify_search_desktop_transferring_body_header_row(response.data)
 
         table = BeautifulSoup(response.data, "html.parser").find("table")
+        decompose_desktop_invisible_elements(table)
         anchors = table.find_all("a")
         rows = table.find_all("td")
 
@@ -576,23 +545,16 @@ class TestSearchTransferringBody:
             f"""{browse_series_route_url}/{series_id}""",
             f"""{browse_consignment_route_url}/{consignment_id}""",
             f"""{record_route_url}/{file_id}""",
-            f"""{record_route_url}/{file_id}""",
-            f"""{browse_consignment_route_url}/{consignment_id}""",
         ]
         expected_beginning_rows = [
             "first_series",
             "TDR-2023-FI1",
             "first_file.docx",
         ]
-        expected_anchors_text = expected_beginning_rows + [
-            "first_file.docx",
-            "TDR-2023-FI1",
-        ]
+        expected_anchors_text = expected_beginning_rows
         expected_all_rows_text = expected_beginning_rows + [
             "Closed",
             "25/02/2023",
-            "first_file.docx",
-            "TDR-2023-FI1",
         ]
 
         assert [anchor["href"] for anchor in anchors] == expected_anchors_hrefs
@@ -772,7 +734,7 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_search_desktop_data_rows(response.data, expected_results)
+        verify_desktop_data_rows(response.data, expected_results)
 
     def test_search_transferring_body_results_display_single_page(
         self,
@@ -816,7 +778,7 @@ class TestSearchTransferringBody:
         ]
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_search_desktop_data_rows(response.data, expected_rows)
+        verify_desktop_data_rows(response.data, expected_rows)
 
         assert (
             b'<nav class="govuk-pagination govuk-pagination--centred" role="navigation" aria-label="Pagination">'
@@ -864,7 +826,7 @@ class TestSearchTransferringBody:
         ]
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_search_desktop_data_rows(response.data, expected_rows)
+        verify_desktop_data_rows(response.data, expected_rows)
 
         # check pagination
         assert b'aria-label="Page 1"' in response.data
@@ -924,7 +886,7 @@ class TestSearchTransferringBody:
         ]
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_search_desktop_data_rows(response.data, expected_rows)
+        verify_desktop_data_rows(response.data, expected_rows)
 
         assert not previous_option
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"
@@ -976,7 +938,7 @@ class TestSearchTransferringBody:
         ]
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_search_desktop_data_rows(response.data, expected_rows)
+        verify_desktop_data_rows(response.data, expected_rows)
 
         assert (
             " ".join(page_options[0].text.replace("\n", "").split())
@@ -1032,7 +994,7 @@ class TestSearchTransferringBody:
         ]
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_search_desktop_data_rows(response.data, expected_rows)
+        verify_desktop_data_rows(response.data, expected_rows)
 
         assert (
             " ".join(previous_option.text.replace("\n", "").split())
@@ -1686,4 +1648,4 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
 
         verify_search_desktop_transferring_body_header_row(response.data)
-        verify_search_desktop_data_rows(response.data, expected_results)
+        verify_desktop_data_rows(response.data, expected_results)

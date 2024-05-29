@@ -62,72 +62,55 @@
                                     <thead class="govuk-table__head">
                                         <tr class="govuk-table__row">
                                             <th scope="col"
-                                                class="govuk-table__header govuk-table__header--search-header search__desktop-heading govuk-!-width-one-quarter">
+                                                class="govuk-table__header govuk-table--invisible-on-mobile govuk-table--width-30-precent">
                                                 Series reference
                                             </th>
                                             <th scope="col"
-                                                class="govuk-table__header govuk-table__header--search-header search__mobile-heading">
+                                                class="govuk-table__header govuk-table--invisible-on-desktop">
                                                 Series reference / File name / Consignment reference
                                             </th>
                                             <th scope="col"
-                                                class="govuk-table__header govuk-table__header--search-header search__desktop-heading">
+                                                class="govuk-table__header govuk-table--invisible-on-mobile">
                                                 Consignment reference
                                             </th>
                                             <th scope="col"
-                                                class="govuk-table__header govuk-table__header--search-header govuk-table__header--search-header-title search__desktop-heading">
+                                                class="govuk-table__header govuk-table--invisible-on-mobile">
                                                 File name
                                             </th>
-                                            <th scope="col"
-                                                class="govuk-table__header govuk-table__header--search-header search__desktop-heading search__mobile-heading">
-                                                Status
-                                            </th>
-                                            <th scope="col"
-                                                class="govuk-table__header govuk-table__header--search-header search__desktop-heading search__mobile-heading">
-                                                Record opening date
-                                            </th>
+                                            <th scope="col" class="govuk-table__header">Status</th>
+                                            <th scope="col" class="govuk-table__header govuk-table--right-align">Record opening date</th>
                                         </tr>
                                     </thead>
                                     <tbody class="govuk-table__body">
                                         <div class="main-content" id="main-content" role="main">
                                             {% for record in results %}
                                                 <tr class="govuk-table__row top-row">
-                                                    <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row">
+                                                    <td class="govuk-table__cell govuk-table__cell--on-mobile--flex-layout-col">
                                                         <a href="{{ url_for('main.browse_series', _id=record['series_id']) }}">{{ record["series"] }}</a>
+                                                        <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4 word-break"
+                                                           href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                                        <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4"
+                                                           href="{{ url_for('main.browse_consignment', _id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
                                                     </td>
-                                                    <td class="govuk-table__cell govuk-table__cell--search-results govuk-table__cell--search-results-no-wrap search__mobile-table__top-row search__table__mobile--hidden">
+                                                    <td class="govuk-table__cell govuk-table--invisible-on-mobile">
                                                         <a href="{{ url_for('main.browse_consignment', _id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
                                                     </td>
-                                                    <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row search__table__mobile--hidden">
+                                                    <td class="govuk-table__cell govuk-table--invisible-on-mobile">
                                                         <a class="word-break"
                                                            href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
                                                     </td>
-                                                    <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__top-row">
+                                                    <td class="govuk-table__cell">
                                                         <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
                                                             {{ record['closure_type'] }}
                                                         </strong>
                                                     </td>
-                                                    <td class="govuk-table__cell govuk-table__cell--search-results browse__table__right-align search__mobile-table__top-row">
+                                                    <td class="govuk-table__cell govuk-table--right-align">
                                                         {% if record['opening_date'] %}
                                                             {{ record['opening_date'] }}
                                                         {% else %}
                                                             –
                                                         {% endif %}
                                                     </td>
-                                                </tr>
-                                                <tr class="govuk-table__row search__mobile-row">
-                                                    <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__middle-row">
-                                                        <a class="word-break"
-                                                           href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
-                                                    </td>
-                                                    <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__middle-row"></td>
-                                                    <td class="govuk-table__cell govuk-table__cell--search-results search__mobile-table__middle-row"></td>
-                                                </tr>
-                                                <tr class="govuk-table__row search__mobile-row">
-                                                    <td class="govuk-table__cell govuk-table__cell--search-results govuk-table__cell--search-results-no-wrap">
-                                                        <a href="{{ url_for('main.browse_consignment', _id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
-                                                    </td>
-                                                    <td class="govuk-table__cell govuk-table__cell--search-results"></td>
-                                                    <td class="govuk-table__cell govuk-table__cell--search-results"></td>
                                                 </tr>
                                             {% endfor %}
                                         </div>

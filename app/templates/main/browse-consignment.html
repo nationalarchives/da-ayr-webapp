@@ -36,40 +36,42 @@
                        aria-label="Browse records">
                     <thead class="govuk-table__head">
                         <tr class="govuk-table__row">
-                            <th scope="col" class="govuk-table__header">Date of record</th>
-                            <th scope="col" class="govuk-table__header browse__table__mobile--hidden">File name</th>
+                            <th scope="col"
+                                class="govuk-table__header govuk-table--invisible-on-mobile">Date of record</th>
+                            <th scope="col"
+                                class="govuk-table__header govuk-table--invisible-on-desktop">
+                                Date of record / File name
+                            </th>
+                            <th scope="col"
+                                class="govuk-table__header govuk-table--invisible-on-mobile">File name</th>
                             <th scope="col" class="govuk-table__header">Status</th>
-                            <th scope="col" class="govuk-table__header browse__table__right-align">Record opening date</th>
+                            <th scope="col" class="govuk-table__header govuk-table--right-align">Record opening date</th>
                         </tr>
                     </thead>
                     <tbody class="govuk-table__body">
                         <div class="main-content" id="main-content" role="main">
                             {% for record in results %}
-                                <tr class="govuk-table__row browse__mobile-table__top-row">
-                                    <td class="govuk-table__cell browse__mobile-table__top-row">{{ record["date_last_modified"] }}</td>
-                                    <td class="govuk-table__cell govuk-table__cell--ayr browse__table__mobile--hidden">
+                                <tr class="govuk-table__row govuk-table__row-ref">
+                                    <td class="govuk-table__cell govuk-table__cell--on-mobile--flex-layout-col">
+                                        {{ record["date_last_modified"] }}
+                                        <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4"
+                                           href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                    </td>
+                                    <td class="govuk-table__cell govuk-table--invisible-on-mobile">
                                         <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
                                     </td>
-                                    <td class="govuk-table__cell browse__mobile-table__top-row">
+                                    <td class="govuk-table__cell">
                                         <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
                                             {{ record['closure_type'] }}
                                         </strong>
                                     </td>
-                                    <td class="govuk-table__cell browse__table__right-align browse__mobile-table__top-row">
+                                    <td class="govuk-table__cell govuk-table--right-align">
                                         {% if record['opening_date'] %}
                                             {{ record['opening_date'] }}
                                         {% else %}
                                             -
                                         {% endif %}
                                     </td>
-                                </tr>
-                                <tr class="govuk-table__row govuk-table__row__browse--mobile">
-                                    <td class="govuk-table__cell browse__mobile-table__bottom-row">
-                                        <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
-                                    </td>
-                                    <td class="govuk-table__cell govuk-table__cell--ayr browse__table__mobile--hidden"></td>
-                                    <td class="govuk-table__cell browse__mobile-table__bottom-row"></td>
-                                    <td class="govuk-table__cell right-align browse__mobile-table__bottom-row"></td>
                                 </tr>
                             {% endfor %}
                         </div>
