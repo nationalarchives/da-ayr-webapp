@@ -4,10 +4,8 @@ from flask import url_for
 from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
-from app.tests.test_browse import (
-    decompose_desktop_invisible_elements,
-    verify_desktop_data_rows,
-)
+from app.tests.test_browse import verify_desktop_data_rows
+from app.tests.utils import decompose_desktop_invisible_elements
 
 
 def verify_search_desktop_transferring_body_header_row(data):
