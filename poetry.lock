@@ -1735,12 +1735,12 @@ files = [
 
 [[package]]
 name = "pur"
-version = "7.3.1"
+version = "7.3.2"
 description = "Update packages in a requirements.txt file to latest versions."
 optional = false
 python-versions = "*"
 files = [
-    {file = "pur-7.3.1.tar.gz", hash = "sha256:ac693e4c1b7c8fa376b198ce797488befa65f0965ce13b4a8659fd44113a24ba"},
+    {file = "pur-7.3.2.tar.gz", hash = "sha256:5f1643e3853b8c3b04850ddf60d52e1e121895399b69361efcf7c9b6ac1f5d9c"},
 ]
 
 [package.dependencies]
@@ -2839,4 +2839,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "3a7bef5f4c1a74dca45e6c762b215f770c3e76416d53944581a72fe6d50cc27e"
+content-hash = "4ebe66c57d6960c0682b113065cd1c520f939f4f1952eca49ecc49dba1ca09ea"
