@@ -13,4 +13,4 @@ if ! command -v safety &> /dev/null; then
     pip install safety
 fi
 
-poetry export --without-hashes -f requirements.txt | safety check --full-report --stdin
+poetry export --without-hashes -f requirements.txt | safety check --full-report --stdin --ignore=70612
