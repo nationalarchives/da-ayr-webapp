@@ -37,15 +37,22 @@
                     <thead class="govuk-table__head">
                         <tr class="govuk-table__row">
                             <th scope="col"
-                                class="govuk-table__header govuk-table--invisible-on-mobile">Date of record</th>
+                                class="govuk-table__header govuk-table--invisible-on-mobile govuk-table--width-20-percent">
+                                Date of record
+                            </th>
                             <th scope="col"
                                 class="govuk-table__header govuk-table--invisible-on-desktop">
-                                Date of record / File name
+                                Date of record /
+                                <br>
+                                File name
                             </th>
                             <th scope="col"
                                 class="govuk-table__header govuk-table--invisible-on-mobile">File name</th>
-                            <th scope="col" class="govuk-table__header">Status</th>
-                            <th scope="col" class="govuk-table__header govuk-table--right-align">Record opening date</th>
+                            <th scope="col" class="govuk-table__header govuk-table--width-20-percent">Status</th>
+                            <th scope="col"
+                                class="govuk-table__header govuk-table--right-align govuk-table--width-15-percent">
+                                Record opening date
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="govuk-table__body">
@@ -69,7 +76,7 @@
                                         {% if record['opening_date'] %}
                                             {{ record['opening_date'] }}
                                         {% else %}
-                                            -
+                                            –
                                         {% endif %}
                                     </td>
                                 </tr>

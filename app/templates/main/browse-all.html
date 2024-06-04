@@ -29,7 +29,9 @@
                         <tr class="govuk-table__row">
                             <th scope="col"
                                 class="govuk-table__header govuk-table--invisible-on-desktop">
-                                Transferring body / Series reference
+                                Transferring body /
+                                <br>
+                                Series reference
                             </th>
                             <th scope="col"
                                 class="govuk-table__header govuk-table--invisible-on-mobile govuk-table--width-30-percent">
@@ -37,7 +39,10 @@
                             </th>
                             <th scope="col"
                                 class="govuk-table__header govuk-table--invisible-on-mobile">Series reference</th>
-                            <th scope="col" class="govuk-table__header govuk-table--right-align">Last transfer date</th>
+                            <th scope="col"
+                                class="govuk-table__header govuk-table--right-align govuk-table--on-mobile--no-padding-right">
+                                Last transfer date
+                            </th>
                             <th scope="col"
                                 class="govuk-table__header govuk-table--right-align govuk-table--invisible-on-mobile">
                                 Record total
@@ -60,7 +65,9 @@
                                     <td class="govuk-table__cell govuk-table--invisible-on-mobile">
                                         <a href="{{ url_for('main.browse_series', _id= record['series_id']) }}">{{ record["series"] }}</a>
                                     </td>
-                                    <td class="govuk-table__cell govuk-table--right-align">{{ record["last_record_transferred"] }}</td>
+                                    <td class="govuk-table__cell govuk-table--right-align govuk-table--on-mobile--no-padding-right">
+                                        {{ record["last_record_transferred"] }}
+                                    </td>
                                     <td class="govuk-table__cell govuk-table--right-align govuk-table--invisible-on-mobile">
                                         {{ record["records_held"] }}
                                     </td>
