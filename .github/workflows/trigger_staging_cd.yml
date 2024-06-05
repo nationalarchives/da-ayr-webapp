@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        environment: [int, stg]
+        environment: [int, test-one]
 
 
     steps:
