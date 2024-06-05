@@ -1,0 +1,14 @@
+FROM python:3.12
+# this environment variable specifies where playwright should download browsers and ffmpeg, unused for now
+# ENV PLAYWRIGHT_BROWSERS_PATH=/app/pw-browsers
+WORKDIR /e2e_tests
+
+# seems like poetry doesn't pick up pyproject.toml for some unapparent reason - same with the readme, might break if removed
+COPY pyproject.toml pyproject.toml
+
+RUN pip install poetry
+RUN poetry install
+RUN poetry run playwright install --with-deps
+
+# runs the e2e visual regression tests for webkit, firefox and chromium
+CMD poetry run pytest test_visual_regression.py --base-url=https://host.docker.internal:5000/ --browser webkit --browser firefox --browser chromium --update-snapshots

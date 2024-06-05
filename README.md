@@ -372,7 +372,7 @@ Before running our Playwright tests,
 - `AYR_STANDARD_USER_USERNAME`
 - `AYR_STANDARD_USER_PASSWORD`
 
-set environment variables with appropriate test user credentials for the instance you want to test
+set environment variables with appropriate test user credentials for the instance you want to test. When encountering any issues around getting the environment variables to be picked up by the e2e tests, exporting them manually should remediate it.
 
 Note: a `.env.e2e_tests.template` file has been provided, which you can then `cp .env.e2e_tests.template .env.e2e_tests`, then fill, and then source `source .env.e2e_tests`
 
@@ -387,6 +387,36 @@ You can swap out the base-url for another if you want to run the tests against a
 To enable this flexibility we suggest any Playwright tests added to the repo use relative paths when referring to urls of the application itself.
 
 In addition, we recommend that any tests that have dependencies on data, do not make assumptions about any particular database or instance involved, and instead do the test data set up and teardown as part of the test suite.
+
+### Visual regression E2E tests
+
+In order to ensure a consistent and stable testing environment, we make use of a [Docker](https://www.docker.com/products/docker-desktop/) image (and subsequently container) that is defined in structure inside of `e2e_tests/dockerfile`. If an example of this image is stored inside of AWS ERC (or any other Docker container registry), it can be run from the root directory using:
+
+```shell
+docker run --platform linux/arm64/v8 --rm --env-file .env.e2e_tests --network=host -v $PWD/e2e_tests:/e2e_tests <URL-TO-IMAGE>
+```
+
+Otherwise, to build the image locally you should:
+
+First, switch current working directory to `e2e_tests`
+
+```shell
+cd e2e_tests/
+```
+
+Then, to build and run the E2E visual regression suite
+
+```shell
+bash e2e_tests.reg_build_and_run.sh
+```
+
+To just run the E2E tests once the container has already been built
+
+```shell
+bash e2e_tests.reg_run.sh
+```
+
+Whilst the Docker container is running, snapshots of visual regression for pages that have been modified will be automatically saved inside of `e2e_tests/snapshots/test_css_no_visual_regression` and `e2e_tests/snapshots/test_css_no_visual_regression_mobile`.
 
 ### Useful playwright pytest run modes
 
