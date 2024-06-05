@@ -69,6 +69,11 @@ def browser_context_args(browser_context_args):
     """
     return {
         **browser_context_args,
+        "user_agent": (
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/114.0.0.0 Safari/537.36"
+        ),
         "ignore_https_errors": True,
         "java_script_enabled": False,
     }

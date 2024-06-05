@@ -102,14 +102,13 @@
     }
 
     a {
-      color: $colour-link-visited;
+      color: $colour-link-default;
       margin-bottom: -1rem;
 
       &:visited {
-        color: $colour-link-visited;
+        color: $colour-link-default;
       }
 
-      // this is a temp fix, the overall problem is that .govuk-table__cell is overwritten in multiple places, should be fixed with css refactoring
       &.word-break {
         word-break: break-word;
       }
@@ -172,7 +171,7 @@ a.govuk-link {
     font-size: 0.9rem;
 
     &:visited {
-      color: $colour-link-visited;
+      color: $colour-link-default;
     }
   }
 }

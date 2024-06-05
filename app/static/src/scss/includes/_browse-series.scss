@@ -20,6 +20,11 @@
   &--consignment-reference {
     white-space: nowrap;
   }
+
+  &.word-break {
+    word-wrap: break-word;
+    word-break: break-word;
+  }
 }
 
 @media screen and (width <= $breakpoint-medium) {

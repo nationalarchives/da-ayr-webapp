@@ -9,7 +9,8 @@ from app.tests.factories import (
     FileFactory,
     SeriesFactory,
 )
-from app.tests.test_browse import verify_consignment_data_rows
+from app.tests.test_browse import verify_desktop_data_rows
+from app.tests.utils import decompose_desktop_invisible_elements
 
 
 def verify_consignment_view_header_row(data):
@@ -18,6 +19,7 @@ def verify_consignment_view_header_row(data):
     :param data: response data
     """
     soup = BeautifulSoup(data, "html.parser")
+    decompose_desktop_invisible_elements(soup)
     table = soup.find("table")
     headers = table.find_all("th")
     expected_row = (
@@ -148,11 +150,11 @@ class TestConsignment:
                 "",
                 [
                     [
-                        "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                        "'20/05/2023', 'fifth_file.doc', 'Open', '–', "
                         "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-'"
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–'"
                     ],
                 ],
             ),
@@ -160,11 +162,11 @@ class TestConsignment:
                 "date_filter_field=date_last_modified&date_from_day=01&date_from_month=01&date_from_year=2020",
                 [
                     [
-                        "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                        "'20/05/2023', 'fifth_file.doc', 'Open', '–', "
                         "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-'"
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–'"
                     ],
                 ],
             ),
@@ -172,11 +174,11 @@ class TestConsignment:
                 "date_filter_field=date_last_modified&date_to_day=20&date_to_month=05&date_to_year=2023",
                 [
                     [
-                        "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                        "'20/05/2023', 'fifth_file.doc', 'Open', '–', "
                         "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-'"
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–'"
                     ],
                 ],
             ),
@@ -185,11 +187,11 @@ class TestConsignment:
                 "&date_to_day=20&date_to_month=05&date_to_year=2023",
                 [
                     [
-                        "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                        "'20/05/2023', 'fifth_file.doc', 'Open', '–', "
                         "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-'"
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–'"
                     ],
                 ],
             ),
@@ -229,8 +231,8 @@ class TestConsignment:
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
-                        "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-'"
+                        "'20/05/2023', 'fifth_file.doc', 'Open', '–', "
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–'"
                     ],
                 ],
             ),
@@ -238,8 +240,8 @@ class TestConsignment:
                 "sort=closure_type-desc",
                 [
                     [
-                        "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                        "'20/05/2023', 'fifth_file.doc', 'Open', '–', "
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
@@ -250,11 +252,11 @@ class TestConsignment:
                 "sort=date_last_modified-desc",
                 [
                     [
-                        "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                        "'20/05/2023', 'fifth_file.doc', 'Open', '–', "
                         "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-'"
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–'"
                     ],
                 ],
             ),
@@ -262,11 +264,11 @@ class TestConsignment:
                 "sort=date_last_modified-asc",
                 [
                     [
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
                         "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
-                        "'20/05/2023', 'fifth_file.doc', 'Open', '-'"
+                        "'20/05/2023', 'fifth_file.doc', 'Open', '–'"
                     ],
                 ],
             ),
@@ -274,10 +276,10 @@ class TestConsignment:
                 "sort=file_name-asc",
                 [
                     [
-                        "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
+                        "'20/05/2023', 'fifth_file.doc', 'Open', '–', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–', "
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
                 ],
@@ -287,10 +289,10 @@ class TestConsignment:
                 [
                     [
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090', "
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–', "
                         "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
-                        "'20/05/2023', 'fifth_file.doc', 'Open', '-'"
+                        "'20/05/2023', 'fifth_file.doc', 'Open', '–'"
                     ],
                 ],
             ),
@@ -298,8 +300,8 @@ class TestConsignment:
                 "sort=closure_type-desc&record_status=all",
                 [
                     [
-                        "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                        "'20/05/2023', 'fifth_file.doc', 'Open', '–', "
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
@@ -312,7 +314,7 @@ class TestConsignment:
                 "&date_to_month=03&date_to_year=2023",
                 [
                     [
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
@@ -323,8 +325,8 @@ class TestConsignment:
                 "&date_from_day=01&date_from_month=01&date_from_year=2020",
                 [
                     [
-                        "'20/05/2023', 'fifth_file.doc', 'Open', '-', "
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                        "'20/05/2023', 'fifth_file.doc', 'Open', '–', "
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'12/04/2023', 'fourth_file.xls', 'Closed', '25/03/2070', "
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
@@ -336,7 +338,7 @@ class TestConsignment:
                 "&date_to_day=10&date_to_month=03&date_to_year=2023",
                 [
                     [
-                        "'15/01/2023', 'second_file.ppt', 'Open', '-', "
+                        "'15/01/2023', 'second_file.ppt', 'Open', '–', "
                         "'25/02/2023', 'first_file.docx', 'Closed', '25/02/2023', "
                         "'10/03/2023', 'third_file.docx', 'Closed', '10/03/2090'"
                     ],
@@ -407,7 +409,7 @@ class TestConsignment:
         assert response.status_code == 200
 
         verify_consignment_view_header_row(response.data)
-        verify_consignment_data_rows(response.data, expected_results)
+        verify_desktop_data_rows(response.data, expected_results)
 
     def test_browse_consignment_standard_user_accessing_consignment_from_different_transferring_body(
         self,

@@ -24,6 +24,7 @@ instance/*
 # .env files
 .env
 .env.e2e_tests
+.env.development.local
 
 ### Flask.Python Stack ###
 # Byte-compiled / optimized / DLL files
