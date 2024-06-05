@@ -25,26 +25,30 @@
                        id="tbl_result"
                        aria-label="Browse records">
                     <thead class="govuk-table__head">
+                        <!-- Column headings -->
                         <tr class="govuk-table__row">
                             <th scope="col"
-                                class="govuk-table__header browse-grid__key__transferring-body browse__all__mobile__header">
-                                Transferring body / Series reference
+                                class="govuk-table__header govuk-table--invisible-on-desktop">
+                                Transferring body /
+                                <br>
+                                Series reference
                             </th>
                             <th scope="col"
-                                class="govuk-table__header browse-grid__key__transferring-body browse__all__desktop__header">
+                                class="govuk-table__header govuk-table--invisible-on-mobile govuk-table--width-30-percent">
                                 Transferring body
                             </th>
-                            <th scope="col" class="govuk-table__header browse__all__desktop__header">Series reference</th>
                             <th scope="col"
-                                class="govuk-table__header browse__table__right-align browse__all__desktop__header browse__all__mobile__header">
+                                class="govuk-table__header govuk-table--invisible-on-mobile">Series reference</th>
+                            <th scope="col"
+                                class="govuk-table__header govuk-table--right-align govuk-table--on-mobile--no-padding-right">
                                 Last transfer date
                             </th>
                             <th scope="col"
-                                class="govuk-table__header browse__table__right-align browse__table__mobile--hidden browse__all__desktop__header">
+                                class="govuk-table__header govuk-table--right-align govuk-table--invisible-on-mobile">
                                 Record total
                             </th>
                             <th scope="col"
-                                class="govuk-table__header browse__table__right-align browse__table__mobile--hidden browse__all__desktop__header">
+                                class="govuk-table__header govuk-table--right-align govuk-table--invisible-on-mobile">
                                 Consignments within series
                             </th>
                         </tr>
@@ -52,37 +56,22 @@
                     <tbody class="govuk-table__body">
                         <div class="main-content" id="main-content" role="main">
                             {% for record in results %}
-                                <tr class="govuk-table__row browse__table__desktop--hidden">
-                                    <td class="govuk-table__cell browse__mobile-table__top-row">
+                                <tr class="govuk-table__row govuk-table__row-ref">
+                                    <td class="govuk-table__cell govuk-table__cell--on-mobile--flex-layout-col">
                                         <a href="{{ url_for('main.browse_transferring_body', _id=record['transferring_body_id']) }}">{{ record["transferring_body"] }}</a>
+                                        <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4"
+                                           href="{{ url_for('main.browse_series', _id= record['series_id']) }}">{{ record["series"] }}</a>
                                     </td>
-                                    <td class="govuk-table__cell browse__table__mobile--hidden">
+                                    <td class="govuk-table__cell govuk-table--invisible-on-mobile">
                                         <a href="{{ url_for('main.browse_series', _id= record['series_id']) }}">{{ record["series"] }}</a>
                                     </td>
-                                    <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden">
+                                    <td class="govuk-table__cell govuk-table--right-align govuk-table--on-mobile--no-padding-right">
                                         {{ record["last_record_transferred"] }}
                                     </td>
-                                    <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden">
+                                    <td class="govuk-table__cell govuk-table--right-align govuk-table--invisible-on-mobile">
                                         {{ record["records_held"] }}
                                     </td>
-                                    <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden">
-                                        {{ record["consignment_in_series"] }}
-                                    </td>
-                                </tr>
-                                <tr class="govuk-table__row browse__table__all_desktop__row">
-                                    <td class="govuk-table__cell browse__table__mobile--hidden browse__table__all_desktop">
-                                        <a href="{{ url_for('main.browse_transferring_body', _id=record['transferring_body_id']) }}">{{ record["transferring_body"] }}</a>
-                                    </td>
-                                    <td class="govuk-table__cell browse__table__all_desktop">
-                                        <a href="{{ url_for('main.browse_series', _id= record['series_id']) }}">{{ record["series"] }}</a>
-                                    </td>
-                                    <td class="govuk-table__cell browse__table__right-align browse__table__all_desktop">
-                                        {{ record["last_record_transferred"] }}
-                                    </td>
-                                    <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden browse__table__all_desktop">
-                                        {{ record["records_held"] }}
-                                    </td>
-                                    <td class="govuk-table__cell browse__table__right-align browse__table__mobile--hidden browse__table__all_desktop">
+                                    <td class="govuk-table__cell govuk-table--right-align govuk-table--invisible-on-mobile">
                                         {{ record["consignment_in_series"] }}
                                     </td>
                                 </tr>

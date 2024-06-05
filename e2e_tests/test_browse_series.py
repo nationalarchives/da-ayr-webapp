@@ -75,7 +75,7 @@ class TestBrowseSeries:
             )"""
         )
         rows = standard_user_page.locator(
-            "#tbl_result tr.browse__mobile-table__top-row"
+            "#tbl_result tr.govuk-table__row-ref"
         ).evaluate_all(
             """els => els.slice(0).map(el =>
               [...el.querySelectorAll('td')].map(e => e.textContent.trim())
@@ -113,7 +113,7 @@ class TestBrowseSeries:
             )"""
         )
         rows = standard_user_page.locator(
-            "#tbl_result tr.browse__mobile-table__top-row"
+            "#tbl_result tr.govuk-table__row-ref"
         ).evaluate_all(
             """els => els.slice(0).map(el =>
               [...el.querySelectorAll('td')].map(e => e.textContent.trim())
@@ -150,7 +150,7 @@ class TestBrowseSeries:
             )"""
         )
         rows = standard_user_page.locator(
-            "#tbl_result tr.browse__mobile-table__top-row"
+            "#tbl_result tr.govuk-table__row-ref"
         ).evaluate_all(
             """els => els.slice(0).map(el =>
               [...el.querySelectorAll('td')].map(e => e.textContent.trim())

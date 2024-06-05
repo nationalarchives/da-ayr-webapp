@@ -1,0 +1,78 @@
+.govuk-table {
+  @mixin flex-layout {
+    &-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    &-row {
+      display: flex;
+      flex-direction: row;
+    }
+  }
+
+  @mixin text-align {
+    &--right-align {
+      text-align: right;
+    }
+
+    &--left-align {
+      text-align: left;
+    }
+  }
+
+  @mixin variable-width-percentage {
+    @for $i from 0 through 100 {
+      &--width-#{$i}-percent {
+        width: #{$i}#{"%"};
+      }
+    }
+  }
+
+  &__cell {
+    &--flex-layout {
+      @include flex-layout;
+    }
+
+    &--on-mobile {
+      @media screen and (width <= $breakpoint-medium) {
+        &--flex-layout {
+          @include flex-layout;
+        }
+      }
+    }
+  }
+
+  &--on-mobile {
+    @media screen and (width <= $breakpoint-medium) {
+      @include text-align;
+      @include variable-width-percentage;
+
+      &--no-padding-right {
+        padding-right: 0;
+      }
+    }
+  }
+
+  &--on-desktop {
+    @media screen and (width >= $breakpoint-medium) {
+      @include text-align;
+      @include variable-width-percentage;
+    }
+  }
+
+  @include text-align;
+  @include variable-width-percentage;
+
+  &--invisible-on-mobile {
+    @media screen and (width <= $breakpoint-medium) {
+      display: none;
+    }
+  }
+
+  &--invisible-on-desktop {
+    @media screen and (width >= $breakpoint-medium) {
+      display: none;
+    }
+  }
+}
