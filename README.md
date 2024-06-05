@@ -372,7 +372,7 @@ Before running our Playwright tests,
 - `AYR_STANDARD_USER_USERNAME`
 - `AYR_STANDARD_USER_PASSWORD`
 
-set environment variables with appropriate test user credentials for the instance you want to test
+set environment variables with appropriate test user credentials for the instance you want to test. When encountering any issues around getting the environment variables to be picked up by the e2e tests, exporting them manually should remediate it.
 
 Note: a `.env.e2e_tests.template` file has been provided, which you can then `cp .env.e2e_tests.template .env.e2e_tests`, then fill, and then source `source .env.e2e_tests`
 
@@ -390,7 +390,13 @@ In addition, we recommend that any tests that have dependencies on data, do not 
 
 ### Visual regression E2E tests
 
-In order to ensure a consistent and stable testing environment, we make use of a [Docker](https://www.docker.com/products/docker-desktop/) image (and subsequently container) that is defined in structure inside of `e2e_tests/dockerfile`. Please note that the process of building and running the Docker container requires the same environment variables as the regular E2E tests talked about above. The `e2e_tests` directory contains a couple scripts that make the process of building and running the container simple:
+In order to ensure a consistent and stable testing environment, we make use of a [Docker](https://www.docker.com/products/docker-desktop/) image (and subsequently container) that is defined in structure inside of `e2e_tests/dockerfile`. If an example of this image is stored inside of AWS ERC (or any other Docker container registry), it can be run from the root directory using:
+
+```shell
+docker run --platform linux/arm64/v8 --rm --env-file .env.e2e_tests --network=host -v $PWD/e2e_tests:/e2e_tests <URL-TO-IMAGE>
+```
+
+Otherwise, to build the image locally you should:
 
 First, switch current working directory to `e2e_tests`
 
