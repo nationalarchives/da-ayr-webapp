@@ -1,11 +1,14 @@
 import io
 import json
+import os
 import uuid
 
 import boto3
+import pymupdf
 from flask import (
     abort,
     current_app,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -13,8 +16,9 @@ from flask import (
     session,
     url_for,
 )
+from PIL import Image
 from sqlalchemy import func
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import BadRequest, HTTPException
 
 from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
@@ -594,7 +598,6 @@ def record(record_id: uuid.UUID):
     form = SearchForm()
     file = db.session.get(File, record_id)
 
-
     if file is None:
         abort(404)
 
@@ -603,7 +606,7 @@ def record(record_id: uuid.UUID):
     file_metadata = get_file_metadata(record_id)
 
     file = db.session.get(File, record_id)
-    file_type="iiif"
+    file_type = "iiif"
     consignment = file.consignment
     body = consignment.series.body
     series = consignment.series
@@ -624,6 +627,10 @@ def record(record_id: uuid.UUID):
                 file.CiteableReference + "." + file.FileName.rsplit(".", 1)[1]
             )
 
+    manifest_url = url_for(
+        "main.generate_manifest", record_id=record_id, _external=True
+    )
+
     return render_template(
         "record.html",
         form=form,
@@ -631,7 +638,8 @@ def record(record_id: uuid.UUID):
         breadcrumb_values=breadcrumb_values,
         download_filename=download_filename,
         filters={},
-        file_type=file_type
+        file_type=file_type,
+        manifest_url=manifest_url,
     )
 
 
@@ -713,7 +721,228 @@ def http_exception(error):
     return render_template(f"{error.code}.html"), error.code
 
 
-# Define the route for IIIF image requests
-@bp.route('/iiif/<path:image_id>')
-def iiif_image(image_id):
-    return iiif.handle_request(image_id)
+# # Define the route for IIIF image requests
+# @bp.route('/iiif/<path:image_id>')
+# def iiif_image(image_id):
+#     return iiif.handle_request(image_id)
+
+
+@bp.route("/generate_manifest/<uuid:record_id>")
+@access_token_sign_in_required
+def generate_manifest(record_id: uuid.UUID):
+    file = db.session.get(File, record_id)
+
+    if file is None:
+        abort(404)
+
+    filename = file.FileName
+
+    validate_body_user_groups_or_404(file.consignment.series.body.Name)
+
+    s3 = boto3.client("s3")
+    bucket = current_app.config["RECORD_BUCKET_NAME"]
+
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+
+    print("KEY", key)
+
+    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+
+    # Determine the file type
+    file_type = filename.split(".")[-1].lower()
+
+    print("file_type", file_type)
+
+    if file_type == "pdf":
+        return generate_pdf_manifest(s3_file_object, record_id)
+    elif file_type in ["png", "jpg", "jpeg"]:
+        return generate_image_manifest(s3_file_object, record_id)
+    else:
+        return http_exception(BadRequest())
+
+
+"""
+# Fetch the PDF file from S3
+# Open the PDF with PyMuPDF
+# Save image in a BytesIO object
+# Return the images as response inside manifest
+
+"""
+
+
+def generate_pdf_manifest(s3_file_object, record_id):
+    file = db.session.get(File, record_id)
+
+    if file is None:
+        abort(404)
+
+    filename = file.FileName
+
+    canvases = []
+    file_url = url_for("main.get_file", record_id=record_id, _external=True)
+
+    # Convert PDF pages to images
+    images = []
+    pdf_document = pymupdf.open(
+        "pdf", io.BytesIO(s3_file_object["Body"].read())
+    )
+    for page_num in range(pdf_document.page_count):
+        page = pdf_document.load_page(page_num)
+        pix = page.get_pixmap()
+        img_bytes = pix.tobytes()
+        images.append(img_bytes)
+
+    # Construct IIIF canvases
+    canvases = []
+    for idx, img_bytes in enumerate(images, start=1):
+        image = Image.open(io.BytesIO(img_bytes))
+        width, height = image.size
+        file_url = url_for("main.get_file", record_id=record_id, page=idx, _external=True)
+
+        canvas = {
+            "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/{idx}",
+            "@type": "sc:Canvas",
+            "label": f"Page {idx}",
+            "width": width,
+            "height": height,
+            "images": [
+                {
+                    "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/annotation/{idx}",
+                    "@type": "oa:Annotation",
+                    "motivation": "sc:painting",
+                    "resource": {
+                        "@id": file_url,
+                        "@type": "dctypes:Text",
+                        "format": "application/pdf",
+                        "width": width,
+                        "height": height,
+                    },
+                    "on": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/{idx}",
+                }
+            ],
+        }
+        canvases.append(canvas)
+
+    # Construct IIIF manifest
+    manifest = {
+        "@context": "http://iiif.io/api/presentation/2/context.json",
+        "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
+        "@type": "sc:Manifest",
+        "label": filename,
+        "description": f"Manifest for {filename}",
+        "sequences": [
+            {
+                "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/sequence/normal",
+                "@type": "sc:Sequence",
+                "canvases": canvases,
+            }
+        ],
+    }
+
+    return jsonify(manifest)
+
+
+def generate_image_manifest(s3_file_object, record_id):
+    file = db.session.get(File, record_id)
+
+    if file is None:
+        abort(404)
+
+    filename = file.FileName
+
+    image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
+    width, height = image.size
+
+    # Get the file from S3 to read dimensions
+    s3 = boto3.client("s3")
+    bucket = current_app.config["RECORD_BUCKET_NAME"]
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+
+    s3_response_object = s3.get_object(Bucket=bucket, Key=key)
+    file_content = s3_response_object["Body"].read()
+    image = Image.open(io.BytesIO(file_content))
+    width, height = image.size
+
+    file_url = url_for("main.get_file", record_id=record_id, _external=True)
+
+    print("file here", file_url)
+
+    canvas = {
+        "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
+        "@type": "sc:Canvas",
+        "label": "Image 1",
+        "width": width,
+        "height": height,
+        "images": [
+            {
+                "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/annotation/1",
+                "@type": "oa:Annotation",
+                "motivation": "sc:painting",
+                "resource": {
+                    "@id": file_url,
+                    "@type": "dctypes:Image",
+                    "format": "image/png",
+                    "width": width,
+                    "height": height,
+                },
+                "on": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
+            }
+        ],
+    }
+
+    manifest = {
+        "@context": "http://iiif.io/api/presentation/2/context.json",
+        "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
+        "@type": "sc:Manifest",
+        "label": filename,
+        "description": f"Manifest for {filename}",
+        "sequences": [
+            {
+                "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/sequence/normal",
+                "@type": "sc:Sequence",
+                "canvases": [canvas],
+            }
+        ],
+    }
+
+    return jsonify(manifest)
+
+
+@bp.route("/files/<record_id>")
+def get_file(record_id=None):
+    file = db.session.get(File, record_id)
+    if file is None:
+        abort(404)
+
+    filename = file.FileName
+    s3 = boto3.client("s3")
+    bucket = current_app.config["RECORD_BUCKET_NAME"]
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+
+    try:
+        s3_response_object = s3.get_object(Bucket=bucket, Key=key)
+        file_content = s3_response_object["Body"].read()
+
+        page_num = request.args.get("page", type=int)
+        if page_num is not None:
+            # Generate image for the requested page
+            pdf_document = pymupdf.open("pdf", io.BytesIO(file_content))
+            page = pdf_document.load_page(page_num - 1)
+            pix = page.get_pixmap()
+            img_bytes = pix.tobytes()
+            return send_file(
+                io.BytesIO(img_bytes),
+                mimetype="image/png",
+                as_attachment=False,  # Display inline
+            )
+        else:
+            # Serve the whole PDF file / Image file
+            return send_file(
+                io.BytesIO(file_content),
+                download_name=filename,
+                mimetype="application/pdf",
+                as_attachment=False,  # Display inline
+            )
+    except Exception as e:
+        print("error", e)
+        abort(404)

@@ -595,7 +595,7 @@ Using a generated IIIF Manifest or setting up a IIIF TinyIIIF server
 1. Generate IIIF Manifest
 2. Install a suitable IIIF viewer (Universal Viewer or Openseadragon)
 3. Navigate to record.html to view the iiif manifest.
-4. Pre-generated manifests are available in 
+4. Pre-generated manifests are available in
 ```
 app/static/universalviewer/manifests
 ```
