@@ -25,7 +25,7 @@
                                         "format": "audio/mp3"
                                     },
                                     "target": "http://iiif-commons.github.io/iiif-av-component/examples/data/bl/01_gapless_audio/canvas/1#t=0,20"
-                                },                            
+                                },
                                 {
                                     "id": "http://iiif-commons.github.io/iiif-av-component/examples/data/bl/01_gapless_audio/content/anno/2",
                                     "type": "Annotation",

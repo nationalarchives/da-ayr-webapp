@@ -93,5 +93,9 @@ class BaseConfig(object):
     def FLASKS3_BUCKET_NAME(self):
         return self._get_config_value("FLASKS3_BUCKET_NAME")
 
+    @property
+    def STATIC_FOLDER(self):
+        return self._get_config_value("STATIC_FOLDER")
+
     def _get_config_value(self, variable_name):
         pass
