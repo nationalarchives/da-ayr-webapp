@@ -537,7 +537,7 @@ class TestBrowse:
         soup = BeautifulSoup(response.data, "html.parser")
 
         page_options = soup.find_all(
-            "span", class_="govuk-pagination__link-title"
+            "span", attrs={"data-testid": "pagination-link-title"}
         )
 
         expected_rows = [
@@ -618,7 +618,6 @@ class TestBrowse:
 
         soup = BeautifulSoup(response.data, "html.parser")
 
-        # page_options = soup.find_all("span", class_="govuk-pagination__link-title")
         previous_option = soup.find("div", {"class": "govuk-pagination__prev"})
         next_option = soup.find("div", {"class": "govuk-pagination__next"})
         expected_rows = [

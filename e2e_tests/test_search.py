@@ -356,11 +356,11 @@ class TestSearchTransferringBody:
 
         assert (
             aau_user_page.locator(
-                ".govuk-pagination__link"
+                "data-testid=pagination-link"
             ).first.get_attribute("href")
             == url
         )
-        links = aau_user_page.locator(".govuk-pagination__link-title").all()
+        links = aau_user_page.locator("data-testid=pagination-link-title").all()
         assert links[0].text_content() == "Nextpage"
 
     def test_search_transferring_body_pagination_get_previous_page(
@@ -387,7 +387,7 @@ class TestSearchTransferringBody:
             )
             == "Pagination"
         )
-        links = aau_user_page.locator(".govuk-pagination__link-title").all()
+        links = aau_user_page.locator("data-testid=pagination-link-title").all()
 
         assert links[0].text_content() == "Previouspage"
 
@@ -417,12 +417,12 @@ class TestSearchTransferringBody:
         url = f" {self.route_url}/{self.transferring_body_id}?page=1&query=a "
         assert (
             aau_user_page.locator(
-                ".govuk-pagination__link"
+                "data-testid=pagination-link"
             ).first.get_attribute("href")
             == url
         )
         aau_user_page.get_by_label("Page 2").click()
-        links = aau_user_page.locator(".govuk-pagination__link-title").all()
+        links = aau_user_page.locator("data-testid=pagination-link-title").all()
         assert links[0].text_content() == "Previouspage"
         if len(links) > 1:
             assert links[1].text_content() == "Nextpage"
@@ -449,7 +449,7 @@ class TestSearchTransferringBody:
             )
             == "Pagination"
         )
-        page_links = aau_user_page.locator(".govuk-pagination__link").all()
+        page_links = aau_user_page.locator("data-testid=pagination-link").all()
         last_page = page_links[len(page_links) - 1].text_content()
 
         assert page_links[0].inner_text() == "1"
@@ -459,7 +459,7 @@ class TestSearchTransferringBody:
             ".govuk-pagination__item--ellipses"
         ).all()
         assert ellipsis_link[0].inner_text() == "…"
-        links = aau_user_page.locator(".govuk-pagination__link-title").all()
+        links = aau_user_page.locator("data-testid=pagination-link-title").all()
         assert links[0].text_content() == "Nextpage"
 
     def test_search_transferring_body_pagination_click_previous_page_link(
@@ -488,7 +488,7 @@ class TestSearchTransferringBody:
 
         aau_user_page.get_by_label("Page 2").click()
 
-        links = aau_user_page.locator(".govuk-pagination__link-title").all()
+        links = aau_user_page.locator("data-testid=pagination-link-title").all()
 
         assert links[0].text_content() == "Previouspage"
 
@@ -525,7 +525,7 @@ class TestSearchTransferringBody:
 
         aau_user_page.wait_for_selector(".govuk-pagination")
 
-        links = aau_user_page.locator(".govuk-pagination__link-title").all()
+        links = aau_user_page.locator("data-testid=pagination-link-title").all()
 
         assert links[1].text_content() == "Nextpage"
 
@@ -560,8 +560,8 @@ class TestSearchTransferringBody:
             )
             == "Pagination"
         )
-        page_links = aau_user_page.locator(".govuk-pagination__link").all()
+        page_links = aau_user_page.locator("data-testid=pagination-link").all()
         last_page = page_links[len(page_links) - 1].text_content()
         aau_user_page.get_by_role("link").get_by_text(last_page).click()
-        links = aau_user_page.locator(".govuk-pagination__link-title").all()
+        links = aau_user_page.locator("data-testid=pagination-link-title").all()
         assert links[0].text_content() == "Previouspage"

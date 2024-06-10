@@ -925,7 +925,7 @@ class TestSearchTransferringBody:
         soup = BeautifulSoup(response.data, "html.parser")
 
         page_options = soup.find_all(
-            "span", class_="govuk-pagination__link-title"
+            "span", attrs={"data-testid": "pagination-link-title"}
         )
 
         expected_rows = [

@@ -4,7 +4,8 @@
          aria-label="Pagination">
         {% if results.has_prev == True %}
             <div class="govuk-pagination__prev">
-                <a class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
+                <a data-testid="pagination-link"
+                   class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
                    href="{% if id != None %} {{ url_for(view_name, _id=id, page=current_page-1, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=current_page-1, **query_string_parameters) }} {% endif %}"
                    rel="prev">
                     <svg class="govuk-pagination__icon govuk-pagination__icon--prev"
@@ -17,7 +18,8 @@
                         <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z">
                         </path>
                     </svg>
-                    <span class="govuk-pagination__link-title">Previous<span class="govuk-visually-hidden">page</span></span>
+                    <span data-testid="pagination-link-title"
+                          class="govuk-pagination__link-title">Previous<span class="govuk-visually-hidden">page</span></span>
                 </a>
             </div>
         {% endif %}
@@ -26,13 +28,15 @@
                 {% if page %}
                     {% if page != current_page %}
                         <li class="govuk-pagination__item">
-                            <a class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
+                            <a data-testid="pagination-link"
+                               class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
                                href="{% if id != None %} {{ url_for(view_name, _id=id , page=page, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=page, **query_string_parameters) }}{% endif %}"
                                aria-label="Page {{ page }}">{{ page }}</a>
                         </li>
                     {% else %}
                         <li class="govuk-pagination__item govuk-pagination__item--current">
-                            <a class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
+                            <a data-testid="pagination-link"
+                               class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
                                href="{% if id != None %} {{ url_for(view_name, _id=id , page=page, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=page, **query_string_parameters) }} {% endif %}"
                                aria-label="Page {{ page }}">{{ page }}</a>
                         </li>
@@ -44,10 +48,12 @@
         </ul>
         {% if results.has_next == True %}
             <div class="govuk-pagination__next">
-                <a class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
+                <a data-testid="pagination-link"
+                   class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
                    href="{% if id != None %} {{ url_for(view_name, _id=id , page=current_page+1, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=current_page+1, **query_string_parameters) }}{% endif %}"
                    rel="next">
-                    <span class="govuk-pagination__link-title">Next<span class="govuk-visually-hidden">page</span></span>
+                    <span data-testid="pagination-link-title"
+                          class="govuk-pagination__link-title">Next<span class="govuk-visually-hidden">page</span></span>
                     <svg class="govuk-pagination__icon govuk-pagination__icon--next"
                          xmlns="http://www.w3.org/2000/svg"
                          height="13"
