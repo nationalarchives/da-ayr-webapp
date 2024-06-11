@@ -643,10 +643,13 @@ def download_record(record_id: uuid.UUID):
 
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
-
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
-    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+    try:
+        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+    except Exception as e:
+        current_app.logger.error(f"S3 error: {e}")
+        abort(404)
 
     download_filename = file.FileName
 
@@ -656,10 +659,16 @@ def download_record(record_id: uuid.UUID):
                 file.CiteableReference + "." + file.FileName.rsplit(".", 1)[1]
             )
 
+    try:
+        file_content = s3_file_object["Body"].read()
+    except Exception as e:
+        current_app.logger.error(f"Error reading S3 file content: {e}")
+        abort(500)
+
     response = Response(
-        s3_file_object["Body"].read(),
+        file_content,
         headers={
-            "Content-Disposition": "attachment;filename=" + download_filename
+            "Content-Disposition": f"attachment;filename={download_filename}"
         },
     )
     current_app.logger.info(
