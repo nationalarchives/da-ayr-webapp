@@ -2,7 +2,7 @@ from playwright.sync_api import Page
 
 
 def verify_header_row(header_rows):
-    assert header_rows[0] == [
+    assert header_rows == [
         "Transferring body",
         "Series reference",
         "Last transfer date",
@@ -78,40 +78,15 @@ class TestBrowseTransferringBody:
         assert not next_button.is_visible()
 
     def test_browse_transferring_body_filter_functionality_with_query_string_parameters(
-        self, standard_user_page: Page
+        self, standard_user_page: Page, utils
     ):
         standard_user_page.goto(
             f"{self.route_url}/{self.transferring_body_id}?series_filter=&date_from_day01=&"
             f"date_from_month=01&date_from_year=2024&date_to_day=&date_to_month=&date_to_year="
         )
 
-        header_rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
-        )
-
-        header_rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.map(el => {
-                var headerCells = [...el.querySelectorAll('th')];
-                if (headerCells.length >= 3) {
-                    headerCells.splice(2, 1);
-                }
-                return headerCells.map(e => e.textContent.trim());
-            })"""
-        )
-
-        rows = standard_user_page.locator(
-            ".govuk-table__body .browse__table__desktop"
-        ).evaluate_all(
-            """els => els.map(el =>
-                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_page_table_headers(standard_user_page)
+        rows = utils.get_page_table_rows(standard_user_page)
 
         expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 
@@ -119,7 +94,7 @@ class TestBrowseTransferringBody:
         assert rows == expected_rows
 
     def test_browse_transferring_body_sort_functionality_by_series_descending(
-        self, standard_user_page: Page
+        self, standard_user_page: Page, utils
     ):
         standard_user_page.goto(f"{self.route_url}/{self.transferring_body_id}")
         standard_user_page.get_by_label("Sort by").select_option("series-desc")
@@ -129,25 +104,8 @@ class TestBrowseTransferringBody:
 
         standard_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.map(el => {
-                var headerCells = [...el.querySelectorAll('th')];
-                if (headerCells.length >= 3) {
-                    headerCells.splice(2, 1);
-                }
-                return headerCells.map(e => e.textContent.trim());
-            })"""
-        )
-
-        rows = standard_user_page.locator(
-            ".govuk-table__body .browse__table__desktop"
-        ).evaluate_all(
-            """els => els.map(el =>
-                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_page_table_headers(standard_user_page)
+        rows = utils.get_page_table_rows(standard_user_page)
 
         expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 
@@ -155,7 +113,7 @@ class TestBrowseTransferringBody:
         assert rows == expected_rows
 
     def test_browse_transferring_body_filter_functionality_with_series_filter(
-        self, standard_user_page: Page
+        self, standard_user_page: Page, utils
     ):
         standard_user_page.goto(f"{self.route_url}/{self.transferring_body_id}")
         standard_user_page.locator("#series_filter").fill("TSTA 1")
@@ -166,25 +124,8 @@ class TestBrowseTransferringBody:
 
         standard_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.map(el => {
-                var headerCells = [...el.querySelectorAll('th')];
-                if (headerCells.length >= 3) {
-                    headerCells.splice(2, 1);
-                }
-                return headerCells.map(e => e.textContent.trim());
-            })"""
-        )
-
-        rows = standard_user_page.locator(
-            ".govuk-table__body .browse__table__desktop"
-        ).evaluate_all(
-            """els => els.map(el =>
-                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_page_table_headers(standard_user_page)
+        rows = utils.get_page_table_rows(standard_user_page)
 
         expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 
@@ -192,7 +133,7 @@ class TestBrowseTransferringBody:
         assert rows == expected_rows
 
     def test_browse_transferring_body_filter_functionality_with_series_filter_wildcard_character(
-        self, standard_user_page: Page
+        self, standard_user_page: Page, utils
     ):
         standard_user_page.goto(f"{self.route_url}/{self.transferring_body_id}")
         standard_user_page.locator("#series_filter").fill("1")
@@ -200,25 +141,8 @@ class TestBrowseTransferringBody:
 
         standard_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.map(el => {
-                var headerCells = [...el.querySelectorAll('th')];
-                if (headerCells.length >= 3) {
-                    headerCells.splice(2, 1);
-                }
-                return headerCells.map(e => e.textContent.trim());
-            })"""
-        )
-
-        rows = standard_user_page.locator(
-            ".govuk-table__body .browse__table__desktop"
-        ).evaluate_all(
-            """els => els.map(el =>
-                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_page_table_headers(standard_user_page)
+        rows = utils.get_page_table_rows(standard_user_page)
 
         expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 
@@ -226,7 +150,7 @@ class TestBrowseTransferringBody:
         assert rows == expected_rows
 
     def test_browse_transferring_body_filter_functionality_with_date_filter(
-        self, standard_user_page: Page
+        self, standard_user_page: Page, utils
     ):
         standard_user_page.goto(f"{self.route_url}/{self.transferring_body_id}")
         standard_user_page.locator("#date_from_day").fill("1")
@@ -236,25 +160,8 @@ class TestBrowseTransferringBody:
 
         standard_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.map(el => {
-                var headerCells = [...el.querySelectorAll('th')];
-                if (headerCells.length >= 3) {
-                    headerCells.splice(2, 1);
-                }
-                return headerCells.map(e => e.textContent.trim());
-            })"""
-        )
-
-        rows = standard_user_page.locator(
-            ".govuk-table__body .browse__table__desktop"
-        ).evaluate_all(
-            """els => els.map(el =>
-                [...el.querySelectorAll('.govuk-table__cell')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_page_table_headers(standard_user_page)
+        rows = utils.get_page_table_rows(standard_user_page)
 
         expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 

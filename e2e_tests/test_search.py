@@ -2,14 +2,14 @@ from playwright.sync_api import Page, expect
 
 
 def verify_search_results_summary_header_row(header_rows):
-    assert header_rows[0] == [
+    assert header_rows == [
         "Results found within each Transferring body",
         "Records found",
     ]
 
 
 def verify_search_transferring_body_header_row(header_rows):
-    assert header_rows[0] == [
+    assert header_rows == [
         "Series reference",
         "Consignment reference",
         "File name",
@@ -24,7 +24,7 @@ class TestSearchResultsSummary:
         return "/browse"
 
     def test_search_results_summary_search_single_term(
-        self, aau_user_page: Page
+        self, aau_user_page: Page, utils
     ):
         """
         Given a standard user on the search page
@@ -40,19 +40,8 @@ class TestSearchResultsSummary:
 
         aau_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = aau_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
-        )
-
-        rows = aau_user_page.locator("#tbl_result tr:visible").evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_page_table_headers(aau_user_page)
+        rows = utils.get_page_table_rows(aau_user_page)
 
         expected_rows = [["Mock 1 Department", "16"], ["Testing A", "12"]]
 
@@ -60,7 +49,7 @@ class TestSearchResultsSummary:
         assert rows == expected_rows
 
     def test_search_results_summary_search_multiple_terms(
-        self, aau_user_page: Page
+        self, aau_user_page: Page, utils
     ):
         """
         Given a standard user on the search page
@@ -75,19 +64,8 @@ class TestSearchResultsSummary:
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = aau_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th')].map(e => e.textContent.trim())
-            )"""
-        )
-
-        rows = aau_user_page.locator("#tbl_result tr:visible").evaluate_all(
-            """els => els.slice(1).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_page_table_headers(aau_user_page)
+        rows = utils.get_page_table_rows(aau_user_page)
 
         expected_rows = [["Testing A", "4"]]
 
@@ -113,7 +91,7 @@ class TestSearchTransferringBody:
         return "c3e3fd83-4d52-4638-a085-1f4e4e4dfa50"
 
     def test_search_transferring_body_search_single_term(
-        self, aau_user_page: Page
+        self, aau_user_page: Page, utils
     ):
         """
         Given a standard user on the search transferring body page
@@ -128,17 +106,8 @@ class TestSearchTransferringBody:
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
 
-        header_rows = aau_user_page.locator("#tbl_result").evaluate_all(
-            """els => els.slice(0).map(el =>
-            [...el.querySelectorAll('th.search__desktop-heading')].map(e => e.textContent.trim())
-            )"""
-        )
-
-        rows = aau_user_page.locator("#tbl_result tr.top-row").evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('td.search__mobile-table__top-row')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_page_table_headers(aau_user_page)
+        rows = utils.get_page_table_rows(aau_user_page)
 
         expected_rows = [
             [
@@ -177,7 +146,7 @@ class TestSearchTransferringBody:
         assert rows == expected_rows
 
     def test_search_transferring_body_search_multiple_terms(
-        self, aau_user_page: Page
+        self, aau_user_page: Page, utils
     ):
         """
         Given a user on the search transferring body page
@@ -190,17 +159,8 @@ class TestSearchTransferringBody:
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
 
-        header_rows = aau_user_page.locator("#tbl_result").evaluate_all(
-            """els => els.slice(0).map(el =>
-            [...el.querySelectorAll('th.search__desktop-heading')].map(e => e.textContent.trim())
-            )"""
-        )
-
-        rows = aau_user_page.locator("#tbl_result tr.top-row").evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('td.search__mobile-table__top-row')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_page_table_headers(aau_user_page)
+        rows = utils.get_page_table_rows(aau_user_page)
 
         expected_rows = [
             [
