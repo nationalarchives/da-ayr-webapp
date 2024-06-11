@@ -1,14 +1,15 @@
+import io
 import json
 import uuid
 
 import boto3
 from flask import (
-    Response,
     abort,
     current_app,
     redirect,
     render_template,
     request,
+    send_file,
     session,
     url_for,
 )
@@ -665,11 +666,11 @@ def download_record(record_id: uuid.UUID):
         current_app.logger.error(f"Error reading S3 file content: {e}")
         abort(500)
 
-    response = Response(
-        file_content,
-        headers={
-            "Content-Disposition": f"attachment;filename={download_filename}"
-        },
+    response = send_file(
+        io.BytesIO(file_content),
+        mimetype=s3_file_object["ContentType"],
+        as_attachment=True,
+        download_name=download_filename,
     )
     current_app.logger.info(
         json.dumps({"user_id": session["user_id"], "file": key})

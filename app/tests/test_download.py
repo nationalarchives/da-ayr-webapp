@@ -62,7 +62,7 @@ class TestDownload:
 
         assert (
             response.headers["Content-Disposition"]
-            == f"attachment;filename={file.CiteableReference}.doc"
+            == f"attachment; filename={file.CiteableReference}.doc"
         )
         assert response.data == b"record"
 
@@ -103,7 +103,7 @@ class TestDownload:
 
         assert (
             response.headers["Content-Disposition"]
-            == f"attachment;filename={file.FileName}"
+            == f"attachment; filename={file.FileName}"
         )
         assert response.data == b"record"
 
@@ -144,7 +144,7 @@ class TestDownload:
 
         assert (
             response.headers["Content-Disposition"]
-            == f"attachment;filename={file.FileName}"
+            == f"attachment; filename={file.FileName}"
         )
         assert response.data == b"record"
 
@@ -157,6 +157,27 @@ class TestDownload:
 
         assert caplog.records[0].levelname == "INFO"
         assert caplog.records[0].message == msg
+
+    @mock_aws
+    def test_download_record_standard_user_file_errors(
+        self, app, client, mock_standard_user, caplog
+    ):
+        """
+        Given a file is requested from the database which doesn't exist
+        Then the response status code should be 404
+        """
+
+        bucket_name = "test_bucket"
+        file = FileFactory(
+            FileType="file", FileName="testimage.png", CiteableReference=None
+        )
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        mock_standard_user(client, file.consignment.series.body.Name)
+        response = client.get(f"{self.route_url}/invalid_file")
+
+        assert response.status_code == 404
 
     @mock_aws
     def test_raises_404_for_standard_user_without_access_to_files_transferring_body(
