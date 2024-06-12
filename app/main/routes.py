@@ -776,65 +776,89 @@ def generate_pdf_manifest(s3_file_object, record_id):
     if file is None:
         abort(404)
 
-    filename = file.FileName
-
-    canvases = []
+    file_name = file.FileName
     file_url = url_for("main.get_file", record_id=record_id, _external=True)
 
-    # Convert PDF pages to images
-    images = []
+    # Open the PDF document
     pdf_document = pymupdf.open(
         "pdf", io.BytesIO(s3_file_object["Body"].read())
     )
-    for page_num in range(pdf_document.page_count):
-        page = pdf_document.load_page(page_num)
-        pix = page.get_pixmap()
-        img_bytes = pix.tobytes()
-        images.append(img_bytes)
 
-    # Construct IIIF canvases
-    canvases = []
-    for idx, img_bytes in enumerate(images, start=1):
-        image = Image.open(io.BytesIO(img_bytes))
-        width, height = image.size
-        file_url = url_for("main.get_file", record_id=record_id, page=idx, _external=True)
+    # canvases = []
+    # for page_num in range(pdf_document.page_count):
+    #     page = pdf_document.load_page(page_num)
+    #     pix = page.get_pixmap()
+    #     img_bytes = pix.tobytes()
 
-        canvas = {
-            "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/{idx}",
-            "@type": "sc:Canvas",
-            "label": f"Page {idx}",
-            "width": width,
-            "height": height,
-            "images": [
-                {
-                    "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/annotation/{idx}",
-                    "@type": "oa:Annotation",
-                    "motivation": "sc:painting",
-                    "resource": {
-                        "@id": file_url,
-                        "@type": "dctypes:Text",
-                        "format": "application/pdf",
-                        "width": width,
-                        "height": height,
-                    },
-                    "on": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/{idx}",
-                }
-            ],
-        }
-        canvases.append(canvas)
+    #     image = Image.open(io.BytesIO(img_bytes))
+    #     width, height = image.size
+    #     canvas_id = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/{page_num + 1}"
 
-    # Construct IIIF manifest
+    #     canvas = {
+    #         "id": canvas_id,
+    #         "type": "Canvas",
+    #         "label": {"en": [f"Page {page_num + 1}"]},
+    #         "width": width,
+    #         "height": height,
+    #         "items": [
+    #             {
+    #                 "id": f"{canvas_id}/annotation/{page_num + 1}",
+    #                 "type": "Annotation",
+    #                 "motivation": "painting",
+    #                 "body": {
+    #                     "id": file_url,
+    #                     "type": "Image",
+    #                     "format": "image/png",
+    #                     "width": width,
+    #                     "height": height,
+    #                 },
+    #                 "target": canvas_id,
+    #             }
+    #         ],
+    #     }
+    #     canvases.append(canvas)
+
     manifest = {
-        "@context": "http://iiif.io/api/presentation/2/context.json",
-        "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
-        "@type": "sc:Manifest",
-        "label": filename,
-        "description": f"Manifest for {filename}",
-        "sequences": [
+        "@context": [
+            "http://www.w3.org/ns/anno.jsonld",
+            "http://iiif.io/api/presentation/3/context.json",
+        ],
+        "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
+        "type": "Manifest",
+        "label": {"none": ["N30051003097927"]},
+        "requiredStatement": {
+            "label": {"en": ["File name"]},
+            "value": {"en": [file_name]},
+        },
+        "viewingDirection": "left-to-right",
+        "behavior": ["individuals"],
+        "description": f"Manifest for {file_name}",
+        "items": [
             {
-                "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/sequence/normal",
-                "@type": "sc:Sequence",
-                "canvases": canvases,
+                "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
+                "type": "Canvas",
+                "label": {"en": ["test"]},
+                "items": [
+                    {
+                        "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/annopage",
+                        "type": "AnnotationPage",
+                        "label": {"en": ["test"]},
+                        "items": [
+                            {
+                                "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/annotation/1",
+                                "type": "Annotation",
+                                "motivation": "painting",
+                                "label": {"en": ["test"]},
+                                "body": {
+                                    "id": file_url,
+                                    "type": "Text",
+                                    "format": "application/pdf",
+                                },
+                                "target": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
+                            }
+                        ],
+                    }
+                ],
             }
         ],
     }
