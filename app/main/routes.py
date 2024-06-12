@@ -666,9 +666,11 @@ def download_record(record_id: uuid.UUID):
         current_app.logger.error(f"Error reading S3 file content: {e}")
         abort(500)
 
+    content_type = s3_file_object.get("ContentType", "application/octet-stream")
+
     response = send_file(
         io.BytesIO(file_content),
-        mimetype=s3_file_object["ContentType"],
+        mimetype=content_type,
         as_attachment=True,
         download_name=download_filename,
     )
