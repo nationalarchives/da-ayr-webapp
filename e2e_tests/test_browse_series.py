@@ -67,8 +67,8 @@ class TestBrowseSeries:
             "=01&date_from_month=01&date_from_year=2023&date_to_day=31&date_to_month=12&date_to_year=2023"
         )
 
-        header_rows = utils.get_page_table_headers(standard_user_page)
-        rows = utils.get_page_table_rows(standard_user_page)
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
             ["Testing A", "TSTA 1", "30/11/2023", "9", "TDR-2023-GXFH"],
@@ -93,8 +93,8 @@ class TestBrowseSeries:
 
         standard_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = utils.get_page_table_headers(standard_user_page)
-        rows = utils.get_page_table_rows(standard_user_page)
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
             ["Testing A", "TSTA 1", "25/01/2024", "17", "TDR-2024-H5DN"],
@@ -118,8 +118,8 @@ class TestBrowseSeries:
 
         standard_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = utils.get_page_table_headers(standard_user_page)
-        rows = utils.get_page_table_rows(standard_user_page)
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
             ["Testing A", "TSTA 1", "25/01/2024", "17", "TDR-2024-H5DN"],

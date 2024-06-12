@@ -85,8 +85,8 @@ class TestBrowseTransferringBody:
             f"date_from_month=01&date_from_year=2024&date_to_day=&date_to_month=&date_to_year="
         )
 
-        header_rows = utils.get_page_table_headers(standard_user_page)
-        rows = utils.get_page_table_rows(standard_user_page)
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 
@@ -104,8 +104,8 @@ class TestBrowseTransferringBody:
 
         standard_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = utils.get_page_table_headers(standard_user_page)
-        rows = utils.get_page_table_rows(standard_user_page)
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 
@@ -124,8 +124,8 @@ class TestBrowseTransferringBody:
 
         standard_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = utils.get_page_table_headers(standard_user_page)
-        rows = utils.get_page_table_rows(standard_user_page)
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 
@@ -141,8 +141,8 @@ class TestBrowseTransferringBody:
 
         standard_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = utils.get_page_table_headers(standard_user_page)
-        rows = utils.get_page_table_rows(standard_user_page)
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 
@@ -160,8 +160,8 @@ class TestBrowseTransferringBody:
 
         standard_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = utils.get_page_table_headers(standard_user_page)
-        rows = utils.get_page_table_rows(standard_user_page)
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [["Testing A", "TSTA 1", "25/01/2024", "63", "5"]]
 

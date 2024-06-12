@@ -40,8 +40,8 @@ class TestSearchResultsSummary:
 
         aau_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = utils.get_page_table_headers(aau_user_page)
-        rows = utils.get_page_table_rows(aau_user_page)
+        header_rows = utils.get_desktop_page_table_headers(aau_user_page)
+        rows = utils.get_desktop_page_table_rows(aau_user_page)
 
         expected_rows = [["Mock 1 Department", "16"], ["Testing A", "12"]]
 
@@ -64,8 +64,8 @@ class TestSearchResultsSummary:
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = utils.get_page_table_headers(aau_user_page)
-        rows = utils.get_page_table_rows(aau_user_page)
+        header_rows = utils.get_desktop_page_table_headers(aau_user_page)
+        rows = utils.get_desktop_page_table_rows(aau_user_page)
 
         expected_rows = [["Testing A", "4"]]
 
@@ -106,8 +106,8 @@ class TestSearchTransferringBody:
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
 
-        header_rows = utils.get_page_table_headers(aau_user_page)
-        rows = utils.get_page_table_rows(aau_user_page)
+        header_rows = utils.get_desktop_page_table_headers(aau_user_page)
+        rows = utils.get_desktop_page_table_rows(aau_user_page)
 
         expected_rows = [
             [
@@ -159,8 +159,8 @@ class TestSearchTransferringBody:
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
 
-        header_rows = utils.get_page_table_headers(aau_user_page)
-        rows = utils.get_page_table_rows(aau_user_page)
+        header_rows = utils.get_desktop_page_table_headers(aau_user_page)
+        rows = utils.get_desktop_page_table_rows(aau_user_page)
 
         expected_rows = [
             [

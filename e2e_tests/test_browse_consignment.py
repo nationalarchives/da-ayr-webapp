@@ -122,8 +122,8 @@ class TestBrowseConsignment:
             f"date_to_day=&date_to_month=&date_to_year="
         )
 
-        header_rows = utils.get_page_table_headers(standard_user_page)
-        rows = utils.get_page_table_rows(standard_user_page)
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
             ["03/08/2022", "delivery-form-digital.doc", "Open", "–"],
@@ -158,8 +158,8 @@ class TestBrowseConsignment:
             "button", name="Apply", exact=True
         ).click()
 
-        header_rows = utils.get_page_table_headers(standard_user_page)
-        rows = utils.get_page_table_rows(standard_user_page)
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
             ["03/08/2022", "Presentation.pptx", "Closed", "04/08/2122"],
@@ -196,8 +196,8 @@ class TestBrowseConsignment:
             "button", name="Apply", exact=True
         ).click()
 
-        header_rows = utils.get_page_table_headers(standard_user_page)
-        rows = utils.get_page_table_rows(standard_user_page)
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
             [

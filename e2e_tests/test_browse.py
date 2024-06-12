@@ -44,8 +44,8 @@ class TestBrowse:
             "01=&date_from_month=07&date_from_year=2023&date_to_day=31&date_to_month=02&date_to_year=2024"
         )
 
-        header_rows = utils.get_page_table_headers(aau_user_page)
-        rows = utils.get_page_table_rows(aau_user_page)
+        header_rows = utils.get_desktop_page_table_headers(aau_user_page)
+        rows = utils.get_desktop_page_table_rows(aau_user_page)
 
         expected_rows = [
             ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
@@ -63,8 +63,8 @@ class TestBrowse:
         )
         aau_user_page.get_by_role("button", name="Apply", exact=True).click()
 
-        header_rows = utils.get_page_table_headers(aau_user_page)
-        rows = utils.get_page_table_rows(aau_user_page)
+        header_rows = utils.get_desktop_page_table_headers(aau_user_page)
+        rows = utils.get_desktop_page_table_rows(aau_user_page)
 
         expected_rows = [
             ["Testing A", "TSTA 1", "25/01/2024", "63", "5"],
@@ -83,8 +83,8 @@ class TestBrowse:
         aau_user_page.get_by_role("button", name="Apply filters").click()
         aau_user_page.get_by_role("button", name="Apply", exact=True).click()
 
-        header_rows = utils.get_page_table_headers(aau_user_page)
-        rows = utils.get_page_table_rows(aau_user_page)
+        header_rows = utils.get_desktop_page_table_headers(aau_user_page)
+        rows = utils.get_desktop_page_table_rows(aau_user_page)
 
         expected_rows = [
             ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"]
@@ -100,8 +100,8 @@ class TestBrowse:
         aau_user_page.locator("#series_filter").fill("1")
         aau_user_page.get_by_role("button", name="Apply filters").click()
 
-        header_rows = utils.get_page_table_headers(aau_user_page)
-        rows = utils.get_page_table_rows(aau_user_page)
+        header_rows = utils.get_desktop_page_table_headers(aau_user_page)
+        rows = utils.get_desktop_page_table_rows(aau_user_page)
 
         expected_rows = [
             ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],
@@ -120,8 +120,8 @@ class TestBrowse:
         aau_user_page.locator("#date_from_year").fill("2024")
         aau_user_page.get_by_role("button", name="Apply filters").click()
 
-        header_rows = utils.get_page_table_headers(aau_user_page)
-        rows = utils.get_page_table_rows(aau_user_page)
+        header_rows = utils.get_desktop_page_table_headers(aau_user_page)
+        rows = utils.get_desktop_page_table_rows(aau_user_page)
 
         expected_rows = [
             ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"],

@@ -81,13 +81,13 @@ def browser_context_args(browser_context_args):
 
 class Utils:
     @staticmethod
-    def get_page_table_headers(page: Page):
+    def get_desktop_page_table_headers(page: Page):
         return page.locator(
             "th:not(.govuk-table--invisible-on-desktop)"
         ).evaluate_all("""els => els.map(e => e.innerText.trim())""")
 
     @staticmethod
-    def get_page_table_rows(page: Page):
+    def get_desktop_page_table_rows(page: Page):
         return page.get_by_role("row").evaluate_all(
             """els => {
                     document.querySelectorAll('.govuk-table--invisible-on-desktop')
