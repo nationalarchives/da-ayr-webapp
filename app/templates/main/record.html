@@ -71,10 +71,9 @@
                         {% if file_type == "iiif" %}
                             <!-- UNIVERSAL VIEWER -->
                             <!-- <h2>Universal Viewer via IIIF Manifest (PDF / Audio / Video) </h2> -->
-                            <link rel="stylesheet"
-                                  href="https://cdn.jsdelivr.net/npm/universalviewer@4.0.0/dist/uv.css" />
-                            <script type="application/javascript"
-                                    src="https://cdn.jsdelivr.net/npm/universalviewer@4.0.0/dist/umd/UV.js"></script>
+                            <script src="https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js"></script>
+                            <link href="https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css"
+                                  rel="stylesheet">
                             <style>
                             #uv {
                                 width: 100%;
