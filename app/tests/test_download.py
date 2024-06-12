@@ -213,11 +213,9 @@ class TestDownload:
 
         response = client.get(f"{self.route_url}/{file.FileId}")
 
-        assert response.status_code == 500
-        assert "Error reading S3 file content" in caplog.text
-
         msg = "Error reading S3 file content: Read error"
 
+        assert response.status_code == 500
         assert caplog.records[0].levelname == "ERROR"
         assert caplog.records[0].message == msg
 
