@@ -1,14 +1,15 @@
+import io
 import json
 import uuid
 
 import boto3
 from flask import (
-    Response,
     abort,
     current_app,
     redirect,
     render_template,
     request,
+    send_file,
     session,
     url_for,
 )
@@ -643,10 +644,13 @@ def download_record(record_id: uuid.UUID):
 
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
-
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
-    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+    try:
+        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+    except Exception as e:
+        current_app.logger.error(f"S3 error: {e}")
+        abort(404)
 
     download_filename = file.FileName
 
@@ -656,11 +660,19 @@ def download_record(record_id: uuid.UUID):
                 file.CiteableReference + "." + file.FileName.rsplit(".", 1)[1]
             )
 
-    response = Response(
-        s3_file_object["Body"].read(),
-        headers={
-            "Content-Disposition": "attachment;filename=" + download_filename
-        },
+    try:
+        file_content = s3_file_object["Body"].read()
+    except Exception as e:
+        current_app.logger.error(f"Error reading S3 file content: {e}")
+        abort(500)
+
+    content_type = s3_file_object.get("ContentType", "application/octet-stream")
+
+    response = send_file(
+        io.BytesIO(file_content),
+        mimetype=content_type,
+        as_attachment=True,
+        download_name=download_filename,
     )
     current_app.logger.info(
         json.dumps({"user_id": session["user_id"], "file": key})

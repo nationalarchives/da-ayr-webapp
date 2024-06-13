@@ -1,4 +1,5 @@
 import json
+from unittest.mock import MagicMock, patch
 
 import boto3
 from flask.testing import FlaskClient
@@ -62,7 +63,7 @@ class TestDownload:
 
         assert (
             response.headers["Content-Disposition"]
-            == f"attachment;filename={file.CiteableReference}.doc"
+            == f"attachment; filename={file.CiteableReference}.doc"
         )
         assert response.data == b"record"
 
@@ -103,7 +104,7 @@ class TestDownload:
 
         assert (
             response.headers["Content-Disposition"]
-            == f"attachment;filename={file.FileName}"
+            == f"attachment; filename={file.FileName}"
         )
         assert response.data == b"record"
 
@@ -144,7 +145,7 @@ class TestDownload:
 
         assert (
             response.headers["Content-Disposition"]
-            == f"attachment;filename={file.FileName}"
+            == f"attachment; filename={file.FileName}"
         )
         assert response.data == b"record"
 
@@ -156,6 +157,66 @@ class TestDownload:
         msg = json.dumps({"user_id": user_id, "file": key})
 
         assert caplog.records[0].levelname == "INFO"
+        assert caplog.records[0].message == msg
+
+    @mock_aws
+    def test_download_record_standard_user_get_file_errors(
+        self, app, client, mock_standard_user
+    ):
+        """
+        Given a file is requested from the database / S3 which doesn't exist
+        When a standard user tries to access the file to download
+        Then the response status code should be 404
+        """
+
+        bucket_name = "test_bucket"
+        file = FileFactory(
+            FileType="file", FileName="testimage.png", CiteableReference=None
+        )
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        mock_standard_user(client, file.consignment.series.body.Name)
+        response = client.get(f"{self.route_url}/invalid_file")
+
+        assert response.status_code == 404
+
+    @mock_aws
+    @patch("boto3.client")
+    def test_download_record_standard_user_read_file_error(
+        self, mock_boto3_client, app, client, mock_standard_user, caplog
+    ):
+        """
+        Given a file in the database with corresponding file in the S3 bucket
+            but reading the file content fails
+        When a standard user with access to the file's transferring body makes a request to download the record
+        Then the response status code should be 500
+        """
+
+        bucket_name = "test_bucket"
+        file = FileFactory(
+            FileType="file", FileName="testimage.png", CiteableReference=None
+        )
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        # Mock the S3 client and its get_object method
+        mock_s3_client = MagicMock()
+        mock_s3_client.get_object.return_value = {
+            "Body": MagicMock(
+                read=MagicMock(side_effect=Exception("Read error"))
+            )
+        }
+        mock_boto3_client.return_value = mock_s3_client
+
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}")
+
+        msg = "Error reading S3 file content: Read error"
+
+        assert response.status_code == 500
+        assert caplog.records[0].levelname == "ERROR"
         assert caplog.records[0].message == msg
 
     @mock_aws
