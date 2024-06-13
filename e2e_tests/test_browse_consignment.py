@@ -2,7 +2,7 @@ from playwright.sync_api import Page
 
 
 def verify_header_row(header_rows):
-    assert header_rows[0] == [
+    assert header_rows == [
         "Date of record",
         "File name",
         "Status",
@@ -114,7 +114,7 @@ class TestBrowseConsignment:
         assert standard_user_page.get_by_label("Page 3").is_visible()
 
     def test_browse_consignment_filter_functionality_with_query_string_parameters(
-        self, standard_user_page: Page
+        self, standard_user_page: Page, utils
     ):
         standard_user_page.goto(
             f"{self.route_url}/{self.consignment_id}?sort=date_last_modified-desc&record_status=all&"
@@ -122,36 +122,27 @@ class TestBrowseConsignment:
             f"date_to_day=&date_to_month=&date_to_year="
         )
 
-        header_rows = standard_user_page.locator("#tbl_result").evaluate_all(
-            """els => els.slice(0).map(el => [...el.querySelectorAll('th')].map(e => e.textContent.trim()))"""
-        )
-
-        rows = standard_user_page.locator(
-            "#tbl_result tr.govuk-table__row-ref"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
-            ["03/08/2022", "delivery-form-digital.doc", "Open", "-"],
-            ["03/08/2022", "Digital Transfer training email .msg", "Open", "-"],
-            ["03/08/2022", "Draft DDRO 05.docx", "Open", "-"],
+            ["03/08/2022", "delivery-form-digital.doc", "Open", "–"],
+            ["03/08/2022", "Digital Transfer training email .msg", "Open", "–"],
+            ["03/08/2022", "Draft DDRO 05.docx", "Open", "–"],
             [
                 "03/08/2022",
                 "DTP_ Digital Transfer process diagram UG.docx",
                 "Open",
-                "-",
+                "–",
             ],
-            ["03/08/2022", "base_de_donnees.png", "Open", "-"],
+            ["03/08/2022", "base_de_donnees.png", "Open", "–"],
         ]
 
         verify_header_row(header_rows)
         assert rows == expected_rows
 
     def test_browse_consignment_sort_functionality_by_record_status_descending(
-        self, standard_user_page: Page
+        self, standard_user_page: Page, utils
     ):
         standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
         standard_user_page.get_by_label("Sort by").select_option(
@@ -167,17 +158,8 @@ class TestBrowseConsignment:
             "button", name="Apply", exact=True
         ).click()
 
-        header_rows = standard_user_page.locator("#tbl_result").evaluate_all(
-            """els => els.slice(0).map(el => [...el.querySelectorAll('th')].map(e => e.textContent.trim()))"""
-        )
-
-        rows = standard_user_page.locator(
-            "#tbl_result tr.govuk-table__row-ref"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
             ["03/08/2022", "Presentation.pptx", "Closed", "04/08/2122"],
@@ -187,21 +169,21 @@ class TestBrowseConsignment:
                 "Closed",
                 "26/12/2121",
             ],
-            ["03/08/2022", "Digital Transfer training email .msg", "Open", "-"],
+            ["03/08/2022", "Digital Transfer training email .msg", "Open", "–"],
             [
                 "03/08/2022",
                 "DTP_ Digital Transfer process diagram UG.docx",
                 "Open",
-                "-",
+                "–",
             ],
-            ["03/08/2022", "Draft DDRO 05.docx", "Open", "-"],
+            ["03/08/2022", "Draft DDRO 05.docx", "Open", "–"],
         ]
 
         verify_header_row(header_rows)
         assert rows == expected_rows
 
     def test_browse_consignment_filter_functionality_with_record_opening_date_filter(
-        self, standard_user_page: Page
+        self, standard_user_page: Page, utils
     ):
         standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
         standard_user_page.locator("label").filter(
@@ -214,17 +196,8 @@ class TestBrowseConsignment:
             "button", name="Apply", exact=True
         ).click()
 
-        header_rows = standard_user_page.locator("#tbl_result").evaluate_all(
-            """els => els.slice(0).map(el => [...el.querySelectorAll('th')].map(e => e.textContent.trim()))"""
-        )
-
-        rows = standard_user_page.locator(
-            "#tbl_result tr.govuk-table__row-ref"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
             [

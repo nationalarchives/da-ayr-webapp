@@ -2,7 +2,7 @@ from playwright.sync_api import Page
 
 
 def verify_header_row(header_rows):
-    assert header_rows[0] == [
+    assert header_rows == [
         "Transferring body",
         "Series reference",
         "Last transfer date",
@@ -60,27 +60,15 @@ class TestBrowseSeries:
         assert standard_user_page.inner_html("text='TSTA 1'")
 
     def test_browse_series_filter_functionality_with_query_string_parameters(
-        self, standard_user_page: Page
+        self, standard_user_page: Page, utils
     ):
         standard_user_page.goto(
             f"{self.route_url}/{self.series_id}?sort=last_record_transferred-desc&date_from_day"
             "=01&date_from_month=01&date_from_year=2023&date_to_day=31&date_to_month=12&date_to_year=2023"
         )
 
-        header_rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th.browse__series__desktop__header')].map(e => e.textContent.trim())
-            )"""
-        )
-        rows = standard_user_page.locator(
-            "#tbl_result tr.govuk-table__row-ref"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
             ["Testing A", "TSTA 1", "30/11/2023", "9", "TDR-2023-GXFH"],
@@ -93,7 +81,7 @@ class TestBrowseSeries:
         assert rows == expected_rows
 
     def test_browse_series_sort_functionality_by_records_held_in_consignment_descending(
-        self, standard_user_page: Page
+        self, standard_user_page: Page, utils
     ):
         standard_user_page.goto(f"{self.route_url}/{self.series_id}")
         standard_user_page.get_by_label("Sort by").select_option(
@@ -105,20 +93,8 @@ class TestBrowseSeries:
 
         standard_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th.browse__series__desktop__header')].map(e => e.textContent.trim())
-            )"""
-        )
-        rows = standard_user_page.locator(
-            "#tbl_result tr.govuk-table__row-ref"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
             ["Testing A", "TSTA 1", "25/01/2024", "17", "TDR-2024-H5DN"],
@@ -132,7 +108,7 @@ class TestBrowseSeries:
         assert rows == expected_rows
 
     def test_browse_series_filter_functionality_with_date_filter(
-        self, standard_user_page: Page
+        self, standard_user_page: Page, utils
     ):
         standard_user_page.goto(f"{self.route_url}/{self.series_id}")
         standard_user_page.locator("#date_from_day").fill("1")
@@ -142,20 +118,8 @@ class TestBrowseSeries:
 
         standard_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = standard_user_page.locator(
-            "#tbl_result tr:visible"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('th.browse__series__desktop__header')].map(e => e.textContent.trim())
-            )"""
-        )
-        rows = standard_user_page.locator(
-            "#tbl_result tr.govuk-table__row-ref"
-        ).evaluate_all(
-            """els => els.slice(0).map(el =>
-              [...el.querySelectorAll('td')].map(e => e.textContent.trim())
-            )"""
-        )
+        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
+        rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
             ["Testing A", "TSTA 1", "25/01/2024", "17", "TDR-2024-H5DN"],

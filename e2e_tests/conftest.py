@@ -77,3 +77,28 @@ def browser_context_args(browser_context_args):
         "ignore_https_errors": True,
         "java_script_enabled": False,
     }
+
+
+class Utils:
+    @staticmethod
+    def get_desktop_page_table_headers(page: Page):
+        return page.locator(
+            "th:not(.govuk-table--invisible-on-desktop)"
+        ).evaluate_all("""els => els.map(e => e.innerText.trim())""")
+
+    @staticmethod
+    def get_desktop_page_table_rows(page: Page):
+        return page.get_by_role("row").evaluate_all(
+            """els => {
+                    document.querySelectorAll('.govuk-table--invisible-on-desktop')
+                        .forEach(el => el.remove())
+                    return els.map(el =>
+                        [...el.querySelectorAll('td')].map(e => e.innerText.trim())
+                    ).filter(e => e.length > 0)
+                }"""
+        )
+
+
+@pytest.fixture
+def utils():
+    return Utils
