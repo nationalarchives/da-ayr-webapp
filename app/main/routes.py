@@ -1,6 +1,5 @@
 import io
 import json
-import os
 import uuid
 
 import boto3
@@ -721,12 +720,6 @@ def http_exception(error):
     return render_template(f"{error.code}.html"), error.code
 
 
-# # Define the route for IIIF image requests
-# @bp.route('/iiif/<path:image_id>')
-# def iiif_image(image_id):
-#     return iiif.handle_request(image_id)
-
-
 @bp.route("/generate_manifest/<uuid:record_id>")
 @access_token_sign_in_required
 def generate_manifest(record_id: uuid.UUID):
@@ -744,33 +737,19 @@ def generate_manifest(record_id: uuid.UUID):
 
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
-    print("KEY", key)
-
     s3_file_object = s3.get_object(Bucket=bucket, Key=key)
 
-    # Determine the file type
     file_type = filename.split(".")[-1].lower()
 
-    print("file_type", file_type)
-
     if file_type == "pdf":
-        return generate_pdf_manifest(s3_file_object, record_id)
+        return generate_pdf_manifest(record_id)
     elif file_type in ["png", "jpg", "jpeg"]:
         return generate_image_manifest(s3_file_object, record_id)
     else:
         return http_exception(BadRequest())
 
 
-"""
-# Fetch the PDF file from S3
-# Open the PDF with PyMuPDF
-# Save image in a BytesIO object
-# Return the images as response inside manifest
-
-"""
-
-
-def generate_pdf_manifest(s3_file_object, record_id):
+def generate_pdf_manifest(record_id):
     file = db.session.get(File, record_id)
 
     if file is None:
@@ -779,51 +758,11 @@ def generate_pdf_manifest(s3_file_object, record_id):
     file_name = file.FileName
     file_url = url_for("main.get_file", record_id=record_id, _external=True)
 
-    # Open the PDF document
-    pdf_document = pymupdf.open(
-        "pdf", io.BytesIO(s3_file_object["Body"].read())
-    )
-
-    # canvases = []
-    # for page_num in range(pdf_document.page_count):
-    #     page = pdf_document.load_page(page_num)
-    #     pix = page.get_pixmap()
-    #     img_bytes = pix.tobytes()
-
-    #     image = Image.open(io.BytesIO(img_bytes))
-    #     width, height = image.size
-    #     canvas_id = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/{page_num + 1}"
-
-    #     canvas = {
-    #         "id": canvas_id,
-    #         "type": "Canvas",
-    #         "label": {"en": [f"Page {page_num + 1}"]},
-    #         "width": width,
-    #         "height": height,
-    #         "items": [
-    #             {
-    #                 "id": f"{canvas_id}/annotation/{page_num + 1}",
-    #                 "type": "Annotation",
-    #                 "motivation": "painting",
-    #                 "body": {
-    #                     "id": file_url,
-    #                     "type": "Image",
-    #                     "format": "image/png",
-    #                     "width": width,
-    #                     "height": height,
-    #                 },
-    #                 "target": canvas_id,
-    #             }
-    #         ],
-    #     }
-    #     canvases.append(canvas)
-
     manifest = {
         "@context": [
-            "http://www.w3.org/ns/anno.jsonld",
             "http://iiif.io/api/presentation/3/context.json",
         ],
-        "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
+        "id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
         "type": "Manifest",
         "label": {"none": ["N30051003097927"]},
         "requiredStatement": {
@@ -835,17 +774,17 @@ def generate_pdf_manifest(s3_file_object, record_id):
         "description": f"Manifest for {file_name}",
         "items": [
             {
-                "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
+                "id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
                 "type": "Canvas",
                 "label": {"en": ["test"]},
                 "items": [
                     {
-                        "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/annopage",
+                        "id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
                         "type": "AnnotationPage",
                         "label": {"en": ["test"]},
                         "items": [
                             {
-                                "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/annotation/1",
+                                "id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
                                 "type": "Annotation",
                                 "motivation": "painting",
                                 "label": {"en": ["test"]},
@@ -854,7 +793,7 @@ def generate_pdf_manifest(s3_file_object, record_id):
                                     "type": "Text",
                                     "format": "application/pdf",
                                 },
-                                "target": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
+                                "target": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
                             }
                         ],
                     }
@@ -888,8 +827,6 @@ def generate_image_manifest(s3_file_object, record_id):
     width, height = image.size
 
     file_url = url_for("main.get_file", record_id=record_id, _external=True)
-
-    print("file here", file_url)
 
     canvas = {
         "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
@@ -957,15 +894,14 @@ def get_file(record_id=None):
             return send_file(
                 io.BytesIO(img_bytes),
                 mimetype="image/png",
-                as_attachment=False,  # Display inline
+                as_attachment=False,
             )
         else:
-            # Serve the whole PDF file / Image file
             return send_file(
                 io.BytesIO(file_content),
                 download_name=filename,
                 mimetype="application/pdf",
-                as_attachment=False,  # Display inline
+                as_attachment=False,
             )
     except Exception as e:
         print("error", e)
