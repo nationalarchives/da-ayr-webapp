@@ -1,7 +1,105 @@
 import os
+import uuid
 
+import keycloak
 import pytest
 from playwright.sync_api import Page
+
+
+class Utils:
+    @staticmethod
+    def get_desktop_page_table_headers(page: Page):
+        return page.locator(
+            "th:not(.govuk-table--invisible-on-desktop)"
+        ).evaluate_all("""els => els.map(e => e.innerText.trim())""")
+
+    @staticmethod
+    def get_desktop_page_table_rows(page: Page):
+        return page.get_by_role("row").evaluate_all(
+            """els => {
+                    document.querySelectorAll('.govuk-table--invisible-on-desktop')
+                        .forEach(el => el.remove())
+                    return els.map(el =>
+                        [...el.querySelectorAll('td')].map(e => e.innerText.trim())
+                    ).filter(e => e.length > 0)
+                }
+            """
+        )
+
+
+@pytest.fixture
+def utils():
+    return Utils
+
+
+class KeycloakClient:
+    def __init__(self):
+        self.user_email = f"{uuid.uuid4().hex}@test.com"
+        self.user_pass = uuid.uuid4().hex
+        self.user_first_name = "Test"
+        self.user_last_name = "Name"
+        self.user_id = None
+
+        self.realm_name = os.environ.get("KEYCLOAK_REALM_NAME")
+
+        self.client_id = os.environ.get("KEYCLOAK_CLIENT_ID")
+        self.client_secret = os.environ.get("KEYCLOAK_CLIENT_SECRET")
+
+        self.server_url = os.environ.get("KEYCLOAK_BASE_URI")
+        self.auth_url = f"{self.server_url}/realms/{self.realm_name}/protocol/openid-connect/token"
+        self.users_url = (
+            f"{self.server_url}admin/realms/{self.realm_name}/users"
+        )
+
+        self.keycloak_openid = keycloak.KeycloakOpenID(
+            server_url=self.server_url,
+            client_id=self.client_id,
+            realm_name=self.realm_name,
+            client_secret_key=self.client_secret,
+        )
+
+        self.token = self.keycloak_openid.token(grant_type="client_credentials")
+
+        self.token_info = self.keycloak_openid.decode_token(
+            self.token["access_token"]
+        )
+        self.keycload_admin = keycloak.KeycloakAdmin(
+            server_url=self.server_url,
+            realm_name=self.realm_name,
+            token=self.token,
+        )
+
+    def get_user_groups(self, user_type):
+        if user_type == "all_access_user":
+            return ["/ayr_user_type/view_all"]
+        elif user_type == "standard_user":
+            return [
+                "/ayr_user_type/view_dept",
+                "/transferring_body_user/testing_a",
+            ]
+        else:
+            return []
+
+    def create_user(self, user_type):
+        groups = self.get_user_groups(user_type)
+        user_id = self.keycload_admin.create_user(
+            {
+                "firstName": self.user_first_name,
+                "lastName": self.user_last_name,
+                "username": self.user_email,
+                "email": self.user_email,
+                "enabled": True,
+                "groups": groups,
+                "credentials": [{"value": self.user_pass, "type": "password"}],
+            }
+        )
+        self.user_id = user_id
+        return
+
+    def delete_user(self):
+        if self.user_id is None:
+            return
+        self.keycload_admin.delete_user(user_id=self.user_id)
 
 
 @pytest.fixture
@@ -36,19 +134,42 @@ def create_user_page(
     return _create_user_page
 
 
+@pytest.fixture(scope="session")
+def create_users():
+    account_aau = KeycloakClient()
+    account_standard = KeycloakClient()
+
+    account_aau.create_user("all_access_user")
+    account_standard.create_user("standard_user")
+
+    yield {
+        "aau": {
+            "username": account_aau.user_email,
+            "password": account_aau.user_pass,
+        },
+        "standard": {
+            "username": account_standard.user_email,
+            "password": account_standard.user_pass,
+        },
+    }
+
+    account_aau.delete_user()
+    account_standard.delete_user()
+
+
 @pytest.fixture
-def aau_user_page(create_user_page) -> Page:
-    username = os.environ.get("AYR_AAU_USER_USERNAME")
-    password = os.environ.get("AYR_AAU_USER_PASSWORD")
+def aau_user_page(create_user_page, create_users) -> Page:
+    username = create_users["aau"]["username"]
+    password = create_users["aau"]["password"]
     page = create_user_page(username, password)
     yield page
     page.goto("/sign-out")
 
 
 @pytest.fixture
-def standard_user_page(create_user_page) -> Page:
-    username = os.environ.get("AYR_STANDARD_USER_USERNAME")
-    password = os.environ.get("AYR_STANDARD_USER_PASSWORD")
+def standard_user_page(create_user_page, create_users) -> Page:
+    username = create_users["standard"]["username"]
+    password = create_users["standard"]["password"]
     page = create_user_page(username, password)
     yield page
     page.goto("/sign-out")
@@ -77,28 +198,3 @@ def browser_context_args(browser_context_args):
         "ignore_https_errors": True,
         "java_script_enabled": False,
     }
-
-
-class Utils:
-    @staticmethod
-    def get_desktop_page_table_headers(page: Page):
-        return page.locator(
-            "th:not(.govuk-table--invisible-on-desktop)"
-        ).evaluate_all("""els => els.map(e => e.innerText.trim())""")
-
-    @staticmethod
-    def get_desktop_page_table_rows(page: Page):
-        return page.get_by_role("row").evaluate_all(
-            """els => {
-                    document.querySelectorAll('.govuk-table--invisible-on-desktop')
-                        .forEach(el => el.remove())
-                    return els.map(el =>
-                        [...el.querySelectorAll('td')].map(e => e.innerText.trim())
-                    ).filter(e => e.length > 0)
-                }"""
-        )
-
-
-@pytest.fixture
-def utils():
-    return Utils
