@@ -32,73 +32,6 @@ def utils():
     return Utils
 
 
-class KeycloakClient:
-    def __init__(self, user_type):
-        self.user_type = user_type
-        self.user_email = f"{uuid.uuid4().hex}{user_type}@test.com"
-        self.user_pass = uuid.uuid4().hex
-        self.user_first_name = "Test"
-        self.user_last_name = "Name"
-        self.user_id = None
-
-        self.realm_name = os.environ.get("KEYCLOAK_REALM_NAME")
-
-        self.client_id = os.environ.get("KEYCLOAK_CLIENT_ID")
-        self.client_secret = os.environ.get("KEYCLOAK_CLIENT_SECRET")
-
-        self.server_url = os.environ.get("KEYCLOAK_BASE_URI")
-        self.auth_url = f"{self.server_url}/realms/{self.realm_name}/protocol/openid-connect/token"
-        self.users_url = (
-            f"{self.server_url}admin/realms/{self.realm_name}/users"
-        )
-
-        self.keycloak_openid = keycloak.KeycloakOpenID(
-            server_url=self.server_url,
-            client_id=self.client_id,
-            realm_name=self.realm_name,
-            client_secret_key=self.client_secret,
-        )
-
-        self.token = self.keycloak_openid.token(grant_type="client_credentials")
-        self.keycload_admin = keycloak.KeycloakAdmin(
-            server_url=self.server_url,
-            realm_name=self.realm_name,
-            token=self.token,
-        )
-
-    def get_user_groups(self):
-        if self.user_type == "all_access_user":
-            return ["/ayr_user_type/view_all"]
-        elif self.user_type == "standard_user":
-            return [
-                "/ayr_user_type/view_dept",
-                "/transferring_body_user/Testing A",
-            ]
-        else:
-            return []
-
-    def create_user(self):
-        groups = self.get_user_groups()
-        user_id = self.keycload_admin.create_user(
-            {
-                "firstName": self.user_first_name,
-                "lastName": self.user_last_name,
-                "username": self.user_email,
-                "email": self.user_email,
-                "enabled": True,
-                "groups": groups,
-                "credentials": [{"value": self.user_pass, "type": "password"}],
-            }
-        )
-        self.user_id = user_id
-        return self.user_id
-
-    def delete_user(self):
-        if self.user_id is None:
-            return
-        return self.keycload_admin.delete_user(user_id=self.user_id)
-
-
 @pytest.fixture
 def page(page, request) -> Page:
     page.context.set_default_timeout(5000)
@@ -132,41 +65,91 @@ def create_user_page(
 
 
 @pytest.fixture(scope="session")
-def create_users():
-    client_aau = KeycloakClient("all_access_user")
-    client_standard = KeycloakClient("standard_user")
+def keycloak_admin():
+    realm_name = os.environ.get("KEYCLOAK_REALM_NAME")
+    client_id = os.environ.get("KEYCLOAK_CLIENT_ID")
+    client_secret = os.environ.get("KEYCLOAK_CLIENT_SECRET")
+    server_url = os.environ.get("KEYCLOAK_BASE_URI")
 
-    client_aau.create_user()
-    client_standard.create_user()
+    keycloak_openid = keycloak.KeycloakOpenID(
+        server_url=server_url,
+        client_id=client_id,
+        realm_name=realm_name,
+        client_secret_key=client_secret,
+    )
 
-    yield {
-        "aau": {
-            "username": client_aau.user_email,
-            "password": client_aau.user_pass,
-        },
-        "standard": {
-            "username": client_standard.user_email,
-            "password": client_standard.user_pass,
-        },
-    }
-
-    client_aau.delete_user()
-    client_standard.delete_user()
+    token = keycloak_openid.token(grant_type="client_credentials")
+    keycload_admin = keycloak.KeycloakAdmin(
+        server_url=server_url,
+        realm_name=realm_name,
+        token=token,
+    )
+    return keycload_admin
 
 
 @pytest.fixture
-def aau_user_page(create_user_page, create_users) -> Page:
-    username = create_users["aau"]["username"]
-    password = create_users["aau"]["password"]
+def create_keycloak_user(keycloak_admin):
+    def _create_keycloak_user(groups, user_type):
+        user_email = f"{uuid.uuid4().hex}{user_type}@test.com"
+        user_pass = uuid.uuid4().hex
+        user_first_name = "Test"
+        user_last_name = "Name"
+        user_id = keycloak_admin.create_user(
+            {
+                "firstName": user_first_name,
+                "lastName": user_last_name,
+                "username": user_email,
+                "email": user_email,
+                "enabled": True,
+                "groups": groups,
+                "credentials": [{"value": user_pass, "type": "password"}],
+            }
+        )
+        return user_id, user_email, user_pass
+
+    return _create_keycloak_user
+
+
+@pytest.fixture(scope="session")
+def create_aau_keycloak_user(keycloak_admin):
+    user_groups = ["/ayr_user_type/view_all"]
+    user_type = "aau"
+    user_id, user_email, user_pass = create_keycloak_user(
+        user_groups, user_type
+    )
+
+    yield user_email, user_pass
+
+    keycloak_admin.delete_user(user_id=user_id)
+
+
+@pytest.fixture(scope="session")
+def create_standard_keycloak_user(keycloak_admin):
+    user_groups = [
+        "/ayr_user_type/view_dept",
+        "/transferring_body_user/Testing A",
+    ]
+    user_type = "standard"
+    user_id, user_email, user_pass = create_keycloak_user(
+        user_groups, user_type
+    )
+
+    yield user_email, user_pass
+
+    keycloak_admin.delete_user(user_id=user_id)
+
+
+@pytest.fixture
+def aau_user_page(create_user_page, create_aau_keycloak_user) -> Page:
+    username, password = create_aau_keycloak_user
     page = create_user_page(username, password)
     yield page
     page.goto("/sign-out")
 
 
 @pytest.fixture
-def standard_user_page(create_user_page, create_users) -> Page:
-    username = create_users["standard"]["username"]
-    password = create_users["standard"]["password"]
+def standard_user_page(create_user_page, create_standard_keycloak_user) -> Page:
+    username, password = create_standard_keycloak_user
     page = create_user_page(username, password)
     yield page
     page.goto("/sign-out")

@@ -6,15 +6,16 @@ from itsdangerous import base64_decode
 from playwright.sync_api import Page, expect
 
 
-def test_sign_in_succeeds_when_valid_credentials(page: Page, create_users):
+def test_sign_in_succeeds_when_valid_credentials(
+    page: Page, create_aau_keycloak_user
+):
     """
     Given a user is on the sign-in page,
     When they provide valid credentials and click the "Sign in" button,
     Then they should see a success message indicating they are logged in with access to AYR.
     And they should be on the '/browse' page.
     """
-    username = create_users["aau"]["username"]
-    password = create_users["aau"]["password"]
+    username, password = create_aau_keycloak_user
     page.goto("/sign-in")
     page.get_by_label("Email address").fill(username)
     page.get_by_label("Password").fill(password)
