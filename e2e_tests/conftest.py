@@ -87,7 +87,7 @@ def keycloak_admin():
     return keycload_admin
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def create_keycloak_user(keycloak_admin):
     def _create_keycloak_user(groups, user_type):
         user_email = f"{uuid.uuid4().hex}{user_type}@test.com"
@@ -111,7 +111,7 @@ def create_keycloak_user(keycloak_admin):
 
 
 @pytest.fixture(scope="session")
-def create_aau_keycloak_user(keycloak_admin):
+def create_aau_keycloak_user(keycloak_admin, create_keycloak_user):
     user_groups = ["/ayr_user_type/view_all"]
     user_type = "aau"
     user_id, user_email, user_pass = create_keycloak_user(
@@ -124,7 +124,7 @@ def create_aau_keycloak_user(keycloak_admin):
 
 
 @pytest.fixture(scope="session")
-def create_standard_keycloak_user(keycloak_admin):
+def create_standard_keycloak_user(keycloak_admin, create_keycloak_user):
     user_groups = [
         "/ayr_user_type/view_dept",
         "/transferring_body_user/Testing A",
