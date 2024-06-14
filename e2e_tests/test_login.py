@@ -1,5 +1,4 @@
 import json
-import os
 import zlib
 
 import jwt
@@ -7,18 +6,17 @@ from itsdangerous import base64_decode
 from playwright.sync_api import Page, expect
 
 
-def test_sign_in_succeeds_when_valid_credentials(page: Page):
+def test_sign_in_succeeds_when_valid_credentials(page: Page, create_user_aau):
     """
     Given a user is on the sign-in page,
     When they provide valid credentials and click the "Sign in" button,
     Then they should see a success message indicating they are logged in with access to AYR.
     And they should be on the '/browse' page.
     """
+    username, password = create_user_aau
     page.goto("/sign-in")
-    page.get_by_label("Email address").fill(
-        os.environ.get("AYR_AAU_USER_USERNAME")
-    )
-    page.get_by_label("Password").fill(os.environ.get("AYR_AAU_USER_PASSWORD"))
+    page.get_by_label("Email address").fill(username)
+    page.get_by_label("Password").fill(password)
     page.get_by_role("button", name="Sign in").click()
     expect(page).to_have_url("/browse")
     cookies = page.context.cookies()
@@ -36,10 +34,13 @@ def test_sign_in_succeeds_when_valid_credentials(page: Page):
         access_token, options={"verify_signature": False}
     )
     assert set(decoded_token_dict.keys()) == {
+        "aud",
         "exp",
         "iat",
         "auth_time",
         "jti",
+        "realm_access",
+        "resource_access",
         "iss",
         "sub",
         "typ",

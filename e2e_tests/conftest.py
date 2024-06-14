@@ -33,8 +33,9 @@ def utils():
 
 
 class KeycloakClient:
-    def __init__(self):
-        self.user_email = f"{uuid.uuid4().hex}@test.com"
+    def __init__(self, user_type):
+        self.user_type = user_type
+        self.user_email = f"{uuid.uuid4().hex}{user_type}@test.com"
         self.user_pass = uuid.uuid4().hex
         self.user_first_name = "Test"
         self.user_last_name = "Name"
@@ -59,7 +60,6 @@ class KeycloakClient:
         )
 
         self.token = self.keycloak_openid.token(grant_type="client_credentials")
-
         self.token_info = self.keycloak_openid.decode_token(
             self.token["access_token"]
         )
@@ -69,19 +69,19 @@ class KeycloakClient:
             token=self.token,
         )
 
-    def get_user_groups(self, user_type):
-        if user_type == "all_access_user":
+    def get_user_groups(self):
+        if self.user_type == "all_access_user":
             return ["/ayr_user_type/view_all"]
-        elif user_type == "standard_user":
+        elif self.user_type == "standard_user":
             return [
                 "/ayr_user_type/view_dept",
-                "/transferring_body_user/testing_a",
+                "/transferring_body_user/Testing A",
             ]
         else:
             return []
 
-    def create_user(self, user_type):
-        groups = self.get_user_groups(user_type)
+    def create_user(self):
+        groups = self.get_user_groups()
         user_id = self.keycload_admin.create_user(
             {
                 "firstName": self.user_first_name,
@@ -99,7 +99,7 @@ class KeycloakClient:
     def delete_user(self):
         if self.user_id is None:
             return
-        self.keycload_admin.delete_user(user_id=self.user_id)
+        return self.keycload_admin.delete_user(user_id=self.user_id)
 
 
 @pytest.fixture
@@ -135,41 +135,32 @@ def create_user_page(
 
 
 @pytest.fixture(scope="session")
-def create_users():
-    account_aau = KeycloakClient()
-    account_standard = KeycloakClient()
+def create_user_aau():
+    client_aau = KeycloakClient("all_access_user")
+    client_aau.create_user()
+    yield client_aau.user_email, client_aau.user_pass
+    client_aau.delete_user()
 
-    account_aau.create_user("all_access_user")
-    account_standard.create_user("standard_user")
 
-    yield {
-        "aau": {
-            "username": account_aau.user_email,
-            "password": account_aau.user_pass,
-        },
-        "standard": {
-            "username": account_standard.user_email,
-            "password": account_standard.user_pass,
-        },
-    }
-
-    account_aau.delete_user()
-    account_standard.delete_user()
+@pytest.fixture(scope="session")
+def create_user_standard():
+    client_standard = KeycloakClient("standard_user")
+    client_standard.create_user()
+    yield client_standard.user_email, client_standard.user_pass
+    client_standard.delete_user()
 
 
 @pytest.fixture
-def aau_user_page(create_user_page, create_users) -> Page:
-    username = create_users["aau"]["username"]
-    password = create_users["aau"]["password"]
+def aau_user_page(create_user_page, create_user_aau) -> Page:
+    username, password = create_user_aau
     page = create_user_page(username, password)
     yield page
     page.goto("/sign-out")
 
 
 @pytest.fixture
-def standard_user_page(create_user_page, create_users) -> Page:
-    username = create_users["standard"]["username"]
-    password = create_users["standard"]["password"]
+def standard_user_page(create_user_page, create_user_standard) -> Page:
+    username, password = create_user_standard
     page = create_user_page(username, password)
     yield page
     page.goto("/sign-out")
