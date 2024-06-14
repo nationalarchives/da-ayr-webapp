@@ -60,9 +60,6 @@ class KeycloakClient:
         )
 
         self.token = self.keycloak_openid.token(grant_type="client_credentials")
-        self.token_info = self.keycloak_openid.decode_token(
-            self.token["access_token"]
-        )
         self.keycload_admin = keycloak.KeycloakAdmin(
             server_url=self.server_url,
             realm_name=self.realm_name,
