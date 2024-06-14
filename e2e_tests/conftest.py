@@ -135,32 +135,41 @@ def create_user_page(
 
 
 @pytest.fixture(scope="session")
-def create_user_aau():
+def create_users():
     client_aau = KeycloakClient("all_access_user")
-    client_aau.create_user()
-    yield client_aau.user_email, client_aau.user_pass
-    client_aau.delete_user()
-
-
-@pytest.fixture(scope="session")
-def create_user_standard():
     client_standard = KeycloakClient("standard_user")
+
+    client_aau.create_user()
     client_standard.create_user()
-    yield client_standard.user_email, client_standard.user_pass
+
+    yield {
+        "aau": {
+            "username": client_aau.user_email,
+            "password": client_aau.user_pass,
+        },
+        "standard": {
+            "username": client_standard.user_email,
+            "password": client_standard.user_pass,
+        },
+    }
+
+    client_aau.delete_user()
     client_standard.delete_user()
 
 
 @pytest.fixture
-def aau_user_page(create_user_page, create_user_aau) -> Page:
-    username, password = create_user_aau
+def aau_user_page(create_user_page, create_users) -> Page:
+    username = create_users["aau"]["username"]
+    password = create_users["aau"]["password"]
     page = create_user_page(username, password)
     yield page
     page.goto("/sign-out")
 
 
 @pytest.fixture
-def standard_user_page(create_user_page, create_user_standard) -> Page:
-    username, password = create_user_standard
+def standard_user_page(create_user_page, create_users) -> Page:
+    username = create_users["standard"]["username"]
+    password = create_users["standard"]["password"]
     page = create_user_page(username, password)
     yield page
     page.goto("/sign-out")
