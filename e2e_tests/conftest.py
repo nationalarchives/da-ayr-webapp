@@ -91,7 +91,7 @@ class KeycloakClient:
             }
         )
         self.user_id = user_id
-        return
+        return self.user_id
 
     def delete_user(self):
         if self.user_id is None:
