@@ -13,6 +13,9 @@ PyJWT = "^2.8.0"
 itsdangerous = "^2.2.0"
 
 
+[tool.poetry.group.dev.dependencies]
+python-keycloak = "^4.1.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
