@@ -37,12 +37,16 @@ class BaseConfig(object):
         return self._get_config_value("DB_NAME")
 
     @property
+    def DB_SSL_ROOT_CERTIFICATE(self):
+        return self._get_config_value("DB_SSL_ROOT_CERTIFICATE")
+
+    @property
     def SQLALCHEMY_DATABASE_URI(self):
         return (
             "postgresql+psycopg2://"
             f"{self.DB_USER}:{quote_plus(self.DB_PASSWORD)}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-            "?sslmode=require"
+            f"?sslmode=verify-full&sslrootcert={self.DB_SSL_ROOT_CERTIFICATE}"
         )
 
     @property

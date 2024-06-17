@@ -12,6 +12,7 @@ node_modules
 
 # Keys and Certificate
 *.pem
+*.cer
 
 # Credentials
 *config.json

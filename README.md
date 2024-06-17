@@ -180,6 +180,7 @@ Properties configurable at runtime:
 - `DB_USER`: The username of the database to connect to.
 - `DB_PASSWORD`: The password of the database to connect to.
 - `DB_NAME`: The name of the database to connect to.
+- `DB_SSL_ROOT_CERTIFICATE`: The path of the database certificate to connect with.
 - `KEYCLOAK_BASE_URI`: The base URI of the Keycloak authentication service.
 - `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
 - `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.
@@ -230,6 +231,8 @@ The database connection is configured with the `SQLALCHEMY_DATABASE_URI` variabl
 The database is assumed to be a PostgreSQL database.
 
 This could be spun up by PostgreSQL or from Amazon RDS, for example.
+
+One thing to note is that our database connection's ssl mode is `verify-full` therefore your db instance must have a root certificate on its server, and you must have a copy of a leaf certificate signed by the root certificate in a location accessible by this flask webapp, specified by `DB_SSL_ROOT_CERTIFICATE`.
 
 When choosing the configuration choice `AWS_SECRETS_MANAGER`, we assume the database is an RDS database with an RDS proxy sitting in front, in the same AWS account as the Secrets Manager and lambda and resides in a VPC which the lambda is in so that the webapp hosted in the lambda can communicate with it securely.
 

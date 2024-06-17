@@ -23,6 +23,9 @@ def test_local_env_vars_config_initialized(monkeypatch):
     monkeypatch.setenv("DB_USER", "test_db_user")
     monkeypatch.setenv("DB_PASSWORD", "test_db_password")
     monkeypatch.setenv("DB_NAME", "test_db_name")
+    monkeypatch.setenv(
+        "DB_SSL_ROOT_CERTIFICATE", "test_db_ssl_root_certificate"
+    )
     monkeypatch.setenv("KEYCLOAK_BASE_URI", "test_keycloak_base_uri")
     monkeypatch.setenv("KEYCLOAK_CLIENT_ID", "test_keycloak_client_id")
     monkeypatch.setenv("KEYCLOAK_REALM_NAME", "test_keycloak_realm_name")
@@ -43,7 +46,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
 
     assert (
         config.SQLALCHEMY_DATABASE_URI == "postgresql+psycopg2://test_db_user:"
-        "test_db_password@test_db_host:5432/test_db_name?sslmode=require"
+        "test_db_password@test_db_host:5432/test_db_name?sslmode=verify-full&sslrootcert=test_db_ssl_root_certificate"
     )
     assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
     assert config.KEYCLOAK_CLIENT_ID == "test_keycloak_client_id"
@@ -75,6 +78,9 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
     monkeypatch.setenv("DB_USER", "test_db_user")
     monkeypatch.setenv("DB_PASSWORD", "test_db_password")
     monkeypatch.setenv("DB_NAME", "test_db_name")
+    monkeypatch.setenv(
+        "DB_SSL_ROOT_CERTIFICATE", "test_db_ssl_root_certificate"
+    )
     monkeypatch.setenv("KEYCLOAK_BASE_URI", "test_keycloak_base_uri")
     monkeypatch.setenv("KEYCLOAK_CLIENT_ID", "test_keycloak_client_id")
     monkeypatch.setenv("KEYCLOAK_REALM_NAME", "test_keycloak_realm_name")
@@ -124,6 +130,7 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
             "DB_USER": "test_db_user",
             "DB_PASSWORD": "test_db_password",  # pragma: allowlist secret
             "DB_NAME": "test_db_name",
+            "DB_SSL_ROOT_CERTIFICATE": "test_db_ssl_root_certificate",
             "DEFAULT_PAGE_SIZE": "test_default_page_size",
         }
     )
@@ -145,7 +152,7 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         config.SQLALCHEMY_DATABASE_URI
         == "postgresql+psycopg2://test_db_user:test_db_password"
         "@test_db_host:5432/"
-        "test_db_name?sslmode=require"
+        "test_db_name?sslmode=verify-full&sslrootcert=test_db_ssl_root_certificate"
     )
 
     assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
@@ -190,6 +197,7 @@ def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
             "DB_USER": "test_db_user",
             "DB_PASSWORD": "test_db_password",  # pragma: allowlist secret
             "DB_NAME": "test_db_name",
+            "DB_SSL_ROOT_CERTIFICATE": "test_db_ssl_root_certificate",
             "DEFAULT_PAGE_SIZE": "test_default_page_size",
         }
     )
