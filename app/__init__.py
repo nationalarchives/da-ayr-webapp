@@ -2,7 +2,6 @@ import inspect
 
 from flask import Flask, g
 from flask_compress import Compress
-from flask_cors import CORS
 from flask_s3 import FlaskS3
 from flask_talisman import Talisman
 from govuk_frontend_wtf.main import WTFormsHelpers
@@ -31,7 +30,6 @@ def create_app(config_class, database_uri=None):
     app.config.from_object(config)
 
     force_https = False if app.config["TESTING"] else True
-    CORS(app)
 
     app.jinja_env.lstrip_blocks = True
     app.jinja_env.trim_blocks = True
