@@ -596,6 +596,7 @@ def record(record_id: uuid.UUID):
     """
     form = SearchForm()
     file = db.session.get(File, record_id)
+    file_type = None
 
     if file is None:
         abort(404)
@@ -604,8 +605,12 @@ def record(record_id: uuid.UUID):
 
     file_metadata = get_file_metadata(record_id)
 
-    file = db.session.get(File, record_id)
-    file_type = "iiif"
+    file_extension = file.FileName.split(".")[-1].lower()
+    if file_extension == "pdf":
+        file_type = "iiif"
+    elif file_extension in ["png", "jpg", "jpeg"]:
+        file_type = "iiif"
+
     consignment = file.consignment
     body = consignment.series.body
     series = consignment.series
