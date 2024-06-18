@@ -257,6 +257,10 @@
   margin-top: -2rem;
 }
 
+.govuk-tabs__panel__record-details {
+  display: flow-root;
+}
+
 //  MOBILE STYLES //
 
 @media screen and (width <= $breakpoint-medium) {
