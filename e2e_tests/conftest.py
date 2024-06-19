@@ -1,9 +1,17 @@
 import os
-import uuid
 
-import keycloak
 import pytest
 from playwright.sync_api import Page
+
+from scripts.e2e_tests_user_management import (
+    create_aau_keycloak_user as create_aau_keycloak_user_utils,
+)
+from scripts.e2e_tests_user_management import (
+    create_standard_keycloak_user as create_standard_keycloak_user_utils,
+)
+from scripts.e2e_tests_user_management import (
+    keycloak_admin as keycloak_admin_utils,
+)
 
 
 class Utils:
@@ -70,72 +78,26 @@ def keycloak_admin():
     client_id = os.environ.get("KEYCLOAK_CLIENT_ID")
     client_secret = os.environ.get("KEYCLOAK_CLIENT_SECRET")
     server_url = os.environ.get("KEYCLOAK_BASE_URI")
-
-    keycloak_openid = keycloak.KeycloakOpenID(
-        server_url=server_url,
-        client_id=client_id,
-        realm_name=realm_name,
-        client_secret_key=client_secret,
+    return keycloak_admin_utils(
+        realm_name, client_id, client_secret, server_url
     )
-
-    token = keycloak_openid.token(grant_type="client_credentials")
-    keycload_admin = keycloak.KeycloakAdmin(
-        server_url=server_url,
-        realm_name=realm_name,
-        token=token,
-    )
-    return keycload_admin
 
 
 @pytest.fixture(scope="session")
-def create_keycloak_user(keycloak_admin):
-    def _create_keycloak_user(groups, user_type):
-        user_email = f"{uuid.uuid4().hex}{user_type}@test.com"
-        user_pass = uuid.uuid4().hex
-        user_first_name = "Test"
-        user_last_name = "Name"
-        user_id = keycloak_admin.create_user(
-            {
-                "firstName": user_first_name,
-                "lastName": user_last_name,
-                "username": user_email,
-                "email": user_email,
-                "enabled": True,
-                "groups": groups,
-                "credentials": [{"value": user_pass, "type": "password"}],
-            }
-        )
-        return user_id, user_email, user_pass
-
-    return _create_keycloak_user
-
-
-@pytest.fixture(scope="session")
-def create_aau_keycloak_user(keycloak_admin, create_keycloak_user):
-    user_groups = ["/ayr_user_type/view_all"]
-    user_type = "aau"
-    user_id, user_email, user_pass = create_keycloak_user(
-        user_groups, user_type
+def create_aau_keycloak_user(keycloak_admin):
+    user_id, user_email, user_pass = create_aau_keycloak_user_utils(
+        keycloak_admin
     )
-
     yield user_email, user_pass
-
     keycloak_admin.delete_user(user_id=user_id)
 
 
 @pytest.fixture(scope="session")
-def create_standard_keycloak_user(keycloak_admin, create_keycloak_user):
-    user_groups = [
-        "/ayr_user_type/view_dept",
-        "/transferring_body_user/Testing A",
-    ]
-    user_type = "standard"
-    user_id, user_email, user_pass = create_keycloak_user(
-        user_groups, user_type
+def create_standard_keycloak_user(keycloak_admin):
+    user_id, user_email, user_pass = create_standard_keycloak_user_utils(
+        keycloak_admin
     )
-
     yield user_email, user_pass
-
     keycloak_admin.delete_user(user_id=user_id)
 
 
