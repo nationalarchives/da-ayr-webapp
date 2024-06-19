@@ -60,4 +60,4 @@ def create_standard_keycloak_user(keycloak_admin):
 
 
 def delete_keycloak_user(keycloak_admin, user_id):
-    return keycloak_admin.delete(user_id=user_id)
+    return keycloak_admin.delete_user(user_id=user_id)
