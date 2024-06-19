@@ -3,13 +3,13 @@ import os
 import pytest
 from playwright.sync_api import Page
 
-from scripts.e2e_tests_user_management import (
+from e2e_tests.utils.user_management import (
     create_aau_keycloak_user as create_aau_keycloak_user_utils,
 )
-from scripts.e2e_tests_user_management import (
+from e2e_tests.utils.user_management import (
     create_standard_keycloak_user as create_standard_keycloak_user_utils,
 )
-from scripts.e2e_tests_user_management import (
+from e2e_tests.utils.user_management import (
     keycloak_admin as keycloak_admin_utils,
 )
 
