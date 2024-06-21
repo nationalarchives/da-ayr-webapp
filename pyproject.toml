@@ -22,12 +22,10 @@ jsmin = "3.0.1"
 python-dotenv = "1.0.1"
 redis = "5.0.6"
 python-keycloak = "4.1.0"
-boto3 = "1.28.85"
-botocore = "1.31.85"
+boto3 = "^1"
 flask-sqlalchemy = "^3.1.1"
 psycopg2-binary = "^2.9.9"
 setuptools = "^70.1.0"
-pytest-playwright-visual = "^2.1.2"
 flask-s3 = "^0.3.3"
 
 [tool.poetry.group.dev.dependencies]
@@ -49,6 +47,7 @@ safety = "3.2.3"
 factory-boy = "^3.3.0"
 pyjwt = "^2.8.0"
 pytest-repeat = "^0.9.3"
+pytest-playwright-visual = "^2.1.2"
 
 [build-system]
 requires = ["poetry-core"]
