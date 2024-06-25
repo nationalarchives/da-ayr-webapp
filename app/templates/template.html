@@ -18,17 +18,17 @@
         {% block headIcons %}
             <link rel="icon"
                   sizes="48x48"
-                  href="{{ assetPath | default('/assets', true) }}/images/favicon.ico">
+                  href="{{ assetPath | default('/assets', true) }}/image/favicon.ico">
             <link rel="icon"
                   sizes="any"
-                  href="{{ assetPath | default('/assets', true) }}/images/favicon.svg"
+                  href="{{ assetPath | default('/assets', true) }}/image/favicon.svg"
                   type="image/svg+xml">
             <link rel="mask-icon"
-                  href="{{ assetPath | default('/assets', true) }}/images/govuk-icon-mask.svg"
+                  href="{{ assetPath | default('/assets', true) }}/image/tna-mask-icon.svg"
                   color="{{ themeColor | default('#0b0c0c') }}">
             {#- Hardcoded value of $govuk-black #}
             <link rel="apple-touch-icon"
-                  href="{{ assetPath | default('/assets', true) }}/images/govuk-icon-180.png">
+                  href="{{ assetPath | default('/assets', true) }}/image/tna-apple-touch-icon-180x180.png">
             <link rel="manifest"
                   href="{{ assetPath | default('/assets', true) }}/manifest.json">
         {% endblock %}
