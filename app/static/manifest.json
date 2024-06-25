@@ -12,5 +12,9 @@
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#ffffff"
+    "theme_color": "#ffffff",
+    "content_scripts": [{
+      "js": ["govuk-frontend-4.7.0.min.js"],
+      "matches": ["https://*/assets/*"]
+    }]
   }
