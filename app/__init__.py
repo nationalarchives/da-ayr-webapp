@@ -51,7 +51,7 @@ def create_app(config_class, database_uri=None):
     # Set content security policy
     csp = {
         "default-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']}",
-        "script-src": "'self'"
+        "script-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']}"
         + " 'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='"  # pragma: allowlist secret
         + " 'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
     }
