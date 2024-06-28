@@ -26,6 +26,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
     monkeypatch.setenv(
         "DB_SSL_ROOT_CERTIFICATE", "test_db_ssl_root_certificate"
     )
+    monkeypatch.setenv("AWS_SM_KEYCLOAK_CLIENT_SECRET_ID", "")
     monkeypatch.setenv("KEYCLOAK_BASE_URI", "test_keycloak_base_uri")
     monkeypatch.setenv("KEYCLOAK_CLIENT_ID", "test_keycloak_client_id")
     monkeypatch.setenv("KEYCLOAK_REALM_NAME", "test_keycloak_realm_name")
