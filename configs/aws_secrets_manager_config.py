@@ -15,9 +15,11 @@ if os.environ.get("DEFAULT_AWS_PROFILE"):
 class AWSSecretsManagerConfig(BaseConfig):
     def __init__(self) -> None:
         super().__init__()
-        self.secrets_dict = self._get_secrets_manager_config_dict()
+        self.secrets_dict = self._get_secrets_manager_config_dict(
+            os.getenv("AWS_SM_CONFIG_SECRET_ID")
+        )
 
-    def _get_secrets_manager_config_dict(self):
+    def _get_secrets_manager_config_dict(self, secret_id):
         """
         Get string value of `secret_name` in Secrets Manager.
         :param key: Name of key whose value will be returned.
@@ -27,12 +29,18 @@ class AWSSecretsManagerConfig(BaseConfig):
             service_name="secretsmanager",
         )
 
-        secret_value_json_string = client.get_secret_value(
-            SecretId=os.getenv("AWS_SM_CONFIG_SECRET_ID")
-        )["SecretString"]
+        secret_value_json_string = client.get_secret_value(SecretId=secret_id)[
+            "SecretString"
+        ]
         secrets_dict = json.loads(secret_value_json_string)
 
         return secrets_dict
 
     def _get_config_value(self, variable_name):
         return self.secrets_dict[variable_name]
+
+    @property
+    def KEYCLOAK_CLIENT_SECRET(self):
+        return self._get_secrets_manager_config_dict(
+            os.getenv("AWS_SM_KEYCLOAK_CLIENT_SECRET_ID")
+        )["SECRET"]

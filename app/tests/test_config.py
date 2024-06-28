@@ -118,7 +118,6 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
             "KEYCLOAK_BASE_URI": "test_keycloak_base_uri",
             "KEYCLOAK_CLIENT_ID": "test_keycloak_client_id",
             "KEYCLOAK_REALM_NAME": "test_keycloack_realm_name",
-            "KEYCLOAK_CLIENT_SECRET": "test_keycloak_client_secret",  # pragma: allowlist secret
             "RECORD_BUCKET_NAME": "test_record_bucket_name",
             "FLASKS3_ACTIVE": "False",
             "FLASKS3_CDN_DOMAIN": "test_flasks3_cdn_domain",
@@ -135,6 +134,8 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         }
     )
 
+    secret_kc_value = json.dumps({"SECRET": "test_keycloak_client_secret"})
+
     ssm_client = boto3.client("secretsmanager")
 
     ssm_client.create_secret(
@@ -142,8 +143,17 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         SecretString=secret_value,
     )
 
+    ssm_client.create_secret(
+        Name="test_kc_secret_id",
+        SecretString=secret_kc_value,
+    )
+
     monkeypatch.setenv(
         "AWS_SM_CONFIG_SECRET_ID", "test_secret_id"
+    )  # pragma: allowlist secret
+
+    monkeypatch.setenv(
+        "AWS_SM_KEYCLOAK_CLIENT_SECRET_ID", "test_kc_secret_id"
     )  # pragma: allowlist secret
 
     config = AWSSecretsManagerConfig()
