@@ -21,9 +21,9 @@ class AWSSecretsManagerConfig(BaseConfig):
 
     def _get_secrets_manager_config_dict(self, secret_id):
         """
-        Get string value of `secret_name` in Secrets Manager.
-        :param key: Name of key whose value will be returned.
-        :return: String value of requested Parameter Store key.
+        Get dict of secret values using `secret_id` in Secrets Manager.
+        :param secret_id: The ID of the Secrets Manager store to retrieve data from.
+        :return: Dict representing the values inside the store
         """
         client = boto3.client(
             service_name="secretsmanager",
@@ -37,6 +37,11 @@ class AWSSecretsManagerConfig(BaseConfig):
         return secrets_dict
 
     def _get_config_value(self, variable_name):
+        """
+        Get a specific value from inside the Secrets Manager dict using `variable_name`.
+        :param variable_name: Key of the value that should be retrieved.
+        :return: Value of the retrieved secret
+        """
         return self.secrets_dict[variable_name]
 
     @property
