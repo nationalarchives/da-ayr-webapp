@@ -44,6 +44,12 @@
     @include on-mobile {
       order: 2;
     }
+
+    text-underline-offset: 3px;
+
+    &:hover {
+      text-decoration-thickness: 3px;
+    }
   }
 
   &__meta-item--grow {
