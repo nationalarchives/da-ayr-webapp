@@ -77,7 +77,7 @@ class TestBrowse:
     def test_browse_filter_functionality_with_transferring_body_filter(
         self, aau_user_page: Page, utils
     ):
-        aau_user_page.locator("#transferring_body_filter").select_option(
+        aau_user_page.locator("#transferring_body_filter").fill(
             "Mock 1 Department"
         )
         aau_user_page.get_by_role("button", name="Apply filters").click()
