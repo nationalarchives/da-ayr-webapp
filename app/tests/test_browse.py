@@ -155,7 +155,7 @@ class TestBrowse:
             expected_html,
             html,
             "input",
-            {"class": "govuk-input"},
+            {"name": "transferring_body_filter"},
         )
 
     def test_browse_submit_search_query(
