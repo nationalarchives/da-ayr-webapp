@@ -101,7 +101,7 @@ class TestRecord:
 
         expected_breadcrumbs_html = f"""
         <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
-        <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
+        <h2 class="govuk-body-m govuk-body-m__record-view">You are viewing</h2>
 
         <div class="govuk-breadcrumbs govuk-breadcrumbs--file">
             <ol class="govuk-breadcrumbs__list">
