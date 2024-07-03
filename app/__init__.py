@@ -50,20 +50,19 @@ def create_app(config_class, database_uri=None):
 
     # Set content security policy
     csp = {
-    "default-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js",
-    "img-src": "'self' http://localhost:3000",
-    "script-src": [
-        f"'self' {app.config['FLASKS3_CDN_DOMAIN']}",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js",
-        " 'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",
-        " 'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",
-    ],
-    "style-src": [
-        "'self'",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
-    ]
+        "default-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js",
+        "img-src": "'self' http://localhost:3000",
+        "script-src": [
+            f"'self' {app.config['FLASKS3_CDN_DOMAIN']}",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js",
+            " 'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",
+            " 'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",
+        ],
+        "style-src": [
+            "'self'",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
+        ],
     }
-
 
     # setup database uri for testing
     if database_uri:
@@ -74,7 +73,12 @@ def create_app(config_class, database_uri=None):
     db.init_app(app)
     s3.init_app(app)
     compress.init_app(app)
-    talisman.init_app(app, content_security_policy=csp, force_https=force_https, content_security_policy_nonce_in=['script-src', 'style-src'])
+    talisman.init_app(
+        app,
+        content_security_policy=csp,
+        force_https=force_https,
+        content_security_policy_nonce_in=["script-src", "style-src"],
+    )
     WTFormsHelpers(app)
 
     # setup database components
