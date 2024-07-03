@@ -261,6 +261,102 @@
   display: flow-root;
 }
 
+.js-enabled .govuk-tabs__panel {
+  padding: 0;
+}
+
+.govuk-tabs__panel {
+  padding: 3rem 0 0 0;
+}
+
+.btn {
+  color: white;
+}
+
+.uv-icon-settings {
+  display: none;
+}
+
+.headerPanel .options {
+  border-bottom: 2px solid white;
+}
+
+.uv .mainPanel .leftPanel {
+  border-right: 2px solid white;
+  // border-top: 2px solid white;
+}
+
+.uv .mainPanel {
+  padding-top: 0 !important;
+  background-color: #0b0c0c !important;
+}
+
+.thumb.selected .wrap {
+  border: 5px solid yellow !important;
+}
+
+.uv .headerPanel .centerOptions .mode {
+  font-size: 1rem;
+}
+
+.uv .headerPanel .centerOptions .autocompleteText {
+  text-align: center;
+}
+
+.mode {
+  width: 3rem;
+  font-size: 1rem;
+}
+
+.record-view-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.record-view-download-btn {
+  margin: 1rem;
+}
+
+.govuk-tabs__panel__record-details {
+  padding: 1rem !important;
+}
+
+.govuk-tabs__panel__record-html-view {
+  padding: 1rem !important;
+}
+
+.uv .btn-primary {
+  color: green;
+}
+
+.uv .centerPanel .title {
+  padding-left: 2rem !important;
+}
+
+.uv .headerPanel .options {
+  background-color: #0b0c0c !important;
+}
+
+.uv .mainPanel .leftPanel {
+  background-color: #0b0c0c !important;
+  // width: 15rem !important;
+}
+
+.uv .btn-primary {
+  background-color: #00703c !important;
+  border-color: #00703c !important;
+
+}
+
+.uv-iiif-extension-host.uv-pdf-extension .headerPanel .centerOptions .search .searchText {
+  text-align: center;
+}
+
+.uv-icon-settings {
+  display: none !important;
+}
+
+
 //  MOBILE STYLES //
 
 @media screen and (width <= $breakpoint-medium) {
