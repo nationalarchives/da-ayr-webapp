@@ -50,13 +50,14 @@ def create_app(config_class, database_uri=None):
 
     # Set content security policy
     csp = {
-        "default-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js",
+        "default-src": f"""'self' {app.config['FLASKS3_CDN_DOMAIN']}
+        https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js""",
         "img-src": "'self' http://localhost:3000",
         "script-src": [
             f"'self' {app.config['FLASKS3_CDN_DOMAIN']}",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js",
-            " 'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",
-            " 'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",
+            " 'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
+            " 'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
         ],
         "style-src": [
             "'self'",
