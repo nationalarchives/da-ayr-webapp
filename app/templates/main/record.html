@@ -66,55 +66,70 @@
                         {% endwith %}
                     </div>
                 </div>
-                <div class="govuk-tabs" data-module="govuk-tabs">
-                    <h2 class="govuk-tabs__title">Contents</h2>
-                    <ul class="govuk-tabs__list">
-                        {% if file_type == "iiif" %}
-                            <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
-                                <a class="govuk-tabs__tab" href="#record-view">Record View</a>
+                <div class="main-content" id="main-content" role="main">
+                    <div class="govuk-tabs" data-module="govuk-tabs">
+                        <h2 class="govuk-tabs__title">Contents</h2>
+                        <ul class="govuk-tabs__list">
+                            {% if file_type == "iiif" %}
+                                <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+                                    <a class="govuk-tabs__tab" href="#record-view">Record View</a>
+                                </li>
+                            {% endif %}
+                            <li class="govuk-tabs__list-item">
+                                <a class="govuk-tabs__tab" href="#record-details">Record Details</a>
                             </li>
-                        {% endif %}
-                        <li class="govuk-tabs__list-item">
-                            <a class="govuk-tabs__tab" href="#record-details">Record Details</a>
-                        </li>
-                        <li class="govuk-tabs__list-item">
-                            <a class="govuk-tabs__tab" href="#record-html-view">Record HTML View</a>
-                        </li>
-                    </ul>
-                    <!-- Record View -->
-                    {% if file_type == "iiif" %}
-                        <div class="govuk-tabs__panel" id="record-view">
-                            <div class="universal-viewer" id="viewer">
-                                <script src="https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js"></script>
-                                <link href="https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css"
-                                      rel="stylesheet">
-                                <style>
+                            <li class="govuk-tabs__list-item">
+                                <a class="govuk-tabs__tab" href="#record-html-view">Record HTML View</a>
+                            </li>
+                        </ul>
+                        <!-- Record View -->
+                        {% if file_type == "iiif" %}
+                            <div class="govuk-tabs__panel" id="record-view">
+                                <div class="record-view-header">
+                                    <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
+                                       class="govuk-button govuk-button__download--record record-view-download-btn"
+                                       data-module="govuk-button">Download
+                                    record</a>
+                                </div>
+                                <div class="universal-viewer" id="viewer">
+                                    <script nonce="{{ csp_nonce }}" src="https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js"></script>
+                                    <link nonce="{{ csp_nonce }}" href="https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css"
+                                          rel="stylesheet">
+                                    <style>
                                     #uv {
                                         width: 100%;
-                                        height: 100vh;
+                                        height: 70vh;
                                         max-height: 80%;
                                     }
                                     /* Media query for small devices */
-                                    @media (max-width: 768px) {
+                                    @media (max-width: 810px) {
                                         #uv {
                                             height: 70vh;
                                             width: 90vw;
                                         }
                                     }
-                                </style>
-                                <div id="uv" class="uv"></div>
-                                <script type="text/javascript">
+                                    </style>
+                                    <div id="uv" class="uv"></div>
+                                    <script nonce="{{ csp_nonce }}" type="text/javascript">
                                     function initUniversalViewer() {
                                         const data = {
+                                            // manifest: "{{ url_for('static', filename='universalviewer/manifests/pdf.json') }}",
                                             manifest: "{{ manifest_url }}",
                                             embedded: true
                                         };
 
                                         const uv = UV.init("uv", data);
                                         uv.on("configure", function ({ config, cb }) {
-                                            config.modules.centerPanel.options.usePdfJs = false;
+                                            config.modules.centerPanel.options.usePdfJs = true;
+                                            config.modules.footerPanel.options = {
+                                                downloadEnabled: false,
+                                                embedEnabled: false,
+                                                fullscreenEnabled: false,
+                                                moreInfoEnabled: false,
+                                                shareEnabled: false,
+                                            };
                                             cb({
-                                                options: { footerPanelEnabled: false, leftPanelEnabled: false, rightPanelEnabled: false, headerPanelEnabled: false },
+                                                options: { footerPanelEnabled: false, leftPanelEnabled: true, rightPanelEnabled: false, headerPanelEnabled: true },
                                                 pdfHeaderPanel: {
                                                     options: {
                                                         centerOptionsEnabled: false,
@@ -135,57 +150,84 @@
                                             }
                                         });
                                     });
-                                </script>
+
+                                    // Function to remove the .attribution element
+                                    function removeAttribution() {
+                                        const attribution = document.querySelector('.attribution');
+                                        if (attribution) {
+                                            attribution.remove();
+                                        }
+                                    }
+
+                                    const observer = new MutationObserver(function (mutationsList, observer) {
+                                        for (const mutation of mutationsList) {
+                                            if (mutation.type === 'childList') {
+                                                removeAttribution();
+                                            }
+                                        }
+                                    });
+
+                                    const observerConfig = { childList: true, subtree: true };
+
+                                    observer.observe(document.body, observerConfig);
+
+
+                                    document.addEventListener("DOMContentLoaded", function () {
+                                        removeAttribution();
+                                    });
+
+                                    </script>
+                                </div>
                             </div>
-                        </div>
-                    {% endif %}
-                    <!-- Record Details -->
-                    <div class="govuk-tabs__panel govuk-tabs__panel--hidden govuk-tabs__panel__record-details"
-                         id="record-details">
-                        <div class="govuk-grid-column-two-thirds">
-                            <div class="details-container">
-                                <h1 class="govuk-heading-m govuk-heading-m__record-details">Record details</h1>
-                                <dl class="govuk-summary-list govuk-summary-list--record">
-                                    {% with dict = list_items %}
-                                        {% include "summary_list_items.html" %}
-                                    {% endwith %}
-                                </dl>
+                        {% endif %}
+                        <!-- Record Details -->
+                        <div class="govuk-tabs__panel govuk-tabs__panel--hidden govuk-tabs__panel__record-details"
+                             id="record-details">
+                            <div class="govuk-grid-column-two-thirds">
+                                <div class="details-container">
+                                    <h1 class="govuk-heading-m govuk-heading-m__record-details">Record details</h1>
+                                    <dl class="govuk-summary-list govuk-summary-list--record">
+                                        {% with dict = list_items %}
+                                            {% include "summary_list_items.html" %}
+                                        {% endwith %}
+                                    </dl>
+                                </div>
                             </div>
-                        </div>
-                        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-rights">
-                            <div class="rights-container">
-                                <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-                                <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
-                                   class="govuk-button govuk-button__download--record"
-                                   data-module="govuk-button">Download
-                                record</a>
-                                {% if download_filename %}
-                                    <p class="govuk-body govuk-body--download-filename">
-                                        The downloaded record will be named
-                                        <br>
-                                        <strong>{{ download_filename }}</strong>
+                            <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-rights">
+                                <div class="rights-container">
+                                    <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
+                                    <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
+                                       class="govuk-button govuk-button__download--record"
+                                       data-module="govuk-button">Download
+                                    record</a>
+                                    {% if download_filename %}
+                                        <p class="govuk-body govuk-body--download-filename">
+                                            The downloaded record will be named
+                                            <br>
+                                            <strong>{{ download_filename }}</strong>
+                                        </p>
+                                    {% endif %}
+                                    <p class="govuk-body govuk-body--terms-of-use">
+                                        Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
                                     </p>
-                                {% endif %}
-                                <p class="govuk-body govuk-body--terms-of-use">
-                                    Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
-                                </p>
+                                </div>
+                            </div>
+                            <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-record-arrangement">
+                                <div class="record-container">
+                                    <h2 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h2>
+                                    <ol class="record-arrangement-list">
+                                        {% for file_level in record["file_path"].split("/") %}
+                                            <li class="govuk-body__record-arrangement-list">{{ file_level }}</li>
+                                        {% endfor %}
+                                    </ol>
+                                </div>
                             </div>
                         </div>
-                        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-record-arrangement">
-                            <div class="record-container">
-                                <h2 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h2>
-                                <ol class="record-arrangement-list">
-                                    {% for file_level in record["file_path"].split("/") %}
-                                        <li class="govuk-body__record-arrangement-list">{{ file_level }}</li>
-                                    {% endfor %}
-                                </ol>
-                            </div>
+                        <!-- Record HTML View -->
+                        <div class="govuk-tabs__panel govuk-tabs__panel--hidden govuk-tabs__panel__record-html-view"
+                             id="record-html-view">
+                            <h2 class="govuk-heading-l">Record HTML View</h2>
                         </div>
-                    </div>
-                    <!-- Record HTML View -->
-                    <div class="govuk-tabs__panel govuk-tabs__panel--hidden"
-                         id="record-html-view">
-                        <h2 class="govuk-heading-l">Record HTML View</h2>
                     </div>
                 </div>
             </div>
