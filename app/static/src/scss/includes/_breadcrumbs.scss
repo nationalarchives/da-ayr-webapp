@@ -63,6 +63,8 @@
   }
 
   [class*="__link"] {
+    text-underline-offset: 3px;
+
     &:hover {
       text-decoration-thickness: 3px;
     }
