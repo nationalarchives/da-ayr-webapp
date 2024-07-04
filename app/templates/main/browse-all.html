@@ -102,25 +102,27 @@
                          alt="">
                 </div>
                 <h3 class="govuk-heading-s govuk-heading-s--series">
-                    <label class="govuk-label" for="transferring_body_filter">Select transferring body</label>
+                    <label class="govuk-label" for="transferring_body_filter">Transferring body</label>
                 </h3>
                 <div class="govuk-form-group filters-form__group filters-form__transferring-body-group">
-                    <select class="govuk-select govuk-select__filters-form-transferring-body-select"
-                            id="transferring_body_filter"
-                            name="transferring_body_filter">
-                        <option value="all" selected>Choose one...</option>
+                    <input class="govuk-input"
+                           id="transferring_body_filter"
+                           name="transferring_body_filter"
+                           type="text">
+                    <!-- For future reference, we can use a datalist for autocomplete where the input above is type of "search" and takes the attribute list as "transferring_bodies", defined below -->
+                    <!-- <datalist id="transferring_bodies">
                         {% for body in transferring_bodies %}
                             {% if filters['transferring_body'] %}
                                 {% if ((filters['transferring_body'] | lower) == body | lower) %}
-                                    <option value="{{ body }}" selected="selected">{{ body }}</option>
+                                    <option value="{{ body }}" />
                                 {% else %}
-                                    <option value="{{ body }}">{{ body }}</option>
+                                    <option value="{{ body }}" />
                                 {% endif %}
                             {% else %}
-                                <option value="{{ body }}">{{ body }}</option>
+                                <option value="{{ body }}" />
                             {% endif %}
                         {% endfor %}
-                    </select>
+                    </datalist> -->
                 </div>
             </div>
             <div class="browse-all-filter-container browse-all-filter-container--file-type">
