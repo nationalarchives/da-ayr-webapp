@@ -39,6 +39,8 @@
 }
 
 .govuk-breadcrumbs {
+  margin-top: 6px;
+
   &__list-item {
     &:last-child span {
       @include signposting-text;
