@@ -50,20 +50,28 @@ def create_app(config_class, database_uri=None):
 
     # Set content security policy
     csp = {
-        "default-src": f"""'self' {app.config['FLASKS3_CDN_DOMAIN']}
-        https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js""",
-        "img-src": "'self' http://localhost:3000",
-        "script-src": [
-            f"'self' {app.config['FLASKS3_CDN_DOMAIN']}",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js",
-            " 'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
-            " 'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
-        ],
-        "style-src": [
-            "'self'",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
-        ],
+        "default-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net 'unsafe-inline' ",
+        "script-src": ([
+            'self',
+            f"{app.config['FLASKS3_CDN_DOMAIN']}",
+            'unsafe-inline',
+            'https://cdn.jsdelivr.net',
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+            'https://cdnjs.cloudflare.com/',
+            'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw=',  # pragma: allowlist secret
+            'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ=',  # pragma: allowlist secret
+        ]),
+        "style-src": (
+            f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net/ unsafe-inline"
+        ),
+        "img-src": (
+        f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net data:"
+        )
     }
+
+
+    # https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css
+    # https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js
 
     # setup database uri for testing
     if database_uri:
