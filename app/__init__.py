@@ -48,27 +48,47 @@ def create_app(config_class, database_uri=None):
         ]
     )
 
+    SELF = "'self'"
+
     # Set content security policy
     csp = {
         "default-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net 'unsafe-inline' ",
-        "script-src": ([
-            'self',
-            f"{app.config['FLASKS3_CDN_DOMAIN']}",
-            'unsafe-inline',
-            'https://cdn.jsdelivr.net',
-            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
-            'https://cdnjs.cloudflare.com/',
-            'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw=',  # pragma: allowlist secret
-            'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ=',  # pragma: allowlist secret
-        ]),
-        "style-src": (
-            f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net/ unsafe-inline"
+        "script-src": (
+            [
+                SELF,
+                f"{app.config['FLASKS3_CDN_DOMAIN']}",
+                "https://cdn.jsdelivr.net",
+                "https://cdnjs.cloudflare.com",
+                "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
+                "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
+                "'sha256-vVoT6GhFd4wzU4TUPDND2HPjnqub+b8oiG4OhtrnJP4='",  # pragma: allowlist secret
+            ]
         ),
+        "style-src": [
+            SELF,
+            "https://cdn.jsdelivr.net",
+            "https://cdnjs.cloudflare.com",
+            "'unsafe-hashes'",
+            "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
+            "'sha256-8Vn73Z5msbLVngI0nj0OnoRknDpixmr5Qqxqq1oVeyw='",  # pragma: allowlist secret
+            "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
+            "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
+            "'sha256-gNGYzcxL9BKlQFzUxh3BgvhKn2szEIFgg65uQvfaxiI='",  # pragma: allowlist secret
+            "'sha256-jcxDeNpsDPUI+dIIqUyA3VBoLgf3Mi2LkRWL/H61who='",  # pragma: allowlist secret
+        ],
+        "worker-src": ["blob:"],
+        # [
+        #     SELF,
+        #     f"{app.config['FLASKS3_CDN_DOMAIN']}",
+        #     'https://cdn.jsdelivr.net',
+        #     'https://cdnjs.cloudflare.com',
+        #     "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
+        #     "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
+        # ]
         "img-src": (
-        f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net data:"
-        )
+            f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net data:"
+        ),
     }
-
 
     # https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css
     # https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js
@@ -86,7 +106,7 @@ def create_app(config_class, database_uri=None):
         app,
         content_security_policy=csp,
         force_https=force_https,
-        content_security_policy_nonce_in=["script-src", "style-src"],
+        # content_security_policy_nonce_in=["script-src", "style-src"],
     )
     WTFormsHelpers(app)
 
