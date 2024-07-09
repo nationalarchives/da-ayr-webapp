@@ -148,7 +148,14 @@ class TestBrowse:
         html = response.data.decode()
 
         expected_html = """
-            <input class="govuk-input" id="transferring_body_filter" name="transferring_body_filter" type="text">
+            <input
+                class="govuk-input"
+                id="transferring_body_filter"
+                name="transferring_body_filter"
+                type="search"
+                list="transferring_bodies"
+                autocomplete="off"
+            >
         """
 
         assert_contains_html(
