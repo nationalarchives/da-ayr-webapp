@@ -108,21 +108,12 @@
                     <input class="govuk-input"
                            id="transferring_body_filter"
                            name="transferring_body_filter"
-                           type="text">
-                    <!-- For future reference, we can use a datalist for autocomplete where the input above is type of "search" and takes the attribute list as "transferring_bodies", defined below -->
-                    <!-- <datalist id="transferring_bodies">
-                        {% for body in transferring_bodies %}
-                            {% if filters['transferring_body'] %}
-                                {% if ((filters['transferring_body'] | lower) == body | lower) %}
-                                    <option value="{{ body }}" />
-                                {% else %}
-                                    <option value="{{ body }}" />
-                                {% endif %}
-                            {% else %}
-                                <option value="{{ body }}" />
-                            {% endif %}
-                        {% endfor %}
-                    </datalist> -->
+                           type="text"
+                           list="transferring_bodies"
+                           autocomplete="off">
+                    <datalist id="transferring_bodies">
+                        {% for body in transferring_bodies %}<option value="{{ body }}" />{% endfor %}
+                    </datalist>
                 </div>
             </div>
             <div class="browse-all-filter-container browse-all-filter-container--file-type">
