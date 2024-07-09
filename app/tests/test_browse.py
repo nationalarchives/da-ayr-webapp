@@ -152,7 +152,7 @@ class TestBrowse:
                 class="govuk-input"
                 id="transferring_body_filter"
                 name="transferring_body_filter"
-                type="search"
+                type="text"
                 list="transferring_bodies"
                 autocomplete="off"
             >

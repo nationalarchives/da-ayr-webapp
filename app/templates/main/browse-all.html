@@ -108,9 +108,8 @@
                     <input class="govuk-input"
                            id="transferring_body_filter"
                            name="transferring_body_filter"
-                           type="search"
+                           type="text"
                            list="transferring_bodies"
-                           value="{{ filters['transferring_body'] }}"
                            autocomplete="off">
                     <datalist id="transferring_bodies">
                         {% for body in transferring_bodies %}<option value="{{ body }}" />{% endfor %}
