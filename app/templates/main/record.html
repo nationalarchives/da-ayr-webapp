@@ -111,7 +111,7 @@
                                         }
                                     </style>
                                     <div id="uv" class="uv"></div>
-                                    <script type="text/javascript">
+                                    <script nonce="{{ csp_nonce() }}" type="text/javascript">
                                     function initUniversalViewer() {
                                         const data = {
                                             // manifest: "{{ url_for('static', filename='universalviewer/manifests/pdf.json') }}",
