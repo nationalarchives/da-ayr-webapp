@@ -1,4 +1,7 @@
 FROM python:3.12
+
+RUN apt-get update
+RUN apt-get -y install git openssh perl
 # this environment variable specifies where playwright should download browsers and ffmpeg, unused for now
 # ENV PLAYWRIGHT_BROWSERS_PATH=/app/pw-browsers
 WORKDIR /e2e_tests
