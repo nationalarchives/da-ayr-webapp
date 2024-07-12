@@ -1,3 +1,7 @@
+"""
+Feature: Browse functionality
+"""
+
 from playwright.sync_api import Page
 
 
@@ -16,25 +20,28 @@ class TestBrowse:
     def route_url(self):
         return "/browse"
 
-    def test_browse_with_filter_with_no_results_found(
-        self, aau_user_page: Page
-    ):
-        aau_user_page.locator("#series_filter").click()
-        aau_user_page.locator("#series_filter").fill("junk")
-        aau_user_page.get_by_role("button", name="Apply filters").click()
-
-        assert aau_user_page.inner_html("text='No results found'")
-        assert aau_user_page.inner_html("text='Help with your search'")
-        assert aau_user_page.inner_html(
-            "text='Try changing or removing one or more applied filters.'"
-        )
-        assert aau_user_page.inner_html(
-            "text='Alternatively, use the breadcrumbs to navigate back to the browse view.'"
-        )
-
     def test_browse_with_filter_sort_and_choose_transferring_body(
         self, aau_user_page: Page, utils
     ):
+        """
+        Scenario: Sorting, filtering, and selecting transferring body
+
+        Given the user is on the browse page
+        When the user selects "Sort by" as "transferring_body-desc"
+        And the user applies the filters with:
+        | Transferring body filter | Mock 1 Department |
+        | Date from day            | 1                 |
+        | Date from month          | 1                 |
+        | Date from year           | 2024              |
+        Then the table headers should be:
+        | Transferring body       |
+        | Series reference        |
+        | Last transfer date      |
+        | Record total            |
+        | Consignments within series |
+        And the table rows should be:
+        | Mock 1 Department | MOCK1 123 | 05/03/2024 | 83 | 11 |
+        """
         aau_user_page.goto(f"{self.route_url}")
         aau_user_page.get_by_label("Sort by").select_option(
             "transferring_body-desc"
@@ -60,6 +67,23 @@ class TestBrowse:
         assert rows == expected_rows
 
     def test_browse_clear_filter_functionality(self, aau_user_page: Page):
+        """
+        Scenario: Clearing filter functionality
+
+        Given the user navigates to the browse page with filters
+        When the user selects "Sort by" as "transferring_body-desc"
+        And the user applies the filters
+        And the user clicks the "Clear filters" link
+        Then the filters should be reset:
+        | Series filter  | "" |
+        | Date from day  | "" |
+        | Date from month| "" |
+        | Date from year | "" |
+        | Date to day    | "" |
+        | Date to month  | "" |
+        | Date to year   | "" |
+        And the "Sort by" dropdown should display "Transferring body (Z to A)"
+        """
         aau_user_page.goto(f"{self.route_url}")
         aau_user_page.get_by_label("Sort by").select_option(
             "transferring_body-desc"

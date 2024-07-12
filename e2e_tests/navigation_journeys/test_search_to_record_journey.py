@@ -1,3 +1,7 @@
+"""
+Feature: Search to record
+"""
+
 import re
 
 from playwright.sync_api import Page, expect
@@ -5,9 +9,16 @@ from playwright.sync_api import Page, expect
 
 def test_search_to_record(aau_user_page: Page):
     """
-    Given a user on the search transferring body page
-    When they interact with the search form and submit a query with multiple search terms
-    Then the table should contain the expected headers and entries.
+    Scenario: Navigate from search to a record
+
+    Given the user is on the browse page
+    When the user fills the search box with "a"
+    And the user clicks the "Search" button
+    Then the URL should be "search_results_summary?query=a"
+    When the user clicks on the first link in the first cell
+    Then the URL should match the pattern "/search/transferring_body/.*"
+    When the user clicks on the first link in the third cell
+    Then the URL should match the pattern "/record/.*"
     """
     aau_user_page.goto("/browse")
 

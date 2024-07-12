@@ -18,17 +18,15 @@ def verify_search_transferring_body_header_row(header_rows):
     ]
 
 
-class TestSearchResultsSummary:
+class TestSearch:
     @property
     def browse_route_url(self):
         return "/browse"
 
-    def test_search_results_summary_search_multiple_terms(
-        self, aau_user_page: Page, utils
-    ):
+    def test_search_returns_results_summary(self, aau_user_page: Page, utils):
         """
-        Given a standard user on the search page
-        When they interact with the search form and submit a query with multiple search terms
+        Given a standard user
+        When they interact with the search form and submit a query
         Then the table should contain the expected headers and entries
         and sorted transferring bodies in alphabetic order (A to Z)
         on a search results summary screen
@@ -46,34 +44,20 @@ class TestSearchResultsSummary:
         assert rows == expected_rows
 
 
-class TestSearchTransferringBody:
+class TestSearchResultsSummary:
     @property
-    def route_url(self):
-        return "/search/transferring_body"
+    def search_results_summary_route_url(self):
+        return "/search_results_summary?query=a"
 
-    @property
-    def browse_route_url(self):
-        return "/browse"
-
-    @property
-    def browse_transferring_body_route_url(self):
-        return "/browse/transferring_body"
-
-    @property
-    def transferring_body_id(self):
-        return "c3e3fd83-4d52-4638-a085-1f4e4e4dfa50"
-
-    def test_search_transferring_body_search_multiple_terms(
+    def test_select_transferring_body_search_results(
         self, aau_user_page: Page, utils
     ):
         """
-        Given a user on the search transferring body page
-        When they interact with the search form and submit a query with multiple search terms
-        Then the table should contain the expected headers and entries.
+        Given a user on the search results summary page for a query
+        When they click on one of the transferring bodies
+        Then they are redirected to the search results for that transferring body for the query
         """
-        aau_user_page.goto(f"{self.browse_route_url}")
-        aau_user_page.locator("#search-input").fill("a")
-        aau_user_page.get_by_role("button", name="Search").click()
+        aau_user_page.goto(self.search_results_summary_route_url)
         aau_user_page.get_by_role("link", name="Testing A").click()
         aau_user_page.wait_for_selector("#tbl_result")
 
@@ -97,7 +81,21 @@ class TestSearchTransferringBody:
         verify_search_transferring_body_header_row(header_rows)
         assert rows == expected_rows
 
-    def test_search_transferring_body_remove_all_terms_redirect_to_browse_transferring_body(
+
+class TestSearchTransferringBody:
+    @property
+    def browse_route_url(self):
+        return "/browse"
+
+    @property
+    def browse_transferring_body_route_url(self):
+        return "/browse/transferring_body"
+
+    @property
+    def transferring_body_id(self):
+        return "c3e3fd83-4d52-4638-a085-1f4e4e4dfa50"
+
+    def test_remove_all_terms_as_standard_user_redirects_to_browse_transferring_body(
         self, aau_user_page: Page
     ):
         """
@@ -115,7 +113,7 @@ class TestSearchTransferringBody:
         url = f"{self.browse_transferring_body_route_url}/{self.transferring_body_id}"
         expect(aau_user_page).to_have_url(url)
 
-    def test_search_transferring_body_aau_user_and_click_on_clear_all(
+    def test_click_on_clear_all_as_aau_user_redirects_to_browse(
         self, aau_user_page: Page
     ):
         """
@@ -134,7 +132,7 @@ class TestSearchTransferringBody:
             f"{self.browse_route_url}#browse-records"
         )
 
-    def test_search_transferring_body_standard_user_and_click_on_clear_all(
+    def test_click_on_clear_all_as_standard_user_redirects_to_browse_transferring_body(
         self, standard_user_page: Page
     ):
         """
