@@ -39,8 +39,8 @@ module.exports = {
     // pages that require authentication
     `${base_url}/browse`,
     `${base_url}/browse/series/1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7`,
-    `${base_url}/browse/consignment/bf203811-357a-45a8-8b38-770d1580691c`,
-    `${base_url}/record/097e1fde-70f5-4eef-9a46-c85ea4350bf7`,
+    `${base_url}/browse/consignment/b4a8379c-0767-4a9b-8537-181aed23e837`,
+    `${base_url}/record/100251bb-5b93-48a9-953f-ad5bd9abfbdc`,
     `${base_url}/search_results_summary?query=test`,
     `${base_url}/search/transferring_body/c3e3fd83-4d52-4638-a085-1f4e4e4dfa50?query=test`,
   ],

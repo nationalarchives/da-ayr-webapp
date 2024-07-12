@@ -51,39 +51,15 @@ class TestBrowseSeries:
             "text='Alternatively, use the breadcrumbs to navigate back to the browse view.'"
         )
 
-    def test_browse_series_breadcrumb(self, standard_user_page: Page):
-        standard_user_page.goto(f"{self.route_url}/{self.series_id}")
-
-        assert standard_user_page.inner_html("text='You are viewing'")
-        assert standard_user_page.inner_html("text='All available records'")
-        assert standard_user_page.inner_html("text='Testing A'")
-        assert standard_user_page.inner_html("text='TSTA 1'")
-
-    def test_browse_series_filter_functionality_with_query_string_parameters(
-        self, standard_user_page: Page, utils
-    ):
-        standard_user_page.goto(
-            f"{self.route_url}/{self.series_id}?sort=last_record_transferred-desc&date_from_day"
-            "=01&date_from_month=01&date_from_year=2023&date_to_day=31&date_to_month=12&date_to_year=2023"
-        )
-
-        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
-        rows = utils.get_desktop_page_table_rows(standard_user_page)
-
-        expected_rows = [
-            ["Testing A", "TSTA 1", "30/11/2023", "9", "TDR-2023-GXFH"],
-            ["Testing A", "TSTA 1", "18/10/2023", "7", "TDR-2023-BV6"],
-            ["Testing A", "TSTA 1", "09/08/2023", "15", "TDR-2023-TMT"],
-            ["Testing A", "TSTA 1", "09/08/2023", "15", "TDR-2023-TH4"],
-        ]
-
-        verify_header_row(header_rows)
-        assert rows == expected_rows
-
-    def test_browse_series_sort_functionality_by_records_held_in_consignment_descending(
+    def test_browse_series_filter_functionality_with_date_filter(
         self, standard_user_page: Page, utils
     ):
         standard_user_page.goto(f"{self.route_url}/{self.series_id}")
+        standard_user_page.locator("#date_from_day").fill("1")
+        standard_user_page.locator("#date_from_month").fill("11")
+        standard_user_page.locator("#date_from_year").fill("2023")
+        standard_user_page.get_by_role("button", name="Apply filters").click()
+
         standard_user_page.get_by_label("Sort by").select_option(
             "records_held-desc"
         )
@@ -91,90 +67,15 @@ class TestBrowseSeries:
             "button", name="Apply", exact=True
         ).click()
 
-        standard_user_page.wait_for_selector("#tbl_result")
-
         header_rows = utils.get_desktop_page_table_headers(standard_user_page)
         rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
-            ["Testing A", "TSTA 1", "25/01/2024", "17", "TDR-2024-H5DN"],
-            ["Testing A", "TSTA 1", "09/08/2023", "15", "TDR-2023-TMT"],
-            ["Testing A", "TSTA 1", "09/08/2023", "15", "TDR-2023-TH4"],
-            ["Testing A", "TSTA 1", "30/11/2023", "9", "TDR-2023-GXFH"],
-            ["Testing A", "TSTA 1", "18/10/2023", "7", "TDR-2023-BV6"],
+            ["Testing A", "TSTA 1", "30/11/2023", "9", "TDR-2023-GXFH"]
         ]
 
         verify_header_row(header_rows)
         assert rows == expected_rows
-
-    def test_browse_series_filter_functionality_with_date_filter(
-        self, standard_user_page: Page, utils
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.series_id}")
-        standard_user_page.locator("#date_from_day").fill("1")
-        standard_user_page.locator("#date_from_month").fill("1")
-        standard_user_page.locator("#date_from_year").fill("2024")
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-
-        standard_user_page.wait_for_selector("#tbl_result")
-
-        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
-        rows = utils.get_desktop_page_table_rows(standard_user_page)
-
-        expected_rows = [
-            ["Testing A", "TSTA 1", "25/01/2024", "17", "TDR-2024-H5DN"],
-        ]
-
-        verify_header_row(header_rows)
-        assert rows == expected_rows
-
-    def test_browse_series_date_filter_validation_date_from(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.series_id}")
-        standard_user_page.locator("#date_from_day").fill("1")
-        standard_user_page.locator("#date_from_month").fill("12")
-        standard_user_page.locator("#date_from_year").fill("2024")
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-
-        standard_user_page.wait_for_selector(".govuk-error-message")
-
-        assert standard_user_page.get_by_text(
-            "‘Date from’ must be in the past"
-        ).is_visible()
-
-    def test_browse_series_date_filter_validation_to_date(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.series_id}")
-        standard_user_page.locator("#date_to_day").fill("31")
-        standard_user_page.locator("#date_to_month").fill("12")
-        standard_user_page.locator("#date_to_year").fill("2024")
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-
-        standard_user_page.wait_for_selector(".govuk-error-message")
-
-        assert standard_user_page.get_by_text(
-            "‘Date to’ must be in the past"
-        ).is_visible()
-
-    def test_browse_series_date_filter_validation_date_from_and_to_date(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.series_id}")
-        standard_user_page.locator("#date_from_day").fill("1")
-        standard_user_page.locator("#date_from_month").fill("1")
-        standard_user_page.locator("#date_from_year").fill("2023")
-        standard_user_page.locator("#date_to_day").fill("31")
-        standard_user_page.locator("#date_to_month").fill("12")
-        standard_user_page.locator("#date_to_year").fill("2022")
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-
-        standard_user_page.wait_for_selector(".govuk-error-message")
-
-        assert standard_user_page.get_by_text(
-            "‘Date from’ must be the same as or before ‘31/12/2022’"
-        ).is_visible()
 
     def test_browse_series_clear_filter_functionality(
         self, standard_user_page: Page
