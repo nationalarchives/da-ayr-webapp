@@ -3,7 +3,6 @@ import json
 import uuid
 
 import boto3
-import pymupdf
 from flask import (
     abort,
     current_app,
@@ -47,6 +46,13 @@ from app.main.util.filter_sort_builder import (
 )
 
 from .forms import SearchForm
+
+
+def get_file_mimetype(file_type):
+    if file_type == "pdf":
+        return "application/pdf"
+    elif file_type in ["png", "jpg", "jpeg"]:
+        return f"image/{file_type}"
 
 
 @bp.route("/", methods=["GET"])
@@ -733,8 +739,6 @@ def generate_manifest(record_id: uuid.UUID):
     if file is None:
         abort(404)
 
-    filename = file.FileName
-
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
     s3 = boto3.client("s3")
@@ -744,6 +748,7 @@ def generate_manifest(record_id: uuid.UUID):
 
     s3_file_object = s3.get_object(Bucket=bucket, Key=key)
 
+    filename = file.FileName
     file_type = filename.split(".")[-1].lower()
 
     if file_type == "pdf":
@@ -816,7 +821,7 @@ def generate_image_manifest(s3_file_object, record_id):
     if file is None:
         abort(404)
 
-    filename = file.FileName
+    # filename = file.FileName
 
     image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
     width, height = image.size
@@ -833,40 +838,78 @@ def generate_image_manifest(s3_file_object, record_id):
 
     file_url = url_for("main.get_file", record_id=record_id, _external=True)
 
-    canvas = {
-        "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
-        "@type": "sc:Canvas",
-        "label": "Image 1",
-        "width": width,
-        "height": height,
-        "images": [
-            {
-                "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/annotation/1",
-                "@type": "oa:Annotation",
-                "motivation": "sc:painting",
-                "resource": {
-                    "@id": file_url,
-                    "@type": "dctypes:Image",
-                    "format": "image/png",
-                    "width": width,
-                    "height": height,
-                },
-                "on": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
-            }
-        ],
-    }
+    # canvas = {
+    #     "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
+    #     "@type": "sc:Canvas",
+    #     "label": "Image 1",
+    #     "width": width,
+    #     "height": height,
+    #     "images": [
+    #         {
+    #             "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/annotation/1",
+    #             "@type": "oa:Annotation",
+    #             "motivation": "sc:painting",
+    #             "resource": {
+    #                 "@id": file_url,
+    #                 "@type": "dctypes:Image",
+    #                 "format": "image/png",
+    #                 "width": width,
+    #                 "height": height,
+    #             },
+    #             "on": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
+    #         }
+    #     ],
+    # }
 
     manifest = {
-        "@context": "http://iiif.io/api/presentation/2/context.json",
-        "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
-        "@type": "sc:Manifest",
-        "label": filename,
-        "description": f"Manifest for {filename}",
-        "sequences": [
+        # "@context": "http://iiif.io/api/presentation/2/context.json",
+        # "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
+        # "@type": "sc:Manifest",
+        # "label": filename,
+        # "description": f"Manifest for {filename}",
+        # "sequences": [
+        #     {
+        #         "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/sequence/normal",
+        #         "@type": "sc:Sequence",
+        #         "canvases": [canvas],
+        #     }
+        # ],
+        "@context": [
+            "http://example.org/extension/context1.json",
+            "http://iiif.io/api/image/3/context.json",
+        ],
+        "id": file_url,
+        "type": "ImageService3",
+        "protocol": "http://iiif.io/api/image",
+        "profile": "level1",
+        "width": width,
+        "height": height,
+        "maxWidth": 3000,
+        "maxHeight": 2000,
+        "maxArea": 4000000,
+        "sizes": [
+            {"width": 150, "height": 100},
+            {"width": 600, "height": 400},
+            {"width": 3000, "height": 2000},
+        ],
+        "tiles": [
+            {"width": 512, "scaleFactors": [1, 2, 4]},
+            {"width": 1024, "height": 2048, "scaleFactors": [8, 16]},
+        ],
+        "rights": "http://rightsstatements.org/vocab/InC-EDU/1.0/",
+        "preferredFormats": ["png", "gif"],
+        "extraFormats": ["png", "gif", "pdf"],
+        "extraQualities": ["color", "gray"],
+        "extraFeatures": [
+            "canonicalLinkHeader",
+            "rotationArbitrary",
+            "profileLinkHeader",
+        ],
+        "service": [
             {
-                "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/sequence/normal",
-                "@type": "sc:Sequence",
-                "canvases": [canvas],
+                "id": "https://example.org/service/example",
+                "type": "Service",
+                "profile": "https://example.org/docs/example-service.html",
             }
         ],
     }
@@ -888,26 +931,14 @@ def get_file(record_id=None):
     try:
         s3_response_object = s3.get_object(Bucket=bucket, Key=key)
         file_content = s3_response_object["Body"].read()
+        file_type = filename.split(".")[-1].lower()
 
-        page_num = request.args.get("page", type=int)
-        if page_num is not None:
-            # Generate image for the requested page
-            pdf_document = pymupdf.open("pdf", io.BytesIO(file_content))
-            page = pdf_document.load_page(page_num - 1)
-            pix = page.get_pixmap()
-            img_bytes = pix.tobytes()
-            return send_file(
-                io.BytesIO(img_bytes),
-                mimetype="image/png",
-                as_attachment=False,
-            )
-        else:
-            return send_file(
-                io.BytesIO(file_content),
-                download_name=filename,
-                mimetype="application/pdf",
-                as_attachment=False,
-            )
+        return send_file(
+            io.BytesIO(file_content),
+            download_name=filename,
+            mimetype=get_file_mimetype(file_type),
+            as_attachment=False,
+        )
     except Exception as e:
         print("error", e)
         abort(404)

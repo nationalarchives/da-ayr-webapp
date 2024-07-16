@@ -61,7 +61,6 @@ def create_app(config_class, database_uri=None):
                 "https://cdnjs.cloudflare.com",
                 "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
                 "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
-                "'sha256-vVoT6GhFd4wzU4TUPDND2HPjnqub+b8oiG4OhtrnJP4='",  # pragma: allowlist secret
             ]
         ),
         "style-src": [
@@ -75,6 +74,8 @@ def create_app(config_class, database_uri=None):
             "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
             "'sha256-gNGYzcxL9BKlQFzUxh3BgvhKn2szEIFgg65uQvfaxiI='",  # pragma: allowlist secret
             "'sha256-jcxDeNpsDPUI+dIIqUyA3VBoLgf3Mi2LkRWL/H61who='",  # pragma: allowlist secret
+            "'sha256-1u1O/sNzLBXqLGKzuRbVTI5abqBQBfKsNv3bH5iXOkg='",  # pragma: allowlist secret
+            "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
         ],
         "worker-src": ["blob:"],
         # [
@@ -106,7 +107,7 @@ def create_app(config_class, database_uri=None):
         app,
         content_security_policy=csp,
         force_https=force_https,
-        content_security_policy_nonce_in=["script-src"],
+        content_security_policy_nonce_in=["script-src", "style-src"],
     )
     WTFormsHelpers(app)
 
