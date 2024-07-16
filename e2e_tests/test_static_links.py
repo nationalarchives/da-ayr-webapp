@@ -22,9 +22,6 @@ def test_header_link(page, link_text, expected_url):
     expect(page).to_have_url(expected_url)
 
 
-SERVICE_NAME = "AYR – Access Your Records – GOV.UK"
-
-
 @pytest.mark.parametrize(
     "link_text, expected_url, expected_title",
     [
