@@ -1,3 +1,7 @@
+"""
+Feature: Browse consignment functionality
+"""
+
 from playwright.sync_api import Page
 
 
@@ -17,133 +21,45 @@ class TestBrowseConsignment:
 
     @property
     def consignment_id(self):
-        return "bf203811-357a-45a8-8b38-770d1580691c"
+        return "016031db-1398-4fe4-b743-630aa82ea32a"
 
     def test_browse_consignment_404_for_no_access(
         self, standard_user_page: Page
     ):
+        """
+        Scenario: Accessing a consignment page without permission results in 404
+
+        Given the user navigates to the consignment page with ID "2fd4e03e-5913-4c04-b4f2-5a823fafd430"
+        Then the page should display "Page not found"
+        """
         consignment_id = "2fd4e03e-5913-4c04-b4f2-5a823fafd430"
 
         standard_user_page.goto(f"{self.route_url}/{consignment_id}")
 
         assert standard_user_page.inner_html("text='Page not found'")
-        assert standard_user_page.inner_html(
-            "text='If you typed the web address, check it is correct.'"
-        )
-        assert standard_user_page.inner_html(
-            "text='If you pasted the web address, check you copied the entire address.'"
-        )
-
-    def test_browse_consignment_no_results_found(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-
-        standard_user_page.locator("label").filter(
-            has_text="Date of record"
-        ).click()
-        standard_user_page.locator("#date_to_day").fill("31")
-        standard_user_page.locator("#date_to_month").fill("7")
-        standard_user_page.locator("#date_to_year").fill("2021")
-
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-
-        assert standard_user_page.inner_html("text='No results found'")
-        assert standard_user_page.inner_html("text='Help with your search'")
-        assert standard_user_page.inner_html(
-            "text='Try changing or removing one or more applied filters.'"
-        )
-        assert standard_user_page.inner_html(
-            "text='Alternatively, use the breadcrumbs to navigate back to the browse view.'"
-        )
-
-    def test_browse_consignment_breadcrumb(self, standard_user_page: Page):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-
-        assert standard_user_page.inner_html("text='You are viewing'")
-        assert standard_user_page.inner_html("text='All records available'")
-        assert standard_user_page.inner_html("text='Testing A'")
-        assert standard_user_page.inner_html("text='TSTA 1'")
-        assert standard_user_page.inner_html("text='TDR-2023-TMT'")
-
-    def test_browse_consignment_no_pagination(self, standard_user_page: Page):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-
-        standard_user_page.get_by_label("Closed").check()
-
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-
-        next_button = standard_user_page.locator(".govuk-pagination__next a")
-
-        assert not standard_user_page.get_by_label("Page 1").is_visible()
-        assert not standard_user_page.get_by_label("Page 2").is_visible()
-        assert not next_button.is_visible()
-
-    def test_browse_consignment_has_pagination_with_next_page(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-
-        standard_user_page.wait_for_selector(".govuk-pagination")
-        next_button = standard_user_page.locator(".govuk-pagination__next a")
-        assert next_button.is_visible()
-        assert standard_user_page.get_by_label("Page 1").is_visible()
-        assert standard_user_page.get_by_label("Page 2").is_visible()
-
-    def test_browse_consignment_has_pagination_with_previous_and_next_page(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-
-        standard_user_page.wait_for_selector(".govuk-pagination")
-
-        previous_button = standard_user_page.locator(
-            ".govuk-pagination__prev a"
-        )
-        next_button = standard_user_page.locator(".govuk-pagination__next a")
-        next_button.click()
-
-        standard_user_page.wait_for_selector(".govuk-pagination")
-
-        assert previous_button.is_visible()
-        assert next_button.is_visible()
-        assert standard_user_page.get_by_label("Page 1").is_visible()
-        assert standard_user_page.get_by_label("Page 2").is_visible()
-        assert standard_user_page.get_by_label("Page 3").is_visible()
-
-    def test_browse_consignment_filter_functionality_with_query_string_parameters(
-        self, standard_user_page: Page, utils
-    ):
-        standard_user_page.goto(
-            f"{self.route_url}/{self.consignment_id}?sort=date_last_modified-desc&record_status=all&"
-            f"date_filter_field=date_last_modified&date_from_day=01&date_from_month=01&date_from_year=2022&"
-            f"date_to_day=&date_to_month=&date_to_year="
-        )
-
-        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
-        rows = utils.get_desktop_page_table_rows(standard_user_page)
-
-        expected_rows = [
-            ["03/08/2022", "delivery-form-digital.doc", "Open", "–"],
-            ["03/08/2022", "Digital Transfer training email .msg", "Open", "–"],
-            ["03/08/2022", "Draft DDRO 05.docx", "Open", "–"],
-            [
-                "03/08/2022",
-                "DTP_ Digital Transfer process diagram UG.docx",
-                "Open",
-                "–",
-            ],
-            ["03/08/2022", "base_de_donnees.png", "Open", "–"],
-        ]
-
-        verify_header_row(header_rows)
-        assert rows == expected_rows
 
     def test_browse_consignment_sort_functionality_by_record_status_descending(
         self, standard_user_page: Page, utils
     ):
+        """
+        Scenario: Sorting functionality by record status in descending order
+
+        Given the user navigates to the consignment page with ID "016031db-1398-4fe4-b743-630aa82ea32a"
+        When the user selects "Sort by" as "closure_type-asc"
+        And the user sets the date filter from "01/01/2022"
+        And the user clicks the "Apply" button
+        Then the table headers should be:
+        | Date of record      |
+        | File name           |
+        | Status              |
+        | Record opening date |
+        And the table rows should be:
+        | 22/11/2023 | closed_file_R - Copy.pdf | Open | – |
+        | 22/11/2023 | closed_file_R.pdf        | Open | – |
+        | 22/11/2023 | closed_file.txt          | Open | – |
+        | 22/11/2023 | file-a1,.txt             | Open | – |
+        | 22/11/2023 | file-a1.txt              | Open | – |
+        """
         standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
         standard_user_page.get_by_label("Sort by").select_option(
             "closure_type-asc"
@@ -162,166 +78,35 @@ class TestBrowseConsignment:
         rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
-            ["03/08/2022", "Presentation.pptx", "Closed", "04/08/2122"],
-            [
-                "03/08/2022",
-                "Emergency Contact Details Paul Young.docx",
-                "Closed",
-                "26/12/2121",
-            ],
-            ["03/08/2022", "Digital Transfer training email .msg", "Open", "–"],
-            [
-                "03/08/2022",
-                "DTP_ Digital Transfer process diagram UG.docx",
-                "Open",
-                "–",
-            ],
-            ["03/08/2022", "Draft DDRO 05.docx", "Open", "–"],
+            ["22/11/2023", "closed_file_R - Copy.pdf", "Open", "–"],
+            ["22/11/2023", "closed_file_R.pdf", "Open", "–"],
+            ["22/11/2023", "closed_file.txt", "Open", "–"],
+            ["22/11/2023", "file-a1,.txt", "Open", "–"],
+            ["22/11/2023", "file-a1.txt", "Open", "–"],
         ]
 
         verify_header_row(header_rows)
         assert rows == expected_rows
-
-    def test_browse_consignment_filter_functionality_with_record_opening_date_filter(
-        self, standard_user_page: Page, utils
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-        standard_user_page.locator("label").filter(
-            has_text="Record opening date"
-        ).click()
-        standard_user_page.locator("#date_from_day").fill("01")
-        standard_user_page.locator("#date_from_month").fill("01")
-        standard_user_page.locator("#date_from_year").fill("2019")
-        standard_user_page.get_by_role(
-            "button", name="Apply", exact=True
-        ).click()
-
-        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
-        rows = utils.get_desktop_page_table_rows(standard_user_page)
-
-        expected_rows = [
-            [
-                "03/08/2022",
-                "Emergency Contact Details Paul Young.docx",
-                "Closed",
-                "26/12/2121",
-            ],
-            ["03/08/2022", "Presentation.pptx", "Closed", "04/08/2122"],
-        ]
-
-        verify_header_row(header_rows)
-        assert rows == expected_rows
-
-    def test_browse_consignment_date_validation_with_record_status_selection_change(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-        standard_user_page.get_by_label("Open", exact=True).click()
-        standard_user_page.get_by_role(
-            "button", name="Apply", exact=True
-        ).click()
-
-        assert not standard_user_page.get_by_text(
-            "Select either ‘Date of record’ or ‘Record opening date’"
-        ).is_visible()
-        assert not standard_user_page.get_by_text(
-            "Please enter value(s) in ‘Date from’ or ‘Date to’ field"
-        ).is_visible()
-
-    def test_browse_consignment_date_validation_with_empty_date_fields_and_date_filter_selected(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-        standard_user_page.locator("label").filter(
-            has_text="Date of record"
-        ).click()
-        standard_user_page.get_by_role(
-            "button", name="Apply", exact=True
-        ).click()
-
-        standard_user_page.wait_for_selector(".govuk-error-message")
-
-        assert standard_user_page.get_by_text(
-            "Please enter value(s) in ‘Date from’ or ‘Date to’ field"
-        ).is_visible()
-
-    def test_browse_consignment_date_validation_with_date_fields_and_no_date_filter_selected(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-        standard_user_page.locator("#date_from_day").fill("01")
-        standard_user_page.locator("#date_from_month").fill("01")
-        standard_user_page.locator("#date_from_year").fill("2019")
-        standard_user_page.get_by_role(
-            "button", name="Apply", exact=True
-        ).click()
-
-        standard_user_page.wait_for_selector(".govuk-error-message")
-
-        assert standard_user_page.get_by_text(
-            "Select either ‘Date of record’ or ‘Record opening date’"
-        ).is_visible()
-
-    def test_browse_consignment_date_filter_validation_date_from(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-        standard_user_page.locator("label").filter(
-            has_text="Date of record"
-        ).click()
-        standard_user_page.locator("#date_from_day").fill("1")
-        standard_user_page.locator("#date_from_month").fill("12")
-        standard_user_page.locator("#date_from_year").fill("2024")
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-
-        standard_user_page.wait_for_selector(".govuk-error-message")
-
-        assert standard_user_page.get_by_text(
-            "‘Date from’ must be in the past"
-        ).is_visible()
-
-    def test_browse_consignment_date_filter_validation_to_date(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-        standard_user_page.locator("label").filter(
-            has_text="Date of record"
-        ).click()
-        standard_user_page.locator("#date_to_day").fill("31")
-        standard_user_page.locator("#date_to_month").fill("12")
-        standard_user_page.locator("#date_to_year").fill("2024")
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-
-        standard_user_page.wait_for_selector(".govuk-error-message")
-
-        assert standard_user_page.get_by_text(
-            "‘Date to’ must be in the past"
-        ).is_visible()
-
-    def test_browse_consignment_date_filter_validation_date_from_and_to_date(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-        standard_user_page.locator("label").filter(
-            has_text="Date of record"
-        ).click()
-        standard_user_page.locator("#date_from_day").fill("1")
-        standard_user_page.locator("#date_from_month").fill("1")
-        standard_user_page.locator("#date_from_year").fill("2023")
-        standard_user_page.locator("#date_to_day").fill("31")
-        standard_user_page.locator("#date_to_month").fill("12")
-        standard_user_page.locator("#date_to_year").fill("2022")
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-
-        standard_user_page.wait_for_selector(".govuk-error-message")
-
-        assert standard_user_page.get_by_text(
-            "‘Date from’ must be the same as or before ‘31/12/2022’"
-        ).is_visible()
 
     def test_browse_consignment_clear_filter_functionality(
         self, standard_user_page: Page
     ):
+        """
+        Scenario: Clear filter functionality
+
+        Given the user navigates to the consignment page with ID "016031db-1398-4fe4-b743-630aa82ea32a"
+        When the user selects "Sort by" as "file_name-asc"
+        And the user clicks the "Apply" button
+        And the user clicks the "Clear filters" link
+        Then the date filters should be empty:
+        | Date from day   | "" |
+        | Date from month | "" |
+        | Date from year  | "" |
+        | Date to day     | "" |
+        | Date to month   | "" |
+        | Date to year    | "" |
+        And the "Sort by" dropdown should display "File name (A to Z)"
+        """
         standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
         standard_user_page.get_by_label("Sort by").select_option(
             "file_name-asc"

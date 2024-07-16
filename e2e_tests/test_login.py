@@ -21,6 +21,7 @@ def test_sign_in_succeeds_when_valid_credentials(
     page.get_by_label("Password").fill(password)
     page.get_by_role("button", name="Sign in").click()
     expect(page).to_have_url("/browse")
+
     cookies = page.context.cookies()
     for index, cookie in enumerate(cookies):
         if cookie["name"] == "session":
