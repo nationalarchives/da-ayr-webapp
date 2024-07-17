@@ -1,4 +1,11 @@
 .govuk-table {
+  border-bottom: 1px solid #b1b4b6;
+  font-size: 1rem;
+
+  &__thead {
+    border-bottom: 1px solid #b1b4b6;
+  }
+
   @mixin flex-layout {
     &-col {
       display: flex;
