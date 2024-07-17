@@ -774,7 +774,7 @@ def generate_pdf_manifest(record_id):
         ],
         "id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
         "type": "Manifest",
-        "label": {"none": ["N30051003097927"]},
+        "label": {"none": [file_name]},
         "requiredStatement": {
             "label": {"en": ["File name"]},
             "value": {"en": [file_name]},
@@ -821,7 +821,7 @@ def generate_image_manifest(s3_file_object, record_id):
     if file is None:
         abort(404)
 
-    # filename = file.FileName
+    filename = file.FileName
 
     image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
     width, height = image.size
@@ -838,81 +838,43 @@ def generate_image_manifest(s3_file_object, record_id):
 
     file_url = url_for("main.get_file", record_id=record_id, _external=True)
 
-    # canvas = {
-    #     "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
-    #     "@type": "sc:Canvas",
-    #     "label": "Image 1",
-    #     "width": width,
-    #     "height": height,
-    #     "images": [
-    #         {
-    #             "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/annotation/1",
-    #             "@type": "oa:Annotation",
-    #             "motivation": "sc:painting",
-    #             "resource": {
-    #                 "@id": file_url,
-    #                 "@type": "dctypes:Image",
-    #                 "format": "image/png",
-    #                 "width": width,
-    #                 "height": height,
-    #             },
-    #             "on": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
-    #         }
-    #     ],
-    # }
-
     manifest = {
-        # "@context": "http://iiif.io/api/presentation/2/context.json",
-        # "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
-        # "@type": "sc:Manifest",
-        # "label": filename,
-        # "description": f"Manifest for {filename}",
-        # "sequences": [
-        #     {
-        #         "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/sequence/normal",
-        #         "@type": "sc:Sequence",
-        #         "canvases": [canvas],
-        #     }
-        # ],
-        "@context": [
-            "http://example.org/extension/context1.json",
-            "http://iiif.io/api/image/3/context.json",
-        ],
-        "id": file_url,
-        "type": "ImageService3",
-        "protocol": "http://iiif.io/api/image",
-        "profile": "level1",
-        "width": width,
-        "height": height,
-        "maxWidth": 3000,
-        "maxHeight": 2000,
-        "maxArea": 4000000,
-        "sizes": [
-            {"width": 150, "height": 100},
-            {"width": 600, "height": 400},
-            {"width": 3000, "height": 2000},
-        ],
-        "tiles": [
-            {"width": 512, "scaleFactors": [1, 2, 4]},
-            {"width": 1024, "height": 2048, "scaleFactors": [8, 16]},
-        ],
-        "rights": "http://rightsstatements.org/vocab/InC-EDU/1.0/",
-        "preferredFormats": ["png", "gif"],
-        "extraFormats": ["png", "gif", "pdf"],
-        "extraQualities": ["color", "gray"],
-        "extraFeatures": [
-            "canonicalLinkHeader",
-            "rotationArbitrary",
-            "profileLinkHeader",
-        ],
-        "service": [
+        "@context": "http://iiif.io/api/presentation/2/context.json",
+        "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
+        "@type": "sc:Manifest",
+        "label": filename,
+        "description": f"Manifest for {filename}",
+        "sequences": [
             {
-                "id": "https://example.org/service/example",
-                "type": "Service",
-                "profile": "https://example.org/docs/example-service.html",
+                "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/sequence/normal",
+                "@type": "sc:Sequence",
+                "canvases": [{
+                    "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
+                    "@type": "sc:Canvas",
+                    "label": "Image 1",
+                    "width": width,
+                    "height": height,
+                    "images": [
+                        {
+                            "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/annotation/1",
+                            "@type": "oa:Annotation",
+                            "motivation": "sc:painting",
+                            "resource": {
+                                "@id": file_url,
+                                "@type": "dctypes:Image",
+                                "format": "image/png",
+                                "width": width,
+                                "height": height,
+                            },
+                            "on": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
+                        }
+                    ],
+                }],
             }
         ],
     }
+
+    print(manifest)
 
     return jsonify(manifest)
 
@@ -928,10 +890,16 @@ def get_file(record_id=None):
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
+    print("here")
+    file_type = filename.split(".")[-1].lower()
+    print(get_file_mimetype(file_type))
+    
     try:
         s3_response_object = s3.get_object(Bucket=bucket, Key=key)
         file_content = s3_response_object["Body"].read()
         file_type = filename.split(".")[-1].lower()
+        print(get_file_mimetype(file_type))
+
 
         return send_file(
             io.BytesIO(file_content),

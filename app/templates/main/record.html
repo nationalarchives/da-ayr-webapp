@@ -112,6 +112,15 @@
                                             }
                                         }
                                     </style>
+                                    <noscript>
+                                            <p>Please enable js</p>
+                                        <object class="pdf" 
+                                        data=
+                            "{{ url_for('static', filename='accessibility_audit_report.pdf') }}"
+                                        width="800"
+                                        height="500">
+                                </object>
+                                </noscript>
                                     <div id="uv" class="uv"></div>
                                     <script id="init-uv" nonce="{{ csp_nonce() }}" manifest_url="{{ manifest_url }}" type="text/javascript" src="{{ url_for('static', filename='init.uv.js') }}">
                                     </script>
