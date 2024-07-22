@@ -840,41 +840,39 @@ def generate_image_manifest(s3_file_object, record_id):
 
     manifest = {
         "@context": "http://iiif.io/api/presentation/2/context.json",
-        "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
+        "@id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
         "@type": "sc:Manifest",
         "label": filename,
         "description": f"Manifest for {filename}",
         "sequences": [
             {
-                "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/sequence/normal",
+                "@id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
                 "@type": "sc:Sequence",
                 "canvases": [{
-                    "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
+                    "@id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
                     "@type": "sc:Canvas",
                     "label": "Image 1",
                     "width": width,
                     "height": height,
                     "images": [
                         {
-                            "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/annotation/1",
+                            "@id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
                             "@type": "oa:Annotation",
                             "motivation": "sc:painting",
                             "resource": {
                                 "@id": file_url,
-                                "@type": "dctypes:Image",
+                                "type": "dctypes:Image",
                                 "format": "image/png",
                                 "width": width,
                                 "height": height,
                             },
-                            "on": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}/canvas/1",
+                            "on": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
                         }
                     ],
                 }],
             }
         ],
     }
-
-    print(manifest)
 
     return jsonify(manifest)
 

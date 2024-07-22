@@ -56,9 +56,11 @@ def create_app(config_class, database_uri=None):
         "script-src": (
             [
                 SELF,
+                "'unsafe-eval'",
                 f"{app.config['FLASKS3_CDN_DOMAIN']}",
                 "https://cdn.jsdelivr.net",
                 "https://cdnjs.cloudflare.com",
+                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/4864.b0b319b4f29542847e0e.js",
                 "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
                 "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
             ]
@@ -77,22 +79,19 @@ def create_app(config_class, database_uri=None):
             "'sha256-1u1O/sNzLBXqLGKzuRbVTI5abqBQBfKsNv3bH5iXOkg='",  # pragma: allowlist secret
             "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
         ],
-        "worker-src": ["blob:"],
-        # [
-        #     SELF,
-        #     f"{app.config['FLASKS3_CDN_DOMAIN']}",
-        #     'https://cdn.jsdelivr.net',
-        #     'https://cdnjs.cloudflare.com',
-        #     "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
-        #     "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
-        # ]
+        "worker-src": [
+            "blob:",
+            SELF,
+            f"{app.config['FLASKS3_CDN_DOMAIN']}",
+            'https://cdn.jsdelivr.net',
+            'https://cdnjs.cloudflare.com',
+            "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
+            "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
+        ],
         "img-src": (
-            f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net data:"
+            f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net data: 'unsafe-inline' "
         ),
     }
-
-    # https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css
-    # https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js
 
     # setup database uri for testing
     if database_uri:
@@ -107,7 +106,7 @@ def create_app(config_class, database_uri=None):
         app,
         content_security_policy=csp,
         force_https=force_https,
-        content_security_policy_nonce_in=["script-src", "style-src"],
+        content_security_policy_nonce_in=["script-src", "style-src", "image-src"],
     )
     WTFormsHelpers(app)
 
