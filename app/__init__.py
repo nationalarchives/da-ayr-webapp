@@ -50,7 +50,6 @@ def create_app(config_class, database_uri=None):
 
     SELF = "'self'"
 
-    # Set content security policy
     csp = {
         "default-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net 'unsafe-inline' ",
         "script-src": (
