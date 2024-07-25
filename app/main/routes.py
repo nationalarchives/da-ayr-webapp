@@ -46,15 +46,9 @@ from app.main.util.filter_sort_builder import (
     build_filters,
     build_sorting_orders,
 )
+from app.main.util.render_utils import get_file_mimetype 
 
 from .forms import SearchForm
-
-
-def get_file_mimetype(file_type):
-    if file_type == "pdf":
-        return "application/pdf"
-    elif file_type in ["png", "jpg", "jpeg"]:
-        return f"image/{file_type}"
 
 
 @bp.route("/", methods=["GET"])
