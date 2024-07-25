@@ -2,6 +2,7 @@ import io
 import os
 import json
 import uuid
+import shutil
 
 import boto3
 from flask import (
@@ -648,17 +649,24 @@ def record(record_id: uuid.UUID):
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
     try:
+        files_directory = os.path.join(current_app.static_folder, "files")
+        if file_extension == "pdf":
+            static_file_path = os.path.join(files_directory, f"{record_id}.pdf")
+        elif file_extension in ["png", "jpg", "jpeg"]:
+            static_file_path = os.path.join(files_directory, f"{record_id}.{file_extension}")
+
+        if os.path.exists(files_directory):
+            shutil.rmtree(files_directory)
+
+        os.makedirs(files_directory)
+
         s3_file_object = s3.get_object(Bucket=bucket, Key=key)
         file_content = s3_file_object["Body"].read()
-        if file_extension == "pdf":
-            static_file_path = os.path.join(current_app.static_folder, f"{record_id}.pdf")
-        if file_extension == "png" or file_extension == "jpg":
-            static_file_path = os.path.join(current_app.static_folder, f"{record_id}.png")
         with open(static_file_path, 'wb') as static_file:
             static_file.write(file_content)
-        
+
     except Exception as e:
-        current_app.logger.error(f"S3 error: {e}")
+        current_app.logger.error(f"Error with file IO: {e}")
         abort(404)
 
     return render_template(
