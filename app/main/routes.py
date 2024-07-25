@@ -1,7 +1,5 @@
 import io
 import json
-import os
-import shutil
 import uuid
 
 import boto3
@@ -35,7 +33,6 @@ from app.main.db.queries import (
     build_browse_series_query,
     build_fuzzy_search_summary_query,
     build_fuzzy_search_transferring_body_query,
-    get_file_metadata,
 )
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
@@ -46,7 +43,13 @@ from app.main.util.filter_sort_builder import (
     build_filters,
     build_sorting_orders,
 )
-from app.main.util.render_utils import get_file_mimetype
+from app.main.util.render_utils import (
+    generate_breadcrumb_values,
+    get_download_filename,
+    get_file_details,
+    get_file_mimetype,
+    manage_static_file,
+)
 
 from .forms import SearchForm
 
@@ -598,68 +601,25 @@ def record(record_id: uuid.UUID):
     """
     form = SearchForm()
     file = db.session.get(File, record_id)
-    file_type = None
 
     if file is None:
         abort(404)
 
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
-    file_metadata = get_file_metadata(record_id)
+    file_metadata, file_type, file_extension = get_file_details(file)
 
-    file_extension = file.FileName.split(".")[-1].lower()
-    if file_extension == "pdf":
-        file_type = "iiif"
-    elif file_extension in ["png", "jpg", "jpeg"]:
-        file_type = "iiif"
+    breadcrumb_values = generate_breadcrumb_values(file)
 
-    consignment = file.consignment
-    body = consignment.series.body
-    series = consignment.series
-    breadcrumb_values = {
-        0: {"transferring_body_id": body.BodyId},
-        1: {"transferring_body": body.Name},
-        2: {"series_id": series.SeriesId},
-        3: {"series": series.Name},
-        4: {"consignment_id": consignment.ConsignmentId},
-        5: {"consignment_reference": consignment.ConsignmentReference},
-        6: {"file_name": file.FileName},
-    }
-
-    download_filename = None
-    if file.CiteableReference:
-        if len(file.FileName.rsplit(".", 1)) > 1:
-            download_filename = (
-                file.CiteableReference + "." + file.FileName.rsplit(".", 1)[1]
-            )
+    download_filename = get_download_filename(file)
 
     manifest_url = url_for(
         "main.generate_manifest", record_id=record_id, _external=True
     )
 
-    s3 = boto3.client("s3")
-    bucket = current_app.config["RECORD_BUCKET_NAME"]
-    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-
     try:
-        files_directory = os.path.join(current_app.static_folder, "files")
-        if file_extension == "pdf":
-            static_file_path = os.path.join(files_directory, f"{record_id}.pdf")
-        elif file_extension in ["png", "jpg", "jpeg"]:
-            static_file_path = os.path.join(
-                files_directory, f"{record_id}.{file_extension}"
-            )
-
-        if os.path.exists(files_directory):
-            shutil.rmtree(files_directory)
-
-        os.makedirs(files_directory)
-
-        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
-        file_content = s3_file_object["Body"].read()
-        with open(static_file_path, "wb") as static_file:
-            static_file.write(file_content)
-
+        static_file_path = manage_static_file(file, record_id, file_extension)
+        print(static_file_path)
     except Exception as e:
         current_app.logger.error(f"Error with file IO: {e}")
         abort(404)
