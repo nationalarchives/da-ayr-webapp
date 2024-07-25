@@ -113,13 +113,14 @@
                                         }
                                     </style>
                                     <noscript>
-                                            <p>Please enable js</p>
-                                        <object class="pdf" 
-                                        data=
-                            "{{ url_for('static', filename='accessibility_audit_report.pdf') }}"
-                                        width="800"
-                                        height="500">
-                                </object>
+                                        {% if file_extension == "pdf" %}
+                                        <object data="{{ url_for('static', filename=record['file_id'] ~ '.pdf') }}" width="100%" height="500px">
+                                        {% elif file_extension == "png" or file_extension == "jpg" %}
+                                        <object data="{{ url_for('static', filename=record['file_id'] ~ '.png') }}" width="100%" height="500px">
+                                        {% endif %}
+                                            <p>Your browser does not support PDFs. Please download the PDF to view it.
+                                            </p>
+                                        </object>
                                 </noscript>
                                     <div id="uv" class="uv"></div>
                                     <script id="init-uv" nonce="{{ csp_nonce() }}" manifest_url="{{ manifest_url }}" type="text/javascript" src="{{ url_for('static', filename='init.uv.js') }}">

@@ -1,4 +1,5 @@
 import io
+import os
 import json
 import uuid
 
@@ -641,6 +642,25 @@ def record(record_id: uuid.UUID):
         "main.generate_manifest", record_id=record_id, _external=True
     )
 
+
+    s3 = boto3.client("s3")
+    bucket = current_app.config["RECORD_BUCKET_NAME"]
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+
+    try:
+        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+        file_content = s3_file_object["Body"].read()
+        if file_extension == "pdf":
+            static_file_path = os.path.join(current_app.static_folder, f"{record_id}.pdf")
+        if file_extension == "png" or file_extension == "jpg":
+            static_file_path = os.path.join(current_app.static_folder, f"{record_id}.png")
+        with open(static_file_path, 'wb') as static_file:
+            static_file.write(file_content)
+        
+    except Exception as e:
+        current_app.logger.error(f"S3 error: {e}")
+        abort(404)
+
     return render_template(
         "record.html",
         form=form,
@@ -650,6 +670,7 @@ def record(record_id: uuid.UUID):
         filters={},
         file_type=file_type,
         manifest_url=manifest_url,
+        file_extension=file_extension,
     )
 
 
