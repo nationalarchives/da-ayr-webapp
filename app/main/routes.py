@@ -914,15 +914,12 @@ def get_file(record_id=None):
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
-    print("here")
     file_type = filename.split(".")[-1].lower()
-    print(get_file_mimetype(file_type))
 
     try:
         s3_response_object = s3.get_object(Bucket=bucket, Key=key)
         file_content = s3_response_object["Body"].read()
         file_type = filename.split(".")[-1].lower()
-        print(get_file_mimetype(file_type))
 
         return send_file(
             io.BytesIO(file_content),
@@ -930,6 +927,5 @@ def get_file(record_id=None):
             mimetype=get_file_mimetype(file_type),
             as_attachment=False,
         )
-    except Exception as e:
-        print("error", e)
+    except Exception:
         abort(404)
