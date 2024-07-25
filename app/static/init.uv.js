@@ -3,7 +3,6 @@ const manifest_url = script.getAttribute("manifest_url");
 
 function initUniversalViewer() {
   const data = {
-    // manifest: "{{ url_for('static', filename='universalviewer/manifests/pdf.json') }}",
     manifest: manifest_url,
     embedded: true,
   };

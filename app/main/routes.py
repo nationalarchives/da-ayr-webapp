@@ -1,8 +1,8 @@
 import io
-import os
 import json
-import uuid
+import os
 import shutil
+import uuid
 
 import boto3
 from flask import (
@@ -46,7 +46,7 @@ from app.main.util.filter_sort_builder import (
     build_filters,
     build_sorting_orders,
 )
-from app.main.util.render_utils import get_file_mimetype 
+from app.main.util.render_utils import get_file_mimetype
 
 from .forms import SearchForm
 
@@ -637,7 +637,6 @@ def record(record_id: uuid.UUID):
         "main.generate_manifest", record_id=record_id, _external=True
     )
 
-
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
@@ -647,7 +646,9 @@ def record(record_id: uuid.UUID):
         if file_extension == "pdf":
             static_file_path = os.path.join(files_directory, f"{record_id}.pdf")
         elif file_extension in ["png", "jpg", "jpeg"]:
-            static_file_path = os.path.join(files_directory, f"{record_id}.{file_extension}")
+            static_file_path = os.path.join(
+                files_directory, f"{record_id}.{file_extension}"
+            )
 
         if os.path.exists(files_directory):
             shutil.rmtree(files_directory)
@@ -656,7 +657,7 @@ def record(record_id: uuid.UUID):
 
         s3_file_object = s3.get_object(Bucket=bucket, Key=key)
         file_content = s3_file_object["Body"].read()
-        with open(static_file_path, 'wb') as static_file:
+        with open(static_file_path, "wb") as static_file:
             static_file.write(file_content)
 
     except Exception as e:
@@ -871,28 +872,30 @@ def generate_image_manifest(s3_file_object, record_id):
             {
                 "@id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
                 "@type": "sc:Sequence",
-                "canvases": [{
-                    "@id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
-                    "@type": "sc:Canvas",
-                    "label": "Image 1",
-                    "width": width,
-                    "height": height,
-                    "images": [
-                        {
-                            "@id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
-                            "@type": "oa:Annotation",
-                            "motivation": "sc:painting",
-                            "resource": {
-                                "@id": file_url,
-                                "type": "dctypes:Image",
-                                "format": "image/png",
-                                "width": width,
-                                "height": height,
-                            },
-                            "on": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
-                        }
-                    ],
-                }],
+                "canvases": [
+                    {
+                        "@id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
+                        "@type": "sc:Canvas",
+                        "label": "Image 1",
+                        "width": width,
+                        "height": height,
+                        "images": [
+                            {
+                                "@id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
+                                "@type": "oa:Annotation",
+                                "motivation": "sc:painting",
+                                "resource": {
+                                    "@id": file_url,
+                                    "type": "dctypes:Image",
+                                    "format": "image/png",
+                                    "width": width,
+                                    "height": height,
+                                },
+                                "on": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
+                            }
+                        ],
+                    }
+                ],
             }
         ],
     }
@@ -914,13 +917,12 @@ def get_file(record_id=None):
     print("here")
     file_type = filename.split(".")[-1].lower()
     print(get_file_mimetype(file_type))
-    
+
     try:
         s3_response_object = s3.get_object(Bucket=bucket, Key=key)
         file_content = s3_response_object["Body"].read()
         file_type = filename.split(".")[-1].lower()
         print(get_file_mimetype(file_type))
-
 
         return send_file(
             io.BytesIO(file_content),

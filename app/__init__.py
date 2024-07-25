@@ -82,8 +82,8 @@ def create_app(config_class, database_uri=None):
             "blob:",
             SELF,
             f"{app.config['FLASKS3_CDN_DOMAIN']}",
-            'https://cdn.jsdelivr.net',
-            'https://cdnjs.cloudflare.com',
+            "https://cdn.jsdelivr.net",
+            "https://cdnjs.cloudflare.com",
             "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
             "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
         ],
@@ -105,7 +105,11 @@ def create_app(config_class, database_uri=None):
         app,
         content_security_policy=csp,
         force_https=force_https,
-        content_security_policy_nonce_in=["script-src", "style-src", "image-src"],
+        content_security_policy_nonce_in=[
+            "script-src",
+            "style-src",
+            "image-src",
+        ],
     )
     WTFormsHelpers(app)
 
