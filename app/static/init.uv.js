@@ -68,3 +68,19 @@ observer.observe(document.body, observerConfig);
 document.addEventListener("DOMContentLoaded", function () {
   removeAttribution();
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  var uvElement = document.getElementById("uv");
+  if (uvElement) {
+    uvElement.style.width = "100%";
+    uvElement.style.height = "70vh";
+    uvElement.style.maxHeight = "65%";
+
+    // Apply media query for small devices
+    if (window.matchMedia("(max-width: 810px)").matches) {
+      uvElement.style.height = "60vh";
+      uvElement.style.width = "85vw";
+      uvElement.style.padding = "1rem";
+    }
+  }
+});
