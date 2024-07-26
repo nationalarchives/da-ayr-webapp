@@ -40,7 +40,7 @@ class TestBrowse:
         | Record total            |
         | Consignments within series |
         And the table rows should be:
-        | Mock 1 Department | MOCK1 123 | 05/03/2024 | 83 | 11 |
+        | Mock 1 Department | MOCK1 123 | 05/03/2024 | 15 | 7 |
         """
         aau_user_page.goto(f"{self.route_url}")
         aau_user_page.get_by_label("Sort by").select_option(
@@ -60,7 +60,7 @@ class TestBrowse:
         rows = utils.get_desktop_page_table_rows(aau_user_page)
 
         expected_rows = [
-            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "83", "11"]
+            ["Mock 1 Department", "MOCK1 123", "05/03/2024", "15", "7"]
         ]
 
         verify_browse_all_header_row(header_rows)
