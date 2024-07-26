@@ -618,8 +618,7 @@ def record(record_id: uuid.UUID):
     )
 
     try:
-        static_file_path = manage_static_file(file, record_id, file_extension)
-        print(static_file_path)
+        static_file_path = manage_static_file(file, file_extension)
     except Exception as e:
         current_app.logger.error(f"Error with file IO: {e}")
         abort(404)

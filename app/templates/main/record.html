@@ -99,13 +99,11 @@
                                           rel="stylesheet">
                                     <noscript>
                                         {% if file_extension == "pdf" %}
-                                            <object data="{{ url_for('static', filename='files/' ~ record['file_id'] ~ '.pdf') }}"
+                                            <object data="{{ url_for('static', filename='files/' ~ temp_file ~ '.pdf') }}"
                                                     width="100%"
-                                                    height="700px">
-                                                <p>Your browser does not support PDFs. Please download the record to view it.</p>
-                                            </object>
+                                                    height="700px">                                            </object>
                                         {% elif file_extension == "png" or file_extension == "jpg" %}
-                                            <object data="{{ url_for('static', filename='files/' ~ record['file_id'] ~ '.png') }}"
+                                            <object data="{{ url_for('static', filename='files/' ~ temp_file ~ '.png') }}"
                                                     width="100%"
                                                     height="700px">
                                                 <p>Your browser does not support Images. Please download the record to view it.</p>

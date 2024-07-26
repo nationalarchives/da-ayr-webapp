@@ -53,7 +53,7 @@ def get_download_filename(file):
     return None
 
 
-def manage_static_file(file, record_id, file_extension):
+def manage_static_file(file, file_extension):
     """Manage the file in the static directory."""
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
@@ -61,10 +61,10 @@ def manage_static_file(file, record_id, file_extension):
     files_directory = os.path.join(current_app.static_folder, "files")
 
     if file_extension == "pdf":
-        static_file_path = os.path.join(files_directory, f"{record_id}.pdf")
+        static_file_path = os.path.join(files_directory, f"temp_file.pdf")
     elif file_extension in ["png", "jpg", "jpeg"]:
         static_file_path = os.path.join(
-            files_directory, f"{record_id}.{file_extension}"
+            files_directory, f"temp_file.{file_extension}"
         )
 
     if os.path.exists(files_directory):
