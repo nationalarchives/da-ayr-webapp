@@ -23,7 +23,7 @@ def test_header_link(page, link_text, expected_url):
 
 
 @pytest.mark.parametrize(
-    "link_text, expected_url, expected_title",
+    "link_text, expected_url",
     [
         (
             "How to use this service",
