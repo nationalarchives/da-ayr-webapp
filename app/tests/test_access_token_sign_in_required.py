@@ -318,6 +318,7 @@ def test_expected_unprotected_routes_decorated_by_access_token_sign_in_required(
         "main.browse_transferring_body",
         "main.browse_series",
         "main.browse_consignment",
+        "main.generate_manifest",
     ]
     expected_unprotected_routes = [
         "static",
@@ -330,6 +331,7 @@ def test_expected_unprotected_routes_decorated_by_access_token_sign_in_required(
         "main.privacy",
         "main.how_to_use",
         "main.terms_of_use",
+        "main.get_file",
     ]
 
     (

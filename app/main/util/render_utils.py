@@ -59,10 +59,15 @@ def manage_static_file(file, file_extension):
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
     files_directory = os.path.join(current_app.static_folder, "files")
+    static_file_path = ""
 
     if file_extension == "pdf":
-        static_file_path = os.path.join(files_directory, f"temp_file.pdf")
+        static_file_path = os.path.join(files_directory, "temp_file.pdf")
     elif file_extension in ["png", "jpg", "jpeg"]:
+        static_file_path = os.path.join(
+            files_directory, f"temp_file.{file_extension}"
+        )
+    else:
         static_file_path = os.path.join(
             files_directory, f"temp_file.{file_extension}"
         )

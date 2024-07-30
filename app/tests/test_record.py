@@ -1,11 +1,28 @@
 from datetime import datetime
 
+import boto3
 from flask.testing import FlaskClient
+from moto import mock_aws
 
 from app.tests.assertions import assert_contains_html
 
 db_date_format = "%Y-%m-%d"
 python_date_format = "%d/%m/%Y"
+
+
+def create_mock_s3_bucket_with_object(bucket_name, file):
+    """
+    Creates a dummy bucket to be used by tests
+    """
+    s3 = boto3.resource("s3", region_name="us-east-1")
+
+    bucket = s3.create_bucket(Bucket=bucket_name)
+
+    file_object = s3.Object(
+        bucket_name, f"{file.consignment.ConsignmentReference}/{file.FileId}"
+    )
+    file_object.put(Body="record")
+    return bucket
 
 
 class TestRecord:
@@ -24,8 +41,9 @@ class TestRecord:
 
         assert response.status_code == 404
 
+    @mock_aws
     def test_record_top_search(
-        self, client: FlaskClient, mock_all_access_user, record_files
+        self, app, client: FlaskClient, mock_all_access_user, record_files
     ):
         """
         Given a File in the database
@@ -38,7 +56,12 @@ class TestRecord:
 
         file = record_files[0]["file_object"]
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
@@ -72,8 +95,9 @@ class TestRecord:
             {"class": "search__container govuk-grid-column-full"},
         )
 
+    @mock_aws
     def test_record_breadcrumbs(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
@@ -84,6 +108,10 @@ class TestRecord:
         on the page
         """
         file = record_files[0]["file_object"]
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
         browse_all_route_url = "/browse"
@@ -93,7 +121,7 @@ class TestRecord:
         browse_series_route_url = f"{browse_all_route_url}/series"
         browse_consignment_route_url = f"{browse_all_route_url}/consignment"
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
@@ -101,7 +129,7 @@ class TestRecord:
 
         expected_breadcrumbs_html = f"""
         <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
-        <h2 class="govuk-body-m govuk-body-m__record-view">You are viewing</h2>
+        <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
 
         <div class="govuk-breadcrumbs govuk-breadcrumbs--file">
             <ol class="govuk-breadcrumbs__list">
@@ -137,8 +165,9 @@ class TestRecord:
             },
         )
 
+    @mock_aws
     def test_record_record_arrangement(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
@@ -148,11 +177,15 @@ class TestRecord:
         on the page
         """
         file = record_files[0]["file_object"]
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
         record_path_details = file.FilePath.split("/")
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
@@ -177,8 +210,9 @@ class TestRecord:
             {"class": "record-container"},
         )
 
+    @mock_aws
     def test_record_download_record_without_citeable_reference(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
@@ -188,9 +222,13 @@ class TestRecord:
         on the page
         """
         file = record_files[4]["file_object"]
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
@@ -201,7 +239,8 @@ class TestRecord:
             <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
             <a href="/download/{file.FileId}"
                 class="govuk-button govuk-button__download--record"
-                data-module="govuk-button">Download record</a>
+                data-module="govuk-button">Download
+                                    record</a>
             <p class="govuk-body govuk-body--terms-of-use">
                 Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
             </p>
@@ -212,8 +251,9 @@ class TestRecord:
             expected_download_html, html, "div", {"class": "rights-container"}
         )
 
+    @mock_aws
     def test_record_download_record_with_citeable_reference(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
@@ -223,10 +263,14 @@ class TestRecord:
         on the page
         """
         file = record_files[0]["file_object"]
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
         download_filename = f"{file.CiteableReference}.docx"
         mock_standard_user(client, file.consignment.series.body.Name)
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
@@ -237,7 +281,8 @@ class TestRecord:
             <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
             <a href="/download/{file.FileId}"
                 class="govuk-button govuk-button__download--record"
-                data-module="govuk-button">Download record</a>
+                data-module="govuk-button">Download
+                                    record</a>
             <p class="govuk-body govuk-body--download-filename">
                 The downloaded record will be named<br>
                 <strong>{download_filename}</strong>
@@ -252,8 +297,9 @@ class TestRecord:
             expected_download_html, html, "div", {"class": "rights-container"}
         )
 
+    @mock_aws
     def test_record_summary_list_open_file(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
@@ -264,13 +310,17 @@ class TestRecord:
         on the page
         """
         file = record_files[0]["file_object"]
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_standard_user(client, file.consignment.series.body.Name)
         date_last_modified = datetime.strptime(
             record_files[0]["date_last_modified"].Value, db_date_format
         ).strftime(python_date_format)
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
@@ -377,8 +427,9 @@ class TestRecord:
             {"class": "govuk-summary-list govuk-summary-list--record"},
         )
 
+    @mock_aws
     def test_record_summary_list_open_closed_before_file(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
@@ -389,6 +440,10 @@ class TestRecord:
         on the page
         """
         file = record_files[1]["file_object"]
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -402,7 +457,7 @@ class TestRecord:
             record_files[1]["date_last_modified"].Value, db_date_format
         ).strftime(python_date_format)
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
@@ -539,8 +594,9 @@ class TestRecord:
             {"class": "govuk-summary-list govuk-summary-list--record"},
         )
 
+    @mock_aws
     def test_record_summary_list_closed_file(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
@@ -551,6 +607,11 @@ class TestRecord:
         on the page
         """
         file = record_files[2]["file_object"]
+
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -566,7 +627,7 @@ class TestRecord:
             record_files[1]["date_last_modified"].Value, db_date_format
         ).strftime(python_date_format)
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
