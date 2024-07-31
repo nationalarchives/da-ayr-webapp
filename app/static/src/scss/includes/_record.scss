@@ -1,5 +1,16 @@
 /* SCSS for Record page */
 
+.govuk-tabs__list-item {
+  &::before {
+    content: none;
+  }
+}
+
+.mobileFooterPanel {
+  background: white;
+  border: white;
+}
+
 .govuk-width-container {
   &--desktop-record {
     display: flex;
@@ -278,33 +289,59 @@
   border-bottom: 2px solid white;
 }
 
-.uv .mainPanel .leftPanel {
-  border-right: 2px solid white;
-  // border-top: 2px solid white;
-  background-color: #0b0c0c !important;
-  // width: 15rem !important;
-}
-
-.uv .mainPanel {
-  padding-top: 0 !important;
-  background-color: #0b0c0c !important;
-}
-
-.thumb.selected .wrap {
-  border: 5px solid yellow !important;
-}
-
 .mode {
   width: 3rem;
   font-size: 1rem;
 }
 
-.uv .headerPanel .centerOptions .mode {
-  font-size: 1rem;
+.uv {
+  .mainPanel .leftPanel {
+    border-right: 2px solid white;
+    background-color: #0b0c0c !important;
+  }
+
+  .mainPanel {
+    padding-top: 0 !important;
+    background-color: #0b0c0c !important;
+  }
+
+  .headerPanel .centerOptions .mode {
+    font-size: 1rem;
+  }
+
+  .headerPanel .centerOptions .autocompleteText {
+    text-align: center;
+  }
+
+  .btn-primary {
+    color: #00703c;
+    background-color: #00703c !important;
+    border-color: #00703c !important;
+  }
+
+  .centerPanel .title {
+    padding-left: 2rem !important;
+  }
+
+  .headerPanel .options {
+    background-color: #0b0c0c !important;
+  }
 }
 
-.uv .headerPanel .centerOptions .autocompleteText {
+.uv-iiif-extension-host.uv-pdf-extension
+  .headerPanel
+  .centerOptions
+  .search
+  .searchText {
   text-align: center;
+}
+
+.uv-icon-settings {
+  display: none !important;
+}
+
+.thumb.selected .wrap {
+  border: 5px solid yellow !important;
 }
 
 .record-view-header {
@@ -318,32 +355,6 @@
 
 .govuk-tabs__panel__record-html-view {
   padding: 1rem !important;
-}
-
-.uv .btn-primary {
-  color: #00703c;
-  background-color: #00703c !important;
-  border-color: #00703c !important;
-}
-
-.uv .centerPanel .title {
-  padding-left: 2rem !important;
-}
-
-.uv .headerPanel .options {
-  background-color: #0b0c0c !important;
-}
-
-.uv-iiif-extension-host.uv-pdf-extension
-  .headerPanel
-  .centerOptions
-  .search
-  .searchText {
-  text-align: center;
-}
-
-.uv-icon-settings {
-  display: none !important;
 }
 
 //  MOBILE STYLES //
