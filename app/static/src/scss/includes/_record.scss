@@ -480,6 +480,10 @@
   .search__container__content {
     margin-top: 0;
   }
+
+  .uv-iiif-extension-host {
+    background: white;
+  }
 }
 
 @media (400px <= width <= $breakpoint-small) {
@@ -547,5 +551,9 @@
       text-align: left;
       display: table-cell;
     }
+  }
+
+  .uv-iiif-extension-host {
+    background: white;
   }
 }
