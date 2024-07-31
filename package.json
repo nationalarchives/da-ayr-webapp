@@ -15,7 +15,6 @@
     "stylelint-selector-bem-pattern": "^3.0.1"
   },
   "dependencies": {
-    "npm": "^10.5.2",
-    "universalviewer": "^4.0.25"
+    "npm": "^10.5.2"
   }
 }
