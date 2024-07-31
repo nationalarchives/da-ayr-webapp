@@ -101,47 +101,45 @@
                                             <object data="{{ url_for('static', filename='files/temp_file.pdf') }}"
                                                     width="100%"
                                                     height="700px">
-                                                <br>
-                                            </br>
-                                        </object>
-                                    {% elif file_extension == "png" or file_extension == "jpg" %}
-                                        <object data="{{ url_for('static', filename='files/temp_file.png') }}"
-                                                width="100%"
-                                                height="700px">
-                                            <p>Your browser does not support Images. Please download the record to view it.</p>
-                                        </object>
-                                    {% endif %}
-                                </noscript>
-                                <div id="uv" class="uv"></div>
-                                <script id="init-uv" nonce="{{ csp_nonce() }}" manifest_url="{{ manifest_url }}" type="text/javascript" src="{{ url_for('static', filename='init.uv.js') }}">
-                                </script>
+                                                <p>Your browser does not support PDFs. Please download the record to view it.</p>
+                                            </object>
+                                        {% elif file_extension == "png" or file_extension == "jpg" %}
+                                            <object data="{{ url_for('static', filename='files/temp_file.png') }}"
+                                                    width="100%"
+                                                    height="700px">
+                                                <p>Your browser does not support Images. Please download the record to view it.</p>
+                                            </object>
+                                        {% endif %}
+                                    </noscript>
+                                    <div id="uv" class="uv"></div>
+                                    <script id="init-uv" nonce="{{ csp_nonce() }}" manifest_url="{{ manifest_url }}" type="text/javascript" src="{{ url_for('static', filename='init.uv.js') }}">
+                                    </script>
+                                </div>
                             </div>
-                        </div>
-                    {% endif %}
-                    <!-- Record Details -->
-                    <div class="govuk-tabs__panel govuk-tabs__panel--hidden govuk-tabs__panel__record-details"
-                         id="record-details">
-                        <div class="govuk-grid-column-two-thirds">
-                            <div class="details-container">
-                                <h1 class="govuk-heading-m govuk-heading-m__record-details">Record details</h1>
-                                <dl class="govuk-summary-list govuk-summary-list--record">
-                                    {% with dict = list_items %}
-                                        {% include "summary_list_items.html" %}
-                                    {% endwith %}
-                                </dl>
+                        {% endif %}
+                        <!-- Record Details -->
+                        <div class="govuk-tabs__panel govuk-tabs__panel--hidden govuk-tabs__panel__record-details"
+                             id="record-details">
+                            <div class="govuk-grid-column-two-thirds">
+                                <div class="details-container">
+                                    <h1 class="govuk-heading-m govuk-heading-m__record-details">Record details</h1>
+                                    <dl class="govuk-summary-list govuk-summary-list--record">
+                                        {% with dict = list_items %}
+                                            {% include "summary_list_items.html" %}
+                                        {% endwith %}
+                                    </dl>
+                                </div>
                             </div>
-                        </div>
-                        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-rights">
-                            <div class="rights-container">
-                                <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-                                <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
-                                   class="govuk-button govuk-button__download--record"
-                                   data-module="govuk-button">Download
-                                record</a>
-                                {% if download_filename %}
-                                    <p class="govuk-body govuk-body--download-filename">
-                                        The downloaded record will be named
-                                        <br>
+                            <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-rights">
+                                <div class="rights-container">
+                                    <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
+                                    <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
+                                       class="govuk-button govuk-button__download--record"
+                                       data-module="govuk-button">Download
+                                    record</a>
+                                    {% if download_filename %}
+                                        <p class="govuk-body govuk-body--download-filename">
+                                            The downloaded record will be named
                                         <strong>{{ download_filename }}</strong>
                                     </p>
                                 {% endif %}
