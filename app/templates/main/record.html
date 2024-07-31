@@ -140,33 +140,33 @@
                                     {% if download_filename %}
                                         <p class="govuk-body govuk-body--download-filename">
                                             The downloaded record will be named
-                                        <strong>{{ download_filename }}</strong>
+                                            <strong>{{ download_filename }}</strong>
+                                        </p>
+                                    {% endif %}
+                                    <p class="govuk-body govuk-body--terms-of-use">
+                                        Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
                                     </p>
-                                {% endif %}
-                                <p class="govuk-body govuk-body--terms-of-use">
-                                    Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
-                                </p>
+                                </div>
+                            </div>
+                            <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-record-arrangement">
+                                <div class="record-container">
+                                    <h2 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h2>
+                                    <ol class="record-arrangement-list">
+                                        {% for file_level in record["file_path"].split("/") %}
+                                            <li class="govuk-body__record-arrangement-list">{{ file_level }}</li>
+                                        {% endfor %}
+                                    </ol>
+                                </div>
                             </div>
                         </div>
-                        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-record-arrangement">
-                            <div class="record-container">
-                                <h2 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h2>
-                                <ol class="record-arrangement-list">
-                                    {% for file_level in record["file_path"].split("/") %}
-                                        <li class="govuk-body__record-arrangement-list">{{ file_level }}</li>
-                                    {% endfor %}
-                                </ol>
-                            </div>
+                        <!-- Record HTML View -->
+                        <div class="govuk-tabs__panel govuk-tabs__panel--hidden govuk-tabs__panel__record-html-view"
+                             id="record-html-view">
+                            <h2 class="govuk-heading-l">Record HTML View</h2>
                         </div>
-                    </div>
-                    <!-- Record HTML View -->
-                    <div class="govuk-tabs__panel govuk-tabs__panel--hidden govuk-tabs__panel__record-html-view"
-                         id="record-html-view">
-                        <h2 class="govuk-heading-l">Record HTML View</h2>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
