@@ -51,30 +51,33 @@ def create_app(config_class, database_uri=None):
     SELF = "'self'"
 
     csp = {
-        "default-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net 'unsafe-inline' ",
+        "default-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']} ",
         "script-src": (
             [
                 SELF,
-                "'unsafe-eval'",
                 f"{app.config['FLASKS3_CDN_DOMAIN']}",
-                "https://cdn.jsdelivr.net",
-                "https://cdnjs.cloudflare.com",
+                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/5315.4c3c820c7f8b3cc26be6.js",
+                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/998.9c1bd6b181b8236d95c2.js",
+                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/7484.468f27df41f99efd4b79.js",
+                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/2185.34b4770909a62ebe892e.js",
+                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/3171.f31082f3b568ce907389.js",
                 "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/4864.b0b319b4f29542847e0e.js",
+                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
+                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
                 "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
                 "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
             ]
         ),
         "style-src": [
             SELF,
-            "https://cdn.jsdelivr.net",
-            "https://cdnjs.cloudflare.com",
             "'unsafe-hashes'",
             "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
-            "'sha256-8Vn73Z5msbLVngI0nj0OnoRknDpixmr5Qqxqq1oVeyw='",  # pragma: allowlist secret
             "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
             "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
             "'sha256-gNGYzcxL9BKlQFzUxh3BgvhKn2szEIFgg65uQvfaxiI='",  # pragma: allowlist secret
             "'sha256-jcxDeNpsDPUI+dIIqUyA3VBoLgf3Mi2LkRWL/H61who='",  # pragma: allowlist secret
+            "'sha256-crS7z4MA9wqqtYsAtmJ6LiW05hz4QJTaokDTQAzc+Hs='",  # pragma: allowlist secret
+            "'sha256-8Vn73Z5msbLVngI0nj0OnoRknDpixmr5Qqxqq1oVeyw='",  # pragma: allowlist secret
             "'sha256-1u1O/sNzLBXqLGKzuRbVTI5abqBQBfKsNv3bH5iXOkg='",  # pragma: allowlist secret
             "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
         ],
@@ -82,14 +85,11 @@ def create_app(config_class, database_uri=None):
             "blob:",
             SELF,
             f"{app.config['FLASKS3_CDN_DOMAIN']}",
-            "https://cdn.jsdelivr.net",
-            "https://cdnjs.cloudflare.com",
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
             "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
             "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
         ],
-        "img-src": (
-            f"'self' {app.config['FLASKS3_CDN_DOMAIN']} https://cdn.jsdelivr.net data: 'unsafe-inline' "
-        ),
+        "img-src": (f"'self' {app.config['FLASKS3_CDN_DOMAIN']} data: "),
     }
 
     # setup database uri for testing
