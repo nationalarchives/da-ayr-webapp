@@ -6,7 +6,6 @@ import boto3
 from flask import (
     abort,
     current_app,
-    jsonify,
     redirect,
     render_template,
     request,
@@ -14,7 +13,6 @@ from flask import (
     session,
     url_for,
 )
-from PIL import Image
 from sqlalchemy import func
 from werkzeug.exceptions import BadRequest, HTTPException
 
@@ -45,6 +43,8 @@ from app.main.util.filter_sort_builder import (
 )
 from app.main.util.render_utils import (
     generate_breadcrumb_values,
+    generate_image_manifest,
+    generate_pdf_manifest,
     get_download_filename,
     get_file_details,
     get_file_mimetype,
@@ -639,6 +639,8 @@ def record(record_id: uuid.UUID):
 @access_token_sign_in_required
 def download_record(record_id: uuid.UUID):
     file = db.session.get(File, record_id)
+    render = request.args.get("render", False)
+    print(request.args)
 
     if file is None:
         abort(404)
@@ -665,18 +667,27 @@ def download_record(record_id: uuid.UUID):
 
     try:
         file_content = s3_file_object["Body"].read()
+        file_type = download_filename.split(".")[-1].lower()
     except Exception as e:
         current_app.logger.error(f"Error reading S3 file content: {e}")
         abort(500)
 
     content_type = s3_file_object.get("ContentType", "application/octet-stream")
 
-    response = send_file(
-        io.BytesIO(file_content),
-        mimetype=content_type,
-        as_attachment=True,
-        download_name=download_filename,
-    )
+    if render:
+        return send_file(
+            io.BytesIO(file_content),
+            mimetype=get_file_mimetype(file_type),
+            as_attachment=False,
+            download_name=download_filename,
+        )
+    else:
+        response = send_file(
+            io.BytesIO(file_content),
+            mimetype=content_type,
+            as_attachment=True,
+            download_name=download_filename,
+        )
     current_app.logger.info(
         json.dumps({"user_id": session["user_id"], "file": key})
     )
@@ -739,151 +750,3 @@ def generate_manifest(record_id: uuid.UUID):
         return generate_image_manifest(s3_file_object, record_id)
     else:
         return http_exception(BadRequest())
-
-
-def generate_pdf_manifest(record_id):
-    file = db.session.get(File, record_id)
-
-    if file is None:
-        abort(404)
-
-    file_name = file.FileName
-    file_url = url_for("main.get_file", record_id=record_id, _external=True)
-
-    manifest = {
-        "@context": [
-            "http://iiif.io/api/presentation/3/context.json",
-        ],
-        "id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
-        "type": "Manifest",
-        "label": {"none": [file_name]},
-        "requiredStatement": {
-            "label": {"en": ["File name"]},
-            "value": {"en": [file_name]},
-        },
-        "viewingDirection": "left-to-right",
-        "behavior": ["individuals"],
-        "description": f"Manifest for {file_name}",
-        "items": [
-            {
-                "id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
-                "type": "Canvas",
-                "label": {"en": ["test"]},
-                "items": [
-                    {
-                        "id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
-                        "type": "AnnotationPage",
-                        "label": {"en": ["test"]},
-                        "items": [
-                            {
-                                "id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
-                                "type": "Annotation",
-                                "motivation": "painting",
-                                "label": {"en": ["test"]},
-                                "body": {
-                                    "id": file_url,
-                                    "type": "Text",
-                                    "format": "application/pdf",
-                                },
-                                "target": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
-                            }
-                        ],
-                    }
-                ],
-            }
-        ],
-    }
-
-    return jsonify(manifest)
-
-
-def generate_image_manifest(s3_file_object, record_id):
-    file = db.session.get(File, record_id)
-
-    if file is None:
-        abort(404)
-
-    filename = file.FileName
-
-    image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
-    width, height = image.size
-
-    # Get the file from S3 to read dimensions
-    s3 = boto3.client("s3")
-    bucket = current_app.config["RECORD_BUCKET_NAME"]
-    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-
-    s3_response_object = s3.get_object(Bucket=bucket, Key=key)
-    file_content = s3_response_object["Body"].read()
-    image = Image.open(io.BytesIO(file_content))
-    width, height = image.size
-
-    file_url = url_for("main.get_file", record_id=record_id, _external=True)
-
-    manifest = {
-        "@context": "http://iiif.io/api/presentation/2/context.json",
-        "@id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
-        "@type": "sc:Manifest",
-        "label": filename,
-        "description": f"Manifest for {filename}",
-        "sequences": [
-            {
-                "@id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
-                "@type": "sc:Sequence",
-                "canvases": [
-                    {
-                        "@id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
-                        "@type": "sc:Canvas",
-                        "label": "Image 1",
-                        "width": width,
-                        "height": height,
-                        "images": [
-                            {
-                                "@id": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
-                                "@type": "oa:Annotation",
-                                "motivation": "sc:painting",
-                                "resource": {
-                                    "@id": file_url,
-                                    "type": "dctypes:Image",
-                                    "format": "image/png",
-                                    "width": width,
-                                    "height": height,
-                                },
-                                "on": f"{url_for('main.get_file', record_id=record_id, _external=True)}",
-                            }
-                        ],
-                    }
-                ],
-            }
-        ],
-    }
-
-    return jsonify(manifest)
-
-
-@bp.route("/files/<record_id>")
-def get_file(record_id=None):
-    file = db.session.get(File, record_id)
-    if file is None:
-        abort(404)
-
-    filename = file.FileName
-    s3 = boto3.client("s3")
-    bucket = current_app.config["RECORD_BUCKET_NAME"]
-    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-
-    file_type = filename.split(".")[-1].lower()
-
-    try:
-        s3_response_object = s3.get_object(Bucket=bucket, Key=key)
-        file_content = s3_response_object["Body"].read()
-        file_type = filename.split(".")[-1].lower()
-
-        return send_file(
-            io.BytesIO(file_content),
-            download_name=filename,
-            mimetype=get_file_mimetype(file_type),
-            as_attachment=False,
-        )
-    except Exception:
-        abort(404)

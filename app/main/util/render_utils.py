@@ -1,9 +1,12 @@
+import io
 import os
 import shutil
 
 import boto3
-from flask import current_app
+from flask import abort, current_app, jsonify, url_for
+from PIL import Image
 
+from app.main.db.models import File, db
 from app.main.db.queries import get_file_metadata
 
 
@@ -84,3 +87,134 @@ def manage_static_file(file, file_extension):
         static_file.write(file_content)
 
     return static_file_path
+
+
+def generate_pdf_manifest(record_id):
+    file = db.session.get(File, record_id)
+
+    if file is None:
+        abort(404)
+
+    file_name = file.FileName
+    file_url = url_for(
+        "main.download_record", record_id=record_id, _external=True
+    )
+
+    manifest = {
+        "@context": [
+            "http://iiif.io/api/presentation/3/context.json",
+        ],
+        "id": f"{url_for('main.download_record', record_id=record_id, _external=True, render=True)}",
+        "type": "Manifest",
+        "label": {"none": [file_name]},
+        "requiredStatement": {
+            "label": {"en": ["File name"]},
+            "value": {"en": [file_name]},
+        },
+        "viewingDirection": "left-to-right",
+        "behavior": ["individuals"],
+        "description": f"Manifest for {file_name}",
+        "items": [
+            {
+                "id": f"{url_for('main.download_record', record_id=record_id, _external=True, render=True)}",
+                "type": "Canvas",
+                "label": {"en": ["test"]},
+                "items": [
+                    {
+                        "id": f"""{url_for('main.download_record',
+                                           record_id=record_id, _external=True, render=True)}""",
+                        "type": "AnnotationPage",
+                        "label": {"en": ["test"]},
+                        "items": [
+                            {
+                                "id": f"""{url_for('main.download_record',
+                                                   record_id=record_id, _external=True, render=True)}""",
+                                "type": "Annotation",
+                                "motivation": "painting",
+                                "label": {"en": ["test"]},
+                                "body": {
+                                    "id": file_url,
+                                    "type": "Text",
+                                    "format": "application/pdf",
+                                },
+                                "target": f"""{url_for('main.download_record',
+                                                       record_id=record_id, _external=True, render=True)}""",
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+
+    return jsonify(manifest)
+
+
+def generate_image_manifest(s3_file_object, record_id):
+    file = db.session.get(File, record_id)
+
+    if file is None:
+        abort(404)
+
+    filename = file.FileName
+
+    image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
+    width, height = image.size
+
+    # Get the file from S3 to read dimensions
+    s3 = boto3.client("s3")
+    bucket = current_app.config["RECORD_BUCKET_NAME"]
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+
+    s3_response_object = s3.get_object(Bucket=bucket, Key=key)
+    file_content = s3_response_object["Body"].read()
+    image = Image.open(io.BytesIO(file_content))
+    width, height = image.size
+
+    file_url = url_for(
+        "main.download_record", record_id=record_id, _external=True, render=True
+    )
+
+    manifest = {
+        "@context": "http://iiif.io/api/presentation/2/context.json",
+        "@id": f"{url_for('main.download_record', record_id=record_id, _external=True)}",
+        "@type": "sc:Manifest",
+        "label": filename,
+        "description": f"Manifest for {filename}",
+        "sequences": [
+            {
+                "@id": f"""{url_for('main.download_record',
+                                    record_id=record_id, _external=True, render=True)}""",
+                "@type": "sc:Sequence",
+                "canvases": [
+                    {
+                        "@id": f"""{url_for('main.download_record',
+                                            record_id=record_id, _external=True, render=True)}""",
+                        "@type": "sc:Canvas",
+                        "label": "Image 1",
+                        "width": width,
+                        "height": height,
+                        "images": [
+                            {
+                                "@id": f"""{url_for('main.download_record',
+                                                    record_id=record_id, _external=True, render=True)}""",
+                                "@type": "oa:Annotation",
+                                "motivation": "sc:painting",
+                                "resource": {
+                                    "@id": file_url,
+                                    "type": "dctypes:Image",
+                                    "format": "image/png",
+                                    "width": width,
+                                    "height": height,
+                                },
+                                "on": f"""{url_for('main.download_record',
+                                                 record_id=record_id, _external=True, render=True)}""",
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+
+    return jsonify(manifest)
