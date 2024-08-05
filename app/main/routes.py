@@ -724,7 +724,7 @@ def http_exception(error):
     return render_template(f"{error.code}.html"), error.code
 
 
-@bp.route("/generate_manifest/<uuid:record_id>")
+@bp.route("/record/<uuid:record_id>/manifest")
 @access_token_sign_in_required
 def generate_manifest(record_id: uuid.UUID):
     file = db.session.get(File, record_id)
