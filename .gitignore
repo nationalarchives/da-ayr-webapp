@@ -485,3 +485,4 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,git,venv,macos,linux,windows,python,flask,jetbrains+all
+app/static/files/temp_file.pdf
