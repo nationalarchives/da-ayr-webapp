@@ -640,7 +640,6 @@ def record(record_id: uuid.UUID):
 def download_record(record_id: uuid.UUID):
     file = db.session.get(File, record_id)
     render = request.args.get("render", False)
-    print(request.args)
 
     if file is None:
         abort(404)

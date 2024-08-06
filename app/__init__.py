@@ -107,8 +107,6 @@ def create_app(config_class, database_uri=None):
         force_https=force_https,
         content_security_policy_nonce_in=[
             "script-src",
-            "style-src",
-            "image-src",
         ],
     )
     WTFormsHelpers(app)

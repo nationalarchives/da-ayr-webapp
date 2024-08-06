@@ -331,7 +331,6 @@ def test_expected_unprotected_routes_decorated_by_access_token_sign_in_required(
         "main.privacy",
         "main.how_to_use",
         "main.terms_of_use",
-        "main.get_file",
     ]
 
     (
