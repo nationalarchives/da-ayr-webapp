@@ -6,8 +6,7 @@
                data-module="govuk-button">Download record</a>
         </div>
         <div class="universal-viewer" id="viewer">
-            <script nonce="{{ csp_nonce() }}"
-                    src="https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.min.js"></script>
+            <script nonce="{{ csp_nonce() }}" src="https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.js" integrity="sha256-Fdp0oui1Jul9OK4Kuwm7OSbhzuuqBcgD5wi8A2tXTns=" crossorigin="anonymous"></script>
             <link href="{{ url_for('static', filename='uv.min.css') }}"
                   rel="stylesheet">
             <noscript>
