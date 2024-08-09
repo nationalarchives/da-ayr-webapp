@@ -274,7 +274,7 @@ class TestDownload:
         assert response.status_code == 200
 
     @mock_aws
-    def test_download_record_for_all_access_user_unauthorized_response(
+    def test_download_record_for_all_access_user_forbidden_response(
         self, app, client, mock_all_access_user
     ):
         """
@@ -293,10 +293,10 @@ class TestDownload:
         mock_all_access_user(client)
         response = client.get(f"{self.route_url}/{file.FileId}")
 
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     @mock_aws
-    def test_download_record_for_standard_user_unauthorized_response(
+    def test_download_record_for_standard_user_forbidden_response(
         self, app, client, mock_standard_user
     ):
         """
@@ -315,4 +315,4 @@ class TestDownload:
         mock_standard_user(client, file.consignment.series.body.Name)
         response = client.get(f"{self.route_url}/{file.FileId}")
 
-        assert response.status_code == 401
+        assert response.status_code == 403

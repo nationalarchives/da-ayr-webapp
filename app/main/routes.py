@@ -643,7 +643,7 @@ def download_record(record_id: uuid.UUID):
     can_download_records = ayr_user.can_download_records
 
     if can_download_records is False:
-        abort(401)
+        abort(403)
 
     if file is None:
         abort(404)
