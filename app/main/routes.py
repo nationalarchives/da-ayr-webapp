@@ -639,6 +639,11 @@ def record(record_id: uuid.UUID):
 @access_token_sign_in_required
 def download_record(record_id: uuid.UUID):
     file = db.session.get(File, record_id)
+    ayr_user = AYRUser(session.get("user_groups"))
+    can_download_records = ayr_user.can_download_records
+
+    if can_download_records is False:
+        abort(401)
 
     if file is None:
         abort(404)

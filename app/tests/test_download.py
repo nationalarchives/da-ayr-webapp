@@ -56,7 +56,9 @@ class TestDownload:
         create_mock_s3_bucket_with_object(bucket_name, file)
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
-        mock_standard_user(client, file.consignment.series.body.Name)
+        mock_standard_user(
+            client, file.consignment.series.body.Name, can_download=True
+        )
         response = client.get(f"{self.route_url}/{file.FileId}")
 
         assert response.status_code == 200
@@ -97,7 +99,9 @@ class TestDownload:
         create_mock_s3_bucket_with_object(bucket_name, file)
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
-        mock_standard_user(client, file.consignment.series.body.Name)
+        mock_standard_user(
+            client, file.consignment.series.body.Name, can_download=True
+        )
         response = client.get(f"{self.route_url}/{file.FileId}")
 
         assert response.status_code == 200
@@ -138,7 +142,9 @@ class TestDownload:
         create_mock_s3_bucket_with_object(bucket_name, file)
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
-        mock_standard_user(client, file.consignment.series.body.Name)
+        mock_standard_user(
+            client, file.consignment.series.body.Name, can_download=True
+        )
         response = client.get(f"{self.route_url}/{file.FileId}")
 
         assert response.status_code == 200
@@ -176,7 +182,9 @@ class TestDownload:
         create_mock_s3_bucket_with_object(bucket_name, file)
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
-        mock_standard_user(client, file.consignment.series.body.Name)
+        mock_standard_user(
+            client, file.consignment.series.body.Name, can_download=True
+        )
         response = client.get(f"{self.route_url}/invalid_file")
 
         assert response.status_code == 404
@@ -209,7 +217,9 @@ class TestDownload:
         }
         mock_boto3_client.return_value = mock_s3_client
 
-        mock_standard_user(client, file.consignment.series.body.Name)
+        mock_standard_user(
+            client, file.consignment.series.body.Name, can_download=True
+        )
 
         response = client.get(f"{self.route_url}/{file.FileId}")
 
@@ -236,7 +246,7 @@ class TestDownload:
         create_mock_s3_bucket_with_object(bucket_name, file)
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
-        mock_standard_user(client, "different_body")
+        mock_standard_user(client, "different_body", can_download=True)
         response = client.get(f"{self.route_url}/{file.FileId}")
 
         assert response.status_code == 404
@@ -258,7 +268,51 @@ class TestDownload:
         create_mock_s3_bucket_with_object(bucket_name, file)
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
-        mock_all_access_user(client)
+        mock_all_access_user(client, can_download=True)
         response = client.get(f"{self.route_url}/{file.FileId}")
 
         assert response.status_code == 200
+
+    @mock_aws
+    def test_download_record_for_all_access_user_unauthorized_response(
+        self, app, client, mock_all_access_user
+    ):
+        """
+        Given a File in the database
+        And an all_access_user
+        When the all_access_user with no download permissions makes a request to download record
+        Then the response status code should be 401
+        """
+        bucket_name = "test_bucket"
+        file = FileFactory(
+            FileType="file",
+        )
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        mock_all_access_user(client)
+        response = client.get(f"{self.route_url}/{file.FileId}")
+
+        assert response.status_code == 401
+
+    @mock_aws
+    def test_download_record_for_standard_user_unauthorized_response(
+        self, app, client, mock_standard_user
+    ):
+        """
+        Given a File in the database
+        And an all_access_user
+        When the standard_user with no download permissions makes a request to download record
+        Then the response status code should be 401
+        """
+        bucket_name = "test_bucket"
+        file = FileFactory(
+            FileType="file",
+        )
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        mock_standard_user(client, file.consignment.series.body.Name)
+        response = client.get(f"{self.route_url}/{file.FileId}")
+
+        assert response.status_code == 401
