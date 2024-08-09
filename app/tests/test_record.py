@@ -9,6 +9,38 @@ db_date_format = "%Y-%m-%d"
 python_date_format = "%d/%m/%Y"
 
 
+def expected_download_html_with_citeable_reference(file_id, file_name):
+    return f"""
+        <div class="rights-container">
+            <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
+            <a href="/download/{file_id}"
+                class="govuk-button govuk-button__download--record"
+                data-module="govuk-button">Download record</a>
+            <p class="govuk-body govuk-body--download-filename">
+                The downloaded record will be named<br>
+                <strong>{file_name}</strong>
+            </p>
+            <p class="govuk-body govuk-body--terms-of-use">
+                Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
+            </p>
+        </div>
+        """
+
+
+def expected_download_html_without_citeable_reference(file_id):
+    return f"""
+        <div class="rights-container">
+            <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
+            <a href="/download/{file_id}"
+                class="govuk-button govuk-button__download--record"
+                data-module="govuk-button">Download record</a>
+            <p class="govuk-body govuk-body--terms-of-use">
+                Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
+            </p>
+        </div>
+        """
+
+
 class TestRecord:
     @property
     def route_url(self):
@@ -206,18 +238,9 @@ class TestRecord:
         assert response.status_code == 200
 
         html = response.data.decode()
-
-        expected_download_html = f"""
-        <div class="rights-container">
-            <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-            <a href="/download/{file.FileId}"
-                class="govuk-button govuk-button__download--record"
-                data-module="govuk-button">Download record</a>
-            <p class="govuk-body govuk-body--terms-of-use">
-                Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
-            </p>
-        </div>
-        """
+        expected_download_html = (
+            expected_download_html_without_citeable_reference(file.FileId)
+        )
 
         assert_contains_html(
             expected_download_html, html, "div", {"class": "rights-container"}
@@ -245,21 +268,9 @@ class TestRecord:
 
         html = response.data.decode()
 
-        expected_download_html = f"""
-        <div class="rights-container">
-            <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-            <a href="/download/{file.FileId}"
-                class="govuk-button govuk-button__download--record"
-                data-module="govuk-button">Download record</a>
-            <p class="govuk-body govuk-body--download-filename">
-                The downloaded record will be named<br>
-                <strong>{download_filename}</strong>
-            </p>
-            <p class="govuk-body govuk-body--terms-of-use">
-                Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
-            </p>
-        </div>
-        """
+        expected_download_html = expected_download_html_with_citeable_reference(
+            file.FileId, download_filename
+        )
 
         assert_contains_html(
             expected_download_html, html, "div", {"class": "rights-container"}
@@ -308,17 +319,9 @@ class TestRecord:
 
         html = response.data.decode()
 
-        expected_download_html = f"""
-        <div class="rights-container">
-            <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-            <a href="/download/{file.FileId}"
-                class="govuk-button govuk-button__download--record"
-                data-module="govuk-button">Download record</a>
-            <p class="govuk-body govuk-body--terms-of-use">
-                Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
-            </p>
-        </div>
-        """
+        expected_download_html = (
+            expected_download_html_without_citeable_reference(file.FileId)
+        )
 
         assert_contains_html(
             expected_download_html, html, "div", {"class": "rights-container"}
@@ -344,21 +347,9 @@ class TestRecord:
 
         html = response.data.decode()
 
-        expected_download_html = f"""
-        <div class="rights-container">
-            <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-            <a href="/download/{file.FileId}"
-                class="govuk-button govuk-button__download--record"
-                data-module="govuk-button">Download record</a>
-            <p class="govuk-body govuk-body--download-filename">
-                The downloaded record will be named<br>
-                <strong>{download_filename}</strong>
-            </p>
-            <p class="govuk-body govuk-body--terms-of-use">
-                Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
-            </p>
-        </div>
-        """
+        expected_download_html = expected_download_html_with_citeable_reference(
+            file.FileId, download_filename
+        )
 
         assert_contains_html(
             expected_download_html, html, "div", {"class": "rights-container"}
