@@ -1,27 +1,12 @@
 from datetime import datetime
 
-import boto3
+from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
 
 db_date_format = "%Y-%m-%d"
 python_date_format = "%d/%m/%Y"
-
-
-def create_mock_s3_bucket_with_object(bucket_name, file):
-    """
-    Creates a dummy bucket to be used by tests
-    """
-    s3 = boto3.resource("s3", region_name="us-east-1")
-
-    bucket = s3.create_bucket(Bucket=bucket_name)
-
-    file_object = s3.Object(
-        bucket_name, f"{file.consignment.ConsignmentReference}/{file.FileId}"
-    )
-    file_object.put(Body="record")
-    return bucket
 
 
 class TestRecord:
@@ -201,12 +186,12 @@ class TestRecord:
             {"class": "record-container"},
         )
 
-    def test_record_download_record_without_citeable_reference(
+    def test_record_standard_user_with_perms_can_download_record_without_citeable_reference(
         self, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a permitted standard user with request to view the record page
         Then the response status code should be 200
         And the HTML content should see record download component
         on the page
@@ -238,12 +223,12 @@ class TestRecord:
             expected_download_html, html, "div", {"class": "rights-container"}
         )
 
-    def test_record_download_record_with_citeable_reference(
+    def test_record_standard_user_with_perms_can_download_record_with_citeable_reference(
         self, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a permitted standard user with request to view the record page
         Then the response status code should be 200
         And the HTML content should see record download component
         on the page
@@ -279,6 +264,128 @@ class TestRecord:
         assert_contains_html(
             expected_download_html, html, "div", {"class": "rights-container"}
         )
+
+    def test_record_standard_user_without_perms_cant_see_download_button(
+        self, client: FlaskClient, mock_standard_user, record_files
+    ):
+        """
+        Given a File in the database
+        When a standard user with no permissions requests the record page
+        Then the response status code should be 200
+        And the HTML content should NOT see record download component
+        on the page
+        """
+        file = record_files[4]["file_object"]
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        soup = BeautifulSoup(html, "html.parser")
+        button = soup.find("a", string="Download record")
+
+        assert button is None
+
+    def test_record_aau_user_with_perms_can_download_record_without_citeable_reference(
+        self, client: FlaskClient, mock_all_access_user, record_files
+    ):
+        """
+        Given a File in the database
+        When an all permitted access user with request to view the record page
+        Then the response status code should be 200
+        And the HTML content should see record download component
+        on the page
+        """
+        file = record_files[4]["file_object"]
+        mock_all_access_user(client, can_download=True)
+
+        response = client.get(f"{self.route_url}/{file.FileId}")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        expected_download_html = f"""
+        <div class="rights-container">
+            <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
+            <a href="/download/{file.FileId}"
+                class="govuk-button govuk-button__download--record"
+                data-module="govuk-button">Download record</a>
+            <p class="govuk-body govuk-body--terms-of-use">
+                Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
+            </p>
+        </div>
+        """
+
+        assert_contains_html(
+            expected_download_html, html, "div", {"class": "rights-container"}
+        )
+
+    def test_record_aau_user_with_perms_can_download_record_with_citeable_reference(
+        self, client: FlaskClient, mock_all_access_user, record_files
+    ):
+        """
+        Given a File in the database
+        When an all permitted access user with request to view the record page
+        Then the response status code should be 200
+        And the HTML content should see record download component
+        on the page
+        """
+        file = record_files[0]["file_object"]
+        download_filename = f"{file.CiteableReference}.docx"
+        mock_all_access_user(client, can_download=True)
+
+        response = client.get(f"{self.route_url}/{file.FileId}")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        expected_download_html = f"""
+        <div class="rights-container">
+            <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
+            <a href="/download/{file.FileId}"
+                class="govuk-button govuk-button__download--record"
+                data-module="govuk-button">Download record</a>
+            <p class="govuk-body govuk-body--download-filename">
+                The downloaded record will be named<br>
+                <strong>{download_filename}</strong>
+            </p>
+            <p class="govuk-body govuk-body--terms-of-use">
+                Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
+            </p>
+        </div>
+        """
+
+        assert_contains_html(
+            expected_download_html, html, "div", {"class": "rights-container"}
+        )
+
+    def test_record_aau_user_without_perms_cant_see_download_button(
+        self, client: FlaskClient, mock_all_access_user, record_files
+    ):
+        """
+        Given a File in the database
+        When a standard user with no permissions requests the record page
+        Then the response status code should be 200
+        And the HTML content should NOT see record download component
+        on the page
+        """
+        file = record_files[4]["file_object"]
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}/{file.FileId}")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        soup = BeautifulSoup(html, "html.parser")
+        button = soup.find("a", string="Download record")
+        assert button is None
 
     def test_record_summary_list_open_file(
         self, client: FlaskClient, mock_standard_user, record_files
