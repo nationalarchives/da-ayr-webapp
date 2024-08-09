@@ -1,11 +1,27 @@
 from datetime import datetime
 
+import boto3
 from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
 
 db_date_format = "%Y-%m-%d"
 python_date_format = "%d/%m/%Y"
+
+
+def create_mock_s3_bucket_with_object(bucket_name, file):
+    """
+    Creates a dummy bucket to be used by tests
+    """
+    s3 = boto3.resource("s3", region_name="us-east-1")
+
+    bucket = s3.create_bucket(Bucket=bucket_name)
+
+    file_object = s3.Object(
+        bucket_name, f"{file.consignment.ConsignmentReference}/{file.FileId}"
+    )
+    file_object.put(Body="record")
+    return bucket
 
 
 class TestRecord:
@@ -44,26 +60,34 @@ class TestRecord:
 
         html = response.data.decode()
 
-        search_html = """<div class="search__container govuk-grid-column-full">
-        <div class="search__container__content">
-            <label class="govuk-label search__heading" for="search-input">Search for digital records</label>
-            <form method="get" action="/search">
-                <div class="govuk-form-group govuk-form-group__search-form">
-                    <input class="govuk-input govuk-!-width-three-quarters"
-                           id="search-input"
-                           name="query"
-                           type="text"
-                           value="">
-                    <button class="govuk-button govuk-button__search-button"
-                            data-module="govuk-button"
-                            type="submit">Search</button>
-                <p class="govuk-body-s">
-                    Search by file name, transferring body, series or consignment reference.
-                </p>
+        search_html = """
+            <div class="search__container govuk-grid-column-full">
+                <div class="search__container__content">
+                    <label class="govuk-label search__heading" for="search-input">
+                        Search for digital records
+                    </label>
+                    <form method="get" action="/search">
+                        <div class="govuk-form-group govuk-form-group__search-form">
+                            <input
+                                class="govuk-input govuk-!-width-three-quarters"
+                                id="search-input" name="query"
+                                type="text"
+                                value=""
+                            >
+                            <button
+                                class="govuk-button govuk-button__search-button"
+                                data-module="govuk-button"
+                                type="submit">
+                                    Search
+                            </button>
+                            <p class="govuk-body-s">
+                                Search by file name, transferring body, series or consignment reference.
+                            </p>
+                        </div>
+                    </form>
                 </div>
-            </form>
-        </div>
-    </div>"""
+            </div>
+        """
 
         assert_contains_html(
             search_html,
@@ -188,7 +212,9 @@ class TestRecord:
         on the page
         """
         file = record_files[4]["file_object"]
-        mock_standard_user(client, file.consignment.series.body.Name)
+        mock_standard_user(
+            client, file.consignment.series.body.Name, can_download=True
+        )
 
         response = client.get(f"{self.route_url}/{file.FileId}")
 
@@ -224,7 +250,9 @@ class TestRecord:
         """
         file = record_files[0]["file_object"]
         download_filename = f"{file.CiteableReference}.docx"
-        mock_standard_user(client, file.consignment.series.body.Name)
+        mock_standard_user(
+            client, file.consignment.series.body.Name, can_download=True
+        )
 
         response = client.get(f"{self.route_url}/{file.FileId}")
 

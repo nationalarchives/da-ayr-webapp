@@ -593,6 +593,8 @@ def record(record_id: uuid.UUID):
     """
     form = SearchForm()
     file = db.session.get(File, record_id)
+    ayr_user = AYRUser(session.get("user_groups"))
+    can_download_records = ayr_user.can_download_records
 
     if file is None:
         abort(404)
@@ -628,6 +630,7 @@ def record(record_id: uuid.UUID):
         record=file_metadata,
         breadcrumb_values=breadcrumb_values,
         download_filename=download_filename,
+        can_download_records=can_download_records,
         filters={},
     )
 
