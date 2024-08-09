@@ -642,7 +642,7 @@ def download_record(record_id: uuid.UUID):
     ayr_user = AYRUser(session.get("user_groups"))
     can_download_records = ayr_user.can_download_records
 
-    if can_download_records is False:
+    if can_download_records is not True:
         abort(403)
 
     if file is None:

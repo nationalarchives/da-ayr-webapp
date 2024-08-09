@@ -112,7 +112,7 @@ def create_keycloak_user(keycloak_admin):
 
 @pytest.fixture(scope="session")
 def create_aau_keycloak_user(keycloak_admin, create_keycloak_user):
-    user_groups = ["/ayr_user_type/view_all", "/ayr_user_type/download"]
+    user_groups = ["/ayr_user_type/view_all"]
     user_type = "aau"
     user_id, user_email, user_pass = create_keycloak_user(
         user_groups, user_type
@@ -125,6 +125,39 @@ def create_aau_keycloak_user(keycloak_admin, create_keycloak_user):
 
 @pytest.fixture(scope="session")
 def create_standard_keycloak_user(keycloak_admin, create_keycloak_user):
+    user_groups = [
+        "/ayr_user_type/view_dept",
+        "/transferring_body_user/Testing A",
+    ]
+    user_type = "standard"
+    user_id, user_email, user_pass = create_keycloak_user(
+        user_groups, user_type
+    )
+
+    yield user_email, user_pass
+
+    keycloak_admin.delete_user(user_id=user_id)
+
+
+@pytest.fixture(scope="session")
+def create_aau_keycloak_user_with_download(
+    keycloak_admin, create_keycloak_user
+):
+    user_groups = ["/ayr_user_type/view_all", "/ayr_user_type/download"]
+    user_type = "aau"
+    user_id, user_email, user_pass = create_keycloak_user(
+        user_groups, user_type
+    )
+
+    yield user_email, user_pass
+
+    keycloak_admin.delete_user(user_id=user_id)
+
+
+@pytest.fixture(scope="session")
+def create_standard_keycloak_user_with_download(
+    keycloak_admin, create_keycloak_user
+):
     user_groups = [
         "/ayr_user_type/view_dept",
         "/ayr_user_type/download",
@@ -151,6 +184,26 @@ def aau_user_page(create_user_page, create_aau_keycloak_user) -> Page:
 @pytest.fixture
 def standard_user_page(create_user_page, create_standard_keycloak_user) -> Page:
     username, password = create_standard_keycloak_user
+    page = create_user_page(username, password)
+    yield page
+    page.goto("/sign-out")
+
+
+@pytest.fixture
+def aau_user_page_with_download(
+    create_user_page, create_aau_keycloak_user_with_download
+) -> Page:
+    username, password = create_aau_keycloak_user_with_download
+    page = create_user_page(username, password)
+    yield page
+    page.goto("/sign-out")
+
+
+@pytest.fixture
+def standard_user_page_with_download(
+    create_user_page, create_standard_keycloak_user_with_download
+) -> Page:
+    username, password = create_standard_keycloak_user_with_download
     page = create_user_page(username, password)
     yield page
     page.goto("/sign-out")

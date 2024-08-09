@@ -300,61 +300,6 @@ class TestRecord:
 
         assert button is None
 
-    def test_record_aau_user_with_perms_can_download_record_without_citeable_reference(
-        self, client: FlaskClient, mock_all_access_user, record_files
-    ):
-        """
-        Given a File in the database
-        When an all permitted access user with request to view the record page
-        Then the response status code should be 200
-        And the HTML content should see record download component
-        on the page
-        """
-        file = record_files[4]["file_object"]
-        mock_all_access_user(client, can_download=True)
-
-        response = client.get(f"{self.route_url}/{file.FileId}")
-
-        assert response.status_code == 200
-
-        html = response.data.decode()
-
-        expected_download_html = (
-            expected_download_html_without_citeable_reference(file.FileId)
-        )
-
-        assert_contains_html(
-            expected_download_html, html, "div", {"class": "rights-container"}
-        )
-
-    def test_record_aau_user_with_perms_can_download_record_with_citeable_reference(
-        self, client: FlaskClient, mock_all_access_user, record_files
-    ):
-        """
-        Given a File in the database
-        When an all permitted access user with request to view the record page
-        Then the response status code should be 200
-        And the HTML content should see record download component
-        on the page
-        """
-        file = record_files[0]["file_object"]
-        download_filename = f"{file.CiteableReference}.docx"
-        mock_all_access_user(client, can_download=True)
-
-        response = client.get(f"{self.route_url}/{file.FileId}")
-
-        assert response.status_code == 200
-
-        html = response.data.decode()
-
-        expected_download_html = expected_download_html_with_citeable_reference(
-            file.FileId, download_filename
-        )
-
-        assert_contains_html(
-            expected_download_html, html, "div", {"class": "rights-container"}
-        )
-
     def test_record_aau_user_without_perms_cant_see_download_button(
         self, client: FlaskClient, mock_all_access_user, record_files
     ):
