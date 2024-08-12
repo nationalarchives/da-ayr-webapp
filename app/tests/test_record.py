@@ -1,11 +1,44 @@
 from datetime import datetime
 
+from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
 
 db_date_format = "%Y-%m-%d"
 python_date_format = "%d/%m/%Y"
+
+
+def expected_download_html_with_citeable_reference(file_id, file_name):
+    return f"""
+        <div class="rights-container">
+            <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
+            <a href="/download/{file_id}"
+                class="govuk-button govuk-button__download--record"
+                data-module="govuk-button">Download record</a>
+            <p class="govuk-body govuk-body--download-filename">
+                The downloaded record will be named<br>
+                <strong>{file_name}</strong>
+            </p>
+            <p class="govuk-body govuk-body--terms-of-use">
+                Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
+            </p>
+        </div>
+        """
+
+
+def expected_download_html_without_citeable_reference(file_id):
+    return f"""
+        <div class="rights-container">
+            <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
+            <a href="/download/{file_id}"
+                class="govuk-button govuk-button__download--record"
+                data-module="govuk-button">Download record</a>
+            <p class="govuk-body govuk-body--terms-of-use">
+                Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
+            </p>
+        </div>
+        """
 
 
 class TestRecord:
@@ -44,26 +77,34 @@ class TestRecord:
 
         html = response.data.decode()
 
-        search_html = """<div class="search__container govuk-grid-column-full">
-        <div class="search__container__content">
-            <label class="govuk-label search__heading" for="search-input">Search for digital records</label>
-            <form method="get" action="/search">
-                <div class="govuk-form-group govuk-form-group__search-form">
-                    <input class="govuk-input govuk-!-width-three-quarters"
-                           id="search-input"
-                           name="query"
-                           type="text"
-                           value="">
-                    <button class="govuk-button govuk-button__search-button"
-                            data-module="govuk-button"
-                            type="submit">Search</button>
-                <p class="govuk-body-s">
-                    Search by file name, transferring body, series or consignment reference.
-                </p>
+        search_html = """
+            <div class="search__container govuk-grid-column-full">
+                <div class="search__container__content">
+                    <label class="govuk-label search__heading" for="search-input">
+                        Search for digital records
+                    </label>
+                    <form method="get" action="/search">
+                        <div class="govuk-form-group govuk-form-group__search-form">
+                            <input
+                                class="govuk-input govuk-!-width-three-quarters"
+                                id="search-input" name="query"
+                                type="text"
+                                value=""
+                            >
+                            <button
+                                class="govuk-button govuk-button__search-button"
+                                data-module="govuk-button"
+                                type="submit">
+                                    Search
+                            </button>
+                            <p class="govuk-body-s">
+                                Search by file name, transferring body, series or consignment reference.
+                            </p>
+                        </div>
+                    </form>
                 </div>
-            </form>
-        </div>
-    </div>"""
+            </div>
+        """
 
         assert_contains_html(
             search_html,
@@ -177,14 +218,72 @@ class TestRecord:
             {"class": "record-container"},
         )
 
-    def test_record_download_record_without_citeable_reference(
+    def test_record_standard_user_with_perms_can_download_record_without_citeable_reference(
         self, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a permitted standard user with request to view the record page
         Then the response status code should be 200
         And the HTML content should see record download component
+        on the page
+        """
+        file = record_files[4]["file_object"]
+        mock_standard_user(
+            client, file.consignment.series.body.Name, can_download=True
+        )
+
+        response = client.get(f"{self.route_url}/{file.FileId}")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        expected_download_html = (
+            expected_download_html_without_citeable_reference(file.FileId)
+        )
+
+        assert_contains_html(
+            expected_download_html, html, "div", {"class": "rights-container"}
+        )
+
+    def test_record_standard_user_with_perms_can_download_record_with_citeable_reference(
+        self, client: FlaskClient, mock_standard_user, record_files
+    ):
+        """
+        Given a File in the database
+        When a permitted standard user with request to view the record page
+        Then the response status code should be 200
+        And the HTML content should see record download component
+        on the page
+        """
+        file = record_files[0]["file_object"]
+        download_filename = f"{file.CiteableReference}.docx"
+        mock_standard_user(
+            client, file.consignment.series.body.Name, can_download=True
+        )
+
+        response = client.get(f"{self.route_url}/{file.FileId}")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        expected_download_html = expected_download_html_with_citeable_reference(
+            file.FileId, download_filename
+        )
+
+        assert_contains_html(
+            expected_download_html, html, "div", {"class": "rights-container"}
+        )
+
+    def test_record_standard_user_without_perms_cant_see_download_button(
+        self, client: FlaskClient, mock_standard_user, record_files
+    ):
+        """
+        Given a File in the database
+        When a standard user with no permissions requests the record page
+        Then the response status code should be 200
+        And the HTML content should NOT see record download component
         on the page
         """
         file = record_files[4]["file_object"]
@@ -196,35 +295,23 @@ class TestRecord:
 
         html = response.data.decode()
 
-        expected_download_html = f"""
-        <div class="rights-container">
-            <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-            <a href="/download/{file.FileId}"
-                class="govuk-button govuk-button__download--record"
-                data-module="govuk-button">Download record</a>
-            <p class="govuk-body govuk-body--terms-of-use">
-                Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
-            </p>
-        </div>
-        """
+        soup = BeautifulSoup(html, "html.parser")
+        button = soup.find("a", string="Download record")
 
-        assert_contains_html(
-            expected_download_html, html, "div", {"class": "rights-container"}
-        )
+        assert button is None
 
-    def test_record_download_record_with_citeable_reference(
-        self, client: FlaskClient, mock_standard_user, record_files
+    def test_record_aau_user_without_perms_cant_see_download_button(
+        self, client: FlaskClient, mock_all_access_user, record_files
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with no permissions requests the record page
         Then the response status code should be 200
-        And the HTML content should see record download component
+        And the HTML content should NOT see record download component
         on the page
         """
-        file = record_files[0]["file_object"]
-        download_filename = f"{file.CiteableReference}.docx"
-        mock_standard_user(client, file.consignment.series.body.Name)
+        file = record_files[4]["file_object"]
+        mock_all_access_user(client)
 
         response = client.get(f"{self.route_url}/{file.FileId}")
 
@@ -232,25 +319,9 @@ class TestRecord:
 
         html = response.data.decode()
 
-        expected_download_html = f"""
-        <div class="rights-container">
-            <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-            <a href="/download/{file.FileId}"
-                class="govuk-button govuk-button__download--record"
-                data-module="govuk-button">Download record</a>
-            <p class="govuk-body govuk-body--download-filename">
-                The downloaded record will be named<br>
-                <strong>{download_filename}</strong>
-            </p>
-            <p class="govuk-body govuk-body--terms-of-use">
-                Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
-            </p>
-        </div>
-        """
-
-        assert_contains_html(
-            expected_download_html, html, "div", {"class": "rights-container"}
-        )
+        soup = BeautifulSoup(html, "html.parser")
+        button = soup.find("a", string="Download record")
+        assert button is None
 
     def test_record_summary_list_open_file(
         self, client: FlaskClient, mock_standard_user, record_files

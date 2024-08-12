@@ -2,7 +2,7 @@
 Feature: Record page functionality
 """
 
-from playwright.sync_api import Page
+from playwright.sync_api import Page, expect
 
 
 class TestRecord:
@@ -97,7 +97,81 @@ class TestRecord:
                 field, exact=True
             ).is_visible()
 
-    def test_record_download_record(self, standard_user_page: Page):
+    def test_record_aau_users_with_perms_can_see_download_button(
+        self, aau_user_page_with_download: Page
+    ):
+        """
+        Scenario: Seeing download button on record page
+
+        Given the user navigates to the record page with ID "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
+        When the aau user has the correct group to be able to download
+        Then the download button is visible
+        """
+        record_id = "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
+        aau_user_page_with_download.goto(f"{self.route_url}/{record_id}")
+
+        button = aau_user_page_with_download.get_by_role(
+            "link", name="Download record"
+        )
+
+        expect(button).to_be_visible()
+
+    def test_record_standard_users_with_perms_can_see_download_button(
+        self, standard_user_page_with_download: Page
+    ):
+        """
+        Scenario: Seeing download button on record page
+
+        Given the user navigates to the record page with ID "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
+        When the standard user has the correct group to be able to download
+        Then the download button is visible
+        """
+        record_id = "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
+        standard_user_page_with_download.goto(f"{self.route_url}/{record_id}")
+
+        button = standard_user_page_with_download.get_by_role(
+            "link", name="Download record"
+        )
+
+        expect(button).to_be_visible()
+
+    def test_record_aau_users_without_perms_cant_see_download_button(
+        self, aau_user_page: Page
+    ):
+        """
+        Scenario: Seeing download button on record page
+
+        Given the user navigates to the record page with ID "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
+        When the aau user does not have the group to be able to download
+        Then the download button is NOT visible
+        """
+        record_id = "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
+        aau_user_page.goto(f"{self.route_url}/{record_id}")
+
+        button = aau_user_page.get_by_role("link", name="Download record")
+
+        expect(button).to_be_hidden()
+
+    def test_record_standard_users_without_perms_cant_see_download_button(
+        self, standard_user_page: Page
+    ):
+        """
+        Scenario: Seeing download button on record page
+
+        Given the user navigates to the record page with ID "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
+        When the standard user does not have the group to be able to download
+        Then the download button is NOT visible
+        """
+        record_id = "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
+        standard_user_page.goto(f"{self.route_url}/{record_id}")
+
+        button = standard_user_page.get_by_role("link", name="Download record")
+
+        expect(button).to_be_hidden()
+
+    def test_record_download_record(
+        self, standard_user_page_with_download: Page
+    ):
         """
         Scenario: Downloading a record
 
@@ -106,9 +180,41 @@ class TestRecord:
         Then the file "TSTA 1_ZD5B3S.doc" should be downloaded
         """
         record_id = "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
-        standard_user_page.goto(f"{self.route_url}/{record_id}")
+        standard_user_page_with_download.goto(f"{self.route_url}/{record_id}")
 
-        with standard_user_page.expect_download() as download_record:
-            standard_user_page.get_by_text("Download record").click()
+        with standard_user_page_with_download.expect_download() as download_record:
+            standard_user_page_with_download.get_by_text(
+                "Download record"
+            ).click()
         download = download_record.value
         assert "TSTA 1_ZD5B3S.doc" == download.suggested_filename
+
+    def test_record_download_record_standard_user_without_download_perms(
+        self, standard_user_page: Page
+    ):
+        """
+        Scenario: Downloading a record
+
+        Given the user navigates to the record page with ID "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
+        When the standard user with no download perms attempts to access the download record endpoint
+        They get a status 403 response
+        """
+        record_id = "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
+        response = standard_user_page.goto(f"download/{record_id}")
+
+        assert response.status == 403
+
+    def test_record_download_record_aau_user_without_download_perms(
+        self, aau_user_page: Page
+    ):
+        """
+        Scenario: Downloading a record
+
+        Given the user navigates to the record page with ID "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
+        When the all access user with no download perms attempts to access the download record endpoint
+        They get a status 403 response
+        """
+        record_id = "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
+        response = aau_user_page.goto(f"download/{record_id}")
+
+        assert response.status == 403
