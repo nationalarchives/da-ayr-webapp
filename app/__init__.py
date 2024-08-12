@@ -70,7 +70,6 @@ def create_app(config_class, database_uri=None):
         ),
         "style-src": [
             SELF,
-            "'unsafe-hashes'",
             "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
             "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
             "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
