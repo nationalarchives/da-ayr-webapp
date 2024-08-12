@@ -47,7 +47,7 @@ class TestRecord:
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
         Then the response status code should be 200
         And the HTML content should show top search component
         on the page
@@ -101,7 +101,7 @@ class TestRecord:
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
         Then the response status code should be 200
         And the HTML content should show the breadcrumb values as
          All available records > transferring body > series > consignment reference > file name
@@ -171,7 +171,7 @@ class TestRecord:
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
         Then the response status code should be 200
         And the HTML content should see record arrangement based on file path
         on the page
@@ -216,7 +216,7 @@ class TestRecord:
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
         Then the response status code should be 200
         And the HTML content should see record download component
         on the page
@@ -257,7 +257,7 @@ class TestRecord:
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
         Then the response status code should be 200
         And the HTML content should see record download component
         on the page
@@ -303,7 +303,7 @@ class TestRecord:
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
             and record closure type is 'Open' (never closed)
         Then the response status code should be 200
         And the HTML content should see summary list with specific items
@@ -433,7 +433,7 @@ class TestRecord:
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
             and record closure type is 'Open' (once closed or close before)
         Then the response status code should be 200
         And the HTML content should see summary list with specific items
@@ -600,7 +600,7 @@ class TestRecord:
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
             and record closure type is 'Closed'
         Then the response status code should be 200
         And the HTML content should see summary list with specific items
@@ -762,4 +762,42 @@ class TestRecord:
             html,
             "dl",
             {"class": "govuk-summary-list govuk-summary-list--record"},
+        )
+
+    @mock_aws
+    def test_record_view_renders(
+        self, app, client: FlaskClient, mock_all_access_user, record_files
+    ):
+        """
+        Given a File in the database
+        When a standard user with request to view the record render page
+        Then the response status code should be 200
+        And the HTML content should show the record view tab with
+        universal viewer displayed
+        """
+        mock_all_access_user(client)
+
+        file = record_files[1]["file_object"]
+
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-view")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        search_html = """
+        <div class="uv" id="uv">
+        </div>
+        """
+
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "uv"},
         )

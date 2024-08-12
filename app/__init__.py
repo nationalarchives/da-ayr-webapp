@@ -80,6 +80,21 @@ def create_app(config_class, database_uri=None):
             "'sha256-8Vn73Z5msbLVngI0nj0OnoRknDpixmr5Qqxqq1oVeyw='",  # pragma: allowlist secret
             "'sha256-1u1O/sNzLBXqLGKzuRbVTI5abqBQBfKsNv3bH5iXOkg='",  # pragma: allowlist secret
             "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
+            "'sha256-ylK9YBCBEaApMPzc82Ol5H/Hd5kmcv3wQlT3Y5m7Kn4='",  # pragma: allowlist secret
+        ],
+        "style-src-elem": [
+            SELF,
+            "https://cdn.jsdelivr.net/jsdelivr-header.css",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
+            "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
+            "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
+            "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
+            "'sha256-gNGYzcxL9BKlQFzUxh3BgvhKn2szEIFgg65uQvfaxiI='",  # pragma: allowlist secret
+            "'sha256-jcxDeNpsDPUI+dIIqUyA3VBoLgf3Mi2LkRWL/H61who='",  # pragma: allowlist secret
+            "'sha256-crS7z4MA9wqqtYsAtmJ6LiW05hz4QJTaokDTQAzc+Hs='",  # pragma: allowlist secret
+            "'sha256-8Vn73Z5msbLVngI0nj0OnoRknDpixmr5Qqxqq1oVeyw='",  # pragma: allowlist secret
+            "'sha256-1u1O/sNzLBXqLGKzuRbVTI5abqBQBfKsNv3bH5iXOkg='",  # pragma: allowlist secret
+            "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
         ],
         "worker-src": [
             "blob:",
