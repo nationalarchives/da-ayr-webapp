@@ -294,7 +294,16 @@
   font-size: 1rem;
 }
 
+.universal-viewer {
+  padding-bottom: 1rem;
+}
+
 .uv {
+  .mainPanel {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
   .mainPanel .leftPanel {
     border-right: 2px solid white;
     background-color: #0b0c0c !important;
