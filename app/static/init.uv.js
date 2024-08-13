@@ -74,7 +74,6 @@ document.addEventListener("DOMContentLoaded", function () {
   if (uvElement) {
     uvElement.style.width = "100%";
     uvElement.style.height = "60vh";
-    
 
     // Apply media query for small devices
     if (window.matchMedia("(max-width: 810px)").matches) {
