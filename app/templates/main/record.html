@@ -67,21 +67,23 @@
                     </div>
                 </div>
                 <div class="main-content" id="main-content" role="main">
-                    <div class="govuk-tabs" data-module="govuk-tabs">
-                        <ul class="govuk-tabs__list">
-                            {% if file_type == "iiif" %}
-                                <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
-                                    <a class="govuk-tabs__tab" href="#record-view">Record View</a>
+                    <div class="govuk-width-container">
+                        <div class="govuk-tabs" data-module="govuk-tabs">
+                            <ul class="govuk-tabs__list">
+                                {% if file_type == "iiif" %}
+                                    <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+                                        <a class="govuk-tabs__tab" href="#record-view">Record View</a>
+                                    </li>
+                                {% endif %}
+                                <li class="govuk-tabs__list-item">
+                                    <a class="govuk-tabs__tab" href="#record-details">Record Details</a>
                                 </li>
-                            {% endif %}
-                            <li class="govuk-tabs__list-item">
-                                <a class="govuk-tabs__tab" href="#record-details">Record Details</a>
-                            </li>
-                        </ul>
-                        <!-- Record View -->
-                        {% include "record-view.html" %}
-                        <!-- Record Details -->
-                        {% include "record-details.html" %}
+                            </ul>
+                            <!-- Record View -->
+                            {% include "record-view.html" %}
+                            <!-- Record Details -->
+                            {% include "record-details.html" %}
+                        </div>
                     </div>
                 </div>
             </div>
