@@ -208,7 +208,7 @@ def generate_image_manifest(s3_file_object, record_id):
                                     "height": height,
                                 },
                                 "on": f"""{url_for('main.download_record',
-                                                 record_id=record_id, _external=True, render=True)}""",
+                                                    record_id=record_id, _external=True, render=True)}""",
                             }
                         ],
                     }
