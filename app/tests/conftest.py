@@ -24,8 +24,13 @@ def mock_standard_user():
         "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
     )
 
-    def _mock_standard_user(client: FlaskClient, body: str = "test_body"):
+    def _mock_standard_user(
+        client: FlaskClient, body: str = "test_body", can_download: bool = False
+    ):
         groups = ["/ayr_user_type/view_dept", f"/transferring_body_user/{body}"]
+        if can_download:
+            groups = groups + ["/ayr_user_type/download"]
+
         with client.session_transaction() as session:
             session["access_token"] = "valid_access_token"
             session["refresh_token"] = "valid_refresh_token"
@@ -58,8 +63,11 @@ def mock_all_access_user():
         "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
     )
 
-    def _mock_all_access_user(client: FlaskClient):
+    def _mock_all_access_user(client: FlaskClient, can_download: bool = False):
         groups = ["/ayr_user_type/view_all"]
+
+        if can_download:
+            groups = groups + ["/ayr_user_type/download"]
 
         with client.session_transaction() as session:
             session["access_token"] = "valid_access_token"

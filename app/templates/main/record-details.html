@@ -11,12 +11,12 @@
         </div>
     </div>
     <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-rights">
+        {% if can_download_records %}
         <div class="rights-container">
             <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
             <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
                class="govuk-button govuk-button__download--record"
-               data-module="govuk-button">Download
-            record</a>
+               data-module="govuk-button">Download record</a>
             {% if download_filename %}
                 <p class="govuk-body govuk-body--download-filename">
                     The downloaded record will be named
@@ -28,6 +28,7 @@
                 Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
             </p>
         </div>
+        {% endif %}
     </div>
     <div class="govuk-grid-column-one-third govuk-grid-column-one-third--record mobile-record-layout-record-arrangement">
         <div class="record-container">

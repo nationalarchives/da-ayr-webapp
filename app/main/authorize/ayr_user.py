@@ -17,6 +17,10 @@ class AYRUser:
         return self.is_all_access_user or self.is_standard_user
 
     @property
+    def can_download_records(self) -> bool:
+        return "/ayr_user_type/download" in self.groups
+
+    @property
     def is_all_access_user(self) -> bool:
         return "/ayr_user_type/view_all" in self.groups
 
