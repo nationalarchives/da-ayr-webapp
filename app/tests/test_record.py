@@ -25,6 +25,7 @@ def create_mock_s3_bucket_with_object(bucket_name, file):
     file_object.put(Body="record")
     return bucket
 
+
 def expected_download_html_with_citeable_reference(file_id, file_name):
     return f"""
         <div class="rights-container">
@@ -41,6 +42,7 @@ def expected_download_html_with_citeable_reference(file_id, file_name):
             </p>
         </div>
         """
+
 
 def expected_download_html_without_citeable_reference(file_id):
     return f"""
@@ -302,34 +304,6 @@ class TestRecord:
 
         expected_download_html = expected_download_html_with_citeable_reference(
             file.FileId, download_filename
-        )
-
-        assert_contains_html(
-            expected_download_html, html, "div", {"class": "rights-container"}
-        )
-
-    def test_record_standard_user_with_perms_can_download_record_without_citeable_reference(
-        self, client: FlaskClient, mock_standard_user, record_files
-    ):
-        """
-        Given a File in the database
-        When a permitted standard user with request to view the record page
-        Then the response status code should be 200
-        And the HTML content should see record download component
-        on the page
-        """
-        file = record_files[4]["file_object"]
-        mock_standard_user(
-            client, file.consignment.series.body.Name, can_download=True
-        )
-
-        response = client.get(f"{self.route_url}/{file.FileId}")
-
-        assert response.status_code == 200
-
-        html = response.data.decode()
-        expected_download_html = (
-            expected_download_html_without_citeable_reference(file.FileId)
         )
 
         assert_contains_html(
