@@ -735,9 +735,9 @@ def record_files():
     there is a 1 consignment object associated with transferring body and series
       consignment_1 associated to body_1 and series_1
 
-    there are 5 file objects (1 to 5) associated with consignment
+    there are 6 file objects (1 to 5) associated with consignment
 
-    file_1, file_2, file_3 associated to consignment_1
+    file_1, file_2, file_3, file_6 associated to consignment_1
     """
 
     body_1 = BodyFactory(Name="first_body", Description="first_body")
@@ -1032,10 +1032,77 @@ def record_files():
         ),
     }
 
+    # PNG file with closure type - Open , but has closure start date and closure period - as it was once closed
+    file_6 = FileFactory(
+        consignment=consignment_1,
+        FileName="open_file_once_closed.png",
+        FileType="file",
+        FileReference="ABCDE",
+        FilePath="data/content/test_folder/open_file_once_closed.png",
+        CiteableReference="first_body/ABCDE",
+    )
+    file_6_metadata = {
+        "file_object": file_6,
+        "alternative_title": FileMetadataFactory(
+            file=file_6, PropertyName="title_alternate", Value="alternate title"
+        ),
+        "description": FileMetadataFactory(
+            file=file_6,
+            PropertyName="description",
+            Value="open once closed document file",
+        ),
+        "alternative_description": FileMetadataFactory(
+            file=file_6, PropertyName="description_alternate", Value="-"
+        ),
+        "closure_type": FileMetadataFactory(
+            file=file_6, PropertyName="closure_type", Value="Open"
+        ),
+        "date_last_modified": FileMetadataFactory(
+            file=file_6, PropertyName="date_last_modified", Value="2023-01-15"
+        ),
+        "opening_date": FileMetadataFactory(
+            file=file_6, PropertyName="opening_date", Value="2023-02-25"
+        ),
+        "closure_start_date": FileMetadataFactory(
+            file=file_6, PropertyName="closure_start_date", Value="2023-01-15"
+        ),
+        "closure_period": FileMetadataFactory(
+            file=file_6, PropertyName="closure_period", Value="10"
+        ),
+        "foi_exemption_code": FileMetadataFactory(
+            file=file_6, PropertyName="foi_exemption_code", Value="14(2)(b)"
+        ),
+        "former_reference": FileMetadataFactory(
+            file=file_6,
+            PropertyName="former_reference_department",
+            Value="former reference",
+        ),
+        "translated_title": FileMetadataFactory(
+            file=file_6, PropertyName="file_name_translation", Value="-"
+        ),
+        "held_by": FileMetadataFactory(
+            file=file_6,
+            PropertyName="held_by",
+            Value="The National Archives, Kew",
+        ),
+        "legal_status": FileMetadataFactory(
+            file=file_6, PropertyName="legal_status", Value="Public record(s)"
+        ),
+        "rights_copyright": FileMetadataFactory(
+            file=file_6,
+            PropertyName="rights_copyright",
+            Value="Crown copyright",
+        ),
+        "language": FileMetadataFactory(
+            file=file_6, PropertyName="language", Value="English"
+        ),
+    }
+
     return [
         file_1_metadata,
         file_2_metadata,
         file_3_metadata,
         file_4_metadata,
         file_5_metadata,
+        file_6_metadata,
     ]
