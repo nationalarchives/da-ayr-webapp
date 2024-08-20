@@ -87,7 +87,6 @@ class TestRoutes:
         self,
         app,
         client: FlaskClient,
-        mock_standard_user,
         mock_all_access_user,
         record_files,
     ):
@@ -106,10 +105,10 @@ class TestRoutes:
             "@context": ["http://iiif.io/api/presentation/3/context.json"],
             "behavior": ["individuals"],
             "description": "Manifest for open_file_once_closed.pdf",
-            "id": f"http://localhost/download/{file.FileId}?render=True",
+            "id": f"http://localhost/record/{file.FileId}/manifest?render=True",
             "items": [
                 {
-                    "id": f"http://localhost/download/{file.FileId}?render=True",
+                    "id": f"http://localhost/record/{file.FileId}/manifest?render=True",
                     "items": [
                         {
                             "id": f"http://localhost/download/{file.FileId}?render=True",

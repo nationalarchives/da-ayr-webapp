@@ -104,7 +104,7 @@ def generate_pdf_manifest(record_id):
         "@context": [
             "http://iiif.io/api/presentation/3/context.json",
         ],
-        "id": f"{url_for('main.download_record', record_id=record_id, _external=True, render=True)}",
+        "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True, render=True)}",
         "type": "Manifest",
         "label": {"none": [file_name]},
         "requiredStatement": {
@@ -116,7 +116,7 @@ def generate_pdf_manifest(record_id):
         "description": f"Manifest for {file_name}",
         "items": [
             {
-                "id": f"{url_for('main.download_record', record_id=record_id, _external=True, render=True)}",
+                "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True, render=True)}",
                 "type": "Canvas",
                 "label": {"en": ["test"]},
                 "items": [
