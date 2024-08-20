@@ -177,7 +177,7 @@ def generate_image_manifest(s3_file_object, record_id):
 
     manifest = {
         "@context": "http://iiif.io/api/presentation/2/context.json",
-        "@id": f"{url_for('main.download_record', record_id=record_id, _external=True)}",
+        "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
         "@type": "sc:Manifest",
         "label": filename,
         "description": f"Manifest for {filename}",

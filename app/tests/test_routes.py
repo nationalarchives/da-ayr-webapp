@@ -191,7 +191,7 @@ class TestRoutes:
 
         expected_image_manifest = {
             "@context": "http://iiif.io/api/presentation/2/context.json",
-            "@id": f"http://localhost/download/{file.FileId}",
+            "@id": f"http://localhost/record/{file.FileId}/manifest",
             "@type": "sc:Manifest",
             "description": f"Manifest for {file.FileName}",
             "label": file.FileName,
