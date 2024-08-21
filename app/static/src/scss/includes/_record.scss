@@ -362,7 +362,11 @@
 .record-view {
   &__banner-container {
     max-width: 472px;
-    padding: 31px 28px;
+    padding: 31px 19px;
+
+    @media screen and (width <= $breakpoint-medium) {
+      padding: 31px 28px;
+    }
   }
 }
 
