@@ -1,12 +1,29 @@
 from datetime import datetime
 
+import boto3
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
+from moto import mock_aws
 
 from app.tests.assertions import assert_contains_html
 
 db_date_format = "%Y-%m-%d"
 python_date_format = "%d/%m/%Y"
+
+
+def create_mock_s3_bucket_with_object(bucket_name, file):
+    """
+    Creates a dummy bucket to be used by tests
+    """
+    s3 = boto3.resource("s3", region_name="us-east-1")
+
+    bucket = s3.create_bucket(Bucket=bucket_name)
+
+    file_object = s3.Object(
+        bucket_name, f"{file.consignment.ConsignmentReference}/{file.FileId}"
+    )
+    file_object.put(Body="record")
+    return bucket
 
 
 def expected_download_html_with_citeable_reference(file_id, file_name):
@@ -57,12 +74,13 @@ class TestRecord:
 
         assert response.status_code == 404
 
+    @mock_aws
     def test_record_top_search(
-        self, client: FlaskClient, mock_all_access_user, record_files
+        self, app, client: FlaskClient, mock_all_access_user, record_files
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
         Then the response status code should be 200
         And the HTML content should show top search component
         on the page
@@ -71,7 +89,12 @@ class TestRecord:
 
         file = record_files[0]["file_object"]
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
@@ -113,18 +136,23 @@ class TestRecord:
             {"class": "search__container govuk-grid-column-full"},
         )
 
+    @mock_aws
     def test_record_breadcrumbs(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
         Then the response status code should be 200
         And the HTML content should show the breadcrumb values as
          All available records > transferring body > series > consignment reference > file name
         on the page
         """
         file = record_files[0]["file_object"]
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
         browse_all_route_url = "/browse"
@@ -134,7 +162,7 @@ class TestRecord:
         browse_series_route_url = f"{browse_all_route_url}/series"
         browse_consignment_route_url = f"{browse_all_route_url}/consignment"
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
@@ -142,7 +170,7 @@ class TestRecord:
 
         expected_breadcrumbs_html = f"""
         <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
-        <h2 class="govuk-body-m govuk-body-m__record-view">You are viewing</h2>
+        <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
 
         <div class="govuk-breadcrumbs govuk-breadcrumbs--file">
             <ol class="govuk-breadcrumbs__list">
@@ -178,22 +206,27 @@ class TestRecord:
             },
         )
 
+    @mock_aws
     def test_record_record_arrangement(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
         Then the response status code should be 200
         And the HTML content should see record arrangement based on file path
         on the page
         """
         file = record_files[0]["file_object"]
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
         record_path_details = file.FilePath.split("/")
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
@@ -246,6 +279,7 @@ class TestRecord:
             expected_download_html, html, "div", {"class": "rights-container"}
         )
 
+    @mock_aws
     def test_record_standard_user_with_perms_can_download_record_with_citeable_reference(
         self, client: FlaskClient, mock_standard_user, record_files
     ):
@@ -323,25 +357,30 @@ class TestRecord:
         button = soup.find("a", string="Download record")
         assert button is None
 
+    @mock_aws
     def test_record_summary_list_open_file(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
             and record closure type is 'Open' (never closed)
         Then the response status code should be 200
         And the HTML content should see summary list with specific items
         on the page
         """
         file = record_files[0]["file_object"]
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_standard_user(client, file.consignment.series.body.Name)
         date_last_modified = datetime.strptime(
             record_files[0]["date_last_modified"].Value, db_date_format
         ).strftime(python_date_format)
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
@@ -448,18 +487,23 @@ class TestRecord:
             {"class": "govuk-summary-list govuk-summary-list--record"},
         )
 
+    @mock_aws
     def test_record_summary_list_open_closed_before_file(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
             and record closure type is 'Open' (once closed or close before)
         Then the response status code should be 200
         And the HTML content should see summary list with specific items
         on the page
         """
         file = record_files[1]["file_object"]
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -473,7 +517,7 @@ class TestRecord:
             record_files[1]["date_last_modified"].Value, db_date_format
         ).strftime(python_date_format)
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
@@ -610,18 +654,24 @@ class TestRecord:
             {"class": "govuk-summary-list govuk-summary-list--record"},
         )
 
+    @mock_aws
     def test_record_summary_list_closed_file(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user, record_files
     ):
         """
         Given a File in the database
-        When a standard user with request to view the record page
+        When a standard user with request to view the record details page
             and record closure type is 'Closed'
         Then the response status code should be 200
         And the HTML content should see summary list with specific items
         on the page
         """
         file = record_files[2]["file_object"]
+
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -637,7 +687,7 @@ class TestRecord:
             record_files[1]["date_last_modified"].Value, db_date_format
         ).strftime(python_date_format)
 
-        response = client.get(f"{self.route_url}/{file.FileId}")
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
@@ -772,4 +822,42 @@ class TestRecord:
             html,
             "dl",
             {"class": "govuk-summary-list govuk-summary-list--record"},
+        )
+
+    @mock_aws
+    def test_record_view_renders(
+        self, app, client: FlaskClient, mock_all_access_user, record_files
+    ):
+        """
+        Given a File in the database
+        When a standard user with request to view the record render page
+        Then the response status code should be 200
+        And the HTML content should show the record view tab with
+        universal viewer displayed
+        """
+        mock_all_access_user(client)
+
+        file = record_files[1]["file_object"]
+
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-view")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        search_html = """
+        <div class="uv" id="uv">
+        </div>
+        """
+
+        assert_contains_html(
+            search_html,
+            html,
+            "div",
+            {"class": "uv"},
         )

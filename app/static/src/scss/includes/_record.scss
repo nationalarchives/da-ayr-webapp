@@ -1,5 +1,16 @@
 /* SCSS for Record page */
 
+.govuk-tabs__list-item {
+  &::before {
+    content: none;
+  }
+}
+
+.mobileFooterPanel {
+  background: white;
+  border: white;
+}
+
 .govuk-width-container {
   &--desktop-record {
     display: flex;
@@ -257,6 +268,101 @@
   margin-top: -2rem;
 }
 
+.govuk-tabs__panel__record-details {
+  display: flow-root;
+  padding: 1rem !important;
+}
+
+.govuk-tabs__panel {
+  padding: "3rem 0:0";
+}
+
+.js-enabled .govuk-tabs__panel {
+  padding: 0;
+}
+
+.btn {
+  color: white;
+}
+
+.headerPanel .options {
+  border-bottom: 2px solid white;
+}
+
+.mode {
+  width: 3rem;
+  font-size: 1rem;
+}
+
+.universal-viewer {
+  padding-bottom: 1rem;
+}
+
+.uv {
+  .mainPanel {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-top: 0 !important;
+    background-color: #0b0c0c !important;
+  }
+
+  .mainPanel .leftPanel {
+    border-right: 2px solid white;
+    background-color: #0b0c0c !important;
+  }
+
+  .headerPanel .centerOptions .mode {
+    font-size: 1rem;
+  }
+
+  .headerPanel .centerOptions .autocompleteText {
+    text-align: center;
+  }
+
+  .btn-primary {
+    color: #00703c;
+    background-color: #00703c !important;
+    border-color: #00703c !important;
+  }
+
+  .centerPanel .title {
+    padding-left: 2rem !important;
+  }
+
+  .headerPanel .options {
+    background-color: #0b0c0c !important;
+  }
+}
+
+.uv-iiif-extension-host.uv-pdf-extension
+  .headerPanel
+  .centerOptions
+  .search
+  .searchText {
+  text-align: center;
+}
+
+.uv-icon-settings {
+  display: none !important;
+}
+
+.thumb.selected .wrap {
+  border: 5px solid yellow !important;
+}
+
+.record-view-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.record-view-download-btn {
+  margin: 1rem;
+}
+
+.govuk-tabs__panel__record-html-view {
+  padding: 1rem !important;
+}
+
 //  MOBILE STYLES //
 
 @media screen and (width <= $breakpoint-medium) {
@@ -380,6 +486,10 @@
   .search__container__content {
     margin-top: 0;
   }
+
+  .uv-iiif-extension-host {
+    background: white;
+  }
 }
 
 @media (400px <= width <= $breakpoint-small) {
@@ -447,5 +557,9 @@
       text-align: left;
       display: table-cell;
     }
+  }
+
+  .uv-iiif-extension-host {
+    background: white;
   }
 }

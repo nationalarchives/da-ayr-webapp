@@ -14,7 +14,7 @@ from flask import (
     url_for,
 )
 from sqlalchemy import func
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import BadRequest, HTTPException
 
 from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
@@ -31,7 +31,6 @@ from app.main.db.queries import (
     build_browse_series_query,
     build_fuzzy_search_summary_query,
     build_fuzzy_search_transferring_body_query,
-    get_file_metadata,
 )
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
@@ -41,6 +40,15 @@ from app.main.util.filter_sort_builder import (
     build_browse_consignment_filters,
     build_filters,
     build_sorting_orders,
+)
+from app.main.util.render_utils import (
+    generate_breadcrumb_values,
+    generate_image_manifest,
+    generate_pdf_manifest,
+    get_download_filename,
+    get_file_details,
+    get_file_mimetype,
+    manage_static_file,
 )
 
 from .forms import SearchForm
@@ -601,28 +609,20 @@ def record(record_id: uuid.UUID):
 
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
-    file_metadata = get_file_metadata(record_id)
+    file_metadata, file_type, file_extension = get_file_details(file)
 
-    file = db.session.get(File, record_id)
-    consignment = file.consignment
-    body = consignment.series.body
-    series = consignment.series
-    breadcrumb_values = {
-        0: {"transferring_body_id": body.BodyId},
-        1: {"transferring_body": body.Name},
-        2: {"series_id": series.SeriesId},
-        3: {"series": series.Name},
-        4: {"consignment_id": consignment.ConsignmentId},
-        5: {"consignment_reference": consignment.ConsignmentReference},
-        6: {"file_name": file.FileName},
-    }
+    breadcrumb_values = generate_breadcrumb_values(file)
 
-    download_filename = None
-    if file.CiteableReference:
-        if len(file.FileName.rsplit(".", 1)) > 1:
-            download_filename = (
-                file.CiteableReference + "." + file.FileName.rsplit(".", 1)[1]
-            )
+    download_filename = get_download_filename(file)
+
+    manifest_url = url_for(
+        "main.generate_manifest", record_id=record_id, _external=True
+    )
+
+    try:
+        manage_static_file(file, file_extension)
+    except Exception as e:
+        current_app.logger.info(f"Error with file IO: {e}")
 
     return render_template(
         "record.html",
@@ -632,6 +632,9 @@ def record(record_id: uuid.UUID):
         download_filename=download_filename,
         can_download_records=can_download_records,
         filters={},
+        file_type=file_type,
+        manifest_url=manifest_url,
+        file_extension=file_extension,
     )
 
 
@@ -639,6 +642,7 @@ def record(record_id: uuid.UUID):
 @access_token_sign_in_required
 def download_record(record_id: uuid.UUID):
     file = db.session.get(File, record_id)
+    render = request.args.get("render", False)
     ayr_user = AYRUser(session.get("user_groups"))
     can_download_records = ayr_user.can_download_records
 
@@ -670,18 +674,27 @@ def download_record(record_id: uuid.UUID):
 
     try:
         file_content = s3_file_object["Body"].read()
+        file_type = download_filename.split(".")[-1].lower()
     except Exception as e:
         current_app.logger.error(f"Error reading S3 file content: {e}")
         abort(500)
 
     content_type = s3_file_object.get("ContentType", "application/octet-stream")
 
-    response = send_file(
-        io.BytesIO(file_content),
-        mimetype=content_type,
-        as_attachment=True,
-        download_name=download_filename,
-    )
+    if render:
+        return send_file(
+            io.BytesIO(file_content),
+            mimetype=get_file_mimetype(file_type),
+            as_attachment=False,
+            download_name=download_filename,
+        )
+    else:
+        response = send_file(
+            io.BytesIO(file_content),
+            mimetype=content_type,
+            as_attachment=True,
+            download_name=download_filename,
+        )
     current_app.logger.info(
         json.dumps({"user_id": session["user_id"], "file": key})
     )
@@ -716,3 +729,31 @@ def terms_of_use():
 @bp.app_errorhandler(HTTPException)
 def http_exception(error):
     return render_template(f"{error.code}.html"), error.code
+
+
+@bp.route("/record/<uuid:record_id>/manifest")
+@access_token_sign_in_required
+def generate_manifest(record_id: uuid.UUID):
+    file = db.session.get(File, record_id)
+
+    if file is None:
+        abort(404)
+
+    validate_body_user_groups_or_404(file.consignment.series.body.Name)
+
+    s3 = boto3.client("s3")
+    bucket = current_app.config["RECORD_BUCKET_NAME"]
+
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+
+    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+
+    filename = file.FileName
+    file_type = filename.split(".")[-1].lower()
+
+    if file_type == "pdf":
+        return generate_pdf_manifest(record_id)
+    elif file_type in ["png", "jpg", "jpeg"]:
+        return generate_image_manifest(s3_file_object, record_id)
+    else:
+        return http_exception(BadRequest())
