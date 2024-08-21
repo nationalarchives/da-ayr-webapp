@@ -83,6 +83,8 @@ def create_app(config_class, database_uri=None):
         ],
         "style-src-elem": [
             SELF,
+            "https://dfnwzvjz3kfu4.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
+            "https://dfnwzvjz3kfu4.cloudfront.net/assets/src/css/main.css",
             "https://cdn.jsdelivr.net/jsdelivr-header.css",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
             "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
