@@ -16,14 +16,20 @@
   background-color: #dbeff9;
   border-left: 10px solid #2b8cc4;
 
+  // todo: make a dedicated file for mixins
+  @mixin no-margin-block {
+    margin-block: 0;
+  }
+
   &__heading {
+    @include no-margin-block;
     font-size: 20px;
     font-weight: 700;
     color: black;
-    margin-block: none;
   }
 
   &__message {
+    @include no-margin-block;
     font-size: 16px;
     color: black;
     margin-block: none;

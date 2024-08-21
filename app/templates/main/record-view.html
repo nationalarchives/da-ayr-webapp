@@ -35,6 +35,8 @@
             </script>
         </div>
     {% else %}
-        <div class="record-view__banner-container"></div>
+        <div class="record-view__banner-container">
+            {{ banner.alertBanner('error', 'Unable to display this record', 'We cannot currently render this file type.') }}
+        </div>
     {% endif %}
 </div>

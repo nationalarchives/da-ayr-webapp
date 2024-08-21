@@ -251,6 +251,66 @@ class TestRecord:
             {"class": "record-container"},
         )
 
+    @mock_aws
+    def test_record_record_alert_banner_is_visible_when_unsupported_file_extension(
+        self, app, client: FlaskClient, mock_standard_user, record_files
+    ):
+        """
+        Given a File in the database
+        When a standard user with request to view the record details page
+        Then the response status code should be 200
+        If the extension of the File requested is not compatible with IIIF
+        Then the alert banner responsible with alerting the user should be visible
+        """
+
+        # index 6 is .foobar
+        file = record_files[6]["file_object"]
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        soup = BeautifulSoup(html, "html.parser")
+        banner = soup.find("h2", string="Unable to display this record")
+        assert banner is not None
+
+    @mock_aws
+    def test_record_record_alert_banner_is_not_visible_when_supported_file_extension(
+        self, app, client: FlaskClient, mock_standard_user, record_files
+    ):
+        """
+        Given a File in the database
+        When a standard user with request to view the record details page
+        Then the response status code should be 200
+        If the extension of the File requested is compatible with IIIF
+        Then the alert banner responsible with alerting the user should NOT be visible
+        """
+
+        # index 1 is .pdf
+        file = record_files[1]["file_object"]
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        soup = BeautifulSoup(html, "html.parser")
+        banner = soup.find("h2", string="Unable to display this record")
+        assert banner is None
+
     def test_record_standard_user_with_perms_can_download_record_without_citeable_reference(
         self, client: FlaskClient, mock_standard_user, record_files
     ):
