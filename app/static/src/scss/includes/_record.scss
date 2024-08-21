@@ -359,6 +359,13 @@
   margin: 1rem;
 }
 
+.record-view {
+  &__banner-container {
+    max-width: 472px;
+    padding: 31px 28px;
+  }
+}
+
 .govuk-tabs__panel__record-html-view {
   padding: 1rem !important;
 }

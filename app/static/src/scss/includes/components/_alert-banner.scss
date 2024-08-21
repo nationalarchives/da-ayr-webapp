@@ -1,0 +1,43 @@
+.ayr-alert-banner {
+  // size
+  width: 100%;
+  height: auto;
+
+  // layout
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 13px 21px;
+  box-sizing: border-box;
+  text-align: left;
+  font-family: "GDS Transport", sans-serif;
+
+  // default bg and border (info level)
+  background-color: #dbeff9;
+  border-left: 10px solid #2b8cc4;
+
+  &__heading {
+    font-size: 20px;
+    font-weight: 700;
+    color: black;
+    margin-block: none;
+  }
+
+  &__message {
+    font-size: 16px;
+    color: black;
+    margin-block: none;
+    font-weight: 400;
+  }
+
+  // extra variants
+  &--error {
+    background-color: #f3dede;
+    border-left: 10px solid #c42b2b;
+  }
+
+  &--success {
+    background-color: #c6ece9;
+    border-left: 10px solid #28a197;
+  }
+}
