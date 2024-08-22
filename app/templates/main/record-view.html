@@ -1,5 +1,6 @@
-{% if file_type == "iiif" %}
-    <div class="govuk-tabs__panel" id="record-view">
+{% import "components/banners.html" as banners %}
+<div class="govuk-tabs__panel" id="record-view">
+    {% if file_type == "iiif" %}
         <div class="record-view-header">
             {% if can_download_records %}
                 <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
@@ -33,5 +34,9 @@
             <script id="init-uv" nonce="{{ csp_nonce() }}" manifest_url="{{ manifest_url }}" type="text/javascript" src="{{ url_for('static', filename='init.uv.js') }}">
             </script>
         </div>
-    </div>
-{% endif %}
+    {% else %}
+        <div class="record-view__banner-container">
+            {{ banners.alertBanner('error', 'Unable to display this record', 'We cannot currently render this file type.') }}
+        </div>
+    {% endif %}
+</div>
