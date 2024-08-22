@@ -1098,72 +1098,6 @@ def record_files():
         ),
     }
 
-    # file with format thats not supported by IIIF
-    file_7 = FileFactory(
-        consignment=consignment_1,
-        FileName="open_file_once_closed.foobar",
-        FileType="file",
-        FileReference="ABCDE",
-        FilePath="data/content/test_folder/open_file_once_closed.foobar",
-        CiteableReference="first_body/ABCDE",
-    )
-    file_7_metadata = {
-        "file_object": file_7,
-        "alternative_title": FileMetadataFactory(
-            file=file_7, PropertyName="title_alternate", Value="alternate title"
-        ),
-        "description": FileMetadataFactory(
-            file=file_7,
-            PropertyName="description",
-            Value="open once closed document file",
-        ),
-        "alternative_description": FileMetadataFactory(
-            file=file_7, PropertyName="description_alternate", Value="-"
-        ),
-        "closure_type": FileMetadataFactory(
-            file=file_7, PropertyName="closure_type", Value="Open"
-        ),
-        "date_last_modified": FileMetadataFactory(
-            file=file_7, PropertyName="date_last_modified", Value="2023-01-15"
-        ),
-        "opening_date": FileMetadataFactory(
-            file=file_7, PropertyName="opening_date", Value="2023-02-25"
-        ),
-        "closure_start_date": FileMetadataFactory(
-            file=file_7, PropertyName="closure_start_date", Value="2023-01-15"
-        ),
-        "closure_period": FileMetadataFactory(
-            file=file_7, PropertyName="closure_period", Value="10"
-        ),
-        "foi_exemption_code": FileMetadataFactory(
-            file=file_7, PropertyName="foi_exemption_code", Value="14(2)(b)"
-        ),
-        "former_reference": FileMetadataFactory(
-            file=file_7,
-            PropertyName="former_reference_department",
-            Value="former reference",
-        ),
-        "translated_title": FileMetadataFactory(
-            file=file_7, PropertyName="file_name_translation", Value="-"
-        ),
-        "held_by": FileMetadataFactory(
-            file=file_7,
-            PropertyName="held_by",
-            Value="The National Archives, Kew",
-        ),
-        "legal_status": FileMetadataFactory(
-            file=file_7, PropertyName="legal_status", Value="Public record(s)"
-        ),
-        "rights_copyright": FileMetadataFactory(
-            file=file_7,
-            PropertyName="rights_copyright",
-            Value="Crown copyright",
-        ),
-        "language": FileMetadataFactory(
-            file=file_7, PropertyName="language", Value="English"
-        ),
-    }
-
     return [
         file_1_metadata,
         file_2_metadata,
@@ -1171,5 +1105,4 @@ def record_files():
         file_4_metadata,
         file_5_metadata,
         file_6_metadata,
-        file_7_metadata,
     ]
