@@ -6,6 +6,7 @@ from flask.testing import FlaskClient
 from moto import mock_aws
 
 from app.tests.assertions import assert_contains_html
+from app.tests.factories import FileFactory
 
 db_date_format = "%Y-%m-%d"
 python_date_format = "%d/%m/%Y"
@@ -263,8 +264,13 @@ class TestRecord:
         Then the alert banner responsible with alerting the user should be visible
         """
 
-        # index 6 is .foobar
-        file = record_files[6]["file_object"]
+        file = FileFactory(
+            FileName="open_file_once_closed.foobar",
+            FileType="file",
+            FileReference="ABCDE",
+            FilePath="data/content/test_folder/open_file_once_closed.foobar",
+            CiteableReference="first_body/ABCDE",
+        )
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -293,8 +299,14 @@ class TestRecord:
         Then the alert banner responsible with alerting the user should NOT be visible
         """
 
-        # index 1 is .pdf
-        file = record_files[1]["file_object"]
+        file = FileFactory(
+            FileName="open_file_once_closed.pdf",
+            FileType="file",
+            FileReference="ABCDE",
+            FilePath="data/content/test_folder/open_file_once_closed.pdf",
+            CiteableReference="first_body/ABCDE",
+        )
+
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name

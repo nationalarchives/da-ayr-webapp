@@ -169,44 +169,6 @@ class TestRecord:
 
         expect(button).to_be_hidden()
 
-    def test_record_alert_banner_is_visible_with_unsupported_file_extension(
-        self, standard_user_page: Page
-    ):
-        """
-        Scenario: Visibility of alert banner when requested file
-
-        Given the user navigates to the record page with ID "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
-        When the requested file does NOT have an extension supported by IIIF
-        Then the alert banner is visible
-        """
-        record_id = "b9a8f847-ce98-4894-8c48-3986570dec7d"
-        standard_user_page.goto(f"{self.route_url}/{record_id}")
-
-        heading = standard_user_page.get_by_role(
-            "heading", name="Unable to display this record"
-        )
-
-        expect(heading).to_be_visible()
-
-    def test_record_alert_banner_is_not_visible_with_supported_file_extension(
-        self, standard_user_page: Page
-    ):
-        """
-        Scenario: Visibility of alert banner when requested file
-
-        Given the user navigates to the record page with ID "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
-        When the requested file does have an extension supported by IIIF
-        Then the alert banner is NOT visible
-        """
-        record_id = "cc3a458b-123d-4b01-b7e5-787a05dfd7a7"
-        standard_user_page.goto(f"{self.route_url}/{record_id}")
-
-        heading = standard_user_page.get_by_role(
-            "heading", name="Unable to display this record"
-        )
-
-        expect(heading).to_be_hidden()
-
     def test_record_download_record(
         self, standard_user_page_with_download: Page
     ):
