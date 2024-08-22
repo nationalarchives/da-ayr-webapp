@@ -267,9 +267,6 @@ class TestRecord:
         file = FileFactory(
             FileName="open_file_once_closed.foobar",
             FileType="file",
-            FileReference="ABCDE",
-            FilePath="data/content/test_folder/open_file_once_closed.foobar",
-            CiteableReference="first_body/ABCDE",
         )
         bucket_name = "test_bucket"
 
@@ -302,9 +299,6 @@ class TestRecord:
         file = FileFactory(
             FileName="open_file_once_closed.pdf",
             FileType="file",
-            FileReference="ABCDE",
-            FilePath="data/content/test_folder/open_file_once_closed.pdf",
-            CiteableReference="first_body/ABCDE",
         )
 
         bucket_name = "test_bucket"
