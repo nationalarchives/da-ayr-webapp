@@ -5,7 +5,8 @@
             {% if can_download_records %}
                 <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
                    class="govuk-button govuk-button__download--record record-view-download-btn"
-                   data-module="govuk-button">Download record</a>
+                   data-module="govuk-button"
+                   aria-label="Download record {{ record['file_name'] }}">Download record</a>
             {% endif %}
         </div>
         <div class="universal-viewer" id="viewer">

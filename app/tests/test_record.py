@@ -27,16 +27,19 @@ def create_mock_s3_bucket_with_object(bucket_name, file):
     return bucket
 
 
-def expected_download_html_with_citeable_reference(file_id, file_name):
+def expected_download_html_with_citeable_reference(
+    file_id, file_name_download, file_name
+):
     return f"""
         <div class="rights-container">
             <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
             <a href="/download/{file_id}"
                 class="govuk-button govuk-button__download--record"
-                data-module="govuk-button">Download record</a>
+                data-module="govuk-button"
+                aria-label="Download record {file_name}">Download record</a>
             <p class="govuk-body govuk-body--download-filename">
                 The downloaded record will be named<br>
-                <strong>{file_name}</strong>
+                <strong>{file_name_download}</strong>
             </p>
             <p class="govuk-body govuk-body--terms-of-use">
                 Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
@@ -45,13 +48,14 @@ def expected_download_html_with_citeable_reference(file_id, file_name):
         """
 
 
-def expected_download_html_without_citeable_reference(file_id):
+def expected_download_html_without_citeable_reference(file_id, file_name):
     return f"""
         <div class="rights-container">
             <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
             <a href="/download/{file_id}"
                 class="govuk-button govuk-button__download--record"
-                data-module="govuk-button">Download record</a>
+                data-module="govuk-button"
+                aria-label="Download record {file_name}">Download record</a>
             <p class="govuk-body govuk-body--terms-of-use">
                 Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
             </p>
@@ -338,7 +342,9 @@ class TestRecord:
 
         html = response.data.decode()
         expected_download_html = (
-            expected_download_html_without_citeable_reference(file.FileId)
+            expected_download_html_without_citeable_reference(
+                file.FileId, file.FileName
+            )
         )
 
         assert_contains_html(
@@ -369,7 +375,7 @@ class TestRecord:
         html = response.data.decode()
 
         expected_download_html = expected_download_html_with_citeable_reference(
-            file.FileId, download_filename
+            file.FileId, download_filename, file.FileName
         )
 
         assert_contains_html(
