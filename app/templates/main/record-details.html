@@ -16,7 +16,8 @@
                 <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
                 <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
                    class="govuk-button govuk-button__download--record"
-                   data-module="govuk-button">Download record</a>
+                   data-module="govuk-button"
+                   aria-label="Download record {{ record['file_name'] }}">Download record</a>
                 {% if download_filename %}
                     <p class="govuk-body govuk-body--download-filename">
                         The downloaded record will be named
