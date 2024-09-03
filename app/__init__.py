@@ -83,10 +83,16 @@ def create_app(config_class, database_uri=None):
         ],
         "style-src-elem": [
             SELF,
-            "https://dfnwzvjz3kfu4.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
-            "https://dfnwzvjz3kfu4.cloudfront.net/assets/src/css/main.css",
+            f"{app.config['FLASKS3_CDN_DOMAIN']}",
             "https://cdn.jsdelivr.net/jsdelivr-header.css",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
+            "https://dfnwzvjz3kfu4.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
+            "https://dfnwzvjz3kfu4.cloudfront.net/assets/src/css/main.css",
+            # ----int instance styles----
+            "https://d2tm6k52k7dws9.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
+            "https://d2tm6k52k7dws9.cloudfront.net/assets/src/css/main.css",
+            "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
+            # ---------------------------
             "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
             "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
             "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
