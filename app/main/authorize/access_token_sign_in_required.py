@@ -1,7 +1,8 @@
+import os
 from functools import wraps
 
 import keycloak
-from flask import flash, g, redirect, session, url_for
+from flask import flash, g, redirect, request, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
 from app.main.flask_config_helpers import (
@@ -12,6 +13,9 @@ from app.main.flask_config_helpers import (
 def access_token_sign_in_required(view_func):
     """
     Decorator that checks if the user is logged in via Keycloak and has access to AYR.
+
+    If the PERF_TEST environment variable is True, the decorator checks for the access token
+    in the request header. Otherwise, it checks the session for the token.
 
     This decorator is typically applied to view functions that require authentication via Keycloak
     and access to the AYR application. It checks for the presence of an access token in the session,
@@ -40,31 +44,53 @@ def access_token_sign_in_required(view_func):
     def decorated_view(*args, **kwargs):
         g.access_token_sign_in_required = True  # Set attribute on g
 
-        access_token = session.get("access_token")
-        refresh_token = session.get("refresh_token")
-        try:
-            (
-                access_token,
-                refresh_token,
-                tokens_are_refreshed,
-            ) = _validate_or_refresh_tokens(access_token, refresh_token)
-        except InvalidAccessToken:
+        # Determine whether to get the token from the header or session
+        if os.getenv("PERF_TEST", "False") == "True":
+            # In performance testing mode, get the token from the header
+            access_token = request.headers.get("Authorization")
+            if access_token and access_token.startswith("Bearer "):
+                access_token = access_token[len("Bearer ") :]
+                refresh_token = None
+            else:
+                access_token = None
+                refresh_token = None
+        else:
+            # In normal mode, get the token from the session
+            access_token = session.get("access_token")
+            refresh_token = session.get("refresh_token")
+
+        # If no access token or refresh token, clear session and redirect to sign in
+        if not access_token and not refresh_token:
             session.clear()
             return redirect(url_for("main.sign_in"))
 
-        if tokens_are_refreshed:
-            session["access_token"] = access_token
-            session["refresh_token"] = refresh_token
-            keycloak_openid = get_keycloak_instance_from_flask_config()
-            decoded_access_token = keycloak_openid.introspect(access_token)
-            session["user_groups"] = decoded_access_token["groups"]
-            ayr_user = AYRUser(session.get("user_groups"))
-            if ayr_user.is_all_access_user:
-                session["user_type"] = "all_access_user"
-            else:
-                session["user_type"] = "standard_user"
+        try:
+            # Validate or refresh tokens based on the retrieved access token
+            access_token, refresh_token, tokens_are_refreshed = (
+                _validate_or_refresh_tokens(access_token, refresh_token)
+            )
+        except InvalidAccessToken:
+            session.clear()  # Clear session if token is invalid
+            return redirect(url_for("main.sign_in"))
 
-        ayr_user = AYRUser(session["user_groups"])
+        if tokens_are_refreshed:
+            # If tokens are refreshed, update session tokens (only in non-PERF_TEST mode)
+            if os.getenv("PERF_TEST", "False") != "True":
+                session["access_token"] = access_token
+                session["refresh_token"] = refresh_token
+
+        # Decode access token and check user permissions
+        keycloak_openid = get_keycloak_instance_from_flask_config()
+        decoded_access_token = keycloak_openid.introspect(access_token)
+        session["user_groups"] = decoded_access_token["groups"]
+
+        ayr_user = AYRUser(session.get("user_groups"))
+        if ayr_user.is_all_access_user:
+            session["user_type"] = "all_access_user"
+        else:
+            session["user_type"] = "standard_user"
+
+        # If the user doesn't have access, flash a message and redirect to index
 
         if not ayr_user.can_access_ayr:
             flash(
@@ -82,8 +108,13 @@ def access_token_sign_in_required(view_func):
 def _validate_or_refresh_tokens(access_token, refresh_token):
     tokens_are_refreshed = False
 
-    if not (access_token and refresh_token):
-        raise InvalidAccessToken
+    # PERFORMANCE TEST MODE
+    if os.getenv("PERF_TEST", "False") == "True":
+        if not (access_token):
+            raise InvalidAccessToken
+    else:  # NORMAL MODE
+        if not (access_token and refresh_token):
+            raise InvalidAccessToken
 
     keycloak_openid = get_keycloak_instance_from_flask_config()
 
