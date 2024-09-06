@@ -1,4 +1,4 @@
-import random
+import secrets
 
 from locust import HttpUser, between, task
 
@@ -90,7 +90,8 @@ class KeycloakUser(HttpUser):
                 "/record/ea8a6ad6-5362-4346-a86d-22a52b9fc0c5#record-details",
             ]
 
-            url = random.choice(urls)
+            # Use secrets.choice for cryptographic randomness
+            url = secrets.choice(urls)
 
             with self.client.get(
                 url, headers=headers, catch_response=True, verify=False
