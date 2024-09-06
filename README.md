@@ -192,6 +192,7 @@ Properties configurable at runtime:
 - `FLASKS3_ACTIVE`: whether to fetch static assets from s3/Cloudfront rather than the usual `url_for`.
 - `FLASKS3_CDN_DOMAIN`: CDN domain to fetch assets from if `FLASKS3_ACTIVE` is set to `True`
 - `FLASKS3_BUCKET_NAME`: S3 bucket assets are uploaded to and served to Cloudfront from.
+- `PERF_TEST`: Enable to allow access tokens generated via API to be accepted for performance testing.
 
 Calculated values:
 
@@ -479,6 +480,26 @@ e.g.:
 `
 def test_css_has_title(page: Page):
 `
+
+### Performance Tests
+
+Performance tests have been set up with Locust: https://github.com/locustio/locust
+
+The following ENV Vars are required:
+
+- CERT_PATH=False
+- AYR_AAU_USER_USERNAME=""
+- AYR_AAU_USER_PASSWORD=""
+- KEYCLOAK_AUTH_URL="https://example.co.uk/realms/realm-name/protocol/openid-connect/token"
+- KEYCLOAK_CLIENT_ID=""
+- KEYCLOAK_CLIENT_SECRET=""
+
+1. Run the flask app on a specific environment LOCAL / INT / TEST
+2. Ensure Locust is installed with `pip install locust`
+3. Run locust with the following command: `locust --host=https://127.0.0.1:5000`
+4. Ensure the ENV variable PERF_TEST = True
+5. Access locust via the provided URL and start a new test with the required amount of users
+
 
 ## Logging
 
