@@ -83,7 +83,9 @@ class KeycloakUser(HttpUser):
                 "/browse/transferring_body/c3e3fd83-4d52-4638-a085-1f4e4e4dfa50",
                 "/browse/series/1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7",
                 "/browse/consignment/016031db-1398-4fe4-b743-630aa82ea32a",
-                "/browse/transferring_body/c3e3fd83-4d52-4638-a085-1f4e4e4dfa50?sort=series-asc&series_filter=TSTA&date_from_day=&date_from_month=&date_from_year=&date_to_day=&date_to_month=&date_to_year=#browse-records",
+                """/browse/transferring_body/c3e3fd83-4d52-4638-a085-1f4e4e4dfa50?sort=
+                series-asc&series_filter=TSTA&date_from_day=&date_from_month=&date_from_year
+                =&date_to_day=&date_to_month=&date_to_year=#browse-records""",
                 "/record/ea8a6ad6-5362-4346-a86d-22a52b9fc0c5#record-view",
                 "/record/ea8a6ad6-5362-4346-a86d-22a52b9fc0c5#record-details",
             ]
