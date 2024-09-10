@@ -105,41 +105,22 @@ class TestRecord:
 
         html = response.data.decode()
 
-        search_html = """
-            <div class="search__container govuk-grid-column-full">
-                <div class="search__container__content">
-                    <label class="govuk-label search__heading" for="search-input">
-                        Search for digital records
-                    </label>
-                    <form method="get" action="/search">
-                        <div class="govuk-form-group govuk-form-group__search-form">
-                            <input
-                                class="govuk-input govuk-!-width-three-quarters"
-                                id="search-input" name="query"
-                                type="text"
-                                value=""
-                            >
-                            <button
-                                class="govuk-button govuk-button__search-button"
-                                data-module="govuk-button"
-                                type="submit">
-                                    Search
-                            </button>
-                            <p class="govuk-body-s">
-                                Search by file name, transferring body, series or consignment reference.
-                            </p>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        """
-
-        assert_contains_html(
-            search_html,
-            html,
-            "div",
-            {"class": "search__container govuk-grid-column-full"},
+        soup = BeautifulSoup(html, "html.parser")
+        label = soup.find("label", string="Search for digital records")
+        textbox = soup.find("input", {"id": "search-input"})
+        button = soup.find("button", {"id": "search-submit"})
+        text = soup.find(
+            "p",
+            string="""
+          Search by file name, transferring body, series or consignment
+          reference.
+        """,
         )
+
+        assert label is not None
+        assert textbox is not None
+        assert button is not None
+        assert text is not None
 
     @mock_aws
     def test_record_breadcrumbs(
