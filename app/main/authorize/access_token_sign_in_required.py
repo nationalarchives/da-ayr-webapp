@@ -46,7 +46,10 @@ def access_token_sign_in_required(view_func):
             access_token = request.headers.get("Authorization")
             if access_token and access_token.startswith("Bearer "):
                 access_token[len("Bearer ") :]
+                session["access_token"] = access_token
                 refresh_token = None
+                session["user_type"] = "all_access_user"
+                session["user_groups"] = "/ayr_user_type/view_all"
         else:
             access_token = session.get("access_token")
             refresh_token = session.get("refresh_token")
@@ -64,7 +67,10 @@ def access_token_sign_in_required(view_func):
             session["access_token"] = access_token
             session["refresh_token"] = refresh_token
             keycloak_openid = get_keycloak_instance_from_flask_config()
-            decoded_access_token = keycloak_openid.introspect(access_token)
+            decoded_access_token = keycloak_openid.introspect(
+                session["access_token"]
+            )
+
             session["user_groups"] = decoded_access_token["groups"]
             ayr_user = AYRUser(session.get("user_groups"))
             if ayr_user.is_all_access_user:
