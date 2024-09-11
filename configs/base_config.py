@@ -95,7 +95,7 @@ class BaseConfig(object):
 
     @property
     def PERF_TEST(self):
-        return self._get_config_value("PERF_TEST")
+        return self._get_config_value("PERF_TEST") == "True"
 
     def _get_config_value(self, variable_name):
         pass

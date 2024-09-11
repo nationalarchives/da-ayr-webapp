@@ -1,5 +1,5 @@
-import secrets
 import os
+import secrets
 
 from locust import HttpUser, between, task
 
