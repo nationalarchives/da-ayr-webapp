@@ -11,12 +11,12 @@
                        type="text"
                        value="{% if filters['query'] %}{{ filters['query'] }}{% endif %}" />
                 {% if session["user_type"] == "all_access_user" %}
-                    <p class="govuk-body-s">
+                    <p id="search-description" class="govuk-body-s">
                         Search by file name, transferring body, series or consignment
                         reference.
                     </p>
                 {% else %}
-                    <p class="govuk-body-s">Search by file name, series or consignment reference.</p>
+                    <p id="search-description" class="govuk-body-s">Search by file name, series or consignment reference.</p>
                 {% endif %}
             </div>
             <button class="govuk-button"

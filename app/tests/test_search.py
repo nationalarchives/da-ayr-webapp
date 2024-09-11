@@ -158,10 +158,7 @@ class TestSearchResultsSummary:
         button = soup.find("button", {"id": "search-submit"})
         text = soup.find(
             "p",
-            string="""
-          Search by file name, transferring body, series or consignment
-          reference.
-        """,
+            {"id": "search-description"},
         )
 
         assert label is not None
@@ -395,9 +392,7 @@ class TestSearchTransferringBody:
         button = soup.find("button", {"id": "search-submit"})
         text = soup.find(
             "p",
-            string="""
-          Search by file name, series or consignment reference.
-        """,
+            {"id": "search-description"},
         )
 
         assert label is not None
