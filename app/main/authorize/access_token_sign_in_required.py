@@ -10,92 +10,75 @@ from app.main.flask_config_helpers import (
 )
 
 
-def get_access_token():
-    """
-    Retrieve the access token based on the environment variable.
-    If PERF_TEST is True, get the token from the headers. Otherwise, get it from the session.
-    """
-    if os.getenv("PERF_TEST", "False") == "True":
-        access_token = request.headers.get("Authorization")
-        if access_token and access_token.startswith("Bearer "):
-            return access_token[len("Bearer ") :], None
-    else:
-        return session.get("access_token"), session.get("refresh_token")
-    return None, None
-
-
-def clear_session_and_redirect():
-    """
-    Clear the session and redirect the user to the sign-in page.
-    """
-    session.clear()
-    return redirect(url_for("main.sign_in"))
-
-
-def handle_tokens(access_token, refresh_token):
-    """
-    Validate or refresh tokens. Clear session and redirect if validation fails.
-    """
-    try:
-        return _validate_or_refresh_tokens(access_token, refresh_token)
-    except InvalidAccessToken:
-        return clear_session_and_redirect()
-
-
-def update_session_tokens(access_token, refresh_token):
-    """
-    Update session tokens if not in PERF_TEST mode.
-    """
-    if os.getenv("PERF_TEST", "False") != "True":
-        session["access_token"] = access_token
-        session["refresh_token"] = refresh_token
-
-
-def check_user_permissions(decoded_access_token):
-    """
-    Check if the user belongs to the required AYR group. Redirect if they don't.
-    """
-    session["user_groups"] = decoded_access_token["groups"]
-    ayr_user = AYRUser(session.get("user_groups"))
-
-    session["user_type"] = (
-        "all_access_user" if ayr_user.is_all_access_user else "standard_user"
-    )
-
-    if not ayr_user.can_access_ayr:
-        flash(
-            "TNA User is logged in but does not have access to AYR. Please contact your admin."
-        )
-        return redirect(url_for("main.index"))
-
-    return None
-
-
 def access_token_sign_in_required(view_func):
+    """
+    Decorator that checks if the user is logged in via Keycloak and has access to AYR.
+
+    This decorator is typically applied to view functions that require authentication via Keycloak
+    and access to the AYR application. It checks for the presence of an access token in the session,
+    verifies the token's validity, and checks if the user belongs to the AYR user group in Keycloak.
+
+    Args:
+        view_func (function): The view function to be wrapped.
+
+    Returns:
+        function: The wrapped view function.
+
+    If the user is not authenticated or does not have access, this decorator redirects to the sign in page
+    or the main index and displays a flash message accordingly.
+
+    Configuration options for Keycloak, such as the client ID, realm name, base URI, and client secret,
+    are expected to be set in the Flask application configuration.
+
+    Example:
+        @app.route('/protected')
+        @access_token_sign_in_required
+        def protected_route():
+            return 'Access granted'
+    """
+
     @wraps(view_func)
     def decorated_view(*args, **kwargs):
-        g.access_token_sign_in_required = True
+        g.access_token_sign_in_required = True  # Set attribute on g
+        tokens_are_refreshed = False
 
-        # Retrieve access and refresh tokens
-        access_token, refresh_token = get_access_token()
+        if os.getenv("PERF_TEST", "False") == "True":
+            access_token = request.headers.get("Authorization")
+            if access_token and access_token.startswith("Bearer "):
+                access_token[len("Bearer ") :]
+                refresh_token = None
+        else:
+            access_token = session.get("access_token")
+            refresh_token = session.get("refresh_token")
+            try:
+                (
+                    access_token,
+                    refresh_token,
+                    tokens_are_refreshed,
+                ) = _validate_or_refresh_tokens(access_token, refresh_token)
+            except InvalidAccessToken:
+                session.clear()
+                return redirect(url_for("main.sign_in"))
 
-        if not access_token and not refresh_token:
-            return clear_session_and_redirect()
-
-        # Validate or refresh tokens
-        tokens_are_refreshed = handle_tokens(access_token, refresh_token)
-
-        # Update session tokens if necessary
         if tokens_are_refreshed:
-            update_session_tokens(access_token, refresh_token)
+            session["access_token"] = access_token
+            session["refresh_token"] = refresh_token
+            keycloak_openid = get_keycloak_instance_from_flask_config()
+            decoded_access_token = keycloak_openid.introspect(access_token)
+            session["user_groups"] = decoded_access_token["groups"]
+            ayr_user = AYRUser(session.get("user_groups"))
+            if ayr_user.is_all_access_user:
+                session["user_type"] = "all_access_user"
+            else:
+                session["user_type"] = "standard_user"
 
-        # Decode the access token and check user permissions
-        keycloak_openid = get_keycloak_instance_from_flask_config()
-        decoded_access_token = keycloak_openid.introspect(access_token)
+        ayr_user = AYRUser(session["user_groups"])
 
-        permission_check = check_user_permissions(decoded_access_token)
-        if permission_check:
-            return permission_check
+        if not ayr_user.can_access_ayr:
+            flash(
+                "TNA User is logged in but does not have access to AYR. Please contact your admin."
+            )  # FIXME: this flash doesn't currently show when first redirected, only on a new page load
+            return redirect(url_for("main.index"))
 
         return view_func(*args, **kwargs)
 
