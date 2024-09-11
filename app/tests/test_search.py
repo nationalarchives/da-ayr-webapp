@@ -160,11 +160,16 @@ class TestSearchResultsSummary:
             "p",
             {"id": "search-description"},
         )
+        text_content = text.get_text(strip=True)
 
         assert label is not None
         assert textbox is not None
         assert button is not None
         assert text is not None
+        assert (
+            text_content
+            == "Search by file name, transferring body, series or consignment reference."
+        )
 
     def test_search_results_summary_no_query(
         self, client: FlaskClient, mock_all_access_user
@@ -394,11 +399,16 @@ class TestSearchTransferringBody:
             "p",
             {"id": "search-description"},
         )
+        text_content = text.get_text(strip=True)
 
         assert label is not None
         assert textbox is not None
         assert button is not None
         assert text is not None
+        assert (
+            text_content
+            == "Search by file name, series or consignment reference."
+        )
 
     def test_search_transferring_body_no_query(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
