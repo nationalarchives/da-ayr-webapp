@@ -42,6 +42,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
     monkeypatch.setenv("FLASKS3_ACTIVE", "False")
     monkeypatch.setenv("FLASKS3_CDN_DOMAIN", "test_flasks3_cdn_domain")
     monkeypatch.setenv("FLASKS3_BUCKET_NAME", "test_flasks3_bucket_name")
+    monkeypatch.setenv("PERF_TEST", "False")
 
     config = EnvConfig()
 
@@ -63,6 +64,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
     assert config.FLASKS3_ACTIVE is False
     assert config.FLASKS3_CDN_DOMAIN == "test_flasks3_cdn_domain"
     assert config.FLASKS3_BUCKET_NAME == "test_flasks3_bucket_name"
+    assert config.PERF_TEST is False
 
 
 def test_local_env_config_variable_not_set_error(monkeypatch):
@@ -97,6 +99,7 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
     monkeypatch.setenv("FLASKS3_ACTIVE", "False")
     monkeypatch.setenv("FLASKS3_CDN_DOMAIN", "test_flasks3_cdn_domain")
     monkeypatch.setenv("FLASKS3_BUCKET_NAME", "test_flasks3_bucket_name")
+    monkeypatch.setenv("PERF_TEST", "False")
 
     config = EnvConfig()
 
@@ -122,6 +125,7 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
             "RECORD_BUCKET_NAME": "test_record_bucket_name",
             "FLASKS3_ACTIVE": "False",
             "FLASKS3_CDN_DOMAIN": "test_flasks3_cdn_domain",
+            "PERF_TEST": "False",
             "FLASKS3_BUCKET_NAME": "test_flasks3_bucket_name",
             "DEFAULT_DATE_FORMAT": "test_default_date_format",
             "SECRET_KEY": "test_secret_key",  # pragma: allowlist secret
@@ -181,6 +185,7 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
     assert config.FLASKS3_ACTIVE is False
     assert config.FLASKS3_CDN_DOMAIN == "test_flasks3_cdn_domain"
     assert config.FLASKS3_BUCKET_NAME == "test_flasks3_bucket_name"
+    assert config.PERF_TEST is False
 
 
 @mock_aws
@@ -201,6 +206,7 @@ def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
             "RECORD_BUCKET_NAME": "test_record_bucket_name",
             "FLASKS3_ACTIVE": "False",
             "FLASKS3_CDN_DOMAIN": "test_flasks3_cdn_domain",
+            "PERF_TEST": "False",
             "FLASKS3_BUCKET_NAME": "test_flasks3_bucket_name",
             "SECRET_KEY": "test_secret_key",  # pragma: allowlist secret
             "DB_PORT": "5432",
