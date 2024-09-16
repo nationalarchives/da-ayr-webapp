@@ -13,6 +13,7 @@ from flask import (
     session,
     url_for,
 )
+from opensearchpy import OpenSearch, RequestsHttpConnection
 from sqlalchemy import func
 from werkzeug.exceptions import BadRequest, HTTPException
 
@@ -30,7 +31,6 @@ from app.main.db.queries import (
     build_browse_query,
     build_browse_series_query,
     build_fuzzy_search_summary_query,
-    build_fuzzy_search_transferring_body_query,
 )
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
@@ -556,19 +556,40 @@ def search_transferring_body(_id: uuid.UUID):
             {3: {"search_terms": query if query == "," else display_terms}}
         )
 
-        fuzzy_search_query = build_fuzzy_search_transferring_body_query(
-            query,
-            transferring_body_id=_id,
-            sorting_orders=sorting_orders,
+        open_search = OpenSearch(
+            current_app.config["OPEN_SEARCH_HOST"],
+            http_auth=current_app.config["OPEN_SEARCH_HTTP_AUTH"],
+            use_ssl=True,
+            verify_certs=False,
+            connection_class=RequestsHttpConnection,
         )
 
-        search_results = fuzzy_search_query.paginate(
-            page=page, per_page=per_page
-        )
-
-        total_records = fuzzy_search_query.count()
+        dsl_query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "multi_match": {
+                                "query": query,
+                                "fields": ["*"],
+                            }
+                        }
+                    ],
+                    # "filter": [
+                    #     {"term": {"transferring_body_id": "your_specific_id"}}
+                    # ],
+                }
+            }
+        }
+        size = per_page
+        page_number = page
+        from_ = size * (page_number - 1)
+        search_results = open_search.search(dsl_query, from_=from_, size=size)
+        results = search_results["hits"]["hits"]
+        total_records = search_results["hits"]["total"]["value"]
         if total_records:
             num_records_found = total_records
+        breakpoint()
 
     return render_template(
         "search-transferring-body.html",
@@ -576,7 +597,7 @@ def search_transferring_body(_id: uuid.UUID):
         current_page=page,
         filters=filters,
         breadcrumb_values=breadcrumb_values,
-        results=search_results,
+        results=results,
         num_records_found=num_records_found,
         sorting_orders=sorting_orders,
         search_terms=search_terms,
