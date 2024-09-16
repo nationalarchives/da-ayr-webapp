@@ -99,7 +99,10 @@ class BaseConfig(object):
 
     @property
     def OPEN_SEARCH_HTTP_AUTH(self):
-        return self._get_config_value("OPEN_SEARCH_HTTP_AUTH")
+        return (
+            self._get_config_value("OPEN_SEARCH_USERNAME"),
+            self._get_config_value("OPEN_SEARCH_PASSWORD"),
+        )
 
     @property
     def PERF_TEST(self):
