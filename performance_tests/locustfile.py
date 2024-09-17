@@ -10,6 +10,11 @@ KEYCLOAK_AUTH_URL = os.getenv("KEYCLOAK_AUTH_URL")
 KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID")
 KEYCLOAK_CLIENT_SECRET = os.getenv("KEYCLOAK_CLIENT_SECRET")
 
+headers_string = {
+    "User-Agent": """Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+            AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36"""
+}
+
 
 class User(HttpUser):
     # Set the wait time between task executions (e.g., between 1 and 5 seconds)
@@ -18,27 +23,45 @@ class User(HttpUser):
     # Define tasks
     @task
     def index(self):
-        self.client.get("/", verify=CERT_PATH)
+        headers = headers_string
+
+        with self.client.get(
+            "/", headers=headers, catch_response=True, verify=False
+        ) as response:
+            if response.status_code == 200:
+                response.success()
+                print(response.text)
+                print("Page loaded successfully")
+            else:
+                response.failure(f"Failed to load page: {response.status_code}")
+                print(response.text)
 
     @task
     def accessibility(self):
-        self.client.get("/accessibility", verify=CERT_PATH)
+        headers = headers_string
+        self.client.get("/accessibility", headers=headers, verify=CERT_PATH)
 
     @task
     def terms_of_use(self):
-        self.client.get("/terms-of-use", verify=CERT_PATH)
+        headers = headers_string
+        self.client.get("/terms-of-use", headers=headers, verify=CERT_PATH)
 
     @task
     def how_to_use(self):
-        self.client.get("/how-to-use-this-service", verify=CERT_PATH)
+        headers = headers_string
+        self.client.get(
+            "/how-to-use-this-service", headers=headers, verify=CERT_PATH
+        )
 
     @task
     def privacy(self):
-        self.client.get("/privacy", verify=CERT_PATH)
+        headers = headers_string
+        self.client.get("/privacy", headers=headers, verify=CERT_PATH)
 
     @task
     def cookies(self):
-        self.client.get("/cookies", verify=CERT_PATH)
+        headers = headers_string
+        self.client.get("/cookies", headers=headers, verify=CERT_PATH)
 
 
 class KeycloakUser(HttpUser):
@@ -78,20 +101,56 @@ class KeycloakUser(HttpUser):
     @task
     def browse_pages(self):
         if self.token:
-            headers = {"Authorization": f"Bearer {self.token}"}
+            headers = {
+                "Authorization": f"Bearer {self.token}",
+                "User-Agent": """Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+                AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36""",
+            }
 
-            urls = [
-                "/browse/transferring_body/c3e3fd83-4d52-4638-a085-1f4e4e4dfa50",
-                "/browse/series/1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7",
-                "/browse/consignment/016031db-1398-4fe4-b743-630aa82ea32a",
-                """/browse/transferring_body/c3e3fd83-4d52-4638-a085-1f4e4e4dfa50?sort=
-                series-asc&series_filter=TSTA&date_from_day=&date_from_month=&date_from_year
-                =&date_to_day=&date_to_month=&date_to_year=#browse-records""",
-                "/record/ea8a6ad6-5362-4346-a86d-22a52b9fc0c5#record-view",
-                "/record/ea8a6ad6-5362-4346-a86d-22a52b9fc0c5#record-details",
+            transferring_body_ids = [
+                "<transferring_body_id>",
             ]
 
-            # Use secrets.choice for cryptographic randomness
+            series_ids = [
+                "<series_id>",
+            ]
+
+            search_terms = ["test", "ab", "ld", "go", "tr"]
+
+            transferring_body_filters = [
+                "a",
+                "b",
+            ]
+            series_filters = ["ab", "y", "b", "l"]
+
+            series_sorts = [
+                "consignment_reference-desc",
+                "consignment_reference-asc",
+                "last_record_transferred-asc",
+                "last_record_transferred-desc",
+                "records_held-asc",
+                "records_held-desc",
+            ]
+
+            date_from_year = secrets.randbelow(31) + 1990
+            date_to_year = secrets.randbelow(4) + date_from_year
+            date_from_month = secrets.randbelow(12) + 1
+            date_to_month = secrets.randbelow(12) + 1
+            date_from_day = secrets.randbelow(28) + 1
+            date_to_day = secrets.randbelow(28) + 1
+
+            urls = [
+                f"/browse/transferring_body/{secrets.choice(transferring_body_ids)}",
+                f"/browse/series/{secrets.choice(series_ids)}?sort={secrets.choice(series_sorts)}",
+                f"""/browse?sort=transferring_body-asc&transferring_body_filter
+                ={secrets.choice(transferring_body_filters)}&series_filter={secrets.choice(series_filters)}
+                &date_from_day={date_from_day}&date_from_month={date_from_month}&date_from_year={date_from_year}
+                &date_to_day={date_to_day}&date_to_month={date_to_month}&date_to_year={date_to_year}#browse-records""",
+                f"""/browse?sort=series-asc&transferring_body_filter=&series_filter={secrets.choice(series_filters)}
+                &date_from_year={date_from_year}&date_to_year={date_to_year}#browse-series""",
+                f"/search_results_summary?query={secrets.choice(search_terms)}",
+            ]
+
             url = secrets.choice(urls)
 
             with self.client.get(
