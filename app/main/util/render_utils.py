@@ -1,6 +1,7 @@
 import io
 import os
 import shutil
+import tempfile
 
 import boto3
 from flask import abort, current_app, jsonify, url_for
@@ -57,36 +58,37 @@ def get_download_filename(file):
 
 
 def manage_static_file(file, file_extension):
-    """Manage the file in the static directory."""
+    """Manage the file in the /tmp directory."""
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-    files_directory = os.path.join(current_app.static_folder, "files")
-    static_file_path = ""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        files_directory = os.path.join(tmpdir, "files")
+        file_path = ""
 
-    if file_extension == "pdf":
-        static_file_path = os.path.join(files_directory, "temp_file.pdf")
-    elif file_extension in ["png", "jpg", "jpeg"]:
-        static_file_path = os.path.join(
-            files_directory, f"temp_file.{file_extension}"
-        )
-    else:
-        static_file_path = os.path.join(
-            files_directory, f"temp_file.{file_extension}"
-        )
+        if file_extension == "pdf":
+            file_path = os.path.join(files_directory, "temp_file.pdf")
+        elif file_extension in ["png", "jpg", "jpeg"]:
+            file_path = os.path.join(
+                files_directory, f"temp_file.{file_extension}"
+            )
+        else:
+            file_path = os.path.join(
+                files_directory, f"temp_file.{file_extension}"
+            )
 
-    if os.path.exists(files_directory):
-        shutil.rmtree(files_directory)
+        if os.path.exists(files_directory):
+            shutil.rmtree(files_directory)
 
-    os.makedirs(files_directory)
+        os.makedirs(files_directory)
 
-    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
-    file_content = s3_file_object["Body"].read()
+        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+        file_content = s3_file_object["Body"].read()
 
-    with open(static_file_path, "wb") as static_file:
-        static_file.write(file_content)
+        with open(file_path, "wb") as temporary_file:
+            temporary_file.write(file_content)
 
-    return static_file_path
+        return file_path
 
 
 def generate_pdf_manifest(record_id):
