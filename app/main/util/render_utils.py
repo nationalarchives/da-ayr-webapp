@@ -58,7 +58,7 @@ def get_download_filename(file):
 
 
 def manage_static_file(file, file_extension):
-    """Manage the file in the /tmp directory."""
+    """Manage the file in a temporary directory."""
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
