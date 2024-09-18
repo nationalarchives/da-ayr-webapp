@@ -41,6 +41,7 @@ from app.main.util.filter_sort_builder import (
     build_filters,
     build_sorting_orders,
 )
+from app.main.util.pagination import calculate_total_pages, get_pagination
 from app.main.util.render_utils import (
     generate_breadcrumb_values,
     generate_image_manifest,
@@ -52,6 +53,126 @@ from app.main.util.render_utils import (
 )
 
 from .forms import SearchForm
+
+test_tb_results = {
+    "took": 46,
+    "timed_out": False,
+    "_shards": {"total": 10, "successful": 10, "skipped": 0, "failed": 0},
+    "hits": {
+        "total": {"value": 2291, "relation": "eq"},
+        "max_score": 7.7139645,
+        "hits": [
+            {
+                "_index": "documents",
+                "_id": "100251bb-5b93-48a9-953f-ad5bd9abfbdc",
+                "_score": 7.7139645,
+                "_source": {
+                    "file_id": "100251bb-5b93-48a9-953f-ad5bd9abfbdc",
+                    "file_name": "file-a2.txt",
+                    "file_reference": "",
+                    "file_path": "data/content/folder-a/file-a2.txt",
+                    "citeable_reference": None,
+                    "series_id": "1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7",
+                    "series_name": "TSTA 1",
+                    "transferring_body": "Testing A",
+                    "transferring_body_id": "c3e3fd83-4d52-4638-a085-1f4e4e4dfa50",
+                    "transferring_body_description": "Testing A",
+                    "consignment_reference": "TDR-2023-BV6",
+                    "metadata": {
+                        "closure_type": "Open",
+                        "date_last_modified": "2023-10-17T00:00:00",
+                        "description_closed": "false",
+                        "file_name": "file-a2.txt",
+                        "file_size": "45",
+                        "file_type": "File",
+                        "held_by": "The National Archives, Kew",
+                        "language": "English",
+                        "legal_status": "Public Record(s)",
+                        "rights_copyright": "Crown Copyright",
+                        "title_closed": "false",
+                    },
+                    "content": "This is some example data",
+                },
+            },
+            {
+                "_index": "documents",
+                "_id": "001426ba-3c26-4df1-8713-3b5f1aef05ce",
+                "_score": 4.454914,
+                "_source": {
+                    "file_id": "001426ba-3c26-4df1-8713-3b5f1aef05ce",
+                    "file_name": "folder-a",
+                    "file_reference": "",
+                    "file_path": "c24aa718-65dc-487c-8df3-5f395fd86604",
+                    "citeable_reference": None,
+                    "series_id": "1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7",
+                    "series_name": "TSTA 1",
+                    "transferring_body": "Testing A",
+                    "transferring_body_id": "c3e3fd83-4d52-4638-a085-1f4e4e4dfa50",
+                    "transferring_body_description": "Testing A",
+                    "consignment_reference": "TDR-2023-BV6",
+                    "metadata": {},
+                },
+            },
+            {
+                "_index": "documents",
+                "_id": "00463011-3047-4040-ba03-6294f7533e49",
+                "_score": 4.454914,
+                "_source": {
+                    "file_id": "00463011-3047-4040-ba03-6294f7533e49",
+                    "file_name": "folder-a",
+                    "file_reference": "NBRPV",
+                    "file_path": "e8f266d2-a6bb-47be-9039-9d42dd9765b4",
+                    "citeable_reference": "TSTA 1/NBRPV",
+                    "series_id": "1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7",
+                    "series_name": "TSTA 1",
+                    "transferring_body": "Testing A",
+                    "transferring_body_id": "c3e3fd83-4d52-4638-a085-1f4e4e4dfa50",
+                    "transferring_body_description": "Testing A",
+                    "consignment_reference": "TDR-2023-GXFH",
+                    "metadata": {},
+                },
+            },
+            {
+                "_index": "documents",
+                "_id": "00bc0963-8a78-46f5-afbf-120f5c38cdd2",
+                "_score": 4.454914,
+                "_source": {
+                    "file_id": "00bc0963-8a78-46f5-afbf-120f5c38cdd2",
+                    "file_name": "folder-a",
+                    "file_reference": "",
+                    "file_path": "e21b4ab2-98d3-4651-aa86-eadf36079e8f",
+                    "citeable_reference": None,
+                    "series_id": "1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7",
+                    "series_name": "TSTA 1",
+                    "transferring_body": "Testing A",
+                    "transferring_body_id": "c3e3fd83-4d52-4638-a085-1f4e4e4dfa50",
+                    "transferring_body_description": "Testing A",
+                    "consignment_reference": "TDR-2023-BV6",
+                    "metadata": {},
+                },
+            },
+            {
+                "_index": "documents",
+                "_id": "00de001e-ab9b-46bf-8bfd-209429dd690b",
+                "_score": 4.454914,
+                "_source": {
+                    "file_id": "00de001e-ab9b-46bf-8bfd-209429dd690b",
+                    "file_name": "folder-a",
+                    "file_reference": "",
+                    "file_path": "7101085c-4656-4dc0-9bb3-d05b789df334",
+                    "citeable_reference": None,
+                    "series_id": "1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7",
+                    "series_name": "TSTA 1",
+                    "transferring_body": "Testing A",
+                    "transferring_body_id": "c3e3fd83-4d52-4638-a085-1f4e4e4dfa50",
+                    "transferring_body_description": "Testing A",
+                    "consignment_reference": "TDR-2023-BV6",
+                    "metadata": {},
+                },
+            },
+        ],
+    },
+}
 
 
 @bp.route("/", methods=["GET"])
@@ -529,6 +650,8 @@ def search_transferring_body(_id: uuid.UUID):
         2: {"transferring_body": db.session.get(Body, _id).Name},
     }
     search_terms = []
+    results = {"hits": {"total": {"value": 0}, "hits": []}}
+    pagination = None
 
     if query:
         search_terms = [item for item in query.split(",") if item]
@@ -557,8 +680,8 @@ def search_transferring_body(_id: uuid.UUID):
         )
 
         open_search = OpenSearch(
-            current_app.config["OPEN_SEARCH_HOST"],
-            http_auth=current_app.config["OPEN_SEARCH_HTTP_AUTH"],
+            hosts=current_app.config.get("OPEN_SEARCH_HOST"),
+            http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
             use_ssl=True,
             verify_certs=False,
             connection_class=RequestsHttpConnection,
@@ -585,11 +708,15 @@ def search_transferring_body(_id: uuid.UUID):
         page_number = page
         from_ = size * (page_number - 1)
         search_results = open_search.search(dsl_query, from_=from_, size=size)
+
         results = search_results["hits"]["hits"]
         total_records = search_results["hits"]["total"]["value"]
+
+        page_count = calculate_total_pages(total_records, per_page)
+        pagination = get_pagination(page_number, page_count)
+
         if total_records:
             num_records_found = total_records
-        breakpoint()
 
     return render_template(
         "search-transferring-body.html",
@@ -601,6 +728,7 @@ def search_transferring_body(_id: uuid.UUID):
         num_records_found=num_records_found,
         sorting_orders=sorting_orders,
         search_terms=search_terms,
+        pagination=pagination,
         query_string_parameters={
             k: v for k, v in request.args.items() if k not in "page"
         },

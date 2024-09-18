@@ -66,5 +66,3 @@ volumes:
 
 networks:
   opensearch-net:
-
-#OPENSEARCH_INITIAL_ADMIN_PASSWORD=FOOBARCARabc123!
