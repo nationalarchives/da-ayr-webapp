@@ -89,6 +89,10 @@ def test_local_env_vars_config_initialized(monkeypatch):
     assert config.FLASKS3_BUCKET_NAME == "test_flasks3_bucket_name"
     assert config.PERF_TEST is False
     assert config.OPEN_SEARCH_HOST == "test_os_host"
+    assert config.OPEN_SEARCH_HTTP_AUTH == (
+        "test_os_username",
+        "test_os_password",
+    )
 
 
 def test_local_env_config_variable_not_set_error(monkeypatch):
@@ -125,8 +129,6 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
     monkeypatch.setenv("FLASKS3_BUCKET_NAME", "test_flasks3_bucket_name")
     monkeypatch.setenv("PERF_TEST", "False")
     monkeypatch.setenv("OPEN_SEARCH_HOST", "test_os_host")
-    monkeypatch.setenv("OPEN_SEARCH_USERNAME", "test_os_username")
-    monkeypatch.setenv("OPEN_SEARCH_PASSWORD", "test_os_password")
 
     config = EnvConfig()
 
