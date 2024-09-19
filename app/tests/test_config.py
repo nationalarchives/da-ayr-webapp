@@ -173,9 +173,6 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
             "DB_SSL_ROOT_CERTIFICATE": "test_db_ssl_root_certificate",
             "DEFAULT_PAGE_SIZE": "test_default_page_size",
             "OPEN_SEARCH_MASTER_ROLE_ARN": "test_master_role_arn",
-            "OPEN_SEARCH_HOST": "test_os_host",  # pragma: allowlist secret
-            "OPEN_SEARCH_USERNAME": "test_os_username",
-            "OPEN_SEARCH_PASSWORD": "test_os_password",  # pragma: allowlist secret
         }
     )
 
