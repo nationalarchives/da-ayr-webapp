@@ -43,16 +43,15 @@
                             </thead>
                             <tbody class="govuk-table__body">
                                 <div class="main-content" id="main-content" role="main">
-                                    {% for record in results %}
+                                    {% for transferring_body in results %}
                                         <tr class="govuk-table__row">
                                             <td class="govuk-table__cell govuk-table__cell--results-summary">
-                                                <a href="{{ url_for('main.search_transferring_body', _id=record['transferring_body_id'] , query=filters['query']) }}">{{
-                                                record['transferring_body'] }}</a>
+                                                {% if transferring_body["top_transferring_body_hits"]["hits"]["hits"][0]["_source"]["transferring_body"] %}
+                                                    {% set name = transferring_body["top_transferring_body_hits"]["hits"]["hits"][0]["_source"]["transferring_body"] %}
+                                                    <a href="{{ url_for('main.search_transferring_body', _id=transferring_body['key'] , query=filters['query']) }}">{{ name }}</a>
+                                                {% endif %}
                                             </td>
-                                            <td class="govuk-table__cell govuk-body govuk-table__cell--record-results">
-                                                {{
-                                                record['records_held'] }}
-                                            </td>
+                                            <td class="govuk-table__cell govuk-body govuk-table__cell--record-results">{{ transferring_body['doc_count'] }}</td>
                                         </tr>
                                     {% endfor %}
                                 </div>
@@ -60,7 +59,7 @@
                         </table>
                         <!-- PAGINATION -->
                         {% with view_name='main.search_results_summary' %}
-                            {% include "pagination.html" %}
+                            {% include "pagination-new.html" %}
                         {% endwith %}
                     </div>
                 {% else %}

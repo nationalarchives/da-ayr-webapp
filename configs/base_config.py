@@ -98,6 +98,14 @@ class BaseConfig(object):
         return self._get_config_value("OPEN_SEARCH_HOST")
 
     @property
+    def OPEN_SEARCH_USERNAME(self):
+        return self._get_config_value("OPEN_SEARCH_USERNAME")
+
+    @property
+    def OPEN_SEARCH_PASSWORD(self):
+        return self._get_config_value("OPEN_SEARCH_PASSWORD")
+
+    @property
     def OPEN_SEARCH_HTTP_AUTH(self):
         return (
             self._get_config_value("OPEN_SEARCH_USERNAME"),

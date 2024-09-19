@@ -6,10 +6,30 @@ from flask import url_for
 from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
-from app.tests.test_browse import verify_desktop_data_rows
-from app.tests.utils import decompose_desktop_invisible_elements
+from app.tests.utils import (
+    decompose_desktop_invisible_elements,
+    evaluate_table_body_rows,
+)
 
-os_mock_return = {
+os_mock_return_summary = {
+    "hits": {"total": {"value": 1000}, "hits": []},
+    "aggregations": {
+        "aggregate_by_transferring_body": {
+            "buckets": [
+                {
+                    "doc_count": 5,
+                    "key": "foo",
+                    "top_transferring_body_hits": {
+                        "hits": {
+                            "hits": [{"_source": {"transferring_body": "bar"}}]
+                        }
+                    },
+                }
+            ]
+        }
+    },
+}
+os_mock_return_tb = {
     "hits": {
         "total": {
             "value": 1000,
@@ -211,14 +231,40 @@ class TestSearchResultsSummary:
             == "Search by file name, transferring body, series or consignment reference."
         )
 
+    @patch("app.main.routes.OpenSearch")
     def test_search_results_summary_no_query(
-        self, client: FlaskClient, mock_all_access_user
+        self, mock_search_client, client: FlaskClient, mock_all_access_user
     ):
         """
         Given an all_access_user accessing the search results summary page
         When they make a GET request without a query
         Then they should not see any results on the page.
         """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value={
+                "hits": {"total": {"value": 0}, "hits": []},
+                "aggregations": {
+                    "aggregate_by_transferring_body": {
+                        "buckets": [
+                            {
+                                "key": "foo",
+                                "top_transferring_body_hits": {
+                                    "hits": {
+                                        "hits": [
+                                            {
+                                                "_source": {
+                                                    "transferring_body": "bar"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                },
+            }
+        )
         mock_all_access_user(client)
         form_data = {"foo": "bar"}
         response = client.get(f"{self.route_url}", data=form_data)
@@ -226,14 +272,40 @@ class TestSearchResultsSummary:
         assert response.status_code == 200
         assert b"records found" not in response.data
 
+    @patch("app.main.routes.OpenSearch")
     def test_search_results_summary_with_no_results(
-        self, client: FlaskClient, mock_all_access_user
+        self, mock_search_client, client: FlaskClient, mock_all_access_user
     ):
         """
         Given an all_access_user with a search results summary query
         When they make a request on the search results summary page, and no results are found
         Then they should see not see any results on the page.
         """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value={
+                "hits": {"total": {"value": 0}, "hits": []},
+                "aggregations": {
+                    "aggregate_by_transferring_body": {
+                        "buckets": [
+                            {
+                                "key": "foo",
+                                "top_transferring_body_hits": {
+                                    "hits": {
+                                        "hits": [
+                                            {
+                                                "_source": {
+                                                    "transferring_body": "bar"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                },
+            }
+        )
         mock_all_access_user(client)
 
         form_data = {"query": "junk"}
@@ -259,11 +331,12 @@ class TestSearchResultsSummary:
             {"class": "govuk-list govuk-list--bullet"},
         )
 
+    @patch("app.main.routes.OpenSearch")
     def test_search_results_summary_with_results_single_term(
         self,
+        mock_search_client,
         client: FlaskClient,
         mock_all_access_user,
-        browse_consignment_files,
     ):
         """
         Given an all_access_user
@@ -271,6 +344,9 @@ class TestSearchResultsSummary:
         Then they should be redirected to search results summary screen
         with search results summary page content
         """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_summary
+        )
         mock_all_access_user(client)
 
         form_data = {"query": "fi"}
@@ -278,21 +354,17 @@ class TestSearchResultsSummary:
         response = client.get(f"{self.route_url}", data=form_data)
 
         assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'first_body', '5'",
-            ],
-        ]
-
+        soup = BeautifulSoup(response.data, "html.parser")
+        expected_results = [["bar", "5"]]
         verify_search_results_summary_header_row(response.data)
-        verify_desktop_data_rows(response.data, expected_rows)
+        assert evaluate_table_body_rows(soup, expected_results=expected_results)
 
+    @patch("app.main.routes.OpenSearch")
     def test_search_results_summary_with_results_multiple_terms(
         self,
+        mock_search_client,
         client: FlaskClient,
         mock_all_access_user,
-        browse_consignment_files,
     ):
         """
         Given an all_access_user
@@ -300,6 +372,9 @@ class TestSearchResultsSummary:
         Then they should be redirected to search results summary screen
         with search results summary page content
         """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_summary
+        )
         mock_all_access_user(client)
 
         form_data = {"query": "fi, body"}
@@ -307,21 +382,18 @@ class TestSearchResultsSummary:
         response = client.get(f"{self.route_url}", data=form_data)
 
         assert response.status_code == 200
-
-        expected_rows = [
-            [
-                "'first_body', '5'",
-            ],
-        ]
+        soup = BeautifulSoup(response.data, "html.parser")
+        expected_results = [["bar", "5"]]
 
         verify_search_results_summary_header_row(response.data)
-        verify_desktop_data_rows(response.data, expected_rows)
+        assert evaluate_table_body_rows(soup, expected_results=expected_results)
 
+    @patch("app.main.routes.OpenSearch")
     def test_search_results_summary_breadcrumbs(
         self,
+        mock_search_client,
         client: FlaskClient,
         mock_all_access_user,
-        browse_consignment_files,
     ):
         """
         Given an all_access_user
@@ -330,6 +402,9 @@ class TestSearchResultsSummary:
         and see breadcrumb values All available records > Results summary
         with search results summary page content
         """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_summary
+        )
         mock_all_access_user(client)
 
         form_data = {"query": "fi"}
@@ -337,25 +412,13 @@ class TestSearchResultsSummary:
         response = client.get(f"{self.route_url}", data=form_data)
 
         assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
 
-        html = response.data.decode()
+        anchor_all = soup.find("a", string="All available records", href=True)
+        span_summary = soup.find("span", string="Results summary")
 
-        search_html = f"""<div class="govuk-breadcrumbs  ">
-    <ol class="govuk-breadcrumbs__list">
-                <li class="govuk-breadcrumbs__list-item">
-                <a class="govuk-breadcrumbs__link--record" href="{self.browse_all_route_url}">All available records</a>
-                </li>
-                <li class="govuk-breadcrumbs__list-item">
-                    <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">Results summary</span>
-                </li>
-    </ol>
-</div>"""
-        assert_contains_html(
-            search_html,
-            html,
-            "div",
-            {"class": "govuk-breadcrumbs"},
-        )
+        assert anchor_all["href"] == self.browse_all_route_url
+        assert span_summary
 
 
 class TestSearchTransferringBody:
@@ -390,7 +453,7 @@ class TestSearchTransferringBody:
         Then they should see the search form and page content.
         """
         mock_search_client.return_value = MockOpenSearch(
-            search_return_value=os_mock_return
+            search_return_value=os_mock_return_tb
         )
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -428,7 +491,7 @@ class TestSearchTransferringBody:
         Then they should see the top search component available on search page content.
         """
         mock_search_client.return_value = MockOpenSearch(
-            search_return_value=os_mock_return
+            search_return_value=os_mock_return_tb
         )
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -564,7 +627,7 @@ class TestSearchTransferringBody:
         Then a table is populated with the n results with metadata fields for the files from there body.
         """
         mock_search_client.return_value = MockOpenSearch(
-            search_return_value=os_mock_return
+            search_return_value=os_mock_return_tb
         )
 
         mock_standard_user(
@@ -820,7 +883,7 @@ class TestSearchTransferringBody:
         and see a bread crumbs rendered as All available records > Results summary > Transferring body > ‘Search term’
         """
         mock_search_client.return_value = MockOpenSearch(
-            search_return_value=os_mock_return
+            search_return_value=os_mock_return_tb
         )
         mock_all_access_user(client)
 
@@ -872,7 +935,7 @@ class TestSearchTransferringBody:
         and see a bread crumbs rendered as All available records > Results summary > Transferring body > ‘Search term’
         """
         mock_search_client.return_value = MockOpenSearch(
-            search_return_value=os_mock_return
+            search_return_value=os_mock_return_tb
         )
         mock_all_access_user(client)
 
@@ -926,7 +989,7 @@ class TestSearchTransferringBody:
         and see a bread crumbs rendered as All available records > Results summary > Transferring body > ‘Search term’
         """
         mock_search_client.return_value = MockOpenSearch(
-            search_return_value=os_mock_return
+            search_return_value=os_mock_return_tb
         )
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -977,7 +1040,7 @@ class TestSearchTransferringBody:
         ‘Search term’ + ‘Search term’
         """
         mock_search_client.return_value = MockOpenSearch(
-            search_return_value=os_mock_return
+            search_return_value=os_mock_return_tb
         )
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -1028,7 +1091,7 @@ class TestSearchTransferringBody:
         and see a bread crumbs rendered as All available records > Results summary > Transferring body > ‘Search term’
         """
         mock_search_client.return_value = MockOpenSearch(
-            search_return_value=os_mock_return
+            search_return_value=os_mock_return_tb
         )
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -1078,7 +1141,7 @@ class TestSearchTransferringBody:
         and 'Clear all' link should redirect the user to 'browse all' page.
         """
         mock_search_client.return_value = MockOpenSearch(
-            search_return_value=os_mock_return
+            search_return_value=os_mock_return_tb
         )
         mock_all_access_user(client)
 
@@ -1136,7 +1199,7 @@ class TestSearchTransferringBody:
         and 'Clear all' link should redirect the user to 'browse transferring body' page.
         """
         mock_search_client.return_value = MockOpenSearch(
-            search_return_value=os_mock_return
+            search_return_value=os_mock_return_tb
         )
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -1196,7 +1259,7 @@ class TestSearchTransferringBody:
         on page content.
         """
         mock_search_client.return_value = MockOpenSearch(
-            search_return_value=os_mock_return
+            search_return_value=os_mock_return_tb
         )
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -1267,7 +1330,7 @@ class TestSearchTransferringBody:
         [
             (
                 "query=TDR-2023-FI1",
-                os_mock_return,
+                os_mock_return_tb,
                 [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
             ),
         ],
@@ -1301,19 +1364,5 @@ class TestSearchTransferringBody:
         )
 
         assert response.status_code == 200
-
         soup = BeautifulSoup(response.data, "html.parser")
-        decompose_desktop_invisible_elements(soup)
-        table_body = soup.find("tbody")
-        rows = table_body.find_all("tr")
-
-        data = []
-
-        for row in rows:
-            row_data = []
-            cells = row.find_all("td")
-            for cell in cells:
-                row_data.append(cell.get_text(strip=True))
-            data.append(row_data)
-
-        assert data == expected_results
+        assert evaluate_table_body_rows(soup, expected_results)

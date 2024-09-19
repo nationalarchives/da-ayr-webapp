@@ -30,7 +30,6 @@ from app.main.db.queries import (
     build_browse_consignment_query,
     build_browse_query,
     build_browse_series_query,
-    build_fuzzy_search_summary_query,
 )
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
@@ -474,18 +473,60 @@ def search_results_summary():
     query = request.form.get("query", "") or request.args.get("query", "")
 
     filters = {"query": query.strip()}
-    search_results = None
     num_records_found = 0
+    results = {
+        "hits": {"total": {"value": 0}, "hits": []},
+        "aggregations": {"aggregate_by_transferring_body": {"buckets": []}},
+    }
+    pagination = None
 
     if query:
-        fuzzy_search_summary_query = build_fuzzy_search_summary_query(query)
-        search_results = fuzzy_search_summary_query.paginate(
-            page=page, per_page=per_page
+        open_search = OpenSearch(
+            hosts=current_app.config.get("OPEN_SEARCH_HOST"),
+            http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
+            use_ssl=True,
+            verify_certs=False,
+            connection_class=RequestsHttpConnection,
         )
 
-        total_records = db.session.query(
-            func.sum(fuzzy_search_summary_query.subquery().c.records_held)
-        ).scalar()
+        dsl_query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"multi_match": {"query": query, "fields": ["*"]}}
+                    ],
+                },
+            },
+            "aggs": {
+                "aggregate_by_transferring_body": {
+                    "terms": {
+                        "field": "transferring_body_id.keyword",
+                    },
+                    "aggs": {
+                        "top_transferring_body_hits": {
+                            "top_hits": {
+                                "size": 1,
+                                "_source": ["transferring_body"],
+                            }
+                        }
+                    },
+                }
+            },
+        }
+
+        size = per_page
+        page_number = page
+        from_ = size * (page_number - 1)
+        search_results = open_search.search(dsl_query, from_=from_, size=size)
+
+        results = search_results["aggregations"][
+            "aggregate_by_transferring_body"
+        ]["buckets"]
+        total_records = search_results["hits"]["total"]["value"]
+
+        page_count = calculate_total_pages(len(results), per_page)
+        pagination = get_pagination(page_number, page_count)
+
         if total_records:
             num_records_found = total_records
 
@@ -494,7 +535,8 @@ def search_results_summary():
         form=form,
         current_page=page,
         filters=filters,
-        results=search_results,
+        results=results,
+        pagination=pagination,
         num_records_found=num_records_found,
         query_string_parameters={
             k: v for k, v in request.args.items() if k not in "page"
@@ -578,11 +620,9 @@ def search_transferring_body(_id: uuid.UUID):
                             }
                         }
                     ],
-                    # "filter": [
-                    #     {"term": {"transferring_body_id": "your_specific_id"}}
-                    # ],
+                    "filter": [{"term": {"transferring_body_id.keyword": _id}}],
                 }
-            }
+            },
         }
         size = per_page
         page_number = page
