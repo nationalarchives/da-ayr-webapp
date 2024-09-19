@@ -18,13 +18,19 @@
                   rel="stylesheet">
             <noscript>
                 {% if file_extension == "pdf" %}
-                    <object data="{{ url_for('static', filename='files/temp_file.pdf') }}"
+                    <object data="{{ url_for('main.serve_file', filename='temp_file.pdf') }}"
                             width="100%"
                             height="700px">
                         <p>Please enable JS to view this record.</p>
                     </object>
-                {% elif file_extension == "png" or file_extension == "jpg" %}
-                    <object data="{{ url_for('static', filename='files/temp_file.png') }}"
+                {% elif file_extension == "png" %}
+                    <object data="{{ url_for('main.serve_file', filename='temp_file.png') }}"
+                            width="100%"
+                            height="700px">
+                        <p>Please enable JS to view this record.</p>
+                    </object>
+                {% elif file_extension == "jpg" %}
+                    <object data="{{ url_for('main.serve_file', filename='temp_file.jpg') }}"
                             width="100%"
                             height="700px">
                         <p>Please enable JS to view this record.</p>

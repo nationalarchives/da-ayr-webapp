@@ -1,5 +1,6 @@
 import io
 import json
+import os
 import uuid
 
 import boto3
@@ -10,6 +11,7 @@ from flask import (
     render_template,
     request,
     send_file,
+    send_from_directory,
     session,
     url_for,
 )
@@ -48,7 +50,7 @@ from app.main.util.render_utils import (
     get_download_filename,
     get_file_details,
     get_file_mimetype,
-    manage_static_file,
+    write_temporary_file,
 )
 
 from .forms import SearchForm
@@ -620,7 +622,7 @@ def record(record_id: uuid.UUID):
     )
 
     try:
-        manage_static_file(file, file_extension)
+        write_temporary_file(file, file_extension)
     except Exception as e:
         current_app.logger.info(f"Error with file IO: {e}")
 
@@ -757,3 +759,14 @@ def generate_manifest(record_id: uuid.UUID):
         return generate_image_manifest(s3_file_object, record_id)
     else:
         return http_exception(BadRequest())
+
+
+@access_token_sign_in_required
+@bp.route("/files/<filename>")
+def serve_file(filename):
+    temp_directory = session.get("temp_dir")
+    files_directory = os.path.join(temp_directory, "files")
+    if temp_directory:
+        return send_from_directory(files_directory, filename)
+    else:
+        abort(404)

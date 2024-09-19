@@ -4,7 +4,7 @@ import shutil
 import tempfile
 
 import boto3
-from flask import abort, current_app, jsonify, url_for
+from flask import abort, current_app, jsonify, session, url_for
 from PIL import Image
 
 from app.main.db.models import File, db
@@ -57,38 +57,36 @@ def get_download_filename(file):
     return None
 
 
-def manage_static_file(file, file_extension):
-    """Manage the file in a temporary directory."""
+def write_temporary_file(file, file_extension):
+    """Manage the file in a permanent temporary directory."""
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-    with tempfile.TemporaryDirectory() as tmpdir:
-        files_directory = os.path.join(tmpdir, "files")
-        file_path = ""
 
-        if file_extension == "pdf":
-            file_path = os.path.join(files_directory, "temp_file.pdf")
-        elif file_extension in ["png", "jpg", "jpeg"]:
-            file_path = os.path.join(
-                files_directory, f"temp_file.{file_extension}"
-            )
-        else:
-            file_path = os.path.join(
-                files_directory, f"temp_file.{file_extension}"
-            )
+    temp_directory = tempfile.mkdtemp()
+    session["temp_dir"] = temp_directory
+    files_directory = os.path.join(temp_directory, "files")
+    file_path = ""
 
-        if os.path.exists(files_directory):
-            shutil.rmtree(files_directory)
+    if file_extension == "pdf":
+        file_path = os.path.join(files_directory, "temp_file.pdf")
+    elif file_extension in ["png", "jpg", "jpeg"]:
+        file_path = os.path.join(files_directory, f"temp_file.{file_extension}")
+    else:
+        file_path = os.path.join(files_directory, f"temp_file.{file_extension}")
 
-        os.makedirs(files_directory)
+    if os.path.exists(files_directory):
+        shutil.rmtree(files_directory)
 
-        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
-        file_content = s3_file_object["Body"].read()
+    os.makedirs(files_directory)
 
-        with open(file_path, "wb") as temporary_file:
-            temporary_file.write(file_content)
+    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+    file_content = s3_file_object["Body"].read()
 
-        return file_path
+    with open(file_path, "wb") as temporary_file:
+        temporary_file.write(file_content)
+
+    return f"{files_directory}/{os.path.basename(file_path)}"
 
 
 def generate_pdf_manifest(record_id):
