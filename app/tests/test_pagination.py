@@ -126,6 +126,16 @@ class TestPaginationUtilities:
                     "pages": [1, "ellipses", 96, 97, 98, "ellipses", 100],
                 },
             ),
+            # edge case where there are 5 pages and current is 3, all pages should be visible
+            (
+                3,
+                5,
+                {
+                    "previous": 2,
+                    "next": 4,
+                    "pages": [1, 2, 3, 4, 5],
+                },
+            ),
             # if the number of pages is 1 then pages is None and pagination wont be shown
             (
                 1,
