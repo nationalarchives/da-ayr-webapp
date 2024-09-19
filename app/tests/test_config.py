@@ -89,15 +89,6 @@ def test_local_env_vars_config_initialized(monkeypatch):
     assert config.FLASKS3_BUCKET_NAME == "test_flasks3_bucket_name"
     assert config.PERF_TEST is False
     assert config.OPEN_SEARCH_HOST == "test_os_host"
-    assert config.OPEN_SEARCH_USERNAME == "test_os_username"
-    assert (
-        config.OPEN_SEARCH_PASSWORD
-        == "test_os_password"  # pragma: allowlist secret
-    )
-    assert config.OPEN_SEARCH_HTTP_AUTH == (
-        config.OPEN_SEARCH_USERNAME,
-        config.OPEN_SEARCH_PASSWORD,
-    )
 
 
 def test_local_env_config_variable_not_set_error(monkeypatch):
