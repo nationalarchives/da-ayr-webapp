@@ -231,40 +231,14 @@ class TestSearchResultsSummary:
             == "Search by file name, transferring body, series or consignment reference."
         )
 
-    @patch("app.main.routes.OpenSearch")
     def test_search_results_summary_no_query(
-        self, mock_search_client, client: FlaskClient, mock_all_access_user
+        self, client: FlaskClient, mock_all_access_user
     ):
         """
         Given an all_access_user accessing the search results summary page
         When they make a GET request without a query
         Then they should not see any results on the page.
         """
-        mock_search_client.return_value = MockOpenSearch(
-            search_return_value={
-                "hits": {"total": {"value": 0}, "hits": []},
-                "aggregations": {
-                    "aggregate_by_transferring_body": {
-                        "buckets": [
-                            {
-                                "key": "foo",
-                                "top_transferring_body_hits": {
-                                    "hits": {
-                                        "hits": [
-                                            {
-                                                "_source": {
-                                                    "transferring_body": "bar"
-                                                }
-                                            }
-                                        ]
-                                    }
-                                },
-                            }
-                        ]
-                    }
-                },
-            }
-        )
         mock_all_access_user(client)
         form_data = {"foo": "bar"}
         response = client.get(f"{self.route_url}", data=form_data)
