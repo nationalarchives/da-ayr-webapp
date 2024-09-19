@@ -65,7 +65,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
     monkeypatch.setenv("PERF_TEST", "False")
     monkeypatch.setenv("OPEN_SEARCH_HOST", "test_os_host")
     monkeypatch.setenv("OPEN_SEARCH_USERNAME", "test_os_username")
-    monkeypatch.setenv("OPEN_SEARCH_PASSWORD", "test_os_pw")
+    monkeypatch.setenv("OPEN_SEARCH_PASSWORD", "test_os_password")
 
     config = EnvConfig()
 
@@ -91,8 +91,9 @@ def test_local_env_vars_config_initialized(monkeypatch):
     assert config.OPEN_SEARCH_HOST == "test_os_host"
     assert config.OPEN_SEARCH_USERNAME == "test_os_username"
     assert (
-        config.OPEN_SEARCH_PASSWORD == "test_os_pw"  # pragma: allowlist secret
-    )  # pragma: allowlist secret
+        config.OPEN_SEARCH_PASSWORD
+        == "test_os_password"  # pragma: allowlist secret
+    )
     assert config.OPEN_SEARCH_HTTP_AUTH == (
         config.OPEN_SEARCH_USERNAME,
         config.OPEN_SEARCH_PASSWORD,
@@ -134,7 +135,7 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
     monkeypatch.setenv("PERF_TEST", "False")
     monkeypatch.setenv("OPEN_SEARCH_HOST", "test_os_host")
     monkeypatch.setenv("OPEN_SEARCH_USERNAME", "test_os_username")
-    monkeypatch.setenv("OPEN_SEARCH_PASSWORD", "test_os_pw")
+    monkeypatch.setenv("OPEN_SEARCH_PASSWORD", "test_os_password")
 
     config = EnvConfig()
 
@@ -174,7 +175,7 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
             "OPEN_SEARCH_MASTER_ROLE_ARN": "test_master_role_arn",
             "OPEN_SEARCH_HOST": "test_os_host",  # pragma: allowlist secret
             "OPEN_SEARCH_USERNAME": "test_os_username",
-            "OPEN_SEARCH_PASSWORD": "test_os_pw",  # pragma: allowlist secret
+            "OPEN_SEARCH_PASSWORD": "test_os_password",  # pragma: allowlist secret
         }
     )
 
