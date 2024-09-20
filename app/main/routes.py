@@ -39,8 +39,13 @@ from app.main.util.filter_sort_builder import (
     build_browse_consignment_filters,
     build_filters,
     build_sorting_orders,
+    build_sorting_orders_open_search,
 )
-from app.main.util.pagination import calculate_total_pages, get_pagination
+from app.main.util.pagination import (
+    calculate_total_pages,
+    get_pagination,
+    paginate,
+)
 from app.main.util.render_utils import (
     generate_breadcrumb_values,
     generate_image_manifest,
@@ -493,7 +498,13 @@ def search_results_summary():
             "query": {
                 "bool": {
                     "must": [
-                        {"multi_match": {"query": query, "fields": ["*"]}}
+                        {
+                            "multi_match": {
+                                "fields": ["*"],
+                                "query": query,
+                                "fuzziness": 1,
+                            }
+                        }
                     ],
                 },
             },
@@ -510,22 +521,24 @@ def search_results_summary():
                             }
                         }
                     },
-                }
+                },
             },
         }
 
         size = per_page
-        page_number = page
-        from_ = size * (page_number - 1)
+        from_ = size * (page - 1)
         search_results = open_search.search(dsl_query, from_=from_, size=size)
-
         results = search_results["aggregations"][
             "aggregate_by_transferring_body"
         ]["buckets"]
-        total_records = search_results["hits"]["total"]["value"]
 
-        page_count = calculate_total_pages(len(results), per_page)
-        pagination = get_pagination(page_number, page_count)
+        total_records = 0
+        for bucket in results:
+            total_records += bucket["doc_count"]
+
+        page_count = calculate_total_pages(len(results), size)
+        pagination = get_pagination(page, page_count)
+        paginated_results = paginate(results, page, size)
 
         if total_records:
             num_records_found = total_records
@@ -535,7 +548,7 @@ def search_results_summary():
         form=form,
         current_page=page,
         filters=filters,
-        results=results,
+        results=paginated_results,
         pagination=pagination,
         num_records_found=num_records_found,
         query_string_parameters={
@@ -564,7 +577,7 @@ def search_transferring_body(_id: uuid.UUID):
     page = int(request.args.get("page", 1))
 
     filters = {"query": query}
-    sorting_orders = build_sorting_orders(request.args)
+    sorting_orders = build_sorting_orders_open_search(request.args)
 
     breadcrumb_values = {
         0: {"query": ""},
@@ -615,14 +628,16 @@ def search_transferring_body(_id: uuid.UUID):
                     "must": [
                         {
                             "multi_match": {
-                                "query": query,
                                 "fields": ["*"],
+                                "query": query,
+                                "fuzziness": 1,
                             }
                         }
                     ],
                     "filter": [{"term": {"transferring_body_id.keyword": _id}}],
                 }
             },
+            # "sort": sorting_orders,
         }
         size = per_page
         page_number = page

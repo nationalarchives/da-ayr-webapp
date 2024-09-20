@@ -11,7 +11,7 @@ def get_pagination(current_page: int, total_pages: int) -> dict | None:
 
     Returns: dict | None
     """
-    if total_pages <= 1:
+    if total_pages <= 1 or current_page <= 0:
         return None  # if there is just one or 0 pages we won't show pagination
 
     pages = []
@@ -61,3 +61,29 @@ def calculate_total_pages(total_records: int, records_per_page: int) -> int:
     Returns: int
     """
     return (total_records + records_per_page - 1) // records_per_page
+
+
+def paginate(items: list, current_page: int, page_size: int):
+    """
+    Paginate a list of items based on the current page and page size
+
+    Parameters:
+    items: list - The list of items
+    current_page: int - Current page.
+    page_size: int - Amount of items displayed per page,
+
+    Returns: list
+    """
+    if current_page <= 0 or page_size <= 0:
+        return []
+
+    total_items = len(items)
+    total_pages = (total_items + page_size - 1) // page_size
+
+    if current_page > total_pages:
+        return []
+
+    start_index = (current_page - 1) * page_size
+    end_index = min(start_index + page_size, total_items)
+
+    return items[start_index:end_index]

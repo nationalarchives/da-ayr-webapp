@@ -17,7 +17,7 @@ os_mock_return_summary = {
         "aggregate_by_transferring_body": {
             "buckets": [
                 {
-                    "doc_count": 5,
+                    "doc_count": 1000,
                     "key": "foo",
                     "top_transferring_body_hits": {
                         "hits": {

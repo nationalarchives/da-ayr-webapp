@@ -1,9 +1,38 @@
 import pytest
 
-from app.main.util.pagination import calculate_total_pages, get_pagination
+from app.main.util.pagination import (
+    calculate_total_pages,
+    get_pagination,
+    paginate,
+)
 
 
 class TestPaginationUtilities:
+    @pytest.mark.parametrize(
+        "items, current_page, page_size, expected_result",
+        [
+            ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 2, 3, [4, 5, 6]),
+            ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 4, 3, [10]),
+            ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], -2, 3, []),
+            ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], -2, -3, []),
+            ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 2, -3, []),
+            ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 2, 5, [6, 7, 8, 9, 10]),
+            ([1], 10, 1, []),
+            ([1], 1, 1000, [1]),
+            ([1, 2], 1, 1, [1]),
+            ([1, 2], 1, 2, [1, 2]),
+            ([], 10, 2, []),
+        ],
+    )
+    def test_paginate_scenarios(
+        self, items, current_page, page_size, expected_result
+    ):
+        """
+        Test the calculation of total pages based on total records and records per page in different scenarios.
+        """
+        result = paginate(items, current_page, page_size)
+        assert result == expected_result
+
     @pytest.mark.parametrize(
         "total_records, records_per_page, expected_result",
         [
@@ -151,6 +180,30 @@ class TestPaginationUtilities:
             # edge case where current page is bigger than total number of pages should return None for pages
             (
                 1000,
+                0,
+                None,
+            ),
+            # edge case where current_page is negative
+            (
+                -10,
+                10,
+                None,
+            ),
+            # edge case where total_pages is negative
+            (
+                10,
+                -10,
+                None,
+            ),
+            # edge case where current_page and total_pages are negative
+            (
+                -10,
+                -10,
+                None,
+            ),
+            # edge case where current_page and total_pages are 0
+            (
+                0,
                 0,
                 None,
             ),

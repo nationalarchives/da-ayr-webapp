@@ -38,6 +38,23 @@ def build_sorting_orders(args):
     return sorting_orders
 
 
+def build_sorting_orders_open_search(args):
+    sorting_orders = {}
+    if args:
+        if args.get("sort"):
+            sort_details = args.get("sort").split("-")
+            sort_by = None
+            sort_order = None
+            if len(sort_details) > 1:
+                sort_by = sort_details[0].strip()
+                sort_order = sort_details[1].strip()
+
+            if sort_by and sort_order:
+                sorting_orders[f"{sort_by}"] = {"order": sort_order}
+
+    return sorting_orders
+
+
 def build_browse_consignment_filters(args, date_from, date_to):
     filters = {}
     filter_items = []
