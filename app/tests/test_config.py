@@ -21,7 +21,7 @@ def mock_make_api_call(self, operation_name, kwarg):
         return {
             "Credentials": {
                 "AccessKeyId": "test_access_key",
-                "SecretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",  # pragma: allowlist secret
+                "SecretAccessKey": "test_secret_key",  # pragma: allowlist secret
                 "SessionToken": "test_token",
                 "Expiration": "2024-09-18T12:00:00Z",
             }
@@ -231,6 +231,10 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         assert aws_auth.region == "test_aws_region"
         assert aws_auth.service == "es"
         assert aws_auth.session_token == "test_token"
+        assert (
+            aws_auth.signing_key.secret_key
+            == "test_secret_key"  # pragma: allowlist secret
+        )
 
 
 @mock_aws
