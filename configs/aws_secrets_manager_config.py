@@ -2,6 +2,7 @@ import json
 import os
 
 import boto3
+from requests_aws4auth import AWS4Auth
 
 from configs.base_config import BaseConfig
 
@@ -49,3 +50,19 @@ class AWSSecretsManagerConfig(BaseConfig):
         return self._get_secrets_manager_config_dict(
             os.getenv("AWS_SM_KEYCLOAK_CLIENT_SECRET_ID")
         )["SECRET"]
+
+    @property
+    def OPEN_SEARCH_HTTP_AUTH(self):
+        sts_client = boto3.client("sts")
+        assumed_role = sts_client.assume_role(
+            RoleArn=self._get_config_value("OPEN_SEARCH_MASTER_ROLE_ARN"),
+            RoleSessionName="AYRWebappLambdaSession",
+        )
+        credentials = assumed_role["Credentials"]
+        return AWS4Auth(
+            credentials["AccessKeyId"],
+            credentials["SecretAccessKey"],
+            self.AWS_REGION,
+            "es",
+            session_token=credentials["SessionToken"],
+        )

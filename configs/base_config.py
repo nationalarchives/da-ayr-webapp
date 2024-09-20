@@ -94,6 +94,17 @@ class BaseConfig(object):
         return self._get_config_value("FLASKS3_BUCKET_NAME")
 
     @property
+    def OPEN_SEARCH_HOST(self):
+        return self._get_config_value("OPEN_SEARCH_HOST")
+
+    @property
+    def OPEN_SEARCH_HTTP_AUTH(self):
+        return (
+            self._get_config_value("OPEN_SEARCH_USERNAME"),
+            self._get_config_value("OPEN_SEARCH_PASSWORD"),
+        )
+
+    @property
     def PERF_TEST(self):
         return self._get_config_value("PERF_TEST") == "True"
 

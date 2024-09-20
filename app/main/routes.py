@@ -13,6 +13,7 @@ from flask import (
     session,
     url_for,
 )
+from opensearchpy import OpenSearch, RequestsHttpConnection
 from sqlalchemy import func
 from werkzeug.exceptions import BadRequest, HTTPException
 
@@ -29,8 +30,6 @@ from app.main.db.queries import (
     build_browse_consignment_query,
     build_browse_query,
     build_browse_series_query,
-    build_fuzzy_search_summary_query,
-    build_fuzzy_search_transferring_body_query,
 )
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
@@ -40,6 +39,12 @@ from app.main.util.filter_sort_builder import (
     build_browse_consignment_filters,
     build_filters,
     build_sorting_orders,
+    build_sorting_orders_open_search,
+)
+from app.main.util.pagination import (
+    calculate_total_pages,
+    get_pagination,
+    paginate,
 )
 from app.main.util.render_utils import (
     generate_breadcrumb_values,
@@ -473,18 +478,69 @@ def search_results_summary():
     query = request.form.get("query", "") or request.args.get("query", "")
 
     filters = {"query": query.strip()}
-    search_results = None
     num_records_found = 0
+    results = {
+        "hits": {"total": {"value": 0}, "hits": []},
+        "aggregations": {"aggregate_by_transferring_body": {"buckets": []}},
+    }
+    pagination = None
+    paginated_results = []
 
     if query:
-        fuzzy_search_summary_query = build_fuzzy_search_summary_query(query)
-        search_results = fuzzy_search_summary_query.paginate(
-            page=page, per_page=per_page
+        open_search = OpenSearch(
+            hosts=current_app.config.get("OPEN_SEARCH_HOST"),
+            http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
+            use_ssl=True,
+            verify_certs=False,
+            connection_class=RequestsHttpConnection,
         )
 
-        total_records = db.session.query(
-            func.sum(fuzzy_search_summary_query.subquery().c.records_held)
-        ).scalar()
+        dsl_query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "multi_match": {
+                                "fields": ["*"],
+                                "query": query,
+                                "fuzziness": 1,
+                            }
+                        }
+                    ],
+                },
+            },
+            "aggs": {
+                "aggregate_by_transferring_body": {
+                    "terms": {
+                        "field": "transferring_body_id.keyword",
+                    },
+                    "aggs": {
+                        "top_transferring_body_hits": {
+                            "top_hits": {
+                                "size": 1,
+                                "_source": ["transferring_body"],
+                            }
+                        }
+                    },
+                },
+            },
+        }
+
+        size = per_page
+        from_ = size * (page - 1)
+        search_results = open_search.search(dsl_query, from_=from_, size=size)
+        results = search_results["aggregations"][
+            "aggregate_by_transferring_body"
+        ]["buckets"]
+
+        total_records = 0
+        for bucket in results:
+            total_records += bucket["doc_count"]
+
+        page_count = calculate_total_pages(len(results), size)
+        pagination = get_pagination(page, page_count)
+        paginated_results = paginate(results, page, size)
+
         if total_records:
             num_records_found = total_records
 
@@ -493,7 +549,8 @@ def search_results_summary():
         form=form,
         current_page=page,
         filters=filters,
-        results=search_results,
+        results=paginated_results,
+        pagination=pagination,
         num_records_found=num_records_found,
         query_string_parameters={
             k: v for k, v in request.args.items() if k not in "page"
@@ -521,7 +578,7 @@ def search_transferring_body(_id: uuid.UUID):
     page = int(request.args.get("page", 1))
 
     filters = {"query": query}
-    sorting_orders = build_sorting_orders(request.args)
+    sorting_orders = build_sorting_orders_open_search(request.args)
 
     breadcrumb_values = {
         0: {"query": ""},
@@ -529,6 +586,8 @@ def search_transferring_body(_id: uuid.UUID):
         2: {"transferring_body": db.session.get(Body, _id).Name},
     }
     search_terms = []
+    results = {"hits": {"total": {"value": 0}, "hits": []}}
+    pagination = None
 
     if query:
         search_terms = [item for item in query.split(",") if item]
@@ -556,17 +615,42 @@ def search_transferring_body(_id: uuid.UUID):
             {3: {"search_terms": query if query == "," else display_terms}}
         )
 
-        fuzzy_search_query = build_fuzzy_search_transferring_body_query(
-            query,
-            transferring_body_id=_id,
-            sorting_orders=sorting_orders,
+        open_search = OpenSearch(
+            hosts=current_app.config.get("OPEN_SEARCH_HOST"),
+            http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
+            use_ssl=True,
+            verify_certs=False,
+            connection_class=RequestsHttpConnection,
         )
 
-        search_results = fuzzy_search_query.paginate(
-            page=page, per_page=per_page
-        )
+        dsl_query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "multi_match": {
+                                "fields": ["*"],
+                                "query": query,
+                                "fuzziness": 1,
+                            }
+                        }
+                    ],
+                    "filter": [{"term": {"transferring_body_id.keyword": _id}}],
+                }
+            },
+            # "sort": sorting_orders,
+        }
+        size = per_page
+        page_number = page
+        from_ = size * (page_number - 1)
+        search_results = open_search.search(dsl_query, from_=from_, size=size)
 
-        total_records = fuzzy_search_query.count()
+        results = search_results["hits"]["hits"]
+        total_records = search_results["hits"]["total"]["value"]
+
+        page_count = calculate_total_pages(total_records, per_page)
+        pagination = get_pagination(page_number, page_count)
+
         if total_records:
             num_records_found = total_records
 
@@ -576,10 +660,11 @@ def search_transferring_body(_id: uuid.UUID):
         current_page=page,
         filters=filters,
         breadcrumb_values=breadcrumb_values,
-        results=search_results,
+        results=results,
         num_records_found=num_records_found,
         sorting_orders=sorting_orders,
         search_terms=search_terms,
+        pagination=pagination,
         query_string_parameters={
             k: v for k, v in request.args.items() if k not in "page"
         },
