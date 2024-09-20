@@ -289,6 +289,67 @@ class TestSearchResultsSummary:
         )
 
     @patch("app.main.routes.OpenSearch")
+    def test_search_results_summary_shows_correct_amount_of_records(
+        self, mock_search_client, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given an all_access_user with a search results summary query
+        When they make a request on the search results summary page, and no results are found
+        Then they should see not see any results on the page.
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value={
+                "hits": {"total": {"value": 0}, "hits": []},
+                "aggregations": {
+                    "aggregate_by_transferring_body": {
+                        "buckets": [
+                            {
+                                "doc_count": 22,
+                                "key": "foo1",
+                                "top_transferring_body_hits": {
+                                    "hits": {
+                                        "hits": [
+                                            {
+                                                "_source": {
+                                                    "transferring_body": "bar2"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                            },
+                            {
+                                "doc_count": 47,
+                                "key": "foo2",
+                                "top_transferring_body_hits": {
+                                    "hits": {
+                                        "hits": [
+                                            {
+                                                "_source": {
+                                                    "transferring_body": "bar2"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                            },
+                        ]
+                    }
+                },
+            }
+        )
+        mock_all_access_user(client)
+
+        form_data = {"query": "a"}
+        response = client.get(f"{self.route_url}", data=form_data)
+        soup = BeautifulSoup(response.data, "html.parser")
+        browse_details_div = soup.find("div", {"class": "browse-details"})
+        heading = browse_details_div.find("h1")
+        heading_text = heading.get_text(strip=True)
+        assert heading and browse_details_div
+        assert heading_text == "Records found 69"
+
+    @patch("app.main.routes.OpenSearch")
     def test_search_results_summary_with_results_single_term(
         self,
         mock_search_client,
