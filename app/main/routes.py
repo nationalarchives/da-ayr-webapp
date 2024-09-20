@@ -484,6 +484,7 @@ def search_results_summary():
         "aggregations": {"aggregate_by_transferring_body": {"buckets": []}},
     }
     pagination = None
+    paginated_results = []
 
     if query:
         open_search = OpenSearch(

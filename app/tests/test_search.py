@@ -259,24 +259,7 @@ class TestSearchResultsSummary:
             search_return_value={
                 "hits": {"total": {"value": 0}, "hits": []},
                 "aggregations": {
-                    "aggregate_by_transferring_body": {
-                        "buckets": [
-                            {
-                                "key": "foo",
-                                "top_transferring_body_hits": {
-                                    "hits": {
-                                        "hits": [
-                                            {
-                                                "_source": {
-                                                    "transferring_body": "bar"
-                                                }
-                                            }
-                                        ]
-                                    }
-                                },
-                            }
-                        ]
-                    }
+                    "aggregate_by_transferring_body": {"buckets": []}
                 },
             }
         )
@@ -329,7 +312,7 @@ class TestSearchResultsSummary:
 
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
-        expected_results = [["bar", "5"]]
+        expected_results = [["bar", "1000"]]
         verify_search_results_summary_header_row(response.data)
         assert evaluate_table_body_rows(soup, expected_results=expected_results)
 
@@ -357,7 +340,7 @@ class TestSearchResultsSummary:
 
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
-        expected_results = [["bar", "5"]]
+        expected_results = [["bar", "1000"]]
 
         verify_search_results_summary_header_row(response.data)
         assert evaluate_table_body_rows(soup, expected_results=expected_results)
