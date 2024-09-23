@@ -471,6 +471,11 @@ def search():
 @bp.route("/search_results_summary", methods=["GET"])
 @access_token_sign_in_required
 def search_results_summary():
+
+    ayr_user = AYRUser(session.get("user_groups"))
+    if ayr_user.is_standard_user:
+        abort(403)
+
     form = SearchForm()
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     page = int(request.args.get("page", 1))
@@ -562,6 +567,10 @@ def search_results_summary():
 @bp.route("/search/transferring_body/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
 def search_transferring_body(_id: uuid.UUID):
+
+    body = db.session.get(Body, _id)
+    validate_body_user_groups_or_404(body.Name)
+
     form = SearchForm()
     search_results = None
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
