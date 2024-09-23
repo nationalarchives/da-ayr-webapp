@@ -329,7 +329,6 @@ def test_expected_unprotected_routes_decorated_by_access_token_sign_in_required(
         "main.accessibility",
         "main.cookies",
         "main.privacy",
-        "main.serve_file",
         "main.how_to_use",
         "main.terms_of_use",
     ]

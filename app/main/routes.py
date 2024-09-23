@@ -44,13 +44,13 @@ from app.main.util.filter_sort_builder import (
     build_sorting_orders,
 )
 from app.main.util.render_utils import (
+    create_presigned_url,
     generate_breadcrumb_values,
     generate_image_manifest,
     generate_pdf_manifest,
     get_download_filename,
     get_file_details,
     get_file_mimetype,
-    write_temporary_file,
 )
 
 from .forms import SearchForm
@@ -605,6 +605,7 @@ def record(record_id: uuid.UUID):
     file = db.session.get(File, record_id)
     ayr_user = AYRUser(session.get("user_groups"))
     can_download_records = ayr_user.can_download_records
+    presigned_url = None
 
     if file is None:
         abort(404)
@@ -622,7 +623,7 @@ def record(record_id: uuid.UUID):
     )
 
     try:
-        write_temporary_file(file, file_extension)
+        presigned_url = create_presigned_url(file)
     except Exception as e:
         current_app.logger.info(f"Error with file IO: {e}")
 
@@ -637,6 +638,8 @@ def record(record_id: uuid.UUID):
         file_type=file_type,
         manifest_url=manifest_url,
         file_extension=file_extension,
+        record_id=record_id,
+        presigned_url=presigned_url,
     )
 
 
@@ -759,14 +762,3 @@ def generate_manifest(record_id: uuid.UUID):
         return generate_image_manifest(s3_file_object, record_id)
     else:
         return http_exception(BadRequest())
-
-
-@access_token_sign_in_required
-@bp.route("/files/<filename>")
-def serve_file(filename):
-    temp_directory = session.get("temp_dir")
-    files_directory = os.path.join(temp_directory, "files")
-    if temp_directory:
-        return send_from_directory(files_directory, filename)
-    else:
-        abort(404)

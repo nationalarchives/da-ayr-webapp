@@ -57,36 +57,21 @@ def get_download_filename(file):
     return None
 
 
-def write_temporary_file(file, file_extension):
-    """Manage the file in a permanent temporary directory."""
+def create_presigned_url(file):
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
-    temp_directory = tempfile.mkdtemp()
-    session["temp_dir"] = temp_directory
-    files_directory = os.path.join(temp_directory, "files")
-    file_path = ""
+    try:
+        presigned_url = s3.generate_presigned_url(
+            "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=10
+        )
 
-    if file_extension == "pdf":
-        file_path = os.path.join(files_directory, "temp_file.pdf")
-    elif file_extension in ["png", "jpg", "jpeg"]:
-        file_path = os.path.join(files_directory, f"temp_file.{file_extension}")
-    else:
-        file_path = os.path.join(files_directory, f"temp_file.{file_extension}")
+    except Exception as e:
+        current_app.logger.error(f"S3 error: {e}")
+        abort(404)
 
-    if os.path.exists(files_directory):
-        shutil.rmtree(files_directory)
-
-    os.makedirs(files_directory)
-
-    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
-    file_content = s3_file_object["Body"].read()
-
-    with open(file_path, "wb") as temporary_file:
-        temporary_file.write(file_content)
-
-    return f"{files_directory}/{os.path.basename(file_path)}"
+    return presigned_url
 
 
 def generate_pdf_manifest(record_id):
