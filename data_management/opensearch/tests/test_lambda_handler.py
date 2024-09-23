@@ -100,7 +100,8 @@ def test_lambda_handler_calls_index_file_content_and_metadata_in_opensearch(
         "botocore.client.BaseClient._make_api_call", new=mock_make_api_call
     ):
         with patch(
-            "data_management.opensearch.lambda_function.index_file_content_and_metadata_in_opensearch"
+            "data_management.opensearch.index_file_content_and_metadata_in_opensearch_from_aws"
+            ".index_file_content_and_metadata_in_opensearch"
         ) as mock_index_file_content_and_metadata_in_opensearch:
             lambda_handler(event, None)
 
