@@ -56,8 +56,7 @@ def get_download_filename(file):
 
 def create_presigned_url(file):
     file_extension = file.FileName.split(".")[-1].lower()
-    supported_extensions = ["pdf", "png", "jpg", "jpeg"]
-    if file_extension not in supported_extensions:
+    if file_extension not in current_app.config["SUPPORTED_RENDER_EXTENSIONS"]:
         current_app.logger.info(
             f"Rendering file format '{file_extension}' is not currently supported by AYR."
         )

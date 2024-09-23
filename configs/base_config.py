@@ -11,6 +11,7 @@ class BaseConfig(object):
     SERVICE_NAME = "AYR – Access Your Records"
     SERVICE_PHASE = "BETA"
     SERVICE_URL = "https://ayr.nationalarchives.gov.uk/"
+    SUPPORTED_RENDER_EXTENSIONS = ["pdf", "png", "jpg", "jpeg"]
 
     @property
     def AWS_REGION(self):

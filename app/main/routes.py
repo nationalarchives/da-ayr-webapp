@@ -639,6 +639,9 @@ def record(record_id: uuid.UUID):
         manifest_url=manifest_url,
         file_extension=file_extension,
         presigned_url=presigned_url,
+        supported_render_extensions=current_app.config[
+            "SUPPORTED_RENDER_EXTENSIONS"
+        ],
     )
 
 
@@ -685,11 +688,7 @@ def download_record(record_id: uuid.UUID):
 
     content_type = s3_file_object.get("ContentType", "application/octet-stream")
 
-    print("RENDER", render)
     if render:
-        presigned_url = create_presigned_url(file)
-        print(presigned_url)
-        return presigned_url
         return send_file(
             io.BytesIO(file_content),
             mimetype=get_file_mimetype(file_type),
