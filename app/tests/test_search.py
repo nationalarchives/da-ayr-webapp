@@ -438,6 +438,29 @@ class TestSearchResultsSummary:
         assert anchor_all["href"] == self.browse_all_route_url
         assert span_summary
 
+    @patch("app.main.routes.OpenSearch")
+    def test_search_results_summary_no_perms_standard_users(
+        self,
+        mock_search_client,
+        client: FlaskClient,
+        mock_standard_user,
+    ):
+        """
+        Given a standard user
+        When they make a request to the search summary page
+        Then they should receive a 403 code
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_summary
+        )
+        mock_standard_user(client)
+
+        form_data = {"query": "fi"}
+
+        response = client.get(f"{self.route_url}", data=form_data)
+
+        assert response.status_code == 403
+
 
 class TestSearchTransferringBody:
     @property
@@ -1384,3 +1407,61 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
         assert evaluate_table_body_rows(soup, expected_results)
+
+    @patch("app.main.routes.OpenSearch")
+    def test_search_transferring_body_standard_user_with_no_view_perms(
+        self,
+        mock_search_client,
+        client,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user with a specific transferring body role
+        When they make a GET request to search a transferring body they dont have permissions to view
+        Then they should receive a 404 code
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+        mock_standard_user(client, "non_existant_body")
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        form_data = {"query": "test"}
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 404
+
+    @patch("app.main.routes.OpenSearch")
+    def test_search_transferring_body_standard_user_with_view_perms(
+        self,
+        mock_search_client,
+        client,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user with a specific transferring body role
+        When they make a GET request to search a transferring body they have permissions to view
+        Then they should receive a 200 code
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+        mock_standard_user(client)
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        form_data = {"query": "test"}
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 404
