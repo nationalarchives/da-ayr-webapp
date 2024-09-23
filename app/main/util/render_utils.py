@@ -55,6 +55,14 @@ def get_download_filename(file):
 
 
 def create_presigned_url(file):
+    file_extension = file.FileName.split(".")[-1].lower()
+    supported_extensions = ["pdf", "png", "jpg", "jpeg"]
+    if file_extension not in supported_extensions:
+        current_app.logger.info(
+            f"Rendering file format '{file_extension}' is not currently supported by AYR."
+        )
+        return None
+
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
@@ -65,7 +73,7 @@ def create_presigned_url(file):
         )
 
     except Exception as e:
-        current_app.logger.error(f"S3 error: {e}")
+        current_app.logger.info(f"Failed to create presigned url. {e}")
         abort(404)
 
     return presigned_url
