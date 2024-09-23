@@ -63,6 +63,7 @@ def _fetch_file_data(
         b."Name" AS transferring_body,
         b."BodyId" AS transferring_body_id,
         b."Description" AS transferring_body_description,
+        c."ConsignmentId" AS consignment_id,
         c."ConsignmentReference" AS consignment_reference,
         fm."PropertyName",
         fm."Value"
@@ -96,6 +97,7 @@ def _fetch_file_data(
         "transferring_body_description": result[
             0
         ].transferring_body_description,
+        "consignment_id": result[0].consignment_id,
         "consignment_reference": result[0].consignment_reference,
         "metadata": {
             row.PropertyName: row.Value
