@@ -57,7 +57,7 @@ def get_download_filename(file):
 def create_presigned_url(file):
     file_extension = file.FileName.split(".")[-1].lower()
     if file_extension not in current_app.config["SUPPORTED_RENDER_EXTENSIONS"]:
-        current_app.logger.info(
+        current_app.logger.warning(
             f"Rendering file format '{file_extension}' is not currently supported by AYR."
         )
         return None
@@ -66,14 +66,9 @@ def create_presigned_url(file):
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
-    try:
-        presigned_url = s3.generate_presigned_url(
-            "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=10
-        )
-
-    except Exception as e:
-        current_app.logger.info(f"Failed to create presigned url. {e}")
-        abort(404)
+    presigned_url = s3.generate_presigned_url(
+        "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=10
+    )
 
     return presigned_url
 
