@@ -1,10 +1,7 @@
 import io
-import os
-import shutil
-import tempfile
 
 import boto3
-from flask import abort, current_app, jsonify, session, url_for
+from flask import abort, current_app, jsonify, url_for
 from PIL import Image
 
 from app.main.db.models import File, db

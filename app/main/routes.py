@@ -1,6 +1,5 @@
 import io
 import json
-import os
 import uuid
 
 import boto3
@@ -11,7 +10,6 @@ from flask import (
     render_template,
     request,
     send_file,
-    send_from_directory,
     session,
     url_for,
 )
@@ -638,7 +636,6 @@ def record(record_id: uuid.UUID):
         file_type=file_type,
         manifest_url=manifest_url,
         file_extension=file_extension,
-        record_id=record_id,
         presigned_url=presigned_url,
     )
 
