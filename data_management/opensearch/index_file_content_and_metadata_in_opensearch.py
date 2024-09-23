@@ -128,5 +128,4 @@ def _index_in_opensearch(
         verify_certs=False,
         connection_class=RequestsHttpConnection,
     )
-    response = open_search.index(index="documents", id=file_id, body=document)
-    logger.info(response)
+    open_search.index(index="documents", id=file_id, body=document)
