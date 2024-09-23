@@ -1453,7 +1453,7 @@ class TestSearchTransferringBody:
         mock_search_client.return_value = MockOpenSearch(
             search_return_value=os_mock_return_tb
         )
-        mock_standard_user(client)
+        mock_standard_user(client, "first_body")
 
         transferring_body_id = browse_consignment_files[
             0
@@ -1464,4 +1464,4 @@ class TestSearchTransferringBody:
             f"{self.route_url}/{transferring_body_id}", data=form_data
         )
 
-        assert response.status_code == 404
+        assert response.status_code == 200
