@@ -33,8 +33,8 @@ jobs:
     - name: Build CSS
       run: npm run build
 
-    - name: Run App Unit tests
-      run: AWS_DEFAULT_REGION=eu-west-2 poetry run pytest --cov=app/main  --cov-report term-missing  -rsa -vvv app/tests
+    - name: Run App unit tests
+      run: AWS_DEFAULT_REGION=eu-west-2 poetry run pytest --cov=app/main --cov-report term-missing -rsa -vvv app/tests
 
     - name: Generate coverage XML
       run: poetry run coverage xml
@@ -54,14 +54,20 @@ jobs:
       with:
         python-version: 3.11
 
+    - name: Install Poetry
+      run: pip install poetry
+
     - name: Install dependencies
-      run: pip install -r data_management/opensearch/requirements.txt
+      run: poetry install
+
+    - name: Install dependencies
+      run: pip install pip==24.0 && pip install -r data_management/opensearch/requirements.txt && pip install -r data_management/opensearch/requirements-dev.txt
 
     - name: Run Data Management unit tests
-      run: poetry run pytest --cov=data_management/  --cov-report term-missing  -rsa -vvv data_management/
+      run: AWS_DEFAULT_REGION=eu-west-2 pytest --cov=data_management/ --cov-report term-missing -rsa -vvv data_management/
 
     - name: Generate coverage XML
-      run: poetry run coverage xml
+      run: coverage xml
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
