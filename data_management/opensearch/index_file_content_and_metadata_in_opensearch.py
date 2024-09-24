@@ -127,7 +127,7 @@ def _index_in_opensearch(
         open_search_host_url,
         http_auth=open_search_http_auth,
         use_ssl=True,
-        verify_certs=False,
+        verify_certs=True,
         connection_class=RequestsHttpConnection,
     )
     open_search.index(index="documents", id=file_id, body=document)
