@@ -81,7 +81,7 @@ def generate_pdf_manifest(record_id):
 
     file_name = file.FileName
     file_url = url_for(
-        "main.download_record", record_id=record_id, _external=True
+        "main.download_record", record_id=record_id, _external=True, render=True
     )
 
     manifest = {
@@ -105,14 +105,12 @@ def generate_pdf_manifest(record_id):
                 "label": {"en": ["test"]},
                 "items": [
                     {
-                        "id": f"""{url_for('main.download_record',
-                                           record_id=record_id, _external=True, render=True)}""",
+                        "id": file_url,
                         "type": "AnnotationPage",
                         "label": {"en": ["test"]},
                         "items": [
                             {
-                                "id": f"""{url_for('main.download_record',
-                                                   record_id=record_id, _external=True, render=True)}""",
+                                "id": file_url,
                                 "type": "Annotation",
                                 "motivation": "painting",
                                 "label": {"en": ["test"]},
@@ -121,8 +119,7 @@ def generate_pdf_manifest(record_id):
                                     "type": "Text",
                                     "format": "application/pdf",
                                 },
-                                "target": f"""{url_for('main.download_record',
-                                                       record_id=record_id, _external=True, render=True)}""",
+                                "target": file_url,
                             }
                         ],
                     }
@@ -167,21 +164,18 @@ def generate_image_manifest(s3_file_object, record_id):
         "description": f"Manifest for {filename}",
         "sequences": [
             {
-                "@id": f"""{url_for('main.download_record',
-                                    record_id=record_id, _external=True, render=True)}""",
+                "@id": file_url,
                 "@type": "sc:Sequence",
                 "canvases": [
                     {
-                        "@id": f"""{url_for('main.download_record',
-                                            record_id=record_id, _external=True, render=True)}""",
+                        "@id": file_url,
                         "@type": "sc:Canvas",
                         "label": "Image 1",
                         "width": width,
                         "height": height,
                         "images": [
                             {
-                                "@id": f"""{url_for('main.download_record',
-                                                    record_id=record_id, _external=True, render=True)}""",
+                                "@id": file_url,
                                 "@type": "oa:Annotation",
                                 "motivation": "sc:painting",
                                 "resource": {
@@ -191,8 +185,7 @@ def generate_image_manifest(s3_file_object, record_id):
                                     "width": width,
                                     "height": height,
                                 },
-                                "on": f"""{url_for('main.download_record',
-                                                   record_id=record_id, _external=True, render=True)}""",
+                                "on": file_url,
                             }
                         ],
                     }

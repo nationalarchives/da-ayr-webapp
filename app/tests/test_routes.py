@@ -139,7 +139,7 @@ class TestRoutes:
                                 {
                                     "body": {
                                         "format": "application/pdf",
-                                        "id": f"http://localhost/download/{file.FileId}",
+                                        "id": f"http://localhost/download/{file.FileId}?render=True",
                                         "type": "Text",
                                     },
                                     "id": f"http://localhost/download/{file.FileId}?render=True",
