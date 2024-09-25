@@ -39,18 +39,23 @@ def build_sorting_orders(args):
 
 
 def build_sorting_orders_open_search(args):
+    type_map = {
+        "series_id": "series_id.keyword",
+        "series_name": "series_name.keyword",
+        "consignment_reference": "consignment_reference.keyword",
+        "opening_date": "metadata.opening_date",
+        "file_name": "file_name.keyword",
+        "closure_type": "metadata.closure_type.keyword",
+    }
     sorting_orders = {}
     if args:
         if args.get("sort"):
             sort_details = args.get("sort").split("-")
-            sort_by = None
-            sort_order = None
-            if len(sort_details) > 1:
-                sort_by = sort_details[0].strip()
-                sort_order = sort_details[1].strip()
+            sort_by = sort_details[0].strip()
+            sort_order = sort_details[1].strip()
 
-            if sort_by and sort_order:
-                sorting_orders[f"{sort_by}"] = {"order": sort_order}
+            if sort_by in type_map and sort_by and sort_order:
+                sorting_orders[type_map[sort_by]] = {"order": sort_order}
 
     return sorting_orders
 
