@@ -37,6 +37,8 @@ os_mock_return_tb = {
         "hits": [
             {
                 "_source": {
+                    "file_name": "fifth_file.doc",
+                    "file_id": "1e2a9d26-b330-4f99-92ff-b1a5b2c1d610",
                     "series_name": "first_series",
                     "series_id": "sbar",
                     "status": "Open",
@@ -44,8 +46,6 @@ os_mock_return_tb = {
                     "consignment_reference": "cbar",
                     "consignment_id": "ibar",
                     "metadata": {
-                        "file_name": "fifth_file.doc",
-                        "file_id": "1e2a9d26-b330-4f99-92ff-b1a5b2c1d610",
                         "closure_type": "Open",
                         "opening_date": "fooDate",
                     },

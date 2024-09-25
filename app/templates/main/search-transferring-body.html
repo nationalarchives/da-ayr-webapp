@@ -92,37 +92,34 @@
                                         <div class="main-content" id="main-content" role="main">
                                             {% if results %}
                                                 {% for record in results %}
-                                                    {% if record['_source']['metadata'] %}
-                                                        {% set result = record['_source']['metadata'] %}
-                                                        <tr class="govuk-table__row top-row">
-                                                            <td class="govuk-table__cell govuk-table__cell--on-mobile--flex-layout-col">
-                                                                <a href="{{ url_for('main.browse_series', _id=record['_source']['series_id']) }}">{{ record['_source']["series_name"] }}</a>
-                                                                <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4 word-break"
-                                                                   href="{{ url_for('main.record', record_id=result['file_id']) }}">{{ result["file_name"] }}</a>
-                                                                <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4"
-                                                                   href="{{ url_for('main.browse_consignment', _id=record['_source']['consignment_reference']) }}">{{ record['_source']["consignment_reference"] }}</a>
-                                                            </td>
-                                                            <td class="govuk-table__cell govuk-table--invisible-on-mobile">
-                                                                <a href="{{ url_for('main.browse_consignment', _id=record['_source']['consignment_id']) }}">{{ record['_source']["consignment_reference"] }}</a>
-                                                            </td>
-                                                            <td class="govuk-table__cell govuk-table--invisible-on-mobile">
-                                                                <a class="word-break"
-                                                                   href="{{ url_for('main.record', record_id=result['file_id']) }}">{{ result["file_name"] }}</a>
-                                                            </td>
-                                                            <td class="govuk-table__cell">
-                                                                <strong class="{% if result['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif result['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif result['closure_type'] is none %}{% endif %}">
-                                                                    {{ result['closure_type'] }}
-                                                                </strong>
-                                                            </td>
-                                                            <td class="govuk-table__cell govuk-table--right-align">
-                                                                {% if result['opening_date'] %}
-                                                                    {{ result['opening_date'] }}
-                                                                {% else %}
-                                                                    –
-                                                                {% endif %}
-                                                            </td>
-                                                        </tr>
-                                                    {% endif %}
+                                                    <tr class="govuk-table__row top-row">
+                                                        <td class="govuk-table__cell govuk-table__cell--on-mobile--flex-layout-col">
+                                                            <a href="{{ url_for('main.browse_series', _id=record['_source']['series_id']) }}">{{ record['_source']["series_name"] }}</a>
+                                                            <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4 word-break"
+                                                               href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ record['_source']["file_name"] }}</a>
+                                                            <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4"
+                                                               href="{{ url_for('main.browse_consignment', _id=record['_source']['consignment_id']) }}">{{ record['_source']["consignment_reference"] }}</a>
+                                                        </td>
+                                                        <td class="govuk-table__cell govuk-table--invisible-on-mobile">
+                                                            <a href="{{ url_for('main.browse_consignment', _id=record['_source']['consignment_id']) }}">{{ record['_source']["consignment_reference"] }}</a>
+                                                        </td>
+                                                        <td class="govuk-table__cell govuk-table--invisible-on-mobile">
+                                                            <a class="word-break"
+                                                               href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ record['_source']["file_name"] }}</a>
+                                                        </td>
+                                                        <td class="govuk-table__cell">
+                                                            <strong class="{% if record['_source']['metadata']['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['_source']['metadata']['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['_source']['metadata']['closure_type'] is none %}{% endif %}">
+                                                                {{ record['_source']['metadata']['closure_type'] }}
+                                                            </strong>
+                                                        </td>
+                                                        <td class="govuk-table__cell govuk-table--right-align">
+                                                            {% if record['_source']['metadata']['opening_date'] %}
+                                                                {{ record['_source']['metadata']['opening_date'] }}
+                                                            {% else %}
+                                                                –
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
                                                 {% endfor %}
                                             {% endif %}
                                         </div>
