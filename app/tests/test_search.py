@@ -1389,7 +1389,7 @@ class TestSearchTransferringBody:
                 [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
                 "series_id-asc",
             ),
-            # edge case: random sort options as numbers
+            # edge case: random sort order
             (
                 "sort=series_name-aaaaa&query=foobar",
                 os_mock_return_tb,
