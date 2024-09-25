@@ -112,6 +112,8 @@ def create_app(config_class, database_uri=None):
             "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
         ],
         "img-src": (f"'self' {app.config['FLASKS3_CDN_DOMAIN']} data: "),
+        "object-src": f"https://{app.config['RECORD_BUCKET_NAME']}.s3.amazonaws.com",
+        "frame-src": f"https://{app.config['RECORD_BUCKET_NAME']}.s3.amazonaws.com",
     }
 
     # setup database uri for testing

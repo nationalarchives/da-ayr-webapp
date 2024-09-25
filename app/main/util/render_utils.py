@@ -1,6 +1,4 @@
 import io
-import os
-import shutil
 
 import boto3
 from flask import abort, current_app, jsonify, url_for
@@ -56,37 +54,23 @@ def get_download_filename(file):
     return None
 
 
-def manage_static_file(file, file_extension):
-    """Manage the file in the static directory."""
+def create_presigned_url(file):
+    file_extension = file.FileName.split(".")[-1].lower()
+    if file_extension not in current_app.config["SUPPORTED_RENDER_EXTENSIONS"]:
+        current_app.logger.warning(
+            f"Rendering file format '{file_extension}' is not currently supported by AYR."
+        )
+        return None
+
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-    files_directory = os.path.join(current_app.static_folder, "files")
-    static_file_path = ""
 
-    if file_extension == "pdf":
-        static_file_path = os.path.join(files_directory, "temp_file.pdf")
-    elif file_extension in ["png", "jpg", "jpeg"]:
-        static_file_path = os.path.join(
-            files_directory, f"temp_file.{file_extension}"
-        )
-    else:
-        static_file_path = os.path.join(
-            files_directory, f"temp_file.{file_extension}"
-        )
+    presigned_url = s3.generate_presigned_url(
+        "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=10
+    )
 
-    if os.path.exists(files_directory):
-        shutil.rmtree(files_directory)
-
-    os.makedirs(files_directory)
-
-    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
-    file_content = s3_file_object["Body"].read()
-
-    with open(static_file_path, "wb") as static_file:
-        static_file.write(file_content)
-
-    return static_file_path
+    return presigned_url
 
 
 def generate_pdf_manifest(record_id):
@@ -97,7 +81,7 @@ def generate_pdf_manifest(record_id):
 
     file_name = file.FileName
     file_url = url_for(
-        "main.download_record", record_id=record_id, _external=True
+        "main.download_record", record_id=record_id, _external=True, render=True
     )
 
     manifest = {
@@ -121,14 +105,12 @@ def generate_pdf_manifest(record_id):
                 "label": {"en": ["test"]},
                 "items": [
                     {
-                        "id": f"""{url_for('main.download_record',
-                                           record_id=record_id, _external=True, render=True)}""",
+                        "id": file_url,
                         "type": "AnnotationPage",
                         "label": {"en": ["test"]},
                         "items": [
                             {
-                                "id": f"""{url_for('main.download_record',
-                                                   record_id=record_id, _external=True, render=True)}""",
+                                "id": file_url,
                                 "type": "Annotation",
                                 "motivation": "painting",
                                 "label": {"en": ["test"]},
@@ -137,8 +119,7 @@ def generate_pdf_manifest(record_id):
                                     "type": "Text",
                                     "format": "application/pdf",
                                 },
-                                "target": f"""{url_for('main.download_record',
-                                                       record_id=record_id, _external=True, render=True)}""",
+                                "target": file_url,
                             }
                         ],
                     }
@@ -183,21 +164,18 @@ def generate_image_manifest(s3_file_object, record_id):
         "description": f"Manifest for {filename}",
         "sequences": [
             {
-                "@id": f"""{url_for('main.download_record',
-                                    record_id=record_id, _external=True, render=True)}""",
+                "@id": file_url,
                 "@type": "sc:Sequence",
                 "canvases": [
                     {
-                        "@id": f"""{url_for('main.download_record',
-                                            record_id=record_id, _external=True, render=True)}""",
+                        "@id": file_url,
                         "@type": "sc:Canvas",
                         "label": "Image 1",
                         "width": width,
                         "height": height,
                         "images": [
                             {
-                                "@id": f"""{url_for('main.download_record',
-                                                    record_id=record_id, _external=True, render=True)}""",
+                                "@id": file_url,
                                 "@type": "oa:Annotation",
                                 "motivation": "sc:painting",
                                 "resource": {
@@ -207,8 +185,7 @@ def generate_image_manifest(s3_file_object, record_id):
                                     "width": width,
                                     "height": height,
                                 },
-                                "on": f"""{url_for('main.download_record',
-                                                   record_id=record_id, _external=True, render=True)}""",
+                                "on": file_url,
                             }
                         ],
                     }

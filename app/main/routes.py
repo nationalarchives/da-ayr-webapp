@@ -47,13 +47,13 @@ from app.main.util.pagination import (
     paginate,
 )
 from app.main.util.render_utils import (
+    create_presigned_url,
     generate_breadcrumb_values,
     generate_image_manifest,
     generate_pdf_manifest,
     get_download_filename,
     get_file_details,
     get_file_mimetype,
-    manage_static_file,
 )
 
 from .forms import SearchForm
@@ -697,6 +697,7 @@ def record(record_id: uuid.UUID):
     file = db.session.get(File, record_id)
     ayr_user = AYRUser(session.get("user_groups"))
     can_download_records = ayr_user.can_download_records
+    presigned_url = None
 
     if file is None:
         abort(404)
@@ -714,9 +715,11 @@ def record(record_id: uuid.UUID):
     )
 
     try:
-        manage_static_file(file, file_extension)
+        presigned_url = create_presigned_url(file)
     except Exception as e:
-        current_app.logger.info(f"Error with file IO: {e}")
+        current_app.logger.info(
+            f"Failed to create presigned url for document render non-javascript fallback {e}"
+        )
 
     return render_template(
         "record.html",
@@ -729,6 +732,10 @@ def record(record_id: uuid.UUID):
         file_type=file_type,
         manifest_url=manifest_url,
         file_extension=file_extension,
+        presigned_url=presigned_url,
+        supported_render_extensions=current_app.config[
+            "SUPPORTED_RENDER_EXTENSIONS"
+        ],
     )
 
 
@@ -755,7 +762,7 @@ def download_record(record_id: uuid.UUID):
     try:
         s3_file_object = s3.get_object(Bucket=bucket, Key=key)
     except Exception as e:
-        current_app.logger.error(f"S3 error: {e}")
+        current_app.logger.error(f"Failed to get object from S3: {e}")
         abort(404)
 
     download_filename = file.FileName
