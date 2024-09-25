@@ -3,6 +3,9 @@ from unittest import mock
 from uuid import uuid4
 
 import pytest
+from opensearch_indexer.index_file_content_and_metadata_in_opensearch import (
+    index_file_content_and_metadata_in_opensearch,
+)
 from opensearchpy import RequestsHttpConnection
 from sqlalchemy import (
     Boolean,
@@ -15,10 +18,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
-
-from data_management.opensearch.index_file_content_and_metadata_in_opensearch import (
-    index_file_content_and_metadata_in_opensearch,
-)
 
 Base = declarative_base()
 
@@ -92,7 +91,7 @@ def temp_db():
 
 
 @mock.patch(
-    "data_management.opensearch.index_file_content_and_metadata_in_opensearch.OpenSearch"
+    "opensearch_indexer.index_file_content_and_metadata_in_opensearch.OpenSearch"
 )
 def test_index_file_content_and_metadata_in_opensearch(
     mock_open_search, temp_db

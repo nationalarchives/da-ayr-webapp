@@ -6,7 +6,7 @@ from urllib.parse import quote_plus
 import boto3
 from requests_aws4auth import AWS4Auth
 
-from data_management.opensearch.index_file_content_and_metadata_in_opensearch import (
+from .index_file_content_and_metadata_in_opensearch import (
     index_file_content_and_metadata_in_opensearch,
 )
 
@@ -55,7 +55,7 @@ def _get_opensearch_auth(secret_string: Dict[str, Any]) -> AWS4Auth:
         RoleArn=secret_string["OPEN_SEARCH_MASTER_ROLE_ARN"],
         RoleSessionName="LambdaOpenSearchSession",
     )
-    logger.info("Extract temporary credentials to access OpenSearch with")
+    logger.info("Extract temporary credentials to access OpenSearch")
     credentials = assumed_role["Credentials"]
     open_search_http_auth = AWS4Auth(
         credentials["AccessKeyId"],

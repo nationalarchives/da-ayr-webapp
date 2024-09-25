@@ -61,10 +61,10 @@ jobs:
       run: poetry install
 
     - name: Install dependencies
-      run: pip install pip==24.0 && pip install -r data_management/opensearch/requirements.txt && pip install -r data_management/opensearch/requirements-dev.txt
+      run: pip install pip==24.0 && pip install -r data_management/opensearch_indexer/requirements.txt && pip install -r data_management/opensearch_indexer/requirements-dev.txt
 
     - name: Run Data Management unit tests
-      run: AWS_DEFAULT_REGION=eu-west-2 pytest --cov=data_management/ --cov-report term-missing -rsa -vvv data_management/
+      run: AWS_DEFAULT_REGION=eu-west-2 pytest --cov=data_management/opensearch_indexer/opensearch_indexer --cov-report term-missing  -rsa -vvv data_management/opensearch_indexer/tests
 
     - name: Generate coverage XML
       run: coverage xml

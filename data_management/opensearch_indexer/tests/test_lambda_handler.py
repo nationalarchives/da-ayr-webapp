@@ -4,9 +4,8 @@ from unittest.mock import patch
 import boto3
 import botocore
 from moto import mock_aws
+from opensearch_indexer.lambda_function import lambda_handler
 from requests_aws4auth import AWS4Auth
-
-from data_management.opensearch.lambda_function import lambda_handler
 
 # Original botocore _make_api_call function
 orig = botocore.client.BaseClient._make_api_call
@@ -100,7 +99,7 @@ def test_lambda_handler_calls_index_file_content_and_metadata_in_opensearch(
         "botocore.client.BaseClient._make_api_call", new=mock_make_api_call
     ):
         with patch(
-            "data_management.opensearch.index_file_content_and_metadata_in_opensearch_from_aws"
+            "opensearch_indexer.index_file_content_and_metadata_in_opensearch_from_aws"
             ".index_file_content_and_metadata_in_opensearch"
         ) as mock_index_file_content_and_metadata_in_opensearch:
             lambda_handler(event, None)

@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Any, Dict, Tuple
 
-from data_management.opensearch.index_file_content_and_metadata_in_opensearch_from_aws import (
+from .index_file_content_and_metadata_in_opensearch_from_aws import (
     index_file_content_and_metadata_in_opensearch_from_aws,
 )
 
