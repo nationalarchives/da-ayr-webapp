@@ -588,7 +588,7 @@ def search_transferring_body(_id: uuid.UUID):
 
     filters = {"query": query}
 
-    sort_query = build_sorting_orders_open_search(request.args)
+    sorting_query = build_sorting_orders_open_search(request.args)
     sorting_orders = build_sorting_orders(request.args)
 
     breadcrumb_values = {
@@ -649,7 +649,7 @@ def search_transferring_body(_id: uuid.UUID):
                     "filter": [{"term": {"transferring_body_id.keyword": _id}}],
                 }
             },
-            "sort": sort_query,
+            "sort": sorting_query,
         }
         size = per_page
         page_number = page
