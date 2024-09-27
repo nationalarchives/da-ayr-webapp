@@ -1458,13 +1458,10 @@ class TestSearchTransferringBody:
         soup = BeautifulSoup(response.data, "html.parser")
         select = soup.find("select", {"id": "sort"})
         option = select.find("option", selected=True)
-        option_text = None
-
-        if option:
-            option_text = option.get("value")
+        option_value = option.get("value")
 
         assert select
-        assert option_text == expected_sort_select_value
+        assert option_value == expected_sort_select_value
         assert evaluate_table_body_rows(soup, expected_results)
 
     @pytest.mark.parametrize(
@@ -1532,14 +1529,14 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
         select = soup.find("select", {"id": "sort"})
-        option = select.find("option", selected=True)
-        option_text = "series_id-asc"
 
-        if option:
-            option_text = option.get("value")
+        option_selected = select.find("option", selected=True)
+        option_first = select.find("option")
+        option_first_value = option_first.get("value")
 
         assert select
-        assert option_text == expected_sort_select_value
+        assert option_selected is None
+        assert option_first_value == expected_sort_select_value
         assert evaluate_table_body_rows(soup, expected_results)
 
     @patch("app.main.routes.OpenSearch")
