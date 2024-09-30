@@ -1367,17 +1367,66 @@ class TestSearchTransferringBody:
         )
 
     @pytest.mark.parametrize(
-        "query_params, mock_open_search_return, expected_results",
+        "query_params, mock_open_search_return, expected_results, expected_sort_select_value",
         [
             (
-                "query=TDR-2023-FI1",
+                "sort=series_name-desc&query=foobar",
                 os_mock_return_tb,
                 [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                "series_name-desc",
+            ),
+            (
+                "sort=consignment_reference-desc&query=foobar",
+                os_mock_return_tb,
+                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                "consignment_reference-desc",
+            ),
+            (
+                "sort=consignment_reference-asc&query=foobar",
+                os_mock_return_tb,
+                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                "consignment_reference-asc",
+            ),
+            (
+                "sort=opening_date-desc&query=foobar",
+                os_mock_return_tb,
+                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                "opening_date-desc",
+            ),
+            (
+                "sort=opening_date-asc&query=foobar",
+                os_mock_return_tb,
+                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                "opening_date-asc",
+            ),
+            (
+                "sort=file_name-asc&query=foobar",
+                os_mock_return_tb,
+                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                "file_name-asc",
+            ),
+            (
+                "sort=file_name-desc&query=foobar",
+                os_mock_return_tb,
+                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                "file_name-desc",
+            ),
+            (
+                "sort=closure_type-asc&query=foobar",
+                os_mock_return_tb,
+                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                "closure_type-asc",
+            ),
+            (
+                "sort=closure_type-desc&query=foobar",
+                os_mock_return_tb,
+                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                "closure_type-desc",
             ),
         ],
     )
     @patch("app.main.routes.OpenSearch")
-    def test_search_transferring_body_with_search_filter_full_test(
+    def test_search_transferring_body_with_search_term_happy_path(
         self,
         mock_search_client,
         client: FlaskClient,
@@ -1386,6 +1435,7 @@ class TestSearchTransferringBody:
         query_params,
         mock_open_search_return,
         expected_results,
+        expected_sort_select_value,
     ):
 
         mock_search_client.return_value = MockOpenSearch(
@@ -1406,6 +1456,87 @@ class TestSearchTransferringBody:
 
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
+        select = soup.find("select", {"id": "sort"})
+        option = select.find("option", selected=True)
+        option_value = option.get("value")
+
+        assert select
+        assert option_value == expected_sort_select_value
+        assert evaluate_table_body_rows(soup, expected_results)
+
+    @pytest.mark.parametrize(
+        "query_params, mock_open_search_return, expected_results, expected_sort_select_value",
+        [
+            # without any sort term the select value should be series_id-asc by default
+            (
+                "query=foobar",
+                os_mock_return_tb,
+                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                "series_id-asc",
+            ),
+            # edge case: random sort options as letters
+            (
+                "sort=foo-bar&query=foobar",
+                os_mock_return_tb,
+                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                "series_id-asc",
+            ),
+            # edge case: random sort options as numbers
+            (
+                "sort=111-222&query=foobar",
+                os_mock_return_tb,
+                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                "series_id-asc",
+            ),
+            # edge case: random sort order
+            (
+                "sort=series_name-aaaaa&query=foobar",
+                os_mock_return_tb,
+                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                "series_id-asc",
+            ),
+        ],
+    )
+    @patch("app.main.routes.OpenSearch")
+    def test_search_transferring_body_with_search_term_edge_case_path(
+        self,
+        mock_search_client,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_consignment_files,
+        query_params,
+        mock_open_search_return,
+        expected_results,
+        expected_sort_select_value,
+    ):
+
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=mock_open_search_return
+        )
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}?{query_params}"
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        select = soup.find("select", {"id": "sort"})
+
+        option_selected = select.find("option", selected=True)
+        option_first = select.find("option")
+        option_first_value = option_first.get("value")
+
+        assert select
+        assert option_selected is None
+        assert option_first_value == expected_sort_select_value
         assert evaluate_table_body_rows(soup, expected_results)
 
     @patch("app.main.routes.OpenSearch")
