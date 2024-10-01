@@ -170,6 +170,8 @@ def browse():
         else:
             num_records_found = 0
 
+        pagination = get_pagination(page, browse_results.pages)
+
         return render_template(
             "browse.html",
             form=form,
@@ -179,6 +181,7 @@ def browse():
             date_validation_errors=date_validation_errors,
             date_error_fields=date_error_fields,
             transferring_bodies=transferring_bodies,
+            pagination=pagination,
             filters=filters,
             date_filters=date_filters,
             sorting_orders=sorting_orders,
@@ -251,6 +254,8 @@ def browse_transferring_body(_id: uuid.UUID):
     else:
         num_records_found = 0
 
+    pagination = get_pagination(page, browse_results.pages)
+
     return render_template(
         "browse.html",
         form=form,
@@ -260,6 +265,7 @@ def browse_transferring_body(_id: uuid.UUID):
         date_validation_errors=date_validation_errors,
         date_error_fields=date_error_fields,
         breadcrumb_values=breadcrumb_values,
+        pagination=pagination,
         filters=filters,
         date_filters=date_filters,
         sorting_orders=sorting_orders,
@@ -336,6 +342,8 @@ def browse_series(_id: uuid.UUID):
     else:
         num_records_found = 0
 
+    pagination = get_pagination(page, browse_results.pages)
+
     return render_template(
         "browse.html",
         form=form,
@@ -345,6 +353,7 @@ def browse_series(_id: uuid.UUID):
         date_validation_errors=date_validation_errors,
         date_error_fields=date_error_fields,
         breadcrumb_values=breadcrumb_values,
+        pagination=pagination,
         filters=filters,
         date_filters=date_filters,
         sorting_orders=sorting_orders,
@@ -421,6 +430,8 @@ def browse_consignment(_id: uuid.UUID):
     else:
         num_records_found = 0
 
+    pagination = get_pagination(page, browse_results.pages)
+
     return render_template(
         "browse.html",
         form=form,
@@ -430,6 +441,7 @@ def browse_consignment(_id: uuid.UUID):
         date_validation_errors=date_validation_errors,
         date_error_fields=date_error_fields,
         breadcrumb_values=breadcrumb_values,
+        pagination=pagination,
         filters=filters,
         date_filters=date_filters,
         sorting_orders=sorting_orders,

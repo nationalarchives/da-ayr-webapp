@@ -1,8 +1,8 @@
-{% if results.pages > 1 %}
+{% if pagination %}
     <nav class="govuk-pagination govuk-pagination--centred"
          role="navigation"
          aria-label="Pagination">
-        {% if results.has_prev == True %}
+        {% if pagination.previous %}
             <div class="govuk-pagination__prev">
                 <a data-testid="pagination-link"
                    class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
@@ -24,29 +24,20 @@
             </div>
         {% endif %}
         <ul class="govuk-pagination__list">
-            {% for page in results.iter_pages(left_edge=1, left_current=1, right_current=1, right_edge=1) %}
-                {% if page %}
-                    {% if page != current_page %}
-                        <li class="govuk-pagination__item">
-                            <a data-testid="pagination-link"
-                               class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
-                               href="{% if id != None %} {{ url_for(view_name, _id=id , page=page, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=page, **query_string_parameters) }}{% endif %}"
-                               aria-label="Page {{ page }}">{{ page }}</a>
-                        </li>
+            {% for page in pagination.pages %}
+                <li class="govuk-pagination__item {% if page == current_page %}govuk-pagination__item--current{% endif %} {% if page == 'ellipses' %}govuk-pagination__item--ellipses{% endif %} ">
+                    {% if page == 'ellipses' %}
+                        ...
                     {% else %}
-                        <li class="govuk-pagination__item govuk-pagination__item--current">
-                            <a data-testid="pagination-link"
-                               class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
-                               href="{% if id != None %} {{ url_for(view_name, _id=id , page=page, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=page, **query_string_parameters) }} {% endif %}"
-                               aria-label="Page {{ page }}">{{ page }}</a>
-                        </li>
+                        <a data-testid="pagination-link"
+                           class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
+                           href="{% if id != None %} {{ url_for(view_name, _id=id , page=page, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=page, **query_string_parameters) }} {% endif %}"
+                           aria-label="Page {{ page }}">{{ page }}</a>
                     {% endif %}
-                {% else %}
-                    <li class="govuk-pagination__item govuk-pagination__item--ellipses">…</li>
-                {% endif %}
+                </li>
             {% endfor %}
         </ul>
-        {% if results.has_next == True %}
+        {% if pagination.next %}
             <div class="govuk-pagination__next">
                 <a data-testid="pagination-link"
                    class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
