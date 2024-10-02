@@ -508,7 +508,7 @@ def search_results_summary():
             hosts=current_app.config.get("OPEN_SEARCH_HOST"),
             http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
             use_ssl=True,
-            verify_certs=True,
+            verify_certs=False,
             connection_class=RequestsHttpConnection,
         )
 
@@ -642,7 +642,7 @@ def search_transferring_body(_id: uuid.UUID):
             hosts=current_app.config.get("OPEN_SEARCH_HOST"),
             http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
             use_ssl=True,
-            verify_certs=True,
+            verify_certs=False,
             connection_class=RequestsHttpConnection,
         )
 
@@ -659,7 +659,14 @@ def search_transferring_body(_id: uuid.UUID):
                         }
                     ],
                     "filter": [{"term": {"transferring_body_id.keyword": _id}}],
-                }
+                },
+            },
+            "highlight": {
+                "pre_tags": ["<mark>"],
+                "post_tags": ["</mark>"],
+                "fields": {
+                    "*": {},
+                },
             },
             "sort": sorting_query,
         }
@@ -667,6 +674,7 @@ def search_transferring_body(_id: uuid.UUID):
         page_number = page
         from_ = size * (page_number - 1)
         search_results = open_search.search(dsl_query, from_=from_, size=size)
+        print(search_results)
 
         results = search_results["hits"]["hits"]
         total_records = search_results["hits"]["total"]["value"]
