@@ -508,7 +508,7 @@ def search_results_summary():
             hosts=current_app.config.get("OPEN_SEARCH_HOST"),
             http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
             use_ssl=True,
-            verify_certs=False,
+            verify_certs=True,
             connection_class=RequestsHttpConnection,
         )
 
@@ -643,7 +643,7 @@ def search_transferring_body(_id: uuid.UUID):
             hosts=current_app.config.get("OPEN_SEARCH_HOST"),
             http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
             use_ssl=True,
-            verify_certs=False,
+            verify_certs=True,
             connection_class=RequestsHttpConnection,
         )
 
