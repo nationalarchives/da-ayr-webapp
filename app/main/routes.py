@@ -508,7 +508,7 @@ def search_results_summary():
             hosts=current_app.config.get("OPEN_SEARCH_HOST"),
             http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
             use_ssl=True,
-            verify_certs=True,
+            verify_certs=False,
             connection_class=RequestsHttpConnection,
         )
 
@@ -607,6 +607,7 @@ def search_transferring_body(_id: uuid.UUID):
         0: {"query": ""},
         1: {"transferring_body_id": _id},
         2: {"transferring_body": db.session.get(Body, _id).Name},
+        3: {"search_terms": "‘’"},
     }
     search_terms = []
     results = {"hits": {"total": {"value": 0}, "hits": []}}
@@ -642,7 +643,7 @@ def search_transferring_body(_id: uuid.UUID):
             hosts=current_app.config.get("OPEN_SEARCH_HOST"),
             http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
             use_ssl=True,
-            verify_certs=True,
+            verify_certs=False,
             connection_class=RequestsHttpConnection,
         )
 
