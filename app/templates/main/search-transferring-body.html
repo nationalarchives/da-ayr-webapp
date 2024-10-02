@@ -98,7 +98,7 @@
                                                 <tr class="govuk-table__row top-row">
                                                     <td class="govuk-table__cell">
                                                         {% if record['highlight'] %}
-                                                            {{ record['highlight'].values() | list | first | first | safe }}
+                                                            {{ record['highlight'].values() | list | first | join(' ... ')| safe }}
                                                         {% else %}
                                                             None
                                                         {% endif %}
