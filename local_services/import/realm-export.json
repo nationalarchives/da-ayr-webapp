@@ -1,0 +1,85 @@
+{
+  "realm": "tdr",
+  "enabled": true,
+  "groups": [
+    {
+      "name": "ayr_user_type",
+      "path": "/ayr_user_type",
+      "subGroups": [
+        {
+          "name": "download",
+          "path": "/ayr_user_type/download"
+        },
+        {
+          "name": "view_all",
+          "path": "/ayr_user_type/view_all"
+        },
+        {
+          "name": "view_dept",
+          "path": "/ayr_user_type/view_dept"
+        }
+      ]
+    }
+  ],
+  "requiredCredentials": [
+    "password"
+  ],
+  "clients": [
+    {
+      "clientId": "ayr-beta",
+      "name": "ayr-beta",
+      "description": "Access your records keycloak client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "**********",
+      "redirectUris": [
+        "https://127.0.0.1:5000/*",
+        "https://localhost:5000/*",
+        "https://host.docker.internal:5000/*"
+      ],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "frontchannelLogout": true,
+      "protocol": "openid-connect",
+      "attributes": {
+        "use.refresh.tokens": "true",
+        "backchannel.logout.session.required": "true"
+      },
+      "fullScopeAllowed": true,
+      "defaultClientScopes": [
+        "group_mapper_client_scope"
+      ]
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "group_mapper_client_scope",
+      "description": "custom scope to get group details for user",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "gui.order": "",
+        "consent.screen.text": ""
+      },
+      "protocolMappers": [
+        {
+          "name": "group_membership_mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "full.path": "true",
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "groups"
+          }
+        }
+      ]
+    }
+  ]
+}
