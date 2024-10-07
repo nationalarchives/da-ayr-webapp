@@ -90,9 +90,9 @@ services:
     volumes:
       - webapp_postgres_data:/var/lib/postgresql/data
       - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
-      - ./certs/server.key:/var/lib/postgresql/server.key   # Mount server key
-      - ./certs/server.crt:/var/lib/postgresql/server.crt   # Mount server certificate
-      - ./certs/server.crt:/var/lib/postgresql/ca.crt           # Mount CA certificate (optional)
+      - ./webapp_postgres_certs/postgres_localhost.crt:/var/lib/postgresql/postgres_localhost.crt
+      - ./webapp_postgres_certs/postgres_localhost.key:/var/lib/postgresql/postgres_localhost.key
+      - ./webapp_postgres_certs/root-ca.pem:/var/lib/postgresql/root-ca.pem
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -102,9 +102,9 @@ services:
     command: [
       "postgres",
       "-c", "ssl=on",
-      "-c", "ssl_cert_file=/var/lib/postgresql/server.crt",
-      "-c", "ssl_key_file=/var/lib/postgresql/server.key",
-      "-c", "ssl_ca_file=/var/lib/postgresql/ca.crt"
+      "-c", "ssl_cert_file=/var/lib/postgresql/postgres_localhost.crt",
+      "-c", "ssl_key_file=/var/lib/postgresql/postgres_localhost.key",
+      "-c", "ssl_ca_file=/var/lib/postgresql/root-ca.pem"
     ]
 
   keycloak:
