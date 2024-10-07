@@ -55,6 +55,32 @@ os_mock_return_tb = {
     }
 }
 
+os_mock_return_tb_closed_record = {
+    "hits": {
+        "total": {
+            "value": 1000,
+        },
+        "hits": [
+            {
+                "_source": {
+                    "file_name": "fifth_file.doc",
+                    "file_id": "1e2a9d26-b330-4f99-92ff-b1a5b2c1d610",
+                    "series_name": "first_series",
+                    "series_id": "sbar",
+                    "status": "Closed",
+                    "closure_date": "2001-01-01T00:00:00",
+                    "consignment_reference": "cbar",
+                    "consignment_id": "ibar",
+                    "metadata": {
+                        "closure_type": "Closed",
+                        "opening_date": "2025-01-01T00:00:00",
+                    },
+                },
+            },
+        ],
+    }
+}
+
 
 class MockOpenSearch:
     def __init__(self, search_return_value=None, index_return_value=None):
@@ -1643,5 +1669,37 @@ class TestSearchTransferringBody:
         response = client.get(
             f"{self.route_url}/{transferring_body_id}", data=form_data
         )
+
+        assert response.status_code == 200
+
+    @patch("app.main.routes.OpenSearch")
+    def test_search_transferring_body_returns_correct_date_format(
+        self,
+        mock_search_client,
+        client,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user accessing the search transferring body page
+        When they make a GET request with any amount of search terms
+        Then they should see search transferring body page with dates
+        displayed in a DD/MM/YYYY format
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb_closed_record
+        )
+        mock_standard_user(client, "first_body")
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        form_data = {"query": "test", "sort": "closure_type-asc"}
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert "01/01/2025" in response.text
 
         assert response.status_code == 200

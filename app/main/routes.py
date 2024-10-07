@@ -35,6 +35,7 @@ from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
 from app.main.util.date_filters_validator import validate_date_filters
+from app.main.util.date_validator import format_opensearch_date
 from app.main.util.filter_sort_builder import (
     build_browse_consignment_filters,
     build_filters,
@@ -670,6 +671,14 @@ def search_transferring_body(_id: uuid.UUID):
         search_results = open_search.search(dsl_query, from_=from_, size=size)
 
         results = search_results["hits"]["hits"]
+
+        for result in results:
+            for key, value in result["_source"]["metadata"].items():
+                if "date" in key:
+                    result["_source"]["metadata"][key] = format_opensearch_date(
+                        value
+                    )
+
         total_records = search_results["hits"]["total"]["value"]
 
         page_count = calculate_total_pages(total_records, per_page)
