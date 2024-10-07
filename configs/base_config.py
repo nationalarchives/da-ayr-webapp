@@ -106,6 +106,10 @@ class BaseConfig(object):
         )
 
     @property
+    def OPEN_SEARCH_CA_CERTS(self):
+        return self._get_config_value("OPEN_SEARCH_CA_CERTS")
+
+    @property
     def PERF_TEST(self):
         return self._get_config_value("PERF_TEST") == "True"
 

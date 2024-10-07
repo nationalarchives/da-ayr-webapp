@@ -11,6 +11,10 @@ services:
       - bootstrap.memory_lock=true
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      - OPENSEARCH_SSL_CERTIFICATE=/usr/share/opensearch/config/opensearch-node1.crt
+      - OPENSEARCH_SSL_KEY=/usr/share/opensearch/config/opensearch-node1.key
+      - OPENSEARCH_SSL_ROOT_CERT=/usr/share/opensearch/config/root-ca.pem
+      - OPENSEARCH_SSL_ENABLED=true
     ulimits:
       memlock:
         soft: -1
@@ -20,6 +24,9 @@ services:
         hard: 65536
     volumes:
       - opensearch-data1:/usr/share/opensearch/data
+      - ./opensearch_certs/opensearch-node1.crt:/usr/share/opensearch/config/opensearch-node1.crt
+      - ./opensearch_certs/opensearch-node1.key:/usr/share/opensearch/config/opensearch-node1.key
+      - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
     ports:
       - 9200:9200
       - 9600:9600
@@ -36,6 +43,10 @@ services:
       - bootstrap.memory_lock=true
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      - OPENSEARCH_SSL_CERTIFICATE=/usr/share/opensearch/config/opensearch-node2.crt
+      - OPENSEARCH_SSL_KEY=/usr/share/opensearch/config/opensearch-node2.key
+      - OPENSEARCH_SSL_ROOT_CERT=/usr/share/opensearch/config/root-ca.pem
+      - OPENSEARCH_SSL_ENABLED=true
     ulimits:
       memlock:
         soft: -1
@@ -45,6 +56,9 @@ services:
         hard: 65536
     volumes:
       - opensearch-data2:/usr/share/opensearch/data
+      - ./opensearch_certs/opensearch-node1.crt:/usr/share/opensearch/config/opensearch-node1.crt
+      - ./opensearch_certs/opensearch-node1.key:/usr/share/opensearch/config/opensearch-node1.key
+      - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
     networks:
       - opensearch-net
   opensearch-dashboards:
@@ -62,13 +76,10 @@ services:
     image: postgres:16.2
     volumes:
       - kc_postgres_data:/var/lib/postgresql/data
-      # - ./create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh
-      # - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-      # POSTGRES_MULTIPLE_DATABASES: ${POSTGRES_DB},ayr
     ports:
       - ${KC_POSTGRES_PORT}:5432
     networks:
@@ -79,13 +90,22 @@ services:
     volumes:
       - webapp_postgres_data:/var/lib/postgresql/data
       - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
+      - ./certs/server.key:/var/lib/postgresql/server.key   # Mount server key
+      - ./certs/server.crt:/var/lib/postgresql/server.crt   # Mount server certificate
+      - ./certs/server.crt:/var/lib/postgresql/ca.crt           # Mount CA certificate (optional)
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - ${WEBAPP_POSTGRES_PORT}:5432
-
+    command: [
+      "postgres",
+      "-c", "ssl=on",
+      "-c", "ssl_cert_file=/var/lib/postgresql/server.crt",
+      "-c", "ssl_key_file=/var/lib/postgresql/server.key",
+      "-c", "ssl_ca_file=/var/lib/postgresql/ca.crt"
+    ]
 
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.6
@@ -112,6 +132,20 @@ services:
       - postgres
     networks:
       - keycloak_network
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ~/minio/data:/data
+    command: server /data --console-address ":9001"
+
 
 volumes:
   opensearch-data1:
