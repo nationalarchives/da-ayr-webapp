@@ -195,8 +195,9 @@ export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
 export DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
 ```
 
-Then you can run the flask server with `flask run`
+Finally you can populate the opensearch cluster with the corresponding data stored in snapshot 1 in `local_services/snapshots/` by running `source .env && local_services/opensearch-entrypoint.sh`.
 
+Then you can run the flask server with `flask run`
 
 ## Local dev without docker
 

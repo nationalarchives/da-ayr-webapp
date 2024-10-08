@@ -15,6 +15,7 @@ services:
       - OPENSEARCH_SSL_KEY=/usr/share/opensearch/config/opensearch-node1.key
       - OPENSEARCH_SSL_ROOT_CERT=/usr/share/opensearch/config/root-ca.pem
       - OPENSEARCH_SSL_ENABLED=true
+      - path.repo=/mnt/snapshots
     ulimits:
       memlock:
         soft: -1
@@ -27,11 +28,13 @@ services:
       - ./opensearch_certs/opensearch-node1.crt:/usr/share/opensearch/config/opensearch-node1.crt
       - ./opensearch_certs/opensearch-node1.key:/usr/share/opensearch/config/opensearch-node1.key
       - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
+      - ./snapshots:/mnt/snapshots
     ports:
       - 9200:9200
       - 9600:9600
     networks:
       - opensearch-net
+
   opensearch-node2:
     image: opensearchproject/opensearch:latest
     container_name: opensearch-node2
@@ -47,6 +50,7 @@ services:
       - OPENSEARCH_SSL_KEY=/usr/share/opensearch/config/opensearch-node2.key
       - OPENSEARCH_SSL_ROOT_CERT=/usr/share/opensearch/config/root-ca.pem
       - OPENSEARCH_SSL_ENABLED=true
+      - path.repo=/mnt/snapshots
     ulimits:
       memlock:
         soft: -1
@@ -59,6 +63,7 @@ services:
       - ./opensearch_certs/opensearch-node1.crt:/usr/share/opensearch/config/opensearch-node1.crt
       - ./opensearch_certs/opensearch-node1.key:/usr/share/opensearch/config/opensearch-node1.key
       - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
+      - ./snapshots:/mnt/snapshots
     networks:
       - opensearch-net
   opensearch-dashboards:
