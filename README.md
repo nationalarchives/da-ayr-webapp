@@ -148,6 +148,133 @@ You should now have the app running on <https://localhost:5000/>
 
 **Note:** Unless you have changed the `FLASK_APP` value in the `.flaskenv` file to point to another application entrypoint other than `main_app`, you must specify the `CONFIG_SOURCE` environment variable (as populated by the env file templates), to be either `AWS_SECRETS_MANAGER` or `ENVIRONMENT_VARIABLES` otherwise `flask run` will raise an error.
 
+## Local development with docker
+
+The webapp depends on keycloak, a postgres instance holding metadata, an s3 bucket storing associated records and then an opensearch instance that is populated from those 2 via `data_management/opensearch_indexer`. For ease of use, we provide a `docker-compose.yml` file inside the `local_services` which spins up all these dependencies, using minio as a local replacement for an actual AWS s3, and populates them with consistent test data. Feel free to expand this data but data consistency is left up to you.
+
+There are some dependencies for running this docker compose stack.
+
+1. Have `docker` installed
+2. Create certs for the webapp postgres instance in `local_services/webapp_postgres_certs` by running `generate_webapp_postgres_certs.sh` inside it
+3. Create certs for the opensearch nodes in `local_services/opensearch_certs` by running `generate_opensearch_certs.sh` inside it
+4. Create a `.env` file inside of `local_services` using `local_services/.env.template`
+
+Then you can run: `docker compose up -d`
+
+It will take a minute or two to spin up the stack, in particular opensearch and keycloak take a little while. You can check their progress in each container's logs.
+
+Once the stack is running:
+
+1. Create your users in the keycloak admin console at `http://localhost:8080/admin/master/console/#/tdr/users` using the keycloak admin credentials specified in the `.env` file, assigning appropriate groups to each. For local dev it's simple enough to set the passwords in the credentials tab.
+2. Regenerate the keycloak client's client secret at `http://localhost:8080/admin/master/console/#/tdr/clients/<UUID-OF-CLIENT>/settings`.
+3. Update the `.env` of the webapp in the root directory of the repo, making sure the following env vars are set according to the values set for the associated service in the docker compose stack.
+
+```
+export KEYCLOAK_BASE_URI=http://localhost:8080
+export KEYCLOAK_REALM_NAME=tdr
+export KEYCLOAK_CLIENT_ID=ayr-beta
+export KEYCLOAK_CLIENT_SECRET=<secret regenerated above>
+
+
+export DB_PORT=5433
+export DB_HOST=localhost
+export DB_NAME=local_db
+export DB_USER=local_db_user
+export DB_PASSWORD=local_db_user_password
+
+
+export AWS_ENDPOINT_URL=http://localhost:9000
+export AWS_ACCESS_KEY_ID=ROOTNAME
+export AWS_SECRET_ACCESS_KEY=CHANGEME123
+
+export OPEN_SEARCH_HOST=https://localhost:9200
+export OPEN_SEARCH_USERNAME=admin
+export OPEN_SEARCH_PASSWORD=FOOBARCARabc123!
+export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
+
+export DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
+```
+
+Finally you can populate the opensearch cluster with the corresponding data stored in snapshot 1 in `local_services/snapshots/` by running `source .env && local_services/opensearch-entrypoint.sh`.
+
+Then you can run the flask server with `flask run`
+
+## Local dev without docker
+
+### Running webapp postgres db without docker
+
+Provided is the file `dev-data.sql` which can be used to restore a database on a postgres instance.
+This is the database that is assumed to be used for our end to end tests which depend on data.
+To use this database, you will need to:
+
+1. connect to a database on a postgres instance with the user you want to own the new database: `psql -U username`
+2. create a new database, e.g. `CREATE DATABASE ayr;`
+3. exit from the `psql` connection
+4. restore the data dump `dev-data.sql` with `psql -U username -d ayr -f dev-data.sql`
+
+NOTE: The db info used here will need to be used in the config as detailed in the config section.
+
+### Running Keycloak without docker
+
+It is possible to set up a local Keylcoak instance for development of Keycloak authentication pages. This repository: https://github.com/nationalarchives/tdr-auth-server/blob/master/README.md contains a readme which can be used to setup Keycloak or follow the steps below.
+
+1. Clone the TDR Auth Server repository
+2. Sign in to Keycloak
+3. Select realm settings
+4. [Top right] Select Action dropdown
+5. Select Partial Export
+6. Save the file as ```tdr-realm-export.json``` in the root directory
+7. Build the keycloak docker image using the following command
+```
+docker build -t tdr-auth-server .
+```
+8. Run the docker image with the following command:
+```
+docker run -it --rm --name tdr-auth-server -p 8081:8080 \
+-e KEYCLOAK_ADMIN=admin \
+-e KEYCLOAK_ADMIN_PASSWORD=admin \
+-e KEYCLOAK_IMPORT=/keycloak-configuration/tdr-realm.json \
+-e REALM_ADMIN_CLIENT_SECRET=someValue \
+-e CLIENT_SECRET=someValue \
+-e BACKEND_CHECKS_CLIENT_SECRET=someValue \
+-e REPORTING_CLIENT_SECRET=someValue \
+-e USER_ADMIN_CLIENT_SECRET=someValue \
+-e ROTATE_CLIENT_SECRETS_CLIENT_SECRET=someValue \
+-e KEYCLOAK_CONFIGURATION_PROPERTIES=intg_properties.json \
+-e FRONTEND_URL=someValue \
+-e GOVUK_NOTIFY_API_KEY_PATH=someValue \
+-e GOVUK_NOTIFY_TEMPLATE_ID_PATH=someTemplateId \
+-e DB_VENDOR=h2 \
+-e SNS_TOPIC_ARN=someTopicArn \
+-e TDR_ENV=intg \
+-e KEYCLOAK_HOST=localhost:8081 \
+-e KC_DB_PASSWORD=password \
+-e BLOCK_SHARED_PAGES=false tdr-auth-server
+```
+
+9. Set the TDR Keycloak theme via the admin panel
+
+Tip: the quickest way to view the TDR login theme (that is displayed to TDR users) is to (while logged into the console):
+
+10. Select the "Master" Realm (top left, below the keycloak logo) if it's not already selected
+11. Select "Realm roles" in the sidebar
+12. Select "default-roles-master"
+13. Select the "Themes" tab
+14. Under "login theme", select "tdr" from the dropdown menu
+15. Sign out (click "Admin" on the top right and select "Sign out")
+
+Please see: https://github.com/nationalarchives/tdr-auth-server/blob/master/README.md#running-locally
+
+### Update TDR Theme Locally
+
+1. Rebuild the image locally and run. `docker build -t tdr-auth-server .`
+2. Make necessary changes to the TDR theme (freemarker templates/sass/static resources)
+3. Run following command from the root directory: `[root directory] $ npm run build-local --container_name=tdr-auth-server`
+4. Refresh the locally running Keycloak pages to see the changes.
+5. Repeat steps 3 to 5 as necessary.
+
+
+
 ## Flask App Configuration Details
 
 Our application uses configuration values defined using [Flask Config classes](https://flask.palletsprojects.com/en/2.3.x/config/#development-production) to set up the application's settings and connect it to various services. The pattern we are using consists of a base config class, `BaseConfig`, which is where we specify any hardcoded values, and all other configurable values are defined as a property, for example:
@@ -246,79 +373,6 @@ We do not define the database tables ourselves, nor write any information to the
 More info on relecting database tables can be found [here](https://flask-sqlalchemy.palletsprojects.com/en/3.1.x/models/#reflecting-tables).
 
 Further, to this, we do define models and columns from the corresponding tables we do use in our queries we use so that when developing we will know what attributes are available but this has to be manually kept in sync with the externally determined schema through discussion with the maintainers of the Metadata Store database.
-
-### Dev database dump
-
-Provided is the file `dev-data.sql` which can be used to restore a database on a postgres instance.
-This is the database that is assumed to be used for our end to end tests which depend on data.
-To use this database, you will need to:
-
-1. connect to a database on a postgres instance with the user you want to own the new database: `psql -U username`
-2. create a new database, e.g. `CREATE DATABASE ayr;`
-3. exit from the `psql` connection
-4. restore the data dump `dev-data.sql` with `psql -U username -d ayr -f dev-data.sql`
-
-NOTE: The db info used here will need to be used in the config as detailed in the config section.
-
-## Keycloak Local Setup
-
-It is possible to set up a local Keylcoak instance for development of Keycloak authentication pages. This repository: https://github.com/nationalarchives/tdr-auth-server/blob/master/README.md contains a readme which can be used to setup Keycloak or follow the steps below.
-
-1. Clone the TDR Auth Server repository
-2. Sign in to Keycloak
-3. Select realm settings
-4. [Top right] Select Action dropdown
-5. Select Partial Export
-6. Save the file as ```tdr-realm-export.json``` in the root directory
-7. Build the keycloak docker image using the following command
-```
-docker build -t tdr-auth-server .
-```
-8. Run the docker image with the following command:
-```
-docker run -it --rm --name tdr-auth-server -p 8081:8080 \
--e KEYCLOAK_ADMIN=admin \
--e KEYCLOAK_ADMIN_PASSWORD=admin \
--e KEYCLOAK_IMPORT=/keycloak-configuration/tdr-realm.json \
--e REALM_ADMIN_CLIENT_SECRET=someValue \
--e CLIENT_SECRET=someValue \
--e BACKEND_CHECKS_CLIENT_SECRET=someValue \
--e REPORTING_CLIENT_SECRET=someValue \
--e USER_ADMIN_CLIENT_SECRET=someValue \
--e ROTATE_CLIENT_SECRETS_CLIENT_SECRET=someValue \
--e KEYCLOAK_CONFIGURATION_PROPERTIES=intg_properties.json \
--e FRONTEND_URL=someValue \
--e GOVUK_NOTIFY_API_KEY_PATH=someValue \
--e GOVUK_NOTIFY_TEMPLATE_ID_PATH=someTemplateId \
--e DB_VENDOR=h2 \
--e SNS_TOPIC_ARN=someTopicArn \
--e TDR_ENV=intg \
--e KEYCLOAK_HOST=localhost:8081 \
--e KC_DB_PASSWORD=password \
--e BLOCK_SHARED_PAGES=false tdr-auth-server
-```
-
-9. Set the TDR Keycloak theme via the admin panel
-
-Tip: the quickest way to view the TDR login theme (that is displayed to TDR users) is to (while logged into the console):
-
-10. Select the "Master" Realm (top left, below the keycloak logo) if it's not already selected
-11. Select "Realm roles" in the sidebar
-12. Select "default-roles-master"
-13. Select the "Themes" tab
-14. Under "login theme", select "tdr" from the dropdown menu
-15. Sign out (click "Admin" on the top right and select "Sign out")
-
-Please see: https://github.com/nationalarchives/tdr-auth-server/blob/master/README.md#running-locally
-
-### Update TDR Theme Locally
-
-1. Rebuild the image locally and run. `docker build -t tdr-auth-server .`
-2. Make necessary changes to the TDR theme (freemarker templates/sass/static resources)
-3. Run following command from the root directory: `[root directory] $ npm run build-local --container_name=tdr-auth-server`
-4. Refresh the locally running Keycloak pages to see the changes.
-5. Repeat steps 3 to 5 as necessary.
-
 
 ## Testing
 

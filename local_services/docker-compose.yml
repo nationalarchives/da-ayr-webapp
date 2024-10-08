@@ -1,5 +1,4 @@
 ---
-version: '3'
 services:
   opensearch-node1:
     image: opensearchproject/opensearch:latest
@@ -9,23 +8,33 @@ services:
       - node.name=opensearch-node1
       - discovery.seed_hosts=opensearch-node1,opensearch-node2
       - cluster.initial_cluster_manager_nodes=opensearch-node1,opensearch-node2
-      - bootstrap.memory_lock=true  # along with the memlock settings below, disables swapping
-      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m  # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}    # Sets the demo admin user password when using demo configuration, required for OpenSearch 2.12 and higher
+      - bootstrap.memory_lock=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      - OPENSEARCH_SSL_CERTIFICATE=/usr/share/opensearch/config/opensearch-node1.crt
+      - OPENSEARCH_SSL_KEY=/usr/share/opensearch/config/opensearch-node1.key
+      - OPENSEARCH_SSL_ROOT_CERT=/usr/share/opensearch/config/root-ca.pem
+      - OPENSEARCH_SSL_ENABLED=true
+      - path.repo=/mnt/snapshots
     ulimits:
       memlock:
         soft: -1
         hard: -1
       nofile:
-        soft: 65536  # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
+        soft: 65536
         hard: 65536
     volumes:
       - opensearch-data1:/usr/share/opensearch/data
+      - ./opensearch_certs/opensearch-node1.crt:/usr/share/opensearch/config/opensearch-node1.crt
+      - ./opensearch_certs/opensearch-node1.key:/usr/share/opensearch/config/opensearch-node1.key
+      - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
+      - ./snapshots:/mnt/snapshots
     ports:
       - 9200:9200
-      - 9600:9600  # required for Performance Analyzer
+      - 9600:9600
     networks:
       - opensearch-net
+
   opensearch-node2:
     image: opensearchproject/opensearch:latest
     container_name: opensearch-node2
@@ -37,6 +46,11 @@ services:
       - bootstrap.memory_lock=true
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      - OPENSEARCH_SSL_CERTIFICATE=/usr/share/opensearch/config/opensearch-node2.crt
+      - OPENSEARCH_SSL_KEY=/usr/share/opensearch/config/opensearch-node2.key
+      - OPENSEARCH_SSL_ROOT_CERT=/usr/share/opensearch/config/root-ca.pem
+      - OPENSEARCH_SSL_ENABLED=true
+      - path.repo=/mnt/snapshots
     ulimits:
       memlock:
         soft: -1
@@ -46,6 +60,10 @@ services:
         hard: 65536
     volumes:
       - opensearch-data2:/usr/share/opensearch/data
+      - ./opensearch_certs/opensearch-node1.crt:/usr/share/opensearch/config/opensearch-node1.crt
+      - ./opensearch_certs/opensearch-node1.key:/usr/share/opensearch/config/opensearch-node1.key
+      - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
+      - ./snapshots:/mnt/snapshots
     networks:
       - opensearch-net
   opensearch-dashboards:
@@ -59,10 +77,90 @@ services:
       OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
     networks:
       - opensearch-net
+  postgres:
+    image: postgres:16.2
+    volumes:
+      - kc_postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - ${KC_POSTGRES_PORT}:5432
+    networks:
+      - keycloak_network
+
+  webapp_postgres:
+    image: postgres:16.2
+    volumes:
+      - webapp_postgres_data:/var/lib/postgresql/data
+      - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
+      - ./webapp_postgres_certs/postgres_localhost.crt:/var/lib/postgresql/postgres_localhost.crt
+      - ./webapp_postgres_certs/postgres_localhost.key:/var/lib/postgresql/postgres_localhost.key
+      - ./webapp_postgres_certs/root-ca.pem:/var/lib/postgresql/root-ca.pem
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - ${WEBAPP_POSTGRES_PORT}:5432
+    command: [
+      "postgres",
+      "-c", "ssl=on",
+      "-c", "ssl_cert_file=/var/lib/postgresql/postgres_localhost.crt",
+      "-c", "ssl_key_file=/var/lib/postgresql/postgres_localhost.key",
+      "-c", "ssl_ca_file=/var/lib/postgresql/root-ca.pem"
+    ]
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.6
+    command: start-dev --import-realm
+    environment:
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
+      KC_HOSTNAME_STRICT_BACKCHANNEL: false
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HEALTH_ENABLED: true
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres/${POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./import:/opt/keycloak/data/import
+    ports:
+      - 8080:8080
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      - keycloak_network
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ~/minio/data:/data
+    command: server /data --console-address ":9001"
+
 
 volumes:
   opensearch-data1:
   opensearch-data2:
+  kc_postgres_data:
+    driver: local
+  webapp_postgres_data:
+    driver: local
 
 networks:
   opensearch-net:
+  keycloak_network:
+    driver: bridge

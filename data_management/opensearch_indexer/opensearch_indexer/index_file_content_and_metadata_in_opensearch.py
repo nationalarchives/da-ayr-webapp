@@ -1,6 +1,6 @@
 import logging
 import tempfile
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 import textract
 from opensearchpy import OpenSearch, RequestsHttpConnection
@@ -18,6 +18,7 @@ def index_file_content_and_metadata_in_opensearch(
     database_url: str,
     open_search_host_url: str,
     open_search_http_auth: AWS4Auth,
+    open_search_ca_certs: Optional[str] = None,
 ) -> None:
     """
     Extracts file metadata from the database, adds the file content, and indexes it in OpenSearch.
@@ -29,6 +30,7 @@ def index_file_content_and_metadata_in_opensearch(
         file_data_with_text_content,
         open_search_host_url,
         open_search_http_auth,
+        open_search_ca_certs,
     )
 
 
@@ -122,12 +124,14 @@ def _index_in_opensearch(
     document: Dict[str, Any],
     open_search_host_url: str,
     open_search_http_auth: AWS4Auth,
+    open_search_ca_certs: str,
 ) -> None:
     open_search = OpenSearch(
         open_search_host_url,
         http_auth=open_search_http_auth,
         use_ssl=True,
         verify_certs=True,
+        ca_certs=open_search_ca_certs,
         connection_class=RequestsHttpConnection,
     )
     open_search.index(index="documents", id=file_id, body=document)

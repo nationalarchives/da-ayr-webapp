@@ -173,6 +173,7 @@ def test_index_file_content_and_metadata_in_opensearch(
         http_auth=open_search_http_auth,
         use_ssl=True,
         verify_certs=True,
+        ca_certs=None,
         connection_class=RequestsHttpConnection,
     )
     mock_open_search.return_value.index.assert_called_once_with(
