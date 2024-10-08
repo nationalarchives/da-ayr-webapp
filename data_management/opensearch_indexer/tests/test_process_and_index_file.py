@@ -212,30 +212,21 @@ class TestExtractText:
         )
 
     def test_docx_file(self):
-        from io import BytesIO
-
-        from docx import Document
-
-        doc = Document()
-        doc.add_paragraph("This is line 1")
-        doc.add_paragraph("This is line 2")
-        doc.add_paragraph("This is line 3")
-        doc.add_paragraph("This is line 4, the final line.")
-
-        byte_stream = BytesIO()
-        doc.save(byte_stream)
-
-        file_stream = byte_stream.getvalue()
+        path = Path(__file__).parent / "multiline.docx"
+        with open(path, "rb") as file:
+            file_stream = file.read()
         file_type = "docx"
 
-        assert (
-            extract_text(file_stream, file_type)
-            == "This is line 1\n\nThis is line 2\n\nThis is line 3\n\nThis is line 4, the final line."
+        assert extract_text(file_stream, file_type) == (
+            "This is line 1\n\n\t\t\t\t\t\t\t\t\t\t\t\t\t"
+            "This is line 2\n\n\t\t\t\t\t\t\t\t\t\t\t\t\t"
+            "This is line 3\n\n"
+            "This is line 4, the final line."
         )
 
     def test_pdf_file(self):
-        pdf_path = Path(__file__).parent / "multiline.pdf"
-        with open(pdf_path, "rb") as file:
+        path = Path(__file__).parent / "multiline.pdf"
+        with open(path, "rb") as file:
             file_stream = file.read()
 
         file_type = "pdf"
