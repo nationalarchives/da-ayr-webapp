@@ -1,4 +1,5 @@
 import tempfile
+from pathlib import Path
 from unittest import mock
 from uuid import uuid4
 
@@ -201,7 +202,7 @@ def test_index_file_content_and_metadata_in_opensearch(
 
 class TestExtractText:
     def test_txt_file(self):
-        pdf_path = "tests/multiline.txt"
+        pdf_path = Path(__file__).parent / "multiline.txt"
         with open(pdf_path, "rb") as file:
             file_stream = file.read()
         file_type = "txt"
@@ -233,7 +234,7 @@ class TestExtractText:
         )
 
     def test_pdf_file(self):
-        pdf_path = "tests/multiline.pdf"
+        pdf_path = Path(__file__).parent / "multiline.pdf"
         with open(pdf_path, "rb") as file:
             file_stream = file.read()
 
