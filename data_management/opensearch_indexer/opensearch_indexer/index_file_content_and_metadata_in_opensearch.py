@@ -1,6 +1,6 @@
 import logging
 import tempfile
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import textract
 from opensearchpy import OpenSearch, RequestsHttpConnection
@@ -17,7 +17,7 @@ def index_file_content_and_metadata_in_opensearch(
     file_stream: bytes,
     database_url: str,
     open_search_host_url: str,
-    open_search_http_auth: AWS4Auth,
+    open_search_http_auth: Union[AWS4Auth, Tuple[str, str]],
     open_search_ca_certs: Optional[str] = None,
 ) -> None:
     """
@@ -111,7 +111,7 @@ def _fetch_file_data(
     return file_data
 
 
-def extract_text(file_stream: bytes, file_extension) -> str:
+def extract_text(file_stream: bytes, file_extension: str) -> str:
     with tempfile.NamedTemporaryFile(
         suffix=f".{file_extension}", delete=True
     ) as temp:
@@ -125,7 +125,7 @@ def _index_in_opensearch(
     file_id: str,
     document: Dict[str, Any],
     open_search_host_url: str,
-    open_search_http_auth: AWS4Auth,
+    open_search_http_auth: Union[AWS4Auth, Tuple[str, str]],
     open_search_ca_certs: str,
 ) -> None:
     open_search = OpenSearch(
