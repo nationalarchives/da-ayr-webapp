@@ -214,6 +214,12 @@ To use this database, you will need to:
 
 NOTE: The db info used here will need to be used in the config as detailed in the config section.
 
+## Connecting your own opensearch cluster
+
+You will need to specify `OPEN_SEARCH_HOST`, `OPEN_SEARCH_USERNAME`, `OPEN_SEARCH_PASSWORD` `OPEN_SEARCH_CA_CERTS`, the middle 2 can be left empty if running with the AWS config as that would use AWS4Auth signing and the final one can be left empty if running on a system where the certificate for the opensearch cluster is already trusted by the system.
+
+If creating your own cluster, you can create the keys as detailed in the docker section.
+
 ### Running Keycloak without docker
 
 It is possible to set up a local Keylcoak instance for development of Keycloak authentication pages. This repository: https://github.com/nationalarchives/tdr-auth-server/blob/master/README.md contains a readme which can be used to setup Keycloak or follow the steps below.
