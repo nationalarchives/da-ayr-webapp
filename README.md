@@ -380,6 +380,18 @@ More info on relecting database tables can be found [here](https://flask-sqlalch
 
 Further, to this, we do define models and columns from the corresponding tables we do use in our queries we use so that when developing we will know what attributes are available but this has to be manually kept in sync with the externally determined schema through discussion with the maintainers of the Metadata Store database.
 
+## Data management
+
+We have a few functions in `data_management/opensearch_indexer` to index an opensearch cluster with data from a postgres database with the schema detailed above holding metadata and byte stream of the corresponding file content.
+Depending on environment we have different levels of function to do this:
+
+- independently with `data_management/opensearch_indexer/opensearch_indexer/index_file_content_and_metadata_in_opensearch.py`
+- at AWS level where config options come from an AWS secretsmanager secret and the file stream is built from an s3 object with
+`data_management/opensearch_indexer/opensearch_indexer/index_file_content_and_metadata_in_opensearch_from_aws.py`
+- at AWS lambda level with s3 bucket and secret id determined on each run with `data_management/opensearch_indexer/opensearch_indexer/lambda_function.py`.
+
+We also have a way to do this for all files in a postgres database with `data_management/opensearch_indexer/opensearch_indexer/index_all_in_db.py`.
+
 ## Testing
 
 ### Unit and Integration tests
