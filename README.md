@@ -191,6 +191,7 @@ export OPEN_SEARCH_HOST=https://localhost:9200
 export OPEN_SEARCH_USERNAME=admin
 export OPEN_SEARCH_PASSWORD=FOOBARCARabc123!
 export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
+export OPEN_SEARCH_TIMEOUT=10
 
 export DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
 ```
@@ -216,7 +217,13 @@ NOTE: The db info used here will need to be used in the config as detailed in th
 
 ## Connecting your own opensearch cluster
 
-You will need to specify `OPEN_SEARCH_HOST`, `OPEN_SEARCH_USERNAME`, `OPEN_SEARCH_PASSWORD` `OPEN_SEARCH_CA_CERTS`, the middle 2 can be left empty if running with the AWS config as that would use AWS4Auth signing and the final one can be left empty if running on a system where the certificate for the opensearch cluster is already trusted by the system.
+You will need to specify:
+
+- `OPEN_SEARCH_HOST`
+- `OPEN_SEARCH_USERNAME` (can be left empty if running with the AWS config as that would use AWS4Auth signing)
+- `OPEN_SEARCH_PASSWORD` (can be left empty if running with the AWS config as that would use AWS4Auth signing)
+- `OPEN_SEARCH_CA_CERTS` can be left empty if running on a system where the certificate for the opensearch cluster is already trusted by the system.
+- `OPEN_SEARCH_TIMEOUT`
 
 If creating your own cluster, you can create the keys as detailed in the docker section.
 
@@ -326,6 +333,11 @@ Properties configurable at runtime:
 - `FLASKS3_CDN_DOMAIN`: CDN domain to fetch assets from if `FLASKS3_ACTIVE` is set to `True`
 - `FLASKS3_BUCKET_NAME`: S3 bucket assets are uploaded to and served to Cloudfront from.
 - `PERF_TEST`: Enable to allow access tokens generated via API to be accepted for performance testing.
+- `OPEN_SEARCH_HOST`: The host of the opensearch cluster to connect to.
+- `OPEN_SEARCH_USERNAME`: The username of the opensearch cluster to connect to.
+- `OPEN_SEARCH_PASSWORD`: The password of the opensearch cluster to connect to.
+- `OPEN_SEARCH_CA_CERTS`: The path of the opensearch cluster certificate to connect with.
+- `OPEN_SEARCH_TIMEOUT`: The timeout for api calls to the opensearch cluster.
 
 Calculated values:
 
