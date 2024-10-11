@@ -217,7 +217,13 @@ NOTE: The db info used here will need to be used in the config as detailed in th
 
 ## Connecting your own opensearch cluster
 
-You will need to specify `OPEN_SEARCH_HOST`, `OPEN_SEARCH_USERNAME`, `OPEN_SEARCH_PASSWORD` `OPEN_SEARCH_CA_CERTS`, `OPEN_SEARCH_TIMEOUT` the middle 2 can be left empty if running with the AWS config as that would use AWS4Auth signing and the third one can be left empty if running on a system where the certificate for the opensearch cluster is already trusted by the system.
+You will need to specify:
+
+- `OPEN_SEARCH_HOST`
+- `OPEN_SEARCH_USERNAME` (can be left empty if running with the AWS config as that would use AWS4Auth signing)
+- `OPEN_SEARCH_PASSWORD` (can be left empty if running with the AWS config as that would use AWS4Auth signing)
+- `OPEN_SEARCH_CA_CERTS` can be left empty if running on a system where the certificate for the opensearch cluster is already trusted by the system.
+- `OPEN_SEARCH_TIMEOUT`
 
 If creating your own cluster, you can create the keys as detailed in the docker section.
 
