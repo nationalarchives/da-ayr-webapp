@@ -110,6 +110,10 @@ class BaseConfig(object):
         return self._get_config_value("OPEN_SEARCH_CA_CERTS")
 
     @property
+    def OPEN_SEARCH_TIMEOUT(self):
+        return self._get_config_value("OPEN_SEARCH_TIMEOUT")
+
+    @property
     def PERF_TEST(self):
         return self._get_config_value("PERF_TEST") == "True"
 
