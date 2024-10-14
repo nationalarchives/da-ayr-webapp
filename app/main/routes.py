@@ -592,6 +592,8 @@ def search_transferring_body(_id: uuid.UUID):
         or request.args.get("query", "").strip()
     )
 
+    open_all = request.args.get("open_all", False)
+
     search_filter = request.args.get("search_filter")
     if search_filter:
         search_filter = search_filter.strip()
@@ -674,7 +676,6 @@ def search_transferring_body(_id: uuid.UUID):
         page_number = page
         from_ = size * (page_number - 1)
         search_results = open_search.search(dsl_query, from_=from_, size=size)
-        print(search_results)
 
         results = search_results["hits"]["hits"]
         total_records = search_results["hits"]["total"]["value"]
@@ -696,6 +697,7 @@ def search_transferring_body(_id: uuid.UUID):
         sorting_orders=sorting_orders,
         search_terms=search_terms,
         pagination=pagination,
+        open_all=open_all,
         query_string_parameters={
             k: v for k, v in request.args.items() if k not in "page"
         },

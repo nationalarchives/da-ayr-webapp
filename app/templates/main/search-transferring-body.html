@@ -49,10 +49,26 @@
                     <div class="browse-layout">
                         <!-- SORT -->
                         {% if num_records_found > 0 %}
-                            <div class="govuk-form-group sort-container__form">
+                            <div class="govuk-grid-column-two-thirds filter-group">
                                 {% with dict = sorting_list %}
                                     {% include "sorting-list.html" %}
                                 {% endwith %}
+                                <form>
+                                    <div class="filter-group__checkboxes">
+                                        <div class="govuk-checkboxes__item govuk-checkboxes govuk-checkboxes--small">
+                                            <input class="govuk-checkboxes__input"
+                                                   id="contact"
+                                                   name="open_all"
+                                                   type="checkbox"
+                                                   value="open_all"
+                                                   {% if open_all %}checked{% endif %}>
+                                            <label class="govuk-label govuk-checkboxes__label" for="contact">Expand all results</label>
+                                        </div>
+                                        <button type="submit"
+                                                class="govuk-button govuk-button__sort-container-update-button"
+                                                data-module="govuk-button">Apply</button>
+                                    </div>
+                                </form>
                             </div>
                             <input type="hidden" name="query" value="{{ filters['query'] }}">
                             <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
@@ -61,156 +77,175 @@
                                        aria-label="Search records transferring body">
                                     <thead class="govuk-table__head">
                                         <tr class="govuk-table__row">
-                                            <th scope="col" class="govuk-table__header">Search results</th>
-                                            <th scope="col" class="govuk-table__header">Found within</th>
                                             <th scope="col"
-                                                class="govuk-table__header govuk-table--invisible-on-mobile govuk-table--right-align govuk-table--width-20-precent">
-                                                Go to
+                                                class="govuk-table__header govuk-table__header--with-padding govuk-table--width-30-percent">
+                                                Found within
                                             </th>
+                                            <th scope="col" class="govuk-table__header">Search results</th>
                                         </tr>
-                                        <!-- <tr class="govuk-table__row">
-                                            <th scope="col" class="govuk-table__header govuk-table--invisible-on-mobile govuk-table--width-30-precent">
-                                                Series reference
-                                            </th>
-                                            <th scope="col" class="govuk-table__header govuk-table--invisible-on-desktop">
-                                                Series reference /
-                                                <br>
-                                                File name /
-                                                <br>
-                                                Consignment reference
-                                            </th>
-                                            <th scope="col" class="govuk-table__header govuk-table--invisible-on-mobile">
-                                                Consignment reference
-                                            </th>
-                                            <th scope="col" class="govuk-table__header govuk-table--invisible-on-mobile">
-                                                File name
-                                            </th>
-                                            <th scope="col" class="govuk-table__header">Status</th>
-                                            <th scope="col" class="govuk-table__header govuk-table--right-align govuk-table--on-mobile--width-20-percent">
-                                                Record opening date
-                                            </th> -->
-                                    </tr>
-                                </thead>
-                                <tbody class="govuk-table__body">
-                                    <div class="main-content" id="main-content" role="main">
-                                        {% if results %}
-                                            {% for record in results %}
-                                                <tr class="govuk-table__row top-row">
-                                                    <td class="govuk-table__cell">
-                                                        {% if record['highlight'] %}
-                                                            {{ record['highlight'].values() | list | first | join(' ... ')| safe }}
-                                                        {% else %}
-                                                            None
-                                                        {% endif %}
-                                                    </td>
-                                                    <td class="govuk-table__cell">
-                                                        {% if record['highlight'] %}
-                                                            {{ record['highlight'].keys() | list | first | replace('_', ' ') | capitalize }}
-                                                        {% else %}
-                                                            None
-                                                        {% endif %}
-                                                    </td>
-                                                    <td class="govuk-table__cell govuk-table--right-align">
-                                                        <a class="word-break"
-                                                           href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">Record</a>
-                                                    </td>
-                                                    <!-- <td class="govuk-table__cell govuk-table__cell--on-mobile--flex-layout-col">
-                                                            <a href="{{ url_for('main.browse_series', _id=record['_source']['series_id']) }}">{{ record['_source']["series_name"] }}</a>
-                                                            <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4 word-break" href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ record['_source']["file_name"] }}</a>
-                                                            <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4" href="{{ url_for('main.browse_consignment', _id=record['_source']['consignment_id']) }}">{{ record['_source']["consignment_reference"] }}</a>
-                                                        </td>
-                                                        <td class="govuk-table__cell govuk-table--invisible-on-mobile">
-                                                            <a href="{{ url_for('main.browse_consignment', _id=record['_source']['consignment_id']) }}">{{ record['_source']["consignment_reference"] }}</a>
-                                                        </td>
-                                                        <td class="govuk-table__cell govuk-table--invisible-on-mobile">
-                                                            <a class="word-break" href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ record['_source']["file_name"] }}</a>
+                                    </thead>
+                                    <tbody class="govuk-table__body">
+                                        <div class="main-content" id="main-content" role="main">
+                                            {% if results %}
+                                                {% for record in results %}
+                                                    {% set main_loop_index = loop.index %}
+                                                    <tr class="govuk-table__row govuk-table__row--primary">
+                                                        <td class="govuk-table__cell">
+                                                            <div class="govuk-table__cell__data">
+                                                                <details class="details-toggle-{{ main_loop_index }}"
+                                                                         {% if open_all %}open{% endif %}>
+                                                                    <summary />
+                                                                </details>
+                                                                {% if record['highlight'] %}
+                                                                    {{ record['highlight'].keys() | list | first | replace('_', ' ') | capitalize }}
+                                                                    +
+                                                                    {{ record['highlight'].keys() | length - 1 }}
+                                                                {% else %}
+                                                                    None
+                                                                {% endif %}
+                                                            </div>
                                                         </td>
                                                         <td class="govuk-table__cell">
-                                                            <strong class="{% if record['_source']['metadata']['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['_source']['metadata']['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['_source']['metadata']['closure_type'] is none %}{% endif %}">
-                                                                {{ record['_source']['metadata']['closure_type'] }}
-                                                            </strong>
-                                                        </td>
-                                                        <td class="govuk-table__cell govuk-table--right-align">
-                                                            {% if record['_source']['metadata']['opening_date'] %}
-                                                                {{ record['_source']['metadata']['opening_date'] }}
+                                                            {% if record['highlight'] %}
+                                                                {{ record['highlight'].values() | list | first | join(' ... ')| safe }}
                                                             {% else %}
-                                                                –
+                                                                None
                                                             {% endif %}
-                                                        </td> -->
-                                                </tr>
-                                            {% endfor %}
-                                        {% endif %}
-                                    </div>
-                                </tbody>
-                            </table>
-                            <!-- PAGINATION -->
-                            {% with view_name='main.search_transferring_body', id = request.view_args['_id'] %}
-                                {% include "pagination.html" %}
+                                                        </td>
+                                                    </tr>
+                                                    {% set items = record['highlight'].items() | list %}
+                                                    {% for key, value in items[1:] %}
+                                                        <tr class="govuk-table__row top-row hidden-row-{{ main_loop_index }}">
+                                                            <td class="govuk-table__cell govuk-table__cell--with-padding govuk-table__cell--no-pt">
+                                                                {{ key | replace('_', ' ') | capitalize }}
+                                                            </td>
+                                                            <td class="govuk-table__cell govuk-table__cell--no-pt">{{ value | join(' ... ')| safe }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                    <tr class="govuk-table__row top-row hidden-row-{{ main_loop_index }}">
+                                                        <td class="govuk-table__cell"></td>
+                                                        <td class="govuk-table__cell govuk-table__cell--no-padding">
+                                                            <table class="govuk-table govuk-table--inner-table">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th scope="col"
+                                                                            class="govuk-table__header govuk-table__header--inner-table">
+                                                                            Series
+                                                                        </th>
+                                                                        <th scope="col"
+                                                                            class="govuk-table__header govuk-table__header--inner-table">
+                                                                            Consignment ref
+                                                                        </th>
+                                                                        <th scope="col"
+                                                                            class="govuk-table__header govuk-table__header--inner-table">
+                                                                            Status
+                                                                        </th>
+                                                                        <th scope="col"
+                                                                            class="govuk-table__header govuk-table__header--inner-table govuk-table--right-align">
+                                                                            Record opening date
+                                                                        </th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <tr class="govuk-table__row">
+                                                                        <td class="govuk-table__cell govuk-table__cell--metadata">
+                                                                            <a href="{{ url_for('main.browse_series', _id= record['_source']['series_id']) }}">{{ record['_source']['series_name'] }}</a>
+                                                                        </td>
+                                                                        <td class="govuk-table__cell govuk-table__cell--metadata">
+                                                                            <a href="{{ url_for('main.browse_consignment', _id= record['_source']['consignment_id']) }}">
+                                                                                {{ record['_source']['consignment_reference'] }}
+                                                                            </a>
+                                                                        </td>
+                                                                        <td class="govuk-table__cell govuk-table__cell--metadata">
+                                                                            <span class=" govuk-tag govuk-tag--{% if record['_source']['metadata']['closure_type'] == 'Closed' %}red{% else %}green{% endif %} ">
+                                                                                {{ record['_source']['metadata']['closure_type'] }}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td class="govuk-table__cell govuk-table__cell--metadata govuk-table--right-align">
+                                                                            {% if record['_source']['metadata']['opening_date'] %}
+                                                                                {{ record['_source']['metadata']['opening_date'] }}
+                                                                            {% else %}
+                                                                                –
+                                                                            {% endif %}
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    </tbody>
+                                </table>
+                                <!-- PAGINATION -->
+                                {% with view_name='main.search_transferring_body', id = request.view_args['_id'] %}
+                                    {% include "pagination.html" %}
+                                {% endwith %}
+                                <!-- END PAGINATION -->
+                            </div>
+                        {% else %}
+                            {% with view_type = "search" %}
+                                {% include "no-results-found.html" %}
                             {% endwith %}
-                            <!-- END PAGINATION -->
-                        </div>
-                    {% else %}
-                        {% with view_type = "search" %}
-                            {% include "no-results-found.html" %}
-                        {% endwith %}
-                    {% endif %}
-                    <!-- FILTERS -->
-                    <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
-                        <div class="browse-all-filter-container">
-                            <div class="browse-filter__header">
-                                <h2 class="govuk-heading-m govuk-heading-m--search">
-                                    <label class="govuk-label govuk-heading-m govuk-heading-m--search"
-                                           for="search_filter">Search within results</label>
-                                </h2>
-                            </div>
-                            <div class="govuk-form-group govuk-form-group--search-all-filter">
-                                <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
-                                       id="search_filter"
-                                       name="search_filter"
-                                       type="text">
-                            </div>
-                            <div class="search-form__buttons">
-                                <button type="submit"
-                                        class="govuk-button govuk-button__search-filters-form-apply-button"
-                                        data-module="govuk-button">Apply terms</button>
-                                <a class="govuk-link govuk-link--transferring-filter"
-                                   href="{% if session['user_type'] == 'all_access_user' %}{{ url_for('main.browse', _anchor='browse-records') }}{% else %}{{ url_for('main.browse_transferring_body', _id = request.view_args['_id'], _anchor='browse-records') }}{% endif %}">Clear all terms</a>
-                            </div>
-                            <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
-                            <div class="ayr-filter-tags">
-                                {% for i in range(search_terms | length) %}
-                                    <div class="search-term">
-                                        {% if i == 0 %}
-                                            {% set new_query = filters['query'].replace(search_terms[i] ~ ',','') %}
-                                        {% else %}
-                                            {% set new_query = filters['query'].replace(',' ~ search_terms[i],'') %}
-                                        {% endif %}
-                                        {% if search_terms | length == 1 %}
-                                            {% set search_term_url = url_for('main.browse_transferring_body', _id = request.view_args['_id']) %}
-                                        {% else %}
-                                            {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id'], query=new_query) %}
-                                        {% endif %}
-                                        <button type="button"
-                                                class="button-search-term"
-                                                data-module="search-term-button"
-                                                aria-label="Remove filter for '{{ search_terms[i] }}'">
-                                            <a href="{{ search_term_url }}">
-                                                {{ search_terms[i] }}
-                                                <img src="{{ url_for('static', filename= 'image/cancel-filters.svg') }}"
-                                                     height="30px"
-                                                     width="30px"
-                                                     class="close-icon"
-                                                     alt="">
-                                            </a>
-                                        </button>
-                                    </div>
-                                {% endfor %}
+                        {% endif %}
+                        <!-- FILTERS -->
+                        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
+                            <div class="browse-all-filter-container">
+                                <div class="browse-filter__header">
+                                    <h2 class="govuk-heading-m govuk-heading-m--search">
+                                        <label class="govuk-label govuk-heading-m govuk-heading-m--search"
+                                               for="search_filter">Search within results</label>
+                                    </h2>
+                                </div>
+                                <div class="govuk-form-group govuk-form-group--search-all-filter">
+                                    <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
+                                           id="search_filter"
+                                           name="search_filter"
+                                           type="text">
+                                </div>
+                                <div class="search-form__buttons">
+                                    <button type="submit"
+                                            class="govuk-button govuk-button__search-filters-form-apply-button"
+                                            data-module="govuk-button">Apply terms</button>
+                                    <a class="govuk-link govuk-link--transferring-filter"
+                                       href="{% if session['user_type'] == 'all_access_user' %}{{ url_for('main.browse', _anchor='browse-records') }}{% else %}{{ url_for('main.browse_transferring_body', _id = request.view_args['_id'], _anchor='browse-records') }}{% endif %}">Clear all terms</a>
+                                </div>
+                                <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
+                                <div class="ayr-filter-tags">
+                                    {% for i in range(search_terms | length) %}
+                                        <div class="search-term">
+                                            {% if i == 0 %}
+                                                {% set new_query = filters['query'].replace(search_terms[i] ~ ',','') %}
+                                            {% else %}
+                                                {% set new_query = filters['query'].replace(',' ~ search_terms[i],'') %}
+                                            {% endif %}
+                                            {% if search_terms | length == 1 %}
+                                                {% set search_term_url = url_for('main.browse_transferring_body', _id = request.view_args['_id']) %}
+                                            {% else %}
+                                                {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id'], query=new_query) %}
+                                            {% endif %}
+                                            <button type="button"
+                                                    class="button-search-term"
+                                                    data-module="search-term-button"
+                                                    aria-label="Remove filter for '{{ search_terms[i] }}'">
+                                                <a href="{{ search_term_url }}">
+                                                    {{ search_terms[i] }}
+                                                    <img src="{{ url_for('static', filename= 'image/cancel-filters.svg') }}"
+                                                         height="30px"
+                                                         width="30px"
+                                                         class="close-icon"
+                                                         alt="">
+                                                </a>
+                                            </button>
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}
