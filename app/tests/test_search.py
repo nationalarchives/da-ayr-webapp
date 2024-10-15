@@ -1871,8 +1871,8 @@ class TestSearchTransferringBody:
     ):
         """
         Given a standard user
-        When they make a GET request to the search page with the open_all param
-        All details elements should have an open attribute (which would mean all accordions are open)
+        When they make a GET request to the transferring body search page
+        All mark elements should have the correct text content
         """
         mock_search_client.return_value = MockOpenSearch(
             search_return_value=os_mock_return_tb
