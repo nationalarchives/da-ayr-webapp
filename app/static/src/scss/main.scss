@@ -1,6 +1,13 @@
+// govuk scss variables override
+$govuk-font-family: Arial, Helvetica, sans-serif;
+
+// govuk styles import
+@import "../../../../node_modules/govuk-frontend/dist/govuk/all";
+
 // variables
 @import "includes/variables";
 
+// other styles
 @import "includes/signposting-text";
 @import "includes/accessibility";
 @import "includes/base";
