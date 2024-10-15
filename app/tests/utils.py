@@ -40,3 +40,22 @@ def evaluate_table_body_rows(soup, expected_results):
         data.append(row_data)
 
     return data == expected_results
+
+
+def get_table_rows_cell_values(table):
+    """
+    Returns all rows and cell values for a table that has been found using BeautifulSoup
+    :param table: BeautifulSoup object
+    Returns:
+    string[][], e.g. [["row_1_value_1", "row_1_value_2"], ["row_2_value_1", "row_2_value_2"]]
+    """
+    rows = table.find_all("tr")
+    data = []
+    for row in rows:
+        row_data = []
+        cells = row.find_all("td")
+        for cell in cells:
+            row_data.append(cell.get_text(strip=True))
+        if len(row_data) > 1:
+            data.append(row_data)
+    return data

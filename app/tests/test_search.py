@@ -9,6 +9,7 @@ from app.tests.assertions import assert_contains_html
 from app.tests.utils import (
     decompose_desktop_invisible_elements,
     evaluate_table_body_rows,
+    get_table_rows_cell_values,
 )
 
 os_mock_return_summary = {
@@ -50,6 +51,10 @@ os_mock_return_tb = {
                         "opening_date": "fooDate",
                     },
                 },
+                "highlight": {
+                    "test_field_1": ["<mark>test</mark>"],
+                    "test_field_2": ["t<mark>est</mark>"],
+                },
             },
         ],
     }
@@ -80,9 +85,10 @@ def verify_search_desktop_transferring_body_header_row(data):
 
     expected_row = (
         [
-            "Series reference",
-            "Consignment reference",
-            "File name",
+            "Found within",
+            "Search results",
+            "Series",
+            "Consignment ref",
             "Status",
             "Record opening date",
         ],
@@ -654,7 +660,7 @@ class TestSearchTransferringBody:
         )
 
     @patch("app.main.routes.OpenSearch")
-    def test_search_transferring_body_with_table_data_links(
+    def test_search_transferring_body_with_table_data_links_inner_table(
         self,
         mock_search_client,
         client: FlaskClient,
@@ -663,9 +669,9 @@ class TestSearchTransferringBody:
     ):
         """
         Given a standard user with access to a body, and there are files from that body and another body
-            and a search query which matches a property from related file data
+        and a search query which matches a property from related file data
         When they make a request on the search page with the search term
-        Then a table is populated with the n results with metadata fields for the files from there body.
+        Then a table is populated inside the accordion contains metadata fields for the recored.
         """
         mock_search_client.return_value = MockOpenSearch(
             search_return_value=os_mock_return_tb
@@ -690,7 +696,9 @@ class TestSearchTransferringBody:
 
         verify_search_desktop_transferring_body_header_row(response.data)
 
-        table = BeautifulSoup(response.data, "html.parser").find("tbody")
+        table = BeautifulSoup(response.data, "html.parser").find(
+            "tbody", {"id": "inner-table"}
+        )
         decompose_desktop_invisible_elements(table)
         rows = table.find_all("tr")
 
@@ -703,14 +711,55 @@ class TestSearchTransferringBody:
                 anchor = cell.find("a", href=True)
                 if anchor:
                     row_data.append(anchor["href"])
-            data.append(row_data)
+            if len(row_data) > 1:
+                data.append(row_data)
+
         assert data == [
             [
                 "/browse/series/sbar",
                 "/browse/consignment/ibar",
-                "/record/1e2a9d26-b330-4f99-92ff-b1a5b2c1d610",
             ]
         ]
+
+    @patch("app.main.routes.OpenSearch")
+    def test_search_transferring_body_result_has_accordion(
+        self,
+        mock_search_client,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user with access to a body, and there are files from that body and another body
+        and a search query which matches a property from related file data
+        When they make a request on the search page with the search term
+        Then the result contains a details element used to trigger the accordion that has no "open" attribute by default
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        form_data = {"query": "first_file"}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        details_element = soup.find("summary")
+
+        assert details_element
+        assert not details_element.get("open")
 
     @patch("app.main.routes.OpenSearch")
     def test_search_transferring_body_results_display_multiple_pages(
@@ -1367,60 +1416,60 @@ class TestSearchTransferringBody:
         )
 
     @pytest.mark.parametrize(
-        "query_params, mock_open_search_return, expected_results, expected_sort_select_value",
+        "query_params, mock_open_search_return, expected_cell_values, expected_sort_select_value",
         [
             (
                 "sort=series_name-desc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "series_name-desc",
             ),
             (
                 "sort=consignment_reference-desc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "consignment_reference-desc",
             ),
             (
                 "sort=consignment_reference-asc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "consignment_reference-asc",
             ),
             (
                 "sort=opening_date-desc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "opening_date-desc",
             ),
             (
                 "sort=opening_date-asc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "opening_date-asc",
             ),
             (
                 "sort=file_name-asc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "file_name-asc",
             ),
             (
                 "sort=file_name-desc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "file_name-desc",
             ),
             (
                 "sort=closure_type-asc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "closure_type-asc",
             ),
             (
                 "sort=closure_type-desc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "closure_type-desc",
             ),
         ],
@@ -1434,7 +1483,7 @@ class TestSearchTransferringBody:
         browse_consignment_files,
         query_params,
         mock_open_search_return,
-        expected_results,
+        expected_cell_values,
         expected_sort_select_value,
     ):
 
@@ -1460,39 +1509,43 @@ class TestSearchTransferringBody:
         option = select.find("option", selected=True)
         option_value = option.get("value")
 
+        decompose_desktop_invisible_elements(soup)
+        inner_table = soup.find("tbody", {"id": "inner-table"})
+        inner_table_cell_values = get_table_rows_cell_values(inner_table)
+
         assert select
         assert option_value == expected_sort_select_value
-        assert evaluate_table_body_rows(soup, expected_results)
+        assert inner_table_cell_values == expected_cell_values
 
     @pytest.mark.parametrize(
-        "query_params, mock_open_search_return, expected_results, expected_sort_select_value",
+        "query_params, mock_open_search_return, expected_cell_values, expected_sort_select_value",
         [
             # without any sort term the select value should be series_id-asc by default
             (
                 "query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "series_id-asc",
             ),
             # edge case: random sort options as letters
             (
                 "sort=foo-bar&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "series_id-asc",
             ),
             # edge case: random sort options as numbers
             (
                 "sort=111-222&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "series_id-asc",
             ),
             # edge case: random sort order
             (
                 "sort=series_name-aaaaa&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "series_id-asc",
             ),
         ],
@@ -1506,7 +1559,7 @@ class TestSearchTransferringBody:
         browse_consignment_files,
         query_params,
         mock_open_search_return,
-        expected_results,
+        expected_cell_values,
         expected_sort_select_value,
     ):
 
@@ -1528,16 +1581,20 @@ class TestSearchTransferringBody:
 
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
-        select = soup.find("select", {"id": "sort"})
 
+        select = soup.find("select", {"id": "sort"})
         option_selected = select.find("option", selected=True)
         option_first = select.find("option")
         option_first_value = option_first.get("value")
 
+        decompose_desktop_invisible_elements(soup)
+        inner_table = soup.find("tbody", {"id": "inner-table"})
+        inner_table_cell_values = get_table_rows_cell_values(inner_table)
+
         assert select
         assert option_selected is None
         assert option_first_value == expected_sort_select_value
-        assert evaluate_table_body_rows(soup, expected_results)
+        assert inner_table_cell_values == expected_cell_values
 
     @patch("app.main.routes.OpenSearch")
     def test_search_transferring_body_standard_user_with_no_view_perms(
