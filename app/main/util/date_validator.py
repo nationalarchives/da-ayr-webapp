@@ -1,8 +1,9 @@
 import calendar
-from datetime import date
+from datetime import date, datetime
 
 PYTHON_DATE_FORMAT = "%d/%m/%Y"
 DB_DATE_FORMAT = "%Y-%m-%d"
+OPENSEARCH_DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 
 def validate_dates(args):
@@ -244,3 +245,11 @@ def _get_last_day_of_month(month, year):
         last_day = 30
 
     return last_day
+
+
+def format_opensearch_date(date_string, current_format=OPENSEARCH_DATE_FORMAT):
+    try:
+        date_obj = datetime.strptime(date_string, current_format)
+        return date_obj.strftime(PYTHON_DATE_FORMAT)
+    except ValueError:
+        return date_string

@@ -21,7 +21,7 @@ def index_file_content_and_metadata_in_opensearch_from_aws(
 
     file_id = object_key.split("/")[-1]
 
-    file_stream = _get_s3_file(bucket_name, object_key)
+    file_stream = get_s3_file(bucket_name, object_key)
 
     database_url = _build_db_url(secret_string)
 
@@ -43,7 +43,7 @@ def _get_secret_data(secret_id: str) -> Dict[str, Any]:
     return json.loads(secret_response["SecretString"])
 
 
-def _get_s3_file(bucket_name: str, object_key: str) -> bytes:
+def get_s3_file(bucket_name: str, object_key: str) -> bytes:
     s3 = boto3.client("s3")
     s3_file_object = s3.get_object(Bucket=bucket_name, Key=object_key)
     return s3_file_object["Body"].read()

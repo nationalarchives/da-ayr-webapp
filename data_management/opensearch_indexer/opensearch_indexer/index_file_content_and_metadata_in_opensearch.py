@@ -1,6 +1,6 @@
 import logging
 import tempfile
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import textract
 from opensearchpy import OpenSearch, RequestsHttpConnection
@@ -17,7 +17,8 @@ def index_file_content_and_metadata_in_opensearch(
     file_stream: bytes,
     database_url: str,
     open_search_host_url: str,
-    open_search_http_auth: AWS4Auth,
+    open_search_http_auth: Union[AWS4Auth, Tuple[str, str]],
+    open_search_ca_certs: Optional[str] = None,
 ) -> None:
     """
     Extracts file metadata from the database, adds the file content, and indexes it in OpenSearch.
@@ -29,6 +30,7 @@ def index_file_content_and_metadata_in_opensearch(
         file_data_with_text_content,
         open_search_host_url,
         open_search_http_auth,
+        open_search_ca_certs,
     )
 
 
@@ -38,7 +40,7 @@ def _add_text_content(
     file_type = file_data["file_name"].split(".")[-1].lower()
     new_file_data = file_data
     if file_type in ["txt", "docx", "pdf"]:
-        new_file_data["content"] = extract_text(file_stream)
+        new_file_data["content"] = extract_text(file_stream, file_type)
     return new_file_data
 
 
@@ -109,8 +111,10 @@ def _fetch_file_data(
     return file_data
 
 
-def extract_text(file_stream: bytes) -> str:
-    with tempfile.NamedTemporaryFile(delete=True) as temp:
+def extract_text(file_stream: bytes, file_extension: str) -> str:
+    with tempfile.NamedTemporaryFile(
+        suffix=f".{file_extension}", delete=True
+    ) as temp:
         temp.write(file_stream)
         temp.flush()
         context = textract.process(temp.name)
@@ -121,13 +125,15 @@ def _index_in_opensearch(
     file_id: str,
     document: Dict[str, Any],
     open_search_host_url: str,
-    open_search_http_auth: AWS4Auth,
+    open_search_http_auth: Union[AWS4Auth, Tuple[str, str]],
+    open_search_ca_certs: str,
 ) -> None:
     open_search = OpenSearch(
         open_search_host_url,
         http_auth=open_search_http_auth,
         use_ssl=True,
         verify_certs=True,
+        ca_certs=open_search_ca_certs,
         connection_class=RequestsHttpConnection,
     )
     open_search.index(index="documents", id=file_id, body=document)

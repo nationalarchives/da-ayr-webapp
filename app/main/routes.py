@@ -35,6 +35,7 @@ from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
 from app.main.util.date_filters_validator import validate_date_filters
+from app.main.util.date_validator import format_opensearch_date
 from app.main.util.filter_sort_builder import (
     build_browse_consignment_filters,
     build_filters,
@@ -508,7 +509,8 @@ def search_results_summary():
             hosts=current_app.config.get("OPEN_SEARCH_HOST"),
             http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
             use_ssl=True,
-            verify_certs=False,
+            verify_certs=True,
+            ca_certs=current_app.config.get("OPEN_SEARCH_CA_CERTS"),
             connection_class=RequestsHttpConnection,
         )
 
@@ -545,7 +547,13 @@ def search_results_summary():
 
         size = per_page
         from_ = size * (page - 1)
-        search_results = open_search.search(dsl_query, from_=from_, size=size)
+        search_results = open_search.search(
+            dsl_query,
+            from_=from_,
+            size=size,
+            timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
+        )
+
         results = search_results["aggregations"][
             "aggregate_by_transferring_body"
         ]["buckets"]
@@ -609,6 +617,7 @@ def search_transferring_body(_id: uuid.UUID):
         0: {"query": ""},
         1: {"transferring_body_id": _id},
         2: {"transferring_body": db.session.get(Body, _id).Name},
+        3: {"search_terms": "‘’"},
     }
     search_terms = []
     results = {"hits": {"total": {"value": 0}, "hits": []}}
@@ -644,7 +653,8 @@ def search_transferring_body(_id: uuid.UUID):
             hosts=current_app.config.get("OPEN_SEARCH_HOST"),
             http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
             use_ssl=True,
-            verify_certs=False,
+            verify_certs=True,
+            ca_certs=current_app.config.get("OPEN_SEARCH_CA_CERTS"),
             connection_class=RequestsHttpConnection,
         )
 
@@ -675,9 +685,22 @@ def search_transferring_body(_id: uuid.UUID):
         size = per_page
         page_number = page
         from_ = size * (page_number - 1)
-        search_results = open_search.search(dsl_query, from_=from_, size=size)
+        search_results = open_search.search(
+            dsl_query,
+            from_=from_,
+            size=size,
+            timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
+        )
 
         results = search_results["hits"]["hits"]
+
+        for result in results:
+            for key, value in result["_source"]["metadata"].items():
+                if "date" in key:
+                    result["_source"]["metadata"][key] = format_opensearch_date(
+                        value
+                    )
+
         total_records = search_results["hits"]["total"]["value"]
 
         page_count = calculate_total_pages(total_records, per_page)

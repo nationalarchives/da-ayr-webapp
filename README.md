@@ -148,106 +148,61 @@ You should now have the app running on <https://localhost:5000/>
 
 **Note:** Unless you have changed the `FLASK_APP` value in the `.flaskenv` file to point to another application entrypoint other than `main_app`, you must specify the `CONFIG_SOURCE` environment variable (as populated by the env file templates), to be either `AWS_SECRETS_MANAGER` or `ENVIRONMENT_VARIABLES` otherwise `flask run` will raise an error.
 
-## Flask App Configuration Details
+## Local development with docker
 
-Our application uses configuration values defined using [Flask Config classes](https://flask.palletsprojects.com/en/2.3.x/config/#development-production) to set up the application's settings and connect it to various services. The pattern we are using consists of a base config class, `BaseConfig`, which is where we specify any hardcoded values, and all other configurable values are defined as a property, for example:
+The webapp depends on keycloak, a postgres instance holding metadata, an s3 bucket storing associated records and then an opensearch instance that is populated from those 2 via `data_management/opensearch_indexer`. For ease of use, we provide a `docker-compose.yml` file inside the `local_services` which spins up all these dependencies, using minio as a local replacement for an actual AWS s3, and populates them with consistent test data. Feel free to expand this data but data consistency is left up to you.
 
-```python
-    @property
-    def EXAMPLE_VARIABLE(self):
-        return self._get_config_value("EXAMPLE_VARIABLE")
+There are some dependencies for running this docker compose stack.
+
+1. Have `docker` installed
+2. Create certs for the webapp postgres instance in `local_services/webapp_postgres_certs` by running `generate_webapp_postgres_certs.sh` inside it
+3. Create certs for the opensearch nodes in `local_services/opensearch_certs` by running `generate_opensearch_certs.sh` inside it
+4. Create a `.env` file inside of `local_services` using `local_services/.env.template`
+
+Then you can run: `docker compose up -d`
+
+It will take a minute or two to spin up the stack, in particular opensearch and keycloak take a little while. You can check their progress in each container's logs.
+
+Once the stack is running:
+
+1. Create your users in the keycloak admin console at `http://localhost:8080/admin/master/console/#/tdr/users` using the keycloak admin credentials specified in the `.env` file, assigning appropriate groups to each. For local dev it's simple enough to set the passwords in the credentials tab.
+2. Regenerate the keycloak client's client secret at `http://localhost:8080/admin/master/console/#/tdr/clients/<UUID-OF-CLIENT>/settings`.
+3. Update the `.env` of the webapp in the root directory of the repo, making sure the following env vars are set according to the values set for the associated service in the docker compose stack.
+
+```
+export KEYCLOAK_BASE_URI=http://localhost:8080
+export KEYCLOAK_REALM_NAME=tdr
+export KEYCLOAK_CLIENT_ID=ayr-beta
+export KEYCLOAK_CLIENT_SECRET=<secret regenerated above>
+
+
+export DB_PORT=5433
+export DB_HOST=localhost
+export DB_NAME=local_db
+export DB_USER=local_db_user
+export DB_PASSWORD=local_db_user_password
+
+
+export AWS_ENDPOINT_URL=http://localhost:9000
+export AWS_ACCESS_KEY_ID=ROOTNAME
+export AWS_SECRET_ACCESS_KEY=CHANGEME123
+
+export OPEN_SEARCH_HOST=https://localhost:9200
+export OPEN_SEARCH_USERNAME=admin
+export OPEN_SEARCH_PASSWORD=FOOBARCARabc123!
+export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
+export OPEN_SEARCH_TIMEOUT=10
+
+export DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
 ```
 
-where `_get_config_value` is treated as an abstract method which is implemented in the child config classes that extend `BaseConfig`.
+Finally you can populate the opensearch cluster with the corresponding data stored in snapshot 1 in `local_services/snapshots/` by running `source .env && local_services/opensearch-entrypoint.sh`.
 
-Hardcoded values:
+Then you can run the flask server with `flask run`
 
-- `SESSION_COOKIE_HTTPONLY`: Configure session cookies to be HTTP-only. Is `True`.
-- `SESSION_COOKIE_SECURE`: Configure session cookies to be secure. Is `True`.
-- `CONTACT_EMAIL`: Email address for contact information.
-- `CONTACT_PHONE`: Phone number for contact information.
-- `DEPARTMENT_NAME`: The name of the department.
-- `DEPARTMENT_URL`: The URL of the department's website.
-- `SERVICE_NAME`: The name of the service.
-- `SERVICE_PHASE`: The phase of the service.
-- `SERVICE_URL`: The URL of the service.
+## Local dev without docker
 
-Properties configurable at runtime:
-
-- `AWS_REGION`: The AWS region used for AWS services.
-- `DB_PORT`: The port of the database to connect to.
-- `DB_HOST`: The host of the database to connect to.
-- `DB_USER`: The username of the database to connect to.
-- `DB_PASSWORD`: The password of the database to connect to.
-- `DB_NAME`: The name of the database to connect to.
-- `DB_SSL_ROOT_CERTIFICATE`: The path of the database certificate to connect with.
-- `KEYCLOAK_BASE_URI`: The base URI of the Keycloak authentication service.
-- `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
-- `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.
-- `KEYCLOAK_CLIENT_SECRET`: The client secret used for Keycloak authentication.
-- `SECRET_KEY`: Secret key used for Flask session and security.
-- `DEFAULT_PAGE_SIZE`: set value for no. of records to show on browse/search view.
-- `DEFAULT_DATE_FORMAT`: set value to show date in specific format cross the application. i.e. "DD/MM/YYYY"
-- `RECORD_BUCKET_NAME`: name of s3 bucket that holds all of the record objects themselves
-- `FLASKS3_ACTIVE`: whether to fetch static assets from s3/Cloudfront rather than the usual `url_for`.
-- `FLASKS3_CDN_DOMAIN`: CDN domain to fetch assets from if `FLASKS3_ACTIVE` is set to `True`
-- `FLASKS3_BUCKET_NAME`: S3 bucket assets are uploaded to and served to Cloudfront from.
-- `PERF_TEST`: Enable to allow access tokens generated via API to be accepted for performance testing.
-
-Calculated values:
-
-- `SQLALCHEMY_DATABASE_URI`: The PostgreSQL database URI with format `postgresql+psycopg2://<DB_USER>:<DB_PASSWORD>@<DB_HOST>:<DB_PORT>/<DB_NAME>`.
-
-We have two usable configs which extend `BaseConfig` for running the application:
-
-- `EnvConfig` which implements `_get_config_value` so it reads from environment variables.
-- `AWSSecretsManagerConfig` which implements `_get_config_value` so it reads from AWS Secrets Manager values.
-
-When configuring `flask run` run the app created by `main_app.py`, as we do with the line `export FLASK_APP=main_app` in the `.flaskenv`, we can either use `EnvConfig` or `AWSSecretsManagerConfig` by setting `CONFIG_SOURCE` as either `ENVIRONMENT_VARIABLES` or `AWS_SECRETS_MANAGER` respectively. If using `AWSSecretsManagerConfig`, then you must also set `AWS_SM_CONFIG_SECRET_ID` which is the secret id of the Secrets Manager secret used to read in all the config values.
-
-We also have a `TestingConfig` that extends `BaseConfig` which is only used for Flask tests as detailed below. Its implementation of  `_get_config_value` returns an empty string for all the configurable properties just so we don't need to worry about setting values in tests we don't care about them in. We may revisit this, as the fact that config vars are unnecessary in some tests that access them seems like a code smell that could be worth addressing; specifying them in any test that needs them and refactoring the code if we still find asserting anything about them unnecessary could be a better approach long term.
-As well as the confgiurable values discussed above, we also hardcode the following on the `TestingConfig`:
-
-- `TESTING` to `True` to disable error catching (further info [here](https://flask.palletsprojects.com/en/3.0.x/config/#TESTING)), and changes certain extension's logic as well as own on (e.g. disables forcing of https) to facilitate easier testing.
-- `SECRET_KEY` to `"TEST_SECRET_KEY"` so that Flask sessions work in the tests.
-
-### The .flaskenv file
-
-In addition to the `.env` file discussed above, which can be created from template files, we have a `.flaskenv` file with Flask specific configuration values which is committed to the repo and we don't expect to change these.
-
-### Environment loading
-
-Both the `.env` and `.flask_env` are loaded automatically when we run the flask application as outlined in the following section, thanks to the use of `python-dotenv`. More information on Flask environment variable hierarchies can be found [here](https://flask.palletsprojects.com/en/2.3.x/cli/#environment-variables-from-dotenv).
-
-## Metadata Store Postgres Database
-
-The webapp is set up to read data from an externally defined postgres database referred to as the Metadata Store.
-
-We currently use the python package, Flask-SQLAlchemy to leverage some benefits of the ORM (Object Relationship Mapping) it provides, making our queries using the python classes we create as opposed to explicit SQL queries.
-
-The database connection is configured with the `SQLALCHEMY_DATABASE_URI` variable built up in the Flask Config.
-
-### Database Infrastructure and Connection
-
-The database is assumed to be a PostgreSQL database.
-
-This could be spun up by PostgreSQL or from Amazon RDS, for example.
-
-One thing to note is that our database connection's ssl mode is `verify-full` therefore your db instance must have a root certificate on its server, and you must have a copy of a leaf certificate signed by the root certificate in a location accessible by this flask webapp, specified by `DB_SSL_ROOT_CERTIFICATE`.
-
-When choosing the configuration choice `AWS_SECRETS_MANAGER`, we assume the database is an RDS database with an RDS proxy sitting in front, in the same AWS account as the Secrets Manager and lambda and resides in a VPC which the lambda is in so that the webapp hosted in the lambda can communicate with it securely.
-
-### Database Tables, Schema and Data
-
-We do not define the database tables ourselves, nor write any information to the database, both of which are assumed to be handled externally. To leverage the use of the ORM we reflect the tables from the existing database with the following line in our Flask app setup.
-
-`db.Model.metadata.reflect(bind=db.engine, schema="public")`
-
-More info on relecting database tables can be found [here](https://flask-sqlalchemy.palletsprojects.com/en/3.1.x/models/#reflecting-tables).
-
-Further, to this, we do define models and columns from the corresponding tables we do use in our queries we use so that when developing we will know what attributes are available but this has to be manually kept in sync with the externally determined schema through discussion with the maintainers of the Metadata Store database.
-
-### Dev database dump
+### Running webapp postgres db without docker
 
 Provided is the file `dev-data.sql` which can be used to restore a database on a postgres instance.
 This is the database that is assumed to be used for our end to end tests which depend on data.
@@ -260,7 +215,19 @@ To use this database, you will need to:
 
 NOTE: The db info used here will need to be used in the config as detailed in the config section.
 
-## Keycloak Local Setup
+## Connecting your own opensearch cluster
+
+You will need to specify:
+
+- `OPEN_SEARCH_HOST`
+- `OPEN_SEARCH_USERNAME` (can be left empty if running with the AWS config as that would use AWS4Auth signing)
+- `OPEN_SEARCH_PASSWORD` (can be left empty if running with the AWS config as that would use AWS4Auth signing)
+- `OPEN_SEARCH_CA_CERTS` can be left empty if running on a system where the certificate for the opensearch cluster is already trusted by the system.
+- `OPEN_SEARCH_TIMEOUT`
+
+If creating your own cluster, you can create the keys as detailed in the docker section.
+
+### Running Keycloak without docker
 
 It is possible to set up a local Keylcoak instance for development of Keycloak authentication pages. This repository: https://github.com/nationalarchives/tdr-auth-server/blob/master/README.md contains a readme which can be used to setup Keycloak or follow the steps below.
 
@@ -319,6 +286,123 @@ Please see: https://github.com/nationalarchives/tdr-auth-server/blob/master/READ
 4. Refresh the locally running Keycloak pages to see the changes.
 5. Repeat steps 3 to 5 as necessary.
 
+
+
+## Flask App Configuration Details
+
+Our application uses configuration values defined using [Flask Config classes](https://flask.palletsprojects.com/en/2.3.x/config/#development-production) to set up the application's settings and connect it to various services. The pattern we are using consists of a base config class, `BaseConfig`, which is where we specify any hardcoded values, and all other configurable values are defined as a property, for example:
+
+```python
+    @property
+    def EXAMPLE_VARIABLE(self):
+        return self._get_config_value("EXAMPLE_VARIABLE")
+```
+
+where `_get_config_value` is treated as an abstract method which is implemented in the child config classes that extend `BaseConfig`.
+
+Hardcoded values:
+
+- `SESSION_COOKIE_HTTPONLY`: Configure session cookies to be HTTP-only. Is `True`.
+- `SESSION_COOKIE_SECURE`: Configure session cookies to be secure. Is `True`.
+- `CONTACT_EMAIL`: Email address for contact information.
+- `CONTACT_PHONE`: Phone number for contact information.
+- `DEPARTMENT_NAME`: The name of the department.
+- `DEPARTMENT_URL`: The URL of the department's website.
+- `SERVICE_NAME`: The name of the service.
+- `SERVICE_PHASE`: The phase of the service.
+- `SERVICE_URL`: The URL of the service.
+
+Properties configurable at runtime:
+
+- `AWS_REGION`: The AWS region used for AWS services.
+- `DB_PORT`: The port of the database to connect to.
+- `DB_HOST`: The host of the database to connect to.
+- `DB_USER`: The username of the database to connect to.
+- `DB_PASSWORD`: The password of the database to connect to.
+- `DB_NAME`: The name of the database to connect to.
+- `DB_SSL_ROOT_CERTIFICATE`: The path of the database certificate to connect with.
+- `KEYCLOAK_BASE_URI`: The base URI of the Keycloak authentication service.
+- `KEYCLOAK_CLIENT_ID`: The client ID used for Keycloak authentication.
+- `KEYCLOAK_REALM_NAME`: The name of the Keycloak realm.
+- `KEYCLOAK_CLIENT_SECRET`: The client secret used for Keycloak authentication.
+- `SECRET_KEY`: Secret key used for Flask session and security.
+- `DEFAULT_PAGE_SIZE`: set value for no. of records to show on browse/search view.
+- `DEFAULT_DATE_FORMAT`: set value to show date in specific format cross the application. i.e. "DD/MM/YYYY"
+- `RECORD_BUCKET_NAME`: name of s3 bucket that holds all of the record objects themselves
+- `FLASKS3_ACTIVE`: whether to fetch static assets from s3/Cloudfront rather than the usual `url_for`.
+- `FLASKS3_CDN_DOMAIN`: CDN domain to fetch assets from if `FLASKS3_ACTIVE` is set to `True`
+- `FLASKS3_BUCKET_NAME`: S3 bucket assets are uploaded to and served to Cloudfront from.
+- `PERF_TEST`: Enable to allow access tokens generated via API to be accepted for performance testing.
+- `OPEN_SEARCH_HOST`: The host of the opensearch cluster to connect to.
+- `OPEN_SEARCH_USERNAME`: The username of the opensearch cluster to connect to.
+- `OPEN_SEARCH_PASSWORD`: The password of the opensearch cluster to connect to.
+- `OPEN_SEARCH_CA_CERTS`: The path of the opensearch cluster certificate to connect with.
+- `OPEN_SEARCH_TIMEOUT`: The timeout for api calls to the opensearch cluster.
+
+Calculated values:
+
+- `SQLALCHEMY_DATABASE_URI`: The PostgreSQL database URI with format `postgresql+psycopg2://<DB_USER>:<DB_PASSWORD>@<DB_HOST>:<DB_PORT>/<DB_NAME>`.
+
+We have two usable configs which extend `BaseConfig` for running the application:
+
+- `EnvConfig` which implements `_get_config_value` so it reads from environment variables.
+- `AWSSecretsManagerConfig` which implements `_get_config_value` so it reads from AWS Secrets Manager values.
+
+When configuring `flask run` run the app created by `main_app.py`, as we do with the line `export FLASK_APP=main_app` in the `.flaskenv`, we can either use `EnvConfig` or `AWSSecretsManagerConfig` by setting `CONFIG_SOURCE` as either `ENVIRONMENT_VARIABLES` or `AWS_SECRETS_MANAGER` respectively. If using `AWSSecretsManagerConfig`, then you must also set `AWS_SM_CONFIG_SECRET_ID` which is the secret id of the Secrets Manager secret used to read in all the config values.
+
+We also have a `TestingConfig` that extends `BaseConfig` which is only used for Flask tests as detailed below. Its implementation of  `_get_config_value` returns an empty string for all the configurable properties just so we don't need to worry about setting values in tests we don't care about them in. We may revisit this, as the fact that config vars are unnecessary in some tests that access them seems like a code smell that could be worth addressing; specifying them in any test that needs them and refactoring the code if we still find asserting anything about them unnecessary could be a better approach long term.
+As well as the confgiurable values discussed above, we also hardcode the following on the `TestingConfig`:
+
+- `TESTING` to `True` to disable error catching (further info [here](https://flask.palletsprojects.com/en/3.0.x/config/#TESTING)), and changes certain extension's logic as well as own on (e.g. disables forcing of https) to facilitate easier testing.
+- `SECRET_KEY` to `"TEST_SECRET_KEY"` so that Flask sessions work in the tests.
+
+### The .flaskenv file
+
+In addition to the `.env` file discussed above, which can be created from template files, we have a `.flaskenv` file with Flask specific configuration values which is committed to the repo and we don't expect to change these.
+
+### Environment loading
+
+Both the `.env` and `.flask_env` are loaded automatically when we run the flask application as outlined in the following section, thanks to the use of `python-dotenv`. More information on Flask environment variable hierarchies can be found [here](https://flask.palletsprojects.com/en/2.3.x/cli/#environment-variables-from-dotenv).
+
+## Metadata Store Postgres Database
+
+The webapp is set up to read data from an externally defined postgres database referred to as the Metadata Store.
+
+We currently use the python package, Flask-SQLAlchemy to leverage some benefits of the ORM (Object Relationship Mapping) it provides, making our queries using the python classes we create as opposed to explicit SQL queries.
+
+The database connection is configured with the `SQLALCHEMY_DATABASE_URI` variable built up in the Flask Config.
+
+### Database Infrastructure and Connection
+
+The database is assumed to be a PostgreSQL database.
+
+This could be spun up by PostgreSQL or from Amazon RDS, for example.
+
+One thing to note is that our database connection's ssl mode is `verify-full` therefore your db instance must have a root certificate on its server, and you must have a copy of a leaf certificate signed by the root certificate in a location accessible by this flask webapp, specified by `DB_SSL_ROOT_CERTIFICATE`.
+
+When choosing the configuration choice `AWS_SECRETS_MANAGER`, we assume the database is an RDS database with an RDS proxy sitting in front, in the same AWS account as the Secrets Manager and lambda and resides in a VPC which the lambda is in so that the webapp hosted in the lambda can communicate with it securely.
+
+### Database Tables, Schema and Data
+
+We do not define the database tables ourselves, nor write any information to the database, both of which are assumed to be handled externally. To leverage the use of the ORM we reflect the tables from the existing database with the following line in our Flask app setup.
+
+`db.Model.metadata.reflect(bind=db.engine, schema="public")`
+
+More info on relecting database tables can be found [here](https://flask-sqlalchemy.palletsprojects.com/en/3.1.x/models/#reflecting-tables).
+
+Further, to this, we do define models and columns from the corresponding tables we do use in our queries we use so that when developing we will know what attributes are available but this has to be manually kept in sync with the externally determined schema through discussion with the maintainers of the Metadata Store database.
+
+## Data management
+
+We have a few functions in `data_management/opensearch_indexer` to index an opensearch cluster with data from a postgres database with the schema detailed above holding metadata and byte stream of the corresponding file content.
+Depending on environment we have different levels of function to do this:
+
+- independently with `data_management/opensearch_indexer/opensearch_indexer/index_file_content_and_metadata_in_opensearch.py`
+- at AWS level where config options come from an AWS secretsmanager secret and the file stream is built from an s3 object with
+`data_management/opensearch_indexer/opensearch_indexer/index_file_content_and_metadata_in_opensearch_from_aws.py`
+- at AWS lambda level with s3 bucket and secret id determined on each run with `data_management/opensearch_indexer/opensearch_indexer/lambda_function.py`.
+
+We also have a way to do this for all files in a postgres database with `data_management/opensearch_indexer/opensearch_indexer/index_all_in_db.py`.
 
 ## Testing
 
