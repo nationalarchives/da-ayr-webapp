@@ -97,9 +97,8 @@
                                                                     <summary />
                                                                 </details>
                                                                 {% if record['highlight'] %}
-                                                                    {{ record['highlight'].keys() | list | first | replace('_', ' ') | capitalize }}
-                                                                    +
-                                                                    {{ record['highlight'].keys() | length - 1 }}
+                                                                    {% set key = record['highlight'].keys() | list | first | replace('_', ' ') | capitalize %}
+                                                                    {{ key }} +{{ record['highlight'].keys() | length - 1 }}
                                                                 {% else %}
                                                                     None
                                                                 {% endif %}
@@ -125,7 +124,7 @@
                                                     <tr class="govuk-table__row top-row hidden-row-{{ main_loop_index }}">
                                                         <td class="govuk-table__cell"></td>
                                                         <td class="govuk-table__cell govuk-table__cell--no-padding">
-                                                            <table class="govuk-table govuk-table--inner-table">
+                                                            <table class="govuk-table govuk-table--inner-table" id="inner-table">
                                                                 <thead>
                                                                     <tr>
                                                                         <th scope="col"
@@ -146,7 +145,7 @@
                                                                         </th>
                                                                     </tr>
                                                                 </thead>
-                                                                <tbody id="inner-table">
+                                                                <tbody>
                                                                     <tr class="govuk-table__row">
                                                                         <td class="govuk-table__cell govuk-table__cell--metadata">
                                                                             <a href="{{ url_for('main.browse_series', _id= record['_source']['series_id']) }}">{{ record['_source']['series_name'] }}</a>
