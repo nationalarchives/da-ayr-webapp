@@ -71,8 +71,8 @@ class BaseConfig(object):
         return self._get_config_value("SECRET_KEY")
 
     @property
-    def DEFAULT_PAGE_SIZE(self):
-        return self._get_config_value("DEFAULT_PAGE_SIZE")
+    def DEFAULT_PAGE_SIZE(self) -> int:
+        return int(self._get_config_value("DEFAULT_PAGE_SIZE"))
 
     @property
     def DEFAULT_DATE_FORMAT(self):
@@ -110,8 +110,8 @@ class BaseConfig(object):
         return self._get_config_value("OPEN_SEARCH_CA_CERTS")
 
     @property
-    def OPEN_SEARCH_TIMEOUT(self):
-        return self._get_config_value("OPEN_SEARCH_TIMEOUT")
+    def OPEN_SEARCH_TIMEOUT(self) -> int:
+        return int(self._get_config_value("OPEN_SEARCH_TIMEOUT"))
 
     @property
     def PERF_TEST(self):

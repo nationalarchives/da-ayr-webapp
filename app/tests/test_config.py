@@ -56,7 +56,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
     monkeypatch.setenv(
         "SECRET_KEY", "test_secret_key"  # pragma: allowlist secret
     )
-    monkeypatch.setenv("DEFAULT_PAGE_SIZE", "test_default_page_size")
+    monkeypatch.setenv("DEFAULT_PAGE_SIZE", 10)
     monkeypatch.setenv("DEFAULT_DATE_FORMAT", "test_default_date_format")
     monkeypatch.setenv("RECORD_BUCKET_NAME", "test_record_bucket_name")
     monkeypatch.setenv("FLASKS3_ACTIVE", "False")
@@ -66,6 +66,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
     monkeypatch.setenv("OPEN_SEARCH_HOST", "test_os_host")
     monkeypatch.setenv("OPEN_SEARCH_USERNAME", "test_os_username")
     monkeypatch.setenv("OPEN_SEARCH_PASSWORD", "test_os_password")
+    monkeypatch.setenv("OPEN_SEARCH_TIMEOUT", 10)
 
     config = EnvConfig()
 
@@ -81,7 +82,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
         == "test_keycloak_client_secret"  # pragma: allowlist secret
     )
     assert config.SECRET_KEY == "test_secret_key"  # pragma: allowlist secret
-    assert config.DEFAULT_PAGE_SIZE == "test_default_page_size"
+    assert config.DEFAULT_PAGE_SIZE == 10
     assert config.DEFAULT_DATE_FORMAT == "test_default_date_format"
     assert config.RECORD_BUCKET_NAME == "test_record_bucket_name"
     assert config.FLASKS3_ACTIVE is False
@@ -93,6 +94,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
         "test_os_username",
         "test_os_password",
     )
+    assert config.OPEN_SEARCH_TIMEOUT == 10
 
 
 def test_local_env_config_variable_not_set_error(monkeypatch):
@@ -121,7 +123,7 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
     monkeypatch.setenv(
         "SECRET_KEY", "test_secret_key"  # pragma: allowlist secret
     )
-    monkeypatch.setenv("DEFAULT_PAGE_SIZE", "test_default_page_size")
+    monkeypatch.setenv("DEFAULT_PAGE_SIZE", 10)
     monkeypatch.setenv("RECORD_BUCKET_NAME", "test_record_bucket_name")
     monkeypatch.setenv("AWS_REGION", "test_region")
     monkeypatch.setenv("FLASKS3_ACTIVE", "False")
@@ -131,6 +133,7 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
     monkeypatch.setenv("OPEN_SEARCH_HOST", "test_os_host")
     monkeypatch.setenv("OPEN_SEARCH_USERNAME", "test_os_username")
     monkeypatch.setenv("OPEN_SEARCH_PASSWORD", "test_os_password")
+    monkeypatch.setenv("OPEN_SEARCH_TIMEOUT", 10)
 
     config = EnvConfig()
 
@@ -166,9 +169,10 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
             "DB_PASSWORD": "test_db_password",  # pragma: allowlist secret
             "DB_NAME": "test_db_name",
             "DB_SSL_ROOT_CERTIFICATE": "test_db_ssl_root_certificate",
-            "DEFAULT_PAGE_SIZE": "test_default_page_size",
+            "DEFAULT_PAGE_SIZE": 10,
             "OPEN_SEARCH_MASTER_ROLE_ARN": "test_master_role_arn",
             "OPEN_SEARCH_HOST": "test_os_host",  # pragma: allowlist secret
+            "OPEN_SEARCH_TIMEOUT": 10,  # pragma: allowlist secret
         }
     )
 
@@ -199,7 +203,6 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
     ):
 
         config = AWSSecretsManagerConfig()
-        aws_auth = config.OPEN_SEARCH_HTTP_AUTH
 
         assert (
             config.SQLALCHEMY_DATABASE_URI
@@ -218,7 +221,7 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         assert (
             config.SECRET_KEY == "test_secret_key"  # pragma: allowlist secret
         )
-        assert config.DEFAULT_PAGE_SIZE == "test_default_page_size"
+        assert config.DEFAULT_PAGE_SIZE == 10
         assert config.DEFAULT_DATE_FORMAT == "test_default_date_format"
 
         assert config.RECORD_BUCKET_NAME == "test_record_bucket_name"
@@ -226,6 +229,10 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         assert config.FLASKS3_CDN_DOMAIN == "test_flasks3_cdn_domain"
         assert config.FLASKS3_BUCKET_NAME == "test_flasks3_bucket_name"
         assert config.PERF_TEST is False
+        assert config.OPEN_SEARCH_HOST == "test_os_host"
+        assert config.OPEN_SEARCH_TIMEOUT == 10
+
+        aws_auth = config.OPEN_SEARCH_HTTP_AUTH
         assert isinstance(aws_auth, AWS4Auth)
         assert aws_auth.access_id == "test_access_key"
         assert aws_auth.region == "test_aws_region"
@@ -264,7 +271,7 @@ def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
             "DB_PASSWORD": "test_db_password",  # pragma: allowlist secret
             "DB_NAME": "test_db_name",
             "DB_SSL_ROOT_CERTIFICATE": "test_db_ssl_root_certificate",
-            "DEFAULT_PAGE_SIZE": "test_default_page_size",
+            "DEFAULT_PAGE_SIZE": 10,
         }
     )
 
