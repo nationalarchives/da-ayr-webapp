@@ -3,6 +3,7 @@ import json
 import uuid
 
 import boto3
+import opensearchpy
 from flask import (
     abort,
     current_app,
@@ -547,12 +548,15 @@ def search_results_summary():
 
         size = per_page
         from_ = size * (page - 1)
-        search_results = open_search.search(
-            dsl_query,
-            from_=from_,
-            size=size,
-            timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
-        )
+        try:
+            search_results = open_search.search(
+                dsl_query,
+                from_=from_,
+                size=size,
+                timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
+            )
+        except opensearchpy.exceptions.ConnectionTimeout:
+            abort(504)
 
         results = search_results["aggregations"][
             "aggregate_by_transferring_body"
@@ -676,12 +680,15 @@ def search_transferring_body(_id: uuid.UUID):
         size = per_page
         page_number = page
         from_ = size * (page_number - 1)
-        search_results = open_search.search(
-            dsl_query,
-            from_=from_,
-            size=size,
-            timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
-        )
+        try:
+            search_results = open_search.search(
+                dsl_query,
+                from_=from_,
+                size=size,
+                timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
+            )
+        except opensearchpy.exceptions.ConnectionTimeout:
+            abort(504)
 
         results = search_results["hits"]["hits"]
 
