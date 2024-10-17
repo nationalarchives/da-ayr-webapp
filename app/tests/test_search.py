@@ -1,11 +1,13 @@
 from unittest.mock import patch
 
+import opensearchpy
 import pytest
 from bs4 import BeautifulSoup
 from flask import url_for
 from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
+from app.tests.factories import FileFactory
 from app.tests.utils import (
     decompose_desktop_invisible_elements,
     evaluate_table_body_rows,
@@ -376,6 +378,27 @@ class TestSearchResultsSummary:
         assert heading_text == "Records found 69"
 
     @patch("app.main.routes.OpenSearch")
+    def test_search_results_summary_timeout_shows_504_bad_gateway(
+        self, mock_search_client, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given an all_access_user with a search results summary query
+        When they make a request on the search results summary page,
+            and an opensearchpy.exceptions.ConnectionTimeout occurs
+        Then they should see not see any results on the page.
+        """
+        mock_search_client.return_value.search.side_effect = (
+            opensearchpy.exceptions.ConnectionTimeout
+        )
+        mock_all_access_user(client)
+
+        form_data = {"query": "junk"}
+        response = client.get(f"{self.route_url}", data=form_data)
+
+        assert response.status_code == 504
+        assert b"Bad Gateway" in response.data
+
+    @patch("app.main.routes.OpenSearch")
     def test_search_results_summary_with_results_single_term(
         self,
         mock_search_client,
@@ -678,6 +701,35 @@ class TestSearchTransferringBody:
             "ul",
             {"class": "govuk-list govuk-list--bullet"},
         )
+
+    @patch("app.main.routes.OpenSearch")
+    def test_search_results_timeout_error(
+        self, mock_search_client, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a user with access to a transferring body
+        When they make a request on the search results summary page
+            and an opensearchpy.exceptions.ConnectionTimeout occurs
+        Then they should receive a 504 Gateway Timeout response
+        """
+        file = FileFactory()
+
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        transferring_body_id = file.consignment.series.body.BodyId
+
+        mock_search_client.return_value.search.side_effect = (
+            opensearchpy.exceptions.ConnectionTimeout
+        )
+
+        form_data = {"query": "bar"}
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 504
+        assert b"Bad Gateway" in response.data
 
     @patch("app.main.routes.OpenSearch")
     def test_search_transferring_body_with_table_data_links(
