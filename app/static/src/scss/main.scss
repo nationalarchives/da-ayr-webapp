@@ -2,7 +2,7 @@
 $govuk-font-family: Arial, Helvetica, sans-serif;
 
 // govuk styles import
-@import "../../all";
+@import "../../../../node_modules/govuk-frontend/dist/govuk/all";
 
 // variables
 @import "includes/variables";
