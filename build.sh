@@ -1,4 +1,4 @@
-# Remove existing GOV.UK Frontend assets
+# Variables
 GOVUK_DIR="node_modules/govuk-frontend/dist/govuk"
 
 # Remove existing GOV.UK Frontend assets
