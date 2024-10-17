@@ -5,7 +5,7 @@
 app/static/src/css*
 app/static/fonts*
 app/static/govuk-frontend*
-app/static/all*
+app/static/_all*
 app/static/images*
 app/static/VERSION.txt
 govuk_components*

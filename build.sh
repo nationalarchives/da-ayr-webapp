@@ -10,7 +10,8 @@ rm -rf app/static/govuk-frontend*
 npm i
 
 # Move govuk-frontend JS assets to static directory of app
-cp $GOVUK_DIR/govuk-frontend* $GOVUK_DIR/all.scss app/static/
+cp $GOVUK_DIR/govuk-frontend* app/static/
+cp $GOVUK_DIR/all.scss app/static/_all.scss
 
 # Tidy up
 rm -rf app/static/assets
