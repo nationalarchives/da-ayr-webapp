@@ -1953,8 +1953,10 @@ class TestSearchTransferringBody:
 
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
-
+        checkbox = soup.find("input", {"name": "open_all"})
         details_elements = soup.find_all("details")
+
+        assert "checked" in checkbox.attrs
         assert all("open" in details.attrs for details in details_elements)
 
     @patch("app.main.routes.OpenSearch")
