@@ -406,6 +406,15 @@ a.govuk-link {
   &__checkboxes {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    height: 40px;
+
+    .govuk-checkboxes__label {
+      padding: 0;
+      max-width: 100%;
+      font-size: 16px;
+    }
 
     .govuk-button {
       height: 38px;
