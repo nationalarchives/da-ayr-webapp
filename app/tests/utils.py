@@ -34,7 +34,7 @@ def get_table_rows_cell_values(table):
     Returns all rows and cell values for a table that has been found using BeautifulSoup
     :param table: BeautifulSoup object
     Returns:
-    string[][], e.g. [["row_1_value_1", "row_1_value_2"], ["row_2_value_1", "row_2_value_2"]]
+    List[List[str]], e.g. [["row_1_value_1", "row_1_value_2"], ["row_2_value_1", "row_2_value_2"]]
     """
     rows = table.find_all("tr")
     data = []
@@ -48,3 +48,14 @@ def get_table_rows_cell_values(table):
         if len(row_data) > 1:
             data.append(row_data)
     return data
+
+
+def get_table_rows_header_values(table):
+    """
+    Returns all header values as a list of strings
+    :param table: BeautifulSoup object
+    Returns:
+    List[str], e.g. ["value1", "value2"]
+    """
+    headers = table.find_all("th")
+    return [header.get_text(strip=True) for header in headers]

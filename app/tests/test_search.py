@@ -12,6 +12,7 @@ from app.tests.utils import (
     decompose_desktop_invisible_elements,
     decompose_inner_tables,
     get_table_rows_cell_values,
+    get_table_rows_header_values,
 )
 
 os_mock_return_summary = {
@@ -115,52 +116,6 @@ class MockOpenSearch:
 
     def index(self, *args, **kwargs):
         return self.index_return_value
-
-
-def verify_search_desktop_transferring_body_header_row(data):
-    """
-    this function check header row column values against expected row
-    :param data: response data
-    """
-    soup = BeautifulSoup(data, "html.parser")
-    decompose_desktop_invisible_elements(soup)
-    table = soup.find("table")
-    headers = table.find_all("th")
-
-    expected_row = (
-        [
-            "Found within",
-            "Search results",
-            "Series",
-            "Consignment ref",
-            "Status",
-            "Record opening date",
-        ],
-    )
-    assert [
-        header.text.replace("\n", " ").strip(" ") for header in headers
-    ] == expected_row[0]
-
-
-def verify_search_results_summary_header_row(data):
-    """
-    this function check header row column values against expected row
-    :param data: response data
-    """
-    soup = BeautifulSoup(data, "html.parser")
-    decompose_desktop_invisible_elements(soup)
-    table = soup.find("table")
-    headers = table.find_all("th")
-
-    expected_row = (
-        [
-            "Results found within each Transferring body",
-            "Records found",
-        ],
-    )
-    assert [
-        header.text.replace("\n", " ").strip(" ") for header in headers
-    ] == expected_row[0]
 
 
 class TestSearchRedirect:
@@ -446,7 +401,6 @@ class TestSearchResultsSummary:
         soup = BeautifulSoup(response.data, "html.parser")
         table_body = soup.find("tbody")
         expected_cell_values = [["bar", "1000"]]
-        verify_search_results_summary_header_row(response.data)
 
         table_cell_values = get_table_rows_cell_values(table_body)
         assert table_cell_values == expected_cell_values
@@ -1501,6 +1455,66 @@ class TestSearchTransferringBody:
         )
 
     @patch("app.main.routes.OpenSearch")
+    def test_search_transferring_body_verify_table_headers(
+        self,
+        mock_search_client,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user
+        When they make a request on the search page with the search term
+        Then the tables have correct headers
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        form_data = {"query": "first_file"}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        decompose_desktop_invisible_elements(soup)
+
+        inner_table = soup.find("table", {"id": "inner-table"})
+        inner_table_headers = get_table_rows_header_values(inner_table)
+        expected_headers_inner_table = (
+            [
+                "Series",
+                "Consignment ref",
+                "Status",
+                "Record opening date",
+            ],
+        )
+
+        decompose_inner_tables(soup)
+
+        main_table = soup.find("table")
+        main_table_headers = get_table_rows_header_values(main_table)
+        expected_headers_main_table = (
+            [
+                "Found within",
+                "Search results",
+            ],
+        )
+
+        assert inner_table_headers == expected_headers_inner_table[0]
+        assert main_table_headers == expected_headers_main_table[0]
+
+    @patch("app.main.routes.OpenSearch")
     def test_search_transferring_body_with_table_data_links_inner_table(
         self,
         mock_search_client,
@@ -1533,7 +1547,6 @@ class TestSearchTransferringBody:
 
         assert response.status_code == 200
         assert b"Records found 1" in response.data
-        verify_search_desktop_transferring_body_header_row(response.data)
 
         table = BeautifulSoup(response.data, "html.parser").find(
             "table", {"id": "inner-table"}
