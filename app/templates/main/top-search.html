@@ -4,24 +4,52 @@
         <form class="search__els__form"
               method="get"
               action="{{ url_for('main.search') }}">
+            <div class="govuk-radios govuk-radios--small search__els__form__checkboxes"
+                 data-module="govuk-radios">
+                <div class="govuk-radios__item">
+                    <input class="govuk-radios__input"
+                           id="everywhere"
+                           name="search_area"
+                           type="radio"
+                           value="yes"
+                           checked />
+                    <label class="govuk-label govuk-radios__label" for="everywhere">Search everywhere</label>
+                </div>
+                <div class="govuk-radios__item">
+                    <input class="govuk-radios__input"
+                           id="metadata"
+                           name="search_area"
+                           type="radio"
+                           value="no" />
+                    <label class="govuk-label govuk-radios__label" for="metadata">Record metadata only</label>
+                </div>
+                <div class="govuk-radios__item">
+                    <input class="govuk-radios__input"
+                           id="record"
+                           name="search_area"
+                           type="radio"
+                           value="no" />
+                    <label class="govuk-label govuk-radios__label" for="record">Within the record only</label>
+                </div>
+            </div>
             <div class="search__els__form__input-container">
                 <input class="govuk-input"
                        id="search-input"
                        name="query"
                        type="text"
                        value="{% if filters['query'] %}{{ filters['query'] }}{% endif %}" />
-                {% if session["user_type"] == "all_access_user" %}
+                <!-- {% if session["user_type"] == "all_access_user" %}
                     <p id="search-description" class="govuk-body-s">
                         Search by file name, transferring body, series or consignment reference.
                     </p>
                 {% else %}
                     <p id="search-description" class="govuk-body-s">Search by file name, series or consignment reference.</p>
-                {% endif %}
+                {% endif %} -->
+                <button class="govuk-button"
+                        id="search-submit"
+                        data-module="govuk-button"
+                        type="submit">Search</button>
             </div>
-            <button class="govuk-button"
-                    id="search-submit"
-                    data-module="govuk-button"
-                    type="submit">Search</button>
         </form>
     </div>
 </div>
