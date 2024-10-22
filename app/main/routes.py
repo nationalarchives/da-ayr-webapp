@@ -458,6 +458,9 @@ def browse_consignment(_id: uuid.UUID):
 @access_token_sign_in_required
 def search():
     query = request.form.get("query", "") or request.args.get("query", "")
+    search_area = request.form.get("search_area", "") or request.args.get(
+        "search_area", ""
+    )
 
     transferring_body_id = request.args.get("transferring_body_id", "")
 
@@ -476,10 +479,17 @@ def search():
                 "main.search_transferring_body",
                 _id=transferring_body_id,
                 query=query,
+                search_area=search_area,
             )
         )
     else:
-        return redirect(url_for("main.search_results_summary", query=query))
+        return redirect(
+            url_for(
+                "main.search_results_summary",
+                query=query,
+                search_area=search_area,
+            )
+        )
 
 
 @bp.route("/search_results_summary", methods=["GET"])
