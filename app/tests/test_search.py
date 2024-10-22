@@ -54,8 +54,14 @@ os_mock_return_tb = {
                     },
                 },
                 "highlight": {
-                    "test_field_1": ["<mark>test1</mark>"],
-                    "test_field_2": ["t<mark>est2</mark>"],
+                    "test_field_1": [
+                        "<mark>test1</mark> and",
+                        "this is just a sentence with a mark <mark>element</mark> in it",
+                    ],
+                    "test_field_2": [
+                        "this is a <mark>cool test</mark> and",
+                        "sea shells <mark>on the</mark> sea shore",
+                    ],
                 },
             },
         ],
@@ -84,8 +90,14 @@ os_mock_return_tb_closed_record = {
                     },
                 },
                 "highlight": {
-                    "test_field_1": ["<mark>test1</mark>"],
-                    "test_field_2": ["t<mark>est2</mark>"],
+                    "test_field_1": [
+                        "<mark>test1</mark>",
+                        "this is just a sentence with a mark <mark>element</mark> in it",
+                    ],
+                    "test_field_2": [
+                        "t<mark>est2</mark>",
+                        "sea shells <mark>on the</mark> sea shore",
+                    ],
                 },
             },
         ],
@@ -1521,6 +1533,7 @@ class TestSearchTransferringBody:
 
         assert response.status_code == 200
         assert b"Records found 1" in response.data
+        verify_search_desktop_transferring_body_header_row(response.data)
 
         table = BeautifulSoup(response.data, "html.parser").find(
             "table", {"id": "inner-table"}
@@ -1649,6 +1662,10 @@ class TestSearchTransferringBody:
         assert option_value == expected_sort_select_value
         assert inner_table_cell_values == expected_cell_values
 
+        # check all accordions are closed by default (no "open" attr)
+        details_elements = soup.find_all("details")
+        assert all("open" not in details.attrs for details in details_elements)
+
     @pytest.mark.parametrize(
         "query_params, mock_open_search_return, expected_cell_values, expected_sort_select_value",
         [
@@ -1735,17 +1752,44 @@ class TestSearchTransferringBody:
             (
                 "&query=foobar",
                 os_mock_return_tb,
-                [["Test field 1 +1", "test1"], ["Test field 2", "test2"]],
+                [
+                    [
+                        "Test field 1 +1",
+                        "test1 and ... this is just a sentence with a mark element in it",
+                    ],
+                    [
+                        "Test field 2",
+                        "this is a cool test and ... sea shells on the sea shore",
+                    ],
+                ],
             ),
             (
                 "&query=foobar&open_all=open_all",
                 os_mock_return_tb,
-                [["Test field 1 +1", "test1"], ["Test field 2", "test2"]],
+                [
+                    [
+                        "Test field 1 +1",
+                        "test1 and ... this is just a sentence with a mark element in it",
+                    ],
+                    [
+                        "Test field 2",
+                        "this is a cool test and ... sea shells on the sea shore",
+                    ],
+                ],
             ),
             (
                 "&query=!!!!!",
                 os_mock_return_tb,
-                [["Test field 1 +1", "test1"], ["Test field 2", "test2"]],
+                [
+                    [
+                        "Test field 1 +1",
+                        "test1 and ... this is just a sentence with a mark element in it",
+                    ],
+                    [
+                        "Test field 2",
+                        "this is a cool test and ... sea shells on the sea shore",
+                    ],
+                ],
             ),
         ],
     )
@@ -1946,4 +1990,4 @@ class TestSearchTransferringBody:
         mark_elements = soup.find_all("mark")
         mark_text_values = [mark.text for mark in mark_elements]
 
-        assert mark_text_values == ["test1", "est2"]
+        assert mark_text_values == ["test1", "element", "cool test", "on the"]

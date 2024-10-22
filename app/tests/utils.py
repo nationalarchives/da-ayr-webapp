@@ -42,9 +42,9 @@ def get_table_rows_cell_values(table):
         row_data = []
         cells = row.find_all("td")
         for cell in cells:
-            cell_value = cell.get_text(strip=True)
+            cell_value = cell.get_text(separator=" ", strip=True)
             if len(cell_value) > 1:
-                row_data.append(cell.get_text(strip=True))
+                row_data.append(cell_value)
         if len(row_data) > 1:
             data.append(row_data)
     return data
