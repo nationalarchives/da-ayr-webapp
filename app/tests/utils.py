@@ -42,10 +42,13 @@ def get_table_rows_cell_values(table):
         row_data = []
         cells = row.find_all("td")
         for cell in cells:
-            cell_value = cell.get_text(separator=" ", strip=True)
-            if len(cell_value) > 1:
+            for tag in cell.find_all(True):
+                if tag.name != "mark":
+                    tag.unwrap()
+            cell_value = cell.decode_contents(formatter="html").strip()
+            if cell_value:
                 row_data.append(cell_value)
-        if len(row_data) > 1:
+        if row_data:
             data.append(row_data)
     return data
 

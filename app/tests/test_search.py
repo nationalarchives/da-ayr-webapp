@@ -1724,7 +1724,6 @@ class TestSearchTransferringBody:
         expected_cell_values,
         expected_sort_select_value,
     ):
-
         mock_search_client.return_value = MockOpenSearch(
             search_return_value=mock_open_search_return
         )
@@ -1768,11 +1767,11 @@ class TestSearchTransferringBody:
                 [
                     [
                         "Test field 1 +1",
-                        "test1 and ... this is just a sentence with a mark element in it",
+                        "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
                         "Test field 2",
-                        "this is a cool test and ... sea shells on the sea shore",
+                        "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
                     ],
                 ],
             ),
@@ -1782,11 +1781,11 @@ class TestSearchTransferringBody:
                 [
                     [
                         "Test field 1 +1",
-                        "test1 and ... this is just a sentence with a mark element in it",
+                        "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
                         "Test field 2",
-                        "this is a cool test and ... sea shells on the sea shore",
+                        "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
                     ],
                 ],
             ),
@@ -1796,11 +1795,11 @@ class TestSearchTransferringBody:
                 [
                     [
                         "Test field 1 +1",
-                        "test1 and ... this is just a sentence with a mark element in it",
+                        "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
                         "Test field 2",
-                        "this is a cool test and ... sea shells on the sea shore",
+                        "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
                     ],
                 ],
             ),
@@ -1817,6 +1816,11 @@ class TestSearchTransferringBody:
         mock_open_search_return,
         expected_cell_values,
     ):
+        """
+        Given a user attempting to search for a specific term
+        When the user searches for a term that returns multiple hits
+        Then the table should be populated by <mark> tags that contains the found terms
+        """
 
         mock_search_client.return_value = MockOpenSearch(
             search_return_value=mock_open_search_return
@@ -1844,6 +1848,10 @@ class TestSearchTransferringBody:
         table_body = soup.find("tbody")
         table_cell_values = get_table_rows_cell_values(table_body)
 
+        mark_elements = soup.find_all("mark")
+        mark_text_values = [mark.text for mark in mark_elements]
+
+        assert mark_text_values == ["test1", "element", "cool test", "on the"]
         assert table_cell_values == expected_cell_values
 
     @patch("app.main.routes.OpenSearch")
@@ -1971,38 +1979,3 @@ class TestSearchTransferringBody:
 
         assert "checked" in checkbox.attrs
         assert all("open" in details.attrs for details in details_elements)
-
-    @patch("app.main.routes.OpenSearch")
-    def test_search_transferring_body_mark_elements_have_correct_text(
-        self,
-        mock_search_client,
-        client,
-        mock_standard_user,
-        browse_consignment_files,
-    ):
-        """
-        Given a standard user
-        When they make a GET request to the transferring body search page
-        All mark elements should have the correct text content
-        """
-        mock_search_client.return_value = MockOpenSearch(
-            search_return_value=os_mock_return_tb
-        )
-        mock_standard_user(client, "first_body")
-
-        transferring_body_id = browse_consignment_files[
-            0
-        ].consignment.series.body.BodyId
-
-        form_data = {"query": "test"}
-        response = client.get(
-            f"{self.route_url}/{transferring_body_id}", data=form_data
-        )
-
-        assert response.status_code == 200
-        soup = BeautifulSoup(response.data, "html.parser")
-
-        mark_elements = soup.find_all("mark")
-        mark_text_values = [mark.text for mark in mark_elements]
-
-        assert mark_text_values == ["test1", "element", "cool test", "on the"]
