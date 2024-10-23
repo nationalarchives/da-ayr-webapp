@@ -1,5 +1,6 @@
 import json
 from io import BytesIO
+from unittest.mock import patch
 
 import boto3
 from bs4 import BeautifulSoup
@@ -106,13 +107,18 @@ class TestRoutes:
         assert response.status_code == 200
 
     @mock_aws
+    @patch("app.main.util.render_utils.create_presigned_url")
     def test_route_generate_pdf_manifest(
         self,
+        mock_create_presigned_url,
         app,
         client: FlaskClient,
         mock_all_access_user,
         record_files,
     ):
+        mock_create_presigned_url.return_value = (
+            "https://presigned-url.com/download.pdf"
+        )
 
         mock_all_access_user(client)
 
@@ -134,18 +140,18 @@ class TestRoutes:
                     "id": f"http://localhost/record/{file.FileId}/manifest?render=True",
                     "items": [
                         {
-                            "id": f"http://localhost/download/{file.FileId}?render=True",
+                            "id": "https://presigned-url.com/download.pdf",
                             "items": [
                                 {
                                     "body": {
                                         "format": "application/pdf",
-                                        "id": f"http://localhost/download/{file.FileId}?render=True",
+                                        "id": "https://presigned-url.com/download.pdf",
                                         "type": "Text",
                                     },
-                                    "id": f"http://localhost/download/{file.FileId}?render=True",
+                                    "id": "https://presigned-url.com/download.pdf",
                                     "label": {"en": ["test"]},
                                     "motivation": "painting",
-                                    "target": f"http://localhost/download/{file.FileId}?render=True",
+                                    "target": "https://presigned-url.com/download.pdf",
                                     "type": "Annotation",
                                 }
                             ],
@@ -165,14 +171,17 @@ class TestRoutes:
             "type": "Manifest",
             "viewingDirection": "left-to-right",
         }
+
         actual_manifest = json.loads(response.text)
 
         assert response.status_code == 200
         assert actual_manifest == expected_pdf_manifest
 
     @mock_aws
+    @patch("app.main.util.render_utils.create_presigned_url")
     def test_route_generate_image_manifest(
         self,
+        mock_create_presigned_url,
         app,
         client: FlaskClient,
         mock_all_access_user,
@@ -186,6 +195,10 @@ class TestRoutes:
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_imaage_object(bucket_name, file)
 
+        mock_create_presigned_url.return_value = (
+            "https://presigned-url.com/download.png"
+        )
+
         response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
         assert response.status_code == 200
 
@@ -197,22 +210,22 @@ class TestRoutes:
             "label": file.FileName,
             "sequences": [
                 {
-                    "@id": f"http://localhost/download/{file.FileId}?render=True",
+                    "@id": "https://presigned-url.com/download.png",
                     "@type": "sc:Sequence",
                     "canvases": [
                         {
-                            "@id": f"http://localhost/download/{file.FileId}?render=True",
+                            "@id": "https://presigned-url.com/download.png",
                             "@type": "sc:Canvas",
                             "height": 600,
                             "width": 800,
                             "images": [
                                 {
-                                    "@id": f"http://localhost/download/{file.FileId}?render=True",
+                                    "@id": "https://presigned-url.com/download.png",
                                     "@type": "oa:Annotation",
                                     "motivation": "sc:painting",
-                                    "on": f"http://localhost/download/{file.FileId}?render=True",
+                                    "on": "https://presigned-url.com/download.png",
                                     "resource": {
-                                        "@id": f"http://localhost/download/{file.FileId}?render=True",
+                                        "@id": "https://presigned-url.com/download.png",
                                         "format": "image/png",
                                         "height": 600,
                                         "type": "dctypes:Image",
