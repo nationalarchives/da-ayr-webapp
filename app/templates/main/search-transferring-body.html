@@ -49,10 +49,26 @@
                     <div class="browse-layout">
                         <!-- SORT -->
                         {% if num_records_found > 0 %}
-                            <div class="govuk-form-group sort-container__form">
+                            <div class="govuk-grid-column-two-thirds filter-group">
                                 {% with dict = sorting_list %}
                                     {% include "sorting-list.html" %}
                                 {% endwith %}
+                                <form>
+                                    <div class="filter-group__checkboxes">
+                                        <div class="govuk-checkboxes__item govuk-checkboxes govuk-checkboxes--small">
+                                            <input class="govuk-checkboxes__input"
+                                                   id="contact"
+                                                   name="open_all"
+                                                   type="checkbox"
+                                                   value="open_all"
+                                                   {% if open_all %}checked{% endif %}>
+                                            <label class="govuk-label govuk-checkboxes__label" for="contact">Expand all results</label>
+                                        </div>
+                                        <button type="submit"
+                                                class="govuk-button govuk-button__sort-container-update-button"
+                                                data-module="govuk-button">Apply</button>
+                                    </div>
+                                </form>
                             </div>
                             <input type="hidden" name="query" value="{{ filters['query'] }}">
                             <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
@@ -62,62 +78,98 @@
                                     <thead class="govuk-table__head">
                                         <tr class="govuk-table__row">
                                             <th scope="col"
-                                                class="govuk-table__header govuk-table--invisible-on-mobile govuk-table--width-30-precent">
-                                                Series reference
+                                                class="govuk-table__header govuk-table__header--with-padding govuk-table--width-30-percent">
+                                                Found within
                                             </th>
-                                            <th scope="col"
-                                                class="govuk-table__header govuk-table--invisible-on-desktop">
-                                                Series reference /
-                                                <br>
-                                                File name /
-                                                <br>
-                                                Consignment reference
-                                            </th>
-                                            <th scope="col"
-                                                class="govuk-table__header govuk-table--invisible-on-mobile">
-                                                Consignment reference
-                                            </th>
-                                            <th scope="col"
-                                                class="govuk-table__header govuk-table--invisible-on-mobile">
-                                                File name
-                                            </th>
-                                            <th scope="col" class="govuk-table__header">Status</th>
-                                            <th scope="col"
-                                                class="govuk-table__header govuk-table--right-align govuk-table--on-mobile--width-20-percent">
-                                                Record opening date
-                                            </th>
+                                            <th scope="col" class="govuk-table__header">Search results</th>
                                         </tr>
                                     </thead>
                                     <tbody class="govuk-table__body">
                                         <div class="main-content" id="main-content" role="main">
                                             {% if results %}
                                                 {% for record in results %}
-                                                    <tr class="govuk-table__row top-row">
-                                                        <td class="govuk-table__cell govuk-table__cell--on-mobile--flex-layout-col">
-                                                            <a href="{{ url_for('main.browse_series', _id=record['_source']['series_id']) }}">{{ record['_source']["series_name"] }}</a>
-                                                            <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4 word-break"
-                                                               href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ record['_source']["file_name"] }}</a>
-                                                            <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4"
-                                                               href="{{ url_for('main.browse_consignment', _id=record['_source']['consignment_id']) }}">{{ record['_source']["consignment_reference"] }}</a>
-                                                        </td>
-                                                        <td class="govuk-table__cell govuk-table--invisible-on-mobile">
-                                                            <a href="{{ url_for('main.browse_consignment', _id=record['_source']['consignment_id']) }}">{{ record['_source']["consignment_reference"] }}</a>
-                                                        </td>
-                                                        <td class="govuk-table__cell govuk-table--invisible-on-mobile">
-                                                            <a class="word-break"
-                                                               href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ record['_source']["file_name"] }}</a>
+                                                    {% set main_loop_index = loop.index %}
+                                                    <tr class="govuk-table__row govuk-table__row--primary">
+                                                        <td class="govuk-table__cell">
+                                                            <div class="govuk-table__cell__data">
+                                                                <details class="details-toggle-{{ main_loop_index }}"
+                                                                         {% if open_all %}open{% endif %}>
+                                                                    <summary />
+                                                                </details>
+                                                                {% if record['highlight'] %}
+                                                                    {% set key = record['highlight'].keys() | list | first | replace('_', ' ') | capitalize %}
+                                                                    {{ key }} +{{ record['highlight'].keys() | length - 1 }}
+                                                                {% else %}
+                                                                    None
+                                                                {% endif %}
+                                                            </div>
                                                         </td>
                                                         <td class="govuk-table__cell">
-                                                            <strong class="{% if record['_source']['metadata']['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['_source']['metadata']['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['_source']['metadata']['closure_type'] is none %}{% endif %}">
-                                                                {{ record['_source']['metadata']['closure_type'] }}
-                                                            </strong>
-                                                        </td>
-                                                        <td class="govuk-table__cell govuk-table--right-align">
-                                                            {% if record['_source']['metadata']['opening_date'] %}
-                                                                {{ record['_source']['metadata']['opening_date'] }}
+                                                            {% if record['highlight'] %}
+                                                                {{ record['highlight'].values() | list | first | join(' ... ')| safe }}
                                                             {% else %}
-                                                                –
+                                                                None
                                                             {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                    {% set items = record['highlight'].items() | list %}
+                                                    {% for key, value in items[1:] %}
+                                                        <tr class="govuk-table__row top-row hidden-row-{{ main_loop_index }}">
+                                                            <td class="govuk-table__cell govuk-table__cell--with-padding govuk-table__cell--no-pt">
+                                                                {{ key | replace('_', ' ') | capitalize }}
+                                                            </td>
+                                                            <td class="govuk-table__cell govuk-table__cell--no-pt">{{ value | join(' ... ')| safe }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                    <tr class="govuk-table__row top-row hidden-row-{{ main_loop_index }}">
+                                                        <td class="govuk-table__cell"></td>
+                                                        <td class="govuk-table__cell govuk-table__cell--no-padding">
+                                                            <table class="govuk-table govuk-table--inner-table" id="inner-table">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th scope="col"
+                                                                            class="govuk-table__header govuk-table__header--inner-table">
+                                                                            Series
+                                                                        </th>
+                                                                        <th scope="col"
+                                                                            class="govuk-table__header govuk-table__header--inner-table">
+                                                                            Consignment ref
+                                                                        </th>
+                                                                        <th scope="col"
+                                                                            class="govuk-table__header govuk-table__header--inner-table">
+                                                                            Status
+                                                                        </th>
+                                                                        <th scope="col"
+                                                                            class="govuk-table__header govuk-table__header--inner-table govuk-table--right-align">
+                                                                            Record opening date
+                                                                        </th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <tr class="govuk-table__row">
+                                                                        <td class="govuk-table__cell govuk-table__cell--metadata">
+                                                                            <a href="{{ url_for('main.browse_series', _id= record['_source']['series_id']) }}">{{ record['_source']['series_name'] }}</a>
+                                                                        </td>
+                                                                        <td class="govuk-table__cell govuk-table__cell--metadata">
+                                                                            <a href="{{ url_for('main.browse_consignment', _id= record['_source']['consignment_id']) }}">
+                                                                                {{ record['_source']['consignment_reference'] }}
+                                                                            </a>
+                                                                        </td>
+                                                                        <td class="govuk-table__cell govuk-table__cell--metadata">
+                                                                            <span class=" govuk-tag govuk-tag--{% if record['_source']['metadata']['closure_type'] == 'Closed' %}red{% else %}green{% endif %} ">
+                                                                                {{ record['_source']['metadata']['closure_type'] }}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td class="govuk-table__cell govuk-table__cell--metadata govuk-table--right-align">
+                                                                            {% if record['_source']['metadata']['opening_date'] %}
+                                                                                {{ record['_source']['metadata']['opening_date'] }}
+                                                                            {% else %}
+                                                                                –
+                                                                            {% endif %}
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
                                                         </td>
                                                     </tr>
                                                 {% endfor %}
