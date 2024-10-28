@@ -87,6 +87,11 @@ def _fetch_file_data(
     session.close()
 
     file_data = {
+        **{
+            row.PropertyName: row.Value
+            for row in result
+            if row.PropertyName is not None
+        },
         "file_id": result[0].file_id,
         "file_name": result[0].file_name,
         "file_reference": result[0].file_reference,
@@ -101,11 +106,6 @@ def _fetch_file_data(
         ].transferring_body_description,
         "consignment_id": result[0].consignment_id,
         "consignment_reference": result[0].consignment_reference,
-        "metadata": {
-            row.PropertyName: row.Value
-            for row in result
-            if row.PropertyName is not None
-        },
     }
 
     return file_data
@@ -136,4 +136,6 @@ def _index_in_opensearch(
         ca_certs=open_search_ca_certs,
         connection_class=RequestsHttpConnection,
     )
-    open_search.index(index="documents", id=file_id, body=document)
+    open_search.index(
+        index="documents", id=file_id, body=document, refresh=True
+    )

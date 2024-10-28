@@ -108,13 +108,13 @@
                                                                href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ record['_source']["file_name"] }}</a>
                                                         </td>
                                                         <td class="govuk-table__cell">
-                                                            <strong class="{% if record['_source']['metadata']['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['_source']['metadata']['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['_source']['metadata']['closure_type'] is none %}{% endif %}">
-                                                                {{ record['_source']['metadata']['closure_type'] }}
+                                                            <strong class="{% if record['_source']['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['_source']['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['_source']['closure_type'] is none %}{% endif %}">
+                                                                {{ record['_source']['closure_type'] }}
                                                             </strong>
                                                         </td>
                                                         <td class="govuk-table__cell govuk-table--right-align">
-                                                            {% if record['_source']['metadata']['opening_date'] %}
-                                                                {{ record['_source']['metadata']['opening_date'] }}
+                                                            {% if record['_source']['opening_date'] %}
+                                                                {{ record['_source']['opening_date'] }}
                                                             {% else %}
                                                                 –
                                                             {% endif %}
