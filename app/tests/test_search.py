@@ -10,7 +10,9 @@ from app.tests.assertions import assert_contains_html
 from app.tests.factories import FileFactory
 from app.tests.utils import (
     decompose_desktop_invisible_elements,
-    evaluate_table_body_rows,
+    decompose_inner_tables,
+    get_table_rows_cell_values,
+    get_table_rows_header_values,
 )
 
 os_mock_return_summary = {
@@ -52,6 +54,16 @@ os_mock_return_tb = {
                         "opening_date": "fooDate",
                     },
                 },
+                "highlight": {
+                    "test_field_1": [
+                        "<mark>test1</mark> and",
+                        "this is just a sentence with a mark <mark>element</mark> in it",
+                    ],
+                    "test_field_2": [
+                        "this is a <mark>cool test</mark> and",
+                        "sea shells <mark>on the</mark> sea shore",
+                    ],
+                },
             },
         ],
     }
@@ -78,6 +90,16 @@ os_mock_return_tb_closed_record = {
                         "opening_date": "2025-01-01T00:00:00",
                     },
                 },
+                "highlight": {
+                    "test_field_1": [
+                        "<mark>test1</mark>",
+                        "this is just a sentence with a mark <mark>element</mark> in it",
+                    ],
+                    "test_field_2": [
+                        "t<mark>est2</mark>",
+                        "sea shells <mark>on the</mark> sea shore",
+                    ],
+                },
             },
         ],
     }
@@ -94,51 +116,6 @@ class MockOpenSearch:
 
     def index(self, *args, **kwargs):
         return self.index_return_value
-
-
-def verify_search_desktop_transferring_body_header_row(data):
-    """
-    this function check header row column values against expected row
-    :param data: response data
-    """
-    soup = BeautifulSoup(data, "html.parser")
-    decompose_desktop_invisible_elements(soup)
-    table = soup.find("table")
-    headers = table.find_all("th")
-
-    expected_row = (
-        [
-            "Series reference",
-            "Consignment reference",
-            "File name",
-            "Status",
-            "Record opening date",
-        ],
-    )
-    assert [
-        header.text.replace("\n", " ").strip(" ") for header in headers
-    ] == expected_row[0]
-
-
-def verify_search_results_summary_header_row(data):
-    """
-    this function check header row column values against expected row
-    :param data: response data
-    """
-    soup = BeautifulSoup(data, "html.parser")
-    decompose_desktop_invisible_elements(soup)
-    table = soup.find("table")
-    headers = table.find_all("th")
-
-    expected_row = (
-        [
-            "Results found within each Transferring body",
-            "Records found",
-        ],
-    )
-    assert [
-        header.text.replace("\n", " ").strip(" ") for header in headers
-    ] == expected_row[0]
 
 
 class TestSearchRedirect:
@@ -422,9 +399,11 @@ class TestSearchResultsSummary:
 
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
-        expected_results = [["bar", "1000"]]
-        verify_search_results_summary_header_row(response.data)
-        assert evaluate_table_body_rows(soup, expected_results=expected_results)
+        table_body = soup.find("tbody")
+        expected_cell_values = [["bar", "1000"]]
+
+        table_cell_values = get_table_rows_cell_values(table_body)
+        assert table_cell_values == expected_cell_values
 
     @patch("app.main.routes.OpenSearch")
     def test_search_results_summary_with_results_multiple_terms(
@@ -450,10 +429,11 @@ class TestSearchResultsSummary:
 
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
-        expected_results = [["bar", "1000"]]
+        table_body = soup.find("tbody")
+        expected_cell_values = [["bar", "1000"]]
 
-        verify_search_results_summary_header_row(response.data)
-        assert evaluate_table_body_rows(soup, expected_results=expected_results)
+        table_cell_values = get_table_rows_cell_values(table_body)
+        assert table_cell_values == expected_cell_values
 
     @patch("app.main.routes.OpenSearch")
     def test_search_results_summary_breadcrumbs(
@@ -732,7 +712,7 @@ class TestSearchTransferringBody:
         assert b"Bad Gateway" in response.data
 
     @patch("app.main.routes.OpenSearch")
-    def test_search_transferring_body_with_table_data_links(
+    def test_search_transferring_body_result_has_accordion(
         self,
         mock_search_client,
         client: FlaskClient,
@@ -741,9 +721,9 @@ class TestSearchTransferringBody:
     ):
         """
         Given a standard user with access to a body, and there are files from that body and another body
-            and a search query which matches a property from related file data
+        and a search query which matches a property from related file data
         When they make a request on the search page with the search term
-        Then a table is populated with the n results with metadata fields for the files from there body.
+        Then the result contains a details element used to trigger the accordion that has no "open" attribute by default
         """
         mock_search_client.return_value = MockOpenSearch(
             search_return_value=os_mock_return_tb
@@ -764,31 +744,12 @@ class TestSearchTransferringBody:
         )
 
         assert response.status_code == 200
-        assert b"Records found 1" in response.data
 
-        verify_search_desktop_transferring_body_header_row(response.data)
+        soup = BeautifulSoup(response.data, "html.parser")
+        details_element = soup.find("summary")
 
-        table = BeautifulSoup(response.data, "html.parser").find("tbody")
-        decompose_desktop_invisible_elements(table)
-        rows = table.find_all("tr")
-
-        data = []
-
-        for row in rows:
-            row_data = []
-            cells = row.find_all("td")
-            for cell in cells:
-                anchor = cell.find("a", href=True)
-                if anchor:
-                    row_data.append(anchor["href"])
-            data.append(row_data)
-        assert data == [
-            [
-                "/browse/series/sbar",
-                "/browse/consignment/ibar",
-                "/record/1e2a9d26-b330-4f99-92ff-b1a5b2c1d610",
-            ]
-        ]
+        assert details_element
+        assert not details_element.get("open")
 
     @patch("app.main.routes.OpenSearch")
     def test_search_transferring_body_results_display_multiple_pages(
@@ -1493,67 +1454,185 @@ class TestSearchTransferringBody:
             and anchor_term3
         )
 
+    @patch("app.main.routes.OpenSearch")
+    def test_search_transferring_body_verify_table_headers(
+        self,
+        mock_search_client,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user
+        When they make a request on the search page with the search term
+        Then the tables have correct headers
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        form_data = {"query": "first_file"}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        decompose_desktop_invisible_elements(soup)
+
+        inner_table = soup.find("table", {"id": "inner-table"})
+        inner_table_headers = get_table_rows_header_values(inner_table)
+        expected_headers_inner_table = (
+            [
+                "Series",
+                "Consignment ref",
+                "Status",
+                "Record opening date",
+            ],
+        )
+
+        decompose_inner_tables(soup)
+
+        main_table = soup.find("table")
+        main_table_headers = get_table_rows_header_values(main_table)
+        expected_headers_main_table = (
+            [
+                "Found within",
+                "Search results",
+            ],
+        )
+
+        assert inner_table_headers == expected_headers_inner_table[0]
+        assert main_table_headers == expected_headers_main_table[0]
+
+    @patch("app.main.routes.OpenSearch")
+    def test_search_transferring_body_with_table_data_links_inner_table(
+        self,
+        mock_search_client,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user
+        When they make a request on the search page with the search term
+        Then an inner table is populated inside the accordion with metadata of which some are anchors
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        form_data = {"query": "first_file"}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+        assert b"Records found 1" in response.data
+
+        table = BeautifulSoup(response.data, "html.parser").find(
+            "table", {"id": "inner-table"}
+        )
+        decompose_desktop_invisible_elements(table)
+        rows = table.find_all("tr")
+
+        data = []
+        for row in rows:
+            row_data = []
+            cells = row.find_all("td")
+            for cell in cells:
+                anchor = cell.find("a", href=True)
+                if anchor:
+                    row_data.append(anchor["href"])
+            if len(row_data) > 1:
+                data.append(row_data)
+
+        assert data == [
+            [
+                "/browse/series/sbar",
+                "/browse/consignment/ibar",
+            ]
+        ]
+
     @pytest.mark.parametrize(
-        "query_params, mock_open_search_return, expected_results, expected_sort_select_value",
+        "query_params, mock_open_search_return, expected_cell_values, expected_sort_select_value",
         [
             (
                 "sort=series_name-desc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "series_name-desc",
             ),
             (
                 "sort=consignment_reference-desc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "consignment_reference-desc",
             ),
             (
                 "sort=consignment_reference-asc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "consignment_reference-asc",
             ),
             (
                 "sort=opening_date-desc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "opening_date-desc",
             ),
             (
                 "sort=opening_date-asc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "opening_date-asc",
             ),
             (
                 "sort=file_name-asc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "file_name-asc",
             ),
             (
                 "sort=file_name-desc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "file_name-desc",
             ),
             (
                 "sort=closure_type-asc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "closure_type-asc",
             ),
             (
                 "sort=closure_type-desc&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "closure_type-desc",
             ),
         ],
     )
     @patch("app.main.routes.OpenSearch")
-    def test_search_transferring_body_with_search_term_happy_path(
+    def test_search_transferring_body_with_search_term_happy_path_inner_table(
         self,
         mock_search_client,
         client: FlaskClient,
@@ -1561,7 +1640,7 @@ class TestSearchTransferringBody:
         browse_consignment_files,
         query_params,
         mock_open_search_return,
-        expected_results,
+        expected_cell_values,
         expected_sort_select_value,
     ):
 
@@ -1587,45 +1666,54 @@ class TestSearchTransferringBody:
         option = select.find("option", selected=True)
         option_value = option.get("value")
 
+        decompose_desktop_invisible_elements(soup)
+        inner_table = soup.find("table", {"id": "inner-table"})
+        inner_table_body = inner_table.find("tbody")
+        inner_table_cell_values = get_table_rows_cell_values(inner_table_body)
+
         assert select
         assert option_value == expected_sort_select_value
-        assert evaluate_table_body_rows(soup, expected_results)
+        assert inner_table_cell_values == expected_cell_values
+
+        # check all accordions are closed by default (no "open" attr)
+        details_elements = soup.find_all("details")
+        assert all("open" not in details.attrs for details in details_elements)
 
     @pytest.mark.parametrize(
-        "query_params, mock_open_search_return, expected_results, expected_sort_select_value",
+        "query_params, mock_open_search_return, expected_cell_values, expected_sort_select_value",
         [
             # without any sort term the select value should be series_id-asc by default
             (
                 "query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "series_id-asc",
             ),
             # edge case: random sort options as letters
             (
                 "sort=foo-bar&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "series_id-asc",
             ),
             # edge case: random sort options as numbers
             (
                 "sort=111-222&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "series_id-asc",
             ),
             # edge case: random sort order
             (
                 "sort=series_name-aaaaa&query=foobar",
                 os_mock_return_tb,
-                [["first_series", "cbar", "fifth_file.doc", "Open", "fooDate"]],
+                [["first_series", "cbar", "Open", "fooDate"]],
                 "series_id-asc",
             ),
         ],
     )
     @patch("app.main.routes.OpenSearch")
-    def test_search_transferring_body_with_search_term_edge_case_path(
+    def test_search_transferring_body_with_search_term_edge_case_path_inner_table(
         self,
         mock_search_client,
         client: FlaskClient,
@@ -1633,9 +1721,106 @@ class TestSearchTransferringBody:
         browse_consignment_files,
         query_params,
         mock_open_search_return,
-        expected_results,
+        expected_cell_values,
         expected_sort_select_value,
     ):
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=mock_open_search_return
+        )
+
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}?{query_params}"
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+
+        select = soup.find("select", {"id": "sort"})
+        option_selected = select.find("option", selected=True)
+        option_first = select.find("option")
+        option_first_value = option_first.get("value")
+
+        decompose_desktop_invisible_elements(soup)
+        inner_table = soup.find("table", {"id": "inner-table"})
+        inner_table_body = inner_table.find("tbody")
+        inner_table_cell_values = get_table_rows_cell_values(inner_table_body)
+
+        assert select
+        assert option_selected is None
+        assert option_first_value == expected_sort_select_value
+        assert inner_table_cell_values == expected_cell_values
+
+    @pytest.mark.parametrize(
+        "query_params, mock_open_search_return, expected_cell_values",
+        [
+            (
+                "&query=foobar",
+                os_mock_return_tb,
+                [
+                    [
+                        "Test field 1 +1",
+                        "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
+                    ],
+                    [
+                        "Test field 2",
+                        "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
+                    ],
+                ],
+            ),
+            (
+                "&query=foobar&open_all=open_all",
+                os_mock_return_tb,
+                [
+                    [
+                        "Test field 1 +1",
+                        "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
+                    ],
+                    [
+                        "Test field 2",
+                        "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
+                    ],
+                ],
+            ),
+            (
+                "&query=!!!!!",
+                os_mock_return_tb,
+                [
+                    [
+                        "Test field 1 +1",
+                        "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
+                    ],
+                    [
+                        "Test field 2",
+                        "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
+                    ],
+                ],
+            ),
+        ],
+    )
+    @patch("app.main.routes.OpenSearch")
+    def test_search_transferring_body_with_search_term_main_table(
+        self,
+        mock_search_client,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_consignment_files,
+        query_params,
+        mock_open_search_return,
+        expected_cell_values,
+    ):
+        """
+        Given a user attempting to search for a specific term
+        When the user searches for a term that returns multiple hits
+        Then the table should be populated by <mark> tags that contains the found terms
+        """
 
         mock_search_client.return_value = MockOpenSearch(
             search_return_value=mock_open_search_return
@@ -1655,16 +1840,19 @@ class TestSearchTransferringBody:
 
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
-        select = soup.find("select", {"id": "sort"})
 
-        option_selected = select.find("option", selected=True)
-        option_first = select.find("option")
-        option_first_value = option_first.get("value")
+        # decomposing inner tables so we can get just the values of the main tables
+        decompose_inner_tables(soup)
+        decompose_desktop_invisible_elements(soup)
 
-        assert select
-        assert option_selected is None
-        assert option_first_value == expected_sort_select_value
-        assert evaluate_table_body_rows(soup, expected_results)
+        table_body = soup.find("tbody")
+        table_cell_values = get_table_rows_cell_values(table_body)
+
+        mark_elements = soup.find_all("mark")
+        mark_text_values = [mark.text for mark in mark_elements]
+
+        assert mark_text_values == ["test1", "element", "cool test", "on the"]
+        assert table_cell_values == expected_cell_values
 
     @patch("app.main.routes.OpenSearch")
     def test_search_transferring_body_standard_user_with_no_view_perms(
@@ -1755,3 +1943,39 @@ class TestSearchTransferringBody:
         assert "01/01/2025" in response.text
 
         assert response.status_code == 200
+
+    @patch("app.main.routes.OpenSearch")
+    def test_search_transferring_body_all_accordions_open_with_open_all_query(
+        self,
+        mock_search_client,
+        client,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user
+        When they make a GET request to the search page with the open_all param
+        All details elements should have an open attribute (which would mean all accordions are open)
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+        mock_standard_user(client, "first_body")
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        form_data = {"query": "test"}
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}?open_all=open_all",
+            data=form_data,
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        checkbox = soup.find("input", {"name": "open_all"})
+        details_elements = soup.find_all("details")
+
+        assert "checked" in checkbox.attrs
+        assert all("open" in details.attrs for details in details_elements)

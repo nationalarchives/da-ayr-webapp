@@ -58,6 +58,7 @@ from app.main.util.search_utils import (
     build_dsl_query,
     execute_search,
     get_pagination_info,
+    get_param,
     get_query_and_search_area,
     setup_opensearch,
 )
@@ -549,6 +550,7 @@ def search_transferring_body(_id: uuid.UUID):
     form = SearchForm()
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     page = int(request.args.get("page", 1))
+    open_all = get_param("open_all")
 
     query, search_area = get_query_and_search_area()
     search_filter = (
@@ -614,6 +616,7 @@ def search_transferring_body(_id: uuid.UUID):
         search_terms=search_terms,
         search_area=search_area,
         pagination=pagination,
+        open_all=open_all,
         query_string_parameters={
             k: v for k, v in request.args.items() if k != "page"
         },

@@ -2,15 +2,18 @@ import opensearchpy
 from flask import abort, current_app, request
 from opensearchpy import OpenSearch, RequestsHttpConnection
 
+from app.main.util.filter_sort_builder import build_sorting_orders_open_search
 from app.main.util.pagination import calculate_total_pages, get_pagination
+
+
+def get_param(param):
+    return request.form.get(param, "") or request.args.get(param, "")
 
 
 def get_query_and_search_area():
     """Fetch query and search_area from form or request args"""
-    query = request.form.get("query", "") or request.args.get("query", "")
-    search_area = request.form.get("search_area", "") or request.args.get(
-        "search_area", ""
-    )
+    query = get_param("query")
+    search_area = get_param("search_area")
     return query.strip(), search_area
 
 
@@ -62,8 +65,26 @@ def get_all_fields_excluding(open_search, index_name, exclude_fields=None):
     return filtered_fields
 
 
-def build_dsl_query(query, search_area, open_search, _id=None):
-    """Construct the DSL query for OpenSearch"""
+def get_query_aggregations():
+    return {
+        "aggs": {
+            "aggregate_by_transferring_body": {
+                "terms": {"field": "transferring_body_id.keyword"},
+                "aggs": {
+                    "top_transferring_body_hits": {
+                        "top_hits": {
+                            "size": 1,
+                            "_source": ["transferring_body"],
+                        }
+                    }
+                },
+            }
+        },
+    }
+
+
+def get_query_multi_match(query, search_area, open_search, _id):
+
     fields_record = ["file_name", "file_path", "content"]
     fields_metadata = get_all_fields_excluding(
         open_search, "documents", fields_record
@@ -91,25 +112,55 @@ def build_dsl_query(query, search_area, open_search, _id=None):
         [{"term": {"transferring_body_id.keyword": _id}}] if _id else []
     )
 
-    query = {
+    return {
         "query": {
             "bool": {
                 "must": must_clauses,
                 "filter": filter_clauses,
             }
         },
-        "aggs": {
-            "aggregate_by_transferring_body": {
-                "terms": {"field": "transferring_body_id.keyword"},
-                "aggs": {
-                    "top_transferring_body_hits": {
-                        "top_hits": {
-                            "size": 1,
-                            "_source": ["transferring_body"],
-                        }
-                    }
-                },
-            }
+    }
+
+
+def get_query_highlighting():
+    return {
+        "highlight": {
+            "pre_tags": ["<mark>"],
+            "post_tags": ["</mark>"],
+            "fields": {
+                "*": {},
+            },
         },
+    }
+
+
+def get_query_sorting():
+    sorting_query = build_sorting_orders_open_search(request.args)
+    return {
+        "sort": sorting_query,
+    }
+
+
+def get_query_source_rules():
+    return {"_source": {"exclude": ["*.keyword"]}}
+
+
+def build_dsl_query(query, search_area, open_search, _id=None):
+    """Construct the DSL query for OpenSearch"""
+
+    source_rules = get_query_source_rules()
+    multi_match_query = get_query_multi_match(
+        query, search_area, open_search, _id
+    )
+    aggregations = get_query_aggregations()
+    highlighting = get_query_highlighting()
+    sorting = get_query_sorting()
+
+    query = {
+        **source_rules,
+        **multi_match_query,
+        **aggregations,
+        **highlighting,
+        **sorting,
     }
     return query
