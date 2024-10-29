@@ -136,6 +136,4 @@ def _index_in_opensearch(
         ca_certs=open_search_ca_certs,
         connection_class=RequestsHttpConnection,
     )
-    open_search.index(
-        index="documents", id=file_id, body=document, refresh=True
-    )
+    open_search.index(index="documents", id=file_id, body=document)
