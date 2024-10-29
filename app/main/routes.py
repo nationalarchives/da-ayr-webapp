@@ -597,7 +597,7 @@ def search_transferring_body(_id: uuid.UUID):
         for result in results:
             for key, value in result["_source"].items():
                 if "date" in key:
-                    result["_source"][key] = format_opensearch_date(value)
+                    result["_source"][key] = format_opensearch_date(value or "")
 
         total_records, pagination = get_pagination_info(
             search_results, page, per_page

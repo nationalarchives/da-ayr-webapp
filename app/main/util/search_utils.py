@@ -54,18 +54,22 @@ def get_pagination_info(results, page, per_page):
     return total_records, pagination
 
 
+def get_filtered_list(to_filter, filter):
+    """Filters a list based on the contents of another list"""
+    return [field for field in to_filter if field not in filter or []]
+
+
 def get_all_fields_excluding(open_search, index_name, exclude_fields=None):
     """Retrieve all fields from the index and exclude certain fields"""
     mappings = open_search.indices.get_mapping(index=index_name)
     all_fields = list(mappings[index_name]["mappings"]["properties"].keys())
-    filtered_fields = [
-        field for field in all_fields if field not in exclude_fields or []
-    ]
+    filtered_fields = get_filtered_list(all_fields, exclude_fields)
 
     return filtered_fields
 
 
 def get_query_aggregations():
+    """Returns the aggregations segment of the DSL query"""
     return {
         "aggs": {
             "aggregate_by_transferring_body": {
@@ -84,6 +88,7 @@ def get_query_aggregations():
 
 
 def get_query_multi_match(query, search_area, open_search, _id):
+    """Returns the multi-match segment of the DSL query"""
 
     fields_record = ["file_name", "file_path", "content"]
     fields_metadata = get_all_fields_excluding(
@@ -123,6 +128,7 @@ def get_query_multi_match(query, search_area, open_search, _id):
 
 
 def get_query_highlighting():
+    """Returns the highlight segment of the DSL query"""
     return {
         "highlight": {
             "pre_tags": ["<mark>"],
@@ -135,6 +141,7 @@ def get_query_highlighting():
 
 
 def get_query_sorting():
+    """Returns the sort segment of the DSL query"""
     sorting_query = build_sorting_orders_open_search(request.args)
     return {
         "sort": sorting_query,
@@ -142,11 +149,12 @@ def get_query_sorting():
 
 
 def get_query_source_rules():
+    """Returns the _source segment of the DSL query"""
     return {"_source": {"exclude": ["*.keyword"]}}
 
 
 def build_dsl_query(query, search_area, open_search, _id=None):
-    """Construct the DSL query for OpenSearch"""
+    """Constructs the DSL query for OpenSearch"""
 
     source_rules = get_query_source_rules()
     multi_match_query = get_query_multi_match(
