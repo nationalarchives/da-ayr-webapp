@@ -459,7 +459,7 @@ def browse_consignment(_id: uuid.UUID):
     )
 
 
-@bp.route("/search", methods=["GET", "POST"])
+@bp.route("/search", methods=["GET"])
 @access_token_sign_in_required
 def search():
     form_data = request.form.to_dict()
