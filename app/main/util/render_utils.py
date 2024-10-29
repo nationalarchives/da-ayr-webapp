@@ -84,6 +84,16 @@ def generate_pdf_manifest(record_id):
         "main.download_record", record_id=record_id, _external=True, render=True
     )
 
+    presigned_url = None
+    try:
+        presigned_url = create_presigned_url(file)
+    except Exception as e:
+        current_app.logger.info(
+            f"Failed to create presigned url for document render non-javascript fallback {e}"
+        )
+
+    file_url = presigned_url
+
     manifest = {
         "@context": [
             "http://iiif.io/api/presentation/3/context.json",
@@ -152,9 +162,15 @@ def generate_image_manifest(s3_file_object, record_id):
     image = Image.open(io.BytesIO(file_content))
     width, height = image.size
 
-    file_url = url_for(
-        "main.download_record", record_id=record_id, _external=True, render=True
-    )
+    presigned_url = None
+    try:
+        presigned_url = create_presigned_url(file)
+    except Exception as e:
+        current_app.logger.info(
+            f"Failed to create presigned url for document render non-javascript fallback {e}"
+        )
+
+    file_url = presigned_url
 
     manifest = {
         "@context": "http://iiif.io/api/presentation/2/context.json",

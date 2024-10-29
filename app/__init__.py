@@ -51,11 +51,17 @@ def create_app(config_class, database_uri=None):
     SELF = "'self'"
 
     csp = {
-        "default-src": f"'self' {app.config['FLASKS3_CDN_DOMAIN']} ",
+        "default-src": f" {SELF} {app.config['FLASKS3_CDN_DOMAIN']} ",
+        "connect-src": [
+            SELF,
+            app.config["FLASKS3_CDN_DOMAIN"],
+            f"https://{app.config['RECORD_BUCKET_NAME']}.s3.amazonaws.com",
+        ],
         "script-src": (
             [
                 SELF,
                 f"{app.config['FLASKS3_CDN_DOMAIN']}",
+                f"https://{app.config['RECORD_BUCKET_NAME']}.s3.amazonaws.com",
                 "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/5315.4c3c820c7f8b3cc26be6.js",
                 "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/998.9c1bd6b181b8236d95c2.js",
                 "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/7484.468f27df41f99efd4b79.js",
