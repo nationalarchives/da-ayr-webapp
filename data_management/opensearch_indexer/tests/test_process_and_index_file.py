@@ -194,7 +194,8 @@ def test_index_file_content_and_metadata_in_opensearch(
             "transferring_body_description": "transferring body description",
             "consignment_id": consignment_id.hex,
             "consignment_reference": "consignment-123",
-            "metadata": {"Key1": "Value1", "Key2": "Value2"},
+            "Key1": "Value1",
+            "Key2": "Value2",
             "content": "Text stream",
         },
     )
