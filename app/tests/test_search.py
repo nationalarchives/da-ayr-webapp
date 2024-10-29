@@ -117,17 +117,7 @@ class MockIndices:
         }
 
     def get_mapping(self, *args, **kwargs):
-        return {
-            "documents": {
-                "mappings": {
-                    "properties": {
-                        "field1": {},
-                        "field2": {},
-                        "field3": {},
-                    }
-                }
-            }
-        }
+        return self.get_mapping_return_value
 
 
 class MockOpenSearch:
@@ -587,7 +577,54 @@ class TestSearchTransferringBody:
         assert textbox is not None
         assert button is not None
         assert radio_1 and radio_2 and radio_3
+        # radio for search area "everywhere" should be checked by default
         assert "checked" in radio_1.attrs
+
+    @pytest.mark.parametrize(
+        "radio_arg, expected_checked_radio",
+        [
+            ("everywhere", "everywhere"),
+            ("metadata", "metadata"),
+            ("record", "record"),
+        ],
+    )
+    @patch("app.main.util.search_utils.OpenSearch")
+    def test_search_top_search_radio_previously_selected(
+        self,
+        mock_search_client,
+        client,
+        mock_standard_user,
+        browse_consignment_files,
+        radio_arg,
+        expected_checked_radio,
+    ):
+        """
+        Given a standard user accessing a page that has the top search component
+        When they make a GET request
+        Then they should see the checked radio associated with the arg in the URL.
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}?search_area={radio_arg}"
+        )
+
+        assert response.status_code == 200
+        html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+
+        radio = soup.find("input", {"id": expected_checked_radio})
+        assert radio
+        assert "checked" in radio.attrs
 
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_no_query(
