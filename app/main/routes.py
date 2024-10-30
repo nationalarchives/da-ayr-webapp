@@ -34,7 +34,6 @@ from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
 from app.main.util.date_filters_validator import validate_date_filters
-from app.main.util.date_validator import format_opensearch_date
 from app.main.util.filter_sort_builder import (
     build_browse_consignment_filters,
     build_filters,
@@ -57,6 +56,8 @@ from app.main.util.render_utils import (
 from app.main.util.search_utils import (
     build_dsl_query,
     execute_search,
+    format_opensearch_results,
+    get_open_search_fields_to_search_on,
     get_pagination_info,
     get_param,
     get_query_and_search_area,
@@ -507,8 +508,10 @@ def search_results_summary():
 
     if query:
         open_search = setup_opensearch()
-        dsl_query = build_dsl_query(query, search_area, open_search)
-
+        search_fields = get_open_search_fields_to_search_on(
+            open_search, search_area
+        )
+        dsl_query = build_dsl_query(query, search_fields)
         search_results = execute_search(open_search, dsl_query, page, per_page)
         results = search_results["aggregations"][
             "aggregate_by_transferring_body"
@@ -589,15 +592,15 @@ def search_transferring_body(_id: uuid.UUID):
         breadcrumb_values[3]["search_terms"] = display_terms or query
 
         open_search = setup_opensearch()
-        dsl_query = build_dsl_query(query, search_area, open_search, _id)
+        search_fields = get_open_search_fields_to_search_on(
+            open_search, search_area
+        )
+        dsl_query = build_dsl_query(query, search_fields, _id)
 
         search_results = execute_search(open_search, dsl_query, page, per_page)
-        results = search_results["hits"]["hits"]
 
-        for result in results:
-            for key, value in result["_source"].items():
-                if "date" in key:
-                    result["_source"][key] = format_opensearch_date(value or "")
+        results = search_results["hits"]["hits"]
+        results = format_opensearch_results(results)
 
         total_records, pagination = get_pagination_info(
             search_results, page, per_page

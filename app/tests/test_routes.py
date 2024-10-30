@@ -248,11 +248,10 @@ class TestRoutes:
         assert actual_manifest == expected_image_manifest
 
     @pytest.mark.parametrize(
-        "user_role, form_data, args_data, expected_redirect_route, expected_params",
+        "form_data, args_data, expected_redirect_route, expected_params",
         [
             # standard user with both form and args data, args has precedence for overlapping keys
             (
-                "standard_user",
                 {
                     "transferring_body_id": "form_value",
                     "other_param": "form_other_value",
@@ -270,7 +269,6 @@ class TestRoutes:
             ),
             # standard user with only form data, no transferring_body_id in args
             (
-                "standard_user",
                 {"transferring_body_id": "form_value"},
                 {},
                 "main.search_transferring_body",
@@ -278,15 +276,49 @@ class TestRoutes:
             ),
             # standard user with only args data, transferring_body_id present
             (
-                "standard_user",
                 {},
                 {"transferring_body_id": "args_value"},
                 "main.search_transferring_body",
                 {"_id": "args_value"},
             ),
+        ],
+    )
+    def test_search_route_with_various_cases_standard_user(
+        app,
+        client: FlaskClient,
+        form_data,
+        args_data,
+        expected_redirect_route,
+        expected_params,
+        mock_standard_user,
+    ):
+        mock_standard_user(client)
+
+        query_string = "&".join(
+            [f"{key}={value}" for key, value in args_data.items()]
+        )
+        url = url_for("main.search") + "?" + query_string
+
+        response = client.get(url, data=form_data)
+        assert response.status_code == 302
+
+        if expected_redirect_route == "main.search_transferring_body":
+            redirected_url = url_for(
+                expected_redirect_route, _id=expected_params["_id"]
+            )
+        else:
+            redirected_url = url_for(expected_redirect_route, **expected_params)
+
+        assert redirected_url in response.headers["Location"]
+
+        for key, expected_value in expected_params.items():
+            assert f"{key}={expected_value}" in response.headers["Location"]
+
+    @pytest.mark.parametrize(
+        "form_data, args_data, expected_redirect_route, expected_params",
+        [
             # all access user with args data (redirect to search_results_summary)
             (
-                "all_access_user",
                 {},
                 {"some_param": "some_value"},
                 "main.search_results_summary",
@@ -294,7 +326,6 @@ class TestRoutes:
             ),
             # all access user with form data and args data (args takes precedence)
             (
-                "all_access_user",
                 {"some_param": "form_value"},
                 {"some_param": "args_value"},
                 "main.search_results_summary",
@@ -302,21 +333,17 @@ class TestRoutes:
             ),
         ],
     )
-    def test_search_route_with_various_cases(
+    def test_search_route_with_various_cases_all_access_user(
         app,
         client: FlaskClient,
-        user_role,
         form_data,
         args_data,
         expected_redirect_route,
         expected_params,
-        mock_standard_user,
         mock_all_access_user,
     ):
-        if user_role == "standard_user":
-            mock_standard_user(client)
-        else:
-            mock_all_access_user(client)
+
+        mock_all_access_user(client)
 
         query_string = "&".join(
             [f"{key}={value}" for key, value in args_data.items()]

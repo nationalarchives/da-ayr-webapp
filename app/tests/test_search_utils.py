@@ -1,20 +1,120 @@
 from unittest.mock import patch
 
 import pytest
+from opensearchpy import OpenSearch
 
 from app.main.util.search_utils import (
     build_dsl_query,
+    build_query_multi_match,
+    build_query_source_rules,
     execute_search,
+    format_opensearch_results,
     get_all_fields_excluding,
     get_filtered_list,
+    get_open_search_fields_to_search_on,
     get_pagination_info,
     get_param,
     get_query_and_search_area,
-    get_query_multi_match,
-    get_query_source_rules,
     setup_opensearch,
 )
-from app.tests.test_search import MockOpenSearch
+
+
+@pytest.mark.parametrize(
+    "results, expected",
+    [
+        # typical case with one date in correct format
+        (
+            [{"_source": {"event_date": "2024-10-30T13:45:30"}}],
+            [{"_source": {"event_date": "30/10/2024"}}],
+        ),
+        # multiple dates in the correct format
+        (
+            [
+                {
+                    "_source": {
+                        "event_date": "2024-10-30T13:45:30",
+                        "creation_date": "2023-08-20T07:15:00",
+                    }
+                }
+            ],
+            [
+                {
+                    "_source": {
+                        "event_date": "30/10/2024",
+                        "creation_date": "20/08/2023",
+                    }
+                }
+            ],
+        ),
+        # no date field
+        (
+            [
+                {
+                    "_source": {
+                        "name": "Test Event",
+                        "description": "An event description",
+                    }
+                }
+            ],
+            [
+                {
+                    "_source": {
+                        "name": "Test Event",
+                        "description": "An event description",
+                    }
+                }
+            ],
+        ),
+        # empty date string
+        ([{"_source": {"event_date": ""}}], [{"_source": {"event_date": ""}}]),
+        # invalid date format (should return the original string)
+        (
+            [{"_source": {"event_date": "30-10-2024 13:45"}}],
+            [{"_source": {"event_date": "30-10-2024 13:45"}}],
+        ),
+        # empty results list
+        ([], []),
+    ],
+)
+def test_format_opensearch_results(results, expected):
+    actual = format_opensearch_results(results)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    "search_area, expected_fields",
+    [
+        # default "all" fields (no specific search area)
+        ("all", ["*"]),
+        # "metadata" search area
+        (
+            "metadata",
+            ["metadata_field_1", "metadata_field_2", "metadata_field_3"],
+        ),
+        # "record" search area
+        ("record", ["file_name", "file_path", "content"]),
+        # empty search_area string (should default to "all" behavior)
+        ("", ["*"]),
+        # none as search_area (should default to "all" behavior)
+        (None, ["*"]),
+        # invalid search_area (should default to "all" behavior)
+        ("invalid_area", ["*"]),
+    ],
+)
+@patch("app.main.util.search_utils.OpenSearch")
+@patch("app.main.util.search_utils.get_all_fields_excluding")
+def test_get_open_search_fields_to_search_on(
+    mock_get_all_fields_excluding, mock_opensearch, search_area, expected_fields
+):
+    mock_get_all_fields_excluding.return_value = [
+        "metadata_field_1",
+        "metadata_field_2",
+        "metadata_field_3",
+    ]
+    actual_fields = get_open_search_fields_to_search_on(
+        mock_opensearch, search_area
+    )
+    assert actual_fields == expected_fields
 
 
 def test_get_param(app):
@@ -40,11 +140,11 @@ def test_get_query_and_search_area(mock_get_param):
     assert search_area == "test_area"
 
 
-@patch("app.main.util.search_utils.OpenSearch", MockOpenSearch)
 def test_setup_opensearch(app):
+    app.config["OPEN_SEARCH_HOST"] = "localhost"
     with app.app_context():
         client = setup_opensearch()
-        assert isinstance(client, MockOpenSearch)
+        assert isinstance(client, OpenSearch)
 
 
 @patch("app.main.util.search_utils.OpenSearch")
@@ -52,7 +152,9 @@ def test_execute_search(mock_open_search, app):
     with app.app_context():
         dsl_query = {"query": {"match_all": {}}}
         execute_search(mock_open_search, dsl_query, page=1, per_page=10)
-        mock_open_search.search.assert_called_once()
+        mock_open_search.search.assert_called_once_with(
+            {"query": {"match_all": {}}}, from_=0, size=10, timeout=10
+        )
 
 
 @patch("app.main.util.pagination.calculate_total_pages", return_value=10)
@@ -108,11 +210,10 @@ def test_get_all_fields_excluding(mock_open_search):
     "app.main.util.search_utils.get_all_fields_excluding",
     return_value=["fieldA", "fieldB"],
 )
-def test_get_query_multi_match(mock_get_all_fields_excluding):
+def test_build_query_multi_match(mock_get_all_fields_excluding):
     query = "test_query"
-    search_area = "metadata"
-    result = get_query_multi_match(
-        query, search_area, MockOpenSearch(), _id="12345"
+    result = build_query_multi_match(
+        query, ["fieldA"], transferring_body_id="12345"
     )
     assert result["query"]["bool"]["must"][0]["multi_match"]["query"] == query
     assert (
@@ -126,42 +227,25 @@ def test_get_query_multi_match(mock_get_all_fields_excluding):
     )
 
 
-def test_get_query_source_rules():
-    source_rules = get_query_source_rules()
+def test_build_query_source_rules():
+    source_rules = build_query_source_rules()
     assert source_rules == {"_source": {"exclude": ["*.keyword"]}}
 
 
-@patch(
-    "app.main.util.search_utils.get_query_source_rules",
-    return_value={"_source": {"exclude": ["*.keyword"]}},
+@pytest.mark.parametrize(
+    "transferring_body_id, expected_keys",
+    [
+        ("test_id", ["_source", "query", "aggs", "highlight", "sort"]),
+        (None, ["_source", "query", "highlight", "sort"]),
+    ],
 )
 @patch(
-    "app.main.util.search_utils.get_query_multi_match",
-    return_value={"query": {"bool": {}}},
-)
-@patch(
-    "app.main.util.search_utils.get_query_aggregations",
-    return_value={"aggs": {}},
-)
-@patch(
-    "app.main.util.search_utils.get_query_highlighting",
-    return_value={"highlight": {}},
-)
-@patch(
-    "app.main.util.search_utils.get_query_sorting", return_value={"sort": []}
+    "app.main.util.search_utils.build_query_sorting", return_value={"sort": []}
 )
 def test_build_dsl_query(
-    mock_get_query_source_rules,
-    mock_get_query_multi_match,
-    mock_get_query_aggregations,
-    mock_get_query_highlighting,
-    mock_get_query_sorting,
+    mock_build_query_sorting, transferring_body_id, expected_keys
 ):
     query = "test_query"
-    search_area = "metadata"
-    dsl_query = build_dsl_query(query, search_area, MockOpenSearch(), _id=None)
-    assert "_source" in dsl_query
-    assert "query" in dsl_query
-    assert "aggs" in dsl_query
-    assert "highlight" in dsl_query
-    assert "sort" in dsl_query
+    dsl_query = build_dsl_query(query, [], transferring_body_id)
+    for key in expected_keys:
+        assert key in dsl_query
