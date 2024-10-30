@@ -111,7 +111,7 @@
 {% endblock %}
 {% block bodyEnd %}
     <!--[if gt IE 8]><!-->
-    <script type="module" src="{{ url_for('static', filename='govuk-frontend.min.js') }}">
+    <script type="module">
         import { initAll } from "{{ url_for('static', filename='govuk-frontend.min.js') }}"
         initAll()
     </script>
