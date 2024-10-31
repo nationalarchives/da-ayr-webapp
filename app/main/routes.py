@@ -503,7 +503,7 @@ def search_results_summary():
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     page = int(request.args.get("page", 1))
 
-    query, search_area = get_query_and_search_area()
+    query, search_area = get_query_and_search_area(request)
     filters = {"query": query}
     num_records_found, paginated_results, pagination = 0, [], None
 
@@ -559,7 +559,7 @@ def search_transferring_body(_id: uuid.UUID):
     page = int(request.args.get("page", 1))
     open_all = get_param("open_all")
 
-    query, search_area = get_query_and_search_area()
+    query, search_area = get_query_and_search_area(request)
     search_filter = (
         request.args.get("search_filter", "").strip()
         if request.args.get("search_filter")

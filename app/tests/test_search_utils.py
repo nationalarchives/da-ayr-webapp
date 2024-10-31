@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from opensearchpy import OpenSearch
@@ -137,44 +137,143 @@ def test_get_open_search_fields_to_search_on(
     assert actual_fields == expected_fields
 
 
-def test_get_param(app):
-    with patch(
-        "flask.request.form.get", return_value="test_form_value"
-    ) as mock_form_get, patch(
-        "flask.request.args.get", return_value="test_arg_value"
-    ):
-
-        assert get_param("param") == "test_form_value"
-
-        mock_form_get.return_value = ""
-        assert get_param("param") == "test_arg_value"
-
-
-@patch(
-    "app.main.util.search_utils.get_param",
-    side_effect=["test_query", "test_area"],
+@pytest.mark.parametrize(
+    "form_data, args_data, form_param, args_param, expected_form_param, expected_args_param",
+    [
+        # case where both form and args contain the parameters
+        (
+            {"param_form": "test_form_value"},
+            {"param_args": "test_arg_value"},
+            "param_form",
+            "param_args",
+            "test_form_value",
+            "test_arg_value",
+        ),
+        # case where only form contains the parameter, args is empty
+        (
+            {"param_form": "test_form_only"},
+            {},
+            "param_form",
+            "param_args",
+            "test_form_only",
+            "",
+        ),
+        # case where only args contains the parameter, form is empty
+        (
+            {},
+            {"param_args": "test_arg_only"},
+            "param_form",
+            "param_args",
+            "",
+            "test_arg_only",
+        ),
+        # case where form has an empty value, args has the parameter with value
+        (
+            {"param_form": ""},
+            {"param_args": "test_arg_value"},
+            "param_form",
+            "param_args",
+            "",
+            "test_arg_value",
+        ),
+        # case where args has an empty value, form has the parameter with value
+        (
+            {"param_form": "test_form_value"},
+            {"param_args": ""},
+            "param_form",
+            "param_args",
+            "test_form_value",
+            "",
+        ),
+        # case where both form and args contain the parameter with different values, form should take precedence
+        (
+            {"param_mixed": "form_precedence"},
+            {"param_mixed": "args_value"},
+            "param_mixed",
+            "param_mixed",
+            "form_precedence",
+            "form_precedence",
+        ),
+        # case where neither form nor args contains the parameter
+        ({}, {}, "param_missing", "param_missing", "", ""),
+        # case where parameter is None, should return empty regardless of form or args
+        (
+            {"param_form": "some_value"},
+            {"param_args": "some_value"},
+            None,
+            None,
+            "",
+            "",
+        ),
+    ],
 )
-def test_get_query_and_search_area(mock_get_param):
-    query, search_area = get_query_and_search_area()
-    assert query == "test_query"
-    assert search_area == "test_area"
+def test_get_param(
+    form_data,
+    args_data,
+    form_param,
+    args_param,
+    expected_form_param,
+    expected_args_param,
+):
+    # request is an object with attributes and not just a dict
+    request = MagicMock()
+    request.form = form_data
+    request.args = args_data
+    assert get_param(form_param, request) == expected_form_param
+    assert get_param(args_param, request) == expected_args_param
+
+
+@pytest.mark.parametrize(
+    "form_data, args_data, expected_query, expected_search_area",
+    [
+        # case where both query and search_area are in form
+        (
+            {"query": "test_query_form", "search_area": "test_area_form"},
+            {},
+            "test_query_form",
+            "test_area_form",
+        ),
+        # case where both query and search_area are in args
+        (
+            {},
+            {"query": "test_query_args", "search_area": "test_area_args"},
+            "test_query_args",
+            "test_area_args",
+        ),
+    ],
+)
+def test_get_query_and_search_area(
+    form_data, args_data, expected_query, expected_search_area
+):
+    request = MagicMock()
+    request.form = form_data
+    request.args = args_data
+    query, search_area = get_query_and_search_area(request)
+    assert query == expected_query
+    assert search_area == expected_search_area
 
 
 def test_setup_opensearch(app):
     app.config["OPEN_SEARCH_HOST"] = "localhost"
-    with app.app_context():
-        client = setup_opensearch()
-        assert isinstance(client, OpenSearch)
+    app.config["OPEN_SEARCH_HTTP_AUTH"] = ("test_user", "test_pass")
+    app.config["OPEN_SEARCH_CA_CERTS"] = "test/path/to/certs"
+    client = setup_opensearch()
+    assert isinstance(client, OpenSearch)
+    assert client.transport.hosts == [{"host": "localhost"}]
+    assert client.transport.kwargs.get("http_auth") == (
+        "test_user",
+        "test_pass",
+    )
+    assert client.transport.kwargs.get("ca_certs") == "test/path/to/certs"
 
 
 @patch("app.main.util.search_utils.OpenSearch")
 def test_execute_search(mock_open_search, app):
-    with app.app_context():
-        dsl_query = {"query": {"match_all": {}}}
-        execute_search(mock_open_search, dsl_query, page=1, per_page=10)
-        mock_open_search.search.assert_called_once_with(
-            {"query": {"match_all": {}}}, from_=0, size=10, timeout=10
-        )
+    dsl_query = {"query": {"match_all": {}}}
+    execute_search(mock_open_search, dsl_query, page=1, per_page=10)
+    mock_open_search.search.assert_called_once_with(
+        {"query": {"match_all": {}}}, from_=0, size=10, timeout=10
+    )
 
 
 @patch("app.main.util.pagination.calculate_total_pages", return_value=10)

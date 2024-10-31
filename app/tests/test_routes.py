@@ -250,6 +250,54 @@ class TestRoutes:
     @pytest.mark.parametrize(
         "form_data, args_data, expected_redirect_route, expected_params",
         [
+            # all access user with args data (redirect to search_results_summary)
+            (
+                {},
+                {"some_param": "some_value"},
+                "main.search_results_summary",
+                {"some_param": "some_value"},
+            ),
+            # all access user with form data and args data (args takes precedence)
+            (
+                {"some_param": "form_value"},
+                {"some_param": "args_value"},
+                "main.search_results_summary",
+                {"some_param": "args_value"},
+            ),
+        ],
+    )
+    def test_search_route_with__tb_redirect_various_cases_all_access_user(
+        app,
+        client: FlaskClient,
+        form_data,
+        args_data,
+        expected_redirect_route,
+        expected_params,
+        mock_all_access_user,
+    ):
+
+        mock_all_access_user(client)
+
+        query_string = "&".join(
+            [f"{key}={value}" for key, value in args_data.items()]
+        )
+        url = url_for("main.search") + "?" + query_string
+
+        response = client.get(url, data=form_data)
+        assert response.status_code == 302
+
+        redirected_url = url_for(
+            expected_redirect_route, _id=expected_params["_id"]
+        )
+
+        assert redirected_url in response.headers["Location"]
+
+        for key, expected_value in expected_params.items():
+            assert f"{key}={expected_value}" in response.headers["Location"]
+
+    @pytest.mark.parametrize(
+        "form_data, args_data, expected_redirect_route, expected_params",
+        [
             # standard user with both form and args data, args has precedence for overlapping keys
             (
                 {
@@ -302,63 +350,7 @@ class TestRoutes:
         response = client.get(url, data=form_data)
         assert response.status_code == 302
 
-        if expected_redirect_route == "main.search_transferring_body":
-            redirected_url = url_for(
-                expected_redirect_route, _id=expected_params["_id"]
-            )
-        else:
-            redirected_url = url_for(expected_redirect_route, **expected_params)
-
-        assert redirected_url in response.headers["Location"]
-
-        for key, expected_value in expected_params.items():
-            assert f"{key}={expected_value}" in response.headers["Location"]
-
-    @pytest.mark.parametrize(
-        "form_data, args_data, expected_redirect_route, expected_params",
-        [
-            # all access user with args data (redirect to search_results_summary)
-            (
-                {},
-                {"some_param": "some_value"},
-                "main.search_results_summary",
-                {"some_param": "some_value"},
-            ),
-            # all access user with form data and args data (args takes precedence)
-            (
-                {"some_param": "form_value"},
-                {"some_param": "args_value"},
-                "main.search_results_summary",
-                {"some_param": "args_value"},
-            ),
-        ],
-    )
-    def test_search_route_with_various_cases_all_access_user(
-        app,
-        client: FlaskClient,
-        form_data,
-        args_data,
-        expected_redirect_route,
-        expected_params,
-        mock_all_access_user,
-    ):
-
-        mock_all_access_user(client)
-
-        query_string = "&".join(
-            [f"{key}={value}" for key, value in args_data.items()]
-        )
-        url = url_for("main.search") + "?" + query_string
-
-        response = client.get(url, data=form_data)
-        assert response.status_code == 302
-
-        if expected_redirect_route == "main.search_transferring_body":
-            redirected_url = url_for(
-                expected_redirect_route, _id=expected_params["_id"]
-            )
-        else:
-            redirected_url = url_for(expected_redirect_route, **expected_params)
+        redirected_url = url_for(expected_redirect_route, **expected_params)
 
         assert redirected_url in response.headers["Location"]
 

@@ -1,5 +1,5 @@
 import opensearchpy
-from flask import abort, current_app, request
+from flask import abort, current_app
 from opensearchpy import OpenSearch, RequestsHttpConnection
 
 from app.main.util.date_validator import format_opensearch_date
@@ -17,27 +17,23 @@ def format_opensearch_results(results):
 
 def get_open_search_fields_to_search_on(open_search, search_area):
     """Retrieve a list of fields depending on the search area (all fields, metadata, record, etc.)"""
-    fields = ["*"]
     fields_record = ["file_name", "file_path", "content"]
-    fields_metadata = get_all_fields_excluding(
-        open_search, "documents", fields_record
-    )
     if search_area == "metadata":
-        fields = fields_metadata
+        return get_all_fields_excluding(open_search, "documents", fields_record)
     elif search_area == "record":
-        fields = fields_record
-    return fields
+        return ["file_name", "file_path", "content"]
+    return ["*"]
 
 
-def get_param(param):
+def get_param(param, request):
     """Get a specific param from either form or args"""
     return request.form.get(param, "") or request.args.get(param, "")
 
 
-def get_query_and_search_area():
+def get_query_and_search_area(request):
     """Fetch query and search_area from form or request args"""
-    query = get_param("query")
-    search_area = get_param("search_area")
+    query = get_param("query", request)
+    search_area = get_param("search_area", request)
     return query.strip(), search_area
 
 
