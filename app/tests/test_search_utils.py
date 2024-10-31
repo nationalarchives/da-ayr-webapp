@@ -250,7 +250,6 @@ def test_build_search_results_summary_query():
                         "multi_match": {
                             "query": "test_query",
                             "fields": ["field_1"],
-                            "operator": "AND",
                             "fuzziness": "AUTO",
                             "lenient": True,
                         }
@@ -289,7 +288,6 @@ def test_build_search_transferring_body_query():
                         "multi_match": {
                             "query": "test_query",
                             "fields": ["field_1"],
-                            "operator": "AND",
                             "fuzziness": "AUTO",
                             "lenient": True,
                         }

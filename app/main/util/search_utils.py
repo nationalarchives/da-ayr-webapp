@@ -103,7 +103,6 @@ def build_dsl_search_query(
                         "multi_match": {
                             "query": query,
                             "fields": search_fields,
-                            "operator": "AND",
                             "fuzziness": "AUTO",
                             "lenient": True,
                         }
