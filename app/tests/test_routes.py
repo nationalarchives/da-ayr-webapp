@@ -286,9 +286,7 @@ class TestRoutes:
         response = client.get(url, data=form_data)
         assert response.status_code == 302
 
-        redirected_url = url_for(
-            expected_redirect_route, _id=expected_params["_id"]
-        )
+        redirected_url = url_for(expected_redirect_route)
 
         assert redirected_url in response.headers["Location"]
 
@@ -350,8 +348,9 @@ class TestRoutes:
         response = client.get(url, data=form_data)
         assert response.status_code == 302
 
-        redirected_url = url_for(expected_redirect_route, **expected_params)
-
+        redirected_url = url_for(
+            expected_redirect_route, _id=expected_params["_id"]
+        )
         assert redirected_url in response.headers["Location"]
 
         for key, expected_value in expected_params.items():
