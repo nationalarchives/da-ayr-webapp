@@ -557,7 +557,7 @@ def search_transferring_body(_id: uuid.UUID):
     form = SearchForm()
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     page = int(request.args.get("page", 1))
-    open_all = get_param("open_all")
+    open_all = get_param("open_all", request)
 
     query, search_area = get_query_and_search_area(request)
     search_filter = (
