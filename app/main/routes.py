@@ -54,7 +54,8 @@ from app.main.util.render_utils import (
     get_file_mimetype,
 )
 from app.main.util.search_utils import (
-    build_dsl_query,
+    build_search_results_summary_query,
+    build_search_transferring_body_query,
     execute_search,
     format_opensearch_results,
     get_open_search_fields_to_search_on,
@@ -511,7 +512,10 @@ def search_results_summary():
         search_fields = get_open_search_fields_to_search_on(
             open_search, search_area
         )
-        dsl_query = build_dsl_query(query, search_fields)
+        sorting_orders = build_sorting_orders(request.args)
+        dsl_query = build_search_results_summary_query(
+            query, search_fields, sorting_orders
+        )
         search_results = execute_search(open_search, dsl_query, page, per_page)
         results = search_results["aggregations"][
             "aggregate_by_transferring_body"
@@ -595,7 +599,10 @@ def search_transferring_body(_id: uuid.UUID):
         search_fields = get_open_search_fields_to_search_on(
             open_search, search_area
         )
-        dsl_query = build_dsl_query(query, search_fields, _id)
+        sorting_orders = build_sorting_orders(request.args)
+        dsl_query = build_search_transferring_body_query(
+            query, search_fields, sorting_orders, _id
+        )
 
         search_results = execute_search(open_search, dsl_query, page, per_page)
 

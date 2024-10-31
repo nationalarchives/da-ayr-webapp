@@ -3,7 +3,6 @@ from flask import abort, current_app, request
 from opensearchpy import OpenSearch, RequestsHttpConnection
 
 from app.main.util.date_validator import format_opensearch_date
-from app.main.util.filter_sort_builder import build_sorting_orders_open_search
 from app.main.util.pagination import calculate_total_pages, get_pagination
 
 
@@ -92,9 +91,38 @@ def get_all_fields_excluding(open_search, index_name, exclude_fields=None):
     return filtered_fields
 
 
-def build_query_aggregations():
-    """Returns the aggregations segment of the DSL query"""
+def build_dsl_search_query(
+    query, search_fields, sorting_orders, filter_clauses
+):
+    """Constructs the base DSL query for OpenSearch"""
     return {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "multi_match": {
+                            "query": query,
+                            "fields": search_fields,
+                            "operator": "AND",
+                            "fuzziness": "AUTO",
+                            "lenient": True,
+                        }
+                    }
+                ],
+                "filter": filter_clauses,
+            }
+        },
+        "sort": sorting_orders,
+        "_source": {"exclude": ["*.keyword"]},
+    }
+
+
+def build_search_results_summary_query(query, search_fields, sorting_orders):
+    filter_clauses = []
+    dsl_query = build_dsl_search_query(
+        query, search_fields, sorting_orders, filter_clauses
+    )
+    aggregations = {
         "aggs": {
             "aggregate_by_transferring_body": {
                 "terms": {"field": "transferring_body_id.keyword"},
@@ -109,41 +137,19 @@ def build_query_aggregations():
             }
         },
     }
+    return {**dsl_query, **aggregations}
 
 
-def build_query_multi_match(query, search_fields, transferring_body_id):
-    """Returns the multi-match segment of the DSL query"""
-    must_clauses = [
-        {
-            "multi_match": {
-                "query": query,
-                "fields": search_fields,
-                "operator": "AND",
-                "fuzziness": "AUTO",
-                "lenient": True,
-            }
-        }
+def build_search_transferring_body_query(
+    query, search_fields, sorting_orders, transferring_body_id
+):
+    filter_clauses = [
+        {"term": {"transferring_body_id.keyword": transferring_body_id}}
     ]
-
-    filter_clauses = (
-        [{"term": {"transferring_body_id.keyword": transferring_body_id}}]
-        if transferring_body_id
-        else []
+    dsl_query = build_dsl_search_query(
+        query, search_fields, sorting_orders, filter_clauses
     )
-
-    return {
-        "query": {
-            "bool": {
-                "must": must_clauses,
-                "filter": filter_clauses,
-            }
-        },
-    }
-
-
-def build_query_highlighting():
-    """Returns the highlight segment of the DSL query"""
-    return {
+    highlighting = {
         "highlight": {
             "pre_tags": ["<mark>"],
             "post_tags": ["</mark>"],
@@ -152,38 +158,4 @@ def build_query_highlighting():
             },
         },
     }
-
-
-def build_query_sorting():
-    """Returns the sort segment of the DSL query"""
-    sorting_query = build_sorting_orders_open_search(request.args)
-    return {
-        "sort": sorting_query,
-    }
-
-
-def build_query_source_rules():
-    """Returns the _source segment of the DSL query"""
-    return {"_source": {"exclude": ["*.keyword"]}}
-
-
-def build_dsl_query(query, search_fields, transferring_body_id=None):
-    """Constructs the DSL query for OpenSearch"""
-    aggregations = {} if transferring_body_id else build_query_aggregations()
-    source_rules = build_query_source_rules()
-    multi_match_query = build_query_multi_match(
-        query, search_fields, transferring_body_id
-    )
-    highlighting = (
-        build_query_highlighting() if transferring_body_id is not None else {}
-    )
-    sorting = build_query_sorting()
-
-    query = {
-        **source_rules,
-        **multi_match_query,
-        **aggregations,
-        **highlighting,
-        **sorting,
-    }
-    return query
+    return {**dsl_query, **highlighting}

@@ -4,9 +4,9 @@ import pytest
 from opensearchpy import OpenSearch
 
 from app.main.util.search_utils import (
-    build_dsl_query,
-    build_query_multi_match,
-    build_query_source_rules,
+    build_dsl_search_query,
+    build_search_results_summary_query,
+    build_search_transferring_body_query,
     execute_search,
     format_opensearch_results,
     get_all_fields_excluding,
@@ -17,6 +17,27 @@ from app.main.util.search_utils import (
     get_query_and_search_area,
     setup_opensearch,
 )
+
+expected_base_dsl_search_query = {
+    "query": {
+        "bool": {
+            "must": [
+                {
+                    "multi_match": {
+                        "query": "test_query",
+                        "fields": ["field_1"],
+                        "operator": "AND",
+                        "fuzziness": "AUTO",
+                        "lenient": True,
+                    }
+                }
+            ],
+            "filter": [{"clause_1": "test_2"}],
+        }
+    },
+    "sort": {"sort_1": "test_1"},
+    "_source": {"exclude": ["*.keyword"]},
+}
 
 
 @pytest.mark.parametrize(
@@ -206,46 +227,88 @@ def test_get_all_fields_excluding(mock_open_search):
     assert fields == ["field1", "field3"]
 
 
-@patch(
-    "app.main.util.search_utils.get_all_fields_excluding",
-    return_value=["fieldA", "fieldB"],
-)
-def test_build_query_multi_match(mock_get_all_fields_excluding):
-    query = "test_query"
-    result = build_query_multi_match(
-        query, ["fieldA"], transferring_body_id="12345"
+def test_build_dsl_search_query():
+    dsl_query = build_dsl_search_query(
+        "test_query",
+        ["field_1"],
+        {"sort_1": "test_1"},
+        [{"clause_1": "test_2"}],
     )
-    assert result["query"]["bool"]["must"][0]["multi_match"]["query"] == query
-    assert (
-        "fieldA" in result["query"]["bool"]["must"][0]["multi_match"]["fields"]
+    assert dsl_query == expected_base_dsl_search_query
+
+
+def test_build_search_results_summary_query():
+    dsl_query = build_search_results_summary_query(
+        "test_query", ["field_1"], {"sort_1": "test_1"}
     )
-    assert (
-        result["query"]["bool"]["filter"][0]["term"][
-            "transferring_body_id.keyword"
-        ]
-        == "12345"
+    assert dsl_query == {
+        **expected_base_dsl_search_query,
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "multi_match": {
+                            "query": "test_query",
+                            "fields": ["field_1"],
+                            "operator": "AND",
+                            "fuzziness": "AUTO",
+                            "lenient": True,
+                        }
+                    }
+                ],
+                "filter": [],
+            }
+        },
+        "aggs": {
+            "aggregate_by_transferring_body": {
+                "terms": {"field": "transferring_body_id.keyword"},
+                "aggs": {
+                    "top_transferring_body_hits": {
+                        "top_hits": {
+                            "size": 1,
+                            "_source": ["transferring_body"],
+                        }
+                    }
+                },
+            }
+        },
+    }
+
+
+def test_build_search_transferring_body_query():
+    transferring_body_id = "test_transferring_body_id"
+    dsl_query = build_search_transferring_body_query(
+        "test_query", ["field_1"], {"sort_1": "test_1"}, transferring_body_id
     )
-
-
-def test_build_query_source_rules():
-    source_rules = build_query_source_rules()
-    assert source_rules == {"_source": {"exclude": ["*.keyword"]}}
-
-
-@pytest.mark.parametrize(
-    "transferring_body_id, expected_keys",
-    [
-        ("test_id", ["_source", "query", "highlight", "sort"]),
-        (None, ["_source", "query", "aggs", "sort"]),
-    ],
-)
-@patch(
-    "app.main.util.search_utils.build_query_sorting", return_value={"sort": []}
-)
-def test_build_dsl_query(
-    mock_build_query_sorting, transferring_body_id, expected_keys
-):
-    query = "test_query"
-    dsl_query = build_dsl_query(query, [], transferring_body_id)
-    for key in expected_keys:
-        assert key in dsl_query
+    assert dsl_query == {
+        **expected_base_dsl_search_query,
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "multi_match": {
+                            "query": "test_query",
+                            "fields": ["field_1"],
+                            "operator": "AND",
+                            "fuzziness": "AUTO",
+                            "lenient": True,
+                        }
+                    }
+                ],
+                "filter": [
+                    {
+                        "term": {
+                            "transferring_body_id.keyword": transferring_body_id
+                        }
+                    }
+                ],
+            }
+        },
+        "highlight": {
+            "pre_tags": ["<mark>"],
+            "post_tags": ["</mark>"],
+            "fields": {
+                "*": {},
+            },
+        },
+    }
