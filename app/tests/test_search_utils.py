@@ -26,7 +26,6 @@ expected_base_dsl_search_query = {
                     "multi_match": {
                         "query": "test_query",
                         "fields": ["field_1"],
-                        "operator": "AND",
                         "fuzziness": "AUTO",
                         "lenient": True,
                     }
