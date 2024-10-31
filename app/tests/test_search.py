@@ -49,10 +49,8 @@ os_mock_return_tb = {
                     "closure_date": None,
                     "consignment_reference": "cbar",
                     "consignment_id": "ibar",
-                    "metadata": {
-                        "closure_type": "Open",
-                        "opening_date": "fooDate",
-                    },
+                    "closure_type": "Open",
+                    "opening_date": "fooDate",
                 },
                 "highlight": {
                     "test_field_1": [
@@ -85,10 +83,8 @@ os_mock_return_tb_closed_record = {
                     "closure_date": "2001-01-01T00:00:00",
                     "consignment_reference": "cbar",
                     "consignment_id": "ibar",
-                    "metadata": {
-                        "closure_type": "Closed",
-                        "opening_date": "2025-01-01T00:00:00",
-                    },
+                    "closure_type": "Closed",
+                    "opening_date": "2025-01-01T00:00:00",
                 },
                 "highlight": {
                     "test_field_1": [
@@ -106,10 +102,35 @@ os_mock_return_tb_closed_record = {
 }
 
 
+class MockIndices:
+    def __init__(self, get_mapping_return_value=None):
+        self.get_mapping_return_value = get_mapping_return_value or {
+            "documents": {
+                "mappings": {
+                    "properties": {
+                        "field1": {},
+                        "field2": {},
+                        "field3": {},
+                    }
+                }
+            }
+        }
+
+    def get_mapping(self, *args, **kwargs):
+        return self.get_mapping_return_value
+
+
 class MockOpenSearch:
-    def __init__(self, search_return_value=None, index_return_value=None):
+    def __init__(
+        self,
+        search_return_value=None,
+        index_return_value=None,
+        get_mapping_return_value=None,
+        **args,
+    ):
         self.search_return_value = search_return_value or {"hits": {"hits": []}}
         self.index_return_value = index_return_value or {"result": "created"}
+        self.indices = MockIndices(get_mapping_return_value)
 
     def search(self, *args, **kwargs):
         return self.search_return_value
@@ -202,40 +223,6 @@ class TestSearchResultsSummary:
             == f"Search results summary – {app.config['SERVICE_NAME']} – GOV.UK"
         )
 
-    def test_search_results_summary_top_search(
-        self, client, mock_all_access_user
-    ):
-        """
-        Given an all_access_user accessing the search results summary page
-        When they make a GET request
-        Then they should see the top search component available on search page content.
-        """
-        mock_all_access_user(client)
-
-        response = client.get(f"{self.route_url}")
-
-        assert response.status_code == 200
-
-        html = response.data.decode()
-        soup = BeautifulSoup(html, "html.parser")
-        label = soup.find("label", string="Search for digital records")
-        textbox = soup.find("input", {"id": "search-input"})
-        button = soup.find("button", {"id": "search-submit"})
-        text = soup.find(
-            "p",
-            {"id": "search-description"},
-        )
-        text_content = text.get_text(strip=True)
-
-        assert label is not None
-        assert textbox is not None
-        assert button is not None
-        assert text is not None
-        assert (
-            text_content
-            == "Search by file name, transferring body, series or consignment reference."
-        )
-
     def test_search_results_summary_no_query(
         self, client: FlaskClient, mock_all_access_user
     ):
@@ -251,7 +238,7 @@ class TestSearchResultsSummary:
         assert response.status_code == 200
         assert b"records found" not in response.data
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_results_summary_with_no_results(
         self, mock_search_client, client: FlaskClient, mock_all_access_user
     ):
@@ -293,7 +280,7 @@ class TestSearchResultsSummary:
             {"class": "govuk-list govuk-list--bullet"},
         )
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_results_summary_shows_correct_amount_of_records(
         self, mock_search_client, client: FlaskClient, mock_all_access_user
     ):
@@ -354,7 +341,7 @@ class TestSearchResultsSummary:
         assert heading and browse_details_div
         assert heading_text == "Records found 69"
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_results_summary_timeout_shows_504_bad_gateway(
         self, mock_search_client, client: FlaskClient, mock_all_access_user
     ):
@@ -375,7 +362,7 @@ class TestSearchResultsSummary:
         assert response.status_code == 504
         assert b"Bad Gateway" in response.data
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_results_summary_with_results_single_term(
         self,
         mock_search_client,
@@ -405,7 +392,7 @@ class TestSearchResultsSummary:
         table_cell_values = get_table_rows_cell_values(table_body)
         assert table_cell_values == expected_cell_values
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_results_summary_with_results_multiple_terms(
         self,
         mock_search_client,
@@ -435,7 +422,7 @@ class TestSearchResultsSummary:
         table_cell_values = get_table_rows_cell_values(table_body)
         assert table_cell_values == expected_cell_values
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_results_summary_breadcrumbs(
         self,
         mock_search_client,
@@ -467,7 +454,7 @@ class TestSearchResultsSummary:
         assert anchor_all["href"] == self.browse_all_route_url
         assert span_summary
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_results_summary_no_perms_standard_users(
         self,
         mock_search_client,
@@ -508,7 +495,7 @@ class TestSearchTransferringBody:
     def browse_transferring_body_route_url(self):
         return f"{self.browse_all_route_url}/transferring_body"
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_get(
         self,
         mock_search_client,
@@ -547,8 +534,8 @@ class TestSearchTransferringBody:
             == f"Search results – {app.config['SERVICE_NAME']} – GOV.UK"
         )
 
-    @patch("app.main.routes.OpenSearch")
-    def test_search_transferring_body_top_search(
+    @patch("app.main.util.search_utils.OpenSearch")
+    def test_search_top_search(
         self,
         mock_search_client,
         client,
@@ -556,7 +543,7 @@ class TestSearchTransferringBody:
         browse_consignment_files,
     ):
         """
-        Given a standard user accessing the search transferring body page
+        Given a standard user accessing a page that has the top search component
         When they make a GET request
         Then they should see the top search component available on search page content.
         """
@@ -581,22 +568,65 @@ class TestSearchTransferringBody:
         label = soup.find("label", string="Search for digital records")
         textbox = soup.find("input", {"id": "search-input"})
         button = soup.find("button", {"id": "search-submit"})
-        text = soup.find(
-            "p",
-            {"id": "search-description"},
-        )
-        text_content = text.get_text(strip=True)
+
+        radio_1 = soup.find("input", {"id": "everywhere"})
+        radio_2 = soup.find("input", {"id": "metadata"})
+        radio_3 = soup.find("input", {"id": "record"})
 
         assert label is not None
         assert textbox is not None
         assert button is not None
-        assert text is not None
-        assert (
-            text_content
-            == "Search by file name, series or consignment reference."
+        assert radio_1 and radio_2 and radio_3
+        # radio for search area "everywhere" should be checked by default
+        assert "checked" in radio_1.attrs
+
+    @pytest.mark.parametrize(
+        "radio_arg, expected_checked_radio",
+        [
+            ("everywhere", "everywhere"),
+            ("metadata", "metadata"),
+            ("record", "record"),
+        ],
+    )
+    @patch("app.main.util.search_utils.OpenSearch")
+    def test_search_top_search_radio_previously_selected(
+        self,
+        mock_search_client,
+        client,
+        mock_standard_user,
+        browse_consignment_files,
+        radio_arg,
+        expected_checked_radio,
+    ):
+        """
+        Given a standard user accessing a page that has the top search component
+        When they make a GET request
+        Then they should see the checked radio associated with the arg in the URL.
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
         )
 
-    @patch("app.main.routes.OpenSearch")
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}?search_area={radio_arg}"
+        )
+
+        assert response.status_code == 200
+        html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+
+        radio = soup.find("input", {"id": expected_checked_radio})
+        assert radio
+        assert "checked" in radio.attrs
+
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_no_query(
         self,
         mock_search_client,
@@ -630,7 +660,7 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
         assert b"records found" not in response.data
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_with_no_results(
         self,
         mock_search_client,
@@ -682,7 +712,7 @@ class TestSearchTransferringBody:
             {"class": "govuk-list govuk-list--bullet"},
         )
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_results_timeout_error(
         self, mock_search_client, client: FlaskClient, mock_standard_user
     ):
@@ -711,7 +741,7 @@ class TestSearchTransferringBody:
         assert response.status_code == 504
         assert b"Bad Gateway" in response.data
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_result_has_accordion(
         self,
         mock_search_client,
@@ -751,7 +781,7 @@ class TestSearchTransferringBody:
         assert details_element
         assert not details_element.get("open")
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_results_display_multiple_pages(
         self,
         mock_search_client,
@@ -802,7 +832,7 @@ class TestSearchTransferringBody:
         assert not previous_option
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_results_display_first_page(
         self,
         mock_search_client,
@@ -847,7 +877,7 @@ class TestSearchTransferringBody:
         assert not previous_option
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_results_display_middle_page(
         self,
         mock_search_client,
@@ -900,7 +930,7 @@ class TestSearchTransferringBody:
             == "Nextpage"
         )
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_results_display_last_page(
         self,
         mock_search_client,
@@ -947,7 +977,7 @@ class TestSearchTransferringBody:
         )
         assert not next_option
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_breadcrumbs_all_access_user_single_term(
         self,
         mock_search_client,
@@ -999,7 +1029,7 @@ class TestSearchTransferringBody:
         )
         assert span_query
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_breadcrumbs_all_access_user_multiple_terms(
         self,
         mock_search_client,
@@ -1053,7 +1083,7 @@ class TestSearchTransferringBody:
         )
         assert span_query
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_breadcrumbs_standard_user_single_search_term(
         self,
         mock_search_client,
@@ -1103,7 +1133,7 @@ class TestSearchTransferringBody:
         )
         assert span_query
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_breadcrumbs_standard_user_multiple_search_terms(
         self,
         mock_search_client,
@@ -1155,7 +1185,7 @@ class TestSearchTransferringBody:
         )
         assert span_query
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_breadcrumbs_standard_user_invalid_search_terms(
         self,
         mock_search_client,
@@ -1206,7 +1236,7 @@ class TestSearchTransferringBody:
         )
         assert span_query
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_breadcrumbs_empty_search_term(
         self,
         mock_search_client,
@@ -1255,7 +1285,7 @@ class TestSearchTransferringBody:
         )
         assert span_query
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_display_filter_tray_all_access_user(
         self,
         mock_search_client,
@@ -1313,7 +1343,7 @@ class TestSearchTransferringBody:
         )
         assert button_term1 and button_term2 and anchor_term1 and anchor_term2
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_display_filter_tray_standard_user(
         self,
         mock_search_client,
@@ -1372,7 +1402,7 @@ class TestSearchTransferringBody:
         )
         assert button_term1 and button_term2 and anchor_term1 and anchor_term2
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_display_multiple_search_terms_in_filter_tray(
         self,
         mock_search_client,
@@ -1454,7 +1484,7 @@ class TestSearchTransferringBody:
             and anchor_term3
         )
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_verify_table_headers(
         self,
         mock_search_client,
@@ -1514,7 +1544,7 @@ class TestSearchTransferringBody:
         assert inner_table_headers == expected_headers_inner_table[0]
         assert main_table_headers == expected_headers_main_table[0]
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_with_table_data_links_inner_table(
         self,
         mock_search_client,
@@ -1631,7 +1661,7 @@ class TestSearchTransferringBody:
             ),
         ],
     )
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_with_search_term_happy_path_inner_table(
         self,
         mock_search_client,
@@ -1712,7 +1742,7 @@ class TestSearchTransferringBody:
             ),
         ],
     )
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_with_search_term_edge_case_path_inner_table(
         self,
         mock_search_client,
@@ -1805,7 +1835,7 @@ class TestSearchTransferringBody:
             ),
         ],
     )
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_with_search_term_main_table(
         self,
         mock_search_client,
@@ -1854,7 +1884,7 @@ class TestSearchTransferringBody:
         assert mark_text_values == ["test1", "element", "cool test", "on the"]
         assert table_cell_values == expected_cell_values
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_standard_user_with_no_view_perms(
         self,
         mock_search_client,
@@ -1883,7 +1913,7 @@ class TestSearchTransferringBody:
 
         assert response.status_code == 404
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_standard_user_with_view_perms(
         self,
         mock_search_client,
@@ -1912,7 +1942,7 @@ class TestSearchTransferringBody:
 
         assert response.status_code == 200
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_returns_correct_date_format(
         self,
         mock_search_client,
@@ -1944,7 +1974,7 @@ class TestSearchTransferringBody:
 
         assert response.status_code == 200
 
-    @patch("app.main.routes.OpenSearch")
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_all_accordions_open_with_open_all_query(
         self,
         mock_search_client,

@@ -1,27 +1,38 @@
+{% set search_areas = {"everywhere": "Search everywhere", "metadata": "Record metadata only", "record": "Within the record only"} %}
 <div class="search govuk-grid-column-full">
     <div class="search__els">
         <label class="govuk-label search__els__heading" for="search-input">Search for digital records</label>
         <form class="search__els__form"
               method="get"
               action="{{ url_for('main.search') }}">
+            <div class="govuk-radios govuk-radios--small search__els__form__checkboxes"
+                 data-module="govuk-radios">
+                {% for value, label in search_areas.items() %}
+                    <div class="govuk-radios__item">
+                        <input class="govuk-radios__input"
+                               id="{{ value }}"
+                               name="search_area"
+                               type="radio"
+                               value="{{ value }}"
+                               {% if search_area %} {% if search_area == value %}checked{% endif %}
+                               {% else %}
+                               {% if value == 'everywhere' %}checked{% endif %}
+                               {% endif %} />
+                        <label class="govuk-label govuk-radios__label" for="{{ value }}">{{ label }}</label>
+                    </div>
+                {% endfor %}
+            </div>
             <div class="search__els__form__input-container">
                 <input class="govuk-input"
                        id="search-input"
                        name="query"
                        type="text"
-                       value="{% if filters['query'] %}{{ filters['query'] }}{% endif %}" />
-                {% if session["user_type"] == "all_access_user" %}
-                    <p id="search-description" class="govuk-body-s">
-                        Search by file name, transferring body, series or consignment reference.
-                    </p>
-                {% else %}
-                    <p id="search-description" class="govuk-body-s">Search by file name, series or consignment reference.</p>
-                {% endif %}
+                       value="{{ filters['query'] if filters['query'] else '' }}" />
+                <button class="govuk-button"
+                        id="search-submit"
+                        data-module="govuk-button"
+                        type="submit">Search</button>
             </div>
-            <button class="govuk-button"
-                    id="search-submit"
-                    data-module="govuk-button"
-                    type="submit">Search</button>
         </form>
     </div>
 </div>

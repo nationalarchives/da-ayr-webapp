@@ -109,20 +109,10 @@ class TestRecord:
         label = soup.find("label", string="Search for digital records")
         textbox = soup.find("input", {"id": "search-input"})
         button = soup.find("button", {"id": "search-submit"})
-        text = soup.find(
-            "p",
-            {"id": "search-description"},
-        )
-        text_content = text.get_text(strip=True)
 
         assert label is not None
         assert textbox is not None
         assert button is not None
-        assert text is not None
-        assert (
-            text_content
-            == "Search by file name, transferring body, series or consignment reference."
-        )
 
     @mock_aws
     def test_record_breadcrumbs(

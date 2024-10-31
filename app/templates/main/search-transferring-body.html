@@ -156,13 +156,13 @@
                                                                             </a>
                                                                         </td>
                                                                         <td class="govuk-table__cell govuk-table__cell--metadata">
-                                                                            <span class=" govuk-tag govuk-tag--{% if record['_source']['metadata']['closure_type'] == 'Closed' %}red{% else %}green{% endif %} ">
-                                                                                {{ record['_source']['metadata']['closure_type'] }}
+                                                                            <span class=" govuk-tag govuk-tag--{% if record['_source']['closure_type'] == 'Closed' %}red{% else %}green{% endif %} ">
+                                                                                {{ record['_source']['closure_type'] }}
                                                                             </span>
                                                                         </td>
                                                                         <td class="govuk-table__cell govuk-table__cell--metadata govuk-table--right-align">
-                                                                            {% if record['_source']['metadata']['opening_date'] %}
-                                                                                {{ record['_source']['metadata']['opening_date'] }}
+                                                                            {% if record['_source']['opening_date'] %}
+                                                                                {{ record['_source']['opening_date'] }}
                                                                             {% else %}
                                                                                 –
                                                                             {% endif %}

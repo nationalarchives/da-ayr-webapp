@@ -48,7 +48,7 @@
                                             <td class="govuk-table__cell govuk-table__cell--results-summary">
                                                 {% if transferring_body["top_transferring_body_hits"]["hits"]["hits"][0]["_source"]["transferring_body"] %}
                                                     {% set name = transferring_body["top_transferring_body_hits"]["hits"]["hits"][0]["_source"]["transferring_body"] %}
-                                                    <a href="{{ url_for('main.search_transferring_body', _id=transferring_body['key'] , query=filters['query']) }}">{{ name }}</a>
+                                                    <a href="{{ url_for('main.search_transferring_body', _id=transferring_body['key'] , query=filters['query'], search_area=search_area) }}">{{ name }}</a>
                                                 {% endif %}
                                             </td>
                                             <td class="govuk-table__cell govuk-body govuk-table__cell--record-results">{{ transferring_body['doc_count'] }}</td>

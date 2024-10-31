@@ -3,7 +3,6 @@ import json
 import uuid
 
 import boto3
-import opensearchpy
 from flask import (
     abort,
     current_app,
@@ -14,7 +13,6 @@ from flask import (
     session,
     url_for,
 )
-from opensearchpy import OpenSearch, RequestsHttpConnection
 from sqlalchemy import func
 from werkzeug.exceptions import BadRequest, HTTPException
 
@@ -36,12 +34,10 @@ from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
 from app.main.util.date_filters_validator import validate_date_filters
-from app.main.util.date_validator import format_opensearch_date
 from app.main.util.filter_sort_builder import (
     build_browse_consignment_filters,
     build_filters,
     build_sorting_orders,
-    build_sorting_orders_open_search,
 )
 from app.main.util.pagination import (
     calculate_total_pages,
@@ -56,6 +52,17 @@ from app.main.util.render_utils import (
     get_download_filename,
     get_file_details,
     get_file_mimetype,
+)
+from app.main.util.search_utils import (
+    build_search_results_summary_query,
+    build_search_transferring_body_query,
+    execute_search,
+    format_opensearch_results,
+    get_open_search_fields_to_search_on,
+    get_pagination_info,
+    get_param,
+    get_query_and_search_area,
+    setup_opensearch,
 )
 
 from .forms import SearchForm
@@ -457,9 +464,13 @@ def browse_consignment(_id: uuid.UUID):
 @bp.route("/search", methods=["GET"])
 @access_token_sign_in_required
 def search():
-    query = request.form.get("query", "") or request.args.get("query", "")
+    form_data = request.form.to_dict()
+    args_data = request.args.to_dict()
 
-    transferring_body_id = request.args.get("transferring_body_id", "")
+    # merge both dictionaries (args takes precedence over form if there are overlapping keys)
+    params = {**form_data, **args_data}
+
+    transferring_body_id = params.get("transferring_body_id", "")
 
     ayr_user = AYRUser(session.get("user_groups"))
 
@@ -470,22 +481,20 @@ def search():
                 .first()
                 .BodyId
             )
-
         return redirect(
             url_for(
                 "main.search_transferring_body",
                 _id=transferring_body_id,
-                query=query,
+                **params,
             )
         )
     else:
-        return redirect(url_for("main.search_results_summary", query=query))
+        return redirect(url_for("main.search_results_summary", **params))
 
 
 @bp.route("/search_results_summary", methods=["GET"])
 @access_token_sign_in_required
 def search_results_summary():
-
     ayr_user = AYRUser(session.get("user_groups"))
     if ayr_user.is_standard_user:
         abort(403)
@@ -494,70 +503,20 @@ def search_results_summary():
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     page = int(request.args.get("page", 1))
 
-    query = request.form.get("query", "") or request.args.get("query", "")
-
-    filters = {"query": query.strip()}
-    num_records_found = 0
-    results = {
-        "hits": {"total": {"value": 0}, "hits": []},
-        "aggregations": {"aggregate_by_transferring_body": {"buckets": []}},
-    }
-    pagination = None
-    paginated_results = []
+    query, search_area = get_query_and_search_area(request)
+    filters = {"query": query}
+    num_records_found, paginated_results, pagination = 0, [], None
 
     if query:
-        open_search = OpenSearch(
-            hosts=current_app.config.get("OPEN_SEARCH_HOST"),
-            http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
-            use_ssl=True,
-            verify_certs=True,
-            ca_certs=current_app.config.get("OPEN_SEARCH_CA_CERTS"),
-            connection_class=RequestsHttpConnection,
+        open_search = setup_opensearch()
+        search_fields = get_open_search_fields_to_search_on(
+            open_search, search_area
         )
-
-        dsl_query = {
-            "query": {
-                "bool": {
-                    "must": [
-                        {
-                            "multi_match": {
-                                "fields": ["*"],
-                                "query": query,
-                                "fuzziness": 1,
-                            }
-                        }
-                    ],
-                },
-            },
-            "aggs": {
-                "aggregate_by_transferring_body": {
-                    "terms": {
-                        "field": "transferring_body_id.keyword",
-                    },
-                    "aggs": {
-                        "top_transferring_body_hits": {
-                            "top_hits": {
-                                "size": 1,
-                                "_source": ["transferring_body"],
-                            }
-                        }
-                    },
-                },
-            },
-        }
-
-        size = per_page
-        from_ = size * (page - 1)
-        try:
-            search_results = open_search.search(
-                dsl_query,
-                from_=from_,
-                size=size,
-                timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
-            )
-        except opensearchpy.exceptions.ConnectionTimeout:
-            abort(504)
-
+        sorting_orders = build_sorting_orders(request.args)
+        dsl_query = build_search_results_summary_query(
+            query, search_fields, sorting_orders
+        )
+        search_results = execute_search(open_search, dsl_query, page, per_page)
         results = search_results["aggregations"][
             "aggregate_by_transferring_body"
         ]["buckets"]
@@ -566,9 +525,9 @@ def search_results_summary():
         for bucket in results:
             total_records += bucket["doc_count"]
 
-        page_count = calculate_total_pages(len(results), size)
+        page_count = calculate_total_pages(len(results), per_page)
         pagination = get_pagination(page, page_count)
-        paginated_results = paginate(results, page, size)
+        paginated_results = paginate(results, page, per_page)
 
         if total_records:
             num_records_found = total_records
@@ -578,6 +537,7 @@ def search_results_summary():
         form=form,
         current_page=page,
         filters=filters,
+        search_area=search_area,
         results=paginated_results,
         pagination=pagination,
         num_records_found=num_records_found,
@@ -590,132 +550,69 @@ def search_results_summary():
 
 @bp.route("/search/transferring_body/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
-# C901 (function too complex) being ignored until AYR-1307
-def search_transferring_body(_id: uuid.UUID):  # noqa: C901
-
+def search_transferring_body(_id: uuid.UUID):
     body = db.session.get(Body, _id)
     validate_body_user_groups_or_404(body.Name)
 
     form = SearchForm()
-    search_results = None
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
-    num_records_found = 0
-    query = (
-        request.form.get("query", "").strip()
-        or request.args.get("query", "").strip()
-    )
-
-    open_all = request.args.get("open_all", False)
-
-    search_filter = request.args.get("search_filter")
-    if search_filter:
-        search_filter = search_filter.strip()
-
     page = int(request.args.get("page", 1))
+    open_all = get_param("open_all", request)
 
+    query, search_area = get_query_and_search_area(request)
+    search_filter = (
+        request.args.get("search_filter", "").strip()
+        if request.args.get("search_filter")
+        else None
+    )
     filters = {"query": query}
-
-    sorting_query = build_sorting_orders_open_search(request.args)
-    sorting_orders = build_sorting_orders(request.args)
 
     breadcrumb_values = {
         0: {"query": ""},
         1: {"transferring_body_id": _id},
-        2: {"transferring_body": db.session.get(Body, _id).Name},
+        2: {"transferring_body": body.Name},
         3: {"search_terms": "‘’"},
     }
-    search_terms = []
-    results = {"hits": {"total": {"value": 0}, "hits": []}}
-    pagination = None
+
+    sorting_orders = build_sorting_orders(request.args)
+    search_terms, results, pagination, num_records_found = (
+        [],
+        {"hits": {"total": {"value": 0}, "hits": []}},
+        None,
+        0,
+    )
 
     if query:
-        search_terms = [item for item in query.split(",") if item]
+        search_terms = [term.strip() for term in query.split(",") if term]
         if search_filter:
             search_terms.append(search_filter)
-            query += (
-                "," + search_filter if len(search_terms) > 0 else search_filter
-            )
-            filters = {"query": query}
+            query += f",{search_filter}" if search_terms else search_filter
+            filters["query"] = query
 
-        breadcrumb_values.update({0: {"query": query}})
+        breadcrumb_values[0] = {"query": query}
+        display_terms = " + ".join(
+            [f"‘{term}’" for term in search_terms if term.strip()]
+        )
+        breadcrumb_values[3]["search_terms"] = display_terms or query
 
-        display_terms = ""
-
-        for i in range(len(search_terms)):
-            if len(search_terms[i].strip()) > 0:
-                display_terms += (
-                    "‘"
-                    + search_terms[i].strip()
-                    + "’"
-                    + (" + " if i < len(search_terms) - 1 else "")
-                )
-
-        breadcrumb_values.update(
-            {3: {"search_terms": query if query == "," else display_terms}}
+        open_search = setup_opensearch()
+        search_fields = get_open_search_fields_to_search_on(
+            open_search, search_area
+        )
+        sorting_orders = build_sorting_orders(request.args)
+        dsl_query = build_search_transferring_body_query(
+            query, search_fields, sorting_orders, _id
         )
 
-        open_search = OpenSearch(
-            hosts=current_app.config.get("OPEN_SEARCH_HOST"),
-            http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
-            use_ssl=True,
-            verify_certs=True,
-            ca_certs=current_app.config.get("OPEN_SEARCH_CA_CERTS"),
-            connection_class=RequestsHttpConnection,
-        )
-
-        dsl_query = {
-            "query": {
-                "bool": {
-                    "must": [
-                        {
-                            "multi_match": {
-                                "fields": ["*"],
-                                "query": query,
-                                "fuzziness": 1,
-                            }
-                        }
-                    ],
-                    "filter": [{"term": {"transferring_body_id.keyword": _id}}],
-                },
-            },
-            "highlight": {
-                "pre_tags": ["<mark>"],
-                "post_tags": ["</mark>"],
-                "fields": {
-                    "*": {},
-                },
-            },
-            "sort": sorting_query,
-        }
-        size = per_page
-        page_number = page
-        from_ = size * (page_number - 1)
-        try:
-            search_results = open_search.search(
-                dsl_query,
-                from_=from_,
-                size=size,
-                timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
-            )
-        except opensearchpy.exceptions.ConnectionTimeout:
-            abort(504)
+        search_results = execute_search(open_search, dsl_query, page, per_page)
 
         results = search_results["hits"]["hits"]
+        results = format_opensearch_results(results)
 
-        for result in results:
-            for key, value in result["_source"]["metadata"].items():
-                if "date" in key:
-                    result["_source"]["metadata"][key] = format_opensearch_date(
-                        value
-                    )
-
-        total_records = search_results["hits"]["total"]["value"]
-
-        page_count = calculate_total_pages(total_records, per_page)
-        pagination = get_pagination(page_number, page_count)
-
-        if total_records:
-            num_records_found = total_records
+        total_records, pagination = get_pagination_info(
+            search_results, page, per_page
+        )
+        num_records_found = total_records
 
     return render_template(
         "search-transferring-body.html",
@@ -727,10 +624,11 @@ def search_transferring_body(_id: uuid.UUID):  # noqa: C901
         num_records_found=num_records_found,
         sorting_orders=sorting_orders,
         search_terms=search_terms,
+        search_area=search_area,
         pagination=pagination,
         open_all=open_all,
         query_string_parameters={
-            k: v for k, v in request.args.items() if k not in "page"
+            k: v for k, v in request.args.items() if k != "page"
         },
     )
 
