@@ -235,8 +235,8 @@ def test_build_query_source_rules():
 @pytest.mark.parametrize(
     "transferring_body_id, expected_keys",
     [
-        ("test_id", ["_source", "query", "aggs", "highlight", "sort"]),
-        (None, ["_source", "query", "highlight", "sort"]),
+        ("test_id", ["_source", "query", "highlight", "sort"]),
+        (None, ["_source", "query", "aggs", "sort"]),
     ],
 )
 @patch(

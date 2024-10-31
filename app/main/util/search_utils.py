@@ -169,14 +169,14 @@ def build_query_source_rules():
 
 def build_dsl_query(query, search_fields, transferring_body_id=None):
     """Constructs the DSL query for OpenSearch"""
-    aggregations = (
-        build_query_aggregations() if transferring_body_id is not None else {}
-    )
+    aggregations = {} if transferring_body_id else build_query_aggregations()
     source_rules = build_query_source_rules()
     multi_match_query = build_query_multi_match(
         query, search_fields, transferring_body_id
     )
-    highlighting = build_query_highlighting()
+    highlighting = (
+        build_query_highlighting() if transferring_body_id is not None else {}
+    )
     sorting = build_query_sorting()
 
     query = {
