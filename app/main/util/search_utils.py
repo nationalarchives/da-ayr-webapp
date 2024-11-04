@@ -17,11 +17,11 @@ def format_opensearch_results(results):
 
 def get_open_search_fields_to_search_on(open_search, search_area):
     """Retrieve a list of fields depending on the search area (all fields, metadata, record, etc.)"""
-    fields_record = ["file_name", "file_path", "content"]
+    fields_record = ["content"]
     if search_area == "metadata":
         return get_all_fields_excluding(open_search, "documents", fields_record)
     elif search_area == "record":
-        return ["file_name", "file_path", "content"]
+        return fields_record
     return ["*"]
 
 
@@ -107,8 +107,9 @@ def build_dsl_search_query(
                 "filter": filter_clauses,
             }
         },
-        "sort": sorting_orders,
-        "_source": {"exclude": ["*.keyword"]},
+        # set as {} until sorting ticket is in done
+        "sort": {},
+        "_source": True,
     }
 
 

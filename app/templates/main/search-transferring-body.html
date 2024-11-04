@@ -22,6 +22,8 @@
     "Record status (closed)": "closure_type-asc",
     "Record status (open)": "closure_type-desc"
 } %}
+{% set anchor_fields = {"file_name": "file_id", "file_path": "file_id"} %}
+{% set ignored_fields = ["file_type", "file_path", "*.keyword"] %}
 {% block beforeContent %}{{ super() }}{% endblock %}
 {% block content %}
     <!-- SEARCH  -->
@@ -90,6 +92,8 @@
                                                 {% for record in results %}
                                                     {% set main_loop_index = loop.index %}
                                                     <tr class="govuk-table__row govuk-table__row--primary">
+                                                        {% set first_key = record['highlight'].keys() | list | first %}
+                                                        {% set first_value = record['highlight'].values() | list | first | join(' ... ')| clean_tags | safe %}
                                                         <td class="govuk-table__cell">
                                                             <div class="govuk-table__cell__data">
                                                                 <details class="details-toggle-{{ main_loop_index }}"
@@ -97,8 +101,7 @@
                                                                     <summary />
                                                                 </details>
                                                                 {% if record['highlight'] %}
-                                                                    {% set key = record['highlight'].keys() | list | first | replace('_', ' ') | capitalize %}
-                                                                    {{ key }} +{{ record['highlight'].keys() | length - 1 }}
+                                                                    {{ first_key | replace('_', ' ') | capitalize }} +{{ record['highlight'].keys() | length - 1 }}
                                                                 {% else %}
                                                                     None
                                                                 {% endif %}
@@ -106,20 +109,38 @@
                                                         </td>
                                                         <td class="govuk-table__cell">
                                                             {% if record['highlight'] %}
-                                                                {{ record['highlight'].values() | list | first | join(' ... ')| safe }}
+                                                                {% if first_key in anchor_fields.keys() | list %}
+                                                                    <a href="{{ url_for('main.record', record_id=record['_source'][anchor_fields[first_key]]) }}">{{ first_value }}</a>
+                                                                {% else %}
+                                                                    {{ first_value }}
+                                                                {% endif %}
                                                             {% else %}
                                                                 None
                                                             {% endif %}
                                                         </td>
                                                     </tr>
+                                                    <tr class="govuk-table__row">
+                                                        <td class="govuk-table__cell govuk-table__cell--with-padding govuk-table__cell--no-pt">File name</td>
+                                                        <td class="govuk-table__cell govuk-table__cell--no-pt">
+                                                            <a href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">
+                                                                {% if 'file_name' in record['highlight'] and record['highlight'].keys() | list | first != 'file_name' %}
+                                                                    {{ record['highlight']['file_name'] | join(' ... ')| clean_tags | safe }}
+                                                                {% else %}
+                                                                    {{ record['_source']['file_name'] }}
+                                                                {% endif %}
+                                                            </a>
+                                                        </td>
+                                                    </tr>
                                                     {% set items = record['highlight'].items() | list %}
                                                     {% for key, value in items[1:] %}
-                                                        <tr class="govuk-table__row top-row hidden-row-{{ main_loop_index }}">
-                                                            <td class="govuk-table__cell govuk-table__cell--with-padding govuk-table__cell--no-pt">
-                                                                {{ key | replace('_', ' ') | capitalize }}
-                                                            </td>
-                                                            <td class="govuk-table__cell govuk-table__cell--no-pt">{{ value | join(' ... ')| safe }}</td>
-                                                        </tr>
+                                                        {% if key != 'file_name' %}
+                                                            <tr class="govuk-table__row top-row hidden-row-{{ main_loop_index }}">
+                                                                <td class="govuk-table__cell govuk-table__cell--with-padding govuk-table__cell--no-pt">
+                                                                    {{ key | replace('_', ' ') | capitalize }}
+                                                                </td>
+                                                                <td class="govuk-table__cell govuk-table__cell--no-pt">{{ value | join(' ... ')| clean_tags | safe }}</td>
+                                                            </tr>
+                                                        {% endif %}
                                                     {% endfor %}
                                                     <tr class="govuk-table__row top-row hidden-row-{{ main_loop_index }}">
                                                         <td class="govuk-table__cell"></td>

@@ -1,4 +1,5 @@
 import inspect
+import re
 
 from flask import Flask, g
 from flask_compress import Compress
@@ -23,6 +24,18 @@ def null_to_dash(value):
     return value
 
 
+def clean_tags(text):
+    return re.sub(
+        r"</?(?!/?mark\b)(\w+)(\s[^>]*)?/?\s*>",
+        lambda m: (
+            m.group(0).strip("<>")
+            if m.group(0).startswith(("<", "</"))
+            else m.group(0)
+        ),
+        text,
+    )
+
+
 def create_app(config_class, database_uri=None):
     app = Flask(__name__, static_url_path="/assets")
     config = config_class()
@@ -34,6 +47,7 @@ def create_app(config_class, database_uri=None):
     app.jinja_env.lstrip_blocks = True
     app.jinja_env.trim_blocks = True
     app.jinja_env.filters["null_to_dash"] = null_to_dash
+    app.jinja_env.filters["clean_tags"] = clean_tags
     app.jinja_loader = ChoiceLoader(
         [
             PackageLoader("app"),
