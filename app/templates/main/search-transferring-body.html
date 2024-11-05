@@ -100,9 +100,13 @@
                                                                     <summary />
                                                                 </details>
                                                                 {% if record['highlight'] %}
-                                                                    {% set remaining_field_count = record['highlight'].keys() | length - 1 %}
-                                                                    {{ first_key | replace('_', ' ') | capitalize }}
-                                                                    {% if remaining_field_count > 0 %}+{{ remaining_field_count }}{% endif %}
+                                                                    {% set count = record['highlight'].keys() | length - 1 %}
+                                                                    {% set field = first_key | replace('_', ' ') | capitalize %}
+                                                                    {% if count > 0 %}
+                                                                        {{ field }} +{{ count }}
+                                                                    {% else %}
+                                                                        {{ field }}
+                                                                    {% endif %}
                                                                 {% else %}
                                                                     None
                                                                 {% endif %}

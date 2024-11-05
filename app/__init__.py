@@ -17,6 +17,7 @@ s3 = FlaskS3()
 
 
 def null_to_dash(value):
+    """Filter that converts string values that are "null" or Nones to dash"""
     if value == "null":
         return "-"
     if value is None:
@@ -25,15 +26,8 @@ def null_to_dash(value):
 
 
 def clean_tags(text):
-    return re.sub(
-        r"</?(?!/?mark\b)(\w+)(\s[^>]*)?/?\s*>",
-        lambda m: (
-            m.group(0).strip("<>")
-            if m.group(0).startswith(("<", "</"))
-            else m.group(0)
-        ),
-        text,
-    )
+    """Filter that removes ALL HTML tags that are not <mark>"""
+    return re.sub(r"</?(?!mark\b)\w+[^>]*>", "", text)
 
 
 def create_app(config_class, database_uri=None):
