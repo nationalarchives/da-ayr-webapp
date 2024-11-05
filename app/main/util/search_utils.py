@@ -7,12 +7,32 @@ from app.main.util.pagination import calculate_total_pages, get_pagination
 
 
 def format_opensearch_results(results):
-    results_clone = results
+    """Format date fields of the _source object inside results"""
+    results_clone = results.copy()
     for result in results_clone:
         for key, value in result["_source"].items():
             if "date" in key:
                 result["_source"][key] = format_opensearch_date(value or "")
     return results_clone
+
+
+def filter_opensearch_highlight_results(results):
+    """Filter highlight results for fields that are not needed"""
+    results_clone = results.copy()
+    for result in results_clone:
+        if result.get("highlight", None):
+            keys_to_remove = [
+                key for key in result["highlight"].keys() if ".keyword" in key
+            ]
+            for key in keys_to_remove:
+                del result["highlight"][key]
+    return results_clone
+
+
+def post_process_opensearch_results(results):
+    results = format_opensearch_results(results)
+    results = filter_opensearch_highlight_results(results)
+    return results
 
 
 def get_open_search_fields_to_search_on(open_search, search_area):

@@ -23,7 +23,6 @@
     "Record status (open)": "closure_type-desc"
 } %}
 {% set anchor_fields = {"file_name": "file_id", "file_path": "file_id"} %}
-{% set ignored_fields = ["file_type", "file_path", "*.keyword"] %}
 {% block beforeContent %}{{ super() }}{% endblock %}
 {% block content %}
     <!-- SEARCH  -->
@@ -101,7 +100,9 @@
                                                                     <summary />
                                                                 </details>
                                                                 {% if record['highlight'] %}
-                                                                    {{ first_key | replace('_', ' ') | capitalize }} +{{ record['highlight'].keys() | length - 1 }}
+                                                                    {% set remaining_field_count = record['highlight'].keys() | length - 1 %}
+                                                                    {{ first_key | replace('_', ' ') | capitalize }}
+                                                                    {% if remaining_field_count > 0 %}+{{ remaining_field_count }}{% endif %}
                                                                 {% else %}
                                                                     None
                                                                 {% endif %}
@@ -119,18 +120,20 @@
                                                             {% endif %}
                                                         </td>
                                                     </tr>
-                                                    <tr class="govuk-table__row">
-                                                        <td class="govuk-table__cell govuk-table__cell--with-padding govuk-table__cell--no-pt">File name</td>
-                                                        <td class="govuk-table__cell govuk-table__cell--no-pt">
-                                                            <a href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">
-                                                                {% if 'file_name' in record['highlight'] and record['highlight'].keys() | list | first != 'file_name' %}
-                                                                    {{ record['highlight']['file_name'] | join(' ... ')| clean_tags | safe }}
-                                                                {% else %}
-                                                                    {{ record['_source']['file_name'] }}
-                                                                {% endif %}
-                                                            </a>
-                                                        </td>
-                                                    </tr>
+                                                    {% if record['highlight'].keys() | list | first != 'file_name' %}
+                                                        <tr class="govuk-table__row">
+                                                            <td class="govuk-table__cell govuk-table__cell--with-padding govuk-table__cell--no-pt">File name</td>
+                                                            <td class="govuk-table__cell govuk-table__cell--no-pt">
+                                                                <a href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">
+                                                                    {% if 'file_name' in record['highlight'].keys() | list %}
+                                                                        {{ record['highlight']['file_name'] | join(' ... ')| clean_tags | safe }}
+                                                                    {% else %}
+                                                                        {{ record['_source']['file_name'] }}
+                                                                    {% endif %}
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    {% endif %}
                                                     {% set items = record['highlight'].items() | list %}
                                                     {% for key, value in items[1:] %}
                                                         {% if key != 'file_name' %}

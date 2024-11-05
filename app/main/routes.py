@@ -57,11 +57,11 @@ from app.main.util.search_utils import (
     build_search_results_summary_query,
     build_search_transferring_body_query,
     execute_search,
-    format_opensearch_results,
     get_open_search_fields_to_search_on,
     get_pagination_info,
     get_param,
     get_query_and_search_area,
+    post_process_opensearch_results,
     setup_opensearch,
 )
 
@@ -605,9 +605,9 @@ def search_transferring_body(_id: uuid.UUID):
         )
 
         search_results = execute_search(open_search, dsl_query, page, per_page)
-
-        results = search_results["hits"]["hits"]
-        results = format_opensearch_results(results)
+        results = post_process_opensearch_results(
+            search_results["hits"]["hits"]
+        )
 
         total_records, pagination = get_pagination_info(
             search_results, page, per_page

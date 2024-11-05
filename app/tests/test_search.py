@@ -61,6 +61,8 @@ os_mock_return_tb = {
                         "this is a <mark>cool test</mark> and",
                         "sea shells <mark>on the</mark> sea shore",
                     ],
+                    "test_field_1.keyword": ["should not be shown"],
+                    "test_field_2.keyword": ["should not be shown also"],
                 },
             },
         ],
@@ -1800,6 +1802,10 @@ class TestSearchTransferringBody:
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
+                        "File name",
+                        "fifth_file.doc",
+                    ],
+                    [
                         "Test field 2",
                         "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
                     ],
@@ -1814,6 +1820,10 @@ class TestSearchTransferringBody:
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
+                        "File name",
+                        "fifth_file.doc",
+                    ],
+                    [
                         "Test field 2",
                         "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
                     ],
@@ -1826,6 +1836,10 @@ class TestSearchTransferringBody:
                     [
                         "Test field 1 +1",
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
+                    ],
+                    [
+                        "File name",
+                        "fifth_file.doc",
                     ],
                     [
                         "Test field 2",
@@ -2009,3 +2023,147 @@ class TestSearchTransferringBody:
 
         assert "checked" in checkbox.attrs
         assert all("open" in details.attrs for details in details_elements)
+
+    @patch("app.main.util.search_utils.OpenSearch")
+    def test_search_transferring_body_file_name_in_source_shown_if_not_in_highlight(
+        self,
+        mock_search_client,
+        client,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user
+        When they make a GET request to the search page with a query
+        If the file_name is not found inside highlight
+        Then it should be shown as the value inside _source AND be a link AND be the 2nd row
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+        mock_standard_user(client, "first_body")
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}",
+            data={"query": "test"},
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        anchors = soup.find_all("a")
+        anchors_text = []
+        for anchor in anchors:
+            anchors_text.append(anchor.get_text(strip=True))
+
+        table_body = soup.find("tbody")
+        table_rows_cell_values = get_table_rows_cell_values(table_body)
+        assert table_rows_cell_values[1] == ["File name", "fifth_file.doc"]
+        assert "fifth_file.doc" in anchors_text
+
+    @patch("app.main.util.search_utils.OpenSearch")
+    def test_search_transferring_body_highlight_file_name_prioritized_over_source(
+        self,
+        mock_search_client,
+        client,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user
+        When they make a GET request to the search page with a query
+        If highlight has a file_name field
+        Then it should be shown in place of the file_name inside _source AND be an achor AND is the 2nd row
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value={
+                "hits": {
+                    "total": {
+                        "value": 1000,
+                    },
+                    "hits": [
+                        {
+                            "_source": {
+                                "file_name": "fifth_file.doc",
+                            },
+                            "highlight": {
+                                "foo": ["bar"],
+                                "marco": ["polo"],
+                                "file_name": ["<mark>test_file.pdf</mark>"],
+                            },
+                        },
+                    ],
+                }
+            }
+        )
+        mock_standard_user(client, "first_body")
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}",
+            data={"query": "test"},
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        anchors = soup.find_all("a")
+        anchors_text = []
+        for anchor in anchors:
+            anchors_text.append(anchor.get_text(strip=True))
+
+        table_body = soup.find("tbody")
+        table_rows_cell_values = get_table_rows_cell_values(table_body)
+        assert table_rows_cell_values[1] == [
+            "File name",
+            "<mark>test_file.pdf</mark>",
+        ]
+        assert ["File name", "fifth_file.doc"] not in table_rows_cell_values
+        assert "test_file.pdf" in anchors_text
+
+    @patch("app.main.util.search_utils.OpenSearch")
+    def test_search_transferring_body_keyword_fields_should_not_be_shown(
+        self,
+        mock_search_client,
+        client,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user
+        When they make a GET request to the search page with a query
+        If keyword fields that get returned from OS highlight exist
+        Then they should not be shown in the table
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+        mock_standard_user(client, "first_body")
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}",
+            data={"query": "test"},
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+
+        table_body = soup.find("tbody")
+        table_rows_cell_values = get_table_rows_cell_values(table_body)
+        assert [
+            "Test field 1.keyword",
+            "should not be shown",
+        ] not in table_rows_cell_values
+        assert [
+            "Test field 2.keyword",
+            "should not be shown also",
+        ] not in table_rows_cell_values
