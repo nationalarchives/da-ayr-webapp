@@ -1,6 +1,6 @@
 import inspect
-import re
 
+import bleach
 from flask import Flask, g
 from flask_compress import Compress
 from flask_s3 import FlaskS3
@@ -26,8 +26,9 @@ def null_to_dash(value):
 
 
 def clean_tags(text):
-    """Filter that removes ALL HTML tags that are not <mark>"""
-    return re.sub(r"</?(?!mark\b)\w+[^>]*>", "", text)
+    """Sanitizes ALL HTML tags that are not <mark>"""
+    allowed_tags = ["mark"]
+    return bleach.clean(text, tags=allowed_tags)
 
 
 def create_app(config_class, database_uri=None):

@@ -103,6 +103,8 @@ os_mock_return_tb_closed_record = {
     }
 }
 
+expected_file_name = "fifth_file.doc"
+
 
 class MockIndices:
     def __init__(self, get_mapping_return_value=None):
@@ -2058,11 +2060,11 @@ class TestSearchTransferringBody:
         anchors_text = []
         for anchor in anchors:
             anchors_text.append(anchor.get_text(strip=True))
+        assert expected_file_name in anchors_text
 
         table_body = soup.find("tbody")
         table_rows_cell_values = get_table_rows_cell_values(table_body)
-        assert table_rows_cell_values[1] == ["File name", "fifth_file.doc"]
-        assert "fifth_file.doc" in anchors_text
+        assert table_rows_cell_values[1] == ["File name", expected_file_name]
 
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_highlight_file_name_prioritized_over_source(
@@ -2116,6 +2118,7 @@ class TestSearchTransferringBody:
         anchors_text = []
         for anchor in anchors:
             anchors_text.append(anchor.get_text(strip=True))
+        assert "test_file.pdf" in anchors_text
 
         table_body = soup.find("tbody")
         table_rows_cell_values = get_table_rows_cell_values(table_body)
@@ -2123,8 +2126,7 @@ class TestSearchTransferringBody:
             "File name",
             "<mark>test_file.pdf</mark>",
         ]
-        assert ["File name", "fifth_file.doc"] not in table_rows_cell_values
-        assert "test_file.pdf" in anchors_text
+        assert ["File name", expected_file_name] not in table_rows_cell_values
 
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_keyword_fields_should_not_be_shown(
