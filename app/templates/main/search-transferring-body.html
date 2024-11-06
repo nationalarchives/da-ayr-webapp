@@ -91,8 +91,8 @@
                                                 {% for record in results %}
                                                     {% set main_loop_index = loop.index %}
                                                     <tr class="govuk-table__row govuk-table__row--primary">
-                                                        {% set first_key = record['highlight'].keys() | list | first %}
-                                                        {% set first_value = record['highlight'].values() | list | first | join(' ... ')| clean_tags | safe %}
+                                                        {% set first_result_key = record['highlight'].keys() | list | first %}
+                                                        {% set first_result_value = record['highlight'].values() | list | first | join(' ... ')| clean_tags | safe %}
                                                         <td class="govuk-table__cell">
                                                             <div class="govuk-table__cell__data">
                                                                 <details class="details-toggle-{{ main_loop_index }}"
@@ -100,10 +100,10 @@
                                                                     <summary />
                                                                 </details>
                                                                 {% if record['highlight'] %}
-                                                                    {% set count = record['highlight'].keys() | length - 1 %}
-                                                                    {% set field = first_key | replace('_', ' ') | capitalize %}
+                                                                    {% set field = first_result_key | replace('_', ' ') | capitalize %}
+                                                                    {% set field_count = record['highlight'].keys() | length - 1 %}
                                                                     {% if count > 0 %}
-                                                                        {{ field }} +{{ count }}
+                                                                        {{ field }} +{{ field_count }}
                                                                     {% else %}
                                                                         {{ field }}
                                                                     {% endif %}
@@ -114,10 +114,10 @@
                                                         </td>
                                                         <td class="govuk-table__cell">
                                                             {% if record['highlight'] %}
-                                                                {% if first_key in anchor_fields.keys() | list %}
-                                                                    <a href="{{ url_for('main.record', record_id=record['_source'][anchor_fields[first_key]]) }}">{{ first_value }}</a>
+                                                                {% if first_result_key in anchor_fields.keys() | list %}
+                                                                    <a href="{{ url_for('main.record', record_id=record['_source'][anchor_fields[first_result_key]]) }}">{{ first_result_value }}</a>
                                                                 {% else %}
-                                                                    {{ first_value }}
+                                                                    {{ first_result_value }}
                                                                 {% endif %}
                                                             {% else %}
                                                                 None
