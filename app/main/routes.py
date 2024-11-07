@@ -1,5 +1,6 @@
 import io
 import json
+import re
 import uuid
 
 import boto3
@@ -584,7 +585,18 @@ def search_transferring_body(_id: uuid.UUID):
     )
 
     if query:
-        search_terms = [term.strip() for term in query.split(",") if term]
+        # Extract quoted phrases and terms not in quotes separately
+        quoted_phrases = re.findall(
+            r'"([^"]*)"', query
+        )  # Finds phrases within quotes
+        remaining_terms = re.sub(r'"[^"]*"', "", query).replace(",", " ")
+        single_terms = [
+            term.strip() for term in remaining_terms.split() if term.strip()
+        ]
+
+        # Combine quoted phrases and single terms into final search_terms list
+        search_terms = quoted_phrases + single_terms
+
         if search_filter:
             search_terms.append(search_filter)
             query += f",{search_filter}" if search_terms else search_filter
