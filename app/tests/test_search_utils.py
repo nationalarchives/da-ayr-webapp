@@ -336,6 +336,52 @@ def test_build_dsl_search_query():
     assert dsl_query == expected_base_dsl_search_query
 
 
+def test_build_dsl_search_query_and_exact_fuzzy_search():
+    query = '"exact match", fuzzy, search'
+    search_fields = ["field_1"]
+    sorting_orders = {"sort_1": "test_1"}
+    filter_clauses = [{"clause_1": "test_2"}]
+
+    expected_dsl_query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "multi_match": {
+                            "query": "exact match",
+                            "fields": search_fields,
+                            "type": "phrase",
+                            "lenient": True,
+                        }
+                    },
+                    {
+                        "multi_match": {
+                            "query": "fuzzy",
+                            "fields": search_fields,
+                            "fuzziness": "AUTO",
+                            "lenient": True,
+                        }
+                    },
+                    {
+                        "multi_match": {
+                            "query": "search",
+                            "fields": search_fields,
+                            "fuzziness": "AUTO",
+                            "lenient": True,
+                        }
+                    }
+                ],
+                "filter": filter_clauses,
+            }
+        },
+        "sort": sorting_orders,
+        "_source": {"exclude": ["*.keyword"]},
+    }
+
+    dsl_query = build_dsl_search_query(query, search_fields, sorting_orders, filter_clauses)
+    assert dsl_query == expected_dsl_query
+
+
 def test_build_search_results_summary_query():
     dsl_query = build_search_results_summary_query(
         "test_query", ["field_1"], {"sort_1": "test_1"}
