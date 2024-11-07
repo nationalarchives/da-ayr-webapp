@@ -606,7 +606,6 @@ def search_transferring_body(_id: uuid.UUID):
         )
 
         search_results = execute_search(open_search, dsl_query, page, per_page)
-        print(json.dumps(search_results))
         results = post_process_opensearch_results(
             search_results["hits"]["hits"]
         )
