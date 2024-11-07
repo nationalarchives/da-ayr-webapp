@@ -15,6 +15,7 @@ from app.tests.utils import (
     get_table_rows_header_values,
 )
 
+highlight_tag = "uuid_prefix_highlight_tag"
 os_mock_return_summary = {
     "hits": {"total": {"value": 1000}, "hits": []},
     "aggregations": {
@@ -54,12 +55,12 @@ os_mock_return_tb = {
                 },
                 "highlight": {
                     "test_field_1": [
-                        "<highlight_tag>test1</highlight_tag> and",
-                        "this is just a sentence with a mark <highlight_tag>element</highlight_tag> in it",
+                        f"<{highlight_tag}>test1</{highlight_tag}> and",
+                        f"this is just a sentence with a mark <{highlight_tag}>element</{highlight_tag}> in it",
                     ],
                     "test_field_2": [
-                        "this is a <highlight_tag>cool test</highlight_tag> and",
-                        "sea shells <highlight_tag>on the</highlight_tag> sea shore",
+                        f"this is a <{highlight_tag}>cool test</{highlight_tag}> and",
+                        f"sea shells <{highlight_tag}>on the</{highlight_tag}> sea shore",
                     ],
                     "test_field_1.keyword": ["should not be shown"],
                     "test_field_2.keyword": ["should not be shown also"],
@@ -1800,7 +1801,7 @@ class TestSearchTransferringBody:
                 os_mock_return_tb,
                 [
                     [
-                        "Test field 1 +2",
+                        "Test field 1 +1",
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
@@ -1818,7 +1819,7 @@ class TestSearchTransferringBody:
                 os_mock_return_tb,
                 [
                     [
-                        "Test field 1 +2",
+                        "Test field 1 +1",
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
@@ -1836,7 +1837,7 @@ class TestSearchTransferringBody:
                 os_mock_return_tb,
                 [
                     [
-                        "Test field 1 +2",
+                        "Test field 1 +1",
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
@@ -1873,7 +1874,7 @@ class TestSearchTransferringBody:
         mock_search_client.return_value = MockOpenSearch(
             search_return_value=mock_open_search_return
         )
-        mock_uuid4.return_value = "highlight_tag"
+        mock_uuid4.return_value.hex = "highlight_tag"
 
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -2085,7 +2086,7 @@ class TestSearchTransferringBody:
         If highlight has a file_name field
         Then it should be shown in place of the file_name inside _source AND be an achor AND is the 2nd row
         """
-        mock_uuid4.return_value = "highlight_tag"
+        mock_uuid4.return_value.hex = "highlight_tag"
         mock_search_client.return_value = MockOpenSearch(
             search_return_value={
                 "hits": {
@@ -2101,7 +2102,7 @@ class TestSearchTransferringBody:
                                 "foo": ["bar"],
                                 "marco": ["polo"],
                                 "file_name": [
-                                    "<highlight_tag>test_file.pdf</highlight_tag>"
+                                    "<uuid_prefix_highlight_tag>test_file.pdf</uuid_prefix_highlight_tag>"
                                 ],
                             },
                         },

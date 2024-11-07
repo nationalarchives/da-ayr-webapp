@@ -1,6 +1,6 @@
 import pytest
 
-from app import clean_tags, null_to_dash
+from app import clean_tags_and_replace_highlight_tag, null_to_dash
 
 
 @pytest.mark.parametrize(
@@ -99,4 +99,7 @@ def test_null_to_dash(input_value, expected_output):
     ],
 )
 def test_clean_tags(input_text, expected_output):
-    assert clean_tags(input_text, "test_highlight_key") == expected_output
+    assert (
+        clean_tags_and_replace_highlight_tag(input_text, "test_highlight_key")
+        == expected_output
+    )

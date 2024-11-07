@@ -25,11 +25,11 @@ def null_to_dash(value):
     return value
 
 
-def clean_tags(text, highlight_tag):
+def clean_tags_and_replace_highlight_tag(text, highlight_tag):
     """Sanitizes ALL HTML tags that are not <mark>"""
     allowed_tags = [highlight_tag]
-    text = bleach.clean(text, tags=allowed_tags)
-    return text.replace(highlight_tag, "mark")
+    clean_text = bleach.clean(text, tags=allowed_tags)
+    return clean_text.replace(highlight_tag, "mark")
 
 
 def create_app(config_class, database_uri=None):
@@ -43,7 +43,9 @@ def create_app(config_class, database_uri=None):
     app.jinja_env.lstrip_blocks = True
     app.jinja_env.trim_blocks = True
     app.jinja_env.filters["null_to_dash"] = null_to_dash
-    app.jinja_env.filters["clean_tags"] = clean_tags
+    app.jinja_env.filters["clean_tags_and_replace_highlight_tag"] = (
+        clean_tags_and_replace_highlight_tag
+    )
     app.jinja_loader = ChoiceLoader(
         [
             PackageLoader("app"),
