@@ -179,9 +179,8 @@ def build_dsl_search_query(
                 "filter": filter_clauses,
             }
         },
-        # set as {} until sorting ticket is in done
-        "sort": {},
-        "_source": True,
+        "sort": sorting_orders,
+        "_source": {"exclude": ["*.keyword"]},
     }
 
 
