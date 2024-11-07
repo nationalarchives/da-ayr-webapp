@@ -110,20 +110,41 @@ def get_all_fields_excluding(open_search, index_name, exclude_fields=None):
 def build_dsl_search_query(
     query, search_fields, sorting_orders, filter_clauses
 ):
-    """Constructs the base DSL query for OpenSearch"""
-    return {
+    """Constructs the base DSL query for OpenSearch with AND behavior for multiple terms"""
+
+    search_terms = [term.strip() for term in query.split(",") if term]
+
+    must_clauses = []
+
+    for term in search_terms:
+        if term.startswith('"') and term.endswith('"'):
+            term = term.strip('"')
+            must_clauses.append(
+                {
+                    "multi_match": {
+                        "query": term,
+                        "fields": search_fields,
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                }
+            )
+        else:
+            must_clauses.append(
+                {
+                    "multi_match": {
+                        "query": term,
+                        "fields": search_fields,
+                        "fuzziness": "AUTO",
+                        "lenient": True,
+                    }
+                }
+            )
+
+    dsl_query = {
         "query": {
             "bool": {
-                "must": [
-                    {
-                        "multi_match": {
-                            "query": query,
-                            "fields": search_fields,
-                            "fuzziness": "AUTO",
-                            "lenient": True,
-                        }
-                    }
-                ],
+                "must": must_clauses,
                 "filter": filter_clauses,
             }
         },
@@ -131,6 +152,8 @@ def build_dsl_search_query(
         "sort": {},
         "_source": True,
     }
+
+    return dsl_query
 
 
 def build_search_results_summary_query(query, search_fields, sorting_orders):
