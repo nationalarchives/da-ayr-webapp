@@ -369,7 +369,7 @@ def test_build_dsl_search_query_and_exact_fuzzy_search():
                             "fuzziness": "AUTO",
                             "lenient": True,
                         }
-                    }
+                    },
                 ],
                 "filter": filter_clauses,
             }
@@ -378,7 +378,9 @@ def test_build_dsl_search_query_and_exact_fuzzy_search():
         "_source": {"exclude": ["*.keyword"]},
     }
 
-    dsl_query = build_dsl_search_query(query, search_fields, sorting_orders, filter_clauses)
+    dsl_query = build_dsl_search_query(
+        query, search_fields, sorting_orders, filter_clauses
+    )
     assert dsl_query == expected_dsl_query
 
 
