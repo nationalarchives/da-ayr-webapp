@@ -2102,7 +2102,7 @@ class TestSearchTransferringBody:
                                 "foo": ["bar"],
                                 "marco": ["polo"],
                                 "file_name": [
-                                    "<uuid_prefix_highlight_tag>test_file.pdf</uuid_prefix_highlight_tag>"
+                                    f"<{highlight_tag}>test_file.pdf</{highlight_tag}>"
                                 ],
                             },
                         },
