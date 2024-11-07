@@ -376,7 +376,11 @@ def test_build_search_results_summary_query():
 def test_build_search_transferring_body_query():
     transferring_body_id = "test_transferring_body_id"
     dsl_query = build_search_transferring_body_query(
-        "test_query", ["field_1"], {"sort_1": "test_1"}, transferring_body_id
+        "test_query",
+        ["field_1"],
+        {"sort_1": "test_1"},
+        transferring_body_id,
+        "test_highlight_key",
     )
     assert dsl_query == {
         **expected_base_dsl_search_query,
@@ -402,8 +406,8 @@ def test_build_search_transferring_body_query():
             }
         },
         "highlight": {
-            "pre_tags": ["<mark>"],
-            "post_tags": ["</mark>"],
+            "pre_tags": ["<test_highlight_key>"],
+            "post_tags": ["</test_highlight_key>"],
             "fields": {
                 "*": {},
             },

@@ -25,10 +25,11 @@ def null_to_dash(value):
     return value
 
 
-def clean_tags(text):
+def clean_tags(text, highlight_tag):
     """Sanitizes ALL HTML tags that are not <mark>"""
-    allowed_tags = ["mark"]
-    return bleach.clean(text, tags=allowed_tags)
+    allowed_tags = [highlight_tag]
+    text = bleach.clean(text, tags=allowed_tags)
+    return text.replace(highlight_tag, "mark")
 
 
 def create_app(config_class, database_uri=None):

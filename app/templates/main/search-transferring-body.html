@@ -22,7 +22,6 @@
     "Record status (closed)": "closure_type-asc",
     "Record status (open)": "closure_type-desc"
 } %}
-{% set anchor_fields = {"file_name": "file_id"} %}
 {% block beforeContent %}{{ super() }}{% endblock %}
 {% block content %}
     <!-- SEARCH  -->
@@ -91,9 +90,9 @@
                                                 {% for record in results %}
                                                     {% set main_loop_index = loop.index %}
                                                     <tr class="govuk-table__row govuk-table__row--primary">
-                                                        {% set first_result_key = record['highlight'].keys() | list | first | replace('_', ' ') | capitalize %}
-                                                        {% set first_result_value = record['highlight'].values() | list | first | join(' ... ')| clean_tags | safe %}
-                                                        {% set field_count = record['highlight'].keys() | length - 1 %}
+                                                        {% set first_field = record['highlight'].keys() | list | first | replace('_', ' ') | capitalize %}
+                                                        {% set first_result_value = record['highlight'].values() | list | first | join(' ... ')| clean_tags(highlight_tag) | safe %}
+                                                        {% set total_fields = record['highlight'].keys() | length %}
                                                         <td class="govuk-table__cell">
                                                             <div class="govuk-table__cell__data">
                                                                 <details class="details-toggle-{{ main_loop_index }}"
@@ -101,10 +100,10 @@
                                                                     <summary />
                                                                 </details>
                                                                 {% if record['highlight'] %}
-                                                                    {% if field_count > 0 %}
-                                                                        {{ first_result_key }} +{{ field_count }}
+                                                                    {% if total_fields > 1 %}
+                                                                        {{ first_field }} +{{ total_fields }}
                                                                     {% else %}
-                                                                        {{ first_result_key }}
+                                                                        {{ first_field }}
                                                                     {% endif %}
                                                                 {% else %}
                                                                     None
@@ -113,8 +112,8 @@
                                                         </td>
                                                         <td class="govuk-table__cell">
                                                             {% if record['highlight'] %}
-                                                                {% if first_result_key in anchor_fields.keys() | list %}
-                                                                    <a href="{{ url_for('main.record', record_id=record['_source'][anchor_fields[first_result_key]]) }}">{{ first_result_value }}</a>
+                                                                {% if first_field == "field_name" %}
+                                                                    <a href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ first_result_value }}</a>
                                                                 {% else %}
                                                                     {{ first_result_value }}
                                                                 {% endif %}
@@ -129,7 +128,7 @@
                                                             <td class="govuk-table__cell govuk-table__cell--no-pt">
                                                                 <a href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">
                                                                     {% if 'file_name' in record['highlight'].keys() | list %}
-                                                                        {{ record['highlight']['file_name'] | join(' ... ')| clean_tags | safe }}
+                                                                        {{ record['highlight']['file_name'] | join(' ... ')| clean_tags(highlight_tag) | safe }}
                                                                     {% else %}
                                                                         {{ record['_source']['file_name'] }}
                                                                     {% endif %}
@@ -144,7 +143,9 @@
                                                                 <td class="govuk-table__cell govuk-table__cell--with-padding govuk-table__cell--no-pt">
                                                                     {{ key | replace('_', ' ') | capitalize }}
                                                                 </td>
-                                                                <td class="govuk-table__cell govuk-table__cell--no-pt">{{ value | join(' ... ')| clean_tags | safe }}</td>
+                                                                <td class="govuk-table__cell govuk-table__cell--no-pt">
+                                                                    {{ value | join(' ... ')| clean_tags(highlight_tag) | safe }}
+                                                                </td>
                                                             </tr>
                                                         {% endif %}
                                                     {% endfor %}

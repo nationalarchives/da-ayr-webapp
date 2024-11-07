@@ -157,7 +157,7 @@ def build_search_results_summary_query(query, search_fields, sorting_orders):
 
 
 def build_search_transferring_body_query(
-    query, search_fields, sorting_orders, transferring_body_id
+    query, search_fields, sorting_orders, transferring_body_id, highlight_tag
 ):
     filter_clauses = [
         {"term": {"transferring_body_id.keyword": transferring_body_id}}
@@ -167,8 +167,8 @@ def build_search_transferring_body_query(
     )
     highlighting = {
         "highlight": {
-            "pre_tags": ["<mark>"],
-            "post_tags": ["</mark>"],
+            "pre_tags": [f"<{highlight_tag}>"],
+            "post_tags": [f"</{highlight_tag}>"],
             "fields": {
                 "*": {},
             },

@@ -54,12 +54,12 @@ os_mock_return_tb = {
                 },
                 "highlight": {
                     "test_field_1": [
-                        "<mark>test1</mark> and",
-                        "this is just a sentence with a mark <mark>element</mark> in it",
+                        "<highlight_tag>test1</highlight_tag> and",
+                        "this is just a sentence with a mark <highlight_tag>element</highlight_tag> in it",
                     ],
                     "test_field_2": [
-                        "this is a <mark>cool test</mark> and",
-                        "sea shells <mark>on the</mark> sea shore",
+                        "this is a <highlight_tag>cool test</highlight_tag> and",
+                        "sea shells <highlight_tag>on the</highlight_tag> sea shore",
                     ],
                     "test_field_1.keyword": ["should not be shown"],
                     "test_field_2.keyword": ["should not be shown also"],
@@ -1800,7 +1800,7 @@ class TestSearchTransferringBody:
                 os_mock_return_tb,
                 [
                     [
-                        "Test field 1 +1",
+                        "Test field 1 +2",
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
@@ -1818,7 +1818,7 @@ class TestSearchTransferringBody:
                 os_mock_return_tb,
                 [
                     [
-                        "Test field 1 +1",
+                        "Test field 1 +2",
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
@@ -1836,7 +1836,7 @@ class TestSearchTransferringBody:
                 os_mock_return_tb,
                 [
                     [
-                        "Test field 1 +1",
+                        "Test field 1 +2",
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
@@ -1851,10 +1851,12 @@ class TestSearchTransferringBody:
             ),
         ],
     )
+    @patch("app.main.routes.uuid.uuid4")
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_with_search_term_main_table(
         self,
         mock_search_client,
+        mock_uuid4,
         client: FlaskClient,
         mock_standard_user,
         browse_consignment_files,
@@ -1871,6 +1873,7 @@ class TestSearchTransferringBody:
         mock_search_client.return_value = MockOpenSearch(
             search_return_value=mock_open_search_return
         )
+        mock_uuid4.return_value = "highlight_tag"
 
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -1895,7 +1898,7 @@ class TestSearchTransferringBody:
         table_cell_values = get_table_rows_cell_values(table_body)
 
         mark_elements = soup.find_all("mark")
-        mark_text_values = [mark.text for mark in mark_elements]
+        mark_text_values = [mark.get_text(strip=True) for mark in mark_elements]
 
         assert mark_text_values == ["test1", "element", "cool test", "on the"]
         assert table_cell_values == expected_cell_values
@@ -2066,10 +2069,12 @@ class TestSearchTransferringBody:
         table_rows_cell_values = get_table_rows_cell_values(table_body)
         assert table_rows_cell_values[1] == ["File name", expected_file_name]
 
+    @patch("app.main.routes.uuid.uuid4")
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_highlight_file_name_prioritized_over_source(
         self,
         mock_search_client,
+        mock_uuid4,
         client,
         mock_standard_user,
         browse_consignment_files,
@@ -2080,6 +2085,7 @@ class TestSearchTransferringBody:
         If highlight has a file_name field
         Then it should be shown in place of the file_name inside _source AND be an achor AND is the 2nd row
         """
+        mock_uuid4.return_value = "highlight_tag"
         mock_search_client.return_value = MockOpenSearch(
             search_return_value={
                 "hits": {
@@ -2094,7 +2100,9 @@ class TestSearchTransferringBody:
                             "highlight": {
                                 "foo": ["bar"],
                                 "marco": ["polo"],
-                                "file_name": ["<mark>test_file.pdf</mark>"],
+                                "file_name": [
+                                    "<highlight_tag>test_file.pdf</highlight_tag>"
+                                ],
                             },
                         },
                     ],

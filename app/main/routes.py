@@ -558,6 +558,7 @@ def search_transferring_body(_id: uuid.UUID):
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     page = int(request.args.get("page", 1))
     open_all = get_param("open_all", request)
+    highlight_tag = str(uuid.uuid4())
 
     query, search_area = get_query_and_search_area(request)
     search_filter = (
@@ -601,7 +602,7 @@ def search_transferring_body(_id: uuid.UUID):
         )
         sorting_orders = build_sorting_orders(request.args)
         dsl_query = build_search_transferring_body_query(
-            query, search_fields, sorting_orders, _id
+            query, search_fields, sorting_orders, _id, highlight_tag
         )
 
         search_results = execute_search(open_search, dsl_query, page, per_page)
@@ -627,6 +628,7 @@ def search_transferring_body(_id: uuid.UUID):
         search_area=search_area,
         pagination=pagination,
         open_all=open_all,
+        highlight_tag=highlight_tag,
         query_string_parameters={
             k: v for k, v in request.args.items() if k != "page"
         },

@@ -35,21 +35,24 @@ def test_null_to_dash(input_value, expected_output):
 @pytest.mark.parametrize(
     "input_text, expected_output",
     [
-        # input with non-mark HTML tags
+        # input with non-test_highlight_key HTML tags
         (
             "<div>Test</div> <span>Text</span>",
             "&lt;div&gt;Test&lt;/div&gt; &lt;span&gt;Text&lt;/span&gt;",
         ),
-        # input with ALLOWED <mark> tag
-        ("<mark>Highlight</mark>", "<mark>Highlight</mark>"),
-        # mixed tags with <mark> and other tags
+        # input with ALLOWED <test_highlight_key> tag
         (
-            "<mark>Keep</mark> <div>Remove</div>",
+            "<test_highlight_key>Highlight</test_highlight_key>",
+            "<mark>Highlight</mark>",
+        ),
+        # mixed tags with <test_highlight_key> and other tags
+        (
+            "<test_highlight_key>Keep</test_highlight_key> <div>Remove</div>",
             "<mark>Keep</mark> &lt;div&gt;Remove&lt;/div&gt;",
         ),
-        # nested tags including <mark>
+        # nested tags including <test_highlight_key>
         (
-            "<div><mark>Inside</mark> Div</div>",
+            "<div><test_highlight_key>Inside</test_highlight_key> Div</div>",
             "&lt;div&gt;<mark>Inside</mark> Div&lt;/div&gt;",
         ),
         # self-closing tag (e.g., <img>)
@@ -64,9 +67,9 @@ def test_null_to_dash(input_value, expected_output):
             "<p class='text'>Paragraph</p>",
             "&lt;p class='text'&gt;Paragraph&lt;/p&gt;",
         ),
-        # mixed case-sensitive tags (e.g., <Mark> vs <mark>) - HTML tags are not case sensitive
+        # mixed case-sensitive tags (e.g., <test_highlight_key> vs <test_highlight_key>) - tags are not case sensitive
         (
-            "<Mark>Upper</Mark> <mark>Lower</mark>",
+            "<test_highlight_key>Upper</test_highlight_key> <test_highlight_key>Lower</test_highlight_key>",
             "<mark>Upper</mark> <mark>Lower</mark>",
         ),
         # empty tag pairs
@@ -88,7 +91,12 @@ def test_null_to_dash(input_value, expected_output):
             "<script src='myscript.js'>This is a script tag with attrs</script>",
             "&lt;script src='myscript.js'&gt;This is a script tag with attrs&lt;/script&gt;",
         ),
+        # removes onclick attributes from test_highlight_key elements
+        (
+            "<test_highlight_key onclick='alert('XSS')'>Should remove onclick</test_highlight_key>",
+            "<mark>Should remove onclick</mark>",
+        ),
     ],
 )
 def test_clean_tags(input_text, expected_output):
-    assert clean_tags(input_text) == expected_output
+    assert clean_tags(input_text, "test_highlight_key") == expected_output
