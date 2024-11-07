@@ -91,8 +91,9 @@
                                                 {% for record in results %}
                                                     {% set main_loop_index = loop.index %}
                                                     <tr class="govuk-table__row govuk-table__row--primary">
-                                                        {% set first_result_key = record['highlight'].keys() | list | first %}
+                                                        {% set first_result_key = record['highlight'].keys() | list | first | replace('_', ' ') | capitalize %}
                                                         {% set first_result_value = record['highlight'].values() | list | first | join(' ... ')| clean_tags | safe %}
+                                                        {% set field_count = record['highlight'].keys() | length - 1 %}
                                                         <td class="govuk-table__cell">
                                                             <div class="govuk-table__cell__data">
                                                                 <details class="details-toggle-{{ main_loop_index }}"
@@ -100,12 +101,10 @@
                                                                     <summary />
                                                                 </details>
                                                                 {% if record['highlight'] %}
-                                                                    {% set field = first_result_key | replace('_', ' ') | capitalize %}
-                                                                    {% set field_count = record['highlight'].keys() | length - 1 %}
-                                                                    {% if count > 0 %}
-                                                                        {{ field }} +{{ field_count }}
+                                                                    {% if field_count > 0 %}
+                                                                        {{ first_result_key }} +{{ field_count }}
                                                                     {% else %}
-                                                                        {{ field }}
+                                                                        {{ first_result_key }}
                                                                     {% endif %}
                                                                 {% else %}
                                                                     None
