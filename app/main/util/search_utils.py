@@ -1,3 +1,5 @@
+import re
+
 import opensearchpy
 from flask import abort, current_app
 from opensearchpy import OpenSearch, RequestsHttpConnection
@@ -107,41 +109,51 @@ def get_all_fields_excluding(open_search, index_name, exclude_fields=None):
     return filtered_fields
 
 
+def build_must_clauses(query, search_fields):
+    """Helper function to build must_clauses for OpenSearch with AND"""
+    must_clauses = []
+
+    quoted_phrases = re.findall(r'"([^"]*)"', query)
+
+    remaining_query = re.sub(r'"[^"]*"', "", query).replace(",", " ")
+    single_terms = [
+        term.strip() for term in remaining_query.split() if term.strip()
+    ]
+
+    for phrase in quoted_phrases:
+        must_clauses.append(
+            {
+                "multi_match": {
+                    "query": phrase,
+                    "fields": search_fields,
+                    "type": "phrase",
+                    "lenient": True,
+                }
+            }
+        )
+
+    for term in single_terms:
+        must_clauses.append(
+            {
+                "multi_match": {
+                    "query": term,
+                    "fields": search_fields,
+                    "fuzziness": "AUTO",
+                    "lenient": True,
+                }
+            }
+        )
+
+    return must_clauses
+
+
 def build_dsl_search_query(
     query, search_fields, sorting_orders, filter_clauses
 ):
-    """Constructs the base DSL query for OpenSearch with AND behavior for multiple terms"""
+    """Constructs the base DSL query for OpenSearch with AND"""
+    must_clauses = build_must_clauses(query, search_fields)
 
-    search_terms = [term.strip() for term in query.split(",") if term]
-
-    must_clauses = []
-
-    for term in search_terms:
-        if term.startswith('"') and term.endswith('"'):
-            term = term.strip('"')
-            must_clauses.append(
-                {
-                    "multi_match": {
-                        "query": term,
-                        "fields": search_fields,
-                        "type": "phrase",
-                        "lenient": True,
-                    }
-                }
-            )
-        else:
-            must_clauses.append(
-                {
-                    "multi_match": {
-                        "query": term,
-                        "fields": search_fields,
-                        "fuzziness": "AUTO",
-                        "lenient": True,
-                    }
-                }
-            )
-
-    dsl_query = {
+    return {
         "query": {
             "bool": {
                 "must": must_clauses,
@@ -152,8 +164,6 @@ def build_dsl_search_query(
         "sort": {},
         "_source": True,
     }
-
-    return dsl_query
 
 
 def build_search_results_summary_query(query, search_fields, sorting_orders):
