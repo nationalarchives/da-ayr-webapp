@@ -8,6 +8,7 @@ from app.main.util.search_utils import (
     build_search_results_summary_query,
     build_search_transferring_body_query,
     execute_search,
+    filter_opensearch_highlight_results,
     format_opensearch_results,
     get_all_fields_excluding,
     get_filtered_list,
@@ -34,8 +35,8 @@ expected_base_dsl_search_query = {
             "filter": [{"clause_1": "test_2"}],
         }
     },
-    "sort": {"sort_1": "test_1"},
-    "_source": {"exclude": ["*.keyword"]},
+    "sort": {},
+    "_source": True,
 }
 
 
@@ -112,7 +113,7 @@ def test_format_opensearch_results(results, expected):
             ["metadata_field_1", "metadata_field_2", "metadata_field_3"],
         ),
         # "record" search area
-        ("record", ["file_name", "file_path", "content"]),
+        ("record", ["content"]),
         # empty search_area string (should default to "all" behavior)
         ("", ["*"]),
         # none as search_area (should default to "all" behavior)
@@ -375,7 +376,11 @@ def test_build_search_results_summary_query():
 def test_build_search_transferring_body_query():
     transferring_body_id = "test_transferring_body_id"
     dsl_query = build_search_transferring_body_query(
-        "test_query", ["field_1"], {"sort_1": "test_1"}, transferring_body_id
+        "test_query",
+        ["field_1"],
+        {"sort_1": "test_1"},
+        transferring_body_id,
+        "test_highlight_key",
     )
     assert dsl_query == {
         **expected_base_dsl_search_query,
@@ -401,10 +406,97 @@ def test_build_search_transferring_body_query():
             }
         },
         "highlight": {
-            "pre_tags": ["<mark>"],
-            "post_tags": ["</mark>"],
+            "pre_tags": ["<test_highlight_key>"],
+            "post_tags": ["</test_highlight_key>"],
             "fields": {
                 "*": {},
             },
         },
     }
+
+
+@pytest.mark.parametrize(
+    "input_results, expected_output",
+    [
+        # standard case, one .keyword field with array value
+        (
+            [
+                {
+                    "highlight": {
+                        "field1.keyword": ["match1"],
+                        "field2": ["match2"],
+                    }
+                }
+            ],
+            [{"highlight": {"field2": ["match2"]}}],
+        ),
+        # multiple .keyword fields in a single result
+        (
+            [
+                {
+                    "highlight": {
+                        "field1.keyword": ["match1"],
+                        "field2.keyword": ["match2"],
+                        "field3": ["match3"],
+                    }
+                }
+            ],
+            [{"highlight": {"field3": ["match3"]}}],
+        ),
+        # no .keyword fields
+        (
+            [{"highlight": {"field1": ["match1"], "field2": ["match2"]}}],
+            [{"highlight": {"field1": ["match1"], "field2": ["match2"]}}],
+        ),
+        # empty highlight field
+        ([{"highlight": {}}], [{"highlight": {}}]),
+        # multiple result entries, mixed content
+        (
+            [
+                {
+                    "highlight": {
+                        "field1.keyword": ["match1"],
+                        "field2": ["match2"],
+                    }
+                },
+                {
+                    "highlight": {
+                        "field3.keyword": ["match3"],
+                        "field4": ["match4"],
+                    }
+                },
+                {"highlight": {"field5": ["match5"]}},
+            ],
+            [
+                {"highlight": {"field2": ["match2"]}},
+                {"highlight": {"field4": ["match4"]}},
+                {"highlight": {"field5": ["match5"]}},
+            ],
+        ),
+        # no highlight key in results
+        (
+            [{"title": "Title without highlight"}],
+            [{"title": "Title without highlight"}],
+        ),
+        # empty list input
+        ([], []),
+        # large input with many .keyword and non-.keyword fields
+        (
+            [
+                {
+                    "highlight": {
+                        f"field{i}.keyword": [f"match{i}"],
+                        f"field{i}": [f"match_non_keyword{i}"],
+                    }
+                }
+                for i in range(100)
+            ],
+            [
+                {"highlight": {f"field{i}": [f"match_non_keyword{i}"]}}
+                for i in range(100)
+            ],
+        ),
+    ],
+)
+def test_filter_opensearch_highlight_results(input_results, expected_output):
+    assert filter_opensearch_highlight_results(input_results) == expected_output

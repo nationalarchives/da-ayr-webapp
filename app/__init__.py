@@ -1,5 +1,6 @@
 import inspect
 
+import bleach
 from flask import Flask, g
 from flask_compress import Compress
 from flask_s3 import FlaskS3
@@ -16,11 +17,19 @@ s3 = FlaskS3()
 
 
 def null_to_dash(value):
+    """Filter that converts string values that are "null" or Nones to dash"""
     if value == "null":
         return "-"
     if value is None:
         return "-"
     return value
+
+
+def clean_tags_and_replace_highlight_tag(text, highlight_tag):
+    """Sanitizes ALL HTML tags that are not the highlight tag UUID and replaces them with <mark>"""
+    allowed_tags = [highlight_tag]
+    clean_text = bleach.clean(text, tags=allowed_tags)
+    return clean_text.replace(highlight_tag, "mark")
 
 
 def create_app(config_class, database_uri=None):
@@ -34,6 +43,9 @@ def create_app(config_class, database_uri=None):
     app.jinja_env.lstrip_blocks = True
     app.jinja_env.trim_blocks = True
     app.jinja_env.filters["null_to_dash"] = null_to_dash
+    app.jinja_env.filters["clean_tags_and_replace_highlight_tag"] = (
+        clean_tags_and_replace_highlight_tag
+    )
     app.jinja_loader = ChoiceLoader(
         [
             PackageLoader("app"),
