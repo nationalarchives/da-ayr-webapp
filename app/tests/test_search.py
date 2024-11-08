@@ -2102,7 +2102,7 @@ class TestSearchTransferringBody:
                                 "foo": ["bar"],
                                 "marco": ["polo"],
                                 "file_name": [
-                                    f"<{highlight_tag}>test_file.pdf</{highlight_tag}>"
+                                    f"<{highlight_tag}>fifth_file.doc</{highlight_tag}>"
                                 ],
                             },
                         },
@@ -2127,13 +2127,13 @@ class TestSearchTransferringBody:
         anchors_text = []
         for anchor in anchors:
             anchors_text.append(anchor.get_text(strip=True))
-        assert "test_file.pdf" in anchors_text
+        assert "fifth_file.doc" in anchors_text
 
         table_body = soup.find("tbody")
         table_rows_cell_values = get_table_rows_cell_values(table_body)
         assert table_rows_cell_values[1] == [
             "File name",
-            "<mark>test_file.pdf</mark>",
+            "<mark>fifth_file.doc</mark>",
         ]
         assert ["File name", expected_file_name] not in table_rows_cell_values
 
