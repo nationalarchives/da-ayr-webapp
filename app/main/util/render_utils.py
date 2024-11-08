@@ -57,7 +57,7 @@ def get_download_filename(file):
 def create_presigned_url(file):
     file_extension = file.FileName.split(".")[-1].lower()
     if file_extension not in current_app.config["SUPPORTED_RENDER_EXTENSIONS"]:
-        current_app.logger.warning(
+        current_app.app_logger.warning(
             f"Rendering file format '{file_extension}' is not currently supported by AYR."
         )
         return None
@@ -88,7 +88,7 @@ def generate_pdf_manifest(record_id):
     try:
         presigned_url = create_presigned_url(file)
     except Exception as e:
-        current_app.logger.info(
+        current_app.app_logger.info(
             f"Failed to create presigned url for document render non-javascript fallback {e}"
         )
 
@@ -166,7 +166,7 @@ def generate_image_manifest(s3_file_object, record_id):
     try:
         presigned_url = create_presigned_url(file)
     except Exception as e:
-        current_app.logger.info(
+        current_app.app_logger.info(
             f"Failed to create presigned url for document render non-javascript fallback {e}"
         )
 
