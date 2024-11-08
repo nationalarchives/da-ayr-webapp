@@ -599,20 +599,31 @@ This config includes:
 `setup_logging` is called during the initialization of the Flask app.
 
 ### Usage
+We use two loggers in this application:
 
-We can utilise the Flask logger by accessing Flask's `app.logger`. Since we define our routes with blueprints rather than the app directly, we can call access app through
+- app_logger for application-related logs
+- audit_logger for audit-specific logs
+
+Both are attached to the Flask app instance for easy access across the app. Since we define routes using blueprints instead of directly on the app, we access these loggers through Flask’s current_app.
+
+To use these loggers in your code, import current_app from Flask:
 
 ```python
 from flask import current_app
 ```
 
-for example:
+Then, call the appropriate logger as follows:
 
 ```python
-current_app.logger.info('Some info message')
-current_app.logger.debug('Some debug message')
-current_app.logger.warning('Some warning message')
-current_app.logger.error('Some error message')
+current_app.app_logger.info('Some info message')
+current_app.app_logger.debug('Some debug message')
+current_app.app_logger.warning('Some warning message')
+current_app.app_logger.error('Some error message')
+
+current_app.audit_logger.info('Some info message')
+current_app.audit_logger.debug('Some debug message')
+current_app.audit_logger.warning('Some warning message')
+current_app.audit_logger.error('Some error message')
 ```
 
 ### Output

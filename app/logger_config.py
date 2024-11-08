@@ -24,18 +24,14 @@ def setup_logging(app):
 
     # APP LOGGER
     app_logger = logging.getLogger("app_logger")
-    app_handler = (
-        logging.StreamHandler()
-    )
+    app_handler = logging.StreamHandler()
     app_handler.setFormatter(formatter)
     app_logger.setLevel(logging.INFO)
     app_logger.addHandler(app_handler)
 
     # AUDIT LOGGER
     audit_logger = logging.getLogger("audit_logger")
-    audit_handler = (
-        logging.StreamHandler()
-    )
+    audit_handler = logging.StreamHandler()
     audit_handler.setFormatter(formatter)
     audit_logger.setLevel(logging.INFO)
     audit_logger.addHandler(audit_handler)
