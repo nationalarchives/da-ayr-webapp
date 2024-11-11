@@ -1,6 +1,10 @@
 import pytest
 
-from app import clean_tags_and_replace_highlight_tag, null_to_dash
+from app import (
+    clean_tags_and_replace_highlight_tag,
+    format_opensearch_field_name,
+    null_to_dash,
+)
 
 
 @pytest.mark.parametrize(
@@ -103,3 +107,29 @@ def test_clean_tags(input_text, expected_output):
         clean_tags_and_replace_highlight_tag(input_text, "test_highlight_key")
         == expected_output
     )
+
+
+@pytest.mark.parametrize(
+    "field, expected",
+    [
+        # fields directly mapped
+        ("file_name", "File name"),
+        ("description", "Description"),
+        ("Source-Organisation", "Transferring body"),
+        ("foi_exemption_code", "FOI code"),
+        ("content", "Content"),
+        ("closure_start_date", "Closure start date"),
+        ("end_date", "Record date"),
+        ("date_last_modified", "Record date"),
+        ("unknown_field", "Unknown field"),
+        ("another_field", "Another field"),
+        ("custom_field_name", "Custom field name"),
+        # edge cases
+        # empty string should return empty string
+        ("", ""),
+        # single word, no underscore
+        ("singleword", "Singleword"),
+    ],
+)
+def test_format_opensearch_field_name(field, expected):
+    assert format_opensearch_field_name(field) == expected

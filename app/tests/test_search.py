@@ -2027,6 +2027,8 @@ class TestSearchTransferringBody:
         checkbox = soup.find("input", {"name": "open_all"})
         details_elements = soup.find_all("details")
 
+        # we cant check CSS visibility with Beautiful soup, otherwise
+        # we'd check if the field count element is not visible here
         assert "checked" in checkbox.attrs
         assert all("open" in details.attrs for details in details_elements)
 

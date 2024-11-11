@@ -16,6 +16,19 @@ talisman = Talisman()
 s3 = FlaskS3()
 
 
+opensearch_field_name_map = {
+    "file_name": "File name",
+    "description": "Description",
+    "Source-Organisation": "Transferring body",
+    "foi_exemption_code": "FOI code",
+    "content": "Content",
+    "closure_start_date": "Closure start date",
+    "end_date": "Record date",
+    "date_last_modified": "Record date",
+    "closure_start_date": "Closure start date",
+}
+
+
 def null_to_dash(value):
     """Filter that converts string values that are "null" or Nones to dash"""
     if value == "null":
@@ -32,6 +45,14 @@ def clean_tags_and_replace_highlight_tag(text, highlight_tag):
     return clean_text.replace(highlight_tag, "mark")
 
 
+def format_opensearch_field_name(field):
+    """Format the name of an OpenSearch field using a map or dynamically"""
+    if field in opensearch_field_name_map:
+        return opensearch_field_name_map[field]
+    else:
+        return field.replace("_", " ").capitalize()
+
+
 def create_app(config_class, database_uri=None):
     app = Flask(__name__, static_url_path="/assets")
     config = config_class()
@@ -45,6 +66,9 @@ def create_app(config_class, database_uri=None):
     app.jinja_env.filters["null_to_dash"] = null_to_dash
     app.jinja_env.filters["clean_tags_and_replace_highlight_tag"] = (
         clean_tags_and_replace_highlight_tag
+    )
+    app.jinja_env.filters["format_opensearch_field_name"] = (
+        format_opensearch_field_name
     )
     app.jinja_loader = ChoiceLoader(
         [
