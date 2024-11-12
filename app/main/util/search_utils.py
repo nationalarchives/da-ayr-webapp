@@ -5,6 +5,25 @@ from opensearchpy import OpenSearch, RequestsHttpConnection
 from app.main.util.date_validator import format_opensearch_date
 from app.main.util.pagination import calculate_total_pages, get_pagination
 
+opensearch_field_name_map = {
+    "file_name": "File name",
+    "description": "Description",
+    "transferring_body": "Transferring body",
+    "foi_exemption_code": "FOI code",
+    "content": "Content",
+    "closure_start_date": "Closure start date",
+    "end_date": "Record date",
+    "date_last_modified": "Record date",
+    "closure_start_date": "Closure start date",
+    # might be useful to show in the future
+    # "file_reference": "File reference",
+    # "file_path": "File path",
+    "citeable_reference": "Citeable reference",
+    "series_name": "Series name",
+    "transferring_body_description": "Transferring body description",
+    "consignment_reference": "Consignment ref",
+}
+
 
 def format_opensearch_results(results):
     """Format date fields of the _source object inside results"""
@@ -35,14 +54,15 @@ def post_process_opensearch_results(results):
     return results
 
 
-def get_open_search_fields_to_search_on(open_search, search_area):
+def get_open_search_fields_to_search_on(search_area):
     """Retrieve a list of fields depending on the search area (all fields, metadata, record, etc.)"""
     fields_record = ["content"]
+    fields_all = list(opensearch_field_name_map.keys())
     if search_area == "metadata":
-        return get_all_fields_excluding(open_search, "documents", fields_record)
+        return get_filtered_list(fields_all, fields_record)
     elif search_area == "record":
         return fields_record
-    return ["*"]
+    return fields_all
 
 
 def get_param(param, request):

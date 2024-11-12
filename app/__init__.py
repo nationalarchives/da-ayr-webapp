@@ -10,23 +10,11 @@ from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
 from app.logger_config import setup_logging
 from app.main.db.models import db
+from app.main.util.search_utils import opensearch_field_name_map
 
 compress = Compress()
 talisman = Talisman()
 s3 = FlaskS3()
-
-
-opensearch_field_name_map = {
-    "file_name": "File name",
-    "description": "Description",
-    "Source-Organisation": "Transferring body",
-    "foi_exemption_code": "FOI code",
-    "content": "Content",
-    "closure_start_date": "Closure start date",
-    "end_date": "Record date",
-    "date_last_modified": "Record date",
-    "closure_start_date": "Closure start date",
-}
 
 
 def null_to_dash(value):
@@ -47,10 +35,9 @@ def clean_tags_and_replace_highlight_tag(text, highlight_tag):
 
 def format_opensearch_field_name(field):
     """Format the name of an OpenSearch field using a map or dynamically"""
-    if field in opensearch_field_name_map:
-        return opensearch_field_name_map[field]
-    else:
-        return field.replace("_", " ").capitalize()
+    return opensearch_field_name_map.get(
+        field, field.replace("_", " ").capitalize()
+    )
 
 
 def create_app(config_class, database_uri=None):

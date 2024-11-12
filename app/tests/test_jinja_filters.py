@@ -115,7 +115,7 @@ def test_clean_tags(input_text, expected_output):
         # fields directly mapped
         ("file_name", "File name"),
         ("description", "Description"),
-        ("Source-Organisation", "Transferring body"),
+        ("transferring_body", "Transferring body"),
         ("foi_exemption_code", "FOI code"),
         ("content", "Content"),
         ("closure_start_date", "Closure start date"),
@@ -124,6 +124,10 @@ def test_clean_tags(input_text, expected_output):
         ("unknown_field", "Unknown field"),
         ("another_field", "Another field"),
         ("custom_field_name", "Custom field name"),
+        ("citeable_reference", "Citeable reference"),
+        ("series_name", "Series name"),
+        ("transferring_body_description", "Transferring body description"),
+        ("consignment_reference", "Consignment ref"),
         # edge cases
         # empty string should return empty string
         ("", ""),
