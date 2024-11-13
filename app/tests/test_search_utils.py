@@ -374,7 +374,7 @@ def test_build_dsl_search_query_and_exact_fuzzy_search():
                 "filter": filter_clauses,
             }
         },
-        "sort": sorting_orders,
+        "sort": {},
         "_source": {"exclude": ["*.keyword"]},
     }
 
