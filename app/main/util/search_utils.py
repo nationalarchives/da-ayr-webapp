@@ -103,13 +103,27 @@ def get_all_fields_excluding(open_search, index_name, exclude_fields=None):
     mappings = open_search.indices.get_mapping(index=index_name)
     all_fields = list(mappings[index_name]["mappings"]["properties"].keys())
     filtered_fields = get_filtered_list(all_fields, exclude_fields)
-
     return filtered_fields
 
 
-def build_dsl_search_query(
-    query, search_fields, sorting_orders, filter_clauses
-):
+def build_dsl_sorting(sort):
+    sort_list = [
+        {
+            "_score": {
+                "order": (
+                    "desc"
+                    if sort == "most_matches"
+                    else "asc" if sort == "least_matches" else "desc"
+                )
+            }
+        }
+    ]
+    if sort not in ["most_matches", "least_matches"]:
+        sort_list.append({f"{sort}.keyword": {"order": "asc"}})
+    return sort_list
+
+
+def build_dsl_search_query(query, search_fields, dsl_sort, filter_clauses):
     """Constructs the base DSL query for OpenSearch"""
     return {
         "query": {
@@ -127,8 +141,7 @@ def build_dsl_search_query(
                 "filter": filter_clauses,
             }
         },
-        # set as {} until sorting ticket is in done
-        "sort": {},
+        "sort": dsl_sort,
         "_source": True,
     }
 

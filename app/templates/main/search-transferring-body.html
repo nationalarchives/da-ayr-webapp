@@ -11,16 +11,12 @@
     {%- set _ = breadcrumbs.update({'search_terms': breadcrumb_values[3]["search_terms"]}) -%}
 {% endif %}
 {% set sorting_list = {
-    "Series reference (A to Z)": "series_id-asc",
-    "Series reference (Z to A)": "series_name-desc",
-    "Consignment reference (newest)": "consignment_reference-desc",
-    "Consignment reference (oldest)": "consignment_reference-asc",
-    "Record opening date (sooner)": "opening_date-desc",
-    "Record opening date (later)": "opening_date-asc",
-    "File name (A to Z)": "file_name-asc",
-    "File name (Z to A)": "file_name-desc",
-    "Record status (closed)": "closure_type-asc",
-    "Record status (open)": "closure_type-desc"
+    "File name first": "file_name",
+    "Description first": "description",
+    "Within metadata first": "metadata",
+    "Within the record first": "record",
+    "Most matches first": "most_matches",
+    "Least matches first": "least_matches"
 } %}
 {% block beforeContent %}{{ super() }}{% endblock %}
 {% block content %}
