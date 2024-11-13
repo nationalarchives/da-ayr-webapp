@@ -34,7 +34,7 @@ def clean_tags_and_replace_highlight_tag(text, highlight_tag):
 
 
 def format_opensearch_field_name(field):
-    """Format the name of an OpenSearch field using a map or dynamically"""
+    """Format the name of an OpenSearch field using a map"""
     return OPENSEARCH_FIELD_NAME_MAP.get(field)
 
 

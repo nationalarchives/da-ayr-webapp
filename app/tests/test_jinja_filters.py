@@ -125,10 +125,7 @@ def test_clean_tags(input_text, expected_output):
         ("series_name", "Series name"),
         ("transferring_body_description", "Transferring body description"),
         ("consignment_reference", "Consignment ref"),
-        # edge cases
-        # empty string should return empty string
         ("", None),
-        # single word, no underscore
         ("singleword", None),
         ("unknown_field", None),
     ],
