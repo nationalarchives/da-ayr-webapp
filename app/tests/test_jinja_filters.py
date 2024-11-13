@@ -121,18 +121,16 @@ def test_clean_tags(input_text, expected_output):
         ("closure_start_date", "Closure start date"),
         ("end_date", "Record date"),
         ("date_last_modified", "Record date"),
-        ("unknown_field", "Unknown field"),
-        ("another_field", "Another field"),
-        ("custom_field_name", "Custom field name"),
         ("citeable_reference", "Citeable reference"),
         ("series_name", "Series name"),
         ("transferring_body_description", "Transferring body description"),
         ("consignment_reference", "Consignment ref"),
         # edge cases
         # empty string should return empty string
-        ("", ""),
+        ("", None),
         # single word, no underscore
-        ("singleword", "Singleword"),
+        ("singleword", None),
+        ("unknown_field", None),
     ],
 )
 def test_format_opensearch_field_name(field, expected):

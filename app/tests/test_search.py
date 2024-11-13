@@ -54,11 +54,11 @@ os_mock_return_tb = {
                     "opening_date": "fooDate",
                 },
                 "highlight": {
-                    "test_field_1": [
+                    "series_name": [
                         f"<{highlight_tag}>test1</{highlight_tag}> and",
                         f"this is just a sentence with a mark <{highlight_tag}>element</{highlight_tag}> in it",
                     ],
-                    "test_field_2": [
+                    "transferring_body": [
                         f"this is a <{highlight_tag}>cool test</{highlight_tag}> and",
                         f"sea shells <{highlight_tag}>on the</{highlight_tag}> sea shore",
                     ],
@@ -1801,7 +1801,7 @@ class TestSearchTransferringBody:
                 os_mock_return_tb,
                 [
                     [
-                        "Test field 1 +1",
+                        "Series name +1",
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
@@ -1809,7 +1809,7 @@ class TestSearchTransferringBody:
                         "fifth_file.doc",
                     ],
                     [
-                        "Test field 2",
+                        "Transferring body",
                         "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
                     ],
                 ],
@@ -1819,7 +1819,7 @@ class TestSearchTransferringBody:
                 os_mock_return_tb,
                 [
                     [
-                        "Test field 1 +1",
+                        "Series name +1",
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
@@ -1827,7 +1827,7 @@ class TestSearchTransferringBody:
                         "fifth_file.doc",
                     ],
                     [
-                        "Test field 2",
+                        "Transferring body",
                         "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
                     ],
                 ],
@@ -1837,7 +1837,7 @@ class TestSearchTransferringBody:
                 os_mock_return_tb,
                 [
                     [
-                        "Test field 1 +1",
+                        "Series name +1",
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
@@ -1845,7 +1845,7 @@ class TestSearchTransferringBody:
                         "fifth_file.doc",
                     ],
                     [
-                        "Test field 2",
+                        "Transferring body",
                         "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
                     ],
                 ],

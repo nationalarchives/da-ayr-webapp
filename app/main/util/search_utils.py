@@ -5,7 +5,7 @@ from opensearchpy import OpenSearch, RequestsHttpConnection
 from app.main.util.date_validator import format_opensearch_date
 from app.main.util.pagination import calculate_total_pages, get_pagination
 
-opensearch_field_name_map = {
+OPENSEARCH_FIELD_NAME_MAP = {
     "file_name": "File name",
     "description": "Description",
     "transferring_body": "Transferring body",
@@ -57,7 +57,7 @@ def post_process_opensearch_results(results):
 def get_open_search_fields_to_search_on(search_area):
     """Retrieve a list of fields depending on the search area (all fields, metadata, record, etc.)"""
     fields_record = ["content"]
-    fields_all = list(opensearch_field_name_map.keys())
+    fields_all = list(OPENSEARCH_FIELD_NAME_MAP.keys())
     if search_area == "metadata":
         return get_filtered_list(fields_all, fields_record)
     elif search_area == "record":

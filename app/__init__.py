@@ -10,7 +10,7 @@ from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
 from app.logger_config import setup_logging
 from app.main.db.models import db
-from app.main.util.search_utils import opensearch_field_name_map
+from app.main.util.search_utils import OPENSEARCH_FIELD_NAME_MAP
 
 compress = Compress()
 talisman = Talisman()
@@ -35,9 +35,7 @@ def clean_tags_and_replace_highlight_tag(text, highlight_tag):
 
 def format_opensearch_field_name(field):
     """Format the name of an OpenSearch field using a map or dynamically"""
-    return opensearch_field_name_map.get(
-        field, field.replace("_", " ").capitalize()
-    )
+    return OPENSEARCH_FIELD_NAME_MAP.get(field)
 
 
 def create_app(config_class, database_uri=None):
