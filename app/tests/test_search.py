@@ -2178,3 +2178,54 @@ class TestSearchTransferringBody:
             "Test field 2.keyword",
             "should not be shown also",
         ] not in table_rows_cell_values
+
+    @patch("app.main.util.search_utils.OpenSearch")
+    def test_search_transferring_body_with_quotes(
+        self,
+        mock_search_client,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user accessing the search transferring body page
+        When they make a GET request with a search term including quotes
+        Then they should only see results that include that term.
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+        mock_all_access_user(client)
+
+        term1 = '"fi"'
+        query = term1
+        form_data = {"query": query}
+
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}", data=form_data
+        )
+
+        assert response.status_code == 200
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        anchor_records = soup.find(
+            "a", string="All available records", href=True
+        )
+        anchor_summary = soup.find("a", string="Results summary", href=True)
+        anchor_t_body = soup.find("a", string="first_body", href=True)
+        span_query = soup.find("span", string="‘fi’")
+
+        assert anchor_records["href"] == self.browse_all_route_url
+        assert (
+            anchor_summary["href"]
+            == f"{self.search_results_summary_route_url}?query={query}"
+        )
+        assert (
+            anchor_t_body["href"]
+            == f"{self.browse_transferring_body_route_url}/{transferring_body_id}"
+        )
+        assert span_query
