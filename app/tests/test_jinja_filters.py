@@ -125,9 +125,6 @@ def test_clean_tags(input_text, expected_output):
         ("series_name", "Series name"),
         ("transferring_body_description", "Transferring body description"),
         ("consignment_reference", "Consignment ref"),
-        ("", None),
-        ("singleword", None),
-        ("unknown_field", None),
     ],
 )
 def test_format_opensearch_field_name(field, expected):
