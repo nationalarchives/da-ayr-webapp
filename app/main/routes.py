@@ -1,6 +1,5 @@
 import io
 import json
-import re
 import uuid
 
 import boto3
@@ -58,6 +57,7 @@ from app.main.util.search_utils import (
     build_search_results_summary_query,
     build_search_transferring_body_query,
     execute_search,
+    extract_search_terms,
     get_open_search_fields_to_search_on,
     get_pagination_info,
     get_param,
@@ -509,13 +509,14 @@ def search_results_summary():
     num_records_found, paginated_results, pagination = 0, [], None
 
     if query:
+        quoted_phrases, single_terms = extract_search_terms(query)
         open_search = setup_opensearch()
         search_fields = get_open_search_fields_to_search_on(
             open_search, search_area
         )
         sorting_orders = build_sorting_orders(request.args)
         dsl_query = build_search_results_summary_query(
-            query, search_fields, sorting_orders
+            search_fields, sorting_orders, quoted_phrases, single_terms
         )
         search_results = execute_search(open_search, dsl_query, page, per_page)
         results = search_results["aggregations"][
@@ -585,14 +586,7 @@ def search_transferring_body(_id: uuid.UUID):
     )
 
     if query:
-        # Extract quoted phrases and terms not in quotes separately
-        quoted_phrases = re.findall(
-            r'"([^"]*)"', query
-        )  # Finds phrases within quotes
-        remaining_terms = re.sub(r'"[^"]*"', "", query).replace(",", " ")
-        single_terms = [
-            term.strip() for term in remaining_terms.split() if term.strip()
-        ]
+        quoted_phrases, single_terms = extract_search_terms(query)
 
         # Combine quoted phrases and single terms into final search_terms list
         search_terms = quoted_phrases + single_terms
@@ -614,7 +608,12 @@ def search_transferring_body(_id: uuid.UUID):
         )
         sorting_orders = build_sorting_orders(request.args)
         dsl_query = build_search_transferring_body_query(
-            query, search_fields, sorting_orders, _id, highlight_tag
+            search_fields,
+            sorting_orders,
+            _id,
+            highlight_tag,
+            quoted_phrases,
+            single_terms,
         )
 
         search_results = execute_search(open_search, dsl_query, page, per_page)
