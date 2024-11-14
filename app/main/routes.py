@@ -604,7 +604,9 @@ def search_transferring_body(_id: uuid.UUID):
         )
         sorting_orders = build_sorting_orders(request.args)
 
-        dsl_sort = build_dsl_sorting(sort)
+        dsl_sort = []
+        if sort:
+            dsl_sort = build_dsl_sorting(sort)
         dsl_query = build_search_transferring_body_query(
             query, search_fields, dsl_sort, _id, highlight_tag
         )
