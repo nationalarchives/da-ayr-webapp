@@ -90,7 +90,8 @@
                                                 {% for record in results %}
                                                     {% set main_loop_index = loop.index %}
                                                     <tr class="govuk-table__row govuk-table__row--primary">
-                                                        {% set first_field = record['highlight'].keys() | list | first | format_opensearch_field_name %}
+                                                        {% set first_field = record['highlight'].keys() | list | first %}
+                                                        {% set first_field_formatted = first_field | format_opensearch_field_name %}
                                                         {% set first_result_value = record['highlight'].values() | list | first | join(' ... ')| clean_tags_and_replace_highlight_tag(highlight_tag) | safe %}
                                                         {% set total_fields = record['highlight'].keys() | length %}
                                                         <td class="govuk-table__cell">
@@ -101,9 +102,9 @@
                                                                 </details>
                                                                 {% if record['highlight'] %}
                                                                     {% if total_fields > 1 %}
-                                                                        <span>{{ first_field }} <span class="field-count-{{ main_loop_index }}">+{{ total_fields - 1 }}</span></span>
+                                                                        <span>{{ first_field_formatted }} <span class="field-count-{{ main_loop_index }}">+{{ total_fields - 1 }}</span></span>
                                                                     {% else %}
-                                                                        {{ first_field }}
+                                                                        {{ first_field_formatted }}
                                                                     {% endif %}
                                                                 {% else %}
                                                                     None
@@ -112,7 +113,7 @@
                                                         </td>
                                                         <td class="govuk-table__cell">
                                                             {% if record['highlight'] %}
-                                                                {% if first_field == "field_name" %}
+                                                                {% if first_field == "file_name" %}
                                                                     <a href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ first_result_value }}</a>
                                                                 {% else %}
                                                                     {{ first_result_value }}
