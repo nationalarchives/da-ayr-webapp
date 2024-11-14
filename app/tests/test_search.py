@@ -90,11 +90,11 @@ os_mock_return_tb_closed_record = {
                     "opening_date": "2025-01-01T00:00:00",
                 },
                 "highlight": {
-                    "test_field_1": [
+                    "series_name": [
                         "<mark>test1</mark>",
                         "this is just a sentence with a mark <mark>element</mark> in it",
                     ],
-                    "test_field_2": [
+                    "transferring_body": [
                         "t<mark>est2</mark>",
                         "sea shells <mark>on the</mark> sea shore",
                     ],
@@ -2101,8 +2101,8 @@ class TestSearchTransferringBody:
                                 "file_name": "fifth_file.doc",
                             },
                             "highlight": {
-                                "foo": ["bar"],
-                                "marco": ["polo"],
+                                "series_name": ["bar"],
+                                "transferring_body": ["polo"],
                                 "file_name": [
                                     f"<{highlight_tag}>fifth_file.doc</{highlight_tag}>"
                                 ],
