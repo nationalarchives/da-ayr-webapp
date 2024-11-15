@@ -1,3 +1,5 @@
+import re
+
 import opensearchpy
 from flask import abort, current_app
 from opensearchpy import OpenSearch, RequestsHttpConnection
@@ -127,23 +129,53 @@ def get_all_fields_excluding(open_search, index_name, exclude_fields=None):
     return filtered_fields
 
 
+def build_must_clauses(search_fields, quoted_phrases, single_terms):
+    """Helper function to build must_clauses for OpenSearch with AND"""
+    must_clauses = []
+
+    for phrase in quoted_phrases:
+        must_clauses.append(
+            {
+                "multi_match": {
+                    "query": phrase,
+                    "fields": search_fields,
+                    "type": "phrase",
+                    "lenient": True,
+                }
+            }
+        )
+
+    for term in single_terms:
+        must_clauses.append(
+            {
+                "multi_match": {
+                    "query": term,
+                    "fields": search_fields,
+                    "fuzziness": "AUTO",
+                    "lenient": True,
+                }
+            }
+        )
+
+    return must_clauses
+
+
 def build_dsl_search_query(
-    query, search_fields, sorting_orders, filter_clauses
+    search_fields,
+    sorting_orders,
+    filter_clauses,
+    quoted_phrases,
+    single_terms,
 ):
-    """Constructs the base DSL query for OpenSearch"""
+    """Constructs the base DSL query for OpenSearch with AND"""
+    must_clauses = build_must_clauses(
+        search_fields, quoted_phrases, single_terms
+    )
+
     return {
         "query": {
             "bool": {
-                "must": [
-                    {
-                        "multi_match": {
-                            "query": query,
-                            "fields": search_fields,
-                            "fuzziness": "AUTO",
-                            "lenient": True,
-                        }
-                    }
-                ],
+                "must": must_clauses,
                 "filter": filter_clauses,
             }
         },
@@ -153,10 +185,19 @@ def build_dsl_search_query(
     }
 
 
-def build_search_results_summary_query(query, search_fields, sorting_orders):
+def build_search_results_summary_query(
+    search_fields,
+    sorting_orders,
+    quoted_phrases,
+    single_terms,
+):
     filter_clauses = []
     dsl_query = build_dsl_search_query(
-        query, search_fields, sorting_orders, filter_clauses
+        search_fields,
+        sorting_orders,
+        filter_clauses,
+        quoted_phrases,
+        single_terms,
     )
     aggregations = {
         "aggs": {
@@ -177,13 +218,22 @@ def build_search_results_summary_query(query, search_fields, sorting_orders):
 
 
 def build_search_transferring_body_query(
-    query, search_fields, sorting_orders, transferring_body_id, highlight_tag
+    search_fields,
+    sorting_orders,
+    transferring_body_id,
+    highlight_tag,
+    quoted_phrases,
+    single_terms,
 ):
     filter_clauses = [
         {"term": {"transferring_body_id.keyword": transferring_body_id}}
     ]
     dsl_query = build_dsl_search_query(
-        query, search_fields, sorting_orders, filter_clauses
+        search_fields,
+        sorting_orders,
+        filter_clauses,
+        quoted_phrases,
+        single_terms,
     )
     highlighting = {
         "highlight": {
@@ -195,3 +245,27 @@ def build_search_transferring_body_query(
         },
     }
     return {**dsl_query, **highlighting}
+
+
+def extract_search_terms(query):
+    """
+    Extracts quoted phrases and single terms from a search query string.
+
+    Args:
+        query (str): The search query string containing both quoted phrases and single terms.
+
+    Returns:
+        tuple: A tuple containing two lists:
+            - quoted_phrases: A list of phrases enclosed in double quotes.
+            - single_terms: A list of individual terms that are not in quotes.
+    """
+    # Extract quoted phrases
+    quoted_phrases = re.findall(r'"([^"]*)"', query)
+
+    # Remove quoted phrases and split remaining terms by spaces
+    remaining_terms = re.sub(r'"[^"]*"', "", query).replace(",", " ")
+    single_terms = [
+        term.strip() for term in remaining_terms.split() if term.strip()
+    ]
+
+    return quoted_phrases, single_terms

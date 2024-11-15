@@ -57,6 +57,7 @@ from app.main.util.search_utils import (
     build_search_results_summary_query,
     build_search_transferring_body_query,
     execute_search,
+    extract_search_terms,
     get_open_search_fields_to_search_on,
     get_pagination_info,
     get_param,
@@ -508,11 +509,12 @@ def search_results_summary():
     num_records_found, paginated_results, pagination = 0, [], None
 
     if query:
+        quoted_phrases, single_terms = extract_search_terms(query)
         open_search = setup_opensearch()
         search_fields = get_open_search_fields_to_search_on(search_area)
         sorting_orders = build_sorting_orders(request.args)
         dsl_query = build_search_results_summary_query(
-            query, search_fields, sorting_orders
+            search_fields, sorting_orders, quoted_phrases, single_terms
         )
         search_results = execute_search(open_search, dsl_query, page, per_page)
         results = search_results["aggregations"][
@@ -582,11 +584,17 @@ def search_transferring_body(_id: uuid.UUID):
     )
 
     if query:
-        search_terms = [term.strip() for term in query.split(",") if term]
+        quoted_phrases, single_terms = extract_search_terms(query)
+
         if search_filter:
-            search_terms.append(search_filter)
-            query += f",{search_filter}" if search_terms else search_filter
-            filters["query"] = query
+            if search_filter.startswith('"') and search_filter.endswith('"'):
+                quoted_phrases.append(search_filter[1:-1])
+            else:
+                single_terms.append(search_filter.strip())
+        search_terms = quoted_phrases + single_terms
+
+        query = f"{query},{search_filter}" if search_filter else query
+        filters["query"] = query
 
         breadcrumb_values[0] = {"query": query}
         display_terms = " + ".join(
@@ -598,7 +606,12 @@ def search_transferring_body(_id: uuid.UUID):
         search_fields = get_open_search_fields_to_search_on(search_area)
         sorting_orders = build_sorting_orders(request.args)
         dsl_query = build_search_transferring_body_query(
-            query, search_fields, sorting_orders, _id, highlight_tag
+            search_fields,
+            sorting_orders,
+            _id,
+            highlight_tag,
+            quoted_phrases,
+            single_terms,
         )
 
         search_results = execute_search(open_search, dsl_query, page, per_page)

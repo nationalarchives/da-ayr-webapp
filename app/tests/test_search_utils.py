@@ -8,6 +8,7 @@ from app.main.util.search_utils import (
     build_search_results_summary_query,
     build_search_transferring_body_query,
     execute_search,
+    extract_search_terms,
     filter_opensearch_highlight_results,
     format_opensearch_results,
     get_all_fields_excluding,
@@ -343,18 +344,76 @@ def test_get_all_fields_excluding(mock_open_search):
 
 
 def test_build_dsl_search_query():
+    query = "test_query"
+    quoted_phrases, single_terms = extract_search_terms(query)
     dsl_query = build_dsl_search_query(
-        "test_query",
         ["field_1"],
         {"sort_1": "test_1"},
         [{"clause_1": "test_2"}],
+        quoted_phrases,
+        single_terms,
     )
     assert dsl_query == expected_base_dsl_search_query
 
 
+def test_build_dsl_search_query_and_exact_fuzzy_search():
+    query = '"exact match", fuzzy, search'
+    search_fields = ["field_1"]
+    sorting_orders = {"sort_1": "test_1"}
+    filter_clauses = [{"clause_1": "test_2"}]
+    quoted_phrases, single_terms = extract_search_terms(query)
+
+    expected_dsl_query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "multi_match": {
+                            "query": "exact match",
+                            "fields": search_fields,
+                            "type": "phrase",
+                            "lenient": True,
+                        }
+                    },
+                    {
+                        "multi_match": {
+                            "query": "fuzzy",
+                            "fields": search_fields,
+                            "fuzziness": "AUTO",
+                            "lenient": True,
+                        }
+                    },
+                    {
+                        "multi_match": {
+                            "query": "search",
+                            "fields": search_fields,
+                            "fuzziness": "AUTO",
+                            "lenient": True,
+                        }
+                    },
+                ],
+                "filter": filter_clauses,
+            }
+        },
+        "sort": {},
+        "_source": True,
+    }
+
+    dsl_query = build_dsl_search_query(
+        search_fields,
+        sorting_orders,
+        filter_clauses,
+        quoted_phrases,
+        single_terms,
+    )
+    assert dsl_query == expected_dsl_query
+
+
 def test_build_search_results_summary_query():
+    query = "test_query"
+    quoted_phrases, single_terms = extract_search_terms(query)
     dsl_query = build_search_results_summary_query(
-        "test_query", ["field_1"], {"sort_1": "test_1"}
+        ["field_1"], {"sort_1": "test_1"}, quoted_phrases, single_terms
     )
     assert dsl_query == {
         **expected_base_dsl_search_query,
@@ -391,12 +450,15 @@ def test_build_search_results_summary_query():
 
 def test_build_search_transferring_body_query():
     transferring_body_id = "test_transferring_body_id"
+    query = "test_query"
+    quoted_phrases, single_terms = extract_search_terms(query)
     dsl_query = build_search_transferring_body_query(
-        "test_query",
         ["field_1"],
         {"sort_1": "test_1"},
         transferring_body_id,
         "test_highlight_key",
+        quoted_phrases,
+        single_terms,
     )
     assert dsl_query == {
         **expected_base_dsl_search_query,
