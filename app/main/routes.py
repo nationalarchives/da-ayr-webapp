@@ -588,22 +588,15 @@ def search_transferring_body(_id: uuid.UUID):
     if query:
         quoted_phrases, single_terms = extract_search_terms(query)
 
+        if search_filter:
+            if search_filter.startswith('"') and search_filter.endswith('"'):
+                quoted_phrases.append(search_filter[1:-1])
+            else:
+                single_terms.append(search_filter.strip())
         search_terms = quoted_phrases + single_terms
 
-        if query:
-            quoted_phrases, single_terms = extract_search_terms(query)
-
-            if search_filter:
-                if search_filter.startswith('"') and search_filter.endswith(
-                    '"'
-                ):
-                    quoted_phrases.append(search_filter[1:-1])
-                else:
-                    single_terms.append(search_filter.strip())
-            search_terms = quoted_phrases + single_terms
-
-            query = f"{query},{search_filter}" if search_filter else query
-            filters["query"] = query
+        query = f"{query},{search_filter}" if search_filter else query
+        filters["query"] = query
 
         breadcrumb_values[0] = {"query": query}
         display_terms = " + ".join(
