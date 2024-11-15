@@ -251,6 +251,9 @@ a.govuk-link {
     ~ tr.hidden-row-#{$i} {
     display: table-row;
   }
+  tr:has(> td > div > details.details-toggle-#{$i}[open]) .field-count-#{$i} {
+    display: none;
+  }
 }
 
 .govuk-table {

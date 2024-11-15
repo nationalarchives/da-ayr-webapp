@@ -54,11 +54,11 @@ os_mock_return_tb = {
                     "opening_date": "fooDate",
                 },
                 "highlight": {
-                    "test_field_1": [
+                    "series_name": [
                         f"<{highlight_tag}>test1</{highlight_tag}> and",
                         f"this is just a sentence with a mark <{highlight_tag}>element</{highlight_tag}> in it",
                     ],
-                    "test_field_2": [
+                    "transferring_body": [
                         f"this is a <{highlight_tag}>cool test</{highlight_tag}> and",
                         f"sea shells <{highlight_tag}>on the</{highlight_tag}> sea shore",
                     ],
@@ -90,11 +90,11 @@ os_mock_return_tb_closed_record = {
                     "opening_date": "2025-01-01T00:00:00",
                 },
                 "highlight": {
-                    "test_field_1": [
+                    "series_name": [
                         "<mark>test1</mark>",
                         "this is just a sentence with a mark <mark>element</mark> in it",
                     ],
-                    "test_field_2": [
+                    "transferring_body": [
                         "t<mark>est2</mark>",
                         "sea shells <mark>on the</mark> sea shore",
                     ],
@@ -1801,7 +1801,7 @@ class TestSearchTransferringBody:
                 os_mock_return_tb,
                 [
                     [
-                        "Test field 1 +1",
+                        "Series name +1",
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
@@ -1809,7 +1809,7 @@ class TestSearchTransferringBody:
                         "fifth_file.doc",
                     ],
                     [
-                        "Test field 2",
+                        "Transferring body",
                         "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
                     ],
                 ],
@@ -1819,7 +1819,7 @@ class TestSearchTransferringBody:
                 os_mock_return_tb,
                 [
                     [
-                        "Test field 1 +1",
+                        "Series name +1",
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
@@ -1827,7 +1827,7 @@ class TestSearchTransferringBody:
                         "fifth_file.doc",
                     ],
                     [
-                        "Test field 2",
+                        "Transferring body",
                         "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
                     ],
                 ],
@@ -1837,7 +1837,7 @@ class TestSearchTransferringBody:
                 os_mock_return_tb,
                 [
                     [
-                        "Test field 1 +1",
+                        "Series name +1",
                         "<mark>test1</mark> and ... this is just a sentence with a mark <mark>element</mark> in it",
                     ],
                     [
@@ -1845,7 +1845,7 @@ class TestSearchTransferringBody:
                         "fifth_file.doc",
                     ],
                     [
-                        "Test field 2",
+                        "Transferring body",
                         "this is a <mark>cool test</mark> and ... sea shells <mark>on the</mark> sea shore",
                     ],
                 ],
@@ -2027,6 +2027,8 @@ class TestSearchTransferringBody:
         checkbox = soup.find("input", {"name": "open_all"})
         details_elements = soup.find_all("details")
 
+        # we cant check CSS visibility with Beautiful soup, otherwise
+        # we'd check if the field count element is not visible here
         assert "checked" in checkbox.attrs
         assert all("open" in details.attrs for details in details_elements)
 
@@ -2099,8 +2101,8 @@ class TestSearchTransferringBody:
                                 "file_name": "fifth_file.doc",
                             },
                             "highlight": {
-                                "foo": ["bar"],
-                                "marco": ["polo"],
+                                "series_name": ["bar"],
+                                "transferring_body": ["polo"],
                                 "file_name": [
                                     f"<{highlight_tag}>fifth_file.doc</{highlight_tag}>"
                                 ],

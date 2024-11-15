@@ -509,9 +509,7 @@ def search_results_summary():
 
     if query:
         open_search = setup_opensearch()
-        search_fields = get_open_search_fields_to_search_on(
-            open_search, search_area
-        )
+        search_fields = get_open_search_fields_to_search_on(search_area)
         sorting_orders = build_sorting_orders(request.args)
         dsl_query = build_search_results_summary_query(
             query, search_fields, sorting_orders
@@ -597,9 +595,7 @@ def search_transferring_body(_id: uuid.UUID):
         breadcrumb_values[3]["search_terms"] = display_terms or query
 
         open_search = setup_opensearch()
-        search_fields = get_open_search_fields_to_search_on(
-            open_search, search_area
-        )
+        search_fields = get_open_search_fields_to_search_on(search_area)
         sorting_orders = build_sorting_orders(request.args)
         dsl_query = build_search_transferring_body_query(
             query, search_fields, sorting_orders, _id, highlight_tag

@@ -19,6 +19,21 @@ from app.main.util.search_utils import (
     setup_opensearch,
 )
 
+fields_all = [
+    "file_name",
+    "description",
+    "transferring_body",
+    "foi_exemption_code",
+    "content",
+    "closure_start_date",
+    "end_date",
+    "date_last_modified",
+    "citeable_reference",
+    "series_name",
+    "transferring_body_description",
+    "consignment_reference",
+]
+
 expected_base_dsl_search_query = {
     "query": {
         "bool": {
@@ -106,35 +121,36 @@ def test_format_opensearch_results(results, expected):
     "search_area, expected_fields",
     [
         # default "all" fields (no specific search area)
-        ("all", ["*"]),
+        ("all", fields_all),
         # "metadata" search area
         (
             "metadata",
-            ["metadata_field_1", "metadata_field_2", "metadata_field_3"],
+            [
+                "file_name",
+                "description",
+                "transferring_body",
+                "foi_exemption_code",
+                "closure_start_date",
+                "end_date",
+                "date_last_modified",
+                "citeable_reference",
+                "series_name",
+                "transferring_body_description",
+                "consignment_reference",
+            ],
         ),
         # "record" search area
         ("record", ["content"]),
         # empty search_area string (should default to "all" behavior)
-        ("", ["*"]),
+        ("", fields_all),
         # none as search_area (should default to "all" behavior)
-        (None, ["*"]),
+        (None, fields_all),
         # invalid search_area (should default to "all" behavior)
-        ("invalid_area", ["*"]),
+        ("invalid_area", fields_all),
     ],
 )
-@patch("app.main.util.search_utils.OpenSearch")
-@patch("app.main.util.search_utils.get_all_fields_excluding")
-def test_get_open_search_fields_to_search_on(
-    mock_get_all_fields_excluding, mock_opensearch, search_area, expected_fields
-):
-    mock_get_all_fields_excluding.return_value = [
-        "metadata_field_1",
-        "metadata_field_2",
-        "metadata_field_3",
-    ]
-    actual_fields = get_open_search_fields_to_search_on(
-        mock_opensearch, search_area
-    )
+def test_get_open_search_fields_to_search_on(search_area, expected_fields):
+    actual_fields = get_open_search_fields_to_search_on(search_area)
     assert actual_fields == expected_fields
 
 

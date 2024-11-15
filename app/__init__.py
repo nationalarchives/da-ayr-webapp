@@ -10,6 +10,7 @@ from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
 from app.logger_config import setup_logging
 from app.main.db.models import db
+from app.main.util.search_utils import OPENSEARCH_FIELD_NAME_MAP
 
 compress = Compress()
 talisman = Talisman()
@@ -32,6 +33,11 @@ def clean_tags_and_replace_highlight_tag(text, highlight_tag):
     return clean_text.replace(highlight_tag, "mark")
 
 
+def format_opensearch_field_name(field):
+    """Format the name of an OpenSearch field using a map"""
+    return OPENSEARCH_FIELD_NAME_MAP[field]
+
+
 def create_app(config_class, database_uri=None):
     app = Flask(__name__, static_url_path="/assets")
     config = config_class()
@@ -45,6 +51,9 @@ def create_app(config_class, database_uri=None):
     app.jinja_env.filters["null_to_dash"] = null_to_dash
     app.jinja_env.filters["clean_tags_and_replace_highlight_tag"] = (
         clean_tags_and_replace_highlight_tag
+    )
+    app.jinja_env.filters["format_opensearch_field_name"] = (
+        format_opensearch_field_name
     )
     app.jinja_loader = ChoiceLoader(
         [
