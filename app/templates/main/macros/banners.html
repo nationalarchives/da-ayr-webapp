@@ -1,0 +1,15 @@
+{% macro alert_banner(variant='', heading='', message='') %}
+    <div class="ayr-alert-banner ayr-alert-banner--{{ variant }}"
+         role="alert"
+         aria-live="polite">
+        <h2 class="ayr-alert-banner__heading">{{ heading }}</h2>
+        <p class="ayr-alert-banner__message">{{ message }}</p>
+    </div>
+{% endmacro %}
+{% macro belly_band(heading='', link_text='', link_href='') %}
+    <div class="ayr-belly-band">
+        <h1 class="govuk-heading-m">{{ heading }}</h1>
+        <a href="{{ link_href }}"
+           class="govuk-link govuk-link--no-visited-state">{{ link_text }}</a>
+    </div>
+{% endmacro %}
