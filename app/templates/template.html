@@ -2,6 +2,7 @@
 {% from "govuk_frontend_jinja/components/skip-link/macro.html" import govukSkipLink -%}
 {% from "govuk_frontend_jinja/components/header/macro.html" import govukHeader -%}
 {% from "govuk_frontend_jinja/components/footer/macro.html" import govukFooter -%}
+{% from 'main/macros/banners.html' import belly_band %}
 <!DOCTYPE html>
 <html lang="{{ htmlLang | default('en', true) }}"
       class="govuk-template {%- if htmlClasses %}{{ htmlClasses }}{% endif %}">
@@ -60,6 +61,7 @@
                 </main>
             </div>
         {% endblock %}
+        {{ belly_band('Help us to improve this service', 'Complete our short survey', 'https://www.smartsurvey.co.uk/s/AYRfeedback/') }}
         {% block footer %}{{ govukFooter({}) }}{% endblock %}
         {% block bodyEnd %}{% endblock %}
     </body>

@@ -1,4 +1,4 @@
-{% import "components/banners.html" as banners %}
+{% from 'macros/banners.html' import alert_banner %}
 <div class="govuk-tabs__panel" id="record-view">
     {% if file_type == "iiif" %}
         <div class="record-view-header">
@@ -29,7 +29,7 @@
         </div>
     {% else %}
         <div class="record-view__banner-container">
-            {{ banners.alertBanner('error', 'Unable to display this record', 'We cannot currently render this file type.') }}
+            {{ alert_banner('error', 'Unable to display this record', 'We cannot currently render this file type.') }}
         </div>
     {% endif %}
 </div>
