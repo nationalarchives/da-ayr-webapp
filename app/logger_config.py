@@ -1,7 +1,8 @@
 import logging
 
+import boto3
+from botocore.exceptions import ClientError
 from flask import has_request_context, request
-from flask.logging import default_handler
 
 
 class RequestFormatter(logging.Formatter):
@@ -12,31 +13,72 @@ class RequestFormatter(logging.Formatter):
         else:
             record.url = None
             record.remote_addr = None
-
         return super().format(record)
 
 
-def setup_logging(app):
+class CloudWatchHandler(logging.Handler):
+    def __init__(self, log_group, stream_name):
+        super().__init__()
+        self.client = boto3.client("logs")
+        self.log_group = log_group
+        self.stream_name = stream_name
+
+        # Ensure log group and stream exist
+        try:
+            self.client.create_log_group(logGroupName=self.log_group)
+        except ClientError as e:
+            if e.response["Error"]["Code"] != "ResourceAlreadyExistsException":
+                raise e
+
+        try:
+            self.client.create_log_stream(
+                logGroupName=self.log_group, logStreamName=self.stream_name
+            )
+        except ClientError as e:
+            if e.response["Error"]["Code"] != "ResourceAlreadyExistsException":
+                raise e
+
+    def emit(self, record):
+        try:
+            log_entry = self.format(record)
+            self.client.put_log_events(
+                logGroupName=self.log_group,
+                logStreamName=self.stream_name,
+                logEvents=[
+                    {
+                        "timestamp": int(record.created * 1000),
+                        "message": log_entry,
+                    }
+                ],
+            )
+        except ClientError as e:
+            print(f"Error sending log to CloudWatch: {e}")
+
+
+# Configure Loggers with Formatter
+def setup_loggers(app):
     formatter = RequestFormatter(
         "[%(asctime)s] %(remote_addr)s requested %(url)s\n"
         "%(levelname)s in %(module)s: %(message)s"
     )
 
-    # APP LOGGER
+    # Application Logger -> CloudWatch Log Group: "app-logs"
     app_logger = logging.getLogger("app_logger")
-    app_handler = logging.StreamHandler()
-    app_handler.setFormatter(formatter)
     app_logger.setLevel(logging.INFO)
+    app_handler = CloudWatchHandler(
+        log_group="app-logs", stream_name="app-log-stream"
+    )
+    app_handler.setFormatter(formatter)
     app_logger.addHandler(app_handler)
 
-    # AUDIT LOGGER
+    # Audit Logger -> CloudWatch Log Group: "audit-logs"
     audit_logger = logging.getLogger("audit_logger")
-    audit_handler = logging.StreamHandler()
-    audit_handler.setFormatter(formatter)
     audit_logger.setLevel(logging.INFO)
+    audit_handler = CloudWatchHandler(
+        log_group="audit-logs", stream_name="audit-log-stream"
+    )
+    audit_handler.setFormatter(formatter)
     audit_logger.addHandler(audit_handler)
-
-    app.logger.removeHandler(default_handler)
 
     app.audit_logger = audit_logger
     app.app_logger = app_logger
