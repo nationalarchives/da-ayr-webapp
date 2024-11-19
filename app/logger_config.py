@@ -1,4 +1,5 @@
 import logging
+import os
 
 import boto3
 from botocore.exceptions import ClientError
@@ -22,21 +23,6 @@ class CloudWatchHandler(logging.Handler):
         self.client = boto3.client("logs")
         self.log_group = log_group
         self.stream_name = stream_name
-
-        # Ensure log group and stream exist
-        try:
-            self.client.create_log_group(logGroupName=self.log_group)
-        except ClientError as e:
-            if e.response["Error"]["Code"] != "ResourceAlreadyExistsException":
-                raise e
-
-        try:
-            self.client.create_log_stream(
-                logGroupName=self.log_group, logStreamName=self.stream_name
-            )
-        except ClientError as e:
-            if e.response["Error"]["Code"] != "ResourceAlreadyExistsException":
-                raise e
 
     def emit(self, record):
         try:
@@ -62,23 +48,37 @@ def setup_logging(app):
         "%(levelname)s in %(module)s: %(message)s"
     )
 
-    # Application Logger -> CloudWatch Log Group: "app-logs"
-    app_logger = logging.getLogger("app_logger")
-    app_logger.setLevel(logging.INFO)
-    app_handler = CloudWatchHandler(
-        log_group="app-logs", stream_name="app-log-stream"
-    )
-    app_handler.setFormatter(formatter)
-    app_logger.addHandler(app_handler)
+    if os.getenv("ENV") == "aws":
+        # Use CloudWatchHandler for non-local environments
+        app_logger = logging.getLogger("app_logger")
+        app_logger.setLevel(logging.INFO)
+        app_handler = CloudWatchHandler(
+            log_group="app-logs", stream_name="app-log-stream"
+        )
+        app_handler.setFormatter(formatter)
+        app_logger.addHandler(app_handler)
 
-    # Audit Logger -> CloudWatch Log Group: "audit-logs"
-    audit_logger = logging.getLogger("audit_logger")
-    audit_logger.setLevel(logging.INFO)
-    audit_handler = CloudWatchHandler(
-        log_group="audit-logs", stream_name="audit-log-stream"
-    )
-    audit_handler.setFormatter(formatter)
-    audit_logger.addHandler(audit_handler)
+        audit_logger = logging.getLogger("audit_logger")
+        audit_logger.setLevel(logging.INFO)
+        audit_handler = CloudWatchHandler(
+            log_group="audit-logs", stream_name="audit-log-stream"
+        )
+        audit_handler.setFormatter(formatter)
+        audit_logger.addHandler(audit_handler)
+
+    else:
+        # Use a simple console handler for local testing
+        app_logger = logging.getLogger("app_logger")
+        app_logger.setLevel(logging.INFO)
+        app_handler = logging.StreamHandler()
+        app_handler.setFormatter(formatter)
+        app_logger.addHandler(app_handler)
+
+        audit_logger = logging.getLogger("audit_logger")
+        audit_logger.setLevel(logging.INFO)
+        audit_handler = logging.StreamHandler()
+        audit_handler.setFormatter(formatter)
+        audit_logger.addHandler(audit_handler)
 
     app.audit_logger = audit_logger
     app.app_logger = app_logger
