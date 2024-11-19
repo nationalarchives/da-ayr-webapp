@@ -56,7 +56,7 @@ class CloudWatchHandler(logging.Handler):
 
 
 # Configure Loggers with Formatter
-def setup_loggers(app):
+def setup_logging(app):
     formatter = RequestFormatter(
         "[%(asctime)s] %(remote_addr)s requested %(url)s\n"
         "%(levelname)s in %(module)s: %(message)s"
