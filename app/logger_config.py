@@ -41,7 +41,6 @@ class CloudWatchHandler(logging.Handler):
             print(f"Error sending log to CloudWatch: {e}")
 
 
-# Configure Loggers with Formatter
 def setup_logging(app):
     formatter = RequestFormatter(
         "[%(asctime)s] %(remote_addr)s requested %(url)s\n"
@@ -49,7 +48,6 @@ def setup_logging(app):
     )
 
     if os.getenv("ENV") == "aws":
-        # Use CloudWatchHandler for non-local environments
         app_logger = logging.getLogger("app_logger")
         app_logger.setLevel(logging.INFO)
         app_handler = CloudWatchHandler(
@@ -67,7 +65,6 @@ def setup_logging(app):
         audit_logger.addHandler(audit_handler)
 
     else:
-        # Use a simple console handler for local testing
         app_logger = logging.getLogger("app_logger")
         app_logger.setLevel(logging.INFO)
         app_handler = logging.StreamHandler()
