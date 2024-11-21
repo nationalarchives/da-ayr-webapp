@@ -47,35 +47,27 @@ def setup_logging(app):
         "%(levelname)s in %(module)s: %(message)s"
     )
 
+    app_logger = logging.getLogger("app_logger")
+    app_logger.setLevel(logging.INFO)
+    audit_logger = logging.getLogger("audit_logger")
+    audit_logger.setLevel(logging.INFO)
+
     if os.getenv("ENV") == "aws":
-        app_logger = logging.getLogger("app_logger")
-        app_logger.setLevel(logging.INFO)
         app_handler = CloudWatchHandler(
             log_group="app-logs", stream_name="app-log-stream"
         )
-        app_handler.setFormatter(formatter)
-        app_logger.addHandler(app_handler)
-
-        audit_logger = logging.getLogger("audit_logger")
-        audit_logger.setLevel(logging.INFO)
         audit_handler = CloudWatchHandler(
             log_group="audit-logs", stream_name="audit-log-stream"
         )
-        audit_handler.setFormatter(formatter)
-        audit_logger.addHandler(audit_handler)
-
     else:
-        app_logger = logging.getLogger("app_logger")
-        app_logger.setLevel(logging.INFO)
         app_handler = logging.StreamHandler()
-        app_handler.setFormatter(formatter)
-        app_logger.addHandler(app_handler)
-
-        audit_logger = logging.getLogger("audit_logger")
-        audit_logger.setLevel(logging.INFO)
         audit_handler = logging.StreamHandler()
-        audit_handler.setFormatter(formatter)
-        audit_logger.addHandler(audit_handler)
+
+    app_handler.setFormatter(formatter)
+    audit_handler.setFormatter(formatter)
+
+    app_logger.addHandler(app_handler)
+    audit_logger.addHandler(audit_handler)
 
     app.audit_logger = audit_logger
     app.app_logger = app_logger
