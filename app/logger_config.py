@@ -52,14 +52,14 @@ def setup_logging(app):
     audit_logger = logging.getLogger("audit_logger")
     audit_logger.setLevel(logging.INFO)
 
-    if os.getenv("ENV") == "aws":
+    if os.getenv("CONFIG_SOURCE") == "AWS_SECRETS_MANAGER":
         app_handler = CloudWatchHandler(
             log_group="app-logs", stream_name="app-log-stream"
         )
         audit_handler = CloudWatchHandler(
             log_group="audit-logs", stream_name="audit-log-stream"
         )
-    else:
+    elif os.getenv("CONFIG_SOURCE") == "ENVIRONMENT_VARIABLES":
         app_handler = logging.StreamHandler()
         audit_handler = logging.StreamHandler()
 
