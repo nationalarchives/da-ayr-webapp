@@ -59,7 +59,7 @@ def setup_logging(app):
         audit_handler = CloudWatchHandler(
             log_group="audit-logs", stream_name="audit-log-stream"
         )
-    elif os.getenv("CONFIG_SOURCE") == "ENVIRONMENT_VARIABLES":
+    else:
         app_handler = logging.StreamHandler()
         audit_handler = logging.StreamHandler()
 
