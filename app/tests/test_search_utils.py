@@ -12,7 +12,7 @@ from app.main.util.search_utils import (
     format_opensearch_results,
     get_all_fields_excluding,
     get_filtered_list,
-    get_open_search_fields_to_search_on,
+    get_open_search_fields_to_search_on_and_sorting,
     get_pagination_info,
     get_param,
     get_query_and_search_area,
@@ -35,7 +35,7 @@ expected_base_dsl_search_query = {
             "filter": [{"clause_1": "test_2"}],
         }
     },
-    "sort": {},
+    "sort": {"sort_1": "test_1"},
     "_source": True,
 }
 
@@ -103,37 +103,115 @@ def test_format_opensearch_results(results, expected):
 
 
 @pytest.mark.parametrize(
-    "search_area, expected_fields",
+    "search_area, expected_fields, sort",
     [
-        # default "all" fields (no specific search area)
-        ("all", ["*"]),
-        # "metadata" search area
+        (
+            "all",
+            [
+                "metadata_field_1",
+                "metadata_field_2",
+                "metadata_field_3",
+                "file_name^3",
+            ],
+            "file_name",
+        ),
         (
             "metadata",
-            ["metadata_field_1", "metadata_field_2", "metadata_field_3"],
+            [
+                "metadata_field_1^100",
+                "metadata_field_2^100",
+                "metadata_field_3^100",
+                "file_name^0.2",
+                "content^0.1",
+            ],
+            "metadata",
         ),
-        # "record" search area
-        ("record", ["content"]),
-        # empty search_area string (should default to "all" behavior)
-        ("", ["*"]),
-        # none as search_area (should default to "all" behavior)
-        (None, ["*"]),
-        # invalid search_area (should default to "all" behavior)
-        ("invalid_area", ["*"]),
+        ("record", ["content", "file_name^3"], "file_name"),
+        (
+            "all",
+            [
+                "metadata_field_1",
+                "metadata_field_2",
+                "metadata_field_3",
+                "file_name^3",
+            ],
+            "file_name",
+        ),
+        (
+            "all",
+            [
+                "metadata_field_1",
+                "metadata_field_2",
+                "metadata_field_3",
+                "description^3",
+                "file_name^2",
+            ],
+            "description",
+        ),
+        (
+            "all",
+            [
+                "metadata_field_1",
+                "metadata_field_2",
+                "metadata_field_3",
+                "content^3",
+                "file_name^2",
+            ],
+            "content",
+        ),
+        (
+            "all",
+            ["metadata_field_1", "metadata_field_2", "metadata_field_3"],
+            "least_matches",
+        ),
+        (
+            "",
+            [
+                "metadata_field_1",
+                "metadata_field_2",
+                "metadata_field_3",
+                "file_name^3",
+            ],
+            "file_name",
+        ),
+        (
+            None,
+            [
+                "metadata_field_1",
+                "metadata_field_2",
+                "metadata_field_3",
+                "file_name^3",
+            ],
+            "file_name",
+        ),
+        (
+            "invalid_area",
+            [
+                "metadata_field_1",
+                "metadata_field_2",
+                "metadata_field_3",
+                "file_name^3",
+            ],
+            "file_name",
+        ),
     ],
 )
 @patch("app.main.util.search_utils.OpenSearch")
 @patch("app.main.util.search_utils.get_all_fields_excluding")
-def test_get_open_search_fields_to_search_on(
-    mock_get_all_fields_excluding, mock_opensearch, search_area, expected_fields
+def test_get_open_search_fields_to_search_on_and_sorting(
+    mock_get_all_fields_excluding,
+    mock_opensearch,
+    search_area,
+    expected_fields,
+    sort,
 ):
     mock_get_all_fields_excluding.return_value = [
         "metadata_field_1",
         "metadata_field_2",
         "metadata_field_3",
     ]
-    actual_fields = get_open_search_fields_to_search_on(
-        mock_opensearch, search_area
+    actual_fields, _ = get_open_search_fields_to_search_on_and_sorting(
+        mock_opensearch, search_area, sort
     )
     assert actual_fields == expected_fields
 
@@ -330,8 +408,8 @@ def test_build_dsl_search_query():
     dsl_query = build_dsl_search_query(
         "test_query",
         ["field_1"],
-        {"sort_1": "test_1"},
         [{"clause_1": "test_2"}],
+        {"sort_1": "test_1"},
     )
     assert dsl_query == expected_base_dsl_search_query
 
@@ -378,9 +456,9 @@ def test_build_search_transferring_body_query():
     dsl_query = build_search_transferring_body_query(
         "test_query",
         ["field_1"],
-        {"sort_1": "test_1"},
         transferring_body_id,
         "test_highlight_key",
+        {"sort_1": "test_1"},
     )
     assert dsl_query == {
         **expected_base_dsl_search_query,
