@@ -63,7 +63,7 @@ def setup_logging(app):
         )
     else:
         app_handler = logging.StreamHandler()
-        audit_handler = logging.StreamHandler() 
+        audit_handler = logging.StreamHandler()
 
     app_handler.setFormatter(formatter)
     audit_handler.setFormatter(formatter)
