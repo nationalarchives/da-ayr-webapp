@@ -54,7 +54,6 @@ from app.main.util.render_utils import (
     get_file_mimetype,
 )
 from app.main.util.search_utils import (
-    build_dsl_sorting,
     build_search_results_summary_query,
     build_search_transferring_body_query,
     execute_search,
@@ -513,10 +512,8 @@ def search_results_summary():
         search_fields = get_open_search_fields_to_search_on(
             open_search, search_area
         )
-        sorting_orders = build_sorting_orders(request.args)
-        dsl_query = build_search_results_summary_query(
-            query, search_fields, sorting_orders
-        )
+        # sorting_orders = build_sorting_orders(request.args)
+        dsl_query = build_search_results_summary_query(query, search_fields)
         search_results = execute_search(open_search, dsl_query, page, per_page)
         results = search_results["aggregations"][
             "aggregate_by_transferring_body"
@@ -559,7 +556,7 @@ def search_transferring_body(_id: uuid.UUID):
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     page = int(request.args.get("page", 1))
     open_all = get_param("open_all", request)
-    sort = get_param("sort", request)
+    # sort = get_param("sort", request)
     highlight_tag = f"uuid_prefix_{uuid.uuid4().hex}"
 
     query, search_area = get_query_and_search_area(request)
@@ -604,17 +601,15 @@ def search_transferring_body(_id: uuid.UUID):
         )
         sorting_orders = build_sorting_orders(request.args)
 
-        dsl_sort = []
-        if sort:
-            dsl_sort = build_dsl_sorting(sort)
         dsl_query = build_search_transferring_body_query(
-            query, search_fields, dsl_sort, _id, highlight_tag
+            query, search_fields, _id, highlight_tag
         )
 
         search_results = execute_search(open_search, dsl_query, page, per_page)
         results = post_process_opensearch_results(
             search_results["hits"]["hits"]
         )
+        print(search_results)
 
         total_records, pagination = get_pagination_info(
             search_results, page, per_page

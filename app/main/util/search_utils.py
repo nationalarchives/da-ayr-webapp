@@ -37,12 +37,16 @@ def post_process_opensearch_results(results):
 
 def get_open_search_fields_to_search_on(open_search, search_area):
     """Retrieve a list of fields depending on the search area (all fields, metadata, record, etc.)"""
+    fields = ["*"]
     fields_record = ["content"]
     if search_area == "metadata":
-        return get_all_fields_excluding(open_search, "documents", fields_record)
+        fields = get_all_fields_excluding(
+            open_search, "documents", fields_record
+        )
     elif search_area == "record":
-        return fields_record
-    return ["*"]
+        fields = fields_record
+
+    return fields
 
 
 def get_param(param, request):
@@ -106,24 +110,7 @@ def get_all_fields_excluding(open_search, index_name, exclude_fields=None):
     return filtered_fields
 
 
-def build_dsl_sorting(sort):
-    sort_list = [
-        {
-            "_score": {
-                "order": (
-                    "desc"
-                    if sort == "most_matches"
-                    else "asc" if sort == "least_matches" else "desc"
-                )
-            }
-        }
-    ]
-    if sort not in ["most_matches", "least_matches"]:
-        sort_list.append({f"{sort}.keyword": {"order": "asc"}})
-    return sort_list
-
-
-def build_dsl_search_query(query, search_fields, dsl_sort, filter_clauses):
+def build_dsl_search_query(query, search_fields, filter_clauses):
     """Constructs the base DSL query for OpenSearch"""
     return {
         "query": {
@@ -139,18 +126,15 @@ def build_dsl_search_query(query, search_fields, dsl_sort, filter_clauses):
                     }
                 ],
                 "filter": filter_clauses,
-            }
+            },
         },
-        "sort": dsl_sort,
         "_source": True,
     }
 
 
-def build_search_results_summary_query(query, search_fields, sorting_orders):
+def build_search_results_summary_query(query, search_fields):
     filter_clauses = []
-    dsl_query = build_dsl_search_query(
-        query, search_fields, sorting_orders, filter_clauses
-    )
+    dsl_query = build_dsl_search_query(query, search_fields, filter_clauses)
     aggregations = {
         "aggs": {
             "aggregate_by_transferring_body": {
@@ -170,14 +154,12 @@ def build_search_results_summary_query(query, search_fields, sorting_orders):
 
 
 def build_search_transferring_body_query(
-    query, search_fields, sorting_orders, transferring_body_id, highlight_tag
+    query, search_fields, transferring_body_id, highlight_tag
 ):
     filter_clauses = [
         {"term": {"transferring_body_id.keyword": transferring_body_id}}
     ]
-    dsl_query = build_dsl_search_query(
-        query, search_fields, sorting_orders, filter_clauses
-    )
+    dsl_query = build_dsl_search_query(query, search_fields, filter_clauses)
     highlighting = {
         "highlight": {
             "pre_tags": [f"<{highlight_tag}>"],
