@@ -62,7 +62,6 @@ fields_without_file_name = [
     "consignment_reference",
 ]
 
-
 expected_base_dsl_search_query = {
     "query": {
         "bool": {
@@ -156,7 +155,7 @@ def test_format_opensearch_results(results, expected):
                 "file_name^3",
             ],
             "file_name",
-            None,
+            [{"_score": {"order": "desc"}}],
         ),
         (
             "metadata",
@@ -175,9 +174,14 @@ def test_format_opensearch_results(results, expected):
                 "content^0.1",
             ],
             "metadata",
-            None,
+            [{"_score": {"order": "desc"}}],
         ),
-        ("record", ["content", "file_name^3"], "file_name", None),
+        (
+            "record",
+            ["content", "file_name^3"],
+            "file_name",
+            [{"_score": {"order": "desc"}}],
+        ),
         (
             "all",
             [
@@ -185,7 +189,7 @@ def test_format_opensearch_results(results, expected):
                 "file_name^3",
             ],
             "file_name",
-            None,
+            [{"_score": {"order": "desc"}}],
         ),
         (
             "all",
@@ -204,7 +208,7 @@ def test_format_opensearch_results(results, expected):
                 "file_name^2",
             ],
             "description",
-            None,
+            [{"_score": {"order": "desc"}}],
         ),
         (
             "all",
@@ -214,13 +218,13 @@ def test_format_opensearch_results(results, expected):
                 "file_name^2",
             ],
             "content",
-            None,
+            [{"_score": {"order": "desc"}}],
         ),
         (
             "all",
             fields_all,
             "least_matches",
-            None,
+            [{"_score": {"order": "asc"}}],
         ),
         (
             "",
@@ -229,7 +233,7 @@ def test_format_opensearch_results(results, expected):
                 "file_name^3",
             ],
             "file_name",
-            None,
+            [{"_score": {"order": "desc"}}],
         ),
         (
             None,
@@ -238,13 +242,13 @@ def test_format_opensearch_results(results, expected):
                 "file_name^3",
             ],
             "file_name",
-            None,
+            [{"_score": {"order": "desc"}}],
         ),
         (
             "invalid_area",
             [*fields_without_file_name, "file_name^3"],
             "file_name",
-            None,
+            [{"_score": {"order": "desc"}}],
         ),
     ],
 )
@@ -254,6 +258,7 @@ def test_get_open_search_fields_to_search_on_and_sorting(
     actual_fields, sorting = get_open_search_fields_to_search_on_and_sorting(
         search_area, sort
     )
+    assert sorting == expected_sorting
     assert actual_fields == expected_fields
 
 
