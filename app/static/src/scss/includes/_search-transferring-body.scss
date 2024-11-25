@@ -280,6 +280,10 @@ a.govuk-link {
       background-position: center;
       transition: transform 0.2s;
     }
+
+    &:hover::before {
+      background-image: url("/assets/image/accordion-chevron-hover.svg");
+    }
   }
 
   &--inner-table {
