@@ -56,15 +56,50 @@ def post_process_opensearch_results(results):
     return results
 
 
-def get_open_search_fields_to_search_on(search_area):
-    """Retrieve a list of fields depending on the search area (all fields, metadata, record, etc.)"""
+def remove_field(fields, field_name):
+    return [field for field in fields if field_name != field]
+
+
+def get_open_search_fields_to_search_on_and_sorting(
+    search_area, sort="file_name"
+):
+    """Retrieve a list of fields depending on the search area (all fields, metadata, record, etc.) and sorting."""
+    sort_order = "asc" if sort == "least_matches" else "desc"
+    sorting = [{"_score": {"order": sort_order}}]
+
+    fields = list(OPENSEARCH_FIELD_NAME_MAP.keys())
     fields_record = ["content"]
-    fields_all = list(OPENSEARCH_FIELD_NAME_MAP.keys())
+
     if search_area == "metadata":
-        return get_filtered_list(fields_all, fields_record)
+        fields = get_filtered_list(fields, ["file_name", "content"])
     elif search_area == "record":
-        return fields_record
-    return fields_all
+        fields = fields_record
+
+    if sort == "file_name":
+        fields = remove_field(fields, "file_name")
+        fields.append("file_name^3")
+    elif sort == "description":
+        fields = remove_field(fields, "file_name")
+        fields = remove_field(fields, "description")
+        fields.append("description^3")
+        fields.append("file_name^2")
+    elif sort == "metadata":
+        # boost all fields to ^100 and then apply penalties to specific fields
+        fields = [
+            f"{field}^100" for field in fields
+        ]  # boost all fields to ^100
+        fields = remove_field(fields, "file_name")
+        fields = remove_field(fields, "content")
+        # penalize "file_name" and "content"
+        fields.append("file_name^0.2")
+        fields.append("content^0.1")
+    elif sort == "content":
+        fields = remove_field(fields, "file_name")
+        fields = remove_field(fields, "content")
+        fields.append("content^3")
+        fields.append("file_name^2")
+
+    return fields, sorting
 
 
 def get_param(param, request):
@@ -166,6 +201,7 @@ def build_dsl_search_query(
     filter_clauses,
     quoted_phrases,
     single_terms,
+    sorting,
 ):
     """Constructs the base DSL query for OpenSearch with AND"""
     must_clauses = build_must_clauses(
@@ -180,7 +216,7 @@ def build_dsl_search_query(
             }
         },
         # set as {} until sorting ticket is in done
-        "sort": {},
+        "sort": sorting,
         "_source": True,
     }
 
@@ -190,6 +226,7 @@ def build_search_results_summary_query(
     sorting_orders,
     quoted_phrases,
     single_terms,
+    sorting,
 ):
     filter_clauses = []
     dsl_query = build_dsl_search_query(
@@ -198,6 +235,7 @@ def build_search_results_summary_query(
         filter_clauses,
         quoted_phrases,
         single_terms,
+        sorting,
     )
     aggregations = {
         "aggs": {
@@ -224,6 +262,7 @@ def build_search_transferring_body_query(
     highlight_tag,
     quoted_phrases,
     single_terms,
+    sorting,
 ):
     filter_clauses = [
         {"term": {"transferring_body_id.keyword": transferring_body_id}}
@@ -234,6 +273,7 @@ def build_search_transferring_body_query(
         filter_clauses,
         quoted_phrases,
         single_terms,
+        sorting,
     )
     highlighting = {
         "highlight": {

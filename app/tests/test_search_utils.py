@@ -13,7 +13,7 @@ from app.main.util.search_utils import (
     format_opensearch_results,
     get_all_fields_excluding,
     get_filtered_list,
-    get_open_search_fields_to_search_on,
+    get_open_search_fields_to_search_on_and_sorting,
     get_pagination_info,
     get_param,
     get_query_and_search_area,
@@ -35,6 +35,34 @@ fields_all = [
     "consignment_reference",
 ]
 
+fields_metadata = [
+    "description",
+    "transferring_body",
+    "foi_exemption_code",
+    "closure_start_date",
+    "end_date",
+    "date_last_modified",
+    "citeable_reference",
+    "series_name",
+    "transferring_body_description",
+    "consignment_reference",
+]
+
+fields_without_file_name = [
+    "description",
+    "transferring_body",
+    "foi_exemption_code",
+    "content",
+    "closure_start_date",
+    "end_date",
+    "date_last_modified",
+    "citeable_reference",
+    "series_name",
+    "transferring_body_description",
+    "consignment_reference",
+]
+
+
 expected_base_dsl_search_query = {
     "query": {
         "bool": {
@@ -51,7 +79,7 @@ expected_base_dsl_search_query = {
             "filter": [{"clause_1": "test_2"}],
         }
     },
-    "sort": {},
+    "sort": {"sort": "foobar"},
     "_source": True,
 }
 
@@ -119,18 +147,52 @@ def test_format_opensearch_results(results, expected):
 
 
 @pytest.mark.parametrize(
-    "search_area, expected_fields",
+    "search_area, expected_fields, sort, expected_sorting",
     [
-        # default "all" fields (no specific search area)
-        ("all", fields_all),
-        # "metadata" search area
+        (
+            "all",
+            [
+                *fields_without_file_name,
+                "file_name^3",
+            ],
+            "file_name",
+            None,
+        ),
         (
             "metadata",
             [
-                "file_name",
-                "description",
+                "description^100",
+                "transferring_body^100",
+                "foi_exemption_code^100",
+                "closure_start_date^100",
+                "end_date^100",
+                "date_last_modified^100",
+                "citeable_reference^100",
+                "series_name^100",
+                "transferring_body_description^100",
+                "consignment_reference^100",
+                "file_name^0.2",
+                "content^0.1",
+            ],
+            "metadata",
+            None,
+        ),
+        ("record", ["content", "file_name^3"], "file_name", None),
+        (
+            "all",
+            [
+                *fields_without_file_name,
+                "file_name^3",
+            ],
+            "file_name",
+            None,
+        ),
+        (
+            "all",
+            [
                 "transferring_body",
                 "foi_exemption_code",
+                "content",
                 "closure_start_date",
                 "end_date",
                 "date_last_modified",
@@ -138,20 +200,60 @@ def test_format_opensearch_results(results, expected):
                 "series_name",
                 "transferring_body_description",
                 "consignment_reference",
+                "description^3",
+                "file_name^2",
             ],
+            "description",
+            None,
         ),
-        # "record" search area
-        ("record", ["content"]),
-        # empty search_area string (should default to "all" behavior)
-        ("", fields_all),
-        # none as search_area (should default to "all" behavior)
-        (None, fields_all),
-        # invalid search_area (should default to "all" behavior)
-        ("invalid_area", fields_all),
+        (
+            "all",
+            [
+                *fields_metadata,
+                "content^3",
+                "file_name^2",
+            ],
+            "content",
+            None,
+        ),
+        (
+            "all",
+            fields_all,
+            "least_matches",
+            None,
+        ),
+        (
+            "",
+            [
+                *fields_without_file_name,
+                "file_name^3",
+            ],
+            "file_name",
+            None,
+        ),
+        (
+            None,
+            [
+                *fields_without_file_name,
+                "file_name^3",
+            ],
+            "file_name",
+            None,
+        ),
+        (
+            "invalid_area",
+            [*fields_without_file_name, "file_name^3"],
+            "file_name",
+            None,
+        ),
     ],
 )
-def test_get_open_search_fields_to_search_on(search_area, expected_fields):
-    actual_fields = get_open_search_fields_to_search_on(search_area)
+def test_get_open_search_fields_to_search_on_and_sorting(
+    search_area, expected_fields, sort, expected_sorting
+):
+    actual_fields, sorting = get_open_search_fields_to_search_on_and_sorting(
+        search_area, sort
+    )
     assert actual_fields == expected_fields
 
 
@@ -352,6 +454,7 @@ def test_build_dsl_search_query():
         [{"clause_1": "test_2"}],
         quoted_phrases,
         single_terms,
+        {"sort": "foobar"},
     )
     assert dsl_query == expected_base_dsl_search_query
 
@@ -395,7 +498,7 @@ def test_build_dsl_search_query_and_exact_fuzzy_search():
                 "filter": filter_clauses,
             }
         },
-        "sort": {},
+        "sort": {"sort": "foobar"},
         "_source": True,
     }
 
@@ -405,6 +508,7 @@ def test_build_dsl_search_query_and_exact_fuzzy_search():
         filter_clauses,
         quoted_phrases,
         single_terms,
+        {"sort": "foobar"},
     )
     assert dsl_query == expected_dsl_query
 
@@ -413,7 +517,11 @@ def test_build_search_results_summary_query():
     query = "test_query"
     quoted_phrases, single_terms = extract_search_terms(query)
     dsl_query = build_search_results_summary_query(
-        ["field_1"], {"sort_1": "test_1"}, quoted_phrases, single_terms
+        ["field_1"],
+        {"sort_1": "test_1"},
+        quoted_phrases,
+        single_terms,
+        {"sort": "foobar"},
     )
     assert dsl_query == {
         **expected_base_dsl_search_query,
@@ -459,6 +567,7 @@ def test_build_search_transferring_body_query():
         "test_highlight_key",
         quoted_phrases,
         single_terms,
+        {"sort": "foobar"},
     )
     assert dsl_query == {
         **expected_base_dsl_search_query,
