@@ -53,8 +53,8 @@ def setup_logging(app):
     audit_logger.setLevel(logging.INFO)
 
     if os.getenv("CONFIG_SOURCE") == "AWS_SECRETS_MANAGER":
-        # environment_name = os.getenv("ENVIRONMENT_NAME")
-        log_group_name = "ayr-test-one-app-logs"
+        environment_name = os.getenv("ENVIRONMENT_NAME")
+        log_group_name = f"ayr-{environment_name}-app-logs"
         app_handler = CloudWatchHandler(
             log_group=log_group_name, stream_name="app-log-stream"
         )
