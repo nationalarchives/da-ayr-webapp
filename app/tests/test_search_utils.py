@@ -13,7 +13,7 @@ from app.main.util.search_utils import (
     format_opensearch_results,
     get_all_fields_excluding,
     get_filtered_list,
-    get_open_search_fields_to_search_on,
+    get_open_search_fields_to_search_on_and_sorting,
     get_pagination_info,
     get_param,
     get_query_and_search_area,
@@ -21,18 +21,45 @@ from app.main.util.search_utils import (
 )
 
 fields_all = [
-    "file_name",
-    "description",
-    "transferring_body",
-    "foi_exemption_code",
-    "content",
-    "closure_start_date",
-    "end_date",
-    "date_last_modified",
-    "citeable_reference",
-    "series_name",
-    "transferring_body_description",
-    "consignment_reference",
+    "file_name^1",
+    "description^1",
+    "transferring_body^1",
+    "foi_exemption_code^1",
+    "content^1",
+    "closure_start_date^1",
+    "end_date^1",
+    "date_last_modified^1",
+    "citeable_reference^1",
+    "series_name^1",
+    "transferring_body_description^1",
+    "consignment_reference^1",
+]
+
+fields_metadata = [
+    "description^1",
+    "transferring_body^1",
+    "foi_exemption_code^1",
+    "closure_start_date^1",
+    "end_date^1",
+    "date_last_modified^1",
+    "citeable_reference^1",
+    "series_name^1",
+    "transferring_body_description^1",
+    "consignment_reference^1",
+]
+
+fields_without_file_name = [
+    "description^1",
+    "transferring_body^1",
+    "foi_exemption_code^1",
+    "content^1",
+    "closure_start_date^1",
+    "end_date^1",
+    "date_last_modified^1",
+    "citeable_reference^1",
+    "series_name^1",
+    "transferring_body_description^1",
+    "consignment_reference^1",
 ]
 
 expected_base_dsl_search_query = {
@@ -51,7 +78,7 @@ expected_base_dsl_search_query = {
             "filter": [{"clause_1": "test_2"}],
         }
     },
-    "sort": {},
+    "sort": {"sort": "foobar"},
     "_source": True,
 }
 
@@ -119,39 +146,126 @@ def test_format_opensearch_results(results, expected):
 
 
 @pytest.mark.parametrize(
-    "search_area, expected_fields",
+    "search_area, expected_fields, sort, expected_sorting",
     [
-        # default "all" fields (no specific search area)
-        ("all", fields_all),
-        # "metadata" search area
+        (
+            "all",
+            [
+                "file_name^3",
+                *fields_without_file_name,
+            ],
+            "file_name",
+            [{"_score": {"order": "desc"}}],
+        ),
         (
             "metadata",
             [
-                "file_name",
-                "description",
-                "transferring_body",
-                "foi_exemption_code",
-                "closure_start_date",
-                "end_date",
-                "date_last_modified",
-                "citeable_reference",
-                "series_name",
-                "transferring_body_description",
-                "consignment_reference",
+                "description^1",
+                "transferring_body^1",
+                "foi_exemption_code^1",
+                "closure_start_date^1",
+                "end_date^1",
+                "date_last_modified^1",
+                "citeable_reference^1",
+                "series_name^1",
+                "transferring_body_description^1",
+                "consignment_reference^1",
             ],
+            "metadata",
+            [{"_score": {"order": "desc"}}],
         ),
-        # "record" search area
-        ("record", ["content"]),
-        # empty search_area string (should default to "all" behavior)
-        ("", fields_all),
-        # none as search_area (should default to "all" behavior)
-        (None, fields_all),
-        # invalid search_area (should default to "all" behavior)
-        ("invalid_area", fields_all),
+        (
+            "record",
+            ["file_name^3", "content^1"],
+            "file_name",
+            [{"_score": {"order": "desc"}}],
+        ),
+        (
+            "all",
+            [
+                "file_name^3",
+                *fields_without_file_name,
+            ],
+            "file_name",
+            [{"_score": {"order": "desc"}}],
+        ),
+        (
+            "all",
+            [
+                "file_name^2",
+                "description^3",
+                "transferring_body^1",
+                "foi_exemption_code^1",
+                "content^1",
+                "closure_start_date^1",
+                "end_date^1",
+                "date_last_modified^1",
+                "citeable_reference^1",
+                "series_name^1",
+                "transferring_body_description^1",
+                "consignment_reference^1",
+            ],
+            "description",
+            [{"_score": {"order": "desc"}}],
+        ),
+        (
+            "all",
+            [
+                "file_name^1",
+                "description^1",
+                "transferring_body^1",
+                "foi_exemption_code^1",
+                "content^1",
+                "closure_start_date^1",
+                "end_date^1",
+                "date_last_modified^1",
+                "citeable_reference^1",
+                "series_name^1",
+                "transferring_body_description^1",
+                "consignment_reference^1",
+            ],
+            "content",
+            [{"_score": {"order": "desc"}}],
+        ),
+        (
+            "all",
+            fields_all,
+            "least_matches",
+            [{"_score": {"order": "asc"}}],
+        ),
+        (
+            "",
+            [
+                "file_name^3",
+                *fields_without_file_name,
+            ],
+            "file_name",
+            [{"_score": {"order": "desc"}}],
+        ),
+        (
+            None,
+            [
+                "file_name^3",
+                *fields_without_file_name,
+            ],
+            "file_name",
+            [{"_score": {"order": "desc"}}],
+        ),
+        (
+            "invalid_area",
+            ["file_name^3", *fields_without_file_name],
+            "file_name",
+            [{"_score": {"order": "desc"}}],
+        ),
     ],
 )
-def test_get_open_search_fields_to_search_on(search_area, expected_fields):
-    actual_fields = get_open_search_fields_to_search_on(search_area)
+def test_get_open_search_fields_to_search_on_and_sorting(
+    search_area, expected_fields, sort, expected_sorting
+):
+    actual_fields, sorting = get_open_search_fields_to_search_on_and_sorting(
+        search_area, sort
+    )
+    assert sorting == expected_sorting
     assert actual_fields == expected_fields
 
 
@@ -352,6 +466,7 @@ def test_build_dsl_search_query():
         [{"clause_1": "test_2"}],
         quoted_phrases,
         single_terms,
+        {"sort": "foobar"},
     )
     assert dsl_query == expected_base_dsl_search_query
 
@@ -395,7 +510,7 @@ def test_build_dsl_search_query_and_exact_fuzzy_search():
                 "filter": filter_clauses,
             }
         },
-        "sort": {},
+        "sort": {"sort": "foobar"},
         "_source": True,
     }
 
@@ -405,6 +520,7 @@ def test_build_dsl_search_query_and_exact_fuzzy_search():
         filter_clauses,
         quoted_phrases,
         single_terms,
+        {"sort": "foobar"},
     )
     assert dsl_query == expected_dsl_query
 
@@ -413,7 +529,11 @@ def test_build_search_results_summary_query():
     query = "test_query"
     quoted_phrases, single_terms = extract_search_terms(query)
     dsl_query = build_search_results_summary_query(
-        ["field_1"], {"sort_1": "test_1"}, quoted_phrases, single_terms
+        ["field_1"],
+        {"sort_1": "test_1"},
+        quoted_phrases,
+        single_terms,
+        {"sort": "foobar"},
     )
     assert dsl_query == {
         **expected_base_dsl_search_query,
@@ -459,6 +579,7 @@ def test_build_search_transferring_body_query():
         "test_highlight_key",
         quoted_phrases,
         single_terms,
+        {"sort": "foobar"},
     )
     assert dsl_query == {
         **expected_base_dsl_search_query,

@@ -58,7 +58,7 @@ from app.main.util.search_utils import (
     build_search_transferring_body_query,
     execute_search,
     extract_search_terms,
-    get_open_search_fields_to_search_on,
+    get_open_search_fields_to_search_on_and_sorting,
     get_pagination_info,
     get_param,
     get_query_and_search_area,
@@ -511,10 +511,12 @@ def search_results_summary():
     if query:
         quoted_phrases, single_terms = extract_search_terms(query)
         open_search = setup_opensearch()
-        search_fields = get_open_search_fields_to_search_on(search_area)
+        search_fields, sorting = (
+            get_open_search_fields_to_search_on_and_sorting(search_area)
+        )
         sorting_orders = build_sorting_orders(request.args)
         dsl_query = build_search_results_summary_query(
-            search_fields, sorting_orders, quoted_phrases, single_terms
+            search_fields, sorting_orders, quoted_phrases, single_terms, sorting
         )
         search_results = execute_search(open_search, dsl_query, page, per_page)
         results = search_results["aggregations"][
@@ -558,6 +560,7 @@ def search_transferring_body(_id: uuid.UUID):
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     page = int(request.args.get("page", 1))
     open_all = get_param("open_all", request)
+    sort = get_param("sort", request) or "file_name"
     highlight_tag = f"uuid_prefix_{uuid.uuid4().hex}"
 
     query, search_area = get_query_and_search_area(request)
@@ -603,7 +606,9 @@ def search_transferring_body(_id: uuid.UUID):
         breadcrumb_values[3]["search_terms"] = display_terms or query
 
         open_search = setup_opensearch()
-        search_fields = get_open_search_fields_to_search_on(search_area)
+        search_fields, sorting = (
+            get_open_search_fields_to_search_on_and_sorting(search_area, sort)
+        )
         sorting_orders = build_sorting_orders(request.args)
         dsl_query = build_search_transferring_body_query(
             search_fields,
@@ -612,6 +617,7 @@ def search_transferring_body(_id: uuid.UUID):
             highlight_tag,
             quoted_phrases,
             single_terms,
+            sorting,
         )
 
         search_results = execute_search(open_search, dsl_query, page, per_page)
