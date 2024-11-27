@@ -1,36 +1,84 @@
-from unittest.mock import MagicMock, patch
+import json
+from unittest.mock import MagicMock
 
 import pytest
+from flask import current_app
+from flask.testing import FlaskClient
 
 from app.main.middlewares.log_page_view import log_page_view
 
 
 @pytest.mark.parametrize(
-    "user_id, method, expected_user_id",
+    "route_path, method, user_id_in_session, route_function, expected_response, expected_log_data",
     [
-        ("12345", "GET", "12345"),
-        (None, "POST", "anonymous"),
+        (
+            "/test_route",
+            "GET",
+            "test_user",
+            lambda: "Test Response",
+            b"Test Response",
+            {
+                "event": "page_view",
+                "user_id": "test_user",
+                "route": "/test_route",
+                "method": "GET",
+            },
+        ),
+        (
+            "/anonymous_route",
+            "GET",
+            None,
+            lambda: "Anonymous Response",
+            b"Anonymous Response",
+            {
+                "event": "page_view",
+                "user_id": "anonymous",
+                "route": "/anonymous_route",
+                "method": "GET",
+            },
+        ),
+        (
+            "/post_route",
+            "POST",
+            "test_user",
+            lambda: "Post Response",
+            b"Post Response",
+            {
+                "event": "page_view",
+                "user_id": "test_user",
+                "route": "/post_route",
+                "method": "POST",
+            },
+        ),
     ],
 )
-@patch("app.main.middlewares.log_page_view.session")
-@patch("app.main.middlewares.log_page_view.current_app")
 def test_log_page_view(
-    mock_current_app, mock_session, app, user_id, method, expected_user_id
+    app,
+    client: FlaskClient,
+    route_path,
+    method,
+    user_id_in_session,
+    route_function,
+    expected_response,
+    expected_log_data,
 ):
-    """
-    Test that the log page view middleware calls the current_app.audit_logger with correct values
-    """
-    mock_session.get.return_value = user_id
-    mock_current_app.audit_logger.info = MagicMock()
-    view_name = "/log_page_view"
+    mock_logger = MagicMock()
 
-    @app.route(view_name)
+    @app.route(route_path, methods=[method])
     @log_page_view
-    def protected_view():
-        return "Foobar"
+    def dynamic_route():
+        return route_function()
 
-    with app.test_client() as client:
-        response = client.get(view_name)
+    with app.app_context():
+        current_app.audit_logger = mock_logger
 
-    assert response == "Foobar"
-    mock_current_app.audit_logger.info.assert_called_once_with({})
+    if user_id_in_session is not None:
+        with client.session_transaction() as session:
+            session["user_id"] = user_id_in_session
+
+    response = client.open(route_path, method=method)
+
+    assert response.status_code == 200
+    assert response.data == expected_response
+
+    mock_logger.info.assert_called_once_with(json.dumps(expected_log_data))
