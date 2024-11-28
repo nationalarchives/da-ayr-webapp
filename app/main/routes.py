@@ -760,7 +760,7 @@ def download_record(record_id: uuid.UUID):
             as_attachment=True,
             download_name=download_filename,
         )
-    current_app.app_logger.info(
+    current_app.audit_logger.info(
         json.dumps({"user_id": session["user_id"], "file": key})
     )
     return response
