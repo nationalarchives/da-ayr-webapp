@@ -235,7 +235,6 @@ def build_must_clauses(search_fields, quoted_phrases, single_terms):
 
 def build_dsl_search_query(
     search_fields,
-    sorting_orders,
     filter_clauses,
     quoted_phrases,
     single_terms,
@@ -261,7 +260,6 @@ def build_dsl_search_query(
 
 def build_search_results_summary_query(
     search_fields,
-    sorting_orders,
     quoted_phrases,
     single_terms,
     sorting,
@@ -269,7 +267,6 @@ def build_search_results_summary_query(
     filter_clauses = []
     dsl_query = build_dsl_search_query(
         search_fields,
-        sorting_orders,
         filter_clauses,
         quoted_phrases,
         single_terms,
@@ -295,7 +292,6 @@ def build_search_results_summary_query(
 
 def build_search_transferring_body_query(
     search_fields,
-    sorting_orders,
     transferring_body_id,
     highlight_tag,
     quoted_phrases,
@@ -307,7 +303,6 @@ def build_search_transferring_body_query(
     ]
     dsl_query = build_dsl_search_query(
         search_fields,
-        sorting_orders,
         filter_clauses,
         quoted_phrases,
         single_terms,
