@@ -687,7 +687,7 @@ def record(record_id: uuid.UUID):
     try:
         presigned_url = create_presigned_url(file)
     except Exception as e:
-        current_app.logger.info(
+        current_app.app_logger.info(
             f"Failed to create presigned url for document render non-javascript fallback {e}"
         )
 
@@ -732,7 +732,7 @@ def download_record(record_id: uuid.UUID):
     try:
         s3_file_object = s3.get_object(Bucket=bucket, Key=key)
     except Exception as e:
-        current_app.logger.error(f"Failed to get object from S3: {e}")
+        current_app.app_logger.error(f"Failed to get object from S3: {e}")
         abort(404)
 
     download_filename = file.FileName
@@ -747,7 +747,7 @@ def download_record(record_id: uuid.UUID):
         file_content = s3_file_object["Body"].read()
         file_type = download_filename.split(".")[-1].lower()
     except Exception as e:
-        current_app.logger.error(f"Error reading S3 file content: {e}")
+        current_app.app_logger.error(f"Error reading S3 file content: {e}")
         abort(500)
 
     content_type = s3_file_object.get("ContentType", "application/octet-stream")
@@ -766,7 +766,7 @@ def download_record(record_id: uuid.UUID):
             as_attachment=True,
             download_name=download_filename,
         )
-    current_app.logger.info(
+    current_app.audit_logger.info(
         json.dumps({"user_id": session["user_id"], "file": key})
     )
     return response
