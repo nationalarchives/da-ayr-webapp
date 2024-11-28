@@ -16,30 +16,6 @@ class RequestFormatter(logging.Formatter):
         return super().format(record)
 
 
-class CloudWatchHandler(logging.Handler):
-    def __init__(self, log_group, stream_name):
-        super().__init__()
-        self.client = boto3.client("logs")
-        self.log_group = log_group
-        self.stream_name = stream_name
-
-    def emit(self, record):
-        try:
-            log_entry = self.format(record)
-            self.client.put_log_events(
-                logGroupName=self.log_group,
-                logStreamName=self.stream_name,
-                logEvents=[
-                    {
-                        "timestamp": int(record.created * 1000),
-                        "message": log_entry,
-                    }
-                ],
-            )
-        except ClientError as e:
-            print(f"Error sending log to CloudWatch: {e}")
-
-
 def setup_logger(name, level, formatter):
     """Helper function to set up a logger."""
     logger = logging.getLogger(name)
