@@ -1,7 +1,5 @@
 import logging
 
-import boto3
-from botocore.exceptions import ClientError
 from flask import has_request_context, request
 
 
