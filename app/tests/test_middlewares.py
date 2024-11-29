@@ -14,7 +14,7 @@ from app.main.middlewares.log_page_view import log_page_view
             {"user_id": "test_user"},
             lambda: "Test Response",
             b"Test Response",
-            '{"event": "page_view", "user_id": "test_user", "route": "/test_route", "method": "GET"}',
+            '{"event": "api_request", "user_id": "test_user", "route": "/test_route", "method": "GET"}',
         ),
         (
             "/anonymous_route",
@@ -22,7 +22,7 @@ from app.main.middlewares.log_page_view import log_page_view
             {},
             lambda: "Anonymous Response",
             b"Anonymous Response",
-            '{"event": "page_view", "user_id": "anonymous", "route": "/anonymous_route", "method": "GET"}',
+            '{"event": "api_request", "user_id": "anonymous", "route": "/anonymous_route", "method": "GET"}',
         ),
         (
             "/post_route",
@@ -30,7 +30,7 @@ from app.main.middlewares.log_page_view import log_page_view
             {"user_id": "test_user"},
             lambda: "Post Response",
             b"Post Response",
-            '{"event": "page_view", "user_id": "test_user", "route": "/post_route", "method": "POST"}',
+            '{"event": "api_request", "user_id": "test_user", "route": "/post_route", "method": "POST"}',
         ),
     ],
 )
@@ -46,6 +46,8 @@ def test_log_page_view(
     expected_log,
     caplog,
 ):
+    """Test that the log_page_view middleware generates the correct log when an
+    endpoint decorated with it is requested"""
 
     @app.route(route_path, methods=[method])
     @log_page_view

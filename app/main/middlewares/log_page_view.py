@@ -9,7 +9,7 @@ def log_page_view(route_function):
     def wrapper(*args, **kwargs):
         user_id = session.get("user_id", "anonymous")
         log_data = {
-            "event": "page_view",
+            "event": "api_request",
             "user_id": user_id,
             "route": request.path,
             "method": request.method,
