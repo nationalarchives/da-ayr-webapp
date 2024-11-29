@@ -1686,7 +1686,6 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
         select = soup.find("select", {"id": "sort"})
-        # BUG: value not being saved in dropdown
         option = select.find("option", selected=True)
         option_value = option.get("value")
 
