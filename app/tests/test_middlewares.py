@@ -4,7 +4,7 @@ from moto import mock_aws
 
 from app.main.middlewares.log_page_view import log_page_view
 
-host = "http://localhost"
+HOST = "http://localhost"
 
 
 @pytest.mark.parametrize(
@@ -16,8 +16,7 @@ host = "http://localhost"
             {"user_id": "test_user"},
             lambda: "Test Response",
             b"Test Response",
-            '{"event": "api_request", "user_id": "test_user", "route": "%s/test_route", "method": "GET"}'
-            % host,
+            f'{{"event": "api_request", "user_id": "test_user", "route": "{HOST}/test_route", "method": "GET"}}',
         ),
         (
             "/anonymous_route",
@@ -25,8 +24,7 @@ host = "http://localhost"
             {},
             lambda: "Anonymous Response",
             b"Anonymous Response",
-            '{"event": "api_request", "user_id": "anonymous", "route": "%s/anonymous_route", "method": "GET"}'
-            % host,
+            f'{{"event": "api_request", "user_id": "anonymous", "route": "{HOST}/anonymous_route", "method": "GET"}}',
         ),
         (
             "/post_route",
@@ -34,8 +32,7 @@ host = "http://localhost"
             {"user_id": "test_user"},
             lambda: "Post Response",
             b"Post Response",
-            '{"event": "api_request", "user_id": "test_user", "route": "%s/post_route", "method": "POST"}'
-            % host,
+            f'{{"event": "api_request", "user_id": "test_user", "route": "{HOST}/post_route", "method": "POST"}}',
         ),
     ],
 )
