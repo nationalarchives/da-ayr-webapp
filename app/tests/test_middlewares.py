@@ -4,6 +4,8 @@ from moto import mock_aws
 
 from app.main.middlewares.log_page_view import log_page_view
 
+host = "http://localhost"
+
 
 @pytest.mark.parametrize(
     "route_path, method, session_object, route_function, expected_response, expected_log",
@@ -14,7 +16,7 @@ from app.main.middlewares.log_page_view import log_page_view
             {"user_id": "test_user"},
             lambda: "Test Response",
             b"Test Response",
-            '{"event": "api_request", "user_id": "test_user", "route": "/test_route", "method": "GET"}',
+            '{"event": "api_request", "user_id": "test_user", "route": "{host}/test_route", "method": "GET"}',
         ),
         (
             "/anonymous_route",
@@ -22,7 +24,7 @@ from app.main.middlewares.log_page_view import log_page_view
             {},
             lambda: "Anonymous Response",
             b"Anonymous Response",
-            '{"event": "api_request", "user_id": "anonymous", "route": "/anonymous_route", "method": "GET"}',
+            '{"event": "api_request", "user_id": "anonymous", "route": "{host}/anonymous_route", "method": "GET"}',
         ),
         (
             "/post_route",
@@ -30,7 +32,7 @@ from app.main.middlewares.log_page_view import log_page_view
             {"user_id": "test_user"},
             lambda: "Post Response",
             b"Post Response",
-            '{"event": "api_request", "user_id": "test_user", "route": "/post_route", "method": "POST"}',
+            '{"event": "api_request", "user_id": "test_user", "route": "{host}/post_route", "method": "POST"}',
         ),
     ],
 )
