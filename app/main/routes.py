@@ -523,9 +523,8 @@ def search_results_summary():
         search_fields, sorting = (
             get_open_search_fields_to_search_on_and_sorting(search_area)
         )
-        sorting_orders = build_sorting_orders(request.args)
         dsl_query = build_search_results_summary_query(
-            search_fields, sorting_orders, quoted_phrases, single_terms, sorting
+            search_fields, quoted_phrases, single_terms, sorting
         )
         search_results = execute_search(open_search, dsl_query, page, per_page)
         results = search_results["aggregations"][
@@ -588,7 +587,6 @@ def search_transferring_body(_id: uuid.UUID):
         3: {"search_terms": "‘’"},
     }
 
-    sorting_orders = build_sorting_orders(request.args)
     search_terms, results, pagination, num_records_found = (
         [],
         {"hits": {"total": {"value": 0}, "hits": []}},
@@ -619,10 +617,8 @@ def search_transferring_body(_id: uuid.UUID):
         search_fields, sorting = (
             get_open_search_fields_to_search_on_and_sorting(search_area, sort)
         )
-        sorting_orders = build_sorting_orders(request.args)
         dsl_query = build_search_transferring_body_query(
             search_fields,
-            sorting_orders,
             _id,
             highlight_tag,
             quoted_phrases,
@@ -643,12 +639,12 @@ def search_transferring_body(_id: uuid.UUID):
     return render_template(
         "search-transferring-body.html",
         form=form,
+        sort=sort,
         current_page=page,
         filters=filters,
         breadcrumb_values=breadcrumb_values,
         results=results,
         num_records_found=num_records_found,
-        sorting_orders=sorting_orders,
         search_terms=search_terms,
         search_area=search_area,
         pagination=pagination,

@@ -462,7 +462,6 @@ def test_build_dsl_search_query():
     quoted_phrases, single_terms = extract_search_terms(query)
     dsl_query = build_dsl_search_query(
         ["field_1"],
-        {"sort_1": "test_1"},
         [{"clause_1": "test_2"}],
         quoted_phrases,
         single_terms,
@@ -474,7 +473,6 @@ def test_build_dsl_search_query():
 def test_build_dsl_search_query_and_exact_fuzzy_search():
     query = '"exact match", fuzzy, search'
     search_fields = ["field_1"]
-    sorting_orders = {"sort_1": "test_1"}
     filter_clauses = [{"clause_1": "test_2"}]
     quoted_phrases, single_terms = extract_search_terms(query)
 
@@ -516,7 +514,6 @@ def test_build_dsl_search_query_and_exact_fuzzy_search():
 
     dsl_query = build_dsl_search_query(
         search_fields,
-        sorting_orders,
         filter_clauses,
         quoted_phrases,
         single_terms,
@@ -530,7 +527,6 @@ def test_build_search_results_summary_query():
     quoted_phrases, single_terms = extract_search_terms(query)
     dsl_query = build_search_results_summary_query(
         ["field_1"],
-        {"sort_1": "test_1"},
         quoted_phrases,
         single_terms,
         {"sort": "foobar"},
@@ -574,7 +570,6 @@ def test_build_search_transferring_body_query():
     quoted_phrases, single_terms = extract_search_terms(query)
     dsl_query = build_search_transferring_body_query(
         ["field_1"],
-        {"sort_1": "test_1"},
         transferring_body_id,
         "test_highlight_key",
         quoted_phrases,

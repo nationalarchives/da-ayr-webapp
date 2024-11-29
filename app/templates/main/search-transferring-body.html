@@ -46,9 +46,19 @@
                         <!-- SORT -->
                         {% if num_records_found > 0 %}
                             <div class="govuk-grid-column-two-thirds filter-group">
-                                {% with dict = sorting_list %}
-                                    {% include "sorting-list.html" %}
-                                {% endwith %}
+                                <div class="browse__sort-container">
+                                    <label class="govuk-label" for="sort">Sort by</label>
+                                    <select class="govuk-select govuk-select__sort-container-select"
+                                            id="sort"
+                                            name="sort">
+                                        {% for key, value in sorting_list.items() %}
+                                            <option value="{{ value }}" {% if value == sort %}selected{% endif %}>{{ key }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit"
+                                            class="govuk-button govuk-button__sort-container-update-button"
+                                            data-module="govuk-button">Apply</button>
+                                </div>
                                 <form>
                                     <div class="filter-group__checkboxes">
                                         <div class="govuk-checkboxes__item govuk-checkboxes govuk-checkboxes--small">

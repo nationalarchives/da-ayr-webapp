@@ -1611,58 +1611,46 @@ class TestSearchTransferringBody:
         "query_params, mock_open_search_return, expected_cell_values, expected_sort_select_value",
         [
             (
-                "sort=series_name-desc&query=foobar",
+                "&query=foobar",
                 os_mock_return_tb,
                 [["first_series", "cbar", "Open", "fooDate"]],
-                "series_name-desc",
+                "file_name",
             ),
             (
-                "sort=consignment_reference-desc&query=foobar",
+                "sort=file_name&query=foobar",
                 os_mock_return_tb,
                 [["first_series", "cbar", "Open", "fooDate"]],
-                "consignment_reference-desc",
+                "file_name",
             ),
             (
-                "sort=consignment_reference-asc&query=foobar",
+                "sort=description&query=foobar",
                 os_mock_return_tb,
                 [["first_series", "cbar", "Open", "fooDate"]],
-                "consignment_reference-asc",
+                "description",
             ),
             (
-                "sort=opening_date-desc&query=foobar",
+                "sort=metadata&query=foobar",
                 os_mock_return_tb,
                 [["first_series", "cbar", "Open", "fooDate"]],
-                "opening_date-desc",
+                "metadata",
             ),
             (
-                "sort=opening_date-asc&query=foobar",
+                "sort=content&query=foobar",
                 os_mock_return_tb,
                 [["first_series", "cbar", "Open", "fooDate"]],
-                "opening_date-asc",
+                "content",
             ),
             (
-                "sort=file_name-asc&query=foobar",
+                "sort=most_matches&query=foobar",
                 os_mock_return_tb,
                 [["first_series", "cbar", "Open", "fooDate"]],
-                "file_name-asc",
+                "most_matches",
             ),
             (
-                "sort=file_name-desc&query=foobar",
+                "sort=least_matches&query=foobar",
                 os_mock_return_tb,
                 [["first_series", "cbar", "Open", "fooDate"]],
-                "file_name-desc",
-            ),
-            (
-                "sort=closure_type-asc&query=foobar",
-                os_mock_return_tb,
-                [["first_series", "cbar", "Open", "fooDate"]],
-                "closure_type-asc",
-            ),
-            (
-                "sort=closure_type-desc&query=foobar",
-                os_mock_return_tb,
-                [["first_series", "cbar", "Open", "fooDate"]],
-                "closure_type-desc",
+                "least_matches",
             ),
         ],
     )
@@ -1698,9 +1686,8 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
         select = soup.find("select", {"id": "sort"})
-        # BUG: value not being saved in dropdown
-        # option = select.find("option", selected=True)
-        # option_value = option.get("value")
+        option = select.find("option", selected=True)
+        option_value = option.get("value")
 
         decompose_desktop_invisible_elements(soup)
         inner_table = soup.find("table", {"id": "inner-table"})
@@ -1708,7 +1695,7 @@ class TestSearchTransferringBody:
         inner_table_cell_values = get_table_rows_cell_values(inner_table_body)
 
         assert select
-        # assert option_value == expected_sort_select_value
+        assert option_value == expected_sort_select_value
         assert inner_table_cell_values == expected_cell_values
 
         # check all accordions are closed by default (no "open" attr)
@@ -1718,7 +1705,7 @@ class TestSearchTransferringBody:
     @pytest.mark.parametrize(
         "query_params, mock_open_search_return, expected_cell_values, expected_sort_select_value",
         [
-            # without any sort term the select value should be series_id-asc by default
+            # without any sort term the select value should be file_name by default
             (
                 "query=foobar",
                 os_mock_return_tb,
@@ -1780,10 +1767,9 @@ class TestSearchTransferringBody:
         soup = BeautifulSoup(response.data, "html.parser")
 
         select = soup.find("select", {"id": "sort"})
-        option_selected = select.find("option", selected=True)
-        # BUG: value not being saved in dropdown
-        # option_first = select.find("option")
-        # option_first_value = option_first.get("value")
+
+        option_first = select.find("option")
+        option_first_value = option_first.get("value")
 
         decompose_desktop_invisible_elements(soup)
         inner_table = soup.find("table", {"id": "inner-table"})
@@ -1791,8 +1777,7 @@ class TestSearchTransferringBody:
         inner_table_cell_values = get_table_rows_cell_values(inner_table_body)
 
         assert select
-        assert option_selected is None
-        # assert option_first_value == expected_sort_select_value
+        assert option_first_value == expected_sort_select_value
         assert inner_table_cell_values == expected_cell_values
 
     @pytest.mark.parametrize(
