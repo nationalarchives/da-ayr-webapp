@@ -103,7 +103,7 @@ class TestDownload:
 
     @mock_aws
     def test_download_record_standard_user_without_citable_reference(
-        self, app, client, mock_standard_user, caplog
+        self, app, client, mock_standard_user
     ):
         """
         Given a File in the database with corresponding file in the s3 bucket
