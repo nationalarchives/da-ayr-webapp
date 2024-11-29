@@ -1,8 +1,5 @@
 import logging
-import os
 
-import boto3
-from botocore.exceptions import ClientError
 from flask import has_request_context, request
 
 
@@ -17,59 +14,30 @@ class RequestFormatter(logging.Formatter):
         return super().format(record)
 
 
-class CloudWatchHandler(logging.Handler):
-    def __init__(self, log_group, stream_name):
-        super().__init__()
-        self.client = boto3.client("logs")
-        self.log_group = log_group
-        self.stream_name = stream_name
-
-    def emit(self, record):
-        try:
-            log_entry = self.format(record)
-            self.client.put_log_events(
-                logGroupName=self.log_group,
-                logStreamName=self.stream_name,
-                logEvents=[
-                    {
-                        "timestamp": int(record.created * 1000),
-                        "message": log_entry,
-                    }
-                ],
-            )
-        except ClientError as e:
-            print(f"Error sending log to CloudWatch: {e}")
+def setup_logger(name, level, formatter):
+    """Helper function to set up a logger."""
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    return logger
 
 
 def setup_logging(app):
-    formatter = RequestFormatter(
+    """Set up loggers for the app."""
+    audit_log_formatter = RequestFormatter(
+        "AUDIT_LOG\n"
         "[%(asctime)s] %(remote_addr)s requested %(url)s\n"
         "%(levelname)s in %(module)s: %(message)s"
     )
+    app.audit_logger = setup_logger(
+        "audit_logger", logging.INFO, audit_log_formatter
+    )
 
-    app_logger = logging.getLogger("app_logger")
-    app_logger.setLevel(logging.INFO)
-    audit_logger = logging.getLogger("audit_logger")
-    audit_logger.setLevel(logging.INFO)
-
-    if os.getenv("CONFIG_SOURCE") == "AWS_SECRETS_MANAGER":
-        environment_name = os.getenv("ENVIRONMENT_NAME")
-        log_group_name = f"ayr-{environment_name}-app-logs"
-        app_handler = CloudWatchHandler(
-            log_group=log_group_name, stream_name="app-log-stream"
-        )
-        audit_handler = CloudWatchHandler(
-            log_group=log_group_name, stream_name="audit-log-stream"
-        )
-    else:
-        app_handler = logging.StreamHandler()
-        audit_handler = logging.StreamHandler()
-
-    app_handler.setFormatter(formatter)
-    audit_handler.setFormatter(formatter)
-
-    app_logger.addHandler(app_handler)
-    audit_logger.addHandler(audit_handler)
-
-    app.audit_logger = audit_logger
-    app.app_logger = app_logger
+    app_log_formatter = RequestFormatter(
+        "APP_LOG\n"
+        "[%(asctime)s] %(remote_addr)s requested %(url)s\n"
+        "%(levelname)s in %(module)s: %(message)s"
+    )
+    app.app_logger = setup_logger("app_logger", logging.INFO, app_log_formatter)

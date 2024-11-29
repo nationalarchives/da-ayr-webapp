@@ -96,7 +96,7 @@ def generate_pdf_manifest(record_id):
 
     manifest = {
         "@context": [
-            "http://iiif.io/api/presentation/3/context.json",
+            "https://iiif.io/api/presentation/3/context.json",
         ],
         "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True, render=True)}",
         "type": "Manifest",
@@ -173,7 +173,7 @@ def generate_image_manifest(s3_file_object, record_id):
     file_url = presigned_url
 
     manifest = {
-        "@context": "http://iiif.io/api/presentation/2/context.json",
+        "@context": "https://iiif.io/api/presentation/3/context.json",
         "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
         "@type": "sc:Manifest",
         "label": filename,

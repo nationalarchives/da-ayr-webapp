@@ -56,15 +56,88 @@ def post_process_opensearch_results(results):
     return results
 
 
-def get_open_search_fields_to_search_on(search_area):
-    """Retrieve a list of fields depending on the search area (all fields, metadata, record, etc.)"""
-    fields_record = ["content"]
-    fields_all = list(OPENSEARCH_FIELD_NAME_MAP.keys())
+def remove_field(fields, field_name):
+    return [field for field in fields if field_name != field]
+
+
+def get_open_search_fields_to_search_on_and_sorting(
+    search_area, sort="file_name"
+):
+    """
+    Retrieve fields and sorting configuration for an OpenSearch query based on the search area
+    (all fields, metadata, record, etc.) and sorting preference.
+    """
+    # Sort option configuration
+    sort_option_map = {
+        "file_name": {
+            "boosts": {"file_name": 3},
+            "order": "desc",
+        },
+        "description": {
+            "boosts": {"description": 3, "file_name": 2},
+            "order": "desc",
+        },
+        "metadata": {
+            "boosts": {"file_name": 0.2, "content": 0.1},
+            "order": "desc",
+        },
+        "record": {
+            "boosts": {"content": 3, "file_name": 2},
+            "order": "desc",
+        },
+        "least_matches": {
+            "boosts": {},
+            "order": "asc",
+        },
+        "most_matches": {
+            "boosts": {},  # No boosting
+            "order": "desc",  # Descending order for most matches
+        },
+    }
+
+    fields = determine_fields_by_search_area(search_area)
+    fields = apply_boosts_for_sorting(fields, sort, sort_option_map)
+    sorting = get_sorting_config(sort, sort_option_map)
+    return fields, sorting
+
+
+def determine_fields_by_search_area(search_area):
+    """
+    Determine the base fields to use based on the search area.
+    """
+    all_fields = list(OPENSEARCH_FIELD_NAME_MAP.keys())
     if search_area == "metadata":
-        return get_filtered_list(fields_all, fields_record)
+        return get_filtered_list(all_fields, ["file_name", "content"])
     elif search_area == "record":
-        return fields_record
-    return fields_all
+        return ["file_name", "content"]
+    return all_fields
+
+
+def apply_boosts_for_sorting(fields, sort, sort_option_map):
+    """
+    Adjust fields by applying boosts or penalties based on the sorting preference.
+    """
+    sort_config = sort_option_map.get(sort, {})
+    boost_map = sort_config.get("boosts", {})
+
+    # Apply boosts to the boosted fields
+    return apply_field_boosts(fields, boost_map)
+
+
+def get_sorting_config(sort, sort_option_map):
+    """
+    Get the sorting configuration based on the sort preference.
+    """
+    sort_config = sort_option_map.get(sort, {})
+    sort_order = sort_config.get("order", "desc")
+    return [{"_score": {"order": sort_order}}]
+
+
+def apply_field_boosts(fields, boost_map):
+    """
+    Apply boost values to fields as per the boost map.
+    """
+    return [f"{field}^{boost_map.get(field, 1)}" for field in fields]
 
 
 def get_param(param, request):
@@ -166,6 +239,7 @@ def build_dsl_search_query(
     filter_clauses,
     quoted_phrases,
     single_terms,
+    sorting,
 ):
     """Constructs the base DSL query for OpenSearch with AND"""
     must_clauses = build_must_clauses(
@@ -180,7 +254,7 @@ def build_dsl_search_query(
             }
         },
         # set as {} until sorting ticket is in done
-        "sort": {},
+        "sort": sorting,
         "_source": True,
     }
 
@@ -190,6 +264,7 @@ def build_search_results_summary_query(
     sorting_orders,
     quoted_phrases,
     single_terms,
+    sorting,
 ):
     filter_clauses = []
     dsl_query = build_dsl_search_query(
@@ -198,6 +273,7 @@ def build_search_results_summary_query(
         filter_clauses,
         quoted_phrases,
         single_terms,
+        sorting,
     )
     aggregations = {
         "aggs": {
@@ -224,6 +300,7 @@ def build_search_transferring_body_query(
     highlight_tag,
     quoted_phrases,
     single_terms,
+    sorting,
 ):
     filter_clauses = [
         {"term": {"transferring_body_id.keyword": transferring_body_id}}
@@ -234,6 +311,7 @@ def build_search_transferring_body_query(
         filter_clauses,
         quoted_phrases,
         single_terms,
+        sorting,
     )
     highlighting = {
         "highlight": {

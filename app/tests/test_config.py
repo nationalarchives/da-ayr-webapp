@@ -272,7 +272,6 @@ def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
             "DB_NAME": "test_db_name",
             "DB_SSL_ROOT_CERTIFICATE": "test_db_ssl_root_certificate",
             "DEFAULT_PAGE_SIZE": 10,
-            "ENVIRONMENT_NAME": "INT",
         }
     )
 

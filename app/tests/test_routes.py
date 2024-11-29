@@ -133,7 +133,7 @@ class TestRoutes:
         assert response.status_code == 200
 
         expected_pdf_manifest = {
-            "@context": ["http://iiif.io/api/presentation/3/context.json"],
+            "@context": ["https://iiif.io/api/presentation/3/context.json"],
             "behavior": ["individuals"],
             "description": "Manifest for open_file_once_closed.pdf",
             "id": f"http://localhost/record/{file.FileId}/manifest?render=True",
@@ -205,7 +205,7 @@ class TestRoutes:
         assert response.status_code == 200
 
         expected_image_manifest = {
-            "@context": "http://iiif.io/api/presentation/2/context.json",
+            "@context": "https://iiif.io/api/presentation/3/context.json",
             "@id": f"http://localhost/record/{file.FileId}/manifest",
             "@type": "sc:Manifest",
             "description": f"Manifest for {file.FileName}",
