@@ -1,5 +1,4 @@
 import io
-import json
 import uuid
 
 import boto3
@@ -33,6 +32,7 @@ from app.main.db.queries import (
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
+from app.main.middlewares.log_page_view import log_page_view
 from app.main.util.date_filters_validator import validate_date_filters
 from app.main.util.filter_sort_builder import (
     build_browse_consignment_filters,
@@ -76,6 +76,7 @@ def index():
 
 @bp.route("/sign-out", methods=["GET"])
 @access_token_sign_in_required
+@log_page_view
 def sign_out():
     keycloak_openid = get_keycloak_instance_from_flask_config()
     keycloak_openid.logout(session["refresh_token"])
@@ -85,6 +86,7 @@ def sign_out():
 
 
 @bp.route("/sign-in", methods=["GET"])
+@log_page_view
 def sign_in():
     keycloak_openid = get_keycloak_instance_from_flask_config()
     auth_url = keycloak_openid.auth_url(
@@ -96,6 +98,7 @@ def sign_in():
 
 
 @bp.route("/callback", methods=["GET"])
+@log_page_view
 def callback():
     keycloak_openid = get_keycloak_instance_from_flask_config()
     code = request.args.get("code")
@@ -126,6 +129,7 @@ def accessibility():
 
 @bp.route("/browse", methods=["GET"])
 @access_token_sign_in_required
+@log_page_view
 def browse():
     form = SearchForm()
     page = int(request.args.get("page", 1))
@@ -205,6 +209,7 @@ def browse():
 
 @bp.route("/browse/transferring_body/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
+@log_page_view
 def browse_transferring_body(_id: uuid.UUID):
     """
     Render the browse transferring body view page.
@@ -288,6 +293,7 @@ def browse_transferring_body(_id: uuid.UUID):
 
 @bp.route("/browse/series/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
+@log_page_view
 def browse_series(_id: uuid.UUID):
     """
     Render the browse series view page.
@@ -376,6 +382,7 @@ def browse_series(_id: uuid.UUID):
 
 @bp.route("/browse/consignment/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
+@log_page_view
 def browse_consignment(_id: uuid.UUID):
     """
     Render the browse consignment view page.
@@ -464,6 +471,7 @@ def browse_consignment(_id: uuid.UUID):
 
 @bp.route("/search", methods=["GET"])
 @access_token_sign_in_required
+@log_page_view
 def search():
     form_data = request.form.to_dict()
     args_data = request.args.to_dict()
@@ -495,6 +503,7 @@ def search():
 
 @bp.route("/search_results_summary", methods=["GET"])
 @access_token_sign_in_required
+@log_page_view
 def search_results_summary():
     ayr_user = AYRUser(session.get("user_groups"))
     if ayr_user.is_standard_user:
@@ -552,6 +561,7 @@ def search_results_summary():
 
 @bp.route("/search/transferring_body/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
+@log_page_view
 def search_transferring_body(_id: uuid.UUID):
     body = db.session.get(Body, _id)
     validate_body_user_groups_or_404(body.Name)
@@ -652,6 +662,7 @@ def search_transferring_body(_id: uuid.UUID):
 
 @bp.route("/record/<uuid:record_id>", methods=["GET"])
 @access_token_sign_in_required
+@log_page_view
 def record(record_id: uuid.UUID):
     """
     Render the record details page.
@@ -711,6 +722,7 @@ def record(record_id: uuid.UUID):
 
 @bp.route("/download/<uuid:record_id>")
 @access_token_sign_in_required
+@log_page_view
 def download_record(record_id: uuid.UUID):
     file = db.session.get(File, record_id)
     render = request.args.get("render", False)
@@ -766,9 +778,6 @@ def download_record(record_id: uuid.UUID):
             as_attachment=True,
             download_name=download_filename,
         )
-    current_app.audit_logger.info(
-        json.dumps({"user_id": session["user_id"], "file": key})
-    )
     return response
 
 
@@ -804,6 +813,7 @@ def http_exception(error):
 
 @bp.route("/record/<uuid:record_id>/manifest")
 @access_token_sign_in_required
+@log_page_view
 def generate_manifest(record_id: uuid.UUID):
     file = db.session.get(File, record_id)
 
