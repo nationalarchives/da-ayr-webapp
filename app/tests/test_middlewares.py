@@ -16,7 +16,8 @@ host = "http://localhost"
             {"user_id": "test_user"},
             lambda: "Test Response",
             b"Test Response",
-            '{"event": "api_request", "user_id": "test_user", "route": "{host}/test_route", "method": "GET"}',
+            '{"event": "api_request", "user_id": "test_user", "route": "%s/test_route", "method": "GET"}'
+            % host,
         ),
         (
             "/anonymous_route",
@@ -24,7 +25,8 @@ host = "http://localhost"
             {},
             lambda: "Anonymous Response",
             b"Anonymous Response",
-            '{"event": "api_request", "user_id": "anonymous", "route": "{host}/anonymous_route", "method": "GET"}',
+            '{"event": "api_request", "user_id": "anonymous", "route": "%s/anonymous_route", "method": "GET"}'
+            % host,
         ),
         (
             "/post_route",
@@ -32,7 +34,8 @@ host = "http://localhost"
             {"user_id": "test_user"},
             lambda: "Post Response",
             b"Post Response",
-            '{"event": "api_request", "user_id": "test_user", "route": "{host}/post_route", "method": "POST"}',
+            '{"event": "api_request", "user_id": "test_user", "route": "%s/post_route", "method": "POST"}'
+            % host,
         ),
     ],
 )
