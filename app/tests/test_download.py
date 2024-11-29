@@ -76,8 +76,8 @@ class TestDownload:
 
         msg = json.dumps({"user_id": user_id, "file": key})
 
-        assert caplog.records[0].levelname == "INFO"
-        assert caplog.records[0].message == msg
+        assert caplog.records[1].levelname == "INFO"
+        assert caplog.records[1].message == msg
 
     @mock_aws
     def test_download_record_standard_user_with_citable_reference_without_file_extension(
@@ -119,8 +119,8 @@ class TestDownload:
 
         msg = json.dumps({"user_id": user_id, "file": key})
 
-        assert caplog.records[0].levelname == "INFO"
-        assert caplog.records[0].message == msg
+        assert caplog.records[1].levelname == "INFO"
+        assert caplog.records[1].message == msg
 
     @mock_aws
     def test_download_record_standard_user_without_citable_reference(
@@ -162,8 +162,8 @@ class TestDownload:
 
         msg = json.dumps({"user_id": user_id, "file": key})
 
-        assert caplog.records[0].levelname == "INFO"
-        assert caplog.records[0].message == msg
+        assert caplog.records[1].levelname == "INFO"
+        assert caplog.records[1].message == msg
 
     @mock_aws
     def test_download_record_standard_user_get_file_errors(
@@ -226,8 +226,8 @@ class TestDownload:
         msg = "Error reading S3 file content: Read error"
 
         assert response.status_code == 500
-        assert caplog.records[0].levelname == "ERROR"
-        assert caplog.records[0].message == msg
+        assert caplog.records[1].levelname == "ERROR"
+        assert caplog.records[1].message == msg
 
     @mock_aws
     def test_raises_404_for_standard_user_without_access_to_files_transferring_body(

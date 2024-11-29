@@ -1,15 +1,12 @@
-import json
-from unittest.mock import MagicMock
-
 import pytest
-from flask import current_app
 from flask.testing import FlaskClient
+from moto import mock_aws
 
 from app.main.middlewares.log_page_view import log_page_view
 
 
 @pytest.mark.parametrize(
-    "route_path, method, session_object, route_function, expected_response, expected_log_data",
+    "route_path, method, session_object, route_function, expected_response, expected_log",
     [
         (
             "/test_route",
@@ -17,12 +14,7 @@ from app.main.middlewares.log_page_view import log_page_view
             {"user_id": "test_user"},
             lambda: "Test Response",
             b"Test Response",
-            {
-                "event": "page_view",
-                "user_id": "test_user",
-                "route": "/test_route",
-                "method": "GET",
-            },
+            '{"event": "page_view", "user_id": "test_user", "route": "/test_route", "method": "GET"}',
         ),
         (
             "/anonymous_route",
@@ -30,12 +22,7 @@ from app.main.middlewares.log_page_view import log_page_view
             {},
             lambda: "Anonymous Response",
             b"Anonymous Response",
-            {
-                "event": "page_view",
-                "user_id": "anonymous",
-                "route": "/anonymous_route",
-                "method": "GET",
-            },
+            '{"event": "page_view", "user_id": "anonymous", "route": "/anonymous_route", "method": "GET"}',
         ),
         (
             "/post_route",
@@ -43,15 +30,11 @@ from app.main.middlewares.log_page_view import log_page_view
             {"user_id": "test_user"},
             lambda: "Post Response",
             b"Post Response",
-            {
-                "event": "page_view",
-                "user_id": "test_user",
-                "route": "/post_route",
-                "method": "POST",
-            },
+            '{"event": "page_view", "user_id": "test_user", "route": "/post_route", "method": "POST"}',
         ),
     ],
 )
+@mock_aws
 def test_log_page_view(
     app,
     client: FlaskClient,
@@ -60,17 +43,14 @@ def test_log_page_view(
     session_object,
     route_function,
     expected_response,
-    expected_log_data,
+    expected_log,
+    caplog,
 ):
-    mock_logger = MagicMock()
 
     @app.route(route_path, methods=[method])
     @log_page_view
     def dynamic_route():
         return route_function()
-
-    with app.app_context():
-        current_app.audit_logger = mock_logger
 
     with client.session_transaction() as session:
         session.update(session_object)
@@ -80,4 +60,5 @@ def test_log_page_view(
     assert response.status_code == 200
     assert response.data == expected_response
 
-    mock_logger.info.assert_called_once_with(json.dumps(expected_log_data))
+    assert caplog.records[0].levelname == "INFO"
+    assert caplog.records[0].message == expected_log
