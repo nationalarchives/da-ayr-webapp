@@ -9,12 +9,12 @@ from app.main.middlewares.log_page_view import log_page_view
 
 
 @pytest.mark.parametrize(
-    "route_path, method, user_id_in_session, route_function, expected_response, expected_log_data",
+    "route_path, method, session_object, route_function, expected_response, expected_log_data",
     [
         (
             "/test_route",
             "GET",
-            "test_user",
+            {"user_id": "test_user"},
             lambda: "Test Response",
             b"Test Response",
             {
@@ -27,7 +27,7 @@ from app.main.middlewares.log_page_view import log_page_view
         (
             "/anonymous_route",
             "GET",
-            None,
+            {},
             lambda: "Anonymous Response",
             b"Anonymous Response",
             {
@@ -40,7 +40,7 @@ from app.main.middlewares.log_page_view import log_page_view
         (
             "/post_route",
             "POST",
-            "test_user",
+            {"user_id": "test_user"},
             lambda: "Post Response",
             b"Post Response",
             {
@@ -57,7 +57,7 @@ def test_log_page_view(
     client: FlaskClient,
     route_path,
     method,
-    user_id_in_session,
+    session_object,
     route_function,
     expected_response,
     expected_log_data,
@@ -72,9 +72,8 @@ def test_log_page_view(
     with app.app_context():
         current_app.audit_logger = mock_logger
 
-    if user_id_in_session is not None:
-        with client.session_transaction() as session:
-            session["user_id"] = user_id_in_session
+    with client.session_transaction() as session:
+        session.update(session_object)
 
     response = client.open(route_path, method=method)
 
