@@ -96,6 +96,8 @@ def create_app(config_class, database_uri=None):
                 "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
                 "'sha256-LnUrbI34R6DmHbJR754/DQ0b/JKCTdo/+BKs5oLAyNY='",  # pragma: allowlist secret
                 "'sha256-74nJjfZHR0MDaNHtes/sgN253tXMCsa4SeniH8bU3x8='",  # pragma: allowlist secret
+                "'sha256-NDFO9Q6S8WUwG5n8w7gRLvvPrhqj72CJNXzZVcbOwG8='",  # pragma: allowlist secret
+                "'sha256-bxI3qvjziRybgoaeQYcUjRHcCTdbUu/A9xFMlfNGZAQ='",  # pragma: allowlist secret
             ]
         ),
         "style-src": [
