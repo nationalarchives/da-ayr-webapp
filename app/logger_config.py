@@ -22,6 +22,15 @@ class RequestFormatter(logging.Formatter):
                 }
             )
 
+        try:
+            message_data = json.loads(record.getMessage())
+            if isinstance(message_data, dict):
+                log_record.update(message_data)
+            else:
+                log_record["message"] = message_data
+        except json.JSONDecodeError:
+            log_record["message"] = record.getMessage()
+
         return json.dumps(log_record)
 
 
