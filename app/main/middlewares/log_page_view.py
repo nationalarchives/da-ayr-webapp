@@ -11,7 +11,7 @@ def log_page_view(route_function):
         log_data = {
             "event": "api_request",
             "user_id": user_id,
-            "route": request.path,
+            "route": request.url,
             "method": request.method,
         }
         current_app.audit_logger.info(json.dumps(log_data))
