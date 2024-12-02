@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 
 from flask import has_request_context, request
 
@@ -15,10 +15,12 @@ class RequestFormatter(logging.Formatter):
         }
 
         if has_request_context():
-            log_record.update({
-                "remote_addr": request.remote_addr,
-                "url": request.url,
-            })
+            log_record.update(
+                {
+                    "remote_addr": request.remote_addr,
+                    "url": request.url,
+                }
+            )
 
         return json.dumps(log_record)
 
@@ -36,7 +38,9 @@ def setup_logger(name, level, formatter):
 def setup_logging(app):
     """Set up loggers for the app."""
     audit_log_formatter = RequestFormatter()
-    app.audit_logger = setup_logger("audit_logger", logging.INFO, audit_log_formatter)
+    app.audit_logger = setup_logger(
+        "audit_logger", logging.INFO, audit_log_formatter
+    )
 
     app_log_formatter = RequestFormatter()
     app.app_logger = setup_logger("app_logger", logging.INFO, app_log_formatter)
