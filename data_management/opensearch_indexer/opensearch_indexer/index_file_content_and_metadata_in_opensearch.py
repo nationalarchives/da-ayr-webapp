@@ -1,12 +1,12 @@
 import logging
-import tempfile
 from typing import Any, Dict, Optional, Tuple, Union
 
-import textract
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
+
+from .text_extraction import add_text_content
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -24,7 +24,7 @@ def index_file_content_and_metadata_in_opensearch(
     Extracts file metadata from the database, adds the file content, and indexes it in OpenSearch.
     """
     file_data = _fetch_file_data(file_id, database_url)
-    file_data_with_text_content = _add_text_content(file_data, file_stream)
+    file_data_with_text_content = add_text_content(file_data, file_stream)
     _index_in_opensearch(
         file_id,
         file_data_with_text_content,
@@ -32,16 +32,6 @@ def index_file_content_and_metadata_in_opensearch(
         open_search_http_auth,
         open_search_ca_certs,
     )
-
-
-def _add_text_content(
-    file_data: Dict[str, Any], file_stream: bytes
-) -> Dict[str, Any]:
-    file_type = file_data["file_name"].split(".")[-1].lower()
-    new_file_data = file_data
-    if file_type in ["txt", "docx", "pdf"]:
-        new_file_data["content"] = extract_text(file_stream, file_type)
-    return new_file_data
 
 
 def _fetch_file_data(
@@ -109,16 +99,6 @@ def _fetch_file_data(
     }
 
     return file_data
-
-
-def extract_text(file_stream: bytes, file_extension: str) -> str:
-    with tempfile.NamedTemporaryFile(
-        suffix=f".{file_extension}", delete=True
-    ) as temp:
-        temp.write(file_stream)
-        temp.flush()
-        context = textract.process(temp.name)
-    return context.decode("utf-8")
 
 
 def _index_in_opensearch(
