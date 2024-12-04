@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Any, Dict
 
-from .bulk_index_consignment import bulk_index_files_in_opensearch_from_aws
+from .bulk_index_consignment import bulk_index_consignment_from_aws
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -28,26 +28,24 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> None:
                          and OpenSearch credentials.
 
     Raises:
-        Exception: If `consignment_reference`, `BUCKET_NAME`, or `SECRET_ID` are missing.
+        Exception: If `consignment_reference` or `SECRET_ID` are missing.
     """
     logger.info("Lambda started")
     logger.info("Event received: %s", event)
 
     # Extract parameters from the event and environment variables
-    detail = event.get("detail", {})
-    consignment_reference = detail.get("parameters", {}).get("reference")
-    bucket_name = os.getenv("BUCKET_NAME")
+    consignment_reference = event.get("parameters", {}).get("reference")
     secret_id = os.getenv("SECRET_ID")
 
     # Validate required parameters
-    if not consignment_reference or not bucket_name or not secret_id:
-        error_message = "Missing consignment_reference, BUCKET_NAME, or SECRET_ID required for indexing"
+    if not consignment_reference or not secret_id:
+        error_message = (
+            "Missing consignment_reference or SECRET_ID required for indexing"
+        )
         logger.error(error_message)
         raise Exception(error_message)
 
     # Log and process the consignment reference
     logger.info(f"Processing consignment reference: {consignment_reference}")
-    bulk_index_files_in_opensearch_from_aws(
-        consignment_reference, bucket_name, secret_id
-    )
+    bulk_index_consignment_from_aws(consignment_reference, secret_id)
     logger.info("Lambda completed")
