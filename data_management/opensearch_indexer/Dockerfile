@@ -10,4 +10,4 @@ RUN pip install -r requirements.txt
 
 COPY opensearch_indexer/ ${LAMBDA_TASK_ROOT}/opensearch_indexer
 
-CMD [ "opensearch_indexer.lambda_function.lambda_handler" ]
+CMD [ "opensearch_indexer.index_consignment.lambda_function.lambda_handler" ]
