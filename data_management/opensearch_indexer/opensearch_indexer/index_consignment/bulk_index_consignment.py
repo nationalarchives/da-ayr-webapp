@@ -2,7 +2,6 @@ import json
 import logging
 from typing import Dict, List, Optional, Tuple, Union
 
-import pg8000
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 from sqlalchemy import create_engine, text
@@ -21,7 +20,7 @@ logger.setLevel(logging.INFO)
 
 
 def bulk_index_consignment_from_aws(
-    consignment_reference: str, bucket_name: str, secret_id: str
+    consignment_reference: str, secret_id: str
 ) -> None:
     """
     Retrieve credentials and host information from AWS Secrets Manager, fetch consignment data,
@@ -29,13 +28,14 @@ def bulk_index_consignment_from_aws(
 
     Args:
         consignment_reference (str): The reference identifier for the consignment.
-        bucket_name (str): The name of the S3 bucket containing file records.
-        secret_id (str): The ID of the AWS secret storing database and OpenSearch credentials.
+        secret_id (str): The ID of the AWS secret storing s3 record bucket name,
+            and database and OpenSearch credentials.
 
     Returns:
         None
     """
     secret_string = get_secret_data(secret_id)
+    bucket_name = secret_string["RECORD_BUCKET_NAME"]
     database_url = _build_db_url(secret_string)
     open_search_host_url = secret_string["OPEN_SEARCH_HOST"]
     open_search_http_auth = _get_opensearch_auth(secret_string)
@@ -163,14 +163,19 @@ def _fetch_files_in_consignment(
         c."ConsignmentReference" = :consignment_reference
         AND f."FileType" = 'File';
     """
-    try:
-        result = session.execute(
-            text(query), {"consignment_reference": consignment_reference}
-        ).fetchall()
-    except pg8000.Error as e:
-        raise Exception(f"Database query failed: {e}")
-    finally:
-        session.close()
+    # try:
+    #     result = session.execute(
+    #         text(query), {"consignment_reference": consignment_reference}
+    #     ).fetchall()
+    # except pg8000.Error as e:
+    #     raise Exception(f"Database query failed: {e}")
+    # finally:
+    #     session.close()
+
+    result = session.execute(
+        text(query), {"consignment_reference": consignment_reference}
+    ).fetchall()
+    session.close()
 
     # Process query results
     files_data = {}
