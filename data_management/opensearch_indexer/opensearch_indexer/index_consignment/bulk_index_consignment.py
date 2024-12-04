@@ -40,7 +40,6 @@ def bulk_index_consignment_from_aws(
     open_search_host_url = secret_string["OPEN_SEARCH_HOST"]
     open_search_http_auth = _get_opensearch_auth(secret_string)
 
-    breakpoint()
     bulk_index_consignment(
         consignment_reference,
         bucket_name,
@@ -128,7 +127,6 @@ def _fetch_files_in_consignment(
     Returns:
         List[Dict]: A list of file metadata dictionaries.
     """
-    breakpoint()
     engine = create_engine(database_url)
     Base = declarative_base()
     Base.metadata.reflect(bind=engine)
