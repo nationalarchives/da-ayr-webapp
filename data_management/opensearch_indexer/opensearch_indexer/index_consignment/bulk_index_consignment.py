@@ -259,17 +259,19 @@ def bulk_index_files_in_opensearch(
             body=bulk_payload,
             timeout=open_search_bulk_index_timeout,
         )
-        logger.info("Opensearch bulk command executed")
-        logger.info(response)
-
-        if response["errors"]:
-            logger.error("Errors occurred during bulk indexing")
-            for item in response["items"]:
-                if "error" in item.get("index", {}):
-                    logger.error(
-                        f"Error for document ID {item['index']['_id']}: {item['index']['error']}"
-                    )
-        else:
-            logger.info("Bulk indexing completed successfully")
     except Exception as e:
-        logger.error(f"Bulk indexing failed: {e}")
+        logger.error(f"Opensearch bulk indexing call failed: {e}")
+        raise e
+
+    logger.info("Opensearch bulk indexing call completed with response")
+    logger.info(response)
+
+    if response["errors"]:
+        logger.error("Errors occurred during bulk indexing")
+        for item in response["items"]:
+            if "error" in item.get("index", {}):
+                logger.error(
+                    f"Error for document ID {item['index']['_id']}: {item['index']['error']}"
+                )
+    else:
+        logger.info("Bulk indexing completed successfully")
