@@ -39,9 +39,9 @@ def bulk_index_consignment_from_aws(
     database_url = _build_db_url(secret_string)
     open_search_host_url = secret_string["OPEN_SEARCH_HOST"]
     open_search_http_auth = _get_opensearch_auth(secret_string)
-    open_search_bulk_index_timeout = secret_string[
-        "OPEN_SEARCH_BULK_INDEX_TIMEOUT"
-    ]
+    open_search_bulk_index_timeout = int(
+        secret_string["OPEN_SEARCH_BULK_INDEX_TIMEOUT"]
+    )
 
     bulk_index_consignment(
         consignment_reference,
