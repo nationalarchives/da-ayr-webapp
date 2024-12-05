@@ -1,3 +1,11 @@
 legend {
   padding-inline: 0;
 }
+
+a {
+  text-underline-offset: 3px;
+
+  &:hover {
+    text-decoration-thickness: 3px;
+  }
+}
