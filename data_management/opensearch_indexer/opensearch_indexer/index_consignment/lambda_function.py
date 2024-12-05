@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from typing import Any, Dict
@@ -34,7 +35,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> None:
     logger.info("Event received: %s", event)
 
     # Extract parameters from the event and environment variables
-    consignment_reference = event.get("parameters", {}).get("reference")
+    sns_message = json.loads(event["Records"][0]["Sns"]["Message"])
+    consignment_reference = sns_message.get("parameters", {}).get("reference")
     secret_id = os.getenv("SECRET_ID")
 
     # Validate required parameters
