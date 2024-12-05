@@ -32,17 +32,21 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> None:
         Exception: If `consignment_reference` or `SECRET_ID` are missing.
     """
     logger.info("Lambda started")
-    logger.info("Event received: %s", event)
+    logger.info("Event received: %s", json.dumps(event))
 
-    # Extract parameters from the event and environment variables
     sns_message = json.loads(event["Records"][0]["Sns"]["Message"])
     consignment_reference = sns_message.get("parameters", {}).get("reference")
+
+    if not consignment_reference:
+        error_message = "Missing reference in SNS Message required for indexing"
+        logger.error(error_message)
+        raise Exception(error_message)
+
     secret_id = os.getenv("SECRET_ID")
 
-    # Validate required parameters
-    if not consignment_reference or not secret_id:
+    if not secret_id:
         error_message = (
-            "Missing consignment_reference or SECRET_ID required for indexing"
+            "Missing SECRET_ID environment variable required for indexing"
         )
         logger.error(error_message)
         raise Exception(error_message)

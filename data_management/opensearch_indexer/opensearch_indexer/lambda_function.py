@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from typing import Any, Dict, Tuple
@@ -12,8 +13,7 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> None:
     logger.info("Lambda started")
-    logger.info("Event:")
-    logger.info(event)
+    logger.info("Event received: %s", json.dumps(event))
     bucket_name, object_key = _extract_s3_event_info(event)
     secret_id = os.getenv("SECRET_ID")
     index_file_content_and_metadata_in_opensearch_from_aws(
