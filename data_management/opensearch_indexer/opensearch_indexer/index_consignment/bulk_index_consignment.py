@@ -39,6 +39,9 @@ def bulk_index_consignment_from_aws(
     database_url = _build_db_url(secret_string)
     open_search_host_url = secret_string["OPEN_SEARCH_HOST"]
     open_search_http_auth = _get_opensearch_auth(secret_string)
+    open_search_bulk_index_timeout = secret_string[
+        "OPEN_SEARCH_BULK_INDEX_TIMEOUT"
+    ]
 
     bulk_index_consignment(
         consignment_reference,
@@ -46,6 +49,7 @@ def bulk_index_consignment_from_aws(
         database_url,
         open_search_host_url,
         open_search_http_auth,
+        open_search_bulk_index_timeout,
     )
 
 
@@ -55,6 +59,7 @@ def bulk_index_consignment(
     database_url: str,
     open_search_host_url: str,
     open_search_http_auth: Union[AWS4Auth, Tuple[str, str]],
+    open_search_bulk_index_timeout: int = 60,
     open_search_ca_certs: Optional[str] = None,
 ) -> None:
     """
@@ -77,6 +82,7 @@ def bulk_index_consignment(
         documents_to_index,
         open_search_host_url,
         open_search_http_auth,
+        open_search_bulk_index_timeout,
         open_search_ca_certs,
     )
 
@@ -210,6 +216,7 @@ def bulk_index_files_in_opensearch(
     documents: List[Dict[str, Union[str, Dict]]],
     open_search_host_url: str,
     open_search_http_auth: Union[AWS4Auth, Tuple[str, str]],
+    open_search_bulk_index_timeout: int = 60,
     open_search_ca_certs: Optional[str] = None,
 ) -> None:
     """
@@ -247,7 +254,11 @@ def bulk_index_files_in_opensearch(
     opensearch_index = "documents"
 
     try:
-        response = open_search.bulk(index=opensearch_index, body=bulk_payload)
+        response = open_search.bulk(
+            index=opensearch_index,
+            body=bulk_payload,
+            timeout=open_search_bulk_index_timeout,
+        )
         logger.info("Opensearch bulk command executed")
         logger.info(response)
 
