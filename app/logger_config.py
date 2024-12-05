@@ -10,7 +10,6 @@ class RequestFormatter(logging.Formatter):
             "log_type": record.name,
             "timestamp": self.formatTime(record),
             "level": record.levelname,
-            "message": record.getMessage(),
             "module": record.module,
         }
 
