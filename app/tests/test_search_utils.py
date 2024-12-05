@@ -17,6 +17,8 @@ from app.main.util.search_utils import (
     get_pagination_info,
     get_param,
     get_query_and_search_area,
+    rearrange_opensearch_results_for_relevant_fields,
+    reorder_fields,
     setup_opensearch,
 )
 
@@ -694,3 +696,235 @@ def test_build_search_transferring_body_query():
 )
 def test_filter_opensearch_highlight_results(input_results, expected_output):
     assert filter_opensearch_highlight_results(input_results) == expected_output
+
+
+@pytest.mark.parametrize(
+    "fields, priority_fields, last_fields, expected_order",
+    [
+        # test case 1: Prioritize file_name at the top
+        (
+            {
+                "file_name": "file1",
+                "description": "desc1",
+                "content": "content1",
+            },
+            ["file_name"],
+            [],
+            {
+                "file_name": "file1",
+                "description": "desc1",
+                "content": "content1",
+            },
+        ),
+        # test case 2: Prioritize description and then file_name
+        (
+            {
+                "file_name": "file1",
+                "description": "desc1",
+                "content": "content1",
+            },
+            ["description", "file_name"],
+            [],
+            {
+                "description": "desc1",
+                "file_name": "file1",
+                "content": "content1",
+            },
+        ),
+        # test case 3: Move file_name and content to the bottom
+        (
+            {
+                "file_name": "file1",
+                "description": "desc1",
+                "content": "content1",
+            },
+            [],
+            ["file_name", "content"],
+            {
+                "description": "desc1",
+                "file_name": "file1",
+                "content": "content1",
+            },
+        ),
+        # test case 4: Prioritize content, then file_name
+        (
+            {
+                "file_name": "file1",
+                "description": "desc1",
+                "content": "content1",
+            },
+            ["content", "file_name"],
+            [],
+            {
+                "content": "content1",
+                "file_name": "file1",
+                "description": "desc1",
+            },
+        ),
+        # edge case 1: No fields present
+        ({}, ["file_name"], [], {}),
+        # edge case 2: All fields should be prioritized
+        ({"file_name": "file1"}, ["file_name"], [], {"file_name": "file1"}),
+        # edge case 3: Priority and last fields overlap
+        (
+            {"file_name": "file1", "description": "desc1"},
+            ["file_name"],
+            ["file_name"],
+            {"file_name": "file1", "description": "desc1"},
+        ),
+        # edge case 4: Fields exist in middle but should be prioritized to last
+        (
+            {"description": "desc1", "file_name": "file1"},
+            [],
+            ["file_name"],
+            {"description": "desc1", "file_name": "file1"},
+        ),
+    ],
+)
+def test_reorder_fields(fields, priority_fields, last_fields, expected_order):
+    """
+    Test the reorder_fields function to ensure it rearranges fields correctly.
+    """
+    assert (
+        reorder_fields(fields, priority_fields, last_fields) == expected_order
+    )
+
+
+@pytest.mark.parametrize(
+    "results, sort, expected_results",
+    [
+        # test case 1: sort by file_name, so file_name should be first
+        (
+            [
+                {
+                    "highlight": {
+                        "file_name": ["example.txt"],
+                        "description": ["desc"],
+                    }
+                }
+            ],
+            "file_name",
+            [
+                {
+                    "highlight": {
+                        "file_name": ["example.txt"],
+                        "description": ["desc"],
+                    }
+                }
+            ],
+        ),
+        # test case 2: sort by description, so description should be first, file_name second
+        (
+            [
+                {
+                    "highlight": {
+                        "file_name": ["example.txt"],
+                        "description": ["desc"],
+                    }
+                }
+            ],
+            "description",
+            [
+                {
+                    "highlight": {
+                        "description": ["desc"],
+                        "file_name": ["example.txt"],
+                    }
+                }
+            ],
+        ),
+        # test case 3: sort by metadata, file_name should be second to last, content last
+        (
+            [
+                {
+                    "highlight": {
+                        "file_name": ["example.txt"],
+                        "content": ["content1"],
+                        "description": ["desc"],
+                    }
+                }
+            ],
+            "metadata",
+            [
+                {
+                    "highlight": {
+                        "description": ["desc"],
+                        "file_name": ["example.txt"],
+                        "content": ["content1"],
+                    }
+                }
+            ],
+        ),
+        # test case 4: sort by content, so content should be first, file_name second
+        (
+            [
+                {
+                    "highlight": {
+                        "file_name": ["example.txt"],
+                        "content": ["content1"],
+                        "description": ["desc"],
+                    }
+                }
+            ],
+            "content",
+            [
+                {
+                    "highlight": {
+                        "content": ["content1"],
+                        "file_name": ["example.txt"],
+                        "description": ["desc"],
+                    }
+                }
+            ],
+        ),
+        # edge case 1: empty highlight dictionary
+        (
+            [{"highlight": {}}],
+            "content",
+            [{"highlight": {}}],
+        ),
+        # edge case 2: highlight without relevant fields
+        (
+            [{"highlight": {"metadata.size": ["1MB"], "author": ["John Doe"]}}],
+            "file_name",
+            [{"highlight": {"metadata.size": ["1MB"], "author": ["John Doe"]}}],
+        ),
+        # edge case 3: missing highlight field entirely
+        (
+            [{}],
+            "content",
+            [{}],
+        ),
+        # edge case 4: sorting order has no effect with unrelated fields
+        (
+            [
+                {
+                    "highlight": {
+                        "content": ["content1"],
+                        "file_name": ["example.txt"],
+                    }
+                }
+            ],
+            "non_existing_field",
+            [
+                {
+                    "highlight": {
+                        "content": ["content1"],
+                        "file_name": ["example.txt"],
+                    }
+                }
+            ],
+        ),
+    ],
+)
+def test_rearrange_opensearch_results_for_relevant_fields(
+    results, sort, expected_results
+):
+    """
+    Test the rearrange_opensearch_results_for_relevant_fields function to ensure it correctly
+    reorders the entire result.
+    """
+    rearranged_results = rearrange_opensearch_results_for_relevant_fields(
+        results, sort
+    )
+    assert rearranged_results == expected_results
