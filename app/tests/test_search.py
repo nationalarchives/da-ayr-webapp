@@ -2120,8 +2120,8 @@ class TestSearchTransferringBody:
 
         table_body = soup.find("tbody")
         table_rows_cell_values = get_table_rows_cell_values(table_body)
-        assert table_rows_cell_values[1] == [
-            "File name",
+        assert table_rows_cell_values[0] == [
+            "File name +2",
             "<mark>fifth_file.doc</mark>",
         ]
         assert ["File name", expected_file_name] not in table_rows_cell_values

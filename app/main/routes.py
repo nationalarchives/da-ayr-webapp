@@ -628,7 +628,7 @@ def search_transferring_body(_id: uuid.UUID):
 
         search_results = execute_search(open_search, dsl_query, page, per_page)
         results = post_process_opensearch_results(
-            search_results["hits"]["hits"]
+            search_results["hits"]["hits"], sort
         )
 
         total_records, pagination = get_pagination_info(
