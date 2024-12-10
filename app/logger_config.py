@@ -10,8 +10,6 @@ class RequestFormatter(logging.Formatter):
             "log_type": record.name,
             "timestamp": self.formatTime(record),
             "level": record.levelname,
-            "module": record.module,
-            "line_number": record.lineno,
         }
 
         if has_request_context():
