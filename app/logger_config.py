@@ -38,6 +38,7 @@ class RequestFormatter(logging.Formatter):
     def get_calling_function_name(self, record):
         if record.stack_info:
             stack_frames = inspect.extract_stack(record.stack_info)
+            print("STACK FRAMES", stack_frames)
             if len(stack_frames) > 1:
                 # The second frame is the calling function
                 calling_frame = stack_frames[-2]
