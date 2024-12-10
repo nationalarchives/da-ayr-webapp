@@ -34,12 +34,12 @@ class TestExtractText:
             (
                 "multiline.html",
                 "html",
-                "\nThis is line 1\n    This is line 2\n    This is line 3, the final html line.\n",
+                "\nThis is line 1\n            This is line 2\n            This is line 3, the final html line.\n",
             ),
             (
                 "multiline.htm",
                 "html",
-                "\nThis is line 1\n        This is line 2\n        This is line 3, the final htm line.\n",
+                "\nThis is line 1\n            This is line 2\n            This is line 3, the final htm line.\n",
             ),
             (
                 "multiline.epub",
