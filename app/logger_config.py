@@ -11,6 +11,8 @@ class RequestFormatter(logging.Formatter):
             "timestamp": self.formatTime(record),
             "level": record.levelname,
             "module": record.module,
+            "function": record.funcName,
+            "line_number": record.lineno,
         }
 
         if has_request_context():
