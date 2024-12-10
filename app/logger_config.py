@@ -1,3 +1,4 @@
+import inspect
 import json
 import logging
 
@@ -11,7 +12,7 @@ class RequestFormatter(logging.Formatter):
             "timestamp": self.formatTime(record),
             "level": record.levelname,
             "module": record.module,
-            "function": record.funcName,
+            "function": self.get_original_function_name(record),
             "line_number": record.lineno,
         }
 
@@ -33,6 +34,12 @@ class RequestFormatter(logging.Formatter):
             log_record["message"] = record.getMessage()
 
         return json.dumps(log_record)
+
+    def get_original_function_name(self, record):
+        for frame in inspect.stack():
+            if frame.function == record.funcName:
+                return frame.function
+        return record.funcName
 
 
 def setup_logger(name, level, formatter):
