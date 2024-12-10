@@ -35,11 +35,14 @@ class RequestFormatter(logging.Formatter):
 
         return json.dumps(log_record)
 
-    def get_original_function_name(self, record):
-        for frame in inspect.stack():
-            if frame.function == record.funcName:
-                return frame.function
-        return record.funcName
+    def get_calling_function_name(self, record):
+        if record.stack_info:
+            stack_frames = inspect.extract_stack(record.stack_info)
+            if len(stack_frames) > 1:
+                # The second frame is the calling function
+                calling_frame = stack_frames[-2]
+                return calling_frame.function
+        return None
 
 
 def setup_logger(name, level, formatter):
