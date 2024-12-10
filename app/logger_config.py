@@ -12,7 +12,7 @@ class RequestFormatter(logging.Formatter):
             "timestamp": self.formatTime(record),
             "level": record.levelname,
             "module": record.module,
-            "function": self.get_original_function_name(record),
+            "function": self.get_calling_function_name(record),
             "line_number": record.lineno,
         }
 
