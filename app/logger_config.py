@@ -12,7 +12,6 @@ class RequestFormatter(logging.Formatter):
             "timestamp": self.formatTime(record),
             "level": record.levelname,
             "module": record.module,
-            "function": self.get_calling_function_name(record),
             "line_number": record.lineno,
         }
 
@@ -34,16 +33,6 @@ class RequestFormatter(logging.Formatter):
             log_record["message"] = record.getMessage()
 
         return json.dumps(log_record)
-
-    def get_calling_function_name(self, record):
-        if record.stack_info:
-            stack_frames = inspect.extract_stack(record.stack_info)
-            print("STACK FRAMES", stack_frames)
-            if len(stack_frames) > 1:
-                # The second frame is the calling function
-                calling_frame = stack_frames[-2]
-                return calling_frame.function
-        return None
 
 
 def setup_logger(name, level, formatter):
