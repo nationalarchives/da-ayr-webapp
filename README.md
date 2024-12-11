@@ -630,7 +630,42 @@ current_app.audit_logger.error('Some error message')
 
 The logs from the webapp, when used as above are output as a stream to stdout in the following format:
 
+LOG ENTRY for a page view using the @log_page_view decorator:
+
 ```sh
+START RequestId: 4e2b263b-fc27-4db2-b87e-867fc4596e69 Version: $LATEST
+
+[DEBUG]	2024-12-11T12:43:26.106Z	4e2b263b-fc27-4db2-b87e-867fc4596e69	host found: [test-one.np.ayr.nationalarchives.gov.uk]
+
+{
+    "log_type": "audit_logger",
+    "timestamp": "2024-12-11 12:43:26,106",
+    "level": "INFO",
+    "remote_addr": "13.42.156.7",
+    "url": "https://test-one.np.ayr.nationalarchives.gov.uk/callback?code=24a260d2-b142-4db5-8675-c2acddcb7e7f.2d9cb0a3-8ce0-400a-afa9-c13298eb33ac.29a32c8f-97d2-4680-b58e-ac9120a4f94d&iss=https://auth.tdr-staging.nationalarchives.gov.uk/realms/tdr&session_state=2d9cb0a3-8ce0-400a-afa9-c13298eb33ac&state=",
+    "event": "api_request",
+    "user_id": "anonymous",
+    "route": "/callback",
+    "method": "GET",
+    "caller_function": "callback",
+    "caller_module": "app.main.routes"
+}
+
+{
+    "event": "api_request",
+    "user_id": "anonymous",
+    "route": "/callback",
+    "method": "GET",
+    "caller_function": "callback",
+    "caller_module": "app.main.routes"
+}
+
+
+END RequestId: 4e2b263b-fc27-4db2-b87e-867fc4596e69
+```
+
+LOG ENTRY for an Error
+```
 [2023-12-15 15:40:14,119] 127.0.0.1 requested https://localhost:5000/logger_test?log_level=error
 ERROR in routes: Some error
 ```
