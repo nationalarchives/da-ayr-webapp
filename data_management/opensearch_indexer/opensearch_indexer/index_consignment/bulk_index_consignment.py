@@ -111,6 +111,7 @@ def _construct_documents(files: List[Dict], bucket_name: str) -> List[Dict]:
             file_stream = get_s3_file(bucket_name, object_key)
         except Exception as e:
             logger.error(f"Failed to obtain file {object_key}: {e}")
+            raise e
 
         document = add_text_content(file, file_stream)
 
