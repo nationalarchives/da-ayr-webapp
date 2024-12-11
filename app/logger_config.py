@@ -1,3 +1,4 @@
+import inspect
 import json
 import logging
 
@@ -6,17 +7,34 @@ from flask import has_request_context, request
 
 class RequestFormatter(logging.Formatter):
     def format(self, record):
+
         log_record = {
             "log_type": record.name,
             "timestamp": self.formatTime(record),
             "level": record.levelname,
         }
 
+        caller_function = ""
+        caller_module = ""
+
+        for frame in inspect.stack():
+            if "app.logger_config" not in str(
+                frame.frame.f_globals.get("__name__")
+            ):
+                if "app." in str(frame.frame.f_globals.get("__name__")):
+                    caller_function = frame.function
+                    caller_module = frame.frame.f_globals.get(
+                        "__name__", "unknown"
+                    )
+                    break
+
         if has_request_context():
             log_record.update(
                 {
                     "remote_addr": request.remote_addr,
                     "url": request.url,
+                    "caller_function": caller_function,
+                    "caller_module": caller_module,
                 }
             )
 

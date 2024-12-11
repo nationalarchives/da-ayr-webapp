@@ -13,8 +13,6 @@ def log_page_view(route_function):
             "user_id": user_id,
             "route": request.url,
             "method": request.method,
-            "caller_function": route_function.__name__,
-            "caller_module": route_function.__module__,
         }
         current_app.audit_logger.info(json.dumps(log_data))
         return route_function(*args, **kwargs)
