@@ -234,16 +234,7 @@ def bulk_index_files_in_opensearch(
     """
     opensearch_index = "documents"
 
-    bulk_data = []
-    for doc in documents:
-        bulk_data.append(
-            json.dumps(
-                {"index": {"_index": opensearch_index, "_id": doc["file_id"]}}
-            )
-        )
-        bulk_data.append(json.dumps(doc["document"]))
-
-    bulk_payload = "\n".join(bulk_data) + "\n"
+    bulk_payload = _prepare_bulk_index_payload(documents, opensearch_index)
 
     open_search = OpenSearch(
         open_search_host_url,
@@ -276,3 +267,19 @@ def bulk_index_files_in_opensearch(
         raise Exception(error_message)
     else:
         logger.info("Opensearch bulk indexing completed successfully")
+
+
+def _prepare_bulk_index_payload(
+    documents: List[Dict[str, Union[str, Dict]]], opensearch_index: str
+) -> str:
+    bulk_data = []
+    for doc in documents:
+        bulk_data.append(
+            json.dumps(
+                {"index": {"_index": opensearch_index, "_id": doc["file_id"]}}
+            )
+        )
+        bulk_data.append(json.dumps(doc["document"]))
+
+    bulk_payload = "\n".join(bulk_data) + "\n"
+    return bulk_payload
