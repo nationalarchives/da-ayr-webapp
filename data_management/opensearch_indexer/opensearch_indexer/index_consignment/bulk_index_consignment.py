@@ -231,11 +231,13 @@ def bulk_index_files_in_opensearch(
     Returns:
         None
     """
+    opensearch_index = "documents"
+
     bulk_data = []
     for doc in documents:
         bulk_data.append(
             json.dumps(
-                {"index": {"_index": "documents", "_id": doc["file_id"]}}
+                {"index": {"_index": opensearch_index, "_id": doc["file_id"]}}
             )
         )
         bulk_data.append(json.dumps(doc["document"]))
@@ -251,8 +253,6 @@ def bulk_index_files_in_opensearch(
         connection_class=RequestsHttpConnection,
     )
 
-    opensearch_index = "documents"
-
     try:
         response = open_search.bulk(
             index=opensearch_index,
@@ -267,11 +267,11 @@ def bulk_index_files_in_opensearch(
     logger.info(response)
 
     if response["errors"]:
-        logger.error("Errors occurred during bulk indexing")
+        logger.info("Opensearch bulk indexing completed with errors")
+        error_message = "Opensearch bulk indexing errors:"
         for item in response["items"]:
             if "error" in item.get("index", {}):
-                logger.error(
-                    f"Error for document ID {item['index']['_id']}: {item['index']['error']}"
-                )
+                error_message += f"\nError for document ID {item['index']['_id']}: {item['index']['error']}"
+        raise Exception(error_message)
     else:
-        logger.info("Bulk indexing completed successfully")
+        logger.info("Opensearch bulk indexing completed successfully")
