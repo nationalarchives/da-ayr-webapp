@@ -1,0 +1,22 @@
+MIME-Version: 1.0
+Date: Tue, 10 Dec 2024 04:03:11 +0000
+Message-ID: <CAPziOEHcOowFX7siEcDSZJLp0WVVqMVVMfdDy7vO=poFCJegug@mail.gmail.com>
+Subject:
+From: Lucian Trasca <ltrasca@zaizi.com>
+To: Lucian Trasca <ltrasca@zaizi.com>
+Content-Type: multipart/alternative; boundary="0000000000004a4e4f0628e28f7e"
+
+--0000000000004a4e4f0628e28f7e
+Content-Type: text/plain; charset="UTF-8"
+
+This is line 1
+This is line 2
+This is line 3
+This is line 4, the final eml line.
+
+--0000000000004a4e4f0628e28f7e
+Content-Type: text/html; charset="UTF-8"
+
+<div dir="ltr">This is line 1<br>This is line 2<br>This is line 3<br>This is line 4, the final eml line.</div>
+
+--0000000000004a4e4f0628e28f7e--

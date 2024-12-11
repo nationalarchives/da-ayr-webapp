@@ -7,11 +7,40 @@ import textract
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+SUPPORTED_TEXTRACT_FORMATS = [
+    "csv",
+    "doc",
+    "docx",
+    "eml",
+    "epub",
+    "gif",
+    "jpg",
+    "jpeg",
+    "json",
+    "html",
+    "htm",
+    "mp3",
+    "msg",
+    "odt",
+    "ogg",
+    "pdf",
+    "png",
+    "pptx",
+    "ps",
+    "rtf",
+    "tiff",
+    "tif",
+    "txt",
+    "wav",
+    "xlsx",
+    "xls",
+]
+
 
 def add_text_content(file: Dict, file_stream: bytes) -> Dict:
     file_type = file["file_name"].split(".")[-1].lower()
 
-    if file_type not in ["txt", "docx", "pdf"]:
+    if file_type not in SUPPORTED_TEXTRACT_FORMATS:
         logger.info(
             f"Text extraction skipped for unsupported file type: {file_type}"
         )
