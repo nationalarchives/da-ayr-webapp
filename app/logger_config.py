@@ -24,7 +24,7 @@ class RequestFormatter(logging.Formatter):
                 if "app." in str(frame.frame.f_globals.get("__name__")):
                     caller_function = frame.function
                     caller_module = frame.frame.f_globals.get(
-                        "__name__", "unknown"
+                        "__name__", ""
                     )
                     break
 
