@@ -2,6 +2,7 @@ import json
 import logging
 from typing import Dict, List, Optional, Tuple, Union
 
+import pg8000
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 from sqlalchemy import create_engine, text
@@ -170,18 +171,17 @@ def _fetch_files_in_consignment(
         c."ConsignmentReference" = :consignment_reference
         AND f."FileType" = 'File';
     """
-    # try:
-    #     result = session.execute(
-    #         text(query), {"consignment_reference": consignment_reference}
-    #     ).fetchall()
-    # except pg8000.Error as e:
-    #     raise Exception(f"Database query failed: {e}")
-    # finally:
-    #     session.close()
+    try:
+        result = session.execute(
+            text(query), {"consignment_reference": consignment_reference}
+        ).fetchall()
+    except pg8000.Error as e:
+        logger.error(
+            f"Failed to retrieve file metadata from database for consignment reference: {consignment_reference}"
+        )
+        session.close()
+        raise e
 
-    result = session.execute(
-        text(query), {"consignment_reference": consignment_reference}
-    ).fetchall()
     session.close()
 
     # Process query results
