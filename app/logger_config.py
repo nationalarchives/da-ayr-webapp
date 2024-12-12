@@ -19,10 +19,7 @@ class RequestFormatter(logging.Formatter):
 
         for frame in inspect.stack():
             module_name = str(frame.frame.f_globals.get("__name__", ""))
-            if (
-                "app.logger_config" not in module_name
-                and "app.main.middlewares.log_page_view" not in module_name
-            ):
+            if "app.logger_config" not in module_name:
                 if "app." in module_name:
                     caller_function = frame.function
                     caller_module = module_name
