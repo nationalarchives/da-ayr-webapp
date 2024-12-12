@@ -20,7 +20,7 @@ HOST = "http://localhost"
             b"Test Response",
             json.loads(
                 """{"event": "api_request", "user_id": "test_user", "route": "http://localhost/test_route",
-                "method": "GET", "caller_function": "dynamic_route", "caller_module": "app.tests.test_middlewares"}"""
+                "method": "GET"}"""
             ),
         ),
         (
@@ -31,7 +31,7 @@ HOST = "http://localhost"
             b"Anonymous Response",
             json.loads(
                 """{"event": "api_request", "user_id": "anonymous", "route": "http://localhost/anonymous_route",
-                "method": "GET", "caller_function": "dynamic_route", "caller_module": "app.tests.test_middlewares"}"""
+                "method": "GET"}"""
             ),
         ),
         (
@@ -42,7 +42,7 @@ HOST = "http://localhost"
             b"Post Response",
             json.loads(
                 """{"event": "api_request", "user_id": "test_user", "route": "http://localhost/post_route",
-                "method": "POST", "caller_function": "dynamic_route", "caller_module": "app.tests.test_middlewares"}"""
+                "method": "POST"}"""
             ),
         ),
     ],
