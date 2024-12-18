@@ -1,4 +1,3 @@
-import io
 import uuid
 
 import boto3
@@ -8,7 +7,6 @@ from flask import (
     redirect,
     render_template,
     request,
-    send_file,
     session,
     url_for,
 )
@@ -51,7 +49,6 @@ from app.main.util.render_utils import (
     generate_pdf_manifest,
     get_download_filename,
     get_file_details,
-    get_file_mimetype,
 )
 from app.main.util.search_utils import (
     build_search_results_summary_query,
@@ -716,12 +713,12 @@ def record(record_id: uuid.UUID):
     )
 
 
-@bp.route("/download/<uuid:record_id>")
+@bp.route("/download/<uuid:record_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
 def download_record(record_id: uuid.UUID):
+    s3 = boto3.client("s3")
     file = db.session.get(File, record_id)
-    render = request.args.get("render", False)
     ayr_user = AYRUser(session.get("user_groups"))
     can_download_records = ayr_user.can_download_records
 
@@ -733,18 +730,10 @@ def download_record(record_id: uuid.UUID):
 
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
-    s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
-    try:
-        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
-    except Exception as e:
-        current_app.app_logger.error(f"Failed to get object from S3: {e}")
-        abort(404)
-
     download_filename = file.FileName
-
     if file.CiteableReference:
         if len(file.FileName.rsplit(".", 1)) > 1:
             download_filename = (
@@ -752,29 +741,20 @@ def download_record(record_id: uuid.UUID):
             )
 
     try:
-        file_content = s3_file_object["Body"].read()
-        file_type = download_filename.split(".")[-1].lower()
+        presigned_url = s3.generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": bucket,
+                "Key": key,
+                "ResponseContentDisposition": f"attachment; filename={download_filename}",
+            },
+            ExpiresIn=3600,
+        )
     except Exception as e:
-        current_app.app_logger.error(f"Error reading S3 file content: {e}")
+        current_app.app_logger.error(f"Failed to generate presigned URL: {e}")
         abort(500)
 
-    content_type = s3_file_object.get("ContentType", "application/octet-stream")
-
-    if render:
-        return send_file(
-            io.BytesIO(file_content),
-            mimetype=get_file_mimetype(file_type),
-            as_attachment=False,
-            download_name=download_filename,
-        )
-    else:
-        response = send_file(
-            io.BytesIO(file_content),
-            mimetype=content_type,
-            as_attachment=True,
-            download_name=download_filename,
-        )
-    return response
+    return redirect(presigned_url)
 
 
 @bp.route("/signed-out", methods=["GET"])
