@@ -35,6 +35,7 @@ def utils():
 @pytest.fixture
 def page(page, request) -> Page:
     page.context.set_default_timeout(10000)
+    page.set_default_timeout(10000)
     if "test_css_" not in request.node.name and callable(request.node.obj):
 
         def route_intercept(route):
