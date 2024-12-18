@@ -2685,13 +2685,13 @@ crt = ["botocore[crt] (>=1.33.2,<2.0a.0)"]
 
 [[package]]
 name = "safety"
-version = "3.2.12"
+version = "3.2.13"
 description = "Checks installed dependencies for known vulnerabilities and licenses."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "safety-3.2.12-py3-none-any.whl", hash = "sha256:e368b02d532ed6e248631617b246c1d01561e862b6a0949a87d28e0152322d13"},
-    {file = "safety-3.2.12.tar.gz", hash = "sha256:fab91195f32bfcb64d99b3a796b6865fc020950c67b1f940230201aaf8f46e01"},
+    {file = "safety-3.2.13-py3-none-any.whl", hash = "sha256:c259d43b751c62973b484ed03b78409890236023a50d8e3292b80d84139a9d35"},
+    {file = "safety-3.2.13.tar.gz", hash = "sha256:9328510c3286d67a788346d60df531b8bd2f35abbed3ac4dfaf8d119e6eec1ae"},
 ]
 
 [package.dependencies]
@@ -3216,4 +3216,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "939f982b9fd01d1b68aa1cb8e1f531e97e0d781d983cc7859932fe669f1736de"
+content-hash = "f6a07b0453ff133fad7e58b38a639d6ceb496ccffebf6655da00db2959c17491"
