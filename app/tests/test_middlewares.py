@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from flask.testing import FlaskClient
 from moto import mock_aws
@@ -16,7 +18,10 @@ HOST = "http://localhost"
             {"user_id": "test_user"},
             lambda: "Test Response",
             b"Test Response",
-            f'{{"event": "api_request", "user_id": "test_user", "route": "{HOST}/test_route", "method": "GET"}}',
+            json.loads(
+                """{"event": "api_request", "user_id": "test_user", "route": "http://localhost/test_route",
+                "method": "GET"}"""
+            ),
         ),
         (
             "/anonymous_route",
@@ -24,7 +29,10 @@ HOST = "http://localhost"
             {},
             lambda: "Anonymous Response",
             b"Anonymous Response",
-            f'{{"event": "api_request", "user_id": "anonymous", "route": "{HOST}/anonymous_route", "method": "GET"}}',
+            json.loads(
+                """{"event": "api_request", "user_id": "anonymous", "route": "http://localhost/anonymous_route",
+                "method": "GET"}"""
+            ),
         ),
         (
             "/post_route",
@@ -32,7 +40,10 @@ HOST = "http://localhost"
             {"user_id": "test_user"},
             lambda: "Post Response",
             b"Post Response",
-            f'{{"event": "api_request", "user_id": "test_user", "route": "{HOST}/post_route", "method": "POST"}}',
+            json.loads(
+                """{"event": "api_request", "user_id": "test_user", "route": "http://localhost/post_route",
+                "method": "POST"}"""
+            ),
         ),
     ],
 )
@@ -48,9 +59,6 @@ def test_log_page_view(
     expected_log,
     caplog,
 ):
-    """Test that the log_page_view middleware generates the correct log when an
-    endpoint decorated with it is requested"""
-
     @app.route(route_path, methods=[method])
     @log_page_view
     def dynamic_route():
@@ -64,5 +72,6 @@ def test_log_page_view(
     assert response.status_code == 200
     assert response.data == expected_response
 
+    logged_message = json.loads(caplog.records[0].message)
     assert caplog.records[0].levelname == "INFO"
-    assert caplog.records[0].message == expected_log
+    assert logged_message == expected_log
