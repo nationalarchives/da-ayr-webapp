@@ -55,7 +55,7 @@ def create_user_page(
 ):  # FIXME: browser_name specified until https://github.com/microsoft/playwright-pytest/issues/172 fixed
     # so that multiple browser flags in cli are honoured
     def _create_user_page(username, password) -> Page:
-        page.goto("/sign-in")
+        page.goto("/sign-in", timeout=10000)
         page.get_by_label("Email address").fill(username)
         page.get_by_label("Password").fill(password)
         page.get_by_role("button", name="Sign in").click()
