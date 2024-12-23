@@ -57,9 +57,17 @@ def create_user_page(
     # so that multiple browser flags in cli are honoured
     def _create_user_page(username, password) -> Page:
         page.goto("/sign-in", timeout=10000)
+        page.wait_for_timeout(10000)
         page.get_by_label("Email address").fill(username)
         page.get_by_label("Password").fill(password)
         page.get_by_role("button", name="Sign in").click()
+
+        # keycloak local
+        # page.get_by_label("Username or email").click()
+        # page.get_by_label("Username or email").fill(username)
+        # page.get_by_label("Password", exact=True).click()
+        # page.get_by_label("Password", exact=True).fill(password)
+        # page.get_by_role("button", name="Sign In").click()
         return page
 
     return _create_user_page
@@ -95,17 +103,28 @@ def create_keycloak_user(keycloak_admin):
         user_pass = uuid.uuid4().hex
         user_first_name = "Test"
         user_last_name = "Name"
-        user_id = keycloak_admin.create_user(
-            {
-                "firstName": user_first_name,
-                "lastName": user_last_name,
-                "username": user_email,
-                "email": user_email,
-                "enabled": True,
-                "groups": groups,
-                "credentials": [{"value": user_pass, "type": "password"}],
-            }
-        )
+        user_id = None  # Initialize user_id to avoid UnboundLocalError
+
+        try:
+            user_id = keycloak_admin.create_user(
+                {
+                    "firstName": user_first_name,
+                    "lastName": user_last_name,
+                    "username": user_email,
+                    "email": user_email,
+                    "enabled": True,
+                    "groups": groups,
+                    "credentials": [{"value": user_pass, "type": "password"}],
+                }
+            )
+        except Exception as e:
+            print(f"Error creating user: {e}")
+            raise  # Re-raise the exception to fail the test
+
+        if not user_id:
+            raise ValueError("User creation failed; no user ID returned.")
+
+        print(f"Created user with ID: {user_id}, email: {user_email}")
         return user_id, user_email, user_pass
 
     return _create_keycloak_user
