@@ -111,6 +111,12 @@ def create_app(config_class, database_uri=None):
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.js",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/2185.34b4770909a62ebe892e.js",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/4864.b0b319b4f29542847e0e.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/5315.4c3c820c7f8b3cc26be6.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/6305.0c443d34834424452b37.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/8863.c56e62097ef300b4ee08.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/998.9c1bd6b181b8236d95c2.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/4956.d805f32de6e91349d446.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/9193.d9d5ca052869d2314034.js",
             "https://d1598aa5u2vnrm.cloudfront.net/assets/govuk-frontend.min.js",
             "https://d1598aa5u2vnrm.cloudfront.net/assets/init.uv.js",
             "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
