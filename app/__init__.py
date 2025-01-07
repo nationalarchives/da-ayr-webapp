@@ -117,6 +117,7 @@ def create_app(config_class, database_uri=None):
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/998.9c1bd6b181b8236d95c2.js",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/4956.d805f32de6e91349d446.js",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/9193.d9d5ca052869d2314034.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/3171.f31082f3b568ce907389.js",
             "https://d1598aa5u2vnrm.cloudfront.net/assets/govuk-frontend.min.js",
             "https://d1598aa5u2vnrm.cloudfront.net/assets/init.uv.js",
             "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
