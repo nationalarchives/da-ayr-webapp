@@ -136,6 +136,9 @@ def create_app(config_class, database_uri=None):
             "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
             "'sha256-ylK9YBCBEaApMPzc82Ol5H/Hd5kmcv3wQlT3Y5m7Kn4='",  # pragma: allowlist secret
             "unsafe-hashes",
+            "unsafe-inline",
+            "'unsafe-hashes'",
+            "'unsafe-inline'",
         ],
         "style-src-elem": [
             SELF,
