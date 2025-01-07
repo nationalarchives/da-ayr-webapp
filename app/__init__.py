@@ -71,6 +71,12 @@ def create_app(config_class, database_uri=None):
 
     SELF = "'self'"
 
+    # PROD_CSP = []
+
+    # NON_PROD_CSP = []
+
+    # STAG_CSP = []
+
     csp = {
         "default-src": f" {SELF} {app.config['FLASKS3_CDN_DOMAIN']} ",
         "connect-src": [
@@ -100,6 +106,9 @@ def create_app(config_class, database_uri=None):
                 "'sha256-bxI3qvjziRybgoaeQYcUjRHcCTdbUu/A9xFMlfNGZAQ='",  # pragma: allowlist secret
             ]
         ),
+        "script-src-elem": {
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/*",
+        },
         "style-src": [
             SELF,
             "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
