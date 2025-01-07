@@ -109,6 +109,9 @@ def create_app(config_class, database_uri=None):
         "script-src-elem": {
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/*",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/2185.34b4770909a62ebe892e.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/4864.b0b319b4f29542847e0e.js",
+            "https://d1598aa5u2vnrm.cloudfront.net/assets/govuk-frontend.min.js",
             "https://d1598aa5u2vnrm.cloudfront.net/assets/init.uv.js",
             "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
             "'sha256-bxI3qvjziRybgoaeQYcUjRHcCTdbUu/A9xFMlfNGZAQ='",  # pragma: allowlist secret
