@@ -1,11 +1,19 @@
 import logging
 import tempfile
+from enum import Enum
 from typing import Dict
 
 import textract
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+
+class TextExtractionStatus(Enum):
+    SUCCEEDED = "SUCCEEDED"
+    FAILED = "FAILED"
+    SKIPPED = "SKIPPED"
+
 
 SUPPORTED_TEXTRACT_FORMATS = [
     "csv",
@@ -45,18 +53,20 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
             f"Text extraction skipped for unsupported file type: {file_type}"
         )
         file["content"] = ""
-        file["text_extraction_status"] = "n/a"
+        file["text_extraction_status"] = TextExtractionStatus.SKIPPED.value
     else:
         try:
             file["content"] = extract_text(file_stream, file_type)
             logger.info(f"Text extraction succeeded for file {file['file_id']}")
-            file["text_extraction_status"] = "success"
+            file["text_extraction_status"] = (
+                TextExtractionStatus.SUCCEEDED.value
+            )
         except Exception as e:
             logger.error(
                 f"Text extraction failed for file {file['file_id']}: {e}"
             )
             file["content"] = ""
-            file["text_extraction_status"] = "failed"
+            file["text_extraction_status"] = TextExtractionStatus.FAILED.value
 
     return file
 
