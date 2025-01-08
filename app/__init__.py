@@ -124,6 +124,7 @@ def create_app(config_class, database_uri=None):
             "'sha256-1u1O/sNzLBXqLGKzuRbVTI5abqBQBfKsNv3bH5iXOkg='",  # pragma: allowlist secret
             "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
             "'sha256-ylK9YBCBEaApMPzc82Ol5H/Hd5kmcv3wQlT3Y5m7Kn4='",  # pragma: allowlist secret
+            "'sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY='",  # pragma: allowlist secret
         ],
         "style-src-elem": [
             SELF,
@@ -146,6 +147,10 @@ def create_app(config_class, database_uri=None):
             "'sha256-8Vn73Z5msbLVngI0nj0OnoRknDpixmr5Qqxqq1oVeyw='",  # pragma: allowlist secret
             "'sha256-1u1O/sNzLBXqLGKzuRbVTI5abqBQBfKsNv3bH5iXOkg='",  # pragma: allowlist secret
             "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
+            "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
+            "'sha256-od8NkfAfHOG81BZMpZ608NrC5r2UMOZUuW7MPGF02fU='",  # pragma: allowlist secret
+            "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
+            "'sha256-7TGyp8O8in/ANC9hFb9GavEXnvRr08lMN/YeRfIcG6w='",  # pragma: allowlist secret
         ],
         "worker-src": [
             "blob:",
