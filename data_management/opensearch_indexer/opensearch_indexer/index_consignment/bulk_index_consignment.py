@@ -14,10 +14,14 @@ from ..aws_helpers import (
     get_s3_file,
     get_secret_data,
 )
-from ..text_extraction import add_text_content
+from ..text_extraction import TextExtractionStatus, add_text_content
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+
+class ConsignmentBulkIndexError(Exception):
+    pass
 
 
 def bulk_index_consignment_from_aws(
@@ -79,13 +83,51 @@ def bulk_index_consignment(
     """
     files = _fetch_files_in_consignment(consignment_reference, database_url)
     documents_to_index = _construct_documents(files, bucket_name)
-    bulk_index_files_in_opensearch(
-        documents_to_index,
-        open_search_host_url,
-        open_search_http_auth,
-        open_search_bulk_index_timeout,
-        open_search_ca_certs,
-    )
+
+    document_text_extraction_exceptions_message = ""
+    for doc in documents_to_index:
+        if doc["document"]["text_extraction_status"] not in [
+            TextExtractionStatus.SKIPPED.value,
+            TextExtractionStatus.SUCCEEDED.value,
+        ]:
+            if document_text_extraction_exceptions_message == "":
+                document_text_extraction_exceptions_message += (
+                    "Text extraction failed on the following documents:"
+                )
+            document_text_extraction_exceptions_message += f"\n{doc['file_id']}"
+
+    bulk_indexing_exception_message = ""
+    try:
+        bulk_index_files_in_opensearch(
+            documents_to_index,
+            open_search_host_url,
+            open_search_http_auth,
+            open_search_bulk_index_timeout,
+            open_search_ca_certs,
+        )
+    except Exception as bulk_indexing_exception:
+        bulk_indexing_exception_message = bulk_indexing_exception.text
+        logger.error("Bulk indexing of files resulted in some errors")
+
+    # Combine and raise all errors from failed attempts to extract text or index documents
+    if (
+        document_text_extraction_exceptions_message
+        or bulk_indexing_exception_message
+    ):
+        consignment_bulk_index_error_message = (
+            "The following errors occurred when attempting to "
+            f"bulk index consignment reference: {consignment_reference}"
+        )
+        if document_text_extraction_exceptions_message:
+            consignment_bulk_index_error_message += (
+                f"\n{document_text_extraction_exceptions_message}"
+            )
+        if bulk_indexing_exception_message:
+            consignment_bulk_index_error_message += (
+                f"\n{bulk_indexing_exception_message}"
+            )
+
+        raise ConsignmentBulkIndexError(consignment_bulk_index_error_message)
 
 
 def _construct_documents(files: List[Dict], bucket_name: str) -> List[Dict]:
