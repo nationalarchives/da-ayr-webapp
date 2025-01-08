@@ -107,6 +107,7 @@ def create_app(config_class, database_uri=None):
             ]
         ),
         "script-src-elem": {
+            "https://cdn.jsdelivr.net",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25",
             "https://cdnjs.cloudflare.com/ajax/libs/pdf.js",
             "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
