@@ -108,6 +108,8 @@ def create_app(config_class, database_uri=None):
         ),
         "script-src-elem": {
             "https://cdn.jsdelivr.net",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25",
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js",
             "https://d1598aa5u2vnrm.cloudfront.net/assets/govuk-frontend.min.js",
             "https://d1598aa5u2vnrm.cloudfront.net/assets/init.uv.js",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/*",
