@@ -24,7 +24,39 @@
                 {% endif %}
             </noscript>
             <div id="uv" class="uv"></div>
+            <!-- Fallback section -->
+            <div id="uv-error" class="uv-error" style="display:none;">
+                <p>Unable to load the viewer. Displaying alternative view:</p>
+                <object data="{{ presigned_url }}"
+                        type="application/pdf"
+                        width="100%"
+                        height="700px">
+                    <p>
+                        Your browser does not support viewing this file type.
+                        <a href="{{ presigned_url }}">Download it here.</a>
+                    </p>
+                </object>
+            </div>
             <script id="init-uv" nonce="{{ csp_nonce() }}" manifest_url="{{ manifest_url }}" type="text/javascript" src="{{ url_for('static', filename='init.uv.js') }}">
+            </script>
+            <script nonce="{{ csp_nonce() }}">
+                document.addEventListener("DOMContentLoaded", function () {
+                    const uvElement = document.getElementById("uv");
+                    const uvErrorElement = document.getElementById("uv-error");
+                    const options = {
+                        manifest: "{{ manifest_url }}", // Your manifest URL here
+                    };
+
+                    const viewer = UV.init(uvElement, options);
+
+                    viewer.on("uv.error", function (error) {
+                        console.error("Universal Viewer error:", error);
+
+                        // Hide UV and show the fallback loader
+                        uvElement.style.display = "none";
+                        uvErrorElement.style.display = "block";
+                    });
+                });
             </script>
         </div>
     {% else %}
