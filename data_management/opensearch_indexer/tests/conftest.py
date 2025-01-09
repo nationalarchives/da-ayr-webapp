@@ -86,7 +86,7 @@ def temp_db():
     return engine
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def database(request):
     # Launch new PostgreSQL server
     postgresql = PostgresqlFactory(cache_initialized_db=True)()

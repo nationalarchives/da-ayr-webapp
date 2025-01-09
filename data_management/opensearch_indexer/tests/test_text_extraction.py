@@ -1,7 +1,12 @@
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
-from opensearch_indexer.text_extraction import extract_text
+from opensearch_indexer.text_extraction import (
+    TextExtractionStatus,
+    add_text_content,
+    extract_text,
+)
 
 
 class TestExtractText:
@@ -79,3 +84,135 @@ class TestExtractText:
             file_stream = file.read()
 
         assert extract_text(file_stream, file_type) == expected_output
+
+
+# Mock the extract_text function to simulate text extraction behavior
+@pytest.fixture
+def mock_extract_text():
+    with patch("opensearch_indexer.text_extraction.extract_text") as mock:
+        yield mock
+
+
+# Test for successfully extracting text from a supported file type
+def test_add_text_content_success(mock_extract_text, caplog):
+    """
+    Given a supported file type and a valid file stream,
+    When text extraction succeeds,
+    Then the content is updated and the status is set to SUCCEEDED.
+    """
+
+    # Given
+    file = {
+        "file_id": 1,
+        "file_name": "example.pdf",
+        "content": "",
+        "text_extraction_status": "",
+    }
+    file_stream = b"Some file content"
+    mock_extract_text.return_value = "Extracted text"
+
+    # When
+    result = add_text_content(file, file_stream)
+
+    # Then
+    assert result["content"] == "Extracted text"
+    assert (
+        result["text_extraction_status"] == TextExtractionStatus.SUCCEEDED.value
+    )
+    mock_extract_text.assert_called_once_with(file_stream, "pdf")
+
+    assert "Text extraction succeeded for file 1" in caplog.text
+
+
+# Test for unsupported file type
+def test_add_text_content_unsupported_format(caplog):
+    """
+    Given an unsupported file type,
+    When text extraction is skipped,
+    Then the content is set to an empty string and the status is set to SKIPPED.
+    """
+
+    # Given
+    file = {
+        "file_id": 2,
+        "file_name": "example.exe",  # Unsupported file type
+        "content": "",
+        "text_extraction_status": "",
+    }
+    file_stream = b"Some content that won't be extracted"
+
+    # When
+    result = add_text_content(file, file_stream)
+
+    # Then
+    assert result["content"] == ""
+    assert (
+        result["text_extraction_status"] == TextExtractionStatus.SKIPPED.value
+    )
+
+    assert (
+        "Text extraction skipped for file 2 due to unsupported file type: exe"
+        in caplog.text
+    )
+
+
+# Test for text extraction failure
+def test_add_text_content_failure(mock_extract_text, caplog):
+    """
+    Given a supported file type and a failing text extraction,
+    When text extraction fails due to an error,
+    Then the content is set to an empty string and the status is set to FAILED.
+    """
+
+    # Given
+    file = {
+        "file_id": 3,
+        "file_name": "example.txt",  # Supported file type
+        "content": "",
+        "text_extraction_status": "",
+    }
+    file_stream = b"Some content"
+
+    # Simulate a failure in text extraction
+    mock_extract_text.side_effect = Exception("Text extraction failed")
+
+    # When
+    with caplog.at_level("ERROR"):
+        result = add_text_content(file, file_stream)
+
+    # Then
+    assert result["content"] == ""
+    assert result["text_extraction_status"] == TextExtractionStatus.FAILED.value
+    mock_extract_text.assert_called_once_with(file_stream, "txt")
+
+    assert (
+        "Text extraction failed for file 3: Text extraction failed"
+        in caplog.text
+    )
+
+
+# Test for file type without extension
+def test_add_text_content_no_extension():
+    """
+    Given a file without an extension,
+    When trying to extract text,
+    Then the file is skipped and the status is set to SKIPPED.
+    """
+
+    # Given
+    file = {
+        "file_id": 4,
+        "file_name": "example",  # No file extension
+        "content": "",
+        "text_extraction_status": "",
+    }
+    file_stream = b"Some content"
+
+    # When
+    result = add_text_content(file, file_stream)
+
+    # Then
+    assert result["content"] == ""
+    assert (
+        result["text_extraction_status"] == TextExtractionStatus.SKIPPED.value
+    )
