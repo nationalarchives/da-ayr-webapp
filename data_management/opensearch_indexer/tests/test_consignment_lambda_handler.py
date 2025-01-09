@@ -4,6 +4,7 @@ from uuid import uuid4
 
 import boto3
 import botocore
+import pytest
 from moto import mock_aws
 from opensearch_indexer.index_consignment.lambda_function import lambda_handler
 from opensearch_indexer.text_extraction import TextExtractionStatus
@@ -316,3 +317,105 @@ def test_lambda_handler_invokes_bulk_index_with_correct_file_data(
 
             assert args[3] == 600
             assert args[4] is None
+
+
+@mock_aws
+def test_lambda_handler_raises_exception_when_no_consignment_reference_in_sns_message():
+    """
+    Test case for the lambda_handler function to ensure correct integration with the OpenSearch indexer.
+
+    Given:
+    - An S3 bucket containing files.
+    - A secret stored in AWS Secrets Manager containing configuration details such as database connection,
+      OpenSearch host URL, and an IAM role for OpenSearch access.
+
+    When:
+    - The lambda_handler function is invoked via an S3 event notification.
+
+    Then:
+    - The bulk_index_files_in_opensearch function is called with the correct parameters for each file:
+      - Correct file metadata and content, including the extracted text, metadata properties,
+        and associated consignment details.
+      - The OpenSearch host URL.
+      - An AWS4Auth object with credentials derived from the assumed IAM role.
+      - The timeout for the OpenSearch bulk indexing operation.
+    """
+    consignment_reference = None
+    sns_message = {
+        "properties": {
+            "messageType": "uk.gov.nationalarchives.da.messages.ayrmetadata.loaded",
+            "function": "ddt-ayrmetadataload-process",
+        },
+        "parameters": {
+            "reference": consignment_reference,
+            "originator": "DDT",
+        },
+    }
+
+    event = {
+        "Records": [
+            {
+                "Sns": {
+                    "Message": json.dumps(sns_message),
+                },
+            }
+        ]
+    }
+
+    with pytest.raises(
+        Exception,
+        match="Missing reference in SNS Message required for indexing",
+    ):
+        lambda_handler(event, None)
+
+
+@mock_aws
+def test_lambda_handler_raises_exception_when_no_secret_id_env_var_set(
+    monkeypatch,
+):
+    """
+    Test case for the lambda_handler function to ensure correct integration with the OpenSearch indexer.
+
+    Given:
+    - An S3 bucket containing files.
+    - A secret stored in AWS Secrets Manager containing configuration details such as database connection,
+      OpenSearch host URL, and an IAM role for OpenSearch access.
+
+    When:
+    - The lambda_handler function is invoked via an S3 event notification.
+
+    Then:
+    - The bulk_index_files_in_opensearch function is called with the correct parameters for each file:
+      - Correct file metadata and content, including the extracted text, metadata properties,
+        and associated consignment details.
+      - The OpenSearch host URL.
+      - An AWS4Auth object with credentials derived from the assumed IAM role.
+      - The timeout for the OpenSearch bulk indexing operation.
+    """
+    consignment_reference = "TDR-2024-ABCD"
+    sns_message = {
+        "properties": {
+            "messageType": "uk.gov.nationalarchives.da.messages.ayrmetadata.loaded",
+            "function": "ddt-ayrmetadataload-process",
+        },
+        "parameters": {
+            "reference": consignment_reference,
+            "originator": "DDT",
+        },
+    }
+
+    event = {
+        "Records": [
+            {
+                "Sns": {
+                    "Message": json.dumps(sns_message),
+                },
+            }
+        ]
+    }
+
+    with pytest.raises(
+        Exception,
+        match="Missing SECRET_ID environment variable required for indexing",
+    ):
+        lambda_handler(event, None)

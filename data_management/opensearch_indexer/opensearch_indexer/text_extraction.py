@@ -47,24 +47,23 @@ SUPPORTED_TEXTRACT_FORMATS = [
 
 def add_text_content(file: Dict, file_stream: bytes) -> Dict:
     file_type = file["file_name"].split(".")[-1].lower()
+    file_id = file["file_id"]
 
     if file_type not in SUPPORTED_TEXTRACT_FORMATS:
         logger.info(
-            f"Text extraction skipped for unsupported file type: {file_type}"
+            f"Text extraction skipped for file {file_id} due to unsupported file type: {file_type}"
         )
         file["content"] = ""
         file["text_extraction_status"] = TextExtractionStatus.SKIPPED.value
     else:
         try:
             file["content"] = extract_text(file_stream, file_type)
-            logger.info(f"Text extraction succeeded for file {file['file_id']}")
+            logger.info(f"Text extraction succeeded for file {file_id}")
             file["text_extraction_status"] = (
                 TextExtractionStatus.SUCCEEDED.value
             )
         except Exception as e:
-            logger.error(
-                f"Text extraction failed for file {file['file_id']}: {e}"
-            )
+            logger.error(f"Text extraction failed for file {file_id}: {e}")
             file["content"] = ""
             file["text_extraction_status"] = TextExtractionStatus.FAILED.value
 
