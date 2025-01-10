@@ -102,8 +102,10 @@ def create_app(config_class, database_uri=None):
             ),
             "script-src-elem": {
                 "https://127.0.0.1:5000/",
+                # -- stg --
                 "https://d1598aa5u2vnrm.cloudfront.net/assets/govuk-frontend.min.js",
                 "https://d1598aa5u2vnrm.cloudfront.net/assets/init.uv.js",
+                # -- stg --
                 "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
                 "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
                 "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
@@ -128,15 +130,15 @@ def create_app(config_class, database_uri=None):
                 SELF,
                 "https://127.0.0.1:5000/",
                 f"{FLASKS3_CDN_DOMAIN}",
+                # -- stg --
                 "https://dfnwzvjz3kfu4.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
                 "https://dfnwzvjz3kfu4.cloudfront.net/assets/src/css/main.css",
-                "https://cdn.jsdelivr.net/jsdelivr-header.css",
-                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
-                # ----int instance styles----
+                # -- int --
                 "https://d2tm6k52k7dws9.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
                 "https://d2tm6k52k7dws9.cloudfront.net/assets/src/css/main.css",
+                "https://cdn.jsdelivr.net/jsdelivr-header.css",
+                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
                 "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
-                # ---------------------------
                 "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
                 "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
                 "'sha256-gNGYzcxL9BKlQFzUxh3BgvhKn2szEIFgg65uQvfaxiI='",  # pragma: allowlist secret
