@@ -93,14 +93,6 @@ def create_app(config_class, database_uri=None):
                     f"https://{RECORD_BUCKET_NAME}.s3.amazonaws.com",
                     "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
                     "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-                    # "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/5315.4c3c820c7f8b3cc26be6.js",
-                    # "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/998.9c1bd6b181b8236d95c2.js",
-                    # "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/7484.468f27df41f99efd4b79.js",
-                    # "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/2185.34b4770909a62ebe892e.js",
-                    # "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/3171.f31082f3b568ce907389.js",
-                    # "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/4864.b0b319b4f29542847e0e.js",
-                    # "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
-                    # "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
                     "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
                     "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
                     "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
@@ -112,15 +104,10 @@ def create_app(config_class, database_uri=None):
             ),
             "script-src-elem": {
                 "https://127.0.0.1:5000/",
-                "https://d1598aa5u2vnrm.cloudfront.net/assets/govuk-frontend.min.js",  # stg cloudfront
-                "https://d1598aa5u2vnrm.cloudfront.net/assets/init.uv.js",  # stg cloudfront
-                # pdf js
+                "https://d1598aa5u2vnrm.cloudfront.net/assets/govuk-frontend.min.js",
+                "https://d1598aa5u2vnrm.cloudfront.net/assets/init.uv.js",
                 "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-                # "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
-                # "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
-                # "https://cdn.jsdelivr.net",
                 "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
-                # "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.js",
                 "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
                 "'sha256-bxI3qvjziRybgoaeQYcUjRHcCTdbUu/A9xFMlfNGZAQ='",  # pragma: allowlist secret
                 "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
@@ -152,7 +139,6 @@ def create_app(config_class, database_uri=None):
                 "https://d2tm6k52k7dws9.cloudfront.net/assets/src/css/main.css",
                 "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
                 # ---------------------------
-                "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
                 "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
                 "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
                 "'sha256-gNGYzcxL9BKlQFzUxh3BgvhKn2szEIFgg65uQvfaxiI='",  # pragma: allowlist secret
