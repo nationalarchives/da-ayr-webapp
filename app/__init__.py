@@ -69,117 +69,19 @@ def create_app(config_class, database_uri=None):
         ]
     )
 
-    SELF = "'self'"
-
     def get_csp_config(app):
-        FLASKS3_CDN_DOMAIN = app.config.get("FLASKS3_CDN_DOMAIN", "")
-        RECORD_BUCKET_NAME = app.config.get("RECORD_BUCKET_NAME", "")
-
-        base_csp = {
-            "default-src": f" {SELF} {FLASKS3_CDN_DOMAIN} ",
-            "connect-src": [
-                SELF,
-                FLASKS3_CDN_DOMAIN,
-                f"https://{RECORD_BUCKET_NAME}.s3.amazonaws.com",
-            ],
-            "script-src": (
-                [
-                    SELF,
-                    f"{FLASKS3_CDN_DOMAIN}",
-                    f"https://{RECORD_BUCKET_NAME}.s3.amazonaws.com",
-                    "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
-                    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-                    "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
-                    "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
-                    "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
-                    "'sha256-LnUrbI34R6DmHbJR754/DQ0b/JKCTdo/+BKs5oLAyNY='",  # pragma: allowlist secret
-                    "'sha256-74nJjfZHR0MDaNHtes/sgN253tXMCsa4SeniH8bU3x8='",  # pragma: allowlist secret
-                    "'sha256-NDFO9Q6S8WUwG5n8w7gRLvvPrhqj72CJNXzZVcbOwG8='",  # pragma: allowlist secret
-                    "'sha256-bxI3qvjziRybgoaeQYcUjRHcCTdbUu/A9xFMlfNGZAQ='",  # pragma: allowlist secret
-                ]
-            ),
-            "script-src-elem": {
-                # -- stg --
-                "https://d1598aa5u2vnrm.cloudfront.net/assets/govuk-frontend.min.js",
-                "https://d1598aa5u2vnrm.cloudfront.net/assets/init.uv.js",
-                # -- np --
-                "https://dfnwzvjz3kfu4.cloudfront.net/assets/govuk-frontend.min.js",
-                "https://dfnwzvjz3kfu4.cloudfront.net/assets/init.uv.js",
-                "https://d2tm6k52k7dws9.cloudfront.net/assets/govuk-frontend.min.js",
-                "https://d2tm6k52k7dws9.cloudfront.net/assets/init.uv.js",
-                # -- p --
-                "https://d26l7zu9rvd0xp.cloudfront.net/assets/govuk-frontend.min.js",
-                "https://d26l7zu9rvd0xp.cloudfront.net/assets/init.uv.js",
-                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
-                "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
-                "'sha256-bxI3qvjziRybgoaeQYcUjRHcCTdbUu/A9xFMlfNGZAQ='",  # pragma: allowlist secret
-                "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
-            },
-            "style-src": [
-                SELF,
-                "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
-                "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
-                "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
-                "'sha256-gNGYzcxL9BKlQFzUxh3BgvhKn2szEIFgg65uQvfaxiI='",  # pragma: allowlist secret
-                "'sha256-jcxDeNpsDPUI+dIIqUyA3VBoLgf3Mi2LkRWL/H61who='",  # pragma: allowlist secret
-                "'sha256-crS7z4MA9wqqtYsAtmJ6LiW05hz4QJTaokDTQAzc+Hs='",  # pragma: allowlist secret
-                "'sha256-8Vn73Z5msbLVngI0nj0OnoRknDpixmr5Qqxqq1oVeyw='",  # pragma: allowlist secret
-                "'sha256-1u1O/sNzLBXqLGKzuRbVTI5abqBQBfKsNv3bH5iXOkg='",  # pragma: allowlist secret
-                "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
-                "'sha256-ylK9YBCBEaApMPzc82Ol5H/Hd5kmcv3wQlT3Y5m7Kn4='",  # pragma: allowlist secret
-                "'sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY='",  # pragma: allowlist secret
-            ],
-            "style-src-elem": [
-                SELF,
-                f"{FLASKS3_CDN_DOMAIN}",
-                # -- stg --
-                "https://d1598aa5u2vnrm.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
-                "https://d1598aa5u2vnrm.cloudfront.net/assets/src/css/main.css",
-                # -- np --
-                "https://dfnwzvjz3kfu4.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
-                "https://dfnwzvjz3kfu4.cloudfront.net/assets/src/css/main.css",
-                "https://d2tm6k52k7dws9.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
-                "https://d2tm6k52k7dws9.cloudfront.net/assets/src/css/main.css",
-                # -- p --
-                "https://d26l7zu9rvd0xp.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
-                "https://d26l7zu9rvd0xp.cloudfront.net/assets/src/css/main.css",
-                "https://cdn.jsdelivr.net/jsdelivr-header.css",
-                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
-                "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
-                "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
-                "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
-                "'sha256-gNGYzcxL9BKlQFzUxh3BgvhKn2szEIFgg65uQvfaxiI='",  # pragma: allowlist secret
-                "'sha256-jcxDeNpsDPUI+dIIqUyA3VBoLgf3Mi2LkRWL/H61who='",  # pragma: allowlist secret
-                "'sha256-crS7z4MA9wqqtYsAtmJ6LiW05hz4QJTaokDTQAzc+Hs='",  # pragma: allowlist secret
-                "'sha256-8Vn73Z5msbLVngI0nj0OnoRknDpixmr5Qqxqq1oVeyw='",  # pragma: allowlist secret
-                "'sha256-1u1O/sNzLBXqLGKzuRbVTI5abqBQBfKsNv3bH5iXOkg='",  # pragma: allowlist secret
-                "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
-                "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
-                "'sha256-od8NkfAfHOG81BZMpZ608NrC5r2UMOZUuW7MPGF02fU='",  # pragma: allowlist secret
-                "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
-                "'sha256-7TGyp8O8in/ANC9hFb9GavEXnvRr08lMN/YeRfIcG6w='",  # pragma: allowlist secret
-            ],
-            "worker-src": [
-                "blob:",
-                SELF,
-                f"{FLASKS3_CDN_DOMAIN}",
-                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
-                "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
-                "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
-            ],
-            "img-src": (f"'self' {FLASKS3_CDN_DOMAIN} data: "),
-            "object-src": [
-                f"https://{RECORD_BUCKET_NAME}.s3.amazonaws.com",
-                "https://127.0.0.1:5000/",
-            ],
-            "frame-src": [
-                f"https://{RECORD_BUCKET_NAME}.s3.amazonaws.com",
-                "https://127.0.0.1:5000/",
-            ],
+        return {
+            "default-src": app.config["CSP_DEFAULT_SRC"],
+            "connect-src": app.config["CSP_CONNECT_SRC"],
+            "script-src": app.config["CSP_SCRIPT_SRC"],
+            "script-src-elem": app.config["CSP_SCRIPT_SRC_ELEM"],
+            "style-src": app.config["CSP_STYLE_SRC"],
+            "style-src-elem": app.config["CSP_STYLE_SRC_ELEM"],
+            "img-src": app.config["CSP_IMG_SRC"],
+            "frame-src": app.config["CSP_FRAME_SRC"],
+            "object-src": app.config["CSP_OBJECT_SRC"],
+            "worker-src": app.config["CSP_WORKER_SRC"],
         }
-
-        return base_csp
 
     csp = get_csp_config(app)
 
