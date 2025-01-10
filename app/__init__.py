@@ -74,9 +74,7 @@ def create_app(config_class, database_uri=None):
     def get_csp_config(app):
         FLASKS3_CDN_DOMAIN = app.config.get("FLASKS3_CDN_DOMAIN", "")
         RECORD_BUCKET_NAME = app.config.get("RECORD_BUCKET_NAME", "")
-        # ENV = app.config.get("env", "")
 
-        # Base CSP
         base_csp = {
             "default-src": f" {SELF} {FLASKS3_CDN_DOMAIN} ",
             "connect-src": [
@@ -101,11 +99,17 @@ def create_app(config_class, database_uri=None):
                 ]
             ),
             "script-src-elem": {
-                "https://127.0.0.1:5000/",
                 # -- stg --
                 "https://d1598aa5u2vnrm.cloudfront.net/assets/govuk-frontend.min.js",
                 "https://d1598aa5u2vnrm.cloudfront.net/assets/init.uv.js",
-                # -- stg --
+                # -- np --
+                "https://dfnwzvjz3kfu4.cloudfront.net/assets/govuk-frontend.min.js",
+                "https://dfnwzvjz3kfu4.cloudfront.net/assets/init.uv.js",
+                "https://d2tm6k52k7dws9.cloudfront.net/assets/govuk-frontend.min.js",
+                "https://d2tm6k52k7dws9.cloudfront.net/assets/init.uv.js",
+                # -- p --
+                "https://d26l7zu9rvd0xp.cloudfront.net/assets/govuk-frontend.min.js",
+                "https://d26l7zu9rvd0xp.cloudfront.net/assets/init.uv.js",
                 "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
                 "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
                 "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
@@ -128,14 +132,18 @@ def create_app(config_class, database_uri=None):
             ],
             "style-src-elem": [
                 SELF,
-                "https://127.0.0.1:5000/",
                 f"{FLASKS3_CDN_DOMAIN}",
                 # -- stg --
+                "https://d1598aa5u2vnrm.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
+                "https://d1598aa5u2vnrm.cloudfront.net/assets/src/css/main.css",
+                # -- np --
                 "https://dfnwzvjz3kfu4.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
                 "https://dfnwzvjz3kfu4.cloudfront.net/assets/src/css/main.css",
-                # -- int --
                 "https://d2tm6k52k7dws9.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
                 "https://d2tm6k52k7dws9.cloudfront.net/assets/src/css/main.css",
+                # -- p --
+                "https://d26l7zu9rvd0xp.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
+                "https://d26l7zu9rvd0xp.cloudfront.net/assets/src/css/main.css",
                 "https://cdn.jsdelivr.net/jsdelivr-header.css",
                 "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
                 "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
@@ -171,23 +179,8 @@ def create_app(config_class, database_uri=None):
             ],
         }
 
-        # # Environment-specific overrides
-        # if ENV == "development":
-        #     base_csp["connect-src"].extend([
-        #         "https://127.0.0.1:5000",
-        #     ])
-        # elif ENV == "staging":
-        #     base_csp["connect-src"].extend([
-        #         "https://staging.example.com",
-        #     ])
-        # elif ENV == "production":
-        #     base_csp["connect-src"].extend([
-        #         "https://production.example.com",
-        #     ])
-
         return base_csp
 
-    # Apply CSP in your app
     csp = get_csp_config(app)
 
     # setup database uri for testing
