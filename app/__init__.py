@@ -69,8 +69,6 @@ def create_app(config_class, database_uri=None):
         ]
     )
 
-    #  how to tell what environment we are using
-    #  use RECORD BUCKET NAME ENV??
     SELF = "'self'"
 
     def get_csp_config(app):
@@ -78,7 +76,7 @@ def create_app(config_class, database_uri=None):
         RECORD_BUCKET_NAME = app.config.get("RECORD_BUCKET_NAME", "")
         # ENV = app.config.get("env", "")
 
-        # Base CSP for all environments
+        # Base CSP
         base_csp = {
             "default-src": f" {SELF} {FLASKS3_CDN_DOMAIN} ",
             "connect-src": [
