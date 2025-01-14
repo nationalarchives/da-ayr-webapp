@@ -15,6 +15,26 @@ class BaseConfig(object):
     SERVICE_URL = "https://ayr.nationalarchives.gov.uk/"
     SUPPORTED_RENDER_EXTENSIONS = ["pdf", "png", "jpg", "jpeg"]
 
+    @staticmethod
+    def _parse_config_value(config_value):
+        """Parses the configuration value into a list, applying necessary formatting."""
+        if not config_value:
+            return []
+        return [
+            (
+                f"'{item.strip()}'"
+                if item.strip().startswith("sha256")
+                else item.strip()
+            )
+            for item in config_value.split(",")
+        ]
+
+    def _get_config_list(self, env_var, default_values):
+        """Fetches and combines default values with additional values from configuration."""
+        config_value = self._get_config_value(env_var)
+        additional_values = self._parse_config_value(config_value)
+        return default_values + additional_values
+
     @property
     def AWS_REGION(self):
         return self._get_config_value("AWS_REGION")
@@ -46,8 +66,7 @@ class BaseConfig(object):
     @property
     def SQLALCHEMY_DATABASE_URI(self):
         return (
-            "postgresql+psycopg2://"
-            f"{self.DB_USER}:{quote_plus(self.DB_PASSWORD)}"
+            f"postgresql+psycopg2://{self.DB_USER}:{quote_plus(self.DB_PASSWORD)}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
             f"?sslmode=verify-full&sslrootcert={self.DB_SSL_ROOT_CERTIFICATE}"
         )
@@ -121,176 +140,83 @@ class BaseConfig(object):
 
     @property
     def CSP_DEFAULT_SRC(self):
-        csp_default_src = self._get_config_value("CSP_DEFAULT_SRC")
-        default_values = [SELF, self.FLASKS3_CDN_DOMAIN]
-        if csp_default_src:
-            additional_values = [
-                item.strip() for item in csp_default_src.split(",")
-            ]
-            return default_values + additional_values
-        return default_values
+        return self._get_config_list(
+            "CSP_DEFAULT_SRC", [SELF, self.FLASKS3_CDN_DOMAIN]
+        )
 
     @property
     def CSP_CONNECT_SRC(self):
-        csp_connect_src = self._get_config_value("CSP_CONNECT_SRC")
-        default_values = [
-            SELF,
-            self.FLASKS3_CDN_DOMAIN,
-            f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
-        ]
-        if csp_connect_src:
-            additional_values = [
-                item.strip() for item in csp_connect_src.split(",")
-            ]
-            return default_values + additional_values
-        return default_values
+        return self._get_config_list(
+            "CSP_CONNECT_SRC",
+            [
+                SELF,
+                self.FLASKS3_CDN_DOMAIN,
+                f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
+            ],
+        )
 
     @property
     def CSP_SCRIPT_SRC(self):
-        csp_script_src = self._get_config_value("CSP_SCRIPT_SRC")
-        default_values = [
-            SELF,
-            self.FLASKS3_CDN_DOMAIN,
-            f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
-        ]
-        if csp_script_src:
-            additional_values = [
-                (
-                    f"'{item.strip()}'"
-                    if item.strip().startswith("sha256")
-                    else item.strip()
-                )
-                for item in csp_script_src.split(",")
-            ]
-            return default_values + additional_values
-        return default_values
+        return self._get_config_list(
+            "CSP_SCRIPT_SRC",
+            [
+                SELF,
+                self.FLASKS3_CDN_DOMAIN,
+                f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
+            ],
+        )
 
     @property
     def CSP_SCRIPT_SRC_ELEM(self):
-        csp_script_src_elem = self._get_config_value("CSP_SCRIPT_SRC_ELEM")
-        default_values = [
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
-        ]
-        if csp_script_src_elem:
-            additional_values = [
-                (
-                    f"'{item.strip()}'"
-                    if item.strip().startswith("sha256")
-                    else item.strip()
-                )
-                for item in csp_script_src_elem.split(",")
-            ]
-            return default_values + additional_values
-        return default_values
+        return self._get_config_list(
+            "CSP_SCRIPT_SRC_ELEM",
+            [
+                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
+                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
+            ],
+        )
 
     @property
     def CSP_STYLE_SRC(self):
-        csp_style_src = self._get_config_value("CSP_STYLE_SRC")
-        default_values = [
-            SELF,
-        ]
-        if csp_style_src:
-            additional_values = [
-                (
-                    f"'{item.strip()}'"
-                    if item.strip().startswith("sha256")
-                    else item.strip()
-                )
-                for item in csp_style_src.split(",")
-            ]
-            return default_values + additional_values
-        return default_values
+        return self._get_config_list("CSP_STYLE_SRC", [SELF])
 
     @property
     def CSP_STYLE_SRC_ELEM(self):
-        csp_style_src_elem = self._get_config_value("CSP_STYLE_SRC_ELEM")
-        default_values = [
-            SELF,
-            self.FLASKS3_CDN_DOMAIN,
-            "https://cdn.jsdelivr.net/jsdelivr-header.css",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
-        ]
-        if csp_style_src_elem:
-            additional_values = [
-                (
-                    f"'{item.strip()}'"
-                    if item.strip().startswith("sha256")
-                    else item.strip()
-                )
-                for item in csp_style_src_elem.split(",")
-            ]
-            return default_values + additional_values
-        return default_values
+        return self._get_config_list(
+            "CSP_STYLE_SRC_ELEM",
+            [
+                SELF,
+                self.FLASKS3_CDN_DOMAIN,
+                "https://cdn.jsdelivr.net/jsdelivr-header.css",
+                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
+            ],
+        )
 
     @property
     def CSP_IMG_SRC(self):
-        csp_img_src = self._get_config_value("CSP_IMG_SRC")
-        default_values = [SELF, self.FLASKS3_CDN_DOMAIN, "data:"]
-        if csp_img_src:
-            additional_values = [
-                (
-                    f"'{item.strip()}'"
-                    if item.strip().startswith("sha256")
-                    else item.strip()
-                )
-                for item in csp_img_src.split(",")
-            ]
-            return default_values + additional_values
-        return default_values
+        return self._get_config_list(
+            "CSP_IMG_SRC", [SELF, self.FLASKS3_CDN_DOMAIN, "data:"]
+        )
 
     @property
     def CSP_FRAME_SRC(self):
-        csp_frame_src = self._get_config_value("CSP_FRAME_SRC")
-        default_values = [
-            SELF,
-            f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
-        ]
-        if csp_frame_src:
-            additional_values = [
-                item.strip() for item in csp_frame_src.split(",")
-            ]
-            return default_values + additional_values
-        return default_values
+        return self._get_config_list(
+            "CSP_FRAME_SRC",
+            [SELF, f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"],
+        )
 
     @property
     def CSP_OBJECT_SRC(self):
-        csp_object_src = self._get_config_value("CSP_OBJECT_SRC")
-        default_values = [
-            SELF,
-            f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
-        ]
-        if csp_object_src:
-            additional_values = [
-                (
-                    f"'{item.strip()}'"
-                    if item.strip().startswith("sha256")
-                    else item.strip()
-                )
-                for item in csp_object_src.split(",")
-            ]
-            return default_values + additional_values
-        return default_values
+        return self._get_config_list(
+            "CSP_OBJECT_SRC",
+            [SELF, f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"],
+        )
 
     @property
     def CSP_WORKER_SRC(self):
-        csp_worker_src = self._get_config_value("CSP_WORKER_SRC")
-        default_values = [
-            "blob:",
-            SELF,
-            self.FLASKS3_CDN_DOMAIN,
-        ]
-        if csp_worker_src:
-            additional_values = [
-                (
-                    f"'{item.strip()}'"
-                    if item.strip().startswith("sha256")
-                    else item.strip()
-                )
-                for item in csp_worker_src.split(",")
-            ]
-            return default_values + additional_values
-        return default_values
+        return self._get_config_list(
+            "CSP_WORKER_SRC", ["blob:", SELF, self.FLASKS3_CDN_DOMAIN]
+        )
 
     def _get_config_value(self, variable_name):
         pass
