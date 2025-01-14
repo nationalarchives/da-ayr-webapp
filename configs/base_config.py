@@ -121,124 +121,176 @@ class BaseConfig(object):
 
     @property
     def CSP_DEFAULT_SRC(self):
-        return [SELF, self.FLASKS3_CDN_DOMAIN]
+        csp_default_src = self._get_config_value("CSP_DEFAULT_SRC")
+        default_values = [SELF, self.FLASKS3_CDN_DOMAIN]
+        if csp_default_src:
+            additional_values = [
+                item.strip() for item in csp_default_src.split(",")
+            ]
+            return default_values + additional_values
+        return default_values
 
     @property
     def CSP_CONNECT_SRC(self):
-        return [
+        csp_connect_src = self._get_config_value("CSP_CONNECT_SRC")
+        default_values = [
             SELF,
             self.FLASKS3_CDN_DOMAIN,
             f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
         ]
+        if csp_connect_src:
+            additional_values = [
+                item.strip() for item in csp_connect_src.split(",")
+            ]
+            return default_values + additional_values
+        return default_values
 
     @property
     def CSP_SCRIPT_SRC(self):
-        return [
+        csp_script_src = self._get_config_value("CSP_SCRIPT_SRC")
+        default_values = [
             SELF,
             self.FLASKS3_CDN_DOMAIN,
             f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-            "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
-            "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
-            "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
-            "'sha256-LnUrbI34R6DmHbJR754/DQ0b/JKCTdo/+BKs5oLAyNY='",  # pragma: allowlist secret
-            "'sha256-74nJjfZHR0MDaNHtes/sgN253tXMCsa4SeniH8bU3x8='",  # pragma: allowlist secret
-            "'sha256-NDFO9Q6S8WUwG5n8w7gRLvvPrhqj72CJNXzZVcbOwG8='",  # pragma: allowlist secret
-            "'sha256-bxI3qvjziRybgoaeQYcUjRHcCTdbUu/A9xFMlfNGZAQ='",  # pragma: allowlist secret
         ]
+        if csp_script_src:
+            additional_values = [
+                (
+                    f"'{item.strip()}'"
+                    if item.strip().startswith("sha256")
+                    else item.strip()
+                )
+                for item in csp_script_src.split(",")
+            ]
+            return default_values + additional_values
+        return default_values
 
     @property
     def CSP_SCRIPT_SRC_ELEM(self):
-        return [
-            # -- stg --
-            "https://d1598aa5u2vnrm.cloudfront.net/assets/govuk-frontend.min.js",
-            "https://d1598aa5u2vnrm.cloudfront.net/assets/init.uv.js",
-            # -- np --
-            "https://dfnwzvjz3kfu4.cloudfront.net/assets/govuk-frontend.min.js",
-            "https://dfnwzvjz3kfu4.cloudfront.net/assets/init.uv.js",
-            "https://d2tm6k52k7dws9.cloudfront.net/assets/govuk-frontend.min.js",
-            "https://d2tm6k52k7dws9.cloudfront.net/assets/init.uv.js",
-            # -- p --
-            "https://d26l7zu9rvd0xp.cloudfront.net/assets/govuk-frontend.min.js",
-            "https://d26l7zu9rvd0xp.cloudfront.net/assets/init.uv.js",
+        csp_script_src_elem = self._get_config_value("CSP_SCRIPT_SRC_ELEM")
+        default_values = [
             "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
-            "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
-            "'sha256-bxI3qvjziRybgoaeQYcUjRHcCTdbUu/A9xFMlfNGZAQ='",  # pragma: allowlist secret
-            "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
         ]
+        if csp_script_src_elem:
+            additional_values = [
+                (
+                    f"'{item.strip()}'"
+                    if item.strip().startswith("sha256")
+                    else item.strip()
+                )
+                for item in csp_script_src_elem.split(",")
+            ]
+            return default_values + additional_values
+        return default_values
 
     @property
     def CSP_STYLE_SRC(self):
-        return [
+        csp_style_src = self._get_config_value("CSP_STYLE_SRC")
+        default_values = [
             SELF,
-            "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
-            "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
-            "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
-            "'sha256-gNGYzcxL9BKlQFzUxh3BgvhKn2szEIFgg65uQvfaxiI='",  # pragma: allowlist secret
-            "'sha256-jcxDeNpsDPUI+dIIqUyA3VBoLgf3Mi2LkRWL/H61who='",  # pragma: allowlist secret
-            "'sha256-crS7z4MA9wqqtYsAtmJ6LiW05hz4QJTaokDTQAzc+Hs='",  # pragma: allowlist secret
-            "'sha256-8Vn73Z5msbLVngI0nj0OnoRknDpixmr5Qqxqq1oVeyw='",  # pragma: allowlist secret
-            "'sha256-1u1O/sNzLBXqLGKzuRbVTI5abqBQBfKsNv3bH5iXOkg='",  # pragma: allowlist secret
-            "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
-            "'sha256-ylK9YBCBEaApMPzc82Ol5H/Hd5kmcv3wQlT3Y5m7Kn4='",  # pragma: allowlist secret
-            "'sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY='",  # pragma: allowlist secret
         ]
+        if csp_style_src:
+            additional_values = [
+                (
+                    f"'{item.strip()}'"
+                    if item.strip().startswith("sha256")
+                    else item.strip()
+                )
+                for item in csp_style_src.split(",")
+            ]
+            return default_values + additional_values
+        return default_values
 
     @property
     def CSP_STYLE_SRC_ELEM(self):
-        return [
+        csp_style_src_elem = self._get_config_value("CSP_STYLE_SRC_ELEM")
+        default_values = [
             SELF,
             self.FLASKS3_CDN_DOMAIN,
-            # -- stg --
-            "https://d1598aa5u2vnrm.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
-            "https://d1598aa5u2vnrm.cloudfront.net/assets/src/css/main.css",
-            # -- np --
-            "https://dfnwzvjz3kfu4.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
-            "https://dfnwzvjz3kfu4.cloudfront.net/assets/src/css/main.css",
-            "https://d2tm6k52k7dws9.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
-            "https://d2tm6k52k7dws9.cloudfront.net/assets/src/css/main.css",
-            # -- p --
-            "https://d26l7zu9rvd0xp.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
-            "https://d26l7zu9rvd0xp.cloudfront.net/assets/src/css/main.css",
             "https://cdn.jsdelivr.net/jsdelivr-header.css",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
-            "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
-            "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
-            "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
-            "'sha256-gNGYzcxL9BKlQFzUxh3BgvhKn2szEIFgg65uQvfaxiI='",  # pragma: allowlist secret
-            "'sha256-jcxDeNpsDPUI+dIIqUyA3VBoLgf3Mi2LkRWL/H61who='",  # pragma: allowlist secret
-            "'sha256-crS7z4MA9wqqtYsAtmJ6LiW05hz4QJTaokDTQAzc+Hs='",  # pragma: allowlist secret
-            "'sha256-8Vn73Z5msbLVngI0nj0OnoRknDpixmr5Qqxqq1oVeyw='",  # pragma: allowlist secret
-            "'sha256-1u1O/sNzLBXqLGKzuRbVTI5abqBQBfKsNv3bH5iXOkg='",  # pragma: allowlist secret
-            "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
-            "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
-            "'sha256-od8NkfAfHOG81BZMpZ608NrC5r2UMOZUuW7MPGF02fU='",  # pragma: allowlist secret
-            "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
-            "'sha256-7TGyp8O8in/ANC9hFb9GavEXnvRr08lMN/YeRfIcG6w='",  # pragma: allowlist secret
         ]
+        if csp_style_src_elem:
+            additional_values = [
+                (
+                    f"'{item.strip()}'"
+                    if item.strip().startswith("sha256")
+                    else item.strip()
+                )
+                for item in csp_style_src_elem.split(",")
+            ]
+            return default_values + additional_values
+        return default_values
 
     @property
     def CSP_IMG_SRC(self):
-        return [SELF, self.FLASKS3_CDN_DOMAIN, "data:"]
+        csp_img_src = self._get_config_value("CSP_IMG_SRC")
+        default_values = [SELF, self.FLASKS3_CDN_DOMAIN, "data:"]
+        if csp_img_src:
+            additional_values = [
+                (
+                    f"'{item.strip()}'"
+                    if item.strip().startswith("sha256")
+                    else item.strip()
+                )
+                for item in csp_img_src.split(",")
+            ]
+            return default_values + additional_values
+        return default_values
 
     @property
     def CSP_FRAME_SRC(self):
-        return [SELF, f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"]
+        csp_frame_src = self._get_config_value("CSP_FRAME_SRC")
+        default_values = [
+            SELF,
+            f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
+        ]
+        if csp_frame_src:
+            additional_values = [
+                item.strip() for item in csp_frame_src.split(",")
+            ]
+            return default_values + additional_values
+        return default_values
 
     @property
     def CSP_OBJECT_SRC(self):
-        return [SELF, f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"]
+        csp_object_src = self._get_config_value("CSP_OBJECT_SRC")
+        default_values = [
+            SELF,
+            f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
+        ]
+        if csp_object_src:
+            additional_values = [
+                (
+                    f"'{item.strip()}'"
+                    if item.strip().startswith("sha256")
+                    else item.strip()
+                )
+                for item in csp_object_src.split(",")
+            ]
+            return default_values + additional_values
+        return default_values
 
     @property
     def CSP_WORKER_SRC(self):
-        return [
+        csp_worker_src = self._get_config_value("CSP_WORKER_SRC")
+        default_values = [
             "blob:",
             SELF,
             self.FLASKS3_CDN_DOMAIN,
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
         ]
+        if csp_worker_src:
+            additional_values = [
+                (
+                    f"'{item.strip()}'"
+                    if item.strip().startswith("sha256")
+                    else item.strip()
+                )
+                for item in csp_worker_src.split(",")
+            ]
+            return default_values + additional_values
+        return default_values
 
     def _get_config_value(self, variable_name):
         pass
