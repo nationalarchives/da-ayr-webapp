@@ -716,7 +716,7 @@ To define the scripts and styles allowed in the Content Security Policy (CSP), y
 These ENV variables should be comma delimited strings with hashes prefixed "sha256-hash" and any urls to be in the form https://example-url.com/
 
 
-# Local Usage
+### Local Usage
 CSP_DEFAULT_SRC=""
 
 CSP_CONNECT_SRC=""
@@ -737,7 +737,8 @@ CSP_OBJECT_SRC=""
 
 CSP_WORKER_SRC="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"
 
-
+### Environment-Specific CSP Policies
+We use AWS Secrets Manager to manage and update CSP directives. Each CSP directive is stored as a comma-delimited string in AWS.
 
 ### Response compression
 
