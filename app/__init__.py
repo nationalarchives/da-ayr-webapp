@@ -69,84 +69,21 @@ def create_app(config_class, database_uri=None):
         ]
     )
 
-    SELF = "'self'"
+    def get_csp_config(app):
+        return {
+            "default-src": app.config["CSP_DEFAULT_SRC"],
+            "connect-src": app.config["CSP_CONNECT_SRC"],
+            "script-src": app.config["CSP_SCRIPT_SRC"],
+            "script-src-elem": app.config["CSP_SCRIPT_SRC_ELEM"],
+            "style-src": app.config["CSP_STYLE_SRC"],
+            "style-src-elem": app.config["CSP_STYLE_SRC_ELEM"],
+            "img-src": app.config["CSP_IMG_SRC"],
+            "frame-src": app.config["CSP_FRAME_SRC"],
+            "object-src": app.config["CSP_OBJECT_SRC"],
+            "worker-src": app.config["CSP_WORKER_SRC"],
+        }
 
-    csp = {
-        "default-src": f" {SELF} {app.config['FLASKS3_CDN_DOMAIN']} ",
-        "connect-src": [
-            SELF,
-            app.config["FLASKS3_CDN_DOMAIN"],
-            f"https://{app.config['RECORD_BUCKET_NAME']}.s3.amazonaws.com",
-        ],
-        "script-src": (
-            [
-                SELF,
-                f"{app.config['FLASKS3_CDN_DOMAIN']}",
-                f"https://{app.config['RECORD_BUCKET_NAME']}.s3.amazonaws.com",
-                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/5315.4c3c820c7f8b3cc26be6.js",
-                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/998.9c1bd6b181b8236d95c2.js",
-                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/7484.468f27df41f99efd4b79.js",
-                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/2185.34b4770909a62ebe892e.js",
-                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/3171.f31082f3b568ce907389.js",
-                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/4864.b0b319b4f29542847e0e.js",
-                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
-                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
-                "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
-                "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
-                "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
-                "'sha256-LnUrbI34R6DmHbJR754/DQ0b/JKCTdo/+BKs5oLAyNY='",  # pragma: allowlist secret
-                "'sha256-74nJjfZHR0MDaNHtes/sgN253tXMCsa4SeniH8bU3x8='",  # pragma: allowlist secret
-                "'sha256-NDFO9Q6S8WUwG5n8w7gRLvvPrhqj72CJNXzZVcbOwG8='",  # pragma: allowlist secret
-                "'sha256-bxI3qvjziRybgoaeQYcUjRHcCTdbUu/A9xFMlfNGZAQ='",  # pragma: allowlist secret
-            ]
-        ),
-        "style-src": [
-            SELF,
-            "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
-            "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
-            "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
-            "'sha256-gNGYzcxL9BKlQFzUxh3BgvhKn2szEIFgg65uQvfaxiI='",  # pragma: allowlist secret
-            "'sha256-jcxDeNpsDPUI+dIIqUyA3VBoLgf3Mi2LkRWL/H61who='",  # pragma: allowlist secret
-            "'sha256-crS7z4MA9wqqtYsAtmJ6LiW05hz4QJTaokDTQAzc+Hs='",  # pragma: allowlist secret
-            "'sha256-8Vn73Z5msbLVngI0nj0OnoRknDpixmr5Qqxqq1oVeyw='",  # pragma: allowlist secret
-            "'sha256-1u1O/sNzLBXqLGKzuRbVTI5abqBQBfKsNv3bH5iXOkg='",  # pragma: allowlist secret
-            "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
-            "'sha256-ylK9YBCBEaApMPzc82Ol5H/Hd5kmcv3wQlT3Y5m7Kn4='",  # pragma: allowlist secret
-        ],
-        "style-src-elem": [
-            SELF,
-            f"{app.config['FLASKS3_CDN_DOMAIN']}",
-            "https://cdn.jsdelivr.net/jsdelivr-header.css",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
-            "https://dfnwzvjz3kfu4.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
-            "https://dfnwzvjz3kfu4.cloudfront.net/assets/src/css/main.css",
-            # ----int instance styles----
-            "https://d2tm6k52k7dws9.cloudfront.net/assets/govuk-frontend-4.7.0.min.css",
-            "https://d2tm6k52k7dws9.cloudfront.net/assets/src/css/main.css",
-            "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
-            # ---------------------------
-            "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",  # pragma: allowlist secret
-            "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
-            "'sha256-s6M/FyyCCegtJyBnH26lkxb67XZxuZKosiCQWD+VaSo='",  # pragma: allowlist secret
-            "'sha256-gNGYzcxL9BKlQFzUxh3BgvhKn2szEIFgg65uQvfaxiI='",  # pragma: allowlist secret
-            "'sha256-jcxDeNpsDPUI+dIIqUyA3VBoLgf3Mi2LkRWL/H61who='",  # pragma: allowlist secret
-            "'sha256-crS7z4MA9wqqtYsAtmJ6LiW05hz4QJTaokDTQAzc+Hs='",  # pragma: allowlist secret
-            "'sha256-8Vn73Z5msbLVngI0nj0OnoRknDpixmr5Qqxqq1oVeyw='",  # pragma: allowlist secret
-            "'sha256-1u1O/sNzLBXqLGKzuRbVTI5abqBQBfKsNv3bH5iXOkg='",  # pragma: allowlist secret
-            "'sha256-xDT4BUH+7vjNzOH1DSYRS8mdxJbvLVPYsb8hjk4Yccg='",  # pragma: allowlist secret
-        ],
-        "worker-src": [
-            "blob:",
-            SELF,
-            f"{app.config['FLASKS3_CDN_DOMAIN']}",
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
-            "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
-            "'sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ='",  # pragma: allowlist secret
-        ],
-        "img-src": (f"'self' {app.config['FLASKS3_CDN_DOMAIN']} data: "),
-        "object-src": f"https://{app.config['RECORD_BUCKET_NAME']}.s3.amazonaws.com",
-        "frame-src": f"https://{app.config['RECORD_BUCKET_NAME']}.s3.amazonaws.com",
-    }
+    csp = get_csp_config(app)
 
     # setup database uri for testing
     if database_uri:
