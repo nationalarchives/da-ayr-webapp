@@ -1,6 +1,27 @@
 {
   "realm": "tdr",
   "enabled": true,
+  "users": [{
+    "username": "service-account-ayr-beta",
+      "emailVerified": false,
+      
+      "enabled": true,
+      "totp": false,
+      "serviceAccountClientId": "ayr-beta",
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "default-roles-tdr"
+      ],
+      "clientRoles": {
+        "realm-management": [
+          "manage-clients",
+          "manage-users"
+        ]
+      },
+      "notBefore": 0,
+      "groups": []
+    }],
   "groups": [
     {
       "name": "ayr_user_type",
@@ -48,7 +69,8 @@
       },
       "fullScopeAllowed": true,
       "defaultClientScopes": [
-        "group_mapper_client_scope"
+        "group_mapper_client_scope",
+        "roles"
       ]
     }
   ],
@@ -77,6 +99,51 @@
             "id.token.claim": "true",
             "access.token.claim": "true",
             "claim.name": "groups"
+          }
+        }
+      ]
+    }, 
+    {
+      "name": "roles",
+      "description": "OpenID Connect scope for add user roles to the access token",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "consent.screen.text": "${rolesScopeConsentText}",
+        "display.on.consent.screen": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "foo",
+            "access.token.claim": "true",
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "multivalued": "true"
+          }
+        },
+        {
+          "name": "audience resolve",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-resolve-mapper",
+          "consentRequired": false,
+          "config": {}
+        },
+        {
+          "name": "client roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "foo",
+            "access.token.claim": "true",
+            "claim.name": "resource_access.${client_id}.roles",
+            "jsonType.label": "String",
+            "multivalued": "true"
           }
         }
       ]
