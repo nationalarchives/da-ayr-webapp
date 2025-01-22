@@ -4,7 +4,7 @@
   "users": [{
     "username": "service-account-ayr-beta",
       "emailVerified": false,
-      
+
       "enabled": true,
       "totp": false,
       "serviceAccountClientId": "ayr-beta",
@@ -102,7 +102,7 @@
           }
         }
       ]
-    }, 
+    },
     {
       "name": "roles",
       "description": "OpenID Connect scope for add user roles to the access token",
