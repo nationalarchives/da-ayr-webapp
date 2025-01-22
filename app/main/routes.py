@@ -32,6 +32,7 @@ from app.main.flask_config_helpers import (
 )
 from app.main.middlewares.log_page_view import log_page_view
 from app.main.util.date_filters_validator import validate_date_filters
+from app.main.util.download_utils import get_download_endpoint_filename
 from app.main.util.filter_sort_builder import (
     build_browse_consignment_filters,
     build_filters,
@@ -739,12 +740,7 @@ def download_record(record_id: uuid.UUID):
         if e.response["Error"]["Code"] == "404":
             abort(404)
 
-    download_filename = file.FileName
-    if file.CiteableReference:
-        if len(file.FileName.rsplit(".", 1)) > 1:
-            download_filename = (
-                file.CiteableReference + "." + file.FileName.rsplit(".", 1)[1]
-            )
+    download_filename = get_download_endpoint_filename(file)
 
     try:
         presigned_url = s3.generate_presigned_url(
