@@ -733,6 +733,12 @@ def download_record(record_id: uuid.UUID):
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
+    try:
+        s3.head_object(Bucket=bucket, Key=key)
+    except s3.exceptions.ClientError as e:
+        if e.response["Error"]["Code"] == "404":
+            abort(404)
+
     download_filename = file.FileName
     if file.CiteableReference:
         if len(file.FileName.rsplit(".", 1)) > 1:
