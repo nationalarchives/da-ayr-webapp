@@ -1,5 +1,6 @@
 from unittest.mock import Mock, patch
 
+import pytest
 from flask import Flask
 
 from app.main.util.render_utils import (
@@ -11,11 +12,25 @@ from app.main.util.render_utils import (
 )
 
 
-def test_get_file_mimetype():
-    assert get_file_mimetype("pdf") == "application/pdf"
-    assert get_file_mimetype("png") == "image/png"
-    assert get_file_mimetype("jpg") == "image/jpg"
-    assert get_file_mimetype("jpeg") == "image/jpeg"
+@pytest.mark.parametrize(
+    "file_type, expected_mimetype",
+    [
+        # test a few supported document types
+        ("pdf", "application/pdf"),
+        ("docx", "application/docx"),
+        ("txt", "application/txt"),
+        # test a few supported image types
+        ("png", "image/png"),
+        ("jpg", "image/jpg"),
+        ("gif", "image/gif"),
+        # test a few other types (code files, archives, multimedia)
+        ("py", "application/py"),
+        ("zip", "application/zip"),
+        ("mp3", "application/mp3"),
+    ],
+)
+def test_get_file_mimetype(file_type, expected_mimetype):
+    assert get_file_mimetype(file_type) == expected_mimetype
 
 
 @patch("app.main.util.render_utils.get_file_metadata")
