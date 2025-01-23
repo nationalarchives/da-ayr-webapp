@@ -135,7 +135,7 @@ def get_file_mimetype(file_type):
         return f"application/{file_type}"
     elif file_type in UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES:
         return f"image/{file_type}"
-    return None
+    return "application/octet-stream"
 
 
 def get_file_details(file):

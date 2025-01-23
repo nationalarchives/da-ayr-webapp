@@ -27,6 +27,8 @@ from app.main.util.render_utils import (
         ("py", "application/py"),
         ("zip", "application/zip"),
         ("mp3", "application/mp3"),
+        # unsupported type
+        ("foobar", "application/octet-stream"),
     ],
 )
 def test_get_file_mimetype(file_type, expected_mimetype):
