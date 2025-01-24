@@ -10,12 +10,29 @@ def verify_search_results_summary_header_row(header_rows):
 
 def verify_search_transferring_body_header_row(header_rows):
     assert header_rows == [
-        "Series reference",
-        "Consignment reference",
-        "File name",
+        "Found within",
+        "Search results",
+        "Series",
+        "Consignment ref",
         "Status",
         "Record opening date",
     ]
+
+
+def verify_search_transferring_body_table_header_row(header_rows):
+    assert header_rows == [
+        "Found within",
+        "Search results",
+    ]
+
+
+def verify_search_transferring_body_inner_table_row(header_rows):
+    assert set(header_rows) == {
+        "Consignment ref",
+        "Record opening date",
+        "Series",
+        "Status",
+    }
 
 
 class TestSearch:
@@ -61,24 +78,35 @@ class TestSearchResultsSummary:
         aau_user_page.get_by_role("link", name="Testing A").click()
         aau_user_page.wait_for_selector("#tbl_result")
 
-        header_rows = utils.get_desktop_page_table_headers(aau_user_page)
+        header_rows = utils.get_desktop_page_transferring_body_table_headers(
+            aau_user_page
+        )
+
+        inner_table_header_rows = (
+            utils.get_desktop_page_transferring_body_inner_table_headers(
+                aau_user_page
+            )
+        )
         rows = utils.get_desktop_page_table_rows(aau_user_page)
+
+        rows = rows[0:5]
 
         expected_rows = [
             ["TSTA 1", "TDR-2023-BV6", "closed_file_R.pdf", "Open", "–"],
             [
                 "TSTA 1",
                 "TDR-2023-BV6",
-                "closed_file.txt",
+                "file-a2.txt",
                 "Closed",
                 "18/10/2048",
             ],
             ["TSTA 1", "TDR-2023-BV6", "file-a1.txt", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "file-a2.txt", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "file-b1.txt", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "file-b2.txt", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "file-b1.txt", "Open", "–"],
         ]
 
-        verify_search_transferring_body_header_row(header_rows)
+        verify_search_transferring_body_table_header_row(header_rows)
+        verify_search_transferring_body_inner_table_row(inner_table_header_rows)
         assert rows == expected_rows
 
 

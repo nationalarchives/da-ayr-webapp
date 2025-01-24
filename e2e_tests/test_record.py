@@ -177,7 +177,7 @@ class TestRecord:
 
         Given the user navigates to the record page with ID "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
         When the user clicks the "Download record" button
-        Then the file "TSTA 1_ZD5B3S.doc" should be downloaded
+        Then the file "file-a2.txt" should be downloaded
         """
         record_id = "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
         standard_user_page_with_download.goto(f"{self.route_url}/{record_id}")
@@ -187,7 +187,7 @@ class TestRecord:
                 "Download record"
             ).click()
         download = download_record.value
-        assert "TSTA 1_ZD5B3S.doc" == download.suggested_filename
+        assert "file-a2.txt" == download.suggested_filename
 
     def test_record_download_record_standard_user_without_download_perms(
         self, standard_user_page: Page
