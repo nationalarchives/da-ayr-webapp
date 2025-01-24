@@ -24,12 +24,14 @@ def test_search_to_record(aau_user_page: Page):
 
     aau_user_page.get_by_role("textbox").first.fill("a")
     aau_user_page.get_by_role("button", name="Search").click()
-    expect(aau_user_page).to_have_url("search_results_summary?query=a")
+    expect(aau_user_page).to_have_url(
+        "/search_results_summary?query=a&search_area=everywhere"
+    )
 
     aau_user_page.get_by_role("cell").first.get_by_role("link").first.click()
     expect(aau_user_page).to_have_url(
         re.compile(r"\/search\/transferring_body\/.*")
     )
 
-    aau_user_page.get_by_role("cell").nth(2).get_by_role("link").first.click()
+    aau_user_page.get_by_role("link", name="file-a2.txt").click()
     expect(aau_user_page).to_have_url(re.compile(r"\/record\/.*"))

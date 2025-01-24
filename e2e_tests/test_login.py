@@ -48,7 +48,6 @@ def test_sign_in_succeeds_when_valid_credentials(
         "sub",
         "typ",
         "azp",
-        "session_state",
         "scope",
         "sid",
         "groups",

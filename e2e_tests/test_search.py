@@ -39,7 +39,7 @@ class TestSearch:
         header_rows = utils.get_desktop_page_table_headers(aau_user_page)
         rows = utils.get_desktop_page_table_rows(aau_user_page)
 
-        expected_rows = [["Mock 1 Department", "15"], ["Testing A", "16"]]
+        expected_rows = [["Testing A", "14"]]
         verify_search_results_summary_header_row(header_rows)
         assert rows == expected_rows
 
