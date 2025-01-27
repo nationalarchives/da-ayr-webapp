@@ -630,7 +630,42 @@ current_app.audit_logger.error('Some error message')
 
 The logs from the webapp, when used as above are output as a stream to stdout in the following format:
 
+LOG ENTRY for a page view using the @log_page_view decorator:
+
 ```sh
+START RequestId: 4e2b263b-fc27-4db2-b87e-867fc4596e69 Version: $LATEST
+
+[DEBUG]	2024-12-11T12:43:26.106Z	4e2b263b-fc27-4db2-b87e-867fc4596e69	host found: [test-url]
+
+{
+    "log_type": "audit_logger",
+    "timestamp": "2024-12-11 12:43:26,106",
+    "level": "INFO",
+    "remote_addr": "13.42.156.7",
+    "url": "test-url",
+    "event": "api_request",
+    "user_id": "anonymous",
+    "route": "/callback",
+    "method": "GET",
+    "caller_function": "callback",
+    "caller_module": "app.main.routes"
+}
+
+{
+    "event": "api_request",
+    "user_id": "anonymous",
+    "route": "/callback",
+    "method": "GET",
+    "caller_function": "callback",
+    "caller_module": "app.main.routes"
+}
+
+
+END RequestId: 4e2b263b-fc27-4db2-b87e-867fc4596e69
+```
+
+LOG ENTRY for an Error
+```
 [2023-12-15 15:40:14,119] 127.0.0.1 requested https://localhost:5000/logger_test?log_level=error
 ERROR in routes: Some error
 ```
@@ -675,6 +710,35 @@ Uses [Flask Talisman](https://github.com/GoogleCloudPlatform/flask-talisman) to 
 ### Content Security Policy
 
 A strict default [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) (CSP) is set using [Flask Talisman](https://github.com/GoogleCloudPlatform/flask-talisman) to mitigate [Cross Site Scripting](https://developer.mozilla.org/en-US/docs/Web/Security/Types_of_attacks#cross-site_scripting_xss) (XSS) and packet sniffing attacks. This prevents loading any resources that are not in the same domain as the application.
+
+To define the scripts and styles allowed in the Content Security Policy (CSP), you can configure the following environment variables in a .env file. This configuration includes a set of hashes for inline scripts, as well as specific domains used by AYR.
+
+These ENV variables should be comma delimited strings with hashes prefixed "sha256-hash" and any urls to be in the form https://example-url.com/
+
+
+### Local Usage
+CSP_DEFAULT_SRC=""
+
+CSP_CONNECT_SRC=""
+
+CSP_SCRIPT_SRC="https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/, https://cdnjs.cloudflare.com/ajax/libs/pdf.js/, sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw=, sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ=, sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ="
+
+CSP_SCRIPT_SRC_ELEM="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/, https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/, https://127.0.0.1:5000/, sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw=, sha256-bxI3qvjziRybgoaeQYcUjRHcCTdbUu/A9xFMlfNGZAQ=, sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ="
+
+CSP_STYLE_SRC="sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE=, sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+
+CSP_STYLE_SRC_ELEM="https://cdn.jsdelivr.net/jsdelivr-header.css, https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/, sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE=,
+
+CSP_IMG_SRC=""
+
+CSP_FRAME_SRC=""
+
+CSP_OBJECT_SRC=""
+
+CSP_WORKER_SRC="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"
+
+### Environment-Specific CSP Policies
+We use AWS Secrets Manager to manage and update CSP directives. Each CSP directive is stored as a comma-delimited string in AWS.
 
 ### Response compression
 

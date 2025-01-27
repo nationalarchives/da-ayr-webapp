@@ -80,10 +80,10 @@ class TestBanners:
             (
                 "Help us to improve this service",
                 "Complete our short survey",
-                "https://www.smartsurvey.co.uk/s/AYRfeedback/",
+                "https://www.smartsurvey.co.uk/s/ayr-feedback/",
                 "Help us to improve this service",
                 "Complete our short survey",
-                "https://www.smartsurvey.co.uk/s/AYRfeedback/",
+                "https://www.smartsurvey.co.uk/s/ayr-feedback/",
             ),
             (
                 "Belly Band Heading",
