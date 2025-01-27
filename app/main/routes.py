@@ -739,6 +739,11 @@ def download_record(record_id: uuid.UUID):
     except s3.exceptions.ClientError as e:
         if e.response["Error"]["Code"] == "404":
             abort(404)
+        else:
+            current_app.app_logger.error(
+                f"Failed to fetch object from S3 bucket: {e}"
+            )
+            abort(500)
 
     download_filename = get_download_endpoint_filename(file)
 
