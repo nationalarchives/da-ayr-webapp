@@ -48,6 +48,13 @@ class Utils:
         """
         )
 
+    def get_desktop_page_table_metadata(page: Page):
+        return page.locator("tbody tbody").evaluate_all(
+            """rows => rows.map(row =>
+        Array.from(row.querySelectorAll('.govuk-table__cell')).map(cell => cell.innerText.trim())
+    )"""
+        )
+
 
 @pytest.fixture
 def utils():

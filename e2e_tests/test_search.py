@@ -77,6 +77,10 @@ class TestSearchResultsSummary:
         aau_user_page.goto(self.search_results_summary_route_url)
         aau_user_page.get_by_role("link", name="Testing A").click()
         aau_user_page.wait_for_selector("#tbl_result")
+        aau_user_page.click('label[for="contact"]')
+        aau_user_page.locator(
+            ".govuk-button.govuk-button__sort-container-update-button"
+        ).nth(1).click()
 
         header_rows = utils.get_desktop_page_transferring_body_table_headers(
             aau_user_page
@@ -87,27 +91,22 @@ class TestSearchResultsSummary:
                 aau_user_page
             )
         )
-        rows = utils.get_desktop_page_table_rows(aau_user_page)
 
-        rows = rows[0:5]
+        table_row_metadata = utils.get_desktop_page_table_metadata(
+            aau_user_page
+        )
 
-        expected_rows = [
-            ["TSTA 1", "TDR-2023-BV6", "closed_file_R.pdf", "Open", "–"],
-            [
-                "TSTA 1",
-                "TDR-2023-BV6",
-                "file-a2.txt",
-                "Closed",
-                "18/10/2048",
-            ],
-            ["TSTA 1", "TDR-2023-BV6", "file-a1.txt", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "file-b2.txt", "Open", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "file-b1.txt", "Open", "–"],
+        expected_row_metadata = [
+            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
         ]
+        assert table_row_metadata == expected_row_metadata
 
         verify_search_transferring_body_table_header_row(header_rows)
         verify_search_transferring_body_inner_table_row(inner_table_header_rows)
-        assert rows == expected_rows
 
 
 class TestSearchTransferringBody:
