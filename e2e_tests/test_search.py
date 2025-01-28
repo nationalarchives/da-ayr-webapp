@@ -176,3 +176,87 @@ class TestSearchTransferringBody:
         standard_user_page.get_by_role("link", name="Clear all").click()
 
         expect(standard_user_page).to_have_url(url)
+
+
+class TestOpenSearchResults:
+    @property
+    def search_route_url(self):
+        return "/search_results_summary"
+
+    @property
+    def browse_transferring_body_route_url(self):
+        return "/search/transferring_body"
+
+    @property
+    def transferring_body_id(self):
+        return "c3e3fd83-4d52-4638-a085-1f4e4e4dfa50"
+
+    def test_test_search(self, aau_user_page: Page):
+        """
+        Given a valid search query is entered on the search page
+        When the query is submitted
+        Then the search_results_summary page should display relevant results,
+        ensuring the results are fetched from OpenSearch and shown with correct metadata formatting
+        And when a transferring body is clicked on
+        Then the search_results/transferring_body/<body_id> page should display the filtered results correctly
+        """
+        url = f"{self.search_route_url}?query=a&search_area=everywhere"
+
+        aau_user_page.goto("/browse")
+
+        aau_user_page.locator("#search-input").click()
+        aau_user_page.locator("#search-input").fill("a")
+        aau_user_page.get_by_role("button", name="Search").click()
+        expect(aau_user_page).to_have_url(url)
+
+        assert (
+            "Testing A"
+            in aau_user_page.locator("tbody.govuk-table__body td")
+            .nth(0)
+            .text_content()
+        )
+
+    def test_test_search_fuzzy_search(self, standard_user_page: Page):
+        """
+        Given a search query is submitted with a typo (e.g., minor misspelling) on the
+        search_results/transferring_body/<body_id> page
+        When the results are displayed
+        Then the results should use fuzziness logic to account for the typo and display relevant matches
+        """
+        url = f"{self.browse_transferring_body_route_url}/{self.transferring_body_id}#browse-records"
+
+        standard_user_page.goto(url)
+        expect(standard_user_page).to_have_url(url)
+
+        standard_user_page.locator("#search-input").click()
+        standard_user_page.locator("#search-input").fill("a")
+        standard_user_page.get_by_role("button", name="Search").click()
+        standard_user_page.locator("#search_filter").fill("samplt")
+        standard_user_page.get_by_role("button", name="Apply terms").click()
+        standard_user_page.locator("#search_filter").fill("a1")
+        standard_user_page.get_by_role("button", name="Apply terms").click()
+        rows = standard_user_page.locator("tbody .govuk-table__row")
+        assert rows.count() == 18
+
+        found = False
+        for i in range(rows.count()):
+            row_text = rows.nth(i).text_content().strip()
+            if "sample" in row_text:
+                found = True
+                break
+
+        assert found
+
+        expected_search_terms = ["a", "samplt", "a1"]
+        tags_container = standard_user_page.locator(".ayr-filter-tags")
+        assert tags_container.is_visible()
+
+        search_terms = tags_container.locator(".search-term")
+        assert search_terms.count() == len(expected_search_terms)
+
+        for i, expected_term in enumerate(expected_search_terms):
+            tag = search_terms.nth(i)
+            assert tag.is_visible()
+
+            tag_text = tag.text_content().strip()
+            assert expected_term in tag_text
