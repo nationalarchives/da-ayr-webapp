@@ -209,11 +209,7 @@ class TestSearchResults:
         rows = standard_user_page.locator("tbody .govuk-table__row")
         assert rows.count() == 20
 
-        found = False
-        for i in range(rows.count()):
-            row_text = rows.nth(i).text_content().strip()
-            if "sample" in row_text:
-                found = True
-                break
+        tbody_locator = standard_user_page.locator("tbody.govuk-table__body")
+        inner_html = tbody_locator.inner_html()
 
-        assert found
+        assert "<mark>sample</mark>" in inner_html
