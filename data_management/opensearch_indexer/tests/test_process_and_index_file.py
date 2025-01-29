@@ -1,95 +1,14 @@
-import tempfile
-from pathlib import Path
 from unittest import mock
 from uuid import uuid4
 
-import pytest
 from opensearch_indexer.index_file_content_and_metadata_in_opensearch import (
-    extract_text,
     index_file_content_and_metadata_in_opensearch,
 )
+from opensearch_indexer.text_extraction import TextExtractionStatus
 from opensearchpy import RequestsHttpConnection
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    ForeignKey,
-    String,
-    Text,
-    create_engine,
-)
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
-Base = declarative_base()
-
-
-class Body(Base):
-    __tablename__ = "Body"
-    BodyId = Column(UUID(as_uuid=True), primary_key=True)
-    Name = Column(Text)
-    Description = Column(Text)
-
-
-class Series(Base):
-    __tablename__ = "Series"
-    SeriesId = Column(UUID(as_uuid=True), primary_key=True)
-    BodyId = Column(UUID(as_uuid=True), ForeignKey("Body.BodyId"))
-    Name = Column(Text)
-    Description = Column(Text)
-    body = relationship("Body", foreign_keys="Series.BodyId")
-
-
-class Consignment(Base):
-    __tablename__ = "Consignment"
-    ConsignmentId = Column(UUID(as_uuid=True), primary_key=True)
-    SeriesId = Column(UUID(as_uuid=True), ForeignKey("Series.SeriesId"))
-    BodyId = Column(UUID(as_uuid=True), ForeignKey("Body.BodyId"))
-    ConsignmentReference = Column(Text)
-    ConsignmentType = Column(String, nullable=False)
-    IncludeTopLevelFolder = Column(Boolean)
-    ContactName = Column(Text)
-    ContactEmail = Column(Text)
-    TransferStartDatetime = Column(DateTime)
-    TransferCompleteDatetime = Column(DateTime)
-    ExportDatetime = Column(DateTime)
-    CreatedDatetime = Column(DateTime)
-    series = relationship("Series", foreign_keys="Consignment.SeriesId")
-
-
-class File(Base):
-    __tablename__ = "File"
-    FileId = Column(UUID(as_uuid=True), primary_key=True)
-    ConsignmentId = Column(
-        UUID(as_uuid=True), ForeignKey("Consignment.ConsignmentId")
-    )
-    FileReference = Column(Text, nullable=False)
-    FileType = Column(Text, nullable=False)
-    FileName = Column(Text, nullable=False)
-    FilePath = Column(Text, nullable=False)
-    CiteableReference = Column(Text)
-    Checksum = Column(Text)
-    CreatedDatetime = Column(DateTime)
-    consignment = relationship("Consignment", foreign_keys="File.ConsignmentId")
-
-
-class FileMetadata(Base):
-    __tablename__ = "FileMetadata"
-    MetadataId = Column(UUID(as_uuid=True), primary_key=True)
-    FileId = Column(UUID(as_uuid=True), ForeignKey("File.FileId"))
-    PropertyName = Column(Text, nullable=False)
-    Value = Column(Text)
-    CreatedDatetime = Column(DateTime)
-    file = relationship("File", foreign_keys="FileMetadata.FileId")
-
-
-@pytest.fixture
-def temp_db():
-    temp_db_file = tempfile.NamedTemporaryFile(suffix=".db")
-    database_url = f"sqlite:///{temp_db_file.name}"
-    engine = create_engine(database_url)
-    Base.metadata.create_all(engine)
-    yield engine
+from .conftest import Body, Consignment, File, FileMetadata, Series
 
 
 @mock.patch(
@@ -197,42 +116,6 @@ def test_index_file_content_and_metadata_in_opensearch(
             "Key1": "Value1",
             "Key2": "Value2",
             "content": "Text stream",
+            "text_extraction_status": TextExtractionStatus.SUCCEEDED.value,
         },
     )
-
-
-class TestExtractText:
-    def test_txt_file(self):
-        pdf_path = Path(__file__).parent / "multiline.txt"
-        with open(pdf_path, "rb") as file:
-            file_stream = file.read()
-        file_type = "txt"
-        assert (
-            extract_text(file_stream, file_type)
-            == "This is line 1\nThis is line 2\nThis is line 3\nThis is line 4, the final line.\n"
-        )
-
-    def test_docx_file(self):
-        path = Path(__file__).parent / "multiline.docx"
-        with open(path, "rb") as file:
-            file_stream = file.read()
-        file_type = "docx"
-
-        assert extract_text(file_stream, file_type) == (
-            "This is line 1\n\n\t\t\t\t\t\t\t\t\t\t\t\t\t"
-            "This is line 2\n\n\t\t\t\t\t\t\t\t\t\t\t\t\t"
-            "This is line 3\n\n"
-            "This is line 4, the final line."
-        )
-
-    def test_pdf_file(self):
-        path = Path(__file__).parent / "multiline.pdf"
-        with open(path, "rb") as file:
-            file_stream = file.read()
-
-        file_type = "pdf"
-
-        assert (
-            extract_text(file_stream, file_type)
-            == "This is line 1\nThis is line 2\nThis is line 3\nThis is line 4, the ﬁnal line.\n\n\x0c"
-        )

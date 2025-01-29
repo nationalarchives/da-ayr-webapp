@@ -134,6 +134,16 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
     monkeypatch.setenv("OPEN_SEARCH_USERNAME", "test_os_username")
     monkeypatch.setenv("OPEN_SEARCH_PASSWORD", "test_os_password")
     monkeypatch.setenv("OPEN_SEARCH_TIMEOUT", 10)
+    monkeypatch.setenv("CSP_CONNECT_SRC", "")
+    monkeypatch.setenv("CSP_DEFAULT_SRC", "")
+    monkeypatch.setenv("CSP_FRAME_SRC", "")
+    monkeypatch.setenv("CSP_IMG_SRC", "")
+    monkeypatch.setenv("CSP_OBJECT_SRC", "")
+    monkeypatch.setenv("CSP_SCRIPT_SRC", "")
+    monkeypatch.setenv("CSP_SCRIPT_SRC_ELEM", "")
+    monkeypatch.setenv("CSP_STYLE_SRC", "")
+    monkeypatch.setenv("CSP_STYLE_SRC_ELEM", "")
+    monkeypatch.setenv("CSP_WORKER_SRC", "")
 
     config = EnvConfig()
 
@@ -272,6 +282,16 @@ def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
             "DB_NAME": "test_db_name",
             "DB_SSL_ROOT_CERTIFICATE": "test_db_ssl_root_certificate",
             "DEFAULT_PAGE_SIZE": 10,
+            "CSP_CONNECT_SRC": "",
+            "CSP_DEFAULT_SRC": "",
+            "CSP_FRAME_SRC": "",
+            "CSP_IMG_SRC": "",
+            "CSP_OBJECT_SRC": "",
+            "CSP_SCRIPT_SRC": "",
+            "CSP_SCRIPT_SRC_ELEM": "",
+            "CSP_STYLE_SRC": "",
+            "CSP_STYLE_SRC_ELEM": "",
+            "CSP_WORKER_SRC": "",
         }
     )
 

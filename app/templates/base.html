@@ -6,8 +6,6 @@
 {% block pageTitle %}{{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block head %}
     <meta name="description" content="{{ config['SERVICE_NAME'] }}">
-    <meta name="keywords"
-          content="GOV.UK, govuk, gov, government, uk, frontend, ui, user interface, jinja, python, flask, port, template, templating, macro, component, design system, html, forms, wtf, wtforms, widget, widgets, demo, example">
     <meta name="author" content="{{ config['DEPARTMENT_NAME'] }}">
     <!-- custom css stylesheet -->
     <link rel="stylesheet"
@@ -38,7 +36,9 @@
             <p class="govuk-phase-banner__content">
                 <strong class="govuk-tag govuk-phase-banner__content__tag">Beta</strong>
                 <span class="govuk-phase-banner__text">
-                    Help us to improve this service by completing our <a class="govuk-link" target="blank" href="#">feedback
+                    Help us to improve this service by completing our <a class="govuk-link"
+    target="blank"
+    href="https://www.smartsurvey.co.uk/s/ayr-feedback/">feedback
                 survey (opens in a new tab)</a>
             </span>
         </p>

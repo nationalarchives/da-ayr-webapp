@@ -1,3 +1,5 @@
+import inspect
+import json
 import logging
 
 from flask import has_request_context, request
@@ -5,13 +7,44 @@ from flask import has_request_context, request
 
 class RequestFormatter(logging.Formatter):
     def format(self, record):
+
+        log_record = {
+            "log_type": record.name,
+            "timestamp": self.formatTime(record),
+            "level": record.levelname,
+        }
+
+        caller_function = ""
+        caller_module = ""
+
+        for frame in inspect.stack():
+            module_name = str(frame.frame.f_globals.get("__name__", ""))
+            if "app.logger_config" not in module_name:
+                if "app." in module_name:
+                    caller_function = frame.function
+                    caller_module = module_name
+                    break
+
         if has_request_context():
-            record.url = request.url
-            record.remote_addr = request.remote_addr
-        else:
-            record.url = None
-            record.remote_addr = None
-        return super().format(record)
+            log_record.update(
+                {
+                    "remote_addr": request.remote_addr,
+                    "url": request.url,
+                    "caller_function": caller_function,
+                    "caller_module": caller_module,
+                }
+            )
+
+        try:
+            message_data = json.loads(record.getMessage())
+            if isinstance(message_data, dict):
+                log_record.update(message_data)
+            else:
+                log_record["message"] = message_data
+        except json.JSONDecodeError:
+            log_record["message"] = record.getMessage()
+
+        return json.dumps(log_record)
 
 
 def setup_logger(name, level, formatter):
@@ -26,18 +59,10 @@ def setup_logger(name, level, formatter):
 
 def setup_logging(app):
     """Set up loggers for the app."""
-    audit_log_formatter = RequestFormatter(
-        "AUDIT_LOG\n"
-        "[%(asctime)s] %(remote_addr)s requested %(url)s\n"
-        "%(levelname)s in %(module)s: %(message)s"
-    )
+    audit_log_formatter = RequestFormatter()
     app.audit_logger = setup_logger(
         "audit_logger", logging.INFO, audit_log_formatter
     )
 
-    app_log_formatter = RequestFormatter(
-        "APP_LOG\n"
-        "[%(asctime)s] %(remote_addr)s requested %(url)s\n"
-        "%(levelname)s in %(module)s: %(message)s"
-    )
+    app_log_formatter = RequestFormatter()
     app.app_logger = setup_logger("app_logger", logging.INFO, app_log_formatter)

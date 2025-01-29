@@ -50,9 +50,74 @@ def filter_opensearch_highlight_results(results):
     return results_clone
 
 
-def post_process_opensearch_results(results):
+def rearrange_opensearch_results_for_relevant_fields(results, sort):
+    """
+    Rearrange OpenSearch results to display relevant highlight fields based on the specified sort order.
+
+    Args:
+        results (list): A list of OpenSearch result dictionaries.
+        sort (str): The field used for sorting ("file_name", "description", "metadata", or "content").
+
+    Returns:
+        list: The rearranged OpenSearch results with updated highlight fields.
+    """
+    results_clone = results.copy()
+
+    for result in results_clone:
+        if "highlight" not in result:
+            continue
+        highlight_fields = result["highlight"]
+
+        if sort == "file_name":
+            ordered_highlight = reorder_fields(highlight_fields, ["file_name"])
+        elif sort == "description":
+            ordered_highlight = reorder_fields(
+                highlight_fields, ["description", "file_name"]
+            )
+        elif sort == "metadata":
+            ordered_highlight = reorder_fields(
+                highlight_fields, [], ["file_name", "content"]
+            )
+        elif sort == "content":
+            ordered_highlight = reorder_fields(
+                highlight_fields, ["content", "file_name"]
+            )
+        else:
+            ordered_highlight = highlight_fields
+
+        result["highlight"] = ordered_highlight
+
+    return results_clone
+
+
+def reorder_fields(fields, priority_fields=[], last_fields=[]):
+    """
+    Rearranges a dictionary's fields based on priority and last field rules.
+
+    Args:
+        fields (dict): Dictionary of fields to reorder.
+        priority_fields (list): Fields to move to the top in order.
+        last_fields (list): Fields to move to the bottom in order.
+
+    Returns:
+        dict: Reordered dictionary of fields.
+    """
+    fields_at_top = {k: fields[k] for k in priority_fields if k in fields}
+    fields_at_bottom = {k: fields[k] for k in last_fields if k in fields}
+    middle_fields = {
+        k: v
+        for k, v in fields.items()
+        if k not in fields_at_top and k not in fields_at_bottom
+    }
+    ordered_fields = {**fields_at_top, **middle_fields, **fields_at_bottom}
+
+    return ordered_fields
+
+
+def post_process_opensearch_results(results, sort):
     results = format_opensearch_results(results)
     results = filter_opensearch_highlight_results(results)
+    results = rearrange_opensearch_results_for_relevant_fields(results, sort)
     return results
 
 
@@ -252,7 +317,6 @@ def build_dsl_search_query(
                 "filter": filter_clauses,
             }
         },
-        # set as {} until sorting ticket is in done
         "sort": sorting,
         "_source": True,
     }

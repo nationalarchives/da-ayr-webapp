@@ -127,17 +127,6 @@ UNIVERSAL_VIEWER_SUPPORTED_OTHER_TYPES = [
 ]
 
 
-def get_file_mimetype(file_type):
-    if (
-        file_type in UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES
-        or file_type in UNIVERSAL_VIEWER_SUPPORTED_OTHER_TYPES
-    ):
-        return f"application/{file_type}"
-    elif file_type in UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES:
-        return f"image/{file_type}"
-    return "application/octet-stream"
-
-
 def get_file_details(file):
     """Retrieve file metadata and determine file type and extension."""
     file_metadata = get_file_metadata(file.FileId)
