@@ -1,6 +1,7 @@
 import uuid
 
 import boto3
+from botocore.exceptions import ClientError
 from flask import (
     abort,
     current_app,
@@ -736,7 +737,7 @@ def download_record(record_id: uuid.UUID):
 
     try:
         s3.head_object(Bucket=bucket, Key=key)
-    except s3.exceptions.ClientError as e:
+    except ClientError as e:
         if e.response["Error"]["Code"] == "404":
             abort(404)
         else:

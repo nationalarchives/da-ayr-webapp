@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import boto3
+from botocore.exceptions import ClientError
 from flask.testing import FlaskClient
 from moto import mock_aws
 
@@ -123,6 +124,50 @@ class TestDownload:
 
         assert response.status_code == 500
         assert "Failed to generate presigned URL" in caplog.text
+
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    def test_s3_fetch_failure(
+        self, mock_boto3_client, app, client, mock_standard_user, caplog
+    ):
+        """
+        Given a file in the database
+        But the corresponding S3 object does not exist or S3 fetch fails
+        When a standard user with access to the file's transferring body makes a request to download the record
+        Then the response status code should be 500, and an appropriate error message should be logged
+        """
+
+        bucket_name = "test_bucket"
+        file = FileFactory(
+            FileType="file", FileName="testfile.doc", CiteableReference=None
+        )
+
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        error_response = {
+            "Error": {
+                "Code": "500",
+                "Message": "Simulated error fetching object from S3 bucket",
+            }
+        }
+
+        mock_s3_client = mock_boto3_client.return_value
+        mock_s3_client.head_object.side_effect = ClientError(
+            error_response, "HeadObject"
+        )
+
+        mock_standard_user(
+            client, file.consignment.series.body.Name, can_download=True
+        )
+
+        response = client.get(
+            f"/download/{file.FileId}", follow_redirects=False
+        )
+
+        assert response.status_code == 500
+        assert "Failed to fetch object from S3 bucket" in caplog.text
 
     @mock_aws
     def test_raises_404_for_standard_user_without_access_to_files_transferring_body(
