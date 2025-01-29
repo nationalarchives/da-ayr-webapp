@@ -8,13 +8,6 @@ from app.main.db.models import File, db
 from app.main.db.queries import get_file_metadata
 
 
-def get_file_mimetype(file_type):
-    if file_type == "pdf":
-        return "application/pdf"
-    elif file_type in ["png", "jpg", "jpeg"]:
-        return f"image/{file_type}"
-
-
 def get_file_details(file):
     """Retrieve file metadata and determine file type and extension."""
     file_metadata = get_file_metadata(file.FileId)

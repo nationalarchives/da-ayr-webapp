@@ -7,15 +7,7 @@ from app.main.util.render_utils import (
     generate_breadcrumb_values,
     get_download_filename,
     get_file_details,
-    get_file_mimetype,
 )
-
-
-def test_get_file_mimetype():
-    assert get_file_mimetype("pdf") == "application/pdf"
-    assert get_file_mimetype("png") == "image/png"
-    assert get_file_mimetype("jpg") == "image/jpg"
-    assert get_file_mimetype("jpeg") == "image/jpeg"
 
 
 @patch("app.main.util.render_utils.get_file_metadata")
