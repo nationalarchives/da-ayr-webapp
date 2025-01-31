@@ -26,6 +26,35 @@ class Utils:
             """
         )
 
+    def get_desktop_page_transferring_body_table_headers(page: Page):
+        return page.locator(
+            "th:not(.govuk-table--invisible-on-desktop)"
+        ).evaluate_all(
+            """
+            els => els
+                .map(e => e.innerText.trim())
+                .filter(text => text === 'Found within' || text === 'Search results')
+        """
+        )
+
+    def get_desktop_page_transferring_body_inner_table_headers(page: Page):
+        return page.locator(
+            "th:not(.govuk-table--invisible-on-desktop)"
+        ).evaluate_all(
+            """
+            els => els
+                .map(e => e.innerText.trim())
+                .filter(text => text !== 'Found within' && text !== 'Search results')
+        """
+        )
+
+    def get_desktop_page_table_metadata(page: Page):
+        return page.locator("tbody tbody").evaluate_all(
+            """rows => rows.map(row =>
+        Array.from(row.querySelectorAll('.govuk-table__cell')).map(cell => cell.innerText.trim())
+    )"""
+        )
+
 
 @pytest.fixture
 def utils():

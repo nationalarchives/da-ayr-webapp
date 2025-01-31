@@ -10,12 +10,29 @@ def verify_search_results_summary_header_row(header_rows):
 
 def verify_search_transferring_body_header_row(header_rows):
     assert header_rows == [
-        "Series reference",
-        "Consignment reference",
-        "File name",
+        "Found within",
+        "Search results",
+        "Series",
+        "Consignment ref",
         "Status",
         "Record opening date",
     ]
+
+
+def verify_search_transferring_body_table_header_row(header_rows):
+    assert header_rows == [
+        "Found within",
+        "Search results",
+    ]
+
+
+def verify_search_transferring_body_inner_table_row(header_rows):
+    assert set(header_rows) == {
+        "Consignment ref",
+        "Record opening date",
+        "Series",
+        "Status",
+    }
 
 
 class TestSearch:
@@ -39,7 +56,7 @@ class TestSearch:
         header_rows = utils.get_desktop_page_table_headers(aau_user_page)
         rows = utils.get_desktop_page_table_rows(aau_user_page)
 
-        expected_rows = [["Mock 1 Department", "15"], ["Testing A", "16"]]
+        expected_rows = [["Testing A", "14"]]
         verify_search_results_summary_header_row(header_rows)
         assert rows == expected_rows
 
@@ -60,26 +77,36 @@ class TestSearchResultsSummary:
         aau_user_page.goto(self.search_results_summary_route_url)
         aau_user_page.get_by_role("link", name="Testing A").click()
         aau_user_page.wait_for_selector("#tbl_result")
+        aau_user_page.click('label[for="contact"]')
+        aau_user_page.locator(
+            ".govuk-button.govuk-button__sort-container-update-button"
+        ).nth(1).click()
 
-        header_rows = utils.get_desktop_page_table_headers(aau_user_page)
-        rows = utils.get_desktop_page_table_rows(aau_user_page)
+        header_rows = utils.get_desktop_page_transferring_body_table_headers(
+            aau_user_page
+        )
 
-        expected_rows = [
-            ["TSTA 1", "TDR-2023-BV6", "closed_file_R.pdf", "Open", "–"],
-            [
-                "TSTA 1",
-                "TDR-2023-BV6",
-                "closed_file.txt",
-                "Closed",
-                "18/10/2048",
-            ],
-            ["TSTA 1", "TDR-2023-BV6", "file-a1.txt", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "file-a2.txt", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "file-b1.txt", "Open", "–"],
+        inner_table_header_rows = (
+            utils.get_desktop_page_transferring_body_inner_table_headers(
+                aau_user_page
+            )
+        )
+
+        table_row_metadata = utils.get_desktop_page_table_metadata(
+            aau_user_page
+        )
+
+        expected_row_metadata = [
+            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
         ]
+        assert table_row_metadata == expected_row_metadata
 
-        verify_search_transferring_body_header_row(header_rows)
-        assert rows == expected_rows
+        verify_search_transferring_body_table_header_row(header_rows)
+        verify_search_transferring_body_inner_table_row(inner_table_header_rows)
 
 
 class TestSearchTransferringBody:
@@ -149,3 +176,40 @@ class TestSearchTransferringBody:
         standard_user_page.get_by_role("link", name="Clear all").click()
 
         expect(standard_user_page).to_have_url(url)
+
+
+class TestSearchResults:
+    @property
+    def search_route_url(self):
+        return "/search_results_summary"
+
+    @property
+    def browse_transferring_body_route_url(self):
+        return "/search/transferring_body"
+
+    @property
+    def transferring_body_id(self):
+        return "c3e3fd83-4d52-4638-a085-1f4e4e4dfa50"
+
+    def test_search_fuzzy_search(self, standard_user_page: Page):
+        """
+        Given a search query is submitted with a typo (e.g., minor misspelling) on the
+        search_results/transferring_body/<body_id> page
+        When the results are displayed
+        Then the results should use fuzziness logic to account for the typo and display relevant matches
+        """
+        url = f"{self.browse_transferring_body_route_url}/{self.transferring_body_id}#browse-records"
+
+        standard_user_page.goto(url)
+        expect(standard_user_page).to_have_url(url)
+
+        standard_user_page.locator("#search-input").click()
+        standard_user_page.locator("#search-input").fill("smaplt")
+        standard_user_page.get_by_role("button", name="Search").click()
+        rows = standard_user_page.locator("tbody .govuk-table__row")
+        assert rows.count() == 20
+
+        tbody_locator = standard_user_page.locator("tbody.govuk-table__body")
+        inner_html = tbody_locator.inner_html()
+
+        assert "<mark>sample</mark>" in inner_html

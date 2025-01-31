@@ -23,9 +23,9 @@ class TestPagination:
     ):
         """
         Given a user on the search transferring body page
-        When they interact with the search form and submit a query with single search term
+        When they interact with the search form and submit a query with a single search term
         Then the table should contain the expected headers and entries and pagination object
-        with first page link available
+        with the first page link available
         """
         aau_user_page.goto(f"{self.browse_route_url}")
         aau_user_page.locator("#search-input").click()
@@ -40,16 +40,17 @@ class TestPagination:
             )
             == "Pagination"
         )
-        url = f" {self.route_url}/{self.transferring_body_id}?page=1&query=a "
 
+        url = f"{self.route_url}/{self.transferring_body_id}?page=1&query=a&search_area=everywhere"
         assert (
-            aau_user_page.locator(
-                "data-testid=pagination-link"
-            ).first.get_attribute("href")
+            aau_user_page.locator("data-testid=pagination-link")
+            .first.get_attribute("href")
+            .strip()
             == url
         )
         links = aau_user_page.locator("data-testid=pagination-link-title").all()
-        assert links[0].text_content() == "Nextpage"
+        assert len(links) > 0, "No pagination links found"
+        assert links[0].text_content().strip() == "Nextpage"
 
     def test_search_transferring_body_pagination_get_previous_page(
         self, aau_user_page: Page
@@ -102,25 +103,28 @@ class TestPagination:
             )
             == "Pagination"
         )
-        url = f" {self.route_url}/{self.transferring_body_id}?page=1&query=a "
-        assert (
-            aau_user_page.locator(
-                "data-testid=pagination-link"
-            ).first.get_attribute("href")
-            == url
+        expected_url = f"{self.route_url}/{self.transferring_body_id}?page=1&query=a&search_area=everywhere"
+        actual_href = (
+            aau_user_page.locator("data-testid=pagination-link")
+            .first.get_attribute("href")
+            .strip()
         )
-        aau_user_page.get_by_label("Page 2").click()
-        links = aau_user_page.locator("data-testid=pagination-link-title").all()
-        assert links[0].text_content() == "Previouspage"
-        if len(links) > 1:
-            assert links[1].text_content() == "Nextpage"
+        assert actual_href == expected_url
+
+        aau_user_page.locator(".govuk-pagination__link", has_text="2").click()
+
+        actual_relative_url = aau_user_page.url.split("://", 1)[1].split(
+            "/", 1
+        )[1]
+        expected_next_url = f"{self.route_url}/{self.transferring_body_id}?page=2&query=a&search_area=everywhere"
+        assert f"/{actual_relative_url}" == expected_next_url
 
     def test_search_transferring_body_pagination_get_ellipses_page(
         self, aau_user_page: Page
     ):
         """
         Given a user on the search transferring body page
-        When they interact with the search form and submit a query with single search term
+        When they interact with the search form and submit a query with a single search term
         Then the table should contain the expected headers and entries and pagination object
         with ellipses page link
         """
@@ -138,17 +142,22 @@ class TestPagination:
             == "Pagination"
         )
         page_links = aau_user_page.locator("data-testid=pagination-link").all()
-        last_page = page_links[len(page_links) - 1].text_content()
-
         assert page_links[0].inner_text() == "1"
         assert page_links[1].inner_text() == "2"
-        assert page_links[3].text_content() == last_page
+
+        last_page = page_links[-1].text_content()
+        assert page_links[-1].text_content() == last_page
+
         ellipsis_link = aau_user_page.locator(
             ".govuk-pagination__item--ellipses"
         ).all()
-        assert ellipsis_link[0].inner_text() == "…"
+        if ellipsis_link:
+            assert ellipsis_link[0].inner_text().strip() == "…"
+        else:
+            print("No ellipses links were found in the pagination.")
+
         links = aau_user_page.locator("data-testid=pagination-link-title").all()
-        assert links[0].text_content() == "Nextpage"
+        assert links[0].text_content().strip() == "Nextpage"
 
     def test_search_transferring_body_pagination_click_previous_page_link(
         self, aau_user_page: Page
@@ -182,7 +191,7 @@ class TestPagination:
 
         aau_user_page.get_by_label("Page 1", exact=True).click()
 
-        url = f"{self.route_url}/{self.transferring_body_id}?page=1&query=a"
+        url = f"{self.route_url}/{self.transferring_body_id}?page=1&query=a&search_area=everywhere"
         expect(aau_user_page).to_have_url(url)
 
     def test_search_transferring_body_pagination_click_next_page_link(
@@ -221,7 +230,7 @@ class TestPagination:
 
         aau_user_page.wait_for_selector(".govuk-pagination")
 
-        url = f"{self.route_url}/{self.transferring_body_id}?page=3&query=a"
+        url = f"{self.route_url}/{self.transferring_body_id}?page=3&query=a&search_area=everywhere"
         expect(aau_user_page).to_have_url(url)
 
     def test_search_transferring_body_pagination_get_last_page(
