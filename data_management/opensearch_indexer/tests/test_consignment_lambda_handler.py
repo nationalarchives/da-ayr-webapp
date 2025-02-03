@@ -213,7 +213,6 @@ def test_lambda_handler_invokes_bulk_index_with_correct_file_data(
         },
         "parameters": {
             "reference": consignment_reference,
-            "originator": "DDT",
         },
     }
 
@@ -348,7 +347,6 @@ def test_lambda_handler_raises_exception_when_no_consignment_reference_in_sns_me
         },
         "parameters": {
             "reference": consignment_reference,
-            "originator": "DDT",
         },
     }
 
@@ -400,7 +398,6 @@ def test_lambda_handler_raises_exception_when_no_secret_id_env_var_set(
         },
         "parameters": {
             "reference": consignment_reference,
-            "originator": "DDT",
         },
     }
 
