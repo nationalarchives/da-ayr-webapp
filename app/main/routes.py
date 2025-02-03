@@ -823,4 +823,7 @@ def generate_manifest(record_id: uuid.UUID):
     elif file_type in UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES:
         return generate_image_manifest(s3_file_object, record_id)
     else:
+        current_app.app_logger.error(
+            f"Failed to create manifest for file with ID {file.FileId}"
+        )
         return http_exception(BadRequest())
