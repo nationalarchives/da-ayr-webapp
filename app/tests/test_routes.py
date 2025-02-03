@@ -10,6 +10,11 @@ from flask.testing import FlaskClient
 from moto import mock_aws
 from PIL import Image
 
+from app.main.util.render_utils import (
+    UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES,
+    UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES,
+)
+
 
 def verify_cookies_header_row(data):
     soup = BeautifulSoup(data, "html.parser")
@@ -355,3 +360,100 @@ class TestRoutes:
 
         for key, expected_value in expected_params.items():
             assert f"{key}={expected_value}" in response.headers["Location"]
+
+    @pytest.mark.parametrize(
+        "document_format", UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES
+    )
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    @patch("app.main.routes.generate_pdf_manifest")
+    def test_generate_manifest_pdf(
+        self,
+        mock_pdf,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+        record_files,
+        document_format,
+    ):
+        """
+        Test that a PDF manifest is successfully generated.
+        """
+        mock_all_access_user(client)
+        file = record_files[0]["file_object"]
+        file.FileName = f"document.{document_format}"
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {"Body": b"file content"}
+
+        mock_pdf.return_value = ({"mock": "pdf_manifest"}, 200)
+        response = client.get(f"/record/{file.FileId}/manifest")
+
+        mock_pdf.assert_called_once()
+        assert response.status_code == 200
+        assert json.loads(response.text) == {"mock": "pdf_manifest"}
+
+    @pytest.mark.parametrize(
+        "image_format", UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES
+    )
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    @patch("app.main.routes.generate_image_manifest")
+    def test_generate_manifest_image(
+        self,
+        mock_image,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+        record_files,
+        image_format,
+    ):
+        """
+        Test that a image manifest is successfully generated.
+        """
+        mock_all_access_user(client)
+        file = record_files[0]["file_object"]
+        file.FileName = f"image.{image_format}"
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {"Body": b"file content"}
+
+        mock_image.return_value = ({"mock": "image_manifest"}, 200)
+        response = client.get(f"/record/{file.FileId}/manifest")
+
+        mock_image.assert_called_once()
+        assert response.status_code == 200
+        assert json.loads(response.text) == {"mock": "image_manifest"}
+
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    def test_generate_manifest_unsupported(
+        self,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+        record_files,
+        caplog,
+    ):
+        """
+        Test that an unsupported format will return a bad request and log the error
+        """
+        mock_all_access_user(client)
+        file = record_files[0]["file_object"]
+        file.FileName = "unsupported.xyz"
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {"Body": b"file content"}
+
+        response = client.get(f"/record/{file.FileId}/manifest")
+        assert response.status_code == 400
+        assert "Failed to create manifest for file with ID" in caplog.text
