@@ -1,4 +1,20 @@
-{% set search_areas = {"everywhere": "Search everywhere", "metadata": "Record metadata only", "record": "Within the record only"} %}
+{% set search_areas = [
+    {
+        "value": "everywhere",
+        "label": "Search everywhere",
+        "aria_label": "Search across all records and metadata"
+    },
+    {
+        "value": "metadata",
+        "label": "Record metadata only",
+        "aria_label": "Search only in record metadata"
+    },
+    {
+        "value": "record",
+        "label": "Within the record only",
+        "aria_label": "Search only within the record content"
+    }
+] %}
 <div class="search govuk-grid-column-full">
     <div class="search__els">
         <label class="govuk-label search__els__heading" for="search-input">Search for digital records</label>
@@ -7,18 +23,19 @@
               action="{{ url_for('main.search') }}">
             <div class="govuk-radios govuk-radios--small search__els__form__checkboxes"
                  data-module="govuk-radios">
-                {% for value, label in search_areas.items() %}
+                {% for area in search_areas %}
                     <div class="govuk-radios__item">
                         <input class="govuk-radios__input"
-                               id="{{ value }}"
+                               id="{{ area.value }}"
                                name="search_area"
                                type="radio"
-                               value="{{ value }}"
-                               {% if search_area %} {% if search_area == value %}checked{% endif %}
+                               value="{{ area.value }}"
+                               aria-label="{{ area.aria_label }}"
+                               {% if search_area %} {% if search_area == area.value %}checked{% endif %}
                                {% else %}
-                               {% if value == 'everywhere' %}checked{% endif %}
+                               {% if area.value == 'everywhere' %}checked{% endif %}
                                {% endif %} />
-                        <label class="govuk-label govuk-radios__label" for="{{ value }}">{{ label }}</label>
+                        <label class="govuk-label govuk-radios__label" for="{{ area.value }}">{{ area.label }}</label>
                     </div>
                 {% endfor %}
             </div>
