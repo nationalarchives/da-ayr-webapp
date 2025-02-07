@@ -304,13 +304,9 @@ Hardcoded values:
 
 - `SESSION_COOKIE_HTTPONLY`: Configure session cookies to be HTTP-only. Is `True`.
 - `SESSION_COOKIE_SECURE`: Configure session cookies to be secure. Is `True`.
-- `CONTACT_EMAIL`: Email address for contact information.
-- `CONTACT_PHONE`: Phone number for contact information.
 - `DEPARTMENT_NAME`: The name of the department.
 - `DEPARTMENT_URL`: The URL of the department's website.
 - `SERVICE_NAME`: The name of the service.
-- `SERVICE_PHASE`: The phase of the service.
-- `SERVICE_URL`: The URL of the service.
 
 Properties configurable at runtime:
 

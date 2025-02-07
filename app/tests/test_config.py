@@ -156,7 +156,9 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
 @mock_aws
 def test_aws_secrets_manager_config_initialized(monkeypatch):
     """
-    GIVEN AWS secret with secret_id `AWS_SM_CONFIG_SECRET_ID` is set with all config key value pairs
+    GIVEN AWS secret with secret_ids`AWS_SM_CONFIG_SECRET_ID`,
+        `AWS_SM_KEYCLOAK_CLIENT_SECRET_ID` and `AWS_SM_DB_CONFIG_SECRET_ID`
+        set with all config key value pairs
     WHEN Config is initialized
     THEN it should have attributes with the expected values from the AWS Secrets Manager secret
     """
@@ -172,12 +174,7 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
             "PERF_TEST": "False",
             "FLASKS3_BUCKET_NAME": "test_flasks3_bucket_name",
             "DEFAULT_DATE_FORMAT": "test_default_date_format",
-            "SECRET_KEY": "test_secret_key",  # pragma: allowlist secret
-            "DB_PORT": "5432",
-            "DB_HOST": "test_db_host",
-            "DB_USER": "test_db_user",
-            "DB_PASSWORD": "test_db_password",  # pragma: allowlist secret
-            "DB_NAME": "test_db_name",
+            "SECRET_KEY": "test_secret_key",  # pragma: allowlist secret,
             "DB_SSL_ROOT_CERTIFICATE": "test_db_ssl_root_certificate",
             "DEFAULT_PAGE_SIZE": 10,
             "OPEN_SEARCH_MASTER_ROLE_ARN": "test_master_role_arn",
@@ -187,6 +184,16 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
     )
 
     secret_kc_value = json.dumps({"SECRET": "test_keycloak_client_secret"})
+
+    secret_db_value = json.dumps(
+        {
+            "username": "test_db_user",
+            "password": "test_db_password",  # pragma: allowlist secret
+            "host": "test_db_host",
+            "port": "5432",
+            "dbname": "test_db_name",
+        }
+    )
 
     ssm_client = boto3.client("secretsmanager")
 
@@ -200,12 +207,21 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         SecretString=secret_kc_value,
     )
 
+    ssm_client.create_secret(
+        Name="test_db_config_secret_id",
+        SecretString=secret_db_value,
+    )
+
     monkeypatch.setenv(
         "AWS_SM_CONFIG_SECRET_ID", "test_secret_id"
     )  # pragma: allowlist secret
 
     monkeypatch.setenv(
         "AWS_SM_KEYCLOAK_CLIENT_SECRET_ID", "test_kc_secret_id"
+    )  # pragma: allowlist secret
+
+    monkeypatch.setenv(
+        "AWS_SM_DB_CONFIG_SECRET_ID", "test_db_config_secret_id"
     )  # pragma: allowlist secret
 
     with patch(
@@ -257,8 +273,9 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
 @mock_aws
 def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
     """
-    GIVEN AWS secret with secret_id `AWS_SM_CONFIG_SECRET_ID` is set
-    and a variable 'DEFAULT_DATE_FORMAT' is not set
+    GIVEN AWS secret with secret_ids`AWS_SM_CONFIG_SECRET_ID`,
+        `AWS_SM_KEYCLOAK_CLIENT_SECRET_ID` and `AWS_SM_DB_CONFIG_SECRET_ID`
+        set and a variable 'DEFAULT_DATE_FORMAT' is not set
     WHEN Config is initialized
     THEN it should raise an exception with error
     """
@@ -275,11 +292,6 @@ def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
             "PERF_TEST": "False",
             "FLASKS3_BUCKET_NAME": "test_flasks3_bucket_name",
             "SECRET_KEY": "test_secret_key",  # pragma: allowlist secret
-            "DB_PORT": "5432",
-            "DB_HOST": "test_db_host",
-            "DB_USER": "test_db_user",
-            "DB_PASSWORD": "test_db_password",  # pragma: allowlist secret
-            "DB_NAME": "test_db_name",
             "DB_SSL_ROOT_CERTIFICATE": "test_db_ssl_root_certificate",
             "DEFAULT_PAGE_SIZE": 10,
             "CSP_CONNECT_SRC": "",
@@ -295,6 +307,18 @@ def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
         }
     )
 
+    secret_kc_value = json.dumps({"SECRET": "test_keycloak_client_secret"})
+
+    secret_db_value = json.dumps(
+        {
+            "username": "test_db_user",
+            "password": "test_db_password",  # pragma: allowlist secret
+            "host": "test_db_host",
+            "port": "5432",
+            "dbname": "test_db_name",
+        }
+    )
+
     ssm_client = boto3.client("secretsmanager")
 
     ssm_client.create_secret(
@@ -302,8 +326,26 @@ def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
         SecretString=secret_value,
     )
 
+    ssm_client.create_secret(
+        Name="test_kc_secret_id",
+        SecretString=secret_kc_value,
+    )
+
+    ssm_client.create_secret(
+        Name="test_db_config_secret_id",
+        SecretString=secret_db_value,
+    )
+
     monkeypatch.setenv(
         "AWS_SM_CONFIG_SECRET_ID", "test_secret_id"
+    )  # pragma: allowlist secret
+
+    monkeypatch.setenv(
+        "AWS_SM_KEYCLOAK_CLIENT_SECRET_ID", "test_kc_secret_id"
+    )  # pragma: allowlist secret
+
+    monkeypatch.setenv(
+        "AWS_SM_DB_CONFIG_SECRET_ID", "test_db_config_secret_id"
     )  # pragma: allowlist secret
 
     config = AWSSecretsManagerConfig()

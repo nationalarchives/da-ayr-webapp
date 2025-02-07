@@ -52,6 +52,32 @@ class AWSSecretsManagerConfig(BaseConfig):
         )["SECRET"]
 
     @property
+    def _DB_CONFIG(self):
+        return self._get_secrets_manager_config_dict(
+            os.getenv("AWS_SM_DB_CONFIG_SECRET_ID")
+        )
+
+    @property
+    def DB_HOST(self):
+        return self._DB_CONFIG["host"]
+
+    @property
+    def DB_PORT(self):
+        return self._DB_CONFIG["port"]
+
+    @property
+    def DB_USER(self):
+        return self._DB_CONFIG["username"]
+
+    @property
+    def DB_PASSWORD(self):
+        return self._DB_CONFIG["password"]
+
+    @property
+    def DB_NAME(self):
+        return self._DB_CONFIG["dbname"]
+
+    @property
     def OPEN_SEARCH_HTTP_AUTH(self):
         sts_client = boto3.client("sts")
         assumed_role = sts_client.assume_role(
