@@ -58,10 +58,6 @@ class AWSSecretsManagerConfig(BaseConfig):
         )
 
     @property
-    def DB_HOST(self):
-        return self._DB_CONFIG["host"]
-
-    @property
     def DB_PORT(self):
         return self._DB_CONFIG["port"]
 
