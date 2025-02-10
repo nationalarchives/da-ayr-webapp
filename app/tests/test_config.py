@@ -175,6 +175,7 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
             "FLASKS3_BUCKET_NAME": "test_flasks3_bucket_name",
             "DEFAULT_DATE_FORMAT": "test_default_date_format",
             "SECRET_KEY": "test_secret_key",  # pragma: allowlist secret,
+            "DB_HOST": "test_db_host",
             "DB_SSL_ROOT_CERTIFICATE": "test_db_ssl_root_certificate",
             "DEFAULT_PAGE_SIZE": 10,
             "OPEN_SEARCH_MASTER_ROLE_ARN": "test_master_role_arn",
@@ -189,7 +190,6 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         {
             "username": "test_db_user",
             "password": "test_db_password",  # pragma: allowlist secret
-            "host": "test_db_host",
             "port": "5432",
             "dbname": "test_db_name",
         }
@@ -292,6 +292,7 @@ def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
             "PERF_TEST": "False",
             "FLASKS3_BUCKET_NAME": "test_flasks3_bucket_name",
             "SECRET_KEY": "test_secret_key",  # pragma: allowlist secret
+            "DB_HOST": "test_db_host",
             "DB_SSL_ROOT_CERTIFICATE": "test_db_ssl_root_certificate",
             "DEFAULT_PAGE_SIZE": 10,
             "CSP_CONNECT_SRC": "",
@@ -313,7 +314,6 @@ def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
         {
             "username": "test_db_user",
             "password": "test_db_password",  # pragma: allowlist secret
-            "host": "test_db_host",
             "port": "5432",
             "dbname": "test_db_name",
         }
