@@ -2,6 +2,7 @@ import pytest
 
 from app import (
     clean_tags_and_replace_highlight_tag,
+    format_number_with_commas,
     format_opensearch_field_name,
     null_to_dash,
 )
@@ -129,3 +130,20 @@ def test_clean_tags(input_text, expected_output):
 )
 def test_format_opensearch_field_name(field, expected):
     assert format_opensearch_field_name(field) == expected
+
+
+@pytest.mark.parametrize(
+    "input_value, expected_output",
+    [
+        (1000, "1,000"),
+        (33000, "33,000"),
+        (123456789, "123,456,789"),
+        (0, "0"),
+        (-1000, "-1,000"),
+        (-9876543, "-9,876,543"),
+        (1000000.50, "1,000,000.5"),
+        (99999.999, "99,999.999"),
+    ],
+)
+def test_format_number_with_commas(input_value, expected_output):
+    assert format_number_with_commas(input_value) == expected_output

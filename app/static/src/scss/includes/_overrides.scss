@@ -9,3 +9,9 @@ a {
     text-decoration-thickness: 3px;
   }
 }
+
+.govuk-label {
+  &__filter {
+    font-size: 16px;
+  }
+}

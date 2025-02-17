@@ -2,6 +2,10 @@
   border-bottom: 1px solid #b1b4b6;
   font-size: 1rem;
 
+  &__row {
+    border-bottom: 1px solid $colour-border-normal;
+  }
+
   &__thead {
     border-bottom: 1px solid #b1b4b6;
   }
