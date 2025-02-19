@@ -244,6 +244,7 @@ a.govuk-link {
 
 [class*="hidden-row"] {
   display: none;
+  border-bottom: none;
 }
 
 @for $i from 1 through 15 {
@@ -389,6 +390,11 @@ a.govuk-link {
   &__row {
     &--primary {
       border-top: 1px solid #b1b4b6;
+      border-bottom: none;
+    }
+
+    &--file-name {
+      border-bottom: none;
     }
   }
 }

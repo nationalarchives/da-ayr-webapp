@@ -38,6 +38,13 @@ def format_opensearch_field_name(field):
     return OPENSEARCH_FIELD_NAME_MAP[field]
 
 
+def format_number_with_commas(number):
+    """
+    Formats a given number with commas as thousand separators.
+    """
+    return f"{number:,}"
+
+
 def create_app(config_class, database_uri=None):
     app = Flask(__name__, static_url_path="/assets")
     config = config_class()
@@ -54,6 +61,9 @@ def create_app(config_class, database_uri=None):
     )
     app.jinja_env.filters["format_opensearch_field_name"] = (
         format_opensearch_field_name
+    )
+    app.jinja_env.filters["format_number_with_commas"] = (
+        format_number_with_commas
     )
     app.jinja_loader = ChoiceLoader(
         [

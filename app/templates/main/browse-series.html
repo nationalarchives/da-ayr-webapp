@@ -56,7 +56,7 @@
                                     <td class="govuk-table__cell govuk-table--invisible-on-mobile word-break">{{ record["transferring_body"] }}</td>
                                     <td class="govuk-table__cell govuk-table--invisible-on-mobile">{{ record["series"] }}</td>
                                     <td class="govuk-table__cell govuk-table--on-desktop--right-align">{{ record["last_record_transferred"] }}</td>
-                                    <td class="govuk-table__cell govuk-table--right-align">{{ record["records_held"] }}</td>
+                                    <td class="govuk-table__cell govuk-table--right-align">{{ record["records_held"] | format_number_with_commas }}</td>
                                     <td class="govuk-table__cell">
                                         <a href="{{ url_for('main.browse_consignment', _id=record['consignment_id']) }}">{{ record["consignment_reference"] }}</a>
                                     </td>
