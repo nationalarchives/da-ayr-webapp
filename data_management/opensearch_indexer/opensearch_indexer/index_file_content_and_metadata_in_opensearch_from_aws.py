@@ -15,15 +15,16 @@ logger.setLevel(logging.INFO)
 
 
 def index_file_content_and_metadata_in_opensearch_from_aws(
-    bucket_name, object_key, secret_id
+    bucket_name, object_key, secret_id, db_secret_id
 ):
     secret_string = get_secret_data(secret_id)
+    db_secret_string = get_secret_data(db_secret_id)
 
     file_id = object_key.split("/")[-1]
 
     file_stream = get_s3_file(bucket_name, object_key)
 
-    database_url = _build_db_url(secret_string)
+    database_url = _build_db_url(db_secret_string)
 
     open_search_host_url = secret_string["OPEN_SEARCH_HOST"]
     open_search_http_auth = _get_opensearch_auth(secret_string)

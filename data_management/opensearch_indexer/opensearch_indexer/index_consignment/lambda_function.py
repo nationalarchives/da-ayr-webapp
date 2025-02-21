@@ -51,7 +51,18 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> None:
         logger.error(error_message)
         raise Exception(error_message)
 
+    db_secret_id = os.getenv("DB_SECRET_ID")
+
+    if not db_secret_id:
+        error_message = (
+            "Missing DB_SECRET_ID environment variable required for indexing"
+        )
+        logger.error(error_message)
+        raise Exception(error_message)
+
     # Log and process the consignment reference
     logger.info(f"Processing consignment reference: {consignment_reference}")
-    bulk_index_consignment_from_aws(consignment_reference, secret_id)
+    bulk_index_consignment_from_aws(
+        consignment_reference, secret_id, db_secret_id
+    )
     logger.info("Lambda completed")

@@ -22,11 +22,11 @@ def get_secret_data(secret_id: str) -> Dict[str, Any]:
     return json.loads(secret_response["SecretString"])
 
 
-def _build_db_url(secret_string: Dict[str, Any]) -> str:
+def _build_db_url(db_secret_string: Dict[str, Any]) -> str:
     return (
         "postgresql+pg8000://"
-        f'{secret_string["DB_USER"]}:{quote_plus(secret_string["DB_PASSWORD"])}'
-        f'@{secret_string["DB_HOST"]}:{secret_string["DB_PORT"]}/{secret_string["DB_NAME"]}'
+        f'{db_secret_string["username"]}:{quote_plus(db_secret_string["password"])}'
+        f'@{db_secret_string["proxy"]}:{db_secret_string["port"]}/{db_secret_string["dbname"]}'
     )
 
 
