@@ -224,6 +224,18 @@
   }
 }
 
+.browse-all-filter-from-dates {
+  .govuk-form-group {
+    margin-bottom: 1rem;
+  }
+}
+
+.browse-all-filter-to-dates {
+  .govuk-form-group {
+    margin-bottom: 1rem;
+  }
+}
+
 //  MOBILE STYLES //
 
 @media screen and (width <= $breakpoint-medium) {
