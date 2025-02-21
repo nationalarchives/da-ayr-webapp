@@ -11,10 +11,10 @@
         </div>
         <div class="universal-viewer" id="viewer">
             <script nonce="{{ csp_nonce() }}"
-                    src="https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/umd/UV.js"
+                    src="https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/UV.js"
                     integrity="sha256-Fdp0oui1Jul9OK4Kuwm7OSbhzuuqBcgD5wi8A2tXTns="
                     crossorigin="anonymous"></script>
-            <link href="https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css"
+            <link href="https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/uv.min.css"
                   rel="stylesheet">
             <noscript>
                 {% if file_extension in supported_render_extensions %}
