@@ -30,7 +30,7 @@ class ConsignmentBulkIndexError(Exception):
 
 
 def bulk_index_consignment_from_aws(
-    consignment_reference: str, secret_id: str
+    consignment_reference: str, secret_id: str, db_secret_id: str
 ) -> None:
     """
     Retrieve credentials and host information from AWS Secrets Manager, fetch consignment data,
@@ -40,13 +40,15 @@ def bulk_index_consignment_from_aws(
         consignment_reference (str): The reference identifier for the consignment.
         secret_id (str): The ID of the AWS secret storing s3 record bucket name,
             and database and OpenSearch credentials.
+        db_secret_id (str): The ID of the AWS secret storing database credentials.
 
     Returns:
         None
     """
     secret_string = get_secret_data(secret_id)
+    db_secret_string = get_secret_data(db_secret_id)
     bucket_name = secret_string["RECORD_BUCKET_NAME"]
-    database_url = _build_db_url(secret_string)
+    database_url = _build_db_url(db_secret_string)
     open_search_host_url = secret_string["OPEN_SEARCH_HOST"]
     open_search_http_auth = _get_opensearch_auth(secret_string)
     open_search_bulk_index_timeout = int(

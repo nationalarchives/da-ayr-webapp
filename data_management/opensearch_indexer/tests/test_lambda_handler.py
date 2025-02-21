@@ -47,7 +47,9 @@ def test_lambda_handler_calls_index_file_content_and_metadata_in_opensearch(
       - An AWS4Auth object with the correct credentials determined by assuming the IAM role.
     """
     secret_name = "test_vars"  # pragma: allowlist secret
+    db_secret_name = "test_db_vars"  # pragma: allowlist secret
     monkeypatch.setenv("SECRET_ID", secret_name)
+    monkeypatch.setenv("DB_SECRET_ID", db_secret_name)
 
     opensearch_master_role_arn = (
         "arn:aws:iam::123456789012:role/test-opensearch-role"
@@ -57,15 +59,20 @@ def test_lambda_handler_calls_index_file_content_and_metadata_in_opensearch(
 
     secret_string = json.dumps(
         {
-            "DB_USER": "testuser",
-            "DB_PASSWORD": "testpassword",  # pragma: allowlist secret
-            "DB_HOST": "testhost",
-            "DB_PORT": "5432",
-            "DB_NAME": "testdb",
             "OPEN_SEARCH_HOST": "https://test-opensearch.com",
             "OPEN_SEARCH_MASTER_ROLE_ARN": opensearch_master_role_arn,
             "AWS_REGION": "eu-west-2",
             "RECORD_BUCKET_NAME": bucket_name,
+        }
+    )
+
+    db_secret_string = json.dumps(
+        {
+            "username": "testuser",
+            "password": "testpassword",  # pragma: allowlist secret
+            "proxy": "testhost",
+            "port": 5432,
+            "dbname": "testdb",
         }
     )
 
@@ -75,6 +82,9 @@ def test_lambda_handler_calls_index_file_content_and_metadata_in_opensearch(
 
     secretsmanager_client.create_secret(
         Name=secret_name, SecretString=secret_string
+    )
+    secretsmanager_client.create_secret(
+        Name=db_secret_name, SecretString=db_secret_string
     )
 
     s3_client = boto3.client("s3", region_name="us-east-1")

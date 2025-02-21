@@ -66,8 +66,10 @@ def test_lambda_handler_invokes_bulk_index_with_correct_file_data(
     session = Session()
 
     secret_name = "test_vars"  # pragma: allowlist secret
+    db_secret_name = "test_db_vars"  # pragma: allowlist secret
 
     monkeypatch.setenv("SECRET_ID", secret_name)
+    monkeypatch.setenv("DB_SECRET_ID", db_secret_name)
 
     bucket_name = "test_bucket"
 
@@ -76,16 +78,21 @@ def test_lambda_handler_invokes_bulk_index_with_correct_file_data(
     )
     secret_string = json.dumps(
         {
-            "DB_USER": "postgres",
-            "DB_PASSWORD": "",
-            "DB_HOST": "127.0.0.1",
-            "DB_PORT": database.settings["port"],
-            "DB_NAME": "test",
             "AWS_REGION": "eu-west-2",
             "RECORD_BUCKET_NAME": bucket_name,
             "OPEN_SEARCH_HOST": "https://test-opensearch.com",
             "OPEN_SEARCH_MASTER_ROLE_ARN": opensearch_master_role_arn,
             "OPEN_SEARCH_BULK_INDEX_TIMEOUT": 600,
+        }
+    )
+
+    db_secret_string = json.dumps(
+        {
+            "username": "postgres",
+            "password": "",
+            "proxy": "127.0.0.1",
+            "port": database.settings["port"],
+            "dbname": "test",
         }
     )
 
@@ -95,6 +102,9 @@ def test_lambda_handler_invokes_bulk_index_with_correct_file_data(
 
     secretsmanager_client.create_secret(
         Name=secret_name, SecretString=secret_string
+    )
+    secretsmanager_client.create_secret(
+        Name=db_secret_name, SecretString=db_secret_string
     )
 
     s3_client = boto3.client("s3", region_name="us-east-1")
