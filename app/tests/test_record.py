@@ -148,9 +148,9 @@ class TestRecord:
 
         expected_breadcrumbs_html = f"""
         <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
-        <p class="govuk-body-m govuk-body-m__record-view">You are viewing</p>
+        <p class="govuk-body browse__body">You are viewing</p>
 
-        <div class="govuk-breadcrumbs govuk-breadcrumbs--file">
+        <div class="govuk-breadcrumbs">
             <ol class="govuk-breadcrumbs__list">
                 <li class="govuk-breadcrumbs__list-item">
                 <a class="govuk-breadcrumbs__link--record" href="{browse_all_route_url}">All available records</a>
