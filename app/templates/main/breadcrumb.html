@@ -3,7 +3,7 @@
 {% set series_url = browse_url ~ "/series/" %}
 {% set consignment_url = browse_url ~ "/consignment/" %}
 {% set search_result_summary_url = "/search_results_summary?query=" %}
-<div class="govuk-breadcrumbs  {{ 'govuk-breadcrumbs--file' if 'record' in dict }}">
+<div class="govuk-breadcrumbs">
     <ol class="govuk-breadcrumbs__list">
         {% for key, value in dict.items() %}
             {% if loop.index != dict|length %}
