@@ -106,7 +106,7 @@ class TestRecord:
         html = response.data.decode()
 
         soup = BeautifulSoup(html, "html.parser")
-        label = soup.find("label", string="Search for digital records")
+        label = soup.find("h1", string="Search for digital records")
         textbox = soup.find("input", {"id": "search-input"})
         button = soup.find("button", {"id": "search-submit"})
 
