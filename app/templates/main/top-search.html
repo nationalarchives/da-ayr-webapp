@@ -17,39 +17,44 @@
 ] %}
 <div class="search govuk-grid-column-full">
     <div class="search__els">
-        <label class="govuk-label search__els__heading" for="search-input">Search for digital records</label>
         <form class="search__els__form"
               method="get"
               action="{{ url_for('main.search') }}">
-            <div class="govuk-radios govuk-radios--small search__els__form__checkboxes"
-                 data-module="govuk-radios">
-                {% for area in search_areas %}
-                    <div class="govuk-radios__item">
-                        <input class="govuk-radios__input"
-                               id="{{ area.value }}"
-                               name="search_area"
-                               type="radio"
-                               value="{{ area.value }}"
-                               aria-label="{{ area.aria_label }}"
-                               {% if search_area %} {% if search_area == area.value %}checked{% endif %}
-                               {% else %}
-                               {% if area.value == 'everywhere' %}checked{% endif %}
-                               {% endif %} />
-                        <label class="govuk-label govuk-radios__label" for="{{ area.value }}">{{ area.label }}</label>
-                    </div>
-                {% endfor %}
-            </div>
-            <div class="search__els__form__input-container">
-                <input class="govuk-input"
-                       id="search-input"
-                       name="query"
-                       type="text"
-                       value="{{ filters['query'] if filters['query'] else '' }}" />
-                <button class="govuk-button"
-                        id="search-submit"
-                        data-module="govuk-button"
-                        type="submit">Search</button>
-            </div>
+            <fieldset class="govuk-fieldset">
+                <legend class="govuk-fieldset__legend govuk-fieldset__legend--search">
+                    <h1 class="govuk-label search__els__heading">Search for digital records</h1>
+                </legend>
+                <div class="govuk-radios govuk-radios--small search__els__form__checkboxes"
+                     data-module="govuk-radios">
+                    {% for area in search_areas %}
+                        <div class="govuk-radios__item">
+                            <input class="govuk-radios__input"
+                                   id="{{ area.value }}"
+                                   name="search_area"
+                                   type="radio"
+                                   value="{{ area.value }}"
+                                   aria-label="{{ area.aria_label }}"
+                                   {% if search_area %} {% if search_area == area.value %}checked{% endif %}
+                                   {% else %}
+                                   {% if area.value == 'everywhere' %}checked{% endif %}
+                                   {% endif %} />
+                            <label class="govuk-label govuk-radios__label" for="{{ area.value }}">{{ area.label }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="search__els__form__input-container">
+                    <input class="govuk-input"
+                           id="search-input"
+                           name="query"
+                           type="text"
+                           value="{{ filters['query'] if filters['query'] else '' }}"
+                           aria-label="Enter search query for digital records" />
+                    <button class="govuk-button"
+                            id="search-submit"
+                            data-module="govuk-button"
+                            type="submit">Search</button>
+                </div>
+            </fieldset>
         </form>
     </div>
 </div>
