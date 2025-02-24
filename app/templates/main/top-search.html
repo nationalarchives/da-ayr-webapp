@@ -17,13 +17,13 @@
 ] %}
 <div class="search govuk-grid-column-full">
     <div class="search__els">
-        <fieldset class="govuk-fieldset">
-            <legend class="govuk-fieldset__legend govuk-fieldset__legend--search">
-                <h1 class="govuk-label search__els__heading">Search for digital records</h1>
-            </legend>
-            <form class="search__els__form"
-                  method="get"
-                  action="{{ url_for('main.search') }}">
+        <form class="search__els__form"
+              method="get"
+              action="{{ url_for('main.search') }}">
+            <fieldset class="govuk-fieldset">
+                <legend class="govuk-fieldset__legend govuk-fieldset__legend--search">
+                    <h1 class="govuk-label search__els__heading">Search for digital records</h1>
+                </legend>
                 <div class="govuk-radios govuk-radios--small search__els__form__checkboxes"
                      data-module="govuk-radios">
                     {% for area in search_areas %}
@@ -54,7 +54,7 @@
                             data-module="govuk-button"
                             type="submit">Search</button>
                 </div>
-            </form>
-        </fieldset>
+            </fieldset>
+        </form>
     </div>
 </div>
