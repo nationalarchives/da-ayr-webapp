@@ -15,3 +15,11 @@ a {
     font-size: 16px;
   }
 }
+
+.govuk-fieldset {
+  &__legend {
+    &--search {
+      margin-bottom: 0;
+    }
+  }
+}
