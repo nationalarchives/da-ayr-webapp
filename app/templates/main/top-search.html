@@ -17,7 +17,7 @@
 ] %}
 <div class="search govuk-grid-column-full">
     <div class="search__els">
-        <label class="govuk-label search__els__heading" for="search-input">Search for digital records</label>
+        <h1 class="govuk-label search__els__heading">Search for digital records</h1>
         <form class="search__els__form"
               method="get"
               action="{{ url_for('main.search') }}">
@@ -44,7 +44,8 @@
                        id="search-input"
                        name="query"
                        type="text"
-                       value="{{ filters['query'] if filters['query'] else '' }}" />
+                       value="{{ filters['query'] if filters['query'] else '' }}"
+                       aria-label="Enter search query for digital records" />
                 <button class="govuk-button"
                         id="search-submit"
                         data-module="govuk-button"
