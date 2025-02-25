@@ -116,29 +116,29 @@
                             <h3 class="govuk-heading-s govuk-heading-s--consignment-filter">Record status</h3>
                         </legend>
                         <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
-                            <div class="govuk-radios__item govuk-radios__item--consignment-radio-buttons">
-                                <input class="govuk-radios__input" id="recordStatus-closed" name="record_status"
-                                    type="radio" value="closed" {% if filters["record_status"]=='closed' %}checked{%
-                                    endif %}>
+                            <div class="govuk-radios__item govuk-radios__item--consignment">
+                                <input class="govuk-radios__input" id="recordStatus-all" name="record_status" type="radio"
+                                    value="all" {% if filters["record_status"]=='all' %}checked{% endif %} {% if not
+                                    filters["record_status"] %}checked{% endif %}>
                                     <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
-                                           for="recordStatus-closed">Closed</label>
+                                           for="recordStatus-all">All records</label>
                                 </div>
                                 <div class="govuk-radios__item govuk-radios__item--consignment-radio-buttons">
-                                    <input class="govuk-radios__input"
-                                           id="recordStatus-open"
-                                           name="record_status"
-                                           type="radio"
-                                           value="open"
-                                           {% if filters["record_status"]=='open' %}checked{% endif %}>
-                                    <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
-                                           for="recordStatus-open">Open</label>
-                                </div>
-                                <div class="govuk-radios__item govuk-radios__item--consignment">
-                                    <input class="govuk-radios__input" id="recordStatus-all" name="record_status" type="radio"
-                                        value="all" {% if filters["record_status"]=='all' %}checked{% endif %} {% if not
-                                        filters["record_status"] %}checked{% endif %}>
+                                    <input class="govuk-radios__input" id="recordStatus-closed" name="record_status"
+                                        type="radio" value="closed" {% if filters["record_status"]=='closed' %}checked{%
+                                        endif %}>
                                         <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
-                                               for="recordStatus-all">All records</label>
+                                               for="recordStatus-closed">Closed</label>
+                                    </div>
+                                    <div class="govuk-radios__item govuk-radios__item--consignment-radio-buttons">
+                                        <input class="govuk-radios__input"
+                                               id="recordStatus-open"
+                                               name="record_status"
+                                               type="radio"
+                                               value="open"
+                                               {% if filters["record_status"]=='open' %}checked{% endif %}>
+                                        <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
+                                               for="recordStatus-open">Open</label>
                                     </div>
                                 </div>
                             </fieldset>
