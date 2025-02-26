@@ -1,13 +1,24 @@
-FROM public.ecr.aws/lambda/python:3.11
-# use python 3.11, not 3.12 due to issues with textract on 3.12 at the moment
+FROM python:3.13.2
 
-RUN yum install -y python-dev libxml2-dev libxslt1-dev antiword unrtf poppler-utils pstotext tesseract-ocr \
-flac ffmpeg lame libmad0 libsox-fmt-mp3 sox libjpeg-dev swig
+RUN apt-get update && apt-get install -y \
+    python-dev-is-python3 \
+    libxml2-dev libxslt1-dev \
+    antiword unrtf poppler-utils tesseract-ocr \
+    flac ffmpeg lame libmad0 libsox-fmt-mp3 sox \
+    libjpeg-dev swig
+
 
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
 
-RUN pip install -r requirements.txt
+# Install the function's dependencies
+RUN pip install \
+        awslambdaric \
+        -r requirements.txt
 
 COPY opensearch_indexer/ ${LAMBDA_TASK_ROOT}/opensearch_indexer
 
+# Set runtime interface client as default command for the container runtime
+ENTRYPOINT [ "/usr/local/bin/python", "-m", "awslambdaric" ]
+
+# Pass the name of the function handler as an argument to the runtime
 CMD [ "opensearch_indexer.index_consignment.lambda_function.lambda_handler" ]
