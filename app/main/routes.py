@@ -45,8 +45,6 @@ from app.main.util.pagination import (
     paginate,
 )
 from app.main.util.render_utils import (
-    UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES,
-    UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES,
     create_presigned_url,
     generate_breadcrumb_values,
     generate_image_manifest,
@@ -818,9 +816,15 @@ def generate_manifest(record_id: uuid.UUID):
     filename = file.FileName
     file_type = filename.split(".")[-1].lower()
 
-    if file_type in UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES:
+    if (
+        file_type
+        in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES"]
+    ):
         return generate_pdf_manifest(record_id)
-    elif file_type in UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES:
+    elif (
+        file_type
+        in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]
+    ):
         return generate_image_manifest(s3_file_object, record_id)
     else:
         current_app.app_logger.error(
