@@ -574,11 +574,29 @@ def search_transferring_body(_id: uuid.UUID):
     highlight_tag = f"uuid_prefix_{uuid.uuid4().hex}"
 
     query, search_area = get_query_and_search_area(request)
-    search_filter = (
-        request.args.get("search_filter", "").strip()
-        if request.args.get("search_filter")
-        else None
-    )
+
+    additional_term = request.args.get("search_filter", "").strip()
+
+    if additional_term:
+        if " " in additional_term and not (
+            additional_term.startswith('"') and additional_term.endswith('"')
+        ):
+            additional_term = f'"{additional_term}"'
+
+        query = f"{query}&{additional_term}" if query else additional_term
+
+        args = request.args.copy()
+        args.pop("search_filter", None)
+        args["query"] = query
+        return redirect(
+            url_for(
+                "main.search_transferring_body",
+                _id=_id,
+                **args,
+                _anchor="browse-records",
+            )
+        )
+
     filters = {"query": query}
 
     breadcrumb_values = {
@@ -597,16 +615,7 @@ def search_transferring_body(_id: uuid.UUID):
 
     if query:
         quoted_phrases, single_terms = extract_search_terms(query)
-
-        if search_filter:
-            if search_filter.startswith('"') and search_filter.endswith('"'):
-                quoted_phrases.append(search_filter[1:-1])
-            else:
-                single_terms.append(search_filter.strip())
         search_terms = quoted_phrases + single_terms
-
-        query = f"{query},{search_filter}" if search_filter else query
-        filters["query"] = query
 
         breadcrumb_values[0] = {"query": query}
         display_terms = " + ".join(

@@ -1,5 +1,3 @@
-import re
-
 import opensearchpy
 from flask import abort, current_app
 from opensearchpy import OpenSearch, RequestsHttpConnection
@@ -386,23 +384,30 @@ def build_search_transferring_body_query(
 
 def extract_search_terms(query):
     """
-    Extracts quoted phrases and single terms from a search query string.
+    Extract search terms from the query string, handling both quoted phrases and single terms.
+    Multiple search terms are separated by '&'.
 
     Args:
-        query (str): The search query string containing both quoted phrases and single terms.
+        query (str): The search query string
 
     Returns:
         tuple: A tuple containing two lists:
             - quoted_phrases: A list of phrases enclosed in double quotes.
             - single_terms: A list of individual terms that are not in quotes.
     """
-    # Extract quoted phrases
-    quoted_phrases = re.findall(r'"([^"]*)"', query)
+    quoted_phrases = []
+    single_terms = []
 
-    # Remove quoted phrases and split remaining terms by spaces
-    remaining_terms = re.sub(r'"[^"]*"', "", query).replace(",", " ")
-    single_terms = [
-        term.strip() for term in remaining_terms.split() if term.strip()
-    ]
+    query_parts = query.split("&")
+
+    for part in query_parts:
+        part = part.strip()
+        if not part:
+            continue
+
+        if part.startswith('"') and part.endswith('"') and len(part) > 2:
+            quoted_phrases.append(part[1:-1])
+        else:
+            single_terms.append(part)
 
     return quoted_phrases, single_terms
