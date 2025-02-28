@@ -33,5 +33,5 @@ def test_search_to_record(aau_user_page: Page):
         re.compile(r"\/search\/transferring_body\/.*")
     )
 
-    aau_user_page.get_by_role("link", name="file-a2.txt").click()
+    aau_user_page.get_by_role("link", name="file-a2.txt").first().click()
     expect(aau_user_page).to_have_url(re.compile(r"\/record\/.*"))
