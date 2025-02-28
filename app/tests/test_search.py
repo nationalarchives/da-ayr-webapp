@@ -1056,7 +1056,7 @@ class TestSearchTransferringBody:
 
         term1 = "fi"
         term2 = "second"
-        query = term1 + "," + term2
+        query = term1 + "&" + term2
         form_data = {"query": query}
 
         transferring_body_id = browse_consignment_files[
@@ -1162,7 +1162,7 @@ class TestSearchTransferringBody:
         )
         term1 = "fi"
         term2 = "st"
-        form_data = {"query": term1 + "," + term2}
+        form_data = {"query": term1 + "&" + term2}
 
         transferring_body_id = browse_consignment_files[
             0
@@ -1315,7 +1315,7 @@ class TestSearchTransferringBody:
 
         term1 = "TDR-2023-FI1"
         term2 = "first"
-        query = f"{term1},{term2}"
+        query = f"{term1}&{term2}"
 
         form_data = {"query": query}
         response = client.get(
@@ -1375,7 +1375,7 @@ class TestSearchTransferringBody:
 
         term1 = "TDR-2023-FI1"
         term2 = "first"
-        query = f"{term1},{term2}"
+        query = f"{term1}&{term2}"
 
         form_data = {"query": query}
         response = client.get(
@@ -1436,7 +1436,7 @@ class TestSearchTransferringBody:
         term1 = "TDR-2023-FI1"
         term2 = "first"
         term3 = "second"
-        query = f"{term1},{term2},{term3}"
+        query = f"{term1}&{term2}&{term3}"
 
         form_data = {"query": query}
         response = client.get(
@@ -1460,19 +1460,19 @@ class TestSearchTransferringBody:
         anchor_term1 = soup.find(
             "a",
             {
-                "href": f"{self.route_url}/{transferring_body_id}?query={term2},{term3}"
+                "href": f"{self.route_url}/{transferring_body_id}?query={term2}%26{term3}"
             },
         )
         anchor_term2 = soup.find(
             "a",
             {
-                "href": f"{self.route_url}/{transferring_body_id}?query={term1},{term3}"
+                "href": f"{self.route_url}/{transferring_body_id}?query={term1}%26{term3}"
             },
         )
         anchor_term3 = soup.find(
             "a",
             {
-                "href": f"{self.route_url}/{transferring_body_id}?query={term1},{term2}"
+                "href": f"{self.route_url}/{transferring_body_id}?query={term1}%26{term2}"
             },
         )
 

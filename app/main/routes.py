@@ -614,6 +614,9 @@ def search_transferring_body(_id: uuid.UUID):
     )
 
     if query:
+        if query.endswith(","):
+            query = query[:-1]
+
         quoted_phrases, single_terms = extract_search_terms(query)
         search_terms = quoted_phrases + single_terms
 
