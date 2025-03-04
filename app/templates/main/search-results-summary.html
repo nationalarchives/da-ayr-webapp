@@ -18,12 +18,14 @@
                         No results found
                     {% endif %}
                 </h1>
-                <h2 class="govuk-body browse__body">You are viewing</h2>
-                {% set breadcrumbs = {"everything": "All available records", "body": "Results summary"} %}
-                <!-- BREAD CRUMB -->
-                {% with dict = breadcrumbs %}
-                    {% include "breadcrumb.html" %}
-                {% endwith %}
+                {% if num_records_found > 0 %}
+                    <h2 class="govuk-body browse__body">You are viewing</h2>
+                    {% set breadcrumbs = {"everything": "All available records", "body": "Results summary"} %}
+                    <!-- BREAD CRUMB -->
+                    {% with dict = breadcrumbs %}
+                        {% include "breadcrumb.html" %}
+                    {% endwith %}
+                {% endif %}
                 {% if num_records_found > 0 %}
                     <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds__search-results-summary">
                         <table class="govuk-table browse-grid__table govuk-!-margin-top-8"
