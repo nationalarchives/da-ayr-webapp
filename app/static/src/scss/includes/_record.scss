@@ -351,8 +351,9 @@
   justify-content: flex-end;
 }
 
-.record-view-download-btn {
-  margin: 1rem;
+.govuk-tabs-wrapper {
+  display: flex;
+  justify-content: space-between;
 }
 
 .record-view {

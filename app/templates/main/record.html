@@ -69,14 +69,24 @@
                 <div class="main-content" id="main-content" role="main">
                     <div class="govuk-width-container">
                         <div class="govuk-tabs" data-module="govuk-tabs">
-                            <ul class="govuk-tabs__list">
-                                <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
-                                    <a class="govuk-tabs__tab" href="#record-view">Record View</a>
-                                </li>
-                                <li class="govuk-tabs__list-item">
-                                    <a class="govuk-tabs__tab" href="#record-details">Record Details</a>
-                                </li>
-                            </ul>
+                            <div class="govuk-tabs-wrapper">
+                                <ul class="govuk-tabs__list">
+                                    <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+                                        <a class="govuk-tabs__tab" href="#record-view">Record View</a>
+                                    </li>
+                                    <li class="govuk-tabs__list-item">
+                                        <a class="govuk-tabs__tab" href="#record-details">Record Details</a>
+                                    </li>
+                                </ul>
+                                <div class="record-view-header">
+                                    {% if can_download_records %}
+                                        <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
+                                           class="govuk-button govuk-button__download--record record-view-download-btn"
+                                           data-module="govuk-button"
+                                           aria-label="Download record {{ record['file_name'] }}">Download record</a>
+                                    {% endif %}
+                                </div>
+                            </div>
                             <!-- Record View -->
                             {% include "record-view.html" %}
                             <!-- Record Details -->
