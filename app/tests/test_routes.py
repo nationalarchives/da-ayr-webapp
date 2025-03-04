@@ -10,15 +10,10 @@ from flask.testing import FlaskClient
 from moto import mock_aws
 from PIL import Image
 
-
-@pytest.fixture
-def supported_image_types(app):
-    return app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]
-
-
-@pytest.fixture
-def supported_document_types(app):
-    return app.config["UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES"]
+from configs.base_config import (
+    UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES,
+    UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES,
+)
 
 
 def verify_cookies_header_row(data):
@@ -366,7 +361,9 @@ class TestRoutes:
         for key, expected_value in expected_params.items():
             assert f"{key}={expected_value}" in response.headers["Location"]
 
-    @pytest.mark.parametrize("document_format", supported_document_types)
+    @pytest.mark.parametrize(
+        "document_format", UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES
+    )
     @mock_aws
     @patch("app.main.routes.boto3.client")
     @patch("app.main.routes.generate_pdf_manifest")
@@ -399,7 +396,9 @@ class TestRoutes:
         assert response.status_code == 200
         assert json.loads(response.text) == {"mock": "pdf_manifest"}
 
-    @pytest.mark.parametrize("image_format", supported_image_types)
+    @pytest.mark.parametrize(
+        "image_format", UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES
+    )
     @mock_aws
     @patch("app.main.routes.boto3.client")
     @patch("app.main.routes.generate_image_manifest")
