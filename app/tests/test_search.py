@@ -273,7 +273,8 @@ class TestSearchResultsSummary:
                     search terms.
         </li>
         <li>
-        Alternatively, use the breadcrumbs to navigate back to the browse view.
+        Alternatively, use the breadcrumbs to navigate back to the
+        <a class="govuk-link govuk-link--no-visited-state" href="/browse">browse view</a>.
         </li>
         </ul>"""
         assert response.status_code == 200
@@ -705,7 +706,8 @@ class TestSearchTransferringBody:
                     search terms.
         </li>
         <li>
-        Alternatively, use the breadcrumbs to navigate back to the browse view.
+        Alternatively, use the breadcrumbs to navigate back to the
+        <a class="govuk-link govuk-link--no-visited-state" href="/browse">browse view</a>.
         </li>
         </ul>"""
         assert response.status_code == 200
