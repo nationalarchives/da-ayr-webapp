@@ -389,10 +389,9 @@ def extract_search_terms(query):
     """
     Extract search terms from the query string, handling:
     - Quoted phrases
-    - Terms separated by commas
     - Terms separated by '+'
-    - Stripping whitespace and commas
-
+    - Preserving exact phrase matching
+    
     Args:
         query (str): The search query string
 
@@ -401,24 +400,21 @@ def extract_search_terms(query):
             - quoted_phrases: A list of phrases enclosed in double quotes.
             - single_terms: A list of individual terms that are not in quotes.
     """
+    query = urllib.parse.unquote(query)
+
     quoted_phrases = []
     single_terms = []
 
-    query = urllib.parse.unquote(query)
+    quote_pattern = re.compile(r'"([^"]*)"')
+    quotes_found = quote_pattern.findall(query)
+    
+    query = quote_pattern.sub('', query)
 
-    query = query.replace("+", " ")
+    quoted_phrases.extend(quotes_found)
 
-    query_parts = re.split(r"[,\s]+", query)
-
-    for part in query_parts:
-        part = part.strip()
-        if not part:
-            continue
-
-        if part.startswith('"') and part.endswith('"') and len(part) > 2:
-            quoted_phrases.append(part[1:-1])
-        else:
-            single_terms.append(part)
+    remaining_terms = [term.strip() for term in query.split('+') if term.strip()]
+    
+    single_terms.extend(remaining_terms)
 
     return quoted_phrases, single_terms
 
