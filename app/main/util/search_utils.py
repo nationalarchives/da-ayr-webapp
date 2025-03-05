@@ -391,7 +391,7 @@ def extract_search_terms(query):
     - Quoted phrases
     - Terms separated by '+'
     - Preserving exact phrase matching
-    
+
     Args:
         query (str): The search query string
 
@@ -407,13 +407,15 @@ def extract_search_terms(query):
 
     quote_pattern = re.compile(r'"([^"]*)"')
     quotes_found = quote_pattern.findall(query)
-    
-    query = quote_pattern.sub('', query)
+
+    query = quote_pattern.sub("", query)
 
     quoted_phrases.extend(quotes_found)
 
-    remaining_terms = [term.strip() for term in query.split('+') if term.strip()]
-    
+    remaining_terms = [
+        term.strip() for term in query.split("+") if term.strip()
+    ]
+
     single_terms.extend(remaining_terms)
 
     return quoted_phrases, single_terms
