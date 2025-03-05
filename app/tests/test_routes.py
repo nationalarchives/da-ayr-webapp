@@ -10,7 +10,7 @@ from flask.testing import FlaskClient
 from moto import mock_aws
 from PIL import Image
 
-from app.main.util.render_utils import (
+from configs.base_config import (
     UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES,
     UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES,
 )
