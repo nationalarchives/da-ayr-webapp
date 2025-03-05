@@ -1,5 +1,8 @@
+import re
+import urllib.parse
+
 import opensearchpy
-from flask import abort, current_app
+from flask import abort, current_app, redirect, request, url_for
 from opensearchpy import OpenSearch, RequestsHttpConnection
 
 from app.main.util.date_validator import format_opensearch_date
@@ -384,8 +387,11 @@ def build_search_transferring_body_query(
 
 def extract_search_terms(query):
     """
-    Extract search terms from the query string, handling both quoted phrases and single terms.
-    Multiple search terms are separated by '&'.
+    Extract search terms from the query string, handling:
+    - Quoted phrases
+    - Terms separated by commas
+    - Terms separated by '+'
+    - Stripping whitespace and commas
 
     Args:
         query (str): The search query string
@@ -398,7 +404,11 @@ def extract_search_terms(query):
     quoted_phrases = []
     single_terms = []
 
-    query_parts = query.split("&")
+    query = urllib.parse.unquote(query)
+
+    query = query.replace("+", " ")
+
+    query_parts = re.split(r"[,\s]+", query)
 
     for part in query_parts:
         part = part.strip()
@@ -411,3 +421,25 @@ def extract_search_terms(query):
             single_terms.append(part)
 
     return quoted_phrases, single_terms
+
+
+def check_additional_term(additional_term, query, args, _id):
+    if additional_term:
+        if " " in additional_term and not (
+            additional_term.startswith('"') and additional_term.endswith('"')
+        ):
+            additional_term = f'"{additional_term}"'
+
+        query = f"{query}+{additional_term}" if query else additional_term
+
+        args = request.args.copy()
+        args.pop("search_filter", None)
+        args["query"] = query
+        return redirect(
+            url_for(
+                "main.search_transferring_body",
+                _id=_id,
+                **args,
+                _anchor="browse-records",
+            )
+        )

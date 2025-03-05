@@ -57,6 +57,7 @@ from app.main.util.render_utils import (
 from app.main.util.search_utils import (
     build_search_results_summary_query,
     build_search_transferring_body_query,
+    check_additional_term,
     execute_search,
     extract_search_terms,
     get_open_search_fields_to_search_on_and_sorting,
@@ -577,13 +578,15 @@ def search_transferring_body(_id: uuid.UUID):
 
     additional_term = request.args.get("search_filter", "").strip()
 
+    check_additional_term(additional_term, query, request.args.copy(), _id)
+
     if additional_term:
         if " " in additional_term and not (
             additional_term.startswith('"') and additional_term.endswith('"')
         ):
             additional_term = f'"{additional_term}"'
 
-        query = f"{query}&{additional_term}" if query else additional_term
+        query = f"{query}+{additional_term}" if query else additional_term
 
         args = request.args.copy()
         args.pop("search_filter", None)

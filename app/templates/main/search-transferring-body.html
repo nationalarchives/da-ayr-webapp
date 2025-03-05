@@ -267,7 +267,7 @@
                                                     {% endif %}
                                                 {% endif %}
                                             {% endfor %}
-                                            {% set new_query = terms_to_keep | join('&') %}
+                                            {% set new_query = terms_to_keep | join('+') %}
                                             {% if search_terms | length == 1 %}
                                                 {% set remove_url_args = request.args.copy() %}
                                                 {% set _ = remove_url_args.pop('query', None) %}
