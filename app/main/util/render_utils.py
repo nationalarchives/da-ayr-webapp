@@ -5,20 +5,6 @@ from flask import abort, current_app, jsonify, url_for
 from PIL import Image
 
 from app.main.db.models import File, db
-from app.main.db.queries import get_file_metadata
-
-
-def get_file_details(file):
-    """Retrieve file metadata and determine file type and extension."""
-    file_metadata = get_file_metadata(file.FileId)
-    file_extension = file.FileName.split(".")[-1].lower()
-
-    if file_extension in ["pdf", "png", "jpg", "jpeg"]:
-        file_type = "iiif"
-    else:
-        file_type = None
-
-    return file_metadata, file_type, file_extension
 
 
 def generate_breadcrumb_values(file):

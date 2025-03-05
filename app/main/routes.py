@@ -27,6 +27,7 @@ from app.main.db.queries import (
     build_browse_consignment_query,
     build_browse_query,
     build_browse_series_query,
+    get_file_metadata,
 )
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
@@ -50,7 +51,6 @@ from app.main.util.render_utils import (
     generate_image_manifest,
     generate_pdf_manifest,
     get_download_filename,
-    get_file_details,
 )
 from app.main.util.search_utils import (
     build_search_results_summary_query,
@@ -695,7 +695,11 @@ def record(record_id: uuid.UUID):
 
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
-    file_metadata, file_type, file_extension = get_file_details(file)
+    file_metadata = get_file_metadata(file.FileId)
+    file_extension = file.FileName.split(".")[-1].lower()
+    can_render_file = (
+        file_extension in current_app.config["SUPPORTED_RENDER_EXTENSIONS"]
+    )
 
     breadcrumb_values = generate_breadcrumb_values(file)
 
@@ -720,7 +724,7 @@ def record(record_id: uuid.UUID):
         download_filename=download_filename,
         can_download_records=can_download_records,
         filters={},
-        file_type=file_type,
+        can_render_file=can_render_file,
         manifest_url=manifest_url,
         file_extension=file_extension,
         presigned_url=presigned_url,

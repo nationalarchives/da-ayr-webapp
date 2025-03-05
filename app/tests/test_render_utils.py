@@ -6,22 +6,7 @@ from app.main.util.render_utils import (
     create_presigned_url,
     generate_breadcrumb_values,
     get_download_filename,
-    get_file_details,
 )
-
-
-@patch("app.main.util.render_utils.get_file_metadata")
-def test_get_file_details(mock_get_file_metadata):
-    mock_file = Mock()
-    mock_file.FileId = "test_id"
-    mock_file.FileName = "test_file.pdf"
-    mock_get_file_metadata.return_value = {"metadata_key": "metadata_value"}
-
-    metadata, file_type, extension = get_file_details(mock_file)
-
-    assert metadata == {"metadata_key": "metadata_value"}
-    assert file_type == "iiif"
-    assert extension == "pdf"
 
 
 def test_generate_breadcrumb_values():
