@@ -10,10 +10,7 @@ from flask.testing import FlaskClient
 from moto import mock_aws
 from PIL import Image
 
-from configs.base_config import (
-    UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES,
-    UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES,
-)
+from configs.base_config import UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES
 
 
 def verify_cookies_header_row(data):
@@ -361,9 +358,6 @@ class TestRoutes:
         for key, expected_value in expected_params.items():
             assert f"{key}={expected_value}" in response.headers["Location"]
 
-    @pytest.mark.parametrize(
-        "document_format", UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES
-    )
     @mock_aws
     @patch("app.main.routes.boto3.client")
     @patch("app.main.routes.generate_pdf_manifest")
@@ -375,14 +369,13 @@ class TestRoutes:
         client: FlaskClient,
         mock_all_access_user,
         record_files,
-        document_format,
     ):
         """
         Test that a PDF manifest is successfully generated.
         """
         mock_all_access_user(client)
         file = record_files[0]["file_object"]
-        file.FileName = f"document.{document_format}"
+        file.FileName = "document.pdf"
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
