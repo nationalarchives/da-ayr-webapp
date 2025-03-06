@@ -389,7 +389,8 @@ def extract_search_terms(query):
     """
     Extract search terms from the query string, handling:
     - Quoted phrases
-    - Terms separated by '+'
+    - Commas as primary separators
+    - '+' as secondary separators
     - Preserving exact phrase matching
 
     Args:
@@ -412,11 +413,12 @@ def extract_search_terms(query):
 
     quoted_phrases.extend(quotes_found)
 
-    remaining_terms = [
-        term.strip() for term in query.split("+") if term.strip()
-    ]
+    comma_parts = [part.strip() for part in query.split(",")]
 
-    single_terms.extend(remaining_terms)
+    for part in comma_parts:
+        if part:
+            plus_parts = [term.strip() for term in part.split("+")]
+            single_terms.extend([term for term in plus_parts if term])
 
     return quoted_phrases, single_terms
 
