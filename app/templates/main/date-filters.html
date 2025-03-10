@@ -1,6 +1,5 @@
-<br>
 <div class="browse-all-filter-from-dates">
-    <div class="govuk-form-group {% if date_validation_errors %}{% if date_validation_errors.get('date_from') %}govuk-form-group--error{% endif %}{% endif %}">
+    <div class="{% if date_validation_errors %}{% if date_validation_errors.get('date_from') %}govuk-form-group--error{% endif %}{% endif %}">
         <fieldset class="govuk-fieldset govuk-fieldset--date-from" role="group">
             <legend aria-label="{% if view_type=='consignment' %}Record date from{% else %}Date consignment transferred from{% endif %}">
                 <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Date from</h3>
@@ -12,7 +11,7 @@
             {% endif %}
             <div class="govuk-date-input govuk-date-input--browse-all-date-from">
                 <div class="govuk-date-input__item govuk-date-input__item--browse-all">
-                    <div class="govuk-form-group">
+                    <div class="govuk-form-group govuk-form-group--dates">
                         <label class="govuk-label govuk-date-input__label filters-form__date__label"
                                for="date_from_day">Day</label>
                         <input class="govuk-input govuk-date-input__input govuk-input--width-2 {% if date_error_fields %}{% if 'date_from_day' in date_error_fields or 'date_from' in date_error_fields %}govuk-input--error{% endif %}{% endif %}"
@@ -25,7 +24,7 @@
                     </div>
                 </div>
                 <div class="govuk-date-input__item govuk-date-input__item--browse-all">
-                    <div class="govuk-form-group">
+                    <div class="govuk-form-group govuk-form-group--dates">
                         <label class="govuk-label govuk-date-input__label filters-form__date__label"
                                for="date_from_month">Month</label>
                         <input class="govuk-input govuk-date-input__input govuk-input--width-2 {% if date_error_fields %}{% if 'date_from_month' in date_error_fields or 'date_from' in date_error_fields %}govuk-input--error{% endif %}{% endif %}"
@@ -38,7 +37,7 @@
                     </div>
                 </div>
                 <div class="govuk-date-input__item govuk-date-input__item--browse-all">
-                    <div class="govuk-form-group">
+                    <div class="govuk-form-group govuk-form-group--dates">
                         <label class="govuk-label govuk-date-input__label filters-form__date__label"
                                for="date_from_year">Year</label>
                         <input class="govuk-input govuk-date-input__input govuk-input--width-4 {% if date_error_fields %}{% if 'date_from_year' in date_error_fields or 'date_from' in date_error_fields %}govuk-input--error{% endif %}{% endif %}"
@@ -55,7 +54,7 @@
     </div>
 </div>
 <div class="browse-all-filter-to-dates">
-    <div class="govuk-form-group {% if date_validation_errors %} {% if date_validation_errors.get('date_to') %}govuk-form-group--error{% endif %}{% endif %}">
+    <div class="{% if date_validation_errors %} {% if date_validation_errors.get('date_to') %}govuk-form-group--error{% endif %}{% endif %}">
         <fieldset class="govuk-fieldset govuk-fieldset--date-to" role="group">
             <legend aria-label="{% if view_type=='consignment' %}Record date to{% else %}Date consignment transferred to{% endif %}">
                 <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Date to</h3>
@@ -67,7 +66,7 @@
             {% endif %}
             <div class="govuk-date-input govuk-date-input--browse-all-date-to">
                 <div class="govuk-date-input__item govuk-date-input__item--browse-all">
-                    <div class="govuk-form-group">
+                    <div class="govuk-form-group govuk-form-group--dates">
                         <label class="govuk-label govuk-date-input__label filters-form__date__label"
                                for="date_to_day">Day</label>
                         <input class="govuk-input govuk-date-input__input govuk-input--width-2 {% if date_error_fields %}{% if 'date_to_day' in date_error_fields %}govuk-input--error{% endif %}{% endif %}"
@@ -80,7 +79,7 @@
                     </div>
                 </div>
                 <div class="govuk-date-input__item govuk-date-input__item--browse-all">
-                    <div class="govuk-form-group">
+                    <div class="govuk-form-group govuk-form-group--dates">
                         <label class="govuk-label govuk-date-input__label filters-form__date__label"
                                for="date_to_month">Month</label>
                         <input class="govuk-input govuk-date-input__input govuk-input--width-2 {% if date_error_fields %}{% if 'date_to_month' in date_error_fields %}govuk-input--error{% endif %}{% endif %}"
@@ -93,7 +92,7 @@
                     </div>
                 </div>
                 <div class="govuk-date-input__item govuk-date-input__item--browse-all">
-                    <div class="govuk-form-group">
+                    <div class="govuk-form-group govuk-form-group--dates">
                         <label class="govuk-label govuk-date-input__label filters-form__date__label"
                                for="date_to_year">Year</label>
                         <input class="govuk-input govuk-date-input__input govuk-input--width-4 {% if date_error_fields %}{% if 'date_to_year' in date_error_fields %}govuk-input--error{% endif %}{% endif %}"
