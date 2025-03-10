@@ -9,88 +9,91 @@
     "Record total (least)": "records_held-asc"
 } %}
 <p class="govuk-body govuk-body--browse-all-signpost">All available records</p>
-<form action="{{ url_for('main.browse', _anchor='browse-records') }}"
-      method="get">
-    <div class="browse-layout">
-        <!-- SORT -->
-        {% if num_records_found > 0 %}
-            <div class="govuk-form-group sort-container__form">
+<div class="browse-layout">
+    <!-- SORT -->
+    {% if num_records_found > 0 %}
+        <div class="govuk-form-group sort-container__form">
+            <form action="{{ url_for('main.browse', _anchor='browse-records') }}"
+                  method="get">
                 {% with dict = sorting_list %}
                     {% include "sorting-list.html" %}
                 {% endwith %}
-            </div>
-            <!-- TABLE -->
-            <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
-                <table class="govuk-table browse-grid__table"
-                       id="tbl_result"
-                       aria-label="Browse records">
-                    <thead class="govuk-table__head">
-                        <!-- Column headings -->
-                        <tr class="govuk-table__row">
-                            <th scope="col"
-                                class="govuk-table__header govuk-table--invisible-on-desktop">
-                                Transferring body /
-                                <br>
-                                Series reference
-                            </th>
-                            <th scope="col"
-                                class="govuk-table__header govuk-table--invisible-on-mobile govuk-table--width-30-percent">
-                                Transferring body
-                            </th>
-                            <th scope="col"
-                                class="govuk-table__header govuk-table--invisible-on-mobile">Series reference</th>
-                            <th scope="col"
-                                class="govuk-table__header govuk-table--right-align govuk-table--on-mobile--no-padding-right">
-                                Last transfer date
-                            </th>
-                            <th scope="col"
-                                class="govuk-table__header govuk-table--right-align govuk-table--invisible-on-mobile">
-                                Record total
-                            </th>
-                            <th scope="col"
-                                class="govuk-table__header govuk-table--right-align govuk-table--invisible-on-mobile govuk-table--width-15-percent">
-                                Consignments within series
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="govuk-table__body">
-                        <div class="main-content" id="main-content" role="main">
-                            {% for record in results %}
-                                <tr class="govuk-table__row govuk-table__row-ref">
-                                    <td class="govuk-table__cell govuk-table__cell--on-mobile--flex-layout-col">
-                                        <a href="{{ url_for('main.browse_transferring_body', _id=record['transferring_body_id']) }}">{{ record["transferring_body"] }}</a>
-                                        <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4"
-                                           href="{{ url_for('main.browse_series', _id= record['series_id']) }}">{{ record["series"] }}</a>
-                                    </td>
-                                    <td class="govuk-table__cell govuk-table--invisible-on-mobile">
-                                        <a href="{{ url_for('main.browse_series', _id= record['series_id']) }}">{{ record["series"] }}</a>
-                                    </td>
-                                    <td class="govuk-table__cell govuk-table--right-align govuk-table--on-mobile--no-padding-right">
-                                        {{ record["last_record_transferred"] }}
-                                    </td>
-                                    <td class="govuk-table__cell govuk-table--right-align govuk-table--invisible-on-mobile">
-                                        {{ record["records_held"] | format_number_with_commas }}
-                                    </td>
-                                    <td class="govuk-table__cell govuk-table--right-align govuk-table--invisible-on-mobile">
-                                        {{ record["consignment_in_series"] }}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </div>
-                    </tbody>
-                </table>
-                <!-- PAGINATION -->
-                {% with view_name='main.browse' %}
-                    {% include "pagination.html" %}
-                {% endwith %}
-                <!-- END PAGINATION -->
-            </div>
-        {% else %}
-            {% with view_type = "browse" %}
-                {% include "no-results-found.html" %}
+            </form>
+        </div>
+        <!-- TABLE -->
+        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
+            <table class="govuk-table browse-grid__table"
+                   id="tbl_result"
+                   aria-label="Browse records">
+                <thead class="govuk-table__head">
+                    <!-- Column headings -->
+                    <tr class="govuk-table__row">
+                        <th scope="col"
+                            class="govuk-table__header govuk-table--invisible-on-desktop">
+                            Transferring body /
+                            <br>
+                            Series reference
+                        </th>
+                        <th scope="col"
+                            class="govuk-table__header govuk-table--invisible-on-mobile govuk-table--width-30-percent">
+                            Transferring body
+                        </th>
+                        <th scope="col"
+                            class="govuk-table__header govuk-table--invisible-on-mobile">Series reference</th>
+                        <th scope="col"
+                            class="govuk-table__header govuk-table--right-align govuk-table--on-mobile--no-padding-right">
+                            Last transfer date
+                        </th>
+                        <th scope="col"
+                            class="govuk-table__header govuk-table--right-align govuk-table--invisible-on-mobile">
+                            Record total
+                        </th>
+                        <th scope="col"
+                            class="govuk-table__header govuk-table--right-align govuk-table--invisible-on-mobile govuk-table--width-15-percent">
+                            Consignments within series
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                    <div class="main-content" id="main-content" role="main">
+                        {% for record in results %}
+                            <tr class="govuk-table__row govuk-table__row-ref">
+                                <td class="govuk-table__cell govuk-table__cell--on-mobile--flex-layout-col">
+                                    <a href="{{ url_for('main.browse_transferring_body', _id=record['transferring_body_id']) }}">{{ record["transferring_body"] }}</a>
+                                    <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4"
+                                       href="{{ url_for('main.browse_series', _id= record['series_id']) }}">{{ record["series"] }}</a>
+                                </td>
+                                <td class="govuk-table__cell govuk-table--invisible-on-mobile">
+                                    <a href="{{ url_for('main.browse_series', _id= record['series_id']) }}">{{ record["series"] }}</a>
+                                </td>
+                                <td class="govuk-table__cell govuk-table--right-align govuk-table--on-mobile--no-padding-right">
+                                    {{ record["last_record_transferred"] }}
+                                </td>
+                                <td class="govuk-table__cell govuk-table--right-align govuk-table--invisible-on-mobile">
+                                    {{ record["records_held"] | format_number_with_commas }}
+                                </td>
+                                <td class="govuk-table__cell govuk-table--right-align govuk-table--invisible-on-mobile">
+                                    {{ record["consignment_in_series"] }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </div>
+                </tbody>
+            </table>
+            <!-- PAGINATION -->
+            {% with view_name='main.browse' %}
+                {% include "pagination.html" %}
             {% endwith %}
-        {% endif %}
-        <!-- FILTERS -->
+            <!-- END PAGINATION -->
+        </div>
+    {% else %}
+        {% with view_type = "browse" %}
+            {% include "no-results-found.html" %}
+        {% endwith %}
+    {% endif %}
+    <!-- FILTERS -->
+    <form action="{{ url_for('main.browse', _anchor='browse-records') }}"
+          method="get">
         <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
             <div class="browse-all-filter-container">
                 <div class="browse-filter__header">
@@ -141,5 +144,5 @@
                 </div>
             </div>
         </div>
-    </div>
-</form>
+    </form>
+</div>
