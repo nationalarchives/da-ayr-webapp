@@ -128,32 +128,41 @@ def generate_image_manifest(s3_file_object, record_id):
 
     filename = file.FileName
 
+    # Detect format and dimensions from S3 object
     image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
     width, height = image.size
+    image_format = image.format.lower()  # Get format (e.g., "png", "jpeg")
 
-    # Get the file from S3 to read dimensions
-    s3 = boto3.client("s3")
-    bucket = current_app.config["RECORD_BUCKET_NAME"]
-    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+    # Ensure format is supported
+    if (
+        image_format
+        not in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]
+    ):
+        abort(415, description="Unsupported image format for IIIF manifest")
 
-    s3_response_object = s3.get_object(Bucket=bucket, Key=key)
-    file_content = s3_response_object["Body"].read()
-    image = Image.open(io.BytesIO(file_content))
-    width, height = image.size
+    # Get correct MIME type
+    mime_type = current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"][
+        image_format
+    ]
 
+    # Generate a presigned URL for accessing the image
     presigned_url = None
     try:
         presigned_url = create_presigned_url(file)
     except Exception as e:
-        current_app.app_logger.info(
-            f"Failed to create presigned url for document render non-javascript fallback {e}"
-        )
+        current_app.app_logger.info(f"Failed to create presigned URL: {e}")
+
+    if not presigned_url:
+        abort(500, description="Could not generate presigned URL for image")
 
     file_url = presigned_url
 
+    # Construct the IIIF Manifest dynamically
     manifest = {
         "@context": "https://iiif.io/api/presentation/3/context.json",
-        "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
+        "@id": url_for(
+            "main.generate_manifest", record_id=record_id, _external=True
+        ),
         "@type": "sc:Manifest",
         "label": filename,
         "description": f"Manifest for {filename}",
@@ -176,7 +185,7 @@ def generate_image_manifest(s3_file_object, record_id):
                                 "resource": {
                                     "@id": file_url,
                                     "type": "dctypes:Image",
-                                    "format": "image/png",
+                                    "format": mime_type,
                                     "width": width,
                                     "height": height,
                                 },
