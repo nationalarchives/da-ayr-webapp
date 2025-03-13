@@ -837,7 +837,7 @@ def generate_manifest(record_id: uuid.UUID):
 
     if (
         file_type
-        in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES"]
+        in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES"]
     ):
         return generate_pdf_manifest(record_id)
     elif (
