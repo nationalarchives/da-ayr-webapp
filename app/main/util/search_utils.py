@@ -1,7 +1,8 @@
 import re
+import urllib.parse
 
 import opensearchpy
-from flask import abort, current_app
+from flask import abort, current_app, redirect, request, url_for
 from opensearchpy import OpenSearch, RequestsHttpConnection
 
 from app.main.util.date_validator import format_opensearch_date
@@ -386,23 +387,59 @@ def build_search_transferring_body_query(
 
 def extract_search_terms(query):
     """
-    Extracts quoted phrases and single terms from a search query string.
+    Extract search terms from the query string, handling:
+    - Quoted phrases
+    - Commas as primary separators
+    - '+' as secondary separators
+    - Preserving exact phrase matching
 
     Args:
-        query (str): The search query string containing both quoted phrases and single terms.
+        query (str): The search query string
 
     Returns:
         tuple: A tuple containing two lists:
             - quoted_phrases: A list of phrases enclosed in double quotes.
             - single_terms: A list of individual terms that are not in quotes.
     """
-    # Extract quoted phrases
-    quoted_phrases = re.findall(r'"([^"]*)"', query)
+    query = urllib.parse.unquote(query)
 
-    # Remove quoted phrases and split remaining terms by spaces
-    remaining_terms = re.sub(r'"[^"]*"', "", query).replace(",", " ")
-    single_terms = [
-        term.strip() for term in remaining_terms.split() if term.strip()
-    ]
+    quoted_phrases = []
+    single_terms = []
+
+    quote_pattern = re.compile(r'"([^"]*)"')
+    quotes_found = quote_pattern.findall(query)
+
+    query = quote_pattern.sub("", query)
+
+    quoted_phrases.extend(quotes_found)
+
+    comma_parts = [part.strip() for part in query.split(",")]
+
+    for part in comma_parts:
+        if part:
+            plus_parts = [term.strip() for term in part.split("+")]
+            single_terms.extend([term for term in plus_parts if term])
 
     return quoted_phrases, single_terms
+
+
+def check_additional_term(additional_term, query, args, _id):
+    if additional_term:
+        if " " in additional_term and not (
+            additional_term.startswith('"') and additional_term.endswith('"')
+        ):
+            additional_term = f'"{additional_term}"'
+
+        query = f"{query}+{additional_term}" if query else additional_term
+
+        args = request.args.copy()
+        args.pop("search_filter", None)
+        args["query"] = query
+        return redirect(
+            url_for(
+                "main.search_transferring_body",
+                _id=_id,
+                **args,
+                _anchor="browse-records",
+            )
+        )

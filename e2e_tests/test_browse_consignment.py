@@ -83,6 +83,10 @@ class TestBrowseConsignment:
             ["22/11/2023", "closed_file.txt", "Open", "–"],
             ["22/11/2023", "file-a1,.txt", "Open", "–"],
             ["22/11/2023", "file-a1.txt", "Open", "–"],
+            ["22/11/2023", "file-a2.txt", "Open", "–"],
+            ["22/11/2023", "file-b1.txt", "Open", "–"],
+            ["22/11/2023", "file-b2.txt", "Open", "–"],
+            ["22/11/2023", "mismatch.docx", "Open", "–"],
         ]
 
         verify_header_row(header_rows)
