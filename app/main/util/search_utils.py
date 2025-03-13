@@ -378,7 +378,13 @@ def build_search_transferring_body_query(
             "pre_tags": [f"<{highlight_tag}>"],
             "post_tags": [f"</{highlight_tag}>"],
             "fields": {
-                "*": {},
+                "*": {
+                    "type": "unified",  # default
+                    "fragment_size": 200,  # limit amount of text
+                    "number_of_fragments": 1,  # remove fragment splits
+                    "phrase_limit": 256,  # default
+                    "require_field_match": False,  # default, highlights only in fields that were searched
+                },
             },
         },
     }
