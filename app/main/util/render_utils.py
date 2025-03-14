@@ -157,45 +157,64 @@ def generate_image_manifest(s3_file_object, record_id):
 
     file_url = presigned_url
 
-    # Construct the IIIF Manifest dynamically
-    manifest = {
-        "@context": "https://iiif.io/api/presentation/3/context.json",
-        "@id": url_for(
-            "main.generate_manifest", record_id=record_id, _external=True
-        ),
-        "@type": "sc:Manifest",
-        "label": filename,
-        "description": f"Manifest for {filename}",
-        "sequences": [
-            {
-                "@id": file_url,
-                "@type": "sc:Sequence",
-                "canvases": [
-                    {
-                        "@id": file_url,
-                        "@type": "sc:Canvas",
-                        "label": "Image 1",
-                        "width": width,
-                        "height": height,
-                        "images": [
-                            {
-                                "@id": file_url,
-                                "@type": "oa:Annotation",
-                                "motivation": "sc:painting",
-                                "resource": {
-                                    "@id": file_url,
-                                    "type": "dctypes:Image",
-                                    "format": mime_type,
-                                    "width": width,
-                                    "height": height,
-                                },
-                                "on": file_url,
-                            }
-                        ],
-                    }
-                ],
-            }
-        ],
-    }
+    from iiif_prezi3 import Manifest, config
 
-    return jsonify(manifest)
+    config.configs["helpers.auto_fields.AutoLang"].auto_lang = "en"
+    base_url = "https://iiif.io/api/cookbook/recipe/0001-mvm-image"
+
+    manifest = Manifest(
+        id=f"{base_url}/manifest.json",
+        label=filename,
+        description=f"Manifest for {filename}",
+    )
+    canvas = manifest.make_canvas(
+        id=f"{base_url}/canvas/p1", height=1800, width=1200
+    )
+    canvas.add_image(
+        image_url=file_url, format=mime_type, height=height, width=width
+    )
+
+    return manifest.json(indent=2)
+
+    # # Construct the IIIF Manifest dynamically
+    # manifest = {
+    #     "@context": "https://iiif.io/api/presentation/3/context.json",
+    #     "@id": url_for(
+    #         "main.generate_manifest", record_id=record_id, _external=True
+    #     ),
+    #     "@type": "sc:Manifest",
+    #     "label": filename,
+    #     "description": f"Manifest for {filename}",
+    #     "sequences": [
+    #         {
+    #             "@id": file_url,
+    #             "@type": "sc:Sequence",
+    #             "canvases": [
+    #                 {
+    #                     "@id": file_url,
+    #                     "@type": "sc:Canvas",
+    #                     "label": "Image 1",
+    #                     "width": width,
+    #                     "height": height,
+    #                     "images": [
+    #                         {
+    #                             "@id": file_url,
+    #                             "@type": "oa:Annotation",
+    #                             "motivation": "sc:painting",
+    #                             "resource": {
+    #                                 "@id": file_url,
+    #                                 "type": "dctypes:Image",
+    #                                 "format": mime_type,
+    #                                 "width": width,
+    #                                 "height": height,
+    #                             },
+    #                             "on": file_url,
+    #                         }
+    #                     ],
+    #                 }
+    #             ],
+    #         }
+    #     ],
+    # }
+
+    # return jsonify(manifest)
