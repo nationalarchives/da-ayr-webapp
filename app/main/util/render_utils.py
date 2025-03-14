@@ -160,21 +160,22 @@ def generate_image_manifest(s3_file_object, record_id):
     from iiif_prezi3 import Manifest, config
 
     config.configs["helpers.auto_fields.AutoLang"].auto_lang = "en"
-    base_url = "https://iiif.io/api/cookbook/recipe/0001-mvm-image"
+
+    manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True, render=True)}"
 
     manifest = Manifest(
-        id=f"{base_url}/manifest.json",
+        id=manifest_url,
         label=filename,
         description=f"Manifest for {filename}",
     )
     canvas = manifest.make_canvas(
-        id=f"{base_url}/canvas/p1", height=1800, width=1200
+        id=f"{manifest_url}/canvas/p1", height=1800, width=1200
     )
     canvas.add_image(
-        image_url=file_url, format=mime_type, height=height, width=width
+        image_url=file_url, format=mime_type, height=1800, width=1200
     )
 
-    return manifest.json(indent=2)
+    return manifest.json()
 
     # # Construct the IIIF Manifest dynamically
     # manifest = {
