@@ -154,6 +154,10 @@
     &--browse-all-signpost {
       @include signposting-text;
       margin-top: 15px;
+
+      @media screen and (width <= $breakpoint-medium) {
+        margin-top: 5px;
+      }
     }
   }
 
