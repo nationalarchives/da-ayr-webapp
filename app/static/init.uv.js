@@ -16,6 +16,7 @@ function initUniversalViewer() {
       fullscreenEnabled: false,
       moreInfoEnabled: false,
       shareEnabled: false,
+      defaultZoomLevel: 2,
     };
     cb({
       options: {
