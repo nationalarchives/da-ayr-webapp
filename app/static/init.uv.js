@@ -9,8 +9,10 @@ function initUniversalViewer() {
 
   const uv = UV.init("uv", data);
   uv.on("configure", function ({ config, cb }) {
-    config.modules.centerPanel.options.usePdfJs = true;
-    config.modules.centerPanel.options.defaultZoomLevel = 2;
+    config.modules.centerPanel.options = {
+      usePdfJs: true,
+      defaultZoomLevel: 2,
+    };
     config.modules.footerPanel.options = {
       downloadEnabled: false,
       embedEnabled: false,
