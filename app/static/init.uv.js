@@ -5,15 +5,13 @@ function initUniversalViewer() {
   const data = {
     manifest: manifest_url,
     embedded: true,
-    config: {
-      options: {
-        defaultZoomLevel: 2,
-      },
-    },
   };
 
   const uv = UV.init("uv", data);
   uv.on("configure", function ({ config, cb }) {
+    config.modules.openSeadragonCenterPanel.options = {
+      defaultZoomLevel: 2,
+    };
     config.modules.centerPanel.options = {
       usePdfJs: true,
     };
