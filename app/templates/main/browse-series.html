@@ -16,8 +16,8 @@
     {% include "breadcrumb.html" %}
 {% endwith %}
 <div class="browse-layout">
-    <!-- SORT -->
     {% if num_records_found > 0 %}
+        <!-- SORT -->
         <div class="govuk-form-group sort-container__form">
             <form action="{{ url_for('main.browse_series', _id=request.view_args['_id'], _anchor='browse-records') }}"
                   method="get">
@@ -42,7 +42,7 @@
                         <th scope="col"
                             class="govuk-table__header govuk-table--on-desktop--right-align">Last transfer date</th>
                         <th scope="col"
-                            class="govuk-table__header govuk-table--right-align govuk-table--on-mobile--width-30-percent">
+                            class="govuk-table__header govuk-table--right-align govuk-table--on-mobile--width-20-percent">
                             Record total
                         </th>
                         <th scope="col" class="govuk-table__header">Consignment reference</th>
@@ -88,7 +88,7 @@
                          class="browse-all-filter__icon"
                          alt="">
                 </div>
-                <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Transfer date</h3>
+                <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter govuk-label govuk-label__filter">Transfer date</h3>
                 {% include "date-filters.html" %}
                 <div class="filters-form__buttons">
                     <button type="submit"

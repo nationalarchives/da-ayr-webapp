@@ -473,7 +473,7 @@ def test_build_dsl_search_query():
 
 
 def test_build_dsl_search_query_and_exact_fuzzy_search():
-    query = '"exact match", fuzzy, search'
+    query = '"exact match"+fuzzy+search'
     search_fields = ["field_1"]
     filter_clauses = [{"clause_1": "test_2"}]
     quoted_phrases, single_terms = extract_search_terms(query)

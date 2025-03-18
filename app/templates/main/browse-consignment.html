@@ -19,8 +19,8 @@
     {% include "breadcrumb.html" %}
 {% endwith %}
 <div class="browse-layout">
-    <!-- SORT -->
     {% if num_records_found > 0 %}
+        <!-- SORT -->
         <div class="govuk-form-group sort-container__form">
             <form action="{{ url_for('main.browse_consignment', _id=request.view_args['_id'], _anchor='browse-records') }}"
                   method="get">

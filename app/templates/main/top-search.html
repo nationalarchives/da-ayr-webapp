@@ -47,7 +47,7 @@
                            id="search-input"
                            name="query"
                            type="text"
-                           value="{{ filters['query'] if filters['query'] else '' }}"
+                           value="{{ (filters['query'] if filters['query'] else '') | replace('+', ', ') }}"
                            aria-label="Enter search query for digital records" />
                     <button class="govuk-button"
                             id="search-submit"
