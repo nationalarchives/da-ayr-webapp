@@ -1,45 +1,79 @@
 const script = document.getElementById("init-uv");
-const manifest_url = script.getAttribute("manifest_url");
+
+if (!script) {
+  console.error("Error: Could not find script element with ID 'init-uv'");
+}
+
+const manifest_url = script ? script.getAttribute("manifest_url") : null;
+
+console.log("Manifest URL:", manifest_url, typeof manifest_url);
 
 function initUniversalViewer() {
+  console.log("Initializing Universal Viewer...");
+
+  if (!manifest_url) {
+    console.error("Error: manifest_url is missing or undefined");
+    return;
+  }
+
   const data = {
     manifest: manifest_url,
     embedded: true,
   };
 
-  const uv = UV.init("uv", data);
-  uv.on("configure", function ({ config, cb }) {
-    config.modules.centerPanel.options.usePdfJs = true;
-    config.modules.footerPanel.options = {
-      downloadEnabled: false,
-      embedEnabled: false,
-      fullscreenEnabled: false,
-      moreInfoEnabled: false,
-      shareEnabled: false,
-    };
-    cb({
-      options: {
-        footerPanelEnabled: false,
-        leftPanelEnabled: true,
-        rightPanelEnabled: false,
-        headerPanelEnabled: true,
-      },
-      pdfHeaderPanel: {
+  try {
+    console.log("Creating Universal Viewer with data:", data);
+
+    if (typeof UV === "undefined") {
+      console.error("Error: Universal Viewer (UV) is not loaded");
+      return;
+    }
+
+    const uv = UV.init("uv", data);
+
+    uv.on("configure", function ({ config, cb }) {
+      console.log("Universal Viewer configured");
+
+      config.modules.centerPanel.options.usePdfJs = true;
+      config.modules.footerPanel.options = {
+        downloadEnabled: false,
+        embedEnabled: false,
+        fullscreenEnabled: false,
+        moreInfoEnabled: false,
+        shareEnabled: false,
+      };
+
+      cb({
         options: {
-          centerOptionsEnabled: false,
+          footerPanelEnabled: false,
+          leftPanelEnabled: true,
+          rightPanelEnabled: false,
+          headerPanelEnabled: true,
         },
-      },
+        pdfHeaderPanel: {
+          options: {
+            centerOptionsEnabled: false,
+          },
+        },
+      });
     });
-  });
+  } catch (err) {
+    console.error("Universal Viewer Init Error:", err);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  initUniversalViewer();
+  try {
+    initUniversalViewer();
+  } catch (err) {
+    console.error("Error in DOMContentLoaded event:", err);
+  }
 });
 
 document.querySelectorAll(".govuk-tabs__tab").forEach((tab) => {
   tab.addEventListener("click", function (event) {
     if (this.getAttribute("href") === "#record-view") {
+      console.log("Tab clicked, initializing Universal Viewer...");
       setTimeout(initUniversalViewer, 0);
     }
   });
@@ -49,6 +83,7 @@ document.querySelectorAll(".govuk-tabs__tab").forEach((tab) => {
 function removeAttribution() {
   const attribution = document.querySelector(".attribution");
   if (attribution) {
+    console.log("Removing .attribution element");
     attribution.remove();
   }
 }
@@ -71,22 +106,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.addEventListener("DOMContentLoaded", function () {
   let uvElement = document.getElementById("uv");
-  if (uvElement) {
-    uvElement.style.width = "100%";
+
+  if (!uvElement) {
+    console.error("Error: Could not find element with ID 'uv'");
+    return;
+  }
+
+  console.log("Setting up Universal Viewer container styles");
+
+  uvElement.style.width = "100%";
+  uvElement.style.height = "60vh";
+
+  if (window.matchMedia("(max-width: 810px)").matches) {
     uvElement.style.height = "60vh";
+    uvElement.style.width = "85vw";
+    uvElement.style.padding = "1rem";
+  }
 
-    // Apply media query for small devices
-    if (window.matchMedia("(max-width: 810px)").matches) {
-      uvElement.style.height = "60vh";
-      uvElement.style.width = "85vw";
-      uvElement.style.padding = "1rem";
-    }
-
-    // Apply media query for small devices
-    if (window.matchMedia("(max-width: 640px)").matches) {
-      uvElement.style.height = "50vh";
-      uvElement.style.width = "90vw";
-      uvElement.style.padding = "0.25rem";
-    }
+  if (window.matchMedia("(max-width: 640px)").matches) {
+    uvElement.style.height = "50vh";
+    uvElement.style.width = "90vw";
+    uvElement.style.padding = "0.25rem";
   }
 });
