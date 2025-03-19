@@ -31,6 +31,10 @@ function initUniversalViewer() {
 
     const uv = UV.init("uv", data);
 
+    uv.on("error", function (err) {
+      console.error("Universal Viewer error:", err);
+    });
+
     uv.on("configure", function ({ config, cb }) {
       console.log("Universal Viewer configured");
 
