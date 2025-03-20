@@ -15,16 +15,16 @@
         "aria_label": "Search only within the record content"
     }
 ] %}
-<div class="search govuk-grid-column-full">
-    <div class="search__els">
-        <form class="search__els__form"
+<div class="top-search govuk-grid-column-full">
+    <div class="top-search__els">
+        <form class="top-search__els__form"
               method="get"
               action="{{ url_for('main.search') }}">
             <fieldset class="govuk-fieldset">
                 <legend class="govuk-fieldset__legend govuk-fieldset__legend--search">
-                    <h1 class="govuk-label search__els__heading">Search for digital records</h1>
+                    <h1 class="govuk-label top-search__els__heading">Search for digital records</h1>
                 </legend>
-                <div class="govuk-radios govuk-radios--small search__els__form__checkboxes"
+                <div class="govuk-radios govuk-radios--small top-search__els__form__checkboxes"
                      data-module="govuk-radios">
                     {% for area in search_areas %}
                         <div class="govuk-radios__item">
@@ -42,7 +42,7 @@
                         </div>
                     {% endfor %}
                 </div>
-                <div class="search__els__form__input-container">
+                <div class="top-search__els__form__input-container">
                     <input class="govuk-input"
                            id="search-input"
                            name="query"
