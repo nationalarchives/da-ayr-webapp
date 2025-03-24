@@ -9,7 +9,9 @@ function initUniversalViewer() {
 
   const uv = UV.init("uv", data);
   uv.on("configure", function ({ config, cb }) {
-    config.modules.centerPanel.options.usePdfJs = true;
+    config.modules.centerPanel.options = {
+      usePdfJs: true,
+    };
     config.modules.footerPanel.options = {
       downloadEnabled: false,
       embedEnabled: false,
@@ -73,11 +75,11 @@ document.addEventListener("DOMContentLoaded", function () {
   let uvElement = document.getElementById("uv");
   if (uvElement) {
     uvElement.style.width = "100%";
-    uvElement.style.height = "60vh";
+    uvElement.style.height = "80vh";
 
     // Apply media query for small devices
     if (window.matchMedia("(max-width: 810px)").matches) {
-      uvElement.style.height = "60vh";
+      uvElement.style.height = "80vh";
       uvElement.style.width = "85vw";
       uvElement.style.padding = "1rem";
     }
