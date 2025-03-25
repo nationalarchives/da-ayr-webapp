@@ -717,13 +717,13 @@ CSP_DEFAULT_SRC=""
 
 CSP_CONNECT_SRC=""
 
-CSP_SCRIPT_SRC="https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/, https://cdnjs.cloudflare.com/ajax/libs/pdf.js/, sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw=, sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ=, sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ="
+CSP_SCRIPT_SRC="https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/, https://cdnjs.cloudflare.com/ajax/libs/pdf.js/, sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw=, sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ=, sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ="
 
-CSP_SCRIPT_SRC_ELEM="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/, https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/, https://127.0.0.1:5000/, sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw=, sha256-bxI3qvjziRybgoaeQYcUjRHcCTdbUu/A9xFMlfNGZAQ=, sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ="
+CSP_SCRIPT_SRC_ELEM="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/, https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/, https://127.0.0.1:5000/, sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw=, sha256-bxI3qvjziRybgoaeQYcUjRHcCTdbUu/A9xFMlfNGZAQ=, sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ="
 
 CSP_STYLE_SRC="sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE=, sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
 
-CSP_STYLE_SRC_ELEM="https://cdn.jsdelivr.net/jsdelivr-header.css, https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/, sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE=,
+CSP_STYLE_SRC_ELEM="https://cdn.jsdelivr.net/jsdelivr-header.css, https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/, sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE=,
 
 CSP_IMG_SRC=""
 
