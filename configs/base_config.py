@@ -5,8 +5,6 @@ SELF = "'self'"
 UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES = {
     "jpeg": "image/jpeg",
     "jpg": "image/jpeg",
-    "tif": "image/tiff",
-    "tiff": "image/tiff",
     "png": "image/png",
     "gif": "image/gif",
     "webp": "image/webp",
