@@ -10,6 +10,7 @@ from flask.testing import FlaskClient
 from moto import mock_aws
 from PIL import Image
 
+from app.tests.factories import FileFactory
 from configs.base_config import UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES
 
 
@@ -125,8 +126,12 @@ class TestRoutes:
         )
 
         mock_all_access_user(client)
-
-        file = record_files[1]["file_object"]
+        file_id = "efb1b3b4-0b3b-4b3b-8b3b-0b3b4b3b4b3b"
+        file = FileFactory(
+            FileId=file_id,
+            FileType="File",
+            FileName="open_file_once_closed.pdf",
+        )
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_object(bucket_name, file)
@@ -138,10 +143,10 @@ class TestRoutes:
             "@context": ["https://iiif.io/api/presentation/3/context.json"],
             "behavior": ["individuals"],
             "description": "Manifest for open_file_once_closed.pdf",
-            "id": f"http://localhost/record/{file.FileId}/manifest?render=True",
+            "id": "http://localhost/record/efb1b3b4-0b3b-4b3b-8b3b-0b3b4b3b4b3b/manifest",
             "items": [
                 {
-                    "id": f"http://localhost/record/{file.FileId}/manifest?render=True",
+                    "id": "http://localhost/record/efb1b3b4-0b3b-4b3b-8b3b-0b3b4b3b4b3b/manifest",
                     "items": [
                         {
                             "id": "https://presigned-url.com/download.pdf",
@@ -167,7 +172,7 @@ class TestRoutes:
                     "type": "Canvas",
                 }
             ],
-            "label": {"none": ["open_file_once_closed.pdf"]},
+            "label": {"en": ["open_file_once_closed.pdf"]},
             "requiredStatement": {
                 "label": {"en": ["File name"]},
                 "value": {"en": ["open_file_once_closed.pdf"]},
@@ -194,7 +199,12 @@ class TestRoutes:
 
         mock_all_access_user(client)
 
-        file = record_files[5]["file_object"]
+        file_id = "ffb1b3b4-0b3b-4b3b-8b3b-0b3b4b3b4b3b"
+        file = FileFactory(
+            FileId=file_id,
+            FileType="File",
+            FileName="open_file_once_closed.png",
+        )
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_imaage_object(bucket_name, file)
@@ -208,10 +218,10 @@ class TestRoutes:
 
         expected_image_manifest = {
             "@context": "https://iiif.io/api/presentation/3/context.json",
-            "@id": f"http://localhost/record/{file.FileId}/manifest",
+            "@id": "http://localhost/record/ffb1b3b4-0b3b-4b3b-8b3b-0b3b4b3b4b3b/manifest",
             "@type": "sc:Manifest",
-            "description": f"Manifest for {file.FileName}",
-            "label": file.FileName,
+            "description": "Manifest for open_file_once_closed.png",
+            "label": {"en": ["open_file_once_closed.png"]},
             "sequences": [
                 {
                     "@id": "https://presigned-url.com/download.png",

@@ -1,7 +1,7 @@
 import io
 
 import boto3
-from flask import abort, current_app, jsonify, url_for
+from flask import current_app, jsonify, url_for
 from PIL import Image
 
 from app.main.db.models import File, db
@@ -56,12 +56,9 @@ def generate_pdf_manifest(record_id):
     file = db.session.get(File, record_id)
 
     if file is None:
-        abort(404)
+        raise Exception("File not found in metadata database")
 
     file_name = file.FileName
-    file_url = url_for(
-        "main.download_record", record_id=record_id, _external=True, render=True
-    )
 
     presigned_url = None
     try:
@@ -73,13 +70,15 @@ def generate_pdf_manifest(record_id):
 
     file_url = presigned_url
 
+    manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
+
     manifest = {
         "@context": [
             "https://iiif.io/api/presentation/3/context.json",
         ],
-        "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True, render=True)}",
+        "id": manifest_url,
         "type": "Manifest",
-        "label": {"none": [file_name]},
+        "label": {"en": [file_name]},
         "requiredStatement": {
             "label": {"en": ["File name"]},
             "value": {"en": [file_name]},
@@ -89,7 +88,7 @@ def generate_pdf_manifest(record_id):
         "description": f"Manifest for {file_name}",
         "items": [
             {
-                "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True, render=True)}",
+                "id": manifest_url,
                 "type": "Canvas",
                 "label": {"en": ["test"]},
                 "items": [
@@ -120,102 +119,63 @@ def generate_pdf_manifest(record_id):
     return jsonify(manifest)
 
 
-def generate_image_manifest(s3_file_object, record_id):
+def generate_image_manifest(s3_file_object, record_id: int):
     file = db.session.get(File, record_id)
 
     if file is None:
-        abort(404)
+        raise Exception("File not found in metadata database")
 
-    filename = file.FileName
+    file_name = file.FileName
 
-    # Detect format and dimensions from S3 object
     image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
-    width, height = image.size
-    image_format = image.format.lower()  # Get format (e.g., "png", "jpeg")
+    image_width, image_height = image.size
 
-    # Ensure format is supported
-    if (
-        image_format
-        not in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]
-    ):
-        abort(415, description="Unsupported image format for IIIF manifest")
-
-    # Get correct MIME type
-    mime_type = current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"][
-        image_format
-    ]
-
-    # Generate a presigned URL for accessing the image
     presigned_url = None
     try:
         presigned_url = create_presigned_url(file)
     except Exception as e:
-        current_app.app_logger.info(f"Failed to create presigned URL: {e}")
-
-    if not presigned_url:
-        abort(500, description="Could not generate presigned URL for image")
+        current_app.app_logger.info(
+            f"Failed to create presigned url for document render non-javascript fallback {e}"
+        )
 
     file_url = presigned_url
 
-    from iiif_prezi3 import Manifest, config
+    manifest = {
+        "@context": "https://iiif.io/api/presentation/3/context.json",
+        "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
+        "@type": "sc:Manifest",
+        "label": {"en": [file_name]},
+        "description": f"Manifest for {file_name}",
+        "sequences": [
+            {
+                "@id": file_url,
+                "@type": "sc:Sequence",
+                "canvases": [
+                    {
+                        "@id": file_url,
+                        "@type": "sc:Canvas",
+                        "label": "Image 1",
+                        "width": image_width,
+                        "height": image_height,
+                        "images": [
+                            {
+                                "@id": file_url,
+                                "@type": "oa:Annotation",
+                                "motivation": "sc:painting",
+                                "resource": {
+                                    "@id": file_url,
+                                    "type": "dctypes:Image",
+                                    "format": "image/png",
+                                    "width": image_width,
+                                    "height": image_height,
+                                },
+                                "on": file_url,
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
 
-    config.configs["helpers.auto_fields.AutoLang"].auto_lang = "en"
-
-    manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True, render=True)}"
-
-    manifest = Manifest(
-        id=manifest_url,
-        label=filename,
-        description=f"Manifest for {filename}",
-    )
-    canvas = manifest.make_canvas(
-        id=f"{manifest_url}/canvas/p1", height=1800, width=1200
-    )
-    canvas.add_image(
-        image_url=file_url, format=mime_type, height=1800, width=1200
-    )
-
-    return manifest.json()
-
-    # # Construct the IIIF Manifest dynamically
-    # manifest = {
-    #     "@context": "https://iiif.io/api/presentation/3/context.json",
-    #     "@id": url_for(
-    #         "main.generate_manifest", record_id=record_id, _external=True
-    #     ),
-    #     "@type": "sc:Manifest",
-    #     "label": filename,
-    #     "description": f"Manifest for {filename}",
-    #     "sequences": [
-    #         {
-    #             "@id": file_url,
-    #             "@type": "sc:Sequence",
-    #             "canvases": [
-    #                 {
-    #                     "@id": file_url,
-    #                     "@type": "sc:Canvas",
-    #                     "label": "Image 1",
-    #                     "width": width,
-    #                     "height": height,
-    #                     "images": [
-    #                         {
-    #                             "@id": file_url,
-    #                             "@type": "oa:Annotation",
-    #                             "motivation": "sc:painting",
-    #                             "resource": {
-    #                                 "@id": file_url,
-    #                                 "type": "dctypes:Image",
-    #                                 "format": mime_type,
-    #                                 "width": width,
-    #                                 "height": height,
-    #                             },
-    #                             "on": file_url,
-    #                         }
-    #                     ],
-    #                 }
-    #             ],
-    #         }
-    #     ],
-    # }
-
-    # return jsonify(manifest)
+    return jsonify(manifest)
