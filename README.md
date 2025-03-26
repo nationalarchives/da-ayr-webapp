@@ -166,8 +166,9 @@ It will take a minute or two to spin up the stack, in particular opensearch and 
 Once the stack is running:
 
 1. Create your users in the keycloak admin console at `http://localhost:8080/admin/master/console/#/tdr/users` using the keycloak admin credentials specified in the `.env` file, assigning appropriate groups to each. For local dev it's simple enough to set the passwords in the credentials tab.
-2. Regenerate the keycloak client's client secret at `http://localhost:8080/admin/master/console/#/tdr/clients/<UUID-OF-CLIENT>/settings`.
-3. Update the `.env` of the webapp in the root directory of the repo, making sure the following env vars are set according to the values set for the associated service in the docker compose stack.
+2. Manually upload the folders of files in `local_services/files` to minio by navigating to `http://localhost:9001/browser`, signing in, accessing the bucket name you specified in the env file and then clicking the upload button and selecting those folders. The corresponding metadata in `dev-data.sql` would have already been automatically loaded into the postgres database.
+3. Regenerate the keycloak client's client secret at `http://localhost:8080/admin/master/console/#/tdr/clients/<UUID-OF-CLIENT>/settings`.
+4. Update the `.env` of the webapp in the root directory of the repo, making sure the following env vars are set according to the values set for the associated service in the docker compose stack.
 
 ```
 export KEYCLOAK_BASE_URI=http://localhost:8080
