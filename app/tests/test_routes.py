@@ -112,7 +112,7 @@ class TestRoutes:
         assert response.status_code == 200
 
     @mock_aws
-    @patch("app.main.util.render_utils.create_presigned_url")
+    @patch("app.main.routes.create_presigned_url")
     def test_route_generate_pdf_manifest(
         self,
         mock_create_presigned_url,
@@ -187,7 +187,7 @@ class TestRoutes:
         assert actual_manifest == expected_pdf_manifest
 
     @mock_aws
-    @patch("app.main.util.render_utils.create_presigned_url")
+    @patch("app.main.routes.create_presigned_url")
     def test_route_generate_image_manifest(
         self,
         mock_create_presigned_url,

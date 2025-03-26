@@ -1,10 +1,11 @@
 import io
+from typing import Any
 
 import boto3
-from flask import Response, current_app, jsonify, url_for
+from flask import Response, current_app, jsonify
 from PIL import Image
 
-from app.main.db.models import File, db
+from app.main.db.models import File
 
 
 def generate_breadcrumb_values(file):
@@ -33,14 +34,7 @@ def get_download_filename(file):
     return None
 
 
-def create_presigned_url(file):
-    file_extension = file.FileName.split(".")[-1].lower()
-    if file_extension not in current_app.config["SUPPORTED_RENDER_EXTENSIONS"]:
-        current_app.app_logger.warning(
-            f"Rendering file format '{file_extension}' is not currently supported by AYR."
-        )
-        return None
-
+def create_presigned_url(file: File) -> str:
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
@@ -52,26 +46,9 @@ def create_presigned_url(file):
     return presigned_url
 
 
-def generate_pdf_manifest(record_id: int) -> Response:
-    file = db.session.get(File, record_id)
-
-    if file is None:
-        raise Exception("File not found in metadata database")
-
-    file_name = file.FileName
-
-    presigned_url = None
-    try:
-        presigned_url = create_presigned_url(file)
-    except Exception as e:
-        current_app.app_logger.info(
-            f"Failed to create presigned url for document render non-javascript fallback {e}"
-        )
-
-    file_url = presigned_url
-
-    manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
-
+def generate_pdf_manifest(
+    file_name: str, file_url: str, manifest_url: str
+) -> Response:
     manifest = {
         "@context": [
             "https://iiif.io/api/presentation/3/context.json",
@@ -119,36 +96,15 @@ def generate_pdf_manifest(record_id: int) -> Response:
     return jsonify(manifest)
 
 
-def generate_image_manifest(record_id: int) -> Response:
-    file = db.session.get(File, record_id)
-
-    if file is None:
-        raise Exception("File not found in metadata database")
-
-    s3 = boto3.client("s3")
-    bucket = current_app.config["RECORD_BUCKET_NAME"]
-
-    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
-
-    file_name = file.FileName
-
+def generate_image_manifest(
+    file_name: str, file_url: str, manifest_url: str, s3_file_object: Any
+) -> Response:
     image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
     image_width, image_height = image.size
 
-    presigned_url = None
-    try:
-        presigned_url = create_presigned_url(file)
-    except Exception as e:
-        current_app.app_logger.info(
-            f"Failed to create presigned url for document render non-javascript fallback {e}"
-        )
-
-    file_url = presigned_url
-
     manifest = {
         "@context": "https://iiif.io/api/presentation/3/context.json",
-        "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
+        "@id": manifest_url,
         "@type": "sc:Manifest",
         "label": {"en": [file_name]},
         "description": f"Manifest for {file_name}",

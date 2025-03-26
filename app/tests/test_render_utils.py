@@ -39,8 +39,7 @@ def test_get_download_filename():
 
 
 @patch("boto3.client")
-@patch("app.main.util.render_utils.create_presigned_url")
-def test_create_presigned_url(mock_current_app, mock_boto_client):
+def test_create_presigned_url(mock_boto_client):
     app = Flask(__name__)
 
     app.config["SUPPORTED_RENDER_EXTENSIONS"] = ["pdf", "jpg", "jpeg", "png"]
