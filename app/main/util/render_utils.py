@@ -1,7 +1,7 @@
 import io
 
 import boto3
-from flask import current_app, jsonify, url_for
+from flask import Response, current_app, jsonify, url_for
 from PIL import Image
 
 from app.main.db.models import File, db
@@ -52,7 +52,7 @@ def create_presigned_url(file):
     return presigned_url
 
 
-def generate_pdf_manifest(record_id):
+def generate_pdf_manifest(record_id: int) -> Response:
     file = db.session.get(File, record_id)
 
     if file is None:
@@ -119,11 +119,17 @@ def generate_pdf_manifest(record_id):
     return jsonify(manifest)
 
 
-def generate_image_manifest(s3_file_object, record_id: int):
+def generate_image_manifest(record_id: int) -> Response:
     file = db.session.get(File, record_id)
 
     if file is None:
         raise Exception("File not found in metadata database")
+
+    s3 = boto3.client("s3")
+    bucket = current_app.config["RECORD_BUCKET_NAME"]
+
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
 
     file_name = file.FileName
 

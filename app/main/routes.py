@@ -3,6 +3,7 @@ import uuid
 import boto3
 from botocore.exceptions import ClientError
 from flask import (
+    Response,
     abort,
     current_app,
     redirect,
@@ -12,7 +13,7 @@ from flask import (
     url_for,
 )
 from sqlalchemy import func
-from werkzeug.exceptions import BadRequest, HTTPException
+from werkzeug.exceptions import HTTPException
 
 from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
@@ -817,7 +818,7 @@ def http_exception(error):
 @bp.route("/record/<uuid:record_id>/manifest")
 @access_token_sign_in_required
 @log_page_view
-def generate_manifest(record_id: uuid.UUID):
+def generate_manifest(record_id: uuid.UUID) -> Response:
     file = db.session.get(File, record_id)
 
     if file is None:
@@ -825,28 +826,44 @@ def generate_manifest(record_id: uuid.UUID):
 
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
-    s3 = boto3.client("s3")
-    bucket = current_app.config["RECORD_BUCKET_NAME"]
+    file_name = file.FileName
+    file_type = file_name.split(".")[-1].lower()
 
-    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-
-    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
-
-    filename = file.FileName
-    file_type = filename.split(".")[-1].lower()
+    if (
+        file_type
+        not in current_app.config[
+            "UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES"
+        ]
+        and file_type
+        not in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]
+    ):
+        current_app.app_logger.error(
+            f"Failed to create manifest for file with ID {file.FileId} as not a supported file type"
+        )
+        raise abort(415)
 
     if (
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES"]
     ):
-        return generate_pdf_manifest(record_id)
-    elif (
+        try:
+            manifest_json_response = generate_pdf_manifest(record_id)
+        except Exception as e:
+            current_app.app_logger.error(
+                f"Failed to create manifest for file with ID {file.FileId}: {e}"
+            )
+            abort(500)
+
+    if (
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]
     ):
-        return generate_image_manifest(s3_file_object, record_id)
-    else:
-        current_app.app_logger.error(
-            f"Failed to create manifest for file with ID {file.FileId}"
-        )
-        return http_exception(BadRequest())
+        try:
+            manifest_json_response = generate_image_manifest(record_id)
+        except Exception as e:
+            current_app.app_logger.error(
+                f"Failed to create manifest for file with ID {file.FileId}: {e}"
+            )
+            abort(500)
+
+    return manifest_json_response
