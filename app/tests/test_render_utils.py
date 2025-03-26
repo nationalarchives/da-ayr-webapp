@@ -42,7 +42,6 @@ def test_get_download_filename():
 def test_create_presigned_url(mock_boto_client):
     app = Flask(__name__)
 
-    app.config["SUPPORTED_RENDER_EXTENSIONS"] = ["pdf", "jpg", "jpeg", "png"]
     app.config["RECORD_BUCKET_NAME"] = "test_record_download_bucket"
 
     mock_file = Mock()
