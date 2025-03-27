@@ -94,17 +94,15 @@
         <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
             <div class="browse-all-filter-container">
                 <div class="browse-filter__header">
-                    <h2 class="govuk-heading-m govuk-heading-m--browse-all-filter-title">Filter</h2>
+                    <h2 class="govuk-heading-m govuk-heading-m--browse-all-filter-title">Filters</h2>
                     <img src="{{ url_for('static', filename='image/filter-icon.svg') }}"
                          height="32px"
                          width="32px"
                          class="browse-all-filter__icon"
                          alt="">
                 </div>
-                <h3 class="govuk-heading-s govuk-heading-s--series">
-                    <label class="govuk-label govuk-label__filter"
-                           for="transferring_body_filter">Transferring body</label>
-                </h3>
+                <label class="govuk-label govuk-label__filter"
+                       for="transferring_body_filter">Transferring body</label>
                 <div class="govuk-form-group filters-form__group filters-form__transferring-body-group">
                     <input class="govuk-input"
                            id="transferring_body_filter"
@@ -118,9 +116,7 @@
                 </div>
             </div>
             <div class="browse-all-filter-container browse-all-filter-container--file-type">
-                <h3 class="govuk-heading-s govuk-heading-s--series">
-                    <label class="govuk-label govuk-label__filter" for="series_filter">Series reference</label>
-                </h3>
+                <label class="govuk-label govuk-label__filter" for="series_filter">Series reference</label>
                 <div class="govuk-form-group govuk-form-group--browse-all-filter">
                     <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
                            id="series_filter"
@@ -130,7 +126,7 @@
                 </div>
             </div>
             <div class="browse-all-filter-container">
-                <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter govuk-label govuk-label__filter">Transfer date</h3>
+                <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Transfer date</h3>
                 {% include "date-filters.html" %}
                 <div class="filters-form__buttons">
                     <button type="submit"

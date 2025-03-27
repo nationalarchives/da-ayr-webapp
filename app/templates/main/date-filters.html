@@ -1,8 +1,8 @@
-<div class="browse-all-filter-from-dates">
+<div class="browse-all-filter-from-dates govuk-!-margin-top-1">
     <div class="{% if date_validation_errors %}{% if date_validation_errors.get('date_from') %}govuk-form-group--error{% endif %}{% endif %}">
         <fieldset class="govuk-fieldset govuk-fieldset--date-from" role="group">
             <legend aria-label="{% if view_type=='consignment' %}Record date from{% else %}Date consignment transferred from{% endif %}">
-                <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Date from</h3>
+                <label class="govuk-label govuk-label__filter-date">From date</label>
             </legend>
             {% if date_validation_errors %}
                 {% if date_validation_errors.get('date_from') %}
@@ -53,11 +53,11 @@
         </fieldset>
     </div>
 </div>
-<div class="browse-all-filter-to-dates">
+<div class="browse-all-filter-to-dates govuk-!-margin-top-1">
     <div class="{% if date_validation_errors %} {% if date_validation_errors.get('date_to') %}govuk-form-group--error{% endif %}{% endif %}">
         <fieldset class="govuk-fieldset govuk-fieldset--date-to" role="group">
             <legend aria-label="{% if view_type=='consignment' %}Record date to{% else %}Date consignment transferred to{% endif %}">
-                <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Date to</h3>
+                <label class="govuk-label govuk-label__filter-date">To date</label>
             </legend>
             {% if date_validation_errors %}
                 {% if date_validation_errors.get('date_to') %}

@@ -13,6 +13,11 @@ a {
 .govuk-label {
   &__filter {
     font-size: 16px;
+    font-weight: 700;
+  }
+
+  &__filter-date {
+    font-size: 16px;
   }
 }
 
