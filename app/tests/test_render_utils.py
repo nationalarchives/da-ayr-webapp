@@ -6,22 +6,7 @@ from app.main.util.render_utils import (
     create_presigned_url,
     generate_breadcrumb_values,
     get_download_filename,
-    get_file_details,
 )
-
-
-@patch("app.main.util.render_utils.get_file_metadata")
-def test_get_file_details(mock_get_file_metadata):
-    mock_file = Mock()
-    mock_file.FileId = "test_id"
-    mock_file.FileName = "test_file.pdf"
-    mock_get_file_metadata.return_value = {"metadata_key": "metadata_value"}
-
-    metadata, file_type, extension = get_file_details(mock_file)
-
-    assert metadata == {"metadata_key": "metadata_value"}
-    assert file_type == "iiif"
-    assert extension == "pdf"
 
 
 def test_generate_breadcrumb_values():
@@ -54,11 +39,9 @@ def test_get_download_filename():
 
 
 @patch("boto3.client")
-@patch("app.main.util.render_utils.create_presigned_url")
-def test_create_presigned_url(mock_current_app, mock_boto_client):
+def test_create_presigned_url(mock_boto_client):
     app = Flask(__name__)
 
-    app.config["SUPPORTED_RENDER_EXTENSIONS"] = ["pdf", "jpg", "jpeg", "png"]
     app.config["RECORD_BUCKET_NAME"] = "test_record_download_bucket"
 
     mock_file = Mock()

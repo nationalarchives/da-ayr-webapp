@@ -3,6 +3,7 @@ import uuid
 import boto3
 from botocore.exceptions import ClientError
 from flask import (
+    Response,
     abort,
     current_app,
     redirect,
@@ -12,7 +13,7 @@ from flask import (
     url_for,
 )
 from sqlalchemy import func
-from werkzeug.exceptions import BadRequest, HTTPException
+from werkzeug.exceptions import HTTPException
 
 from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
@@ -27,6 +28,7 @@ from app.main.db.queries import (
     build_browse_consignment_query,
     build_browse_query,
     build_browse_series_query,
+    get_file_metadata,
 )
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
@@ -50,7 +52,6 @@ from app.main.util.render_utils import (
     generate_image_manifest,
     generate_pdf_manifest,
     get_download_filename,
-    get_file_details,
 )
 from app.main.util.search_utils import (
     build_search_results_summary_query,
@@ -695,7 +696,11 @@ def record(record_id: uuid.UUID):
 
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
-    file_metadata, file_type, file_extension = get_file_details(file)
+    file_metadata = get_file_metadata(file.FileId)
+    file_extension = file.FileName.split(".")[-1].lower()
+    can_render_file = (
+        file_extension in current_app.config["SUPPORTED_RENDER_EXTENSIONS"]
+    )
 
     breadcrumb_values = generate_breadcrumb_values(file)
 
@@ -720,7 +725,7 @@ def record(record_id: uuid.UUID):
         download_filename=download_filename,
         can_download_records=can_download_records,
         filters={},
-        file_type=file_type,
+        can_render_file=can_render_file,
         manifest_url=manifest_url,
         file_extension=file_extension,
         presigned_url=presigned_url,
@@ -813,7 +818,7 @@ def http_exception(error):
 @bp.route("/record/<uuid:record_id>/manifest")
 @access_token_sign_in_required
 @log_page_view
-def generate_manifest(record_id: uuid.UUID):
+def generate_manifest(record_id: uuid.UUID) -> Response:
     file = db.session.get(File, record_id)
 
     if file is None:
@@ -821,28 +826,29 @@ def generate_manifest(record_id: uuid.UUID):
 
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
-    s3 = boto3.client("s3")
-    bucket = current_app.config["RECORD_BUCKET_NAME"]
-
-    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-
-    s3_file_object = s3.get_object(Bucket=bucket, Key=key)
-
-    filename = file.FileName
-    file_type = filename.split(".")[-1].lower()
+    file_name = file.FileName
+    file_url = create_presigned_url(file)
+    manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
+    file_type = file_name.split(".")[-1].lower()
 
     if (
         file_type
-        in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_DOCUMENT_TYPES"]
+        in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES"]
     ):
-        return generate_pdf_manifest(record_id)
+        return generate_pdf_manifest(file_name, file_url, manifest_url)
     elif (
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]
     ):
-        return generate_image_manifest(s3_file_object, record_id)
-    else:
-        current_app.app_logger.error(
-            f"Failed to create manifest for file with ID {file.FileId}"
+        s3 = boto3.client("s3")
+        bucket = current_app.config["RECORD_BUCKET_NAME"]
+        key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+        return generate_image_manifest(
+            file_name, file_url, manifest_url, s3_file_object
         )
-        return http_exception(BadRequest())
+
+    current_app.app_logger.error(
+        f"Failed to create manifest for file with ID {file.FileId} as not a supported file type"
+    )
+    abort(400)

@@ -1,24 +1,11 @@
 import io
+from typing import Any
 
 import boto3
-from flask import abort, current_app, jsonify, url_for
+from flask import Response, current_app, jsonify
 from PIL import Image
 
-from app.main.db.models import File, db
-from app.main.db.queries import get_file_metadata
-
-
-def get_file_details(file):
-    """Retrieve file metadata and determine file type and extension."""
-    file_metadata = get_file_metadata(file.FileId)
-    file_extension = file.FileName.split(".")[-1].lower()
-
-    if file_extension in ["pdf", "png", "jpg", "jpeg"]:
-        file_type = "iiif"
-    else:
-        file_type = None
-
-    return file_metadata, file_type, file_extension
+from app.main.db.models import File
 
 
 def generate_breadcrumb_values(file):
@@ -47,14 +34,7 @@ def get_download_filename(file):
     return None
 
 
-def create_presigned_url(file):
-    file_extension = file.FileName.split(".")[-1].lower()
-    if file_extension not in current_app.config["SUPPORTED_RENDER_EXTENSIONS"]:
-        current_app.app_logger.warning(
-            f"Rendering file format '{file_extension}' is not currently supported by AYR."
-        )
-        return None
-
+def create_presigned_url(file: File) -> str:
     s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
@@ -66,34 +46,16 @@ def create_presigned_url(file):
     return presigned_url
 
 
-def generate_pdf_manifest(record_id):
-    file = db.session.get(File, record_id)
-
-    if file is None:
-        abort(404)
-
-    file_name = file.FileName
-    file_url = url_for(
-        "main.download_record", record_id=record_id, _external=True, render=True
-    )
-
-    presigned_url = None
-    try:
-        presigned_url = create_presigned_url(file)
-    except Exception as e:
-        current_app.app_logger.info(
-            f"Failed to create presigned url for document render non-javascript fallback {e}"
-        )
-
-    file_url = presigned_url
-
+def generate_pdf_manifest(
+    file_name: str, file_url: str, manifest_url: str
+) -> Response:
     manifest = {
         "@context": [
             "https://iiif.io/api/presentation/3/context.json",
         ],
-        "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True, render=True)}",
+        "id": manifest_url,
         "type": "Manifest",
-        "label": {"none": [file_name]},
+        "label": {"en": [file_name]},
         "requiredStatement": {
             "label": {"en": ["File name"]},
             "value": {"en": [file_name]},
@@ -103,7 +65,7 @@ def generate_pdf_manifest(record_id):
         "description": f"Manifest for {file_name}",
         "items": [
             {
-                "id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True, render=True)}",
+                "id": manifest_url,
                 "type": "Canvas",
                 "label": {"en": ["test"]},
                 "items": [
@@ -134,43 +96,18 @@ def generate_pdf_manifest(record_id):
     return jsonify(manifest)
 
 
-def generate_image_manifest(s3_file_object, record_id):
-    file = db.session.get(File, record_id)
-
-    if file is None:
-        abort(404)
-
-    filename = file.FileName
-
+def generate_image_manifest(
+    file_name: str, file_url: str, manifest_url: str, s3_file_object: Any
+) -> Response:
     image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
-    width, height = image.size
-
-    # Get the file from S3 to read dimensions
-    s3 = boto3.client("s3")
-    bucket = current_app.config["RECORD_BUCKET_NAME"]
-    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-
-    s3_response_object = s3.get_object(Bucket=bucket, Key=key)
-    file_content = s3_response_object["Body"].read()
-    image = Image.open(io.BytesIO(file_content))
-    width, height = image.size
-
-    presigned_url = None
-    try:
-        presigned_url = create_presigned_url(file)
-    except Exception as e:
-        current_app.app_logger.info(
-            f"Failed to create presigned url for document render non-javascript fallback {e}"
-        )
-
-    file_url = presigned_url
+    image_width, image_height = image.size
 
     manifest = {
         "@context": "https://iiif.io/api/presentation/3/context.json",
-        "@id": f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}",
+        "@id": manifest_url,
         "@type": "sc:Manifest",
-        "label": filename,
-        "description": f"Manifest for {filename}",
+        "label": {"en": [file_name]},
+        "description": f"Manifest for {file_name}",
         "sequences": [
             {
                 "@id": file_url,
@@ -180,8 +117,8 @@ def generate_image_manifest(s3_file_object, record_id):
                         "@id": file_url,
                         "@type": "sc:Canvas",
                         "label": "Image 1",
-                        "width": width,
-                        "height": height,
+                        "width": image_width,
+                        "height": image_height,
                         "images": [
                             {
                                 "@id": file_url,
@@ -191,8 +128,8 @@ def generate_image_manifest(s3_file_object, record_id):
                                     "@id": file_url,
                                     "type": "dctypes:Image",
                                     "format": "image/png",
-                                    "width": width,
-                                    "height": height,
+                                    "width": image_width,
+                                    "height": image_height,
                                 },
                                 "on": file_url,
                             }
