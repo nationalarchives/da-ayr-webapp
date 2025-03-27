@@ -91,4 +91,10 @@ document.addEventListener("DOMContentLoaded", function () {
       uvElement.style.padding = "0.25rem";
     }
   }
+
+  document.querySelectorAll(".btn").forEach((button) => {
+    if (button.tagName.toLowerCase() === "div") {
+      button.setAttribute("role", "button");
+    }
+  });
 });
