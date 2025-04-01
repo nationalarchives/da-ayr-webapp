@@ -26,9 +26,6 @@ function initUniversalViewer() {
         rightPanelEnabled: false,
         headerPanelEnabled: true,
       },
-      openSeadragonCenterPanel: {
-        defaultZoomLevel: 2,
-      },
       pdfHeaderPanel: {
         options: {
           centerOptionsEnabled: false,
