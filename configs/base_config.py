@@ -118,6 +118,10 @@ class BaseConfig(object):
         return self._get_config_value("RECORD_BUCKET_NAME")
 
     @property
+    def S3_BUCKET_URL(self):
+        return f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"
+
+    @property
     def FLASKS3_ACTIVE(self):
         return self._get_config_value("FLASKS3_ACTIVE") == "True"
 
@@ -154,83 +158,80 @@ class BaseConfig(object):
 
     @property
     def CSP_DEFAULT_SRC(self):
-        return self._get_config_list(
-            "CSP_DEFAULT_SRC", [SELF, self.FLASKS3_CDN_DOMAIN]
-        )
+        return [SELF, self.FLASKS3_CDN_DOMAIN]
 
     @property
     def CSP_CONNECT_SRC(self):
-        return self._get_config_list(
-            "CSP_CONNECT_SRC",
-            [
-                SELF,
-                self.FLASKS3_CDN_DOMAIN,
-                f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
-            ],
-        )
+        return [
+            SELF,
+            self.FLASKS3_CDN_DOMAIN,
+            self.S3_BUCKET_URL,
+        ]
 
     @property
     def CSP_SCRIPT_SRC(self):
-        return self._get_config_list(
-            "CSP_SCRIPT_SRC",
-            [
-                SELF,
-                self.FLASKS3_CDN_DOMAIN,
-                f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
-            ],
-        )
+        return [
+            SELF,
+            self.FLASKS3_CDN_DOMAIN,
+            self.S3_BUCKET_URL,
+        ]
 
     @property
     def CSP_SCRIPT_SRC_ELEM(self):
-        return self._get_config_list(
-            "CSP_SCRIPT_SRC_ELEM",
-            [
-                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
-            ],
-        )
+        return [
+            SELF,
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/561.9c9010d28f0e85a93735.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/132.71cff57d0df80961f8b1.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/UV.js",
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
+            "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
+            "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/9501.18ecc99d0975318a991a.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/2568.692e9a5962ece6f2c181.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/560.38a617ba9e1573dfd7d4.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/429.37ac60eb90fcff97a797.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/4830.249a5be20dbe55155aae.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/8687.87c1b5ce857b3d6e05d0.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/3708.6e3ce3d99cffbe4e2f14.js",
+            # for pdfs
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/7950.63bff638e4e0bfdfbc15.js",
+        ]
 
     @property
     def CSP_STYLE_SRC(self):
-        return self._get_config_list("CSP_STYLE_SRC", [SELF])
+        return [SELF]
 
     @property
     def CSP_STYLE_SRC_ELEM(self):
-        return self._get_config_list(
-            "CSP_STYLE_SRC_ELEM",
-            [
-                SELF,
-                self.FLASKS3_CDN_DOMAIN,
-                "https://cdn.jsdelivr.net/jsdelivr-header.css",
-                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
-            ],
-        )
+        return [
+            SELF,
+            self.FLASKS3_CDN_DOMAIN,
+            "https://cdn.jsdelivr.net/jsdelivr-header.css",
+            "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
+            "'sha256-7smvP9yjKljPbeD/NRIE3XgBZUTCaF936I8yK6wJUM4='",  # pragma: allowlist secret
+            "'sha256-V4SarAiVbO77lJTzMaRut9Qr7Cx4R8jo8vH1dIFkVSc='",  # pragma: allowlist secret
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/uv.min.css",
+            "'sha256-XawOsBXgsJP8SK/f+1r5Hi9mlYtBA/KzL3kNIn0YzA4='",  # pragma: allowlist secret
+            # for pdfs
+            "'sha256-cngw11JRRopLh6RDda+MT7Jk/9a0aKtyuseJMoDvEow='",  # pragma: allowlist secret
+        ]
 
     @property
     def CSP_IMG_SRC(self):
-        return self._get_config_list(
-            "CSP_IMG_SRC", [SELF, self.FLASKS3_CDN_DOMAIN, "data:"]
-        )
+        return [SELF, self.FLASKS3_CDN_DOMAIN, "data:"]
 
     @property
     def CSP_FRAME_SRC(self):
-        return self._get_config_list(
-            "CSP_FRAME_SRC",
-            [SELF, f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"],
-        )
+        return [SELF, self.S3_BUCKET_URL]
 
     @property
     def CSP_OBJECT_SRC(self):
-        return self._get_config_list(
-            "CSP_OBJECT_SRC",
-            [SELF, f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"],
-        )
+        return [SELF, self.S3_BUCKET_URL]
 
     @property
     def CSP_WORKER_SRC(self):
-        return self._get_config_list(
-            "CSP_WORKER_SRC", ["blob:", SELF, self.FLASKS3_CDN_DOMAIN]
-        )
+        return ["blob:", SELF, self.FLASKS3_CDN_DOMAIN]
 
     def _get_config_value(self, variable_name):
         pass
