@@ -69,7 +69,8 @@ class TestBrowseSeries:
         rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
-            ["Testing A", "TSTA 1", "30/11/2023", "9", "TDR-2023-GXFH"]
+            ["Testing A", "TSTA 1", "30/11/2023", "9", "TDR-2023-GXFH"],
+            ["Testing A", "TSTA 1", "18/10/2023", "7", "TDR-2023-BV6"],
         ]
 
         verify_header_row(header_rows)
