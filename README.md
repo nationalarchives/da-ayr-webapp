@@ -708,34 +708,7 @@ Uses [Flask Talisman](https://github.com/GoogleCloudPlatform/flask-talisman) to 
 
 A strict default [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) (CSP) is set using [Flask Talisman](https://github.com/GoogleCloudPlatform/flask-talisman) to mitigate [Cross Site Scripting](https://developer.mozilla.org/en-US/docs/Web/Security/Types_of_attacks#cross-site_scripting_xss) (XSS) and packet sniffing attacks. This prevents loading any resources that are not in the same domain as the application.
 
-To define the scripts and styles allowed in the Content Security Policy (CSP), you can configure the following environment variables in a .env file. This configuration includes a set of hashes for inline scripts, as well as specific domains used by AYR.
-
-These ENV variables should be comma delimited strings with hashes prefixed "sha256-hash" and any urls to be in the form https://example-url.com/
-
-
-### Local Usage
-CSP_DEFAULT_SRC=""
-
-CSP_CONNECT_SRC=""
-
-CSP_SCRIPT_SRC="https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/, https://cdnjs.cloudflare.com/ajax/libs/pdf.js/, sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw=, sha256-l1eTVSK8DTnK8+yloud7wZUqFrI0atVo6VlC6PJvYaQ=, sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ="
-
-CSP_SCRIPT_SRC_ELEM="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/, https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/, https://127.0.0.1:5000/, sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw=, sha256-bxI3qvjziRybgoaeQYcUjRHcCTdbUu/A9xFMlfNGZAQ=, sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ="
-
-CSP_STYLE_SRC="sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE=, sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
-
-CSP_STYLE_SRC_ELEM="https://cdn.jsdelivr.net/jsdelivr-header.css, https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/, sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE=,
-
-CSP_IMG_SRC=""
-
-CSP_FRAME_SRC=""
-
-CSP_OBJECT_SRC=""
-
-CSP_WORKER_SRC="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"
-
-### Environment-Specific CSP Policies
-We use AWS Secrets Manager to manage and update CSP directives. Each CSP directive is stored as a comma-delimited string in AWS.
+The scripts and styles in the Content Security Policy (CSP) for Universal Viewer related code are all pre-defined in the config, whilst those referring to the objects in s3 are built dynamically from the other S3 Bucket related config values already set.
 
 ### Response compression
 

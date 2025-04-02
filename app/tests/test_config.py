@@ -96,6 +96,62 @@ def test_local_env_vars_config_initialized(monkeypatch):
     )
     assert config.OPEN_SEARCH_TIMEOUT == 10
 
+    assert config.CSP_CONNECT_SRC == [
+        "'self'",
+        "test_flasks3_cdn_domain",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+    ]
+    assert config.CSP_SCRIPT_SRC == [
+        "'self'",
+        "test_flasks3_cdn_domain",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+    ]
+    assert config.CSP_SCRIPT_SRC_ELEM == [
+        "'self'",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/561.9c9010d28f0e85a93735.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/132.71cff57d0df80961f8b1.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/UV.js",
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
+        "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
+        "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/9501.18ecc99d0975318a991a.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/2568.692e9a5962ece6f2c181.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/560.38a617ba9e1573dfd7d4.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/429.37ac60eb90fcff97a797.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/4830.249a5be20dbe55155aae.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/8687.87c1b5ce857b3d6e05d0.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/3708.6e3ce3d99cffbe4e2f14.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/7950.63bff638e4e0bfdfbc15.js",
+    ]
+    assert config.CSP_STYLE_SRC == ["'self'"]
+    assert config.CSP_STYLE_SRC_ELEM == [
+        "'self'",
+        "test_flasks3_cdn_domain",
+        "https://cdn.jsdelivr.net/jsdelivr-header.css",
+        "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
+        "'sha256-7smvP9yjKljPbeD/NRIE3XgBZUTCaF936I8yK6wJUM4='",  # pragma: allowlist secret
+        "'sha256-V4SarAiVbO77lJTzMaRut9Qr7Cx4R8jo8vH1dIFkVSc='",  # pragma: allowlist secret
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/uv.min.css",
+        "'sha256-XawOsBXgsJP8SK/f+1r5Hi9mlYtBA/KzL3kNIn0YzA4='",  # pragma: allowlist secret
+        "'sha256-cngw11JRRopLh6RDda+MT7Jk/9a0aKtyuseJMoDvEow='",  # pragma: allowlist secret
+    ]
+    assert config.CSP_IMG_SRC == ["'self'", "test_flasks3_cdn_domain", "data:"]
+    assert config.CSP_FRAME_SRC == [
+        "'self'",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+    ]
+    assert config.CSP_OBJECT_SRC == [
+        "'self'",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+    ]
+    assert config.CSP_WORKER_SRC == [
+        "blob:",
+        "'self'",
+        "test_flasks3_cdn_domain",
+    ]
+    assert config.CSP_DEFAULT_SRC == ["'self'", "test_flasks3_cdn_domain"]
+
 
 def test_local_env_config_variable_not_set_error(monkeypatch):
     """
@@ -134,16 +190,6 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
     monkeypatch.setenv("OPEN_SEARCH_USERNAME", "test_os_username")
     monkeypatch.setenv("OPEN_SEARCH_PASSWORD", "test_os_password")
     monkeypatch.setenv("OPEN_SEARCH_TIMEOUT", 10)
-    monkeypatch.setenv("CSP_CONNECT_SRC", "")
-    monkeypatch.setenv("CSP_DEFAULT_SRC", "")
-    monkeypatch.setenv("CSP_FRAME_SRC", "")
-    monkeypatch.setenv("CSP_IMG_SRC", "")
-    monkeypatch.setenv("CSP_OBJECT_SRC", "")
-    monkeypatch.setenv("CSP_SCRIPT_SRC", "")
-    monkeypatch.setenv("CSP_SCRIPT_SRC_ELEM", "")
-    monkeypatch.setenv("CSP_STYLE_SRC", "")
-    monkeypatch.setenv("CSP_STYLE_SRC_ELEM", "")
-    monkeypatch.setenv("CSP_WORKER_SRC", "")
 
     config = EnvConfig()
 
@@ -151,6 +197,23 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
         inspect.getmembers(config)
 
     assert str(error.value) == "'DEFAULT_DATE_FORMAT'"
+
+
+def test_local_s3_bucket_url_with_non_s3_server(monkeypatch):
+    """
+    GIVEN environment variables are set with AWS_ENDPOINT_URL
+    WHEN Config is initialized
+    THEN it should have S3_BUCKET_URL with the expected value
+    """
+    monkeypatch.setenv("AWS_ENDPOINT_URL", "http://test_endpoint_url")
+    monkeypatch.setenv("RECORD_BUCKET_NAME", "test_record_bucket_name")
+
+    config = EnvConfig()
+
+    assert (
+        config.S3_BUCKET_URL
+        == "http://test_endpoint_url/test_record_bucket_name/"
+    )
 
 
 @mock_aws
@@ -269,6 +332,66 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
             == "test_secret_key"  # pragma: allowlist secret
         )
 
+        assert config.CSP_CONNECT_SRC == [
+            "'self'",
+            "test_flasks3_cdn_domain",
+            "https://test_record_bucket_name.s3.amazonaws.com",
+        ]
+        assert config.CSP_SCRIPT_SRC == [
+            "'self'",
+            "test_flasks3_cdn_domain",
+            "https://test_record_bucket_name.s3.amazonaws.com",
+        ]
+        assert config.CSP_SCRIPT_SRC_ELEM == [
+            "'self'",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/561.9c9010d28f0e85a93735.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/132.71cff57d0df80961f8b1.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/UV.js",
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
+            "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
+            "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/9501.18ecc99d0975318a991a.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/2568.692e9a5962ece6f2c181.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/560.38a617ba9e1573dfd7d4.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/429.37ac60eb90fcff97a797.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/4830.249a5be20dbe55155aae.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/8687.87c1b5ce857b3d6e05d0.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/3708.6e3ce3d99cffbe4e2f14.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/7950.63bff638e4e0bfdfbc15.js",
+        ]
+        assert config.CSP_STYLE_SRC == ["'self'"]
+        assert config.CSP_STYLE_SRC_ELEM == [
+            "'self'",
+            "test_flasks3_cdn_domain",
+            "https://cdn.jsdelivr.net/jsdelivr-header.css",
+            "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
+            "'sha256-7smvP9yjKljPbeD/NRIE3XgBZUTCaF936I8yK6wJUM4='",  # pragma: allowlist secret
+            "'sha256-V4SarAiVbO77lJTzMaRut9Qr7Cx4R8jo8vH1dIFkVSc='",  # pragma: allowlist secret
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/uv.min.css",
+            "'sha256-XawOsBXgsJP8SK/f+1r5Hi9mlYtBA/KzL3kNIn0YzA4='",  # pragma: allowlist secret
+            "'sha256-cngw11JRRopLh6RDda+MT7Jk/9a0aKtyuseJMoDvEow='",  # pragma: allowlist secret
+        ]
+        assert config.CSP_IMG_SRC == [
+            "'self'",
+            "test_flasks3_cdn_domain",
+            "data:",
+        ]
+        assert config.CSP_FRAME_SRC == [
+            "'self'",
+            "https://test_record_bucket_name.s3.amazonaws.com",
+        ]
+        assert config.CSP_OBJECT_SRC == [
+            "'self'",
+            "https://test_record_bucket_name.s3.amazonaws.com",
+        ]
+        assert config.CSP_WORKER_SRC == [
+            "blob:",
+            "'self'",
+            "test_flasks3_cdn_domain",
+        ]
+        assert config.CSP_DEFAULT_SRC == ["'self'", "test_flasks3_cdn_domain"]
+
 
 @mock_aws
 def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
@@ -294,16 +417,6 @@ def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
             "SECRET_KEY": "test_secret_key",  # pragma: allowlist secret
             "DB_SSL_ROOT_CERTIFICATE": "test_db_ssl_root_certificate",
             "DEFAULT_PAGE_SIZE": 10,
-            "CSP_CONNECT_SRC": "",
-            "CSP_DEFAULT_SRC": "",
-            "CSP_FRAME_SRC": "",
-            "CSP_IMG_SRC": "",
-            "CSP_OBJECT_SRC": "",
-            "CSP_SCRIPT_SRC": "",
-            "CSP_SCRIPT_SRC_ELEM": "",
-            "CSP_STYLE_SRC": "",
-            "CSP_STYLE_SRC_ELEM": "",
-            "CSP_WORKER_SRC": "",
         }
     )
 
