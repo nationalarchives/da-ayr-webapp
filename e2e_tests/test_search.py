@@ -142,7 +142,7 @@ class TestSearchTransferringBody:
         aau_user_page.get_by_role("link", name="Testing A").click()
         aau_user_page.get_by_role("link", name="a", exact=True).click()
 
-        url = f"{self.browse_transferring_body_route_url}/{self.transferring_body_id}?search_area=everywhere "
+        url = f"{self.browse_transferring_body_route_url}/{self.transferring_body_id}?search_area=everywhere"
         expect(aau_user_page).to_have_url(url)
 
     def test_click_on_clear_all_as_aau_user_redirects_to_browse(
