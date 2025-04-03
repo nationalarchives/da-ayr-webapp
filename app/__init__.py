@@ -109,7 +109,7 @@ def create_app(config_class, database_uri=None):
         content_security_policy=csp,
         force_https=force_https,
         content_security_policy_nonce_in=[
-            "script-src",
+            "script-src-elem",
         ],
     )
     WTFormsHelpers(app)
