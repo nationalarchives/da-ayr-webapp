@@ -108,21 +108,8 @@ def test_local_env_vars_config_initialized(monkeypatch):
     ]
     assert config.CSP_SCRIPT_SRC_ELEM == [
         "'self'",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/561.9c9010d28f0e85a93735.js",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/132.71cff57d0df80961f8b1.js",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/UV.js",
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-        "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
-        "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/9501.18ecc99d0975318a991a.js",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/2568.692e9a5962ece6f2c181.js",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/560.38a617ba9e1573dfd7d4.js",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/429.37ac60eb90fcff97a797.js",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/4830.249a5be20dbe55155aae.js",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/8687.87c1b5ce857b3d6e05d0.js",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/3708.6e3ce3d99cffbe4e2f14.js",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/7950.63bff638e4e0bfdfbc15.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/",
     ]
     assert config.CSP_STYLE_SRC == ["'self'"]
     assert config.CSP_STYLE_SRC_ELEM == [
@@ -344,21 +331,8 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         ]
         assert config.CSP_SCRIPT_SRC_ELEM == [
             "'self'",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/561.9c9010d28f0e85a93735.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/132.71cff57d0df80961f8b1.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/UV.js",
             "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-            "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
-            "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/9501.18ecc99d0975318a991a.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/2568.692e9a5962ece6f2c181.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/560.38a617ba9e1573dfd7d4.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/429.37ac60eb90fcff97a797.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/4830.249a5be20dbe55155aae.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/8687.87c1b5ce857b3d6e05d0.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/3708.6e3ce3d99cffbe4e2f14.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/7950.63bff638e4e0bfdfbc15.js",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/",
         ]
         assert config.CSP_STYLE_SRC == ["'self'"]
         assert config.CSP_STYLE_SRC_ELEM == [
