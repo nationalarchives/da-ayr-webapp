@@ -13,15 +13,7 @@ orig = botocore.client.BaseClient._make_api_call
 
 # Mocked botocore _make_api_call function
 def mock_make_api_call(self, operation_name, kwarg):
-    if operation_name == "AssumeRole":
-        return {
-            "Credentials": {
-                "AccessKeyId": "test_access_key",
-                "SecretAccessKey": "test_secret_key",  # pragma: allowlist secret
-                "SessionToken": "test_token",
-                "Expiration": "2024-09-18T12:00:00Z",
-            }
-        }
+
     return orig(self, operation_name, kwarg)
 
 
@@ -48,6 +40,9 @@ def test_lambda_handler_calls_index_file_content_and_metadata_in_opensearch(
     """
     secret_name = "test_vars"  # pragma: allowlist secret
     db_secret_name = "test_db_vars"  # pragma: allowlist secret
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "test_access_key")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "test_secret_key")
+    monkeypatch.setenv("AWS_SESSION_TOKEN", "test_token")
     monkeypatch.setenv("SECRET_ID", secret_name)
     monkeypatch.setenv("DB_SECRET_ID", db_secret_name)
 

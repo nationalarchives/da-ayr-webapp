@@ -17,15 +17,7 @@ orig = botocore.client.BaseClient._make_api_call
 
 # Mocked botocore _make_api_call function
 def mock_make_api_call(self, operation_name, kwarg):
-    if operation_name == "AssumeRole":
-        return {
-            "Credentials": {
-                "AccessKeyId": "test_access_key",
-                "SecretAccessKey": "test_secret_key",  # pragma: allowlist secret
-                "SessionToken": "test_token",
-                "Expiration": "2024-09-18T12:00:00Z",
-            }
-        }
+
     return orig(self, operation_name, kwarg)
 
 
@@ -287,6 +279,17 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         "AWS_SM_DB_CONFIG_SECRET_ID", "test_db_config_secret_id"
     )  # pragma: allowlist secret
 
+    monkeypatch.setenv(
+        "AWS_ACCESS_KEY_ID", "test_access_key"
+    )  # pragma: allowlist secret
+
+    monkeypatch.setenv(
+        "AWS_SECRET_ACCESS_KEY", "test_secret_key"
+    )  # pragma: allowlist secret
+
+    monkeypatch.setenv(
+        "AWS_SESSION_TOKEN", "test_token"
+    )  # pragma: allowlist secret
     with patch(
         "botocore.client.BaseClient._make_api_call", new=mock_make_api_call
     ):
