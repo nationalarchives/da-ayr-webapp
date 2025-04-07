@@ -379,7 +379,7 @@ def build_search_transferring_body_query(
             "post_tags": [f"</{highlight_tag}>"],
             "type": "unified",  # default
             "fragment_size": 200,  # limit amount of text
-            "number_of_fragments": 0,  # remove fragment splits
+            "number_of_fragments": 0,
             "phrase_limit": 256,  # default
             "require_field_match": False,  # default, highlights only in fields that were searched
             "boundary_scanner": "sentence",
