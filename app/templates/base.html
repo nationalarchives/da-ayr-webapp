@@ -2,6 +2,7 @@
 {%- from 'govuk_frontend_jinja/components/error-summary/macro.html' import govukErrorSummary -%}
 {%- from 'govuk_frontend_jinja/components/notification-banner/macro.html' import govukNotificationBanner -%}
 {%- from 'govuk_frontend_jinja/components/phase-banner/macro.html' import govukPhaseBanner -%}
+{% set cspNonce = csp_nonce() %}
 {% set assetPath = url_for('static', filename='').rstrip('/') %}
 {% block pageTitle %}{{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block head %}
@@ -111,7 +112,7 @@
 {% endblock %}
 {% block bodyEnd %}
     <!--[if gt IE 8]><!-->
-    <script type="module">
+    <script nonce="{{ cspNonce }}" type="module">
         import { initAll } from "{{ url_for('static', filename='govuk-frontend.min.js') }}"
         initAll()
     </script>
