@@ -1,24 +1,13 @@
 import inspect
 import json
-from unittest.mock import patch
 
 import boto3
-import botocore
 import pytest
 from moto import mock_aws
 from requests_aws4auth import AWS4Auth
 
 from configs.aws_secrets_manager_config import AWSSecretsManagerConfig
 from configs.env_config import EnvConfig
-
-# Original botocore _make_api_call function
-orig = botocore.client.BaseClient._make_api_call
-
-
-# Mocked botocore _make_api_call function
-def mock_make_api_call(self, operation_name, kwarg):
-
-    return orig(self, operation_name, kwarg)
 
 
 def test_local_env_vars_config_initialized(monkeypatch):
@@ -290,110 +279,105 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
     monkeypatch.setenv(
         "AWS_SESSION_TOKEN", "test_token"
     )  # pragma: allowlist secret
-    with patch(
-        "botocore.client.BaseClient._make_api_call", new=mock_make_api_call
-    ):
 
-        config = AWSSecretsManagerConfig()
+    config = AWSSecretsManagerConfig()
 
-        assert (
-            config.SQLALCHEMY_DATABASE_URI
-            == "postgresql+psycopg2://test_db_user:test_db_password"
-            "@test_db_host:5432/"
-            "test_db_name?sslmode=verify-full&sslrootcert=test_db_ssl_root_certificate"
-        )
+    assert (
+        config.SQLALCHEMY_DATABASE_URI
+        == "postgresql+psycopg2://test_db_user:test_db_password"
+        "@test_db_host:5432/"
+        "test_db_name?sslmode=verify-full&sslrootcert=test_db_ssl_root_certificate"
+    )
 
-        assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
-        assert config.KEYCLOAK_CLIENT_ID == "test_keycloak_client_id"
-        assert config.KEYCLOAK_REALM_NAME == "test_keycloack_realm_name"
-        assert (
-            config.KEYCLOAK_CLIENT_SECRET
-            == "test_keycloak_client_secret"  # pragma: allowlist secret
-        )
-        assert (
-            config.SECRET_KEY == "test_secret_key"  # pragma: allowlist secret
-        )
-        assert config.DEFAULT_PAGE_SIZE == 10
-        assert config.DEFAULT_DATE_FORMAT == "test_default_date_format"
+    assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
+    assert config.KEYCLOAK_CLIENT_ID == "test_keycloak_client_id"
+    assert config.KEYCLOAK_REALM_NAME == "test_keycloack_realm_name"
+    assert (
+        config.KEYCLOAK_CLIENT_SECRET
+        == "test_keycloak_client_secret"  # pragma: allowlist secret
+    )
+    assert config.SECRET_KEY == "test_secret_key"  # pragma: allowlist secret
+    assert config.DEFAULT_PAGE_SIZE == 10
+    assert config.DEFAULT_DATE_FORMAT == "test_default_date_format"
 
-        assert config.RECORD_BUCKET_NAME == "test_record_bucket_name"
-        assert config.FLASKS3_ACTIVE is False
-        assert config.FLASKS3_CDN_DOMAIN == "test_flasks3_cdn_domain"
-        assert config.FLASKS3_BUCKET_NAME == "test_flasks3_bucket_name"
-        assert config.PERF_TEST is False
-        assert config.OPEN_SEARCH_HOST == "test_os_host"
-        assert config.OPEN_SEARCH_TIMEOUT == 10
+    assert config.RECORD_BUCKET_NAME == "test_record_bucket_name"
+    assert config.FLASKS3_ACTIVE is False
+    assert config.FLASKS3_CDN_DOMAIN == "test_flasks3_cdn_domain"
+    assert config.FLASKS3_BUCKET_NAME == "test_flasks3_bucket_name"
+    assert config.PERF_TEST is False
+    assert config.OPEN_SEARCH_HOST == "test_os_host"
+    assert config.OPEN_SEARCH_TIMEOUT == 10
 
-        aws_auth = config.OPEN_SEARCH_HTTP_AUTH
-        assert isinstance(aws_auth, AWS4Auth)
-        assert aws_auth.access_id == "test_access_key"
-        assert aws_auth.region == "test_aws_region"
-        assert aws_auth.service == "es"
-        assert aws_auth.session_token == "test_token"
-        assert (
-            aws_auth.signing_key.secret_key
-            == "test_secret_key"  # pragma: allowlist secret
-        )
+    aws_auth = config.OPEN_SEARCH_HTTP_AUTH
+    assert isinstance(aws_auth, AWS4Auth)
+    assert aws_auth.access_id == "test_access_key"
+    assert aws_auth.region == "test_aws_region"
+    assert aws_auth.service == "es"
+    assert aws_auth.session_token == "test_token"
+    assert (
+        aws_auth.signing_key.secret_key
+        == "test_secret_key"  # pragma: allowlist secret
+    )
 
-        assert config.CSP_CONNECT_SRC == [
-            "'self'",
-            "test_flasks3_cdn_domain",
-            "https://test_record_bucket_name.s3.amazonaws.com",
-        ]
-        assert config.CSP_SCRIPT_SRC == [
-            "'self'",
-            "test_flasks3_cdn_domain",
-            "https://test_record_bucket_name.s3.amazonaws.com",
-        ]
-        assert config.CSP_SCRIPT_SRC_ELEM == [
-            "'self'",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/561.9c9010d28f0e85a93735.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/132.71cff57d0df80961f8b1.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/UV.js",
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-            "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
-            "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/9501.18ecc99d0975318a991a.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/2568.692e9a5962ece6f2c181.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/560.38a617ba9e1573dfd7d4.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/429.37ac60eb90fcff97a797.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/4830.249a5be20dbe55155aae.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/8687.87c1b5ce857b3d6e05d0.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/3708.6e3ce3d99cffbe4e2f14.js",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/7950.63bff638e4e0bfdfbc15.js",
-        ]
-        assert config.CSP_STYLE_SRC == ["'self'"]
-        assert config.CSP_STYLE_SRC_ELEM == [
-            "'self'",
-            "test_flasks3_cdn_domain",
-            "https://cdn.jsdelivr.net/jsdelivr-header.css",
-            "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
-            "'sha256-7smvP9yjKljPbeD/NRIE3XgBZUTCaF936I8yK6wJUM4='",  # pragma: allowlist secret
-            "'sha256-V4SarAiVbO77lJTzMaRut9Qr7Cx4R8jo8vH1dIFkVSc='",  # pragma: allowlist secret
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/uv.min.css",
-            "'sha256-XawOsBXgsJP8SK/f+1r5Hi9mlYtBA/KzL3kNIn0YzA4='",  # pragma: allowlist secret
-            "'sha256-cngw11JRRopLh6RDda+MT7Jk/9a0aKtyuseJMoDvEow='",  # pragma: allowlist secret
-        ]
-        assert config.CSP_IMG_SRC == [
-            "'self'",
-            "test_flasks3_cdn_domain",
-            "data:",
-        ]
-        assert config.CSP_FRAME_SRC == [
-            "'self'",
-            "https://test_record_bucket_name.s3.amazonaws.com",
-        ]
-        assert config.CSP_OBJECT_SRC == [
-            "'self'",
-            "https://test_record_bucket_name.s3.amazonaws.com",
-        ]
-        assert config.CSP_WORKER_SRC == [
-            "blob:",
-            "'self'",
-            "test_flasks3_cdn_domain",
-        ]
-        assert config.CSP_DEFAULT_SRC == ["'self'", "test_flasks3_cdn_domain"]
+    assert config.CSP_CONNECT_SRC == [
+        "'self'",
+        "test_flasks3_cdn_domain",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+    ]
+    assert config.CSP_SCRIPT_SRC == [
+        "'self'",
+        "test_flasks3_cdn_domain",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+    ]
+    assert config.CSP_SCRIPT_SRC_ELEM == [
+        "'self'",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/561.9c9010d28f0e85a93735.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/132.71cff57d0df80961f8b1.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/UV.js",
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
+        "'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw='",  # pragma: allowlist secret
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
+        "'sha256-JTVvglOxxHXAPZcB40r0wZGNZuFHt0cm0bQVn8LK5GQ='",  # pragma: allowlist secret
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/9501.18ecc99d0975318a991a.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/2568.692e9a5962ece6f2c181.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/560.38a617ba9e1573dfd7d4.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/429.37ac60eb90fcff97a797.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/4830.249a5be20dbe55155aae.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/8687.87c1b5ce857b3d6e05d0.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/3708.6e3ce3d99cffbe4e2f14.js",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/umd/7950.63bff638e4e0bfdfbc15.js",
+    ]
+    assert config.CSP_STYLE_SRC == ["'self'"]
+    assert config.CSP_STYLE_SRC_ELEM == [
+        "'self'",
+        "test_flasks3_cdn_domain",
+        "https://cdn.jsdelivr.net/jsdelivr-header.css",
+        "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
+        "'sha256-7smvP9yjKljPbeD/NRIE3XgBZUTCaF936I8yK6wJUM4='",  # pragma: allowlist secret
+        "'sha256-V4SarAiVbO77lJTzMaRut9Qr7Cx4R8jo8vH1dIFkVSc='",  # pragma: allowlist secret
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/uv.min.css",
+        "'sha256-XawOsBXgsJP8SK/f+1r5Hi9mlYtBA/KzL3kNIn0YzA4='",  # pragma: allowlist secret
+        "'sha256-cngw11JRRopLh6RDda+MT7Jk/9a0aKtyuseJMoDvEow='",  # pragma: allowlist secret
+    ]
+    assert config.CSP_IMG_SRC == [
+        "'self'",
+        "test_flasks3_cdn_domain",
+        "data:",
+    ]
+    assert config.CSP_FRAME_SRC == [
+        "'self'",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+    ]
+    assert config.CSP_OBJECT_SRC == [
+        "'self'",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+    ]
+    assert config.CSP_WORKER_SRC == [
+        "blob:",
+        "'self'",
+        "test_flasks3_cdn_domain",
+    ]
+    assert config.CSP_DEFAULT_SRC == ["'self'", "test_flasks3_cdn_domain"]
 
 
 @mock_aws
