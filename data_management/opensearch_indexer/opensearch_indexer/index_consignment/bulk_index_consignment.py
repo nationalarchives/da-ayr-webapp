@@ -169,7 +169,7 @@ def construct_documents(files: List[Dict], bucket_name: str) -> List[Dict]:
             return {"file_id": file["file_id"], "document": document}
         except Exception as e:
             logger.error(f"Failed to obtain file {object_key}: {e}")
-            return None
+            raise
 
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(process_file, file) for file in files]
