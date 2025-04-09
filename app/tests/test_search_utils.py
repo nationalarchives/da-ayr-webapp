@@ -604,9 +604,15 @@ def test_build_search_transferring_body_query():
         "highlight": {
             "pre_tags": ["<test_highlight_key>"],
             "post_tags": ["</test_highlight_key>"],
-            "fields": {
-                "*": {},
-            },
+            "type": "unified",
+            "fragment_size": 200,
+            "number_of_fragments": 5,
+            "phrase_limit": 256,
+            "require_field_match": False,
+            "boundary_scanner": "sentence",
+            "boundary_scanner_locale": "en",
+            "order": "score",
+            "fields": {"*": {}},
         },
     }
 
