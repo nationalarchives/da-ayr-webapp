@@ -1,32 +1,13 @@
 import inspect
 import json
-from unittest.mock import patch
 
 import boto3
-import botocore
 import pytest
 from moto import mock_aws
 from requests_aws4auth import AWS4Auth
 
 from configs.aws_secrets_manager_config import AWSSecretsManagerConfig
 from configs.env_config import EnvConfig
-
-# Original botocore _make_api_call function
-orig = botocore.client.BaseClient._make_api_call
-
-
-# Mocked botocore _make_api_call function
-def mock_make_api_call(self, operation_name, kwarg):
-    if operation_name == "AssumeRole":
-        return {
-            "Credentials": {
-                "AccessKeyId": "test_access_key",
-                "SecretAccessKey": "test_secret_key",  # pragma: allowlist secret
-                "SessionToken": "test_token",
-                "Expiration": "2024-09-18T12:00:00Z",
-            }
-        }
-    return orig(self, operation_name, kwarg)
 
 
 def test_local_env_vars_config_initialized(monkeypatch):
@@ -274,97 +255,103 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         "AWS_SM_DB_CONFIG_SECRET_ID", "test_db_config_secret_id"
     )  # pragma: allowlist secret
 
-    with patch(
-        "botocore.client.BaseClient._make_api_call", new=mock_make_api_call
-    ):
+    monkeypatch.setenv(
+        "AWS_ACCESS_KEY_ID", "test_access_key"
+    )  # pragma: allowlist secret
 
-        config = AWSSecretsManagerConfig()
+    monkeypatch.setenv(
+        "AWS_SECRET_ACCESS_KEY", "test_secret_key"
+    )  # pragma: allowlist secret
 
-        assert (
-            config.SQLALCHEMY_DATABASE_URI
-            == "postgresql+psycopg2://test_db_user:test_db_password"
-            "@test_db_host:5432/"
-            "test_db_name?sslmode=verify-full&sslrootcert=test_db_ssl_root_certificate"
-        )
+    monkeypatch.setenv(
+        "AWS_SESSION_TOKEN", "test_token"
+    )  # pragma: allowlist secret
 
-        assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
-        assert config.KEYCLOAK_CLIENT_ID == "test_keycloak_client_id"
-        assert config.KEYCLOAK_REALM_NAME == "test_keycloack_realm_name"
-        assert (
-            config.KEYCLOAK_CLIENT_SECRET
-            == "test_keycloak_client_secret"  # pragma: allowlist secret
-        )
-        assert (
-            config.SECRET_KEY == "test_secret_key"  # pragma: allowlist secret
-        )
-        assert config.DEFAULT_PAGE_SIZE == 10
-        assert config.DEFAULT_DATE_FORMAT == "test_default_date_format"
+    config = AWSSecretsManagerConfig()
 
-        assert config.RECORD_BUCKET_NAME == "test_record_bucket_name"
-        assert config.FLASKS3_ACTIVE is False
-        assert config.FLASKS3_CDN_DOMAIN == "test_flasks3_cdn_domain"
-        assert config.FLASKS3_BUCKET_NAME == "test_flasks3_bucket_name"
-        assert config.PERF_TEST is False
-        assert config.OPEN_SEARCH_HOST == "test_os_host"
-        assert config.OPEN_SEARCH_TIMEOUT == 10
+    assert (
+        config.SQLALCHEMY_DATABASE_URI
+        == "postgresql+psycopg2://test_db_user:test_db_password"
+        "@test_db_host:5432/"
+        "test_db_name?sslmode=verify-full&sslrootcert=test_db_ssl_root_certificate"
+    )
 
-        aws_auth = config.OPEN_SEARCH_HTTP_AUTH
-        assert isinstance(aws_auth, AWS4Auth)
-        assert aws_auth.access_id == "test_access_key"
-        assert aws_auth.region == "test_aws_region"
-        assert aws_auth.service == "es"
-        assert aws_auth.session_token == "test_token"
-        assert (
-            aws_auth.signing_key.secret_key
-            == "test_secret_key"  # pragma: allowlist secret
-        )
+    assert config.KEYCLOAK_BASE_URI == "test_keycloak_base_uri"
+    assert config.KEYCLOAK_CLIENT_ID == "test_keycloak_client_id"
+    assert config.KEYCLOAK_REALM_NAME == "test_keycloack_realm_name"
+    assert (
+        config.KEYCLOAK_CLIENT_SECRET
+        == "test_keycloak_client_secret"  # pragma: allowlist secret
+    )
+    assert config.SECRET_KEY == "test_secret_key"  # pragma: allowlist secret
+    assert config.DEFAULT_PAGE_SIZE == 10
+    assert config.DEFAULT_DATE_FORMAT == "test_default_date_format"
 
-        assert config.CSP_CONNECT_SRC == [
-            "'self'",
-            "test_flasks3_cdn_domain",
-            "https://test_record_bucket_name.s3.amazonaws.com",
-        ]
-        assert config.CSP_SCRIPT_SRC == [
-            "'self'",
-            "test_flasks3_cdn_domain",
-            "https://test_record_bucket_name.s3.amazonaws.com",
-        ]
-        assert config.CSP_SCRIPT_SRC_ELEM == [
-            "'self'",
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/",
-        ]
-        assert config.CSP_STYLE_SRC == ["'self'"]
-        assert config.CSP_STYLE_SRC_ELEM == [
-            "'self'",
-            "test_flasks3_cdn_domain",
-            "https://cdn.jsdelivr.net/jsdelivr-header.css",
-            "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
-            "'sha256-7smvP9yjKljPbeD/NRIE3XgBZUTCaF936I8yK6wJUM4='",  # pragma: allowlist secret
-            "'sha256-V4SarAiVbO77lJTzMaRut9Qr7Cx4R8jo8vH1dIFkVSc='",  # pragma: allowlist secret
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/uv.min.css",
-            "'sha256-XawOsBXgsJP8SK/f+1r5Hi9mlYtBA/KzL3kNIn0YzA4='",  # pragma: allowlist secret
-            "'sha256-cngw11JRRopLh6RDda+MT7Jk/9a0aKtyuseJMoDvEow='",  # pragma: allowlist secret
-        ]
-        assert config.CSP_IMG_SRC == [
-            "'self'",
-            "test_flasks3_cdn_domain",
-            "data:",
-        ]
-        assert config.CSP_FRAME_SRC == [
-            "'self'",
-            "https://test_record_bucket_name.s3.amazonaws.com",
-        ]
-        assert config.CSP_OBJECT_SRC == [
-            "'self'",
-            "https://test_record_bucket_name.s3.amazonaws.com",
-        ]
-        assert config.CSP_WORKER_SRC == [
-            "blob:",
-            "'self'",
-            "test_flasks3_cdn_domain",
-        ]
-        assert config.CSP_DEFAULT_SRC == ["'self'", "test_flasks3_cdn_domain"]
+    assert config.RECORD_BUCKET_NAME == "test_record_bucket_name"
+    assert config.FLASKS3_ACTIVE is False
+    assert config.FLASKS3_CDN_DOMAIN == "test_flasks3_cdn_domain"
+    assert config.FLASKS3_BUCKET_NAME == "test_flasks3_bucket_name"
+    assert config.PERF_TEST is False
+    assert config.OPEN_SEARCH_HOST == "test_os_host"
+    assert config.OPEN_SEARCH_TIMEOUT == 10
+
+    aws_auth = config.OPEN_SEARCH_HTTP_AUTH
+    assert isinstance(aws_auth, AWS4Auth)
+    assert aws_auth.access_id == "test_access_key"
+    assert aws_auth.region == "test_aws_region"
+    assert aws_auth.service == "es"
+    assert aws_auth.session_token == "test_token"
+    assert (
+        aws_auth.signing_key.secret_key
+        == "test_secret_key"  # pragma: allowlist secret
+    )
+
+    assert config.CSP_CONNECT_SRC == [
+        "'self'",
+        "test_flasks3_cdn_domain",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+    ]
+    assert config.CSP_SCRIPT_SRC == [
+        "'self'",
+        "test_flasks3_cdn_domain",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+    ]
+    assert config.CSP_SCRIPT_SRC_ELEM == [
+        "'self'",
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/",
+    ]
+    assert config.CSP_STYLE_SRC == ["'self'"]
+    assert config.CSP_STYLE_SRC_ELEM == [
+        "'self'",
+        "test_flasks3_cdn_domain",
+        "https://cdn.jsdelivr.net/jsdelivr-header.css",
+        "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
+        "'sha256-7smvP9yjKljPbeD/NRIE3XgBZUTCaF936I8yK6wJUM4='",  # pragma: allowlist secret
+        "'sha256-V4SarAiVbO77lJTzMaRut9Qr7Cx4R8jo8vH1dIFkVSc='",  # pragma: allowlist secret
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/uv.min.css",
+        "'sha256-XawOsBXgsJP8SK/f+1r5Hi9mlYtBA/KzL3kNIn0YzA4='",  # pragma: allowlist secret
+        "'sha256-cngw11JRRopLh6RDda+MT7Jk/9a0aKtyuseJMoDvEow='",  # pragma: allowlist secret
+    ]
+    assert config.CSP_IMG_SRC == [
+        "'self'",
+        "test_flasks3_cdn_domain",
+        "data:",
+    ]
+    assert config.CSP_FRAME_SRC == [
+        "'self'",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+    ]
+    assert config.CSP_OBJECT_SRC == [
+        "'self'",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+    ]
+    assert config.CSP_WORKER_SRC == [
+        "blob:",
+        "'self'",
+        "test_flasks3_cdn_domain",
+    ]
+    assert config.CSP_DEFAULT_SRC == ["'self'", "test_flasks3_cdn_domain"]
 
 
 @mock_aws

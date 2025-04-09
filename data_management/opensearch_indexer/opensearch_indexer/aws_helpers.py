@@ -31,19 +31,13 @@ def _build_db_url(db_secret_string: Dict[str, Any]) -> str:
 
 
 def _get_opensearch_auth(secret_string: Dict[str, Any]) -> AWS4Auth:
-    sts_client = boto3.client("sts")
-    assumed_role = sts_client.assume_role(
-        RoleArn=secret_string["OPEN_SEARCH_MASTER_ROLE_ARN"],
-        RoleSessionName="LambdaOpenSearchSession",
-    )
-    logger.info("Extract temporary credentials to access OpenSearch")
-    credentials = assumed_role["Credentials"]
-    open_search_http_auth = AWS4Auth(
-        credentials["AccessKeyId"],
-        credentials["SecretAccessKey"],
+    session = boto3.Session()
+    credentials = session.get_credentials()
+    auth = AWS4Auth(
+        credentials.access_key,
+        credentials.secret_key,
         secret_string["AWS_REGION"],
         "es",
-        session_token=credentials["SessionToken"],
+        session_token=credentials.token,
     )
-
-    return open_search_http_auth
+    return auth
