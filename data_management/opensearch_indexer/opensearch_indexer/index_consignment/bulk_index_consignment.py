@@ -1,5 +1,6 @@
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Optional, Tuple, Union
 
 import sqlalchemy
@@ -155,22 +156,26 @@ def construct_documents(files: List[Dict], bucket_name: str) -> List[Dict]:
         Exception: If a file cannot be retrieved from S3.
     """
     documents_to_index = []
-    for file in files:
-        object_key = f"{file['consignment_reference']}/{str(file['file_id'])}"
 
+    def process_file(file):
+        object_key = f"{file['consignment_reference']}/{str(file['file_id'])}"
         logger.info(f"Processing file: {object_key}")
 
         try:
             file_stream = get_s3_file(bucket_name, object_key)
+            document = add_text_content(file, file_stream)
+            return {"file_id": file["file_id"], "document": document}
         except Exception as e:
             logger.error(f"Failed to obtain file {object_key}: {e}")
-            raise e
+            return None
 
-        document = add_text_content(file, file_stream)
-        documents_to_index.append(
-            {"file_id": file["file_id"], "document": document}
-        )
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        futures = [executor.submit(process_file, file) for file in files]
 
+        for future in as_completed(futures):
+            result = future.result()
+            if result:
+                documents_to_index.append(result)
     return documents_to_index
 
 
