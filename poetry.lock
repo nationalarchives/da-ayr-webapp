@@ -2571,14 +2571,14 @@ pytest-playwright = ">=0.1.2"
 
 [[package]]
 name = "pytest-repeat"
-version = "0.9.3"
+version = "0.9.4"
 description = "pytest plugin for repeating tests"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "pytest_repeat-0.9.3-py3-none-any.whl", hash = "sha256:26ab2df18226af9d5ce441c858f273121e92ff55f5bb311d25755b8d7abdd8ed"},
-    {file = "pytest_repeat-0.9.3.tar.gz", hash = "sha256:ffd3836dfcd67bb270bec648b330e20be37d2966448c4148c4092d1e8aba8185"},
+    {file = "pytest_repeat-0.9.4-py3-none-any.whl", hash = "sha256:c1738b4e412a6f3b3b9e0b8b29fcd7a423e50f87381ad9307ef6f5a8601139f3"},
+    {file = "pytest_repeat-0.9.4.tar.gz", hash = "sha256:d92ac14dfaa6ffcfe6917e5d16f0c9bc82380c135b03c2a5f412d2637f224485"},
 ]
 
 [package.dependencies]
@@ -3612,4 +3612,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "7a1232c46402eeff1469a51ede32647334f4e196ffd5c4d551021ded7cf2e9e7"
+content-hash = "ab98b1a60001c56fe10a0399146ae097d121fe98aaf81bfc5bfc4071f9ccb7ce"
