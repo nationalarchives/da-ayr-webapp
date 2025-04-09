@@ -1,5 +1,6 @@
 import json
 import logging
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -158,8 +159,9 @@ def construct_documents(files: List[Dict], bucket_name: str) -> List[Dict]:
     documents_to_index = []
 
     def process_file(file):
+        thread_name = threading.current_thread().name
         object_key = f"{file['consignment_reference']}/{str(file['file_id'])}"
-        logger.info(f"Processing file: {object_key}")
+        logger.info(f"[{thread_name}] Processing file: {object_key}")
 
         try:
             file_stream = get_s3_file(bucket_name, object_key)
