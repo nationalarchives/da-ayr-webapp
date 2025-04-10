@@ -4,7 +4,6 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import boto3
-import botocore
 import pytest
 from moto import mock_aws
 from opensearch_indexer.index_consignment.lambda_function import lambda_handler
@@ -14,23 +13,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from .conftest import Body, Consignment, File, FileMetadata, Series
-
-# Original botocore _make_api_call function
-orig = botocore.client.BaseClient._make_api_call
-
-
-# Mocked botocore _make_api_call function
-def mock_make_api_call(self, operation_name, kwarg):
-    if operation_name == "AssumeRole":
-        return {
-            "Credentials": {
-                "AccessKeyId": "test_access_key",
-                "SecretAccessKey": "test_secret_key",  # pragma: allowlist secret
-                "SessionToken": "test_token",
-                "Expiration": "2024-09-18T12:00:00Z",
-            }
-        }
-    return orig(self, operation_name, kwarg)
 
 
 @mock_aws
@@ -71,6 +53,9 @@ def test_lambda_handler_invokes_bulk_index_with_correct_file_data(
 
     monkeypatch.setenv("SECRET_ID", secret_name)
     monkeypatch.setenv("DB_SECRET_ID", db_secret_name)
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "test_access_key")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "test_secret_key")
+    monkeypatch.setenv("AWS_SESSION_TOKEN", "test_token")
 
     bucket_name = "test_bucket"
 
@@ -238,97 +223,93 @@ def test_lambda_handler_invokes_bulk_index_with_correct_file_data(
     }
 
     with patch(
-        "botocore.client.BaseClient._make_api_call", new=mock_make_api_call
-    ):
-        with patch(
-            "opensearch_indexer.index_consignment.bulk_index_consignment.bulk_index_files_in_opensearch"
-        ) as mock_bulk_index_files_in_opensearch:
-            lambda_handler(event, None)
+        "opensearch_indexer.index_consignment.bulk_index_consignment.bulk_index_files_in_opensearch"
+    ) as mock_bulk_index_files_in_opensearch:
+        lambda_handler(event, None)
 
-            args, _ = mock_bulk_index_files_in_opensearch.call_args
+        args, _ = mock_bulk_index_files_in_opensearch.call_args
 
-            expected_list = [
-                {
+        expected_list = [
+            {
+                "file_id": str(file_1_id),
+                "document": {
                     "file_id": str(file_1_id),
-                    "document": {
-                        "file_id": str(file_1_id),
-                        "file_name": "test-document.txt",
-                        "file_reference": "file-123",
-                        "file_path": "/path/to/file",
-                        "citeable_reference": "cite-ref-123",
-                        "series_id": str(series_id),
-                        "series_name": "series-name",
-                        "transferring_body": "body-name",
-                        "transferring_body_id": str(body_id),
-                        "transferring_body_description": "transferring body description",
-                        "consignment_id": str(consignment_id),
-                        "consignment_reference": "TDR-2024-ABCD",
-                        "Key1": "Value1",
-                        "Key2": "Value2",
-                        "content": "Test file content",
-                        "text_extraction_status": TextExtractionStatus.SUCCEEDED.value,
-                    },
+                    "file_name": "test-document.txt",
+                    "file_reference": "file-123",
+                    "file_path": "/path/to/file",
+                    "citeable_reference": "cite-ref-123",
+                    "series_id": str(series_id),
+                    "series_name": "series-name",
+                    "transferring_body": "body-name",
+                    "transferring_body_id": str(body_id),
+                    "transferring_body_description": "transferring body description",
+                    "consignment_id": str(consignment_id),
+                    "consignment_reference": "TDR-2024-ABCD",
+                    "Key1": "Value1",
+                    "Key2": "Value2",
+                    "content": "Test file content",
+                    "text_extraction_status": TextExtractionStatus.SUCCEEDED.value,
                 },
-                {
-                    "document": {
-                        "file_id": str(file_2_id),
-                        "file_name": "test-document.txt",
-                        "file_reference": "file-123",
-                        "file_path": "/path/to/file",
-                        "citeable_reference": "cite-ref-123",
-                        "series_id": str(series_id),
-                        "series_name": "series-name",
-                        "transferring_body": "body-name",
-                        "transferring_body_id": str(body_id),
-                        "transferring_body_description": "transferring body description",
-                        "consignment_id": str(consignment_id),
-                        "consignment_reference": "TDR-2024-ABCD",
-                        "Key3": "Value3",
-                        "Key4": "Value4",
-                        "content": "",
-                        "text_extraction_status": TextExtractionStatus.SUCCEEDED.value,
-                    },
+            },
+            {
+                "document": {
                     "file_id": str(file_2_id),
+                    "file_name": "test-document.txt",
+                    "file_reference": "file-123",
+                    "file_path": "/path/to/file",
+                    "citeable_reference": "cite-ref-123",
+                    "series_id": str(series_id),
+                    "series_name": "series-name",
+                    "transferring_body": "body-name",
+                    "transferring_body_id": str(body_id),
+                    "transferring_body_description": "transferring body description",
+                    "consignment_id": str(consignment_id),
+                    "consignment_reference": "TDR-2024-ABCD",
+                    "Key3": "Value3",
+                    "Key4": "Value4",
+                    "content": "",
+                    "text_extraction_status": TextExtractionStatus.SUCCEEDED.value,
                 },
-                {
-                    "document": {
-                        "file_id": str(file_3_id),
-                        "file_name": "test-document.txt",
-                        "file_reference": "file-123",
-                        "file_path": "/path/to/file",
-                        "citeable_reference": "cite-ref-123",
-                        "series_id": str(series_id),
-                        "series_name": "series-name",
-                        "consignment_id": str(consignment_id),
-                        "consignment_reference": "TDR-2024-ABCD",
-                        "transferring_body": "body-name",
-                        "transferring_body_id": str(body_id),
-                        "transferring_body_description": "transferring body description",
-                        "Key5": "Value5",
-                        "Key6": "Value6",
-                        "content": "File content but in file we do not support text extraction for",
-                        "text_extraction_status": TextExtractionStatus.SUCCEEDED.value,
-                    },
+                "file_id": str(file_2_id),
+            },
+            {
+                "document": {
                     "file_id": str(file_3_id),
+                    "file_name": "test-document.txt",
+                    "file_reference": "file-123",
+                    "file_path": "/path/to/file",
+                    "citeable_reference": "cite-ref-123",
+                    "series_id": str(series_id),
+                    "series_name": "series-name",
+                    "consignment_id": str(consignment_id),
+                    "consignment_reference": "TDR-2024-ABCD",
+                    "transferring_body": "body-name",
+                    "transferring_body_id": str(body_id),
+                    "transferring_body_description": "transferring body description",
+                    "Key5": "Value5",
+                    "Key6": "Value6",
+                    "content": "File content but in file we do not support text extraction for",
+                    "text_extraction_status": TextExtractionStatus.SUCCEEDED.value,
                 },
-            ]
+                "file_id": str(file_3_id),
+            },
+        ]
+        unittest.TestCase().assertCountEqual(args[0], expected_list)
+        assert args[1] == "https://test-opensearch.com"
 
-            unittest.TestCase().assertCountEqual(args[0], expected_list)
-            assert args[1] == "https://test-opensearch.com"
+        aws_auth = args[2]
+        assert isinstance(aws_auth, AWS4Auth)
+        assert aws_auth.access_id == "test_access_key"
+        assert (
+            aws_auth.signing_key.secret_key
+            == "test_secret_key"  # pragma: allowlist secret
+        )
+        assert aws_auth.region == "eu-west-2"
+        assert aws_auth.service == "es"
+        assert aws_auth.session_token == "test_token"
 
-            aws_auth = args[2]
-            assert isinstance(aws_auth, AWS4Auth)
-            assert aws_auth.access_id == "test_access_key"
-            assert (
-                aws_auth.signing_key.secret_key
-                == "test_secret_key"  # pragma: allowlist secret
-            )
-            assert aws_auth.region == "eu-west-2"
-            assert aws_auth.service == "es"
-            assert aws_auth.session_token == "test_token"
-
-            assert args[3] == 600
-            assert args[4] is None
+        assert args[3] == 600
+        assert args[4] is None
 
 
 @mock_aws

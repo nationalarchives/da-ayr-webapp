@@ -2,27 +2,9 @@ import json
 from unittest.mock import patch
 
 import boto3
-import botocore
 from moto import mock_aws
 from opensearch_indexer.lambda_function import lambda_handler
 from requests_aws4auth import AWS4Auth
-
-# Original botocore _make_api_call function
-orig = botocore.client.BaseClient._make_api_call
-
-
-# Mocked botocore _make_api_call function
-def mock_make_api_call(self, operation_name, kwarg):
-    if operation_name == "AssumeRole":
-        return {
-            "Credentials": {
-                "AccessKeyId": "test_access_key",
-                "SecretAccessKey": "test_secret_key",  # pragma: allowlist secret
-                "SessionToken": "test_token",
-                "Expiration": "2024-09-18T12:00:00Z",
-            }
-        }
-    return orig(self, operation_name, kwarg)
 
 
 @mock_aws
@@ -48,6 +30,9 @@ def test_lambda_handler_calls_index_file_content_and_metadata_in_opensearch(
     """
     secret_name = "test_vars"  # pragma: allowlist secret
     db_secret_name = "test_db_vars"  # pragma: allowlist secret
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "test_access_key")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "test_secret_key")
+    monkeypatch.setenv("AWS_SESSION_TOKEN", "test_token")
     monkeypatch.setenv("SECRET_ID", secret_name)
     monkeypatch.setenv("DB_SECRET_ID", db_secret_name)
 
@@ -106,33 +91,28 @@ def test_lambda_handler_calls_index_file_content_and_metadata_in_opensearch(
     }
 
     with patch(
-        "botocore.client.BaseClient._make_api_call", new=mock_make_api_call
-    ):
-        with patch(
-            "opensearch_indexer.index_file_content_and_metadata_in_opensearch_from_aws"
-            ".index_file_content_and_metadata_in_opensearch"
-        ) as mock_index_file_content_and_metadata_in_opensearch:
-            lambda_handler(event, None)
+        "opensearch_indexer.index_file_content_and_metadata_in_opensearch_from_aws"
+        ".index_file_content_and_metadata_in_opensearch"
+    ) as mock_index_file_content_and_metadata_in_opensearch:
+        lambda_handler(event, None)
 
-            args, _ = (
-                mock_index_file_content_and_metadata_in_opensearch.call_args
-            )
+        args, _ = mock_index_file_content_and_metadata_in_opensearch.call_args
 
-            assert args[0] == "test-file.txt"
-            assert args[1] == b"Test file content"
-            assert (
-                args[2]
-                == "postgresql+pg8000://testuser:testpassword@testhost:5432/testdb"  # pragma: allowlist secret
-            )
-            assert args[3] == "https://test-opensearch.com"
+        assert args[0] == "test-file.txt"
+        assert args[1] == b"Test file content"
+        assert (
+            args[2]
+            == "postgresql+pg8000://testuser:testpassword@testhost:5432/testdb"  # pragma: allowlist secret
+        )
+        assert args[3] == "https://test-opensearch.com"
 
-            aws_auth = args[4]
-            assert isinstance(aws_auth, AWS4Auth)
-            assert aws_auth.access_id == "test_access_key"
-            assert (
-                aws_auth.signing_key.secret_key
-                == "test_secret_key"  # pragma: allowlist secret
-            )
-            assert aws_auth.region == "eu-west-2"
-            assert aws_auth.service == "es"
-            assert aws_auth.session_token == "test_token"
+        aws_auth = args[4]
+        assert isinstance(aws_auth, AWS4Auth)
+        assert aws_auth.access_id == "test_access_key"
+        assert (
+            aws_auth.signing_key.secret_key
+            == "test_secret_key"  # pragma: allowlist secret
+        )
+        assert aws_auth.region == "eu-west-2"
+        assert aws_auth.service == "es"
+        assert aws_auth.session_token == "test_token"

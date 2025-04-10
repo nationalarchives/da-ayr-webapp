@@ -118,6 +118,10 @@ class BaseConfig(object):
         return self._get_config_value("RECORD_BUCKET_NAME")
 
     @property
+    def S3_BUCKET_URL(self):
+        return f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"
+
+    @property
     def FLASKS3_ACTIVE(self):
         return self._get_config_value("FLASKS3_ACTIVE") == "True"
 
@@ -154,83 +158,66 @@ class BaseConfig(object):
 
     @property
     def CSP_DEFAULT_SRC(self):
-        return self._get_config_list(
-            "CSP_DEFAULT_SRC", [SELF, self.FLASKS3_CDN_DOMAIN]
-        )
+        return [SELF, self.FLASKS3_CDN_DOMAIN]
 
     @property
     def CSP_CONNECT_SRC(self):
-        return self._get_config_list(
-            "CSP_CONNECT_SRC",
-            [
-                SELF,
-                self.FLASKS3_CDN_DOMAIN,
-                f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
-            ],
-        )
+        return [
+            SELF,
+            self.FLASKS3_CDN_DOMAIN,
+            self.S3_BUCKET_URL,
+        ]
 
     @property
     def CSP_SCRIPT_SRC(self):
-        return self._get_config_list(
-            "CSP_SCRIPT_SRC",
-            [
-                SELF,
-                self.FLASKS3_CDN_DOMAIN,
-                f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com",
-            ],
-        )
+        return [
+            SELF,
+            self.FLASKS3_CDN_DOMAIN,
+            self.S3_BUCKET_URL,
+        ]
 
     @property
     def CSP_SCRIPT_SRC_ELEM(self):
-        return self._get_config_list(
-            "CSP_SCRIPT_SRC_ELEM",
-            [
-                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/",
-            ],
-        )
+        return [
+            SELF,
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/",
+        ]
 
     @property
     def CSP_STYLE_SRC(self):
-        return self._get_config_list("CSP_STYLE_SRC", [SELF])
+        return [SELF]
 
     @property
     def CSP_STYLE_SRC_ELEM(self):
-        return self._get_config_list(
-            "CSP_STYLE_SRC_ELEM",
-            [
-                SELF,
-                self.FLASKS3_CDN_DOMAIN,
-                "https://cdn.jsdelivr.net/jsdelivr-header.css",
-                "https://cdn.jsdelivr.net/npm/universalviewer@4.0.25/dist/uv.min.css",
-            ],
-        )
+        return [
+            SELF,
+            self.FLASKS3_CDN_DOMAIN,
+            "https://cdn.jsdelivr.net/jsdelivr-header.css",
+            "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
+            "'sha256-7smvP9yjKljPbeD/NRIE3XgBZUTCaF936I8yK6wJUM4='",  # pragma: allowlist secret
+            "'sha256-V4SarAiVbO77lJTzMaRut9Qr7Cx4R8jo8vH1dIFkVSc='",  # pragma: allowlist secret
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/uv.min.css",
+            "'sha256-XawOsBXgsJP8SK/f+1r5Hi9mlYtBA/KzL3kNIn0YzA4='",  # pragma: allowlist secret
+            # for pdfs
+            "'sha256-cngw11JRRopLh6RDda+MT7Jk/9a0aKtyuseJMoDvEow='",  # pragma: allowlist secret
+        ]
 
     @property
     def CSP_IMG_SRC(self):
-        return self._get_config_list(
-            "CSP_IMG_SRC", [SELF, self.FLASKS3_CDN_DOMAIN, "data:"]
-        )
+        return [SELF, self.FLASKS3_CDN_DOMAIN, "data:"]
 
     @property
     def CSP_FRAME_SRC(self):
-        return self._get_config_list(
-            "CSP_FRAME_SRC",
-            [SELF, f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"],
-        )
+        return [SELF, self.S3_BUCKET_URL]
 
     @property
     def CSP_OBJECT_SRC(self):
-        return self._get_config_list(
-            "CSP_OBJECT_SRC",
-            [SELF, f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"],
-        )
+        return [SELF, self.S3_BUCKET_URL]
 
     @property
     def CSP_WORKER_SRC(self):
-        return self._get_config_list(
-            "CSP_WORKER_SRC", ["blob:", SELF, self.FLASKS3_CDN_DOMAIN]
-        )
+        return ["blob:", SELF, self.FLASKS3_CDN_DOMAIN]
 
     def _get_config_value(self, variable_name):
         pass

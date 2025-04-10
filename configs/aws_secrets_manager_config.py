@@ -79,16 +79,13 @@ class AWSSecretsManagerConfig(BaseConfig):
 
     @property
     def OPEN_SEARCH_HTTP_AUTH(self):
-        sts_client = boto3.client("sts")
-        assumed_role = sts_client.assume_role(
-            RoleArn=self._get_config_value("OPEN_SEARCH_MASTER_ROLE_ARN"),
-            RoleSessionName="AYRWebappLambdaSession",
-        )
-        credentials = assumed_role["Credentials"]
-        return AWS4Auth(
-            credentials["AccessKeyId"],
-            credentials["SecretAccessKey"],
+        session = boto3.Session()
+        credentials = session.get_credentials()
+        auth = AWS4Auth(
+            credentials.access_key,
+            credentials.secret_key,
             self.AWS_REGION,
             "es",
-            session_token=credentials["SessionToken"],
+            session_token=credentials.token,
         )
+        return auth
