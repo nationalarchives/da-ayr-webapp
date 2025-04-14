@@ -28,7 +28,8 @@
         <div class="govuk-grid-column-full govuk-grid-column-full__page_container">
             <div class="browse-details">
                 <h1 class="govuk-heading-l browse__records-found__text"
-                    id="browse-records">
+                    id="browse-records"
+                    aria-live="polite">
                     {% if num_records_found > 0 %}
                         Records found {{ num_records_found }}
                     {% else %}
