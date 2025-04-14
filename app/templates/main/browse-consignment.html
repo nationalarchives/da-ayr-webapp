@@ -65,10 +65,10 @@
                             <tr class="govuk-table__row govuk-table__row-ref">
                                 <td class="govuk-table__cell govuk-table__cell--on-mobile--flex-layout-col">
                                     {{ record["date_last_modified"] }}
-                                    <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4"
+                                    <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-4 word-break"
                                        href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
                                 </td>
-                                <td class="govuk-table__cell govuk-table--invisible-on-mobile">
+                                <td class="govuk-table__cell govuk-table--invisible-on-mobile word-break">
                                     <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
                                 </td>
                                 <td class="govuk-table__cell">
