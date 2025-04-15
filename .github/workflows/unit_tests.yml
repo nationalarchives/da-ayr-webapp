@@ -53,7 +53,9 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set up Docker Compose
-      uses: docker/setup-buildx-action@v1
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker-compose
 
     - name: Run Docker Compose Tests
       run: docker-compose -f docker-compose.test.yml up --build --exit-code-from integration-runner
