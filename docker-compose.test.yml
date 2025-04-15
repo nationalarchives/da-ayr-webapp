@@ -25,7 +25,7 @@ services:
       service postgresql status
 
       echo 'Creating users and database...'
-      
+
       su - postgres -c "psql -c \"CREATE USER testuser WITH PASSWORD 'testPass123';\""
       su - postgres -c "psql -c \"CREATE DATABASE testdb OWNER testuser;\""
 
