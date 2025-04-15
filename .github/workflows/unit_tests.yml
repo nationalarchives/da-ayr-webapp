@@ -60,23 +60,6 @@ jobs:
     - name: Run Docker Compose Tests
       run: docker-compose -f docker-compose.test.yml up --build --exit-code-from integration-runner
 
-    - name: Debug files in stopped container
-      run: |
-        CONTAINER_ID=$(docker ps -a --filter "name=integration-runner" --format "{{.ID}}" | head -n 1)
-        echo "Inspecting container $CONTAINER_ID"
-        
-        echo "Listing /app in container..."
-        docker cp $CONTAINER_ID:/app ./container-app-dir || echo "Could not copy /app"
-        
-        echo "Contents of /app:"
-        ls -la ./container-app-dir
-
-    - name: Copy coverage from container
-      run: |
-        CONTAINER_ID=$(docker create $(docker-compose -f docker-compose.test.yml images -q integration-runner))
-        docker cp $CONTAINER_ID:/app/.coverage ./coverage
-        docker rm $CONTAINER_ID
-
     - name: Generate coverage XML
       run: |
         pip install coverage
