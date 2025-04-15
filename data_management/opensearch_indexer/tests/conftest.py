@@ -1,5 +1,6 @@
 import tempfile
 
+import psycopg2
 import pytest
 from sqlalchemy import (
     Boolean,
@@ -12,7 +13,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
-from testing.postgresql import PostgresqlFactory
 
 Base = declarative_base()
 
@@ -88,11 +88,41 @@ def temp_db():
 
 @pytest.fixture(scope="function")
 def database(request):
-    # Launch new PostgreSQL server
-    postgresql = PostgresqlFactory(cache_initialized_db=True)()
-    yield postgresql
 
-    # PostgreSQL server is terminated here
-    @request.addfinalizer
-    def drop_database():
-        postgresql.stop()
+    class DatabaseWrapper:
+        def __init__(self):
+            self.settings = {
+                "port": 5432,
+                "host": "localhost",
+                "user": "testuser",
+                "password": "testPass123",  # pragma: allowlist secret
+                "dbname": "testdb",
+            }  # pragma: allowlist secret
+
+            self.conn = psycopg2.connect(
+                dbname=self.settings["dbname"],
+                user=self.settings["user"],
+                password=self.settings["password"],
+                host=self.settings["host"],
+                port=self.settings["port"],
+            )
+
+        def url(self):
+            return (
+                f"postgresql://"
+                f"{self.settings['user']}:"
+                f"{self.settings['password']}@"
+                f"{self.settings['host']}:"
+                f"{self.settings['port']}/"
+                f"{self.settings['dbname']}"
+            )
+
+        def __getattr__(self, name):
+            return getattr(self.conn, name)
+
+        def close(self):
+            self.conn.close()
+
+    db = DatabaseWrapper()
+    yield db
+    db.close()

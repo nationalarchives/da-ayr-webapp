@@ -1,0 +1,36 @@
+services:
+  integration-runner:
+    build:
+      context: ./data_management/opensearch_indexer
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    working_dir: /app
+    entrypoint: ""
+    command:
+    - sh
+    - -c
+    - |
+      set -e
+
+      echo 'Installing PostgreSQL...'
+      apt-get update && apt-get install -y postgresql
+
+      echo 'Starting PostgreSQL service...'
+      service postgresql start
+
+      sleep 3
+
+      echo 'Checking PostgreSQL status...'
+      service postgresql status
+
+      echo 'Creating users and database...'
+      
+      su - postgres -c "psql -c \"CREATE USER testuser WITH PASSWORD 'testPass123';\""
+      su - postgres -c "psql -c \"CREATE DATABASE testdb OWNER testuser;\""
+
+      echo 'Installing Python test dependencies...'
+      pip install -r data_management/opensearch_indexer/requirements-dev.txt
+
+      echo 'Running tests...'
+      pytest -vvs data_management/opensearch_indexer/tests
