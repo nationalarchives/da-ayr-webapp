@@ -36,5 +36,4 @@ services:
       pytest \
         --cov=data_management/opensearch_indexer/opensearch_indexer \
         --cov-report term-missing \
-        --cov-report xml \
         -vvs data_management/opensearch_indexer/tests
