@@ -60,11 +60,16 @@ jobs:
     - name: Run Docker Compose Tests
       run: docker-compose -f docker-compose.test.yml up --build --exit-code-from integration-runner
 
-    - name: List files in container to debug coverage output
+    - name: Debug files in stopped container
       run: |
         CONTAINER_ID=$(docker ps -a --filter "name=integration-runner" --format "{{.ID}}" | head -n 1)
-        echo "Checking files in /app of container $CONTAINER_ID"
-        docker exec $CONTAINER_ID ls -la /app
+        echo "Inspecting container $CONTAINER_ID"
+        
+        echo "Listing /app in container..."
+        docker cp $CONTAINER_ID:/app ./container-app-dir || echo "Could not copy /app"
+        
+        echo "Contents of /app:"
+        ls -la ./container-app-dir
 
     - name: Copy coverage from container
       run: |
