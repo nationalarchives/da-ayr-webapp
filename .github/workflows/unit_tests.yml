@@ -63,7 +63,9 @@ jobs:
     - name: Generate coverage XML
       run: |
         pip install coverage
-        coverage xml
+        mkdir -p /app/test_results
+        coverage xml -o /app/test_results/coverage.xml
+        sudo chmod u+w .git/config
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

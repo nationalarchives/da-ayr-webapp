@@ -30,6 +30,7 @@ services:
 
       echo 'Granting write permissions to testuser...'
       chown -R testuser:testuser /app
+      chmod -R u+w /app
 
       echo 'Running tests...'
       su testuser -c "pytest \
