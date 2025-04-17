@@ -1,5 +1,5 @@
 services:
-  integration-runner:
+  opensearch_indexer_tests:
     build:
       context: ./data_management/opensearch_indexer
       dockerfile: Dockerfile
@@ -13,27 +13,37 @@ services:
     - |
       set -e
 
-      echo 'Installing PostgreSQL...'
-      apt-get update && apt-get install -y postgresql
-
-      echo 'Starting PostgreSQL service...'
-      service postgresql start
-
-      sleep 3
-
-      echo 'Checking PostgreSQL status...'
-      service postgresql status
-
-      echo 'Creating users and database...'
-
-      su - postgres -c "psql -c \"CREATE USER testuser WITH PASSWORD 'testPass123';\""
-      su - postgres -c "psql -c \"CREATE DATABASE testdb OWNER testuser;\""
+      apt-get update
+      apt-get install -y postgresql postgresql-client postgresql-contrib
 
       echo 'Installing Python test dependencies...'
       pip install -r data_management/opensearch_indexer/requirements-dev.txt
 
+      echo 'Creating testuser...'
+      if ! id -u testuser > /dev/null 2>&1; then
+        echo "Creating system user testuser..."
+        useradd testuser
+        # Add any other setup for the user if needed
+      else
+          echo "System user testuser already exists."
+      fi
+
       echo 'Running tests...'
-      pytest \
+      su testuser -c "pytest \
         --cov=data_management/opensearch_indexer/opensearch_indexer \
         --cov-report term-missing \
-        -vvs data_management/opensearch_indexer/tests
+        -vvs data_management/opensearch_indexer/tests"
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testPass123 # pragma: allowlist secret
+      POSTGRES_DB: testdb
+    ports:
+      - "55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

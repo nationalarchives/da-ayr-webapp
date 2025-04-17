@@ -75,11 +75,11 @@ def test_lambda_handler_invokes_bulk_index_with_correct_file_data(
 
     db_secret_string = json.dumps(
         {
-            "username": "testuser",
-            "password": "testPass123",  # pragma: allowlist secret
+            "username": "postgres",
+            "password": "",
             "proxy": "127.0.0.1",
             "port": database.settings["port"],
-            "dbname": "testdb",
+            "dbname": "test",
         }
     )
 

@@ -508,14 +508,20 @@ def test_fetch_files_in_consignment_invalid_column_with_logging(
     # Create the engine and session
     engine = create_engine(database_url)
 
-    # Minimal setup, omitting necessary schema parts
+    with engine.connect() as connection:
+        connection.execute(text('DROP TABLE IF EXISTS "FileMetadata" CASCADE'))
+        connection.execute(text('DROP TABLE IF EXISTS "File" CASCADE'))
+        connection.execute(text('DROP TABLE IF EXISTS "Consignment" CASCADE'))
+        connection.execute(text('DROP TABLE IF EXISTS "Series" CASCADE'))
+        connection.execute(text('DROP TABLE IF EXISTS "Body" CASCADE'))
+
     with engine.connect() as connection:
         connection.execute(
             text(
                 """
-            CREATE TABLE Consignment (
-                ConsignmentId SERIAL PRIMARY KEY,
-                ConsignmentReference TEXT
+            CREATE TABLE "Consignment" (
+                "ConsignmentId" SERIAL PRIMARY KEY,
+                "ConsignmentReference" TEXT
             );
         """
             )
