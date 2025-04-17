@@ -28,6 +28,9 @@ services:
           echo "System user testuser already exists."
       fi
 
+      echo 'Granting write permissions to testuser...'
+      chown -R testuser:testuser /app
+
       echo 'Running tests...'
       su testuser -c "pytest \
         --cov=data_management/opensearch_indexer/opensearch_indexer \
