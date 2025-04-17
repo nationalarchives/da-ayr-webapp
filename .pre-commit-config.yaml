@@ -54,7 +54,7 @@ repos:
     hooks:
     -   id: safety-check
         name: Safety Check
-        entry: custom_hooks/safety_check.sh
+        entry: safety scan
         language: system
         pass_filenames: false
 
