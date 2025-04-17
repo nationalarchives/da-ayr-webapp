@@ -50,13 +50,15 @@ repos:
     -   id: bandit
         args: ["-c", "pyproject.toml", "--exclude", "node_modules/*", "-r", "."]
 
--   repo: local
+-   repo: https://github.com/pypa/pip-audit
+    rev: v2.9.0
     hooks:
-    -   id: safety-check
-        name: Safety Check
-        entry: safety scan
-        language: system
-        pass_filenames: false
+      -   id: pip-audit
+          name: pip-audit (poetry)
+          entry: bash -c 'poetry export --format requirements.txt > requirements-temp.txt && pip-audit --requirement requirements-temp.txt && rm requirements-temp.txt'
+          language: system
+          pass_filenames: false
+          files: ^poetry.lock$
 
 - repo: https://github.com/thibaudcolas/pre-commit-stylelint
   rev: v16.2.1
