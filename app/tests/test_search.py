@@ -1331,10 +1331,10 @@ class TestSearchTransferringBody:
 
         anchor_clear = soup.find("a", string="Clear all terms", href=True)
         button_term1 = soup.find(
-            "button", {"aria-label": f"Remove filter for '{term1}'"}
+            "a", {"aria-label": f"Remove filter for '{term1}'"}
         )
         button_term2 = soup.find(
-            "button", {"aria-label": f"Remove filter for '{term1}'"}
+            "a", {"aria-label": f"Remove filter for '{term1}'"}
         )
         anchor_term1 = soup.find(
             "a",
@@ -1390,10 +1390,10 @@ class TestSearchTransferringBody:
 
         anchor_clear = soup.find("a", string="Clear all terms", href=True)
         button_term1 = soup.find(
-            "button", {"aria-label": f"Remove filter for '{term1}'"}
+            "a", {"aria-label": f"Remove filter for '{term1}'"}
         )
         button_term2 = soup.find(
-            "button", {"aria-label": f"Remove filter for '{term2}'"}
+            "a", {"aria-label": f"Remove filter for '{term2}'"}
         )
         anchor_term1 = soup.find(
             "a",
@@ -1451,13 +1451,13 @@ class TestSearchTransferringBody:
 
         anchor_clear = soup.find("a", string="Clear all terms", href=True)
         button_term1 = soup.find(
-            "button", {"aria-label": f"Remove filter for '{term1}'"}
+            "a", {"aria-label": f"Remove filter for '{term1}'"}
         )
         button_term2 = soup.find(
-            "button", {"aria-label": f"Remove filter for '{term2}'"}
+            "a", {"aria-label": f"Remove filter for '{term2}'"}
         )
         button_term3 = soup.find(
-            "button", {"aria-label": f"Remove filter for '{term3}'"}
+            "a", {"aria-label": f"Remove filter for '{term3}'"}
         )
 
         anchor_term1 = soup.find(
