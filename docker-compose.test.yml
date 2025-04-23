@@ -4,39 +4,36 @@ services:
       context: ./data_management/opensearch_indexer
       dockerfile: Dockerfile
     volumes:
-      - .:/app
+      - .:/app:delegated
     working_dir: /app
     entrypoint: ""
     command:
     - sh
     - -c
     - |
-      set -e
+        set -e
 
-      apt-get update
-      apt-get install -y postgresql postgresql-client postgresql-contrib
+        apt-get update
+        apt-get install -y postgresql postgresql-client postgresql-contrib
 
-      echo 'Installing Python test dependencies...'
-      pip install -r data_management/opensearch_indexer/requirements-dev.txt
+        echo 'Installing Python test dependencies...'
+        pip install -r data_management/opensearch_indexer/requirements-dev.txt
 
-      echo 'Creating testuser...'
-      if ! id -u testuser > /dev/null 2>&1; then
-        echo "Creating system user testuser..."
-        useradd testuser
-        # Add any other setup for the user if needed
-      else
-          echo "System user testuser already exists."
-      fi
+        echo 'Creating testuser...'
+        if ! id -u testuser > /dev/null 2>&1; then
+          echo "Creating system user testuser..."
+          useradd testuser
+        fi
 
-      echo 'Granting write permissions to testuser...'
-      chown -R testuser:testuser /app
-      chmod -R u+w /app
+        echo 'Granting write permissions to testuser...'
+        chown -R testuser:testuser /app || echo "Chown failed; check volume permissions"
+        chmod -R u+w /app || echo "Chmod failed; check volume permissions"
 
-      echo 'Running tests...'
-      su testuser -c "pytest \
-        --cov=data_management/opensearch_indexer/opensearch_indexer \
-        --cov-report term-missing \
-        -vvs data_management/opensearch_indexer/tests"
+        echo 'Running tests...'
+        su testuser -c "pytest \
+          --cov=data_management/opensearch_indexer/opensearch_indexer \
+          --cov-report term-missing \
+          -vvs data_management/opensearch_indexer/tests"
 
   postgres:
     image: postgres:15
