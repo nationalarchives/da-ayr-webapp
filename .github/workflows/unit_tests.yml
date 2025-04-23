@@ -62,10 +62,21 @@ jobs:
 
     - name: Generate coverage XML
       run: |
-        pip install coverage
-        mkdir -p /app/test_results
-        coverage xml -o /app/test_results/coverage.xml
-        sudo chmod u+w .git/config
+        docker compose run --rm opensearch_indexer_tests sh -c "su testuser -c 'pytest \
+        --cov=data_management/opensearch_indexer/opensearch_indexer \
+        --cov-report xml:/app/coverage.xml \
+        --cov-report term-missing \
+        -vvs data_management/opensearch_indexer/tests'"
+
+    - name: Extract coverage file from container
+      run: |
+        docker compose run --rm opensearch_indexer_tests cat /app/coverage.xml > ./coverage.xml
+        chmod 644 ./coverage.xml
+
+    - name: Debug coverage file
+      run: ls -la ./coverage.xml || echo "Coverage file not found"
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml

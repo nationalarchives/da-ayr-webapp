@@ -4,7 +4,7 @@ services:
       context: ./data_management/opensearch_indexer
       dockerfile: Dockerfile
     volumes:
-      - .:/app:delegated
+      - .:/app
     working_dir: /app
     entrypoint: ""
     command:
