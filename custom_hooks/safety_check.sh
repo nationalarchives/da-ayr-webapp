@@ -12,6 +12,5 @@ if ! command -v safety &> /dev/null; then
     echo "Safety is not installed. Installing..."
     pip install safety==3.4.0b8
 fi
-
-# Export requirements and run pip-audit
-poetry export --format requirements.txt > requirements-temp.txt && pip-audit --requirement requirements-temp.txt && rm requirements-temp.txt
+# The --ignore flag was added here because the vulnerability with ID 70612 as reported by Safety CLI exists for all the latest versions of Jinja, it can be removed once fixed
+poetry export --without-hashes -f requirements.txt | safety check --full-report --stdin --ignore=70612
