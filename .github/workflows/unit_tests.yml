@@ -60,21 +60,10 @@ jobs:
     - name: Run Docker Compose Tests
       run: docker compose -f docker-compose.test.yml up --exit-code-from opensearch_indexer_tests
 
-    - name: Generate coverage XML
-      run: |
-        docker compose -f docker-compose.test.yml run --rm opensearch_indexer_tests sh -c "pytest \
-        --cov=data_management/opensearch_indexer/opensearch_indexer \
-        --cov-report xml:/app/coverage.xml \
-        --cov-report term-missing \
-        -vvs data_management/opensearch_indexer/tests"
-        
     - name: Extract coverage file from container
       run: |
-        docker compose -f docker-compose.test.yml run --rm opensearch_indexer_tests cat /app/coverage.xml > ./coverage.xml
-        chmod 644 ./coverage.xml
-
-    - name: Debug coverage file
-      run: ls -la ./coverage.xml || echo "Coverage file not found"
+        docker compose -f docker-compose.test.yml run --rm opensearch_indexer_tests cat /app/coverage.xml > ./coverage.xml || echo "Failed to extract coverage file"
+        ls -la ./coverage.xml || echo "Coverage file not found after extraction"
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
