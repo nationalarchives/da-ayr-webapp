@@ -62,7 +62,7 @@ jobs:
 
     - name: Generate coverage XML
       run: |
-        docker compose run --rm opensearch_indexer_tests sh -c "su testuser -c 'pytest \
+        docker compose -f docker-compose.test.yml run --rm opensearch_indexer_tests sh -c "su testuser -c 'pytest \
         --cov=data_management/opensearch_indexer/opensearch_indexer \
         --cov-report xml:/app/coverage.xml \
         --cov-report term-missing \
@@ -70,7 +70,7 @@ jobs:
 
     - name: Extract coverage file from container
       run: |
-        docker compose run --rm opensearch_indexer_tests cat /app/coverage.xml > ./coverage.xml
+        docker compose -f docker-compose.test.yml run --rm opensearch_indexer_tests cat /app/coverage.xml > ./coverage.xml
         chmod 644 ./coverage.xml
 
     - name: Debug coverage file
