@@ -59,26 +59,26 @@
   }
 }
 
-.button-search-term {
-  border: none;
+.search-term-link {
+  border: 1px solid black;
+  padding: 5px;
+  display: flex;
+  width: auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+
   text-decoration: none;
   background-color: inherit;
-  padding: 0;
-  color: black;
+  color: $colour-link-normal;
+  font-size: 1.125rem;
 
   :hover {
     background-color: $colour-link-normal;
   }
 
-  a {
-    border: none;
-    text-decoration: none;
+  :visited {
     color: $colour-link-normal;
-    font-size: 1.125rem;
-
-    :visited {
-      color: $colour-link-normal;
-    }
   }
 }
 
@@ -440,6 +440,7 @@ a.govuk-link {
   flex-wrap: wrap;
   gap: 10px;
   padding-top: 0.9rem;
+  font-family: $govuk-font-family;
 
   :hover {
     cursor: pointer;
