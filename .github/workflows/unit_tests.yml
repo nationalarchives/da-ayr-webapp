@@ -60,10 +60,9 @@ jobs:
     - name: Run Docker Compose Tests
       run: docker compose -f docker-compose.test.yml up --exit-code-from opensearch_indexer_tests
 
-    - name: Extract coverage file from container
+    - name: Copy coverage file from shared volume
       run: |
-        docker compose -f docker-compose.test.yml run --rm opensearch_indexer_tests cat /app/coverage.xml > ./coverage.xml || echo "Failed to extract coverage file"
-        ls -la ./coverage.xml || echo "Coverage file not found after extraction"
+        cp ./test_results/coverage.xml ./coverage.xml || echo "Coverage file not found"
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

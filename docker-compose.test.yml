@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/app
+      - ./test_results:/test_results
     working_dir: /app
     entrypoint: ""
     command:
@@ -32,7 +33,7 @@ services:
         echo 'Running tests...'
         su testuser -c "pytest \
           --cov=data_management/opensearch_indexer/opensearch_indexer \
-          --cov-report=xml:/app/coverage.xml \
+          --cov-report=xml:/test_results/coverage.xml \
           --cov-report=term-missing \
           -vvs data_management/opensearch_indexer/tests"
 
