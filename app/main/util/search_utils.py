@@ -40,7 +40,9 @@ def filter_opensearch_highlight_results(results):
     for result in results_clone:
         if result.get("highlight", None):
             keys_to_remove = [
-                key for key in result["highlight"].keys() if ".keyword" in key
+                key
+                for key in result["highlight"].keys()
+                if key not in OPENSEARCH_FIELD_NAME_MAP
             ]
             for key in keys_to_remove:
                 del result["highlight"][key]
