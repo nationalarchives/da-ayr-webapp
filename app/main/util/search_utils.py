@@ -18,9 +18,8 @@ OPENSEARCH_FIELD_NAME_MAP = {
     "end_date": "Record date",
     "date_last_modified": "Record date",
     "closure_start_date": "Closure start date",
-    # might be useful to show in the future
-    # "file_reference": "File reference",
-    # "file_path": "File path",
+    "file_reference": "File reference",
+    "file_path": "File path",
     "citeable_reference": "Citeable reference",
     "series_name": "Series name",
     "transferring_body_description": "Transferring body description",
