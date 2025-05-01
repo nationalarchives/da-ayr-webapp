@@ -4,6 +4,7 @@ import pytest
 from opensearchpy import OpenSearch
 
 from app.main.util.search_utils import (
+    OPENSEARCH_FIELD_NAME_MAP,
     build_dsl_search_query,
     build_search_results_summary_query,
     build_search_transferring_body_query,
@@ -620,83 +621,72 @@ def test_build_search_transferring_body_query():
 @pytest.mark.parametrize(
     "input_results, expected_output",
     [
-        # standard case, one .keyword field with array value
+        # Case 1: All keys in highlight are valid (present in OPENSEARCH_FIELD_NAME_MAP)
         (
             [
                 {
                     "highlight": {
-                        "field1.keyword": ["match1"],
-                        "field2": ["match2"],
+                        key: [f"match_{key}"]
+                        for key in OPENSEARCH_FIELD_NAME_MAP.keys()
                     }
                 }
             ],
-            [{"highlight": {"field2": ["match2"]}}],
-        ),
-        # multiple .keyword fields in a single result
-        (
             [
                 {
                     "highlight": {
-                        "field1.keyword": ["match1"],
-                        "field2.keyword": ["match2"],
-                        "field3": ["match3"],
+                        key: [f"match_{key}"]
+                        for key in OPENSEARCH_FIELD_NAME_MAP.keys()
                     }
                 }
             ],
-            [{"highlight": {"field3": ["match3"]}}],
         ),
-        # no .keyword fields
-        (
-            [{"highlight": {"field1": ["match1"], "field2": ["match2"]}}],
-            [{"highlight": {"field1": ["match1"], "field2": ["match2"]}}],
-        ),
-        # empty highlight field
-        ([{"highlight": {}}], [{"highlight": {}}]),
-        # multiple result entries, mixed content
+        # Case 2: Some keys in highlight are invalid (not in OPENSEARCH_FIELD_NAME_MAP)
         (
             [
                 {
                     "highlight": {
-                        "field1.keyword": ["match1"],
-                        "field2": ["match2"],
+                        "invalid_key_1": ["match_invalid_1"],
+                        "file_name": ["match_file_name"],
+                        "invalid_key_2": ["match_invalid_2"],
+                        "description": ["match_description"],
                     }
-                },
-                {
-                    "highlight": {
-                        "field3.keyword": ["match3"],
-                        "field4": ["match4"],
-                    }
-                },
-                {"highlight": {"field5": ["match5"]}},
+                }
             ],
             [
-                {"highlight": {"field2": ["match2"]}},
-                {"highlight": {"field4": ["match4"]}},
-                {"highlight": {"field5": ["match5"]}},
+                {
+                    "highlight": {
+                        "file_name": ["match_file_name"],
+                        "description": ["match_description"],
+                    }
+                }
             ],
         ),
-        # no highlight key in results
+        # Case 3: Highlight contains only invalid keys
+        (
+            [
+                {
+                    "highlight": {
+                        "invalid_key_1": ["match_invalid_1"],
+                        "invalid_key_2": ["match_invalid_2"],
+                    }
+                }
+            ],
+            [{"highlight": {}}],
+        ),
+        # Case 4: Highlight is empty
+        (
+            [{"highlight": {}}],
+            [{"highlight": {}}],
+        ),
+        # Case 5: No highlight key in the result
         (
             [{"title": "Title without highlight"}],
             [{"title": "Title without highlight"}],
         ),
-        # empty list input
-        ([], []),
-        # large input with many .keyword and non-.keyword fields
+        # Case 6: Empty results list
         (
-            [
-                {
-                    "highlight": {
-                        f"field{i}.keyword": [f"match{i}"],
-                        f"field{i}": [f"match_non_keyword{i}"],
-                    }
-                }
-                for i in range(100)
-            ],
-            [
-                {"highlight": {f"field{i}": [f"match_non_keyword{i}"]}}
-                for i in range(100)
-            ],
+            [],
+            [],
         ),
     ],
 )

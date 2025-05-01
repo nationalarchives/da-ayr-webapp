@@ -17,10 +17,6 @@ OPENSEARCH_FIELD_NAME_MAP = {
     "closure_start_date": "Closure start date",
     "end_date": "Record date",
     "date_last_modified": "Record date",
-    "closure_start_date": "Closure start date",
-    # might be useful to show in the future
-    # "file_reference": "File reference",
-    # "file_path": "File path",
     "citeable_reference": "Citeable reference",
     "series_name": "Series name",
     "transferring_body_description": "Transferring body description",
@@ -44,7 +40,9 @@ def filter_opensearch_highlight_results(results):
     for result in results_clone:
         if result.get("highlight", None):
             keys_to_remove = [
-                key for key in result["highlight"].keys() if ".keyword" in key
+                key
+                for key in result["highlight"].keys()
+                if key not in OPENSEARCH_FIELD_NAME_MAP
             ]
             for key in keys_to_remove:
                 del result["highlight"][key]
