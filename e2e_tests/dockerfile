@@ -9,9 +9,9 @@ COPY pyproject.toml pyproject.toml
 RUN pip install --upgrade pip wheel setuptools
 RUN pip install poetry
 
-RUN poetry install
+RUN poetry install --no-root
 RUN poetry run playwright install --with-deps
 RUN apt-get update
 RUN apt-get install --only-upgrade git
 # runs the e2e visual regression tests for webkit, firefox and chromium
-CMD poetry run pytest test_visual_regression.py --base-url=https://host.docker.internal:5000/ --browser webkit --browser firefox --browser chromium --update-snapshots
+CMD pytest test_visual_regression.py --base-url=https://host.docker.internal:5000/ --browser webkit --browser firefox --browser chromium --update-snapshots
