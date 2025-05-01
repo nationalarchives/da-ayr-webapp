@@ -44,7 +44,7 @@ services:
       POSTGRES_PASSWORD: testPass123 # pragma: allowlist secret
       POSTGRES_DB: testdb
     ports:
-      - "55432:5432"
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
