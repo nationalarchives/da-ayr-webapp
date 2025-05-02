@@ -25,6 +25,10 @@ services:
           useradd testuser
         fi
 
+        echo 'Granting write permissions to testuser...'
+        chown -R testuser:testuser /app || echo "Chown failed; check volume permissions"
+        chmod -R u+w /app || echo "Chmod failed; check volume permissions"
+
 
         echo 'Running tests...'
         su testuser -c "pytest \
