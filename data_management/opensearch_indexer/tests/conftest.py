@@ -1,6 +1,5 @@
 import tempfile
 
-import psycopg2
 import pytest
 from sqlalchemy import (
     Boolean,
@@ -13,7 +12,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
-from testing.postgresql import PostgresqlFactory
 
 Base = declarative_base()
 
