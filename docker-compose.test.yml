@@ -19,23 +19,11 @@ services:
         echo 'Installing Python test dependencies...'
         pip install -r data_management/opensearch_indexer/requirements-dev.txt
 
-        echo 'Creating testuser...'
-        if ! id -u testuser > /dev/null 2>&1; then
-          echo "Creating system user testuser..."
-          useradd testuser
-        fi
-
-        echo 'Granting write permissions to testuser...'
-        chown -R testuser:testuser /app || echo "Chown failed; check volume permissions"
-        chmod -R u+w /app || echo "Chmod failed; check volume permissions"
-
-
-        echo 'Running tests...'
-        su testuser -c "pytest \
+        pytest \
           --cov=data_management/opensearch_indexer/opensearch_indexer \
           --cov-report=xml:/test_results/coverage.xml \
           --cov-report=term-missing \
-          -vvs data_management/opensearch_indexer/tests"
+          -vvs data_management/opensearch_indexer/tests
 
   postgres:
     image: postgres:15

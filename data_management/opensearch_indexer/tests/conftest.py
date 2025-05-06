@@ -1,5 +1,6 @@
 import tempfile
 
+import psycopg2
 import pytest
 from sqlalchemy import (
     Boolean,
@@ -88,12 +89,41 @@ def temp_db():
 
 @pytest.fixture(scope="function")
 def database(request):
-    # Launch new PostgreSQL server
-    postgresql = PostgresqlFactory(cache_initialized_db=True)()
+    database_url = (
+        "postgresql+psycopg2://testuser:testPass123@postgres:5432/testdb"
+    )
 
-    yield postgresql
+    engine = create_engine(database_url)
 
-    # PostgreSQL server is terminated here
+    class DatabaseURL:
+        def __init__(self, url, engine):
+            self._url = url
+            self._engine = engine
+            self.settings = {
+                "port": 5432,
+                "host": "postgres",
+                "user": "testuser",
+                "password": "testPass123",
+                "dbname": "testdb",
+            }
+
+        def url(self):
+            return self._url
+
+        def __call__(self):
+            return self._engine
+
+    db = DatabaseURL(database_url, engine)
+
+    if (
+        not request.function.__name__
+        == "test_fetch_files_in_consignment_invalid_column_with_logging"
+    ):
+        Base.metadata.create_all(engine)
+
+    yield db
+
     @request.addfinalizer
     def drop_database():
-        postgresql.stop()
+        Base.metadata.drop_all(engine)
+        engine.dispose()
