@@ -1,0 +1,7 @@
+.govuk-list {
+  &__flex-col-1rem-gap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

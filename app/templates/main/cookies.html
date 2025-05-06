@@ -1,192 +1,102 @@
-{% extends "base.html" %} {%- from
-'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
-{%- from 'govuk_frontend_jinja/components/table/macro.html' import govukTable
--%}
-{% block pageTitle %}
-    Cookies – {{ config['SERVICE_NAME'] }} – GOV.UK{%
-    endblock %}
-    {% block content %}
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-one-third govuk-grid-column-one-third--ayr-aside">
-                <div class="anchor-link-list-ayr">
-                    <span class="govuk-heading-s">Contents</span>
-                    <ul class="govuk-list">
-                        <li class="govuk-list__ayr">
-                            <a class="govuk-link govuk-link__1-rem-mb-font govuk-link__no-visited-color"
-                               href="#section-one">Cookies</a>
-                        </li>
-                        <li class="govuk-list__ayr">
-                            <a class="govuk-link govuk-link__1-rem-mb-font govuk-link__no-visited-color"
-                               href="#section-two">Why do we use cookies?</a>
-                        </li>
-                        <li class="govuk-list__ayr">
-                            <a class="govuk-link govuk-link__1-rem-mb-font govuk-link__no-visited-color"
-                               href="#section-three">Essential cookies</a>
-                        </li>
-                        <li class="govuk-list__ayr">
-                            <a class="govuk-link govuk-link__1-rem-mb-font govuk-link__no-visited-color"
-                               href="#section-four">Third party cookies</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds--ayr-mainside">
-                <h1 id="top" class="govuk-heading-l">Cookie policy</h1>
-                <p class="govuk-body-s">
-                    Last updated on <time datetime="2025-01-10">10 January 2025</time>.
-                </p>
-                <h2 id="section-one" class="govuk-heading-m">Cookies</h2>
-                <p class="govuk-body">
-                    Cookies are small files saved on your computer, phone or tablet that
-                    allow us to store information about how you use our website, such as
-                    the pages you visit or any preferences you set. They help us to
-                    provide you with a better experience. Read more about cookies used on
-                    <a class="govuk-link govuk-link__no-visited-color"
-                       href="https://www.nationalarchives.gov.uk/">The National Archives website</a>.
-                </p>
-                <p class="govuk-body">
-                    Within the AYR – Access Your Records service, we only use cookies that
-                    are essential in order to make the service work. They cannot be used
-                    to identify you personally.
-                </p>
-                <h2 id="section-two" class="govuk-heading-m">Why do we use cookies?</h2>
-                <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
-                    <li>
-                        Enabling a service to recognise your device so you don’t have to
-                        give the same information several times during one task
-                    </li>
-                    <li>
-                        Recognising that you may already have provided a username and
-                        password so you don’t need to do it for every web page requested
-                    </li>
-                </ul>
-                <p class="govuk-body">
-                    We classify the cookies we use within the AYR – Access Your Records
-                    service in the following categories:
-                </p>
-                <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
-                    <li>
-                        Analytics cookies (optional, although none are currently used within
-                        the AYR – Access Your Records service)
-                    </li>
-                    <li>
-                        Functional (optional, although none are currently used within the
-                        AYR – Access Your Records service)
-                    </li>
-                    <li>Essential cookies (non-optional)</li>
-                </ul>
-                <p class="govuk-body">We do not use any cookies for marketing or targeting purposes.</p>
-                <h2 id="section-three" class="govuk-heading-m">Essential cookies</h2>
-                <p class="govuk-body">
-                    These are necessary to make our site work. You can disable them by
-                    changing your browser preferences. However, you should be aware that
-                    doing so will mean some parts of the website will stop working for
-                    you.
-                </p>
-                <table class="govuk-table" id="tbl_cookies">
-                    <thead class="govuk-table__head">
-                        <tr class="govuk-table__row">
-                            <th scope="col" class="govuk-table__header govuk-!-width-one-third">Cookie name</th>
-                            <th scope="col" class="govuk-table__header govuk-!-width-one-third">What it does/typical content</th>
-                            <th scope="col" class="govuk-table__header govuk-!-width-one-third">Duration</th>
-                        </tr>
-                    </thead>
-                    <tbody class="govuk-table__body">
-                        <tr class="govuk-table__row">
-                            <td class="govuk-table__cell govuk-table__header govuk-table__header--cookies govuk-!-font-size-14">session</td>
-                            <td class="govuk-table__cell">A cookie that holds information for authorisation purpose</td>
-                            <td class="govuk-table__cell">Expires when you exit the browser</td>
-                        </tr>
-                        <tr class="govuk-table__row">
-                            <td class="govuk-table__cell govuk-table__header govuk-table__header--cookies govuk-!-font-size-14">
-                                KEYCLOAK_SESSION_LEGACY
-                            </td>
-                            <td class="govuk-table__cell">
-                                A cookie set by the authorisation component of the service that
-                                keeps track of the session as you use the service
-                            </td>
-                            <td class="govuk-table__cell">Expires when you exit the browser</td>
-                        </tr>
-                        <tr class="govuk-table__row">
-                            <td class="govuk-table__cell govuk-table__header govuk-table__header--cookies govuk-!-font-size-14">
-                                KEYCLOAK_SESSION
-                            </td>
-                            <td class="govuk-table__cell">
-                                A cookie set by the authorisation component of the service that
-                                keeps track of the session as you use the service
-                            </td>
-                            <td class="govuk-table__cell">Expires when you exit the browser</td>
-                        </tr>
-                        <tr class="govuk-table__row">
-                            <td class="govuk-table__cell govuk-table__header govuk-table__header--cookies govuk-!-font-size-14">
-                                KEYCLOAK_IDENTITY_LEGACY
-                            </td>
-                            <td class="govuk-table__cell">
-                                A cookie set by the authorisation component of the service that
-                                keeps track of elements related to your identity as you use the
-                                service
-                            </td>
-                            <td class="govuk-table__cell">Expires when you exit the browser</td>
-                        </tr>
-                        <tr class="govuk-table__row">
-                            <td class="govuk-table__cell govuk-table__header govuk-table__header--cookies govuk-!-font-size-14">
-                                KEYCLOAK_IDENTITY
-                            </td>
-                            <td class="govuk-table__cell">
-                                A cookie set by the authorisation component of the service that
-                                keeps track of elements related to your identity as you use the
-                                service
-                            </td>
-                            <td class="govuk-table__cell">Expires when you exit the browser</td>
-                        </tr>
-                        <tr class="govuk-table__row">
-                            <td class="govuk-table__cell govuk-table__header govuk-table__header--cookies govuk-!-font-size-14">
-                                AUTH_SESSION_ID_LEGACY
-                            </td>
-                            <td class="govuk-table__cell">
-                                A cookie set by the authorisation component of the service that
-                                keeps track of the session identity as you use the service
-                            </td>
-                            <td class="govuk-table__cell">Expires when you exit the browser</td>
-                        </tr>
-                        <tr class="govuk-table__row">
-                            <td class="govuk-table__cell govuk-table__header govuk-table__header--cookies govuk-!-font-size-14">
-                                AUTH_SESSION_ID
-                            </td>
-                            <td class="govuk-table__cell">
-                                A cookie set by the authorisation component of the service that
-                                keeps track of the session identity as you use the service
-                            </td>
-                            <td class="govuk-table__cell">Expires when you exit the browser</td>
-                        </tr>
-                        <tr class="govuk-table__row">
-                            <td class="govuk-table__cell govuk-table__header govuk-table__header--cookies govuk-!-font-size-14">KC_RESTART</td>
-                            <td class="govuk-table__cell">
-                                A cookie set by the authorisation component of the service that
-                                keeps track of the session as you use the service
-                            </td>
-                            <td class="govuk-table__cell">Expires when you exit the browser</td>
-                        </tr>
-                        <tr class="govuk-table__row">
-                            <td class="govuk-table__cell govuk-table__header govuk-table__header--cookies govuk-!-font-size-14">KC_AUTH_STATE</td>
-                            <td class="govuk-table__cell">
-                                A cookie set by the authorisation component of the service that
-                                keeps track of the session as you use the service
-                            </td>
-                            <td class="govuk-table__cell">Expires when you exit the browser</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <h2 id="section-four" class="govuk-heading-m">Third party cookies</h2>
-                <p class="govuk-body">
-                    These are cookies set by a website other than nationalarchives.gov.uk.
-                    They are set when you click on a third party link such as SmartSurvey.
-                    You cannot set your preferences for these on our site, but you can
-                    block them directly from your browser.
-                </p>
-                <p class="govuk-body">
-                    <a href="#top" class="govuk-link govuk-link__no-visited-color">Back to top</a>
-                </p>
-            </div>
-        </div>
-    {% endblock %}
+{% extends 'static-content-template.html' %}
+{% block pageTitle %}Cookies – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
+{% block content_list %}
+    <li class="govuk-list__ayr-content">
+        <a class="govuk-link govuk-link__1-rem-mb-font govuk-link__no-visited-color"
+           href="#section-one">Cookies</a>
+    </li>
+    <li class="govuk-list__ayr-content">
+        <a class="govuk-link govuk-link__1-rem-mb-font govuk-link__no-visited-color"
+           href="#section-two">Why do we use cookies?</a>
+    </li>
+    <li class="govuk-list__ayr-content">
+        <a class="govuk-link govuk-link__1-rem-mb-font govuk-link__no-visited-color"
+           href="#section-three">Essential cookies</a>
+    </li>
+    <li class="govuk-list__ayr-content">
+        <a class="govuk-link govuk-link__1-rem-mb-font govuk-link__no-visited-color"
+           href="#section-four">Third party cookies</a>
+    </li>
+{% endblock %}
+{% block static_content %}
+    <h1 class="govuk-heading-l">Cookie policy</h1>
+    <p class="govuk-body-s">
+        Last updated on <time datetime="2025-01-10">10 January 2025</time>.
+    </p>
+    <h2 id="section-one" class="govuk-heading-m">Cookies</h2>
+    <p class="govuk-body">
+        Cookies are small files saved on your computer, phone or tablet that allow us to store information about how you use our website, such as the pages you visit or any preferences you set. They help us to provide you with a better experience. Read more about cookies used on <a class="govuk-link govuk-link__no-visited-color"
+    href="https://www.nationalarchives.gov.uk/">The National Archives website</a>.
+    </p>
+    <p class="govuk-body">
+        Within the AYR – Access Your Records service, we only use cookies that are essential in order to make the service work. They cannot be used to identify you personally.
+    </p>
+    <h2 id="section-two" class="govuk-heading-m">Why do we use cookies?</h2>
+    <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+        <li>
+            Enabling a service to recognise your device so you don’t have to give the same information several times during one task
+        </li>
+        <li>
+            Recognising that you may already have provided a username and password so you don’t need to do it for every web page requested
+        </li>
+    </ul>
+    <p class="govuk-body">
+        We classify the cookies we use within the AYR – Access Your Records service in the following categories:
+    </p>
+    <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+        <li>
+            Analytics cookies (optional, although none are currently used within
+            the AYR – Access Your Records service)
+        </li>
+        <li>
+            Functional (optional, although none are currently used within the
+            AYR – Access Your Records service)
+        </li>
+        <li>Essential cookies (non-optional)</li>
+    </ul>
+    <p class="govuk-body">We do not use any cookies for marketing or targeting purposes.</p>
+    <h2 id="section-three" class="govuk-heading-m">Essential cookies</h2>
+    <p class="govuk-body">
+        These are necessary to make our site work. You can disable them by
+        changing your browser preferences. However, you should be aware that
+        doing so will mean some parts of the website will stop working for
+        you.
+    </p>
+    <table class="govuk-table" id="tbl_cookies">
+        <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header govuk-!-width-one-third">Cookie name</th>
+                <th scope="col" class="govuk-table__header govuk-!-width-one-third">What it does/typical content</th>
+                <th scope="col" class="govuk-table__header govuk-!-width-one-third">Duration</th>
+            </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+            {% for cookie in [
+                ('session', 'A cookie that holds information for authorisation purpose'),
+                ('KEYCLOAK_SESSION_LEGACY', 'Keeps track of the session'),
+                ('KEYCLOAK_SESSION', 'Keeps track of the session'),
+                ('KEYCLOAK_IDENTITY_LEGACY', 'Tracks elements related to your identity'),
+                ('KEYCLOAK_IDENTITY', 'Tracks elements related to your identity'),
+                ('AUTH_SESSION_ID_LEGACY', 'Tracks the session identity'),
+                ('AUTH_SESSION_ID', 'Tracks the session identity'),
+                ('KC_RESTART', 'Tracks the session'),
+                ('KC_AUTH_STATE', 'Tracks the session')
+                ] %}
+                <tr class="govuk-table__row">
+                    <td class="govuk-table__cell govuk-table__header govuk-table__header--cookies govuk-!-font-size-14">
+                        {{ cookie[0] }}
+                    </td>
+                    <td class="govuk-table__cell">A cookie set by the authorisation component of the service that {{ cookie[1] }}</td>
+                    <td class="govuk-table__cell">Expires when you exit the browser</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2 id="section-four" class="govuk-heading-m">Third party cookies</h2>
+    <p class="govuk-body">
+        These are cookies set by a website other than nationalarchives.gov.uk. They are set when you click on a third party link such as SmartSurvey. You cannot set your preferences for these on our site, but you can block them directly from your browser.
+    </p>
+    <p class="govuk-body">
+        <a href="#top" class="govuk-link govuk-link__no-visited-color">Back to top</a>
+    </p>
+{% endblock %}
