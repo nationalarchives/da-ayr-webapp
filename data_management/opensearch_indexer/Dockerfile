@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev libxslt1-dev \
     antiword unrtf poppler-utils tesseract-ocr \
     flac ffmpeg lame libmad0 libsox-fmt-mp3 sox \
-    libjpeg-dev swig \
+    libjpeg-dev swig
 
 
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
