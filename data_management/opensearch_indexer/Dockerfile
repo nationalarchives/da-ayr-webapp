@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     antiword unrtf poppler-utils tesseract-ocr \
     flac ffmpeg lame libmad0 libsox-fmt-mp3 sox \
     libjpeg-dev swig \
-    postgresql-contrib
+    # postgresql-contrib
 
 
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
