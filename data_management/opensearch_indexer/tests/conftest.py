@@ -111,12 +111,6 @@ def database(request):
 
     db = DatabaseURL(database_url, engine)
 
-    if (
-        not request.function.__name__
-        == "test_fetch_files_in_consignment_invalid_column_with_logging"
-    ):
-        Base.metadata.create_all(engine)
-
     yield db
 
     @request.addfinalizer
