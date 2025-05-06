@@ -87,9 +87,7 @@ def temp_db():
 
 @pytest.fixture(scope="function")
 def database(request):
-    database_url = (
-        "postgresql+psycopg2://testuser:testPass123@postgres:5432/testdb"
-    )
+    database_url = "postgresql+psycopg2://testuser:testPass123@postgres:5432/testdb"  # pragma: allowlist secret
 
     engine = create_engine(database_url)
 
@@ -101,7 +99,7 @@ def database(request):
                 "port": 5432,
                 "host": "postgres",
                 "user": "testuser",
-                "password": "testPass123",
+                "password": "testPass123",  # pragma: allowlist secret
                 "dbname": "testdb",
             }
 
