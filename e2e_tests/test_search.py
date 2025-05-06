@@ -56,7 +56,7 @@ class TestSearch:
         header_rows = utils.get_desktop_page_table_headers(aau_user_page)
         rows = utils.get_desktop_page_table_rows(aau_user_page)
 
-        expected_rows = [["Testing A", "14"]]
+        expected_rows = [["Testing A", "16"]]
         verify_search_results_summary_header_row(header_rows)
         assert rows == expected_rows
 
@@ -97,17 +97,18 @@ class TestSearchResultsSummary:
         )
 
         expected_row_metadata = [
-            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Closed", "18/10/2048"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
         ]
+
         assert table_row_metadata == expected_row_metadata
 
         verify_search_transferring_body_table_header_row(header_rows)
@@ -140,7 +141,9 @@ class TestSearchTransferringBody:
         aau_user_page.locator("#search-input").fill("a")
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
-        aau_user_page.get_by_role("link", name="a", exact=True).click()
+        aau_user_page.locator(
+            "a.search-term-link[aria-label=\"Remove filter for 'a'\"] img.close-icon"
+        ).click()
 
         url = f"{self.browse_transferring_body_route_url}/{self.transferring_body_id}?search_area=everywhere"
         expect(aau_user_page).to_have_url(url)
@@ -203,13 +206,13 @@ class TestSearchResults:
         When the results are displayed
         Then the results should use fuzziness logic to account for the typo and display relevant matches
         """
-        url = f"{self.browse_transferring_body_route_url}/{self.transferring_body_id}#browse-records"
+        url = f"{self.browse_transferring_body_route_url}/{self.transferring_body_id}?query=a#browse-records"
 
         standard_user_page.goto(url)
         expect(standard_user_page).to_have_url(url)
 
         standard_user_page.locator("#search-input").click()
-        standard_user_page.locator("#search-input").fill("smaplt")
+        standard_user_page.locator("#search-input").fill("fil")
         standard_user_page.get_by_role("button", name="Search").click()
         rows = standard_user_page.locator("tbody .govuk-table__row")
         assert rows.count() == 36
@@ -217,4 +220,4 @@ class TestSearchResults:
         tbody_locator = standard_user_page.locator("tbody.govuk-table__body")
         inner_html = tbody_locator.inner_html()
 
-        assert "<mark>sample</mark>" in inner_html
+        assert "<mark>file</mark>" in inner_html

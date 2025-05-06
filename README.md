@@ -415,6 +415,14 @@ python -m pytest --cov=app --cov-report=term-missing --cov-branch -vvv
 
 This also will generate a test coverage report.
 
+For the data_management tests there is a dockerfile that sets up a local postgres instance to be used as a database.
+
+To run tests for the opensearch_indexer you can run the command:
+
+```shell
+docker compose -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from opensearch_indexer_tests
+```
+
 #### Mocking user permissions in tests
 
 We have 2 fixtures used for mocking a user and their permissions in our non end to end, flask tests:
