@@ -598,7 +598,7 @@ def test_bulk_index_consignment_error_handling(
     series_id = uuid4()
     consignment_id = uuid4()
 
-    consignment_reference = "TDR-2024-ABCD"
+    consignment_reference = "TDR-2024-XYWZ"
 
     file_id = uuid4()
 
@@ -648,7 +648,7 @@ def test_bulk_index_consignment_error_handling(
     with pytest.raises(
         ConsignmentBulkIndexError,
         match=(
-            "Bulk indexing failed for consignment TDR-2024-ABCD:\n"
+            "Bulk indexing failed for consignment TDR-2024-XYWZ:\n"
             "Bulk Index Errors:\nSome opensearch bulk indexing error string."
         ),
     ):

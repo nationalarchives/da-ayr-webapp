@@ -52,25 +52,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.11
+    - name: Set up Docker Compose
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker-compose
 
-    - name: Install Poetry
-      run: pip install poetry
+    - name: Run Docker Compose Tests
+      run: docker compose -f docker-compose.test.yml up --exit-code-from opensearch_indexer_tests
 
-    - name: Install dependencies
-      run: poetry install
-
-    - name: Install dependencies
-      run: pip install pip==24.0 && pip install -r data_management/opensearch_indexer/requirements.txt && pip install -r data_management/opensearch_indexer/requirements-dev.txt
-
-    - name: Run Data Management unit tests
-      run: AWS_DEFAULT_REGION=eu-west-2 pytest --cov=data_management/opensearch_indexer/opensearch_indexer --cov-report term-missing  -rsa -vvv data_management/opensearch_indexer/tests
-
-    - name: Generate coverage XML
-      run: coverage xml
+    - name: Copy coverage file from shared volume
+      run: |
+        cp ./test_results/coverage.xml ./coverage.xml || echo "Coverage file not found"
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml

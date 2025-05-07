@@ -27,9 +27,14 @@ class TestExtractText:
                 "This is line 4, the final line.",
             ),
             (
+                "multiline.doc",
+                "doc",
+                "\nExpected content\nSecond line\nThird line\n",
+            ),
+            (
                 "multiline.pdf",
                 "pdf",
-                "This is line 1\nThis is line 2\nThis is line 3\nThis is line 4, the ﬁnal line.\n\n\x0c",
+                "This is line 1\nThis is line 2\nThis is line 3\nThis is line 4, the final line.\n\n\x0c",
             ),
             (
                 "multiline.odt",

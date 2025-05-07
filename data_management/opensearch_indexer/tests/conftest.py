@@ -12,7 +12,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
-from testing.postgresql import PostgresqlFactory
 
 Base = declarative_base()
 
@@ -88,11 +87,33 @@ def temp_db():
 
 @pytest.fixture(scope="function")
 def database(request):
-    # Launch new PostgreSQL server
-    postgresql = PostgresqlFactory(cache_initialized_db=True)()
-    yield postgresql
+    database_url = "postgresql+psycopg2://testuser:testPass123@postgres:5432/testdb"  # pragma: allowlist secret
 
-    # PostgreSQL server is terminated here
+    engine = create_engine(database_url)
+
+    class DatabaseURL:
+        def __init__(self, url, engine):
+            self._url = url
+            self._engine = engine
+            self.settings = {
+                "port": 5432,
+                "host": "postgres",
+                "user": "testuser",
+                "password": "testPass123",  # pragma: allowlist secret
+                "dbname": "testdb",
+            }
+
+        def url(self):
+            return self._url
+
+        def __call__(self):
+            return self._engine
+
+    db = DatabaseURL(database_url, engine)
+
+    yield db
+
     @request.addfinalizer
     def drop_database():
-        postgresql.stop()
+        Base.metadata.drop_all(engine)
+        engine.dispose()
