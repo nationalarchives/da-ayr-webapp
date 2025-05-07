@@ -33,6 +33,7 @@ def test_lambda_handler_calls_index_file_content_and_metadata_in_opensearch(
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", "test_access_key")
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "test_secret_key")
     monkeypatch.setenv("AWS_SESSION_TOKEN", "test_token")
+    monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-west-2")
     monkeypatch.setenv("SECRET_ID", secret_name)
     monkeypatch.setenv("DB_SECRET_ID", db_secret_name)
 
@@ -72,9 +73,12 @@ def test_lambda_handler_calls_index_file_content_and_metadata_in_opensearch(
         Name=db_secret_name, SecretString=db_secret_string
     )
 
-    s3_client = boto3.client("s3", region_name="us-east-1")
+    s3_client = boto3.client("s3", region_name="eu-west-2")
     object_key = "test-file.txt"
-    s3_client.create_bucket(Bucket=bucket_name)
+    s3_client.create_bucket(
+        Bucket=bucket_name,
+        CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+    )
     s3_client.put_object(
         Bucket=bucket_name, Key=object_key, Body=b"Test file content"
     )
