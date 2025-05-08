@@ -259,5 +259,7 @@ class TestPagination:
         page_links = aau_user_page.locator("data-testid=pagination-link").all()
         last_page = page_links[len(page_links) - 1].text_content()
         aau_user_page.get_by_role("link").get_by_text(last_page).click()
-        links = aau_user_page.locator("data-testid=pagination-link-title").all()
+        link_titles_locator = aau_user_page.locator("data-testid=pagination-link-title")
+        link_titles_locator.first.wait_for(state="visible")
+        links = link_titles_locator.all()
         assert links[0].text_content() == "Previouspage"

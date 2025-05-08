@@ -141,9 +141,9 @@ class TestSearchTransferringBody:
         aau_user_page.locator("#search-input").fill("a")
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
-        aau_user_page.locator(
-            "a.search-term-link[aria-label=\"Remove filter for 'a'\"] img.close-icon"
-        ).click()
+        locator = aau_user_page.locator("a.search-term-link[aria-label=\"Remove filter for 'a'\"] img.close-icon")
+        locator.wait_for(state="visible")
+        locator.click()
 
         url = f"{self.browse_transferring_body_route_url}/{self.transferring_body_id}?search_area=everywhere"
         expect(aau_user_page).to_have_url(url)
