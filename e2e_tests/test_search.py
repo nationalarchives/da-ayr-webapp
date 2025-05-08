@@ -141,7 +141,9 @@ class TestSearchTransferringBody:
         aau_user_page.locator("#search-input").fill("a")
         aau_user_page.get_by_role("button", name="Search").click()
         aau_user_page.get_by_role("link", name="Testing A").click()
-        locator = aau_user_page.locator("a.search-term-link[aria-label=\"Remove filter for 'a'\"] img.close-icon")
+        locator = aau_user_page.locator(
+            "a.search-term-link[aria-label=\"Remove filter for 'a'\"] img.close-icon"
+        )
         locator.wait_for(state="visible")
         locator.click()
 
