@@ -408,20 +408,39 @@ a.govuk-link {
   margin-top: 2rem;
   padding: 0;
 
+  @media screen and (width <= $breakpoint-medium) {
+    width: 100%;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
   .browse__sort-container {
     margin-top: 0;
   }
 
   .govuk-select {
     max-width: 240px;
+
+    @media screen and (width <= $breakpoint-medium) {
+      max-width: 100%;
+    }
   }
 
   &__checkboxes {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 16px;
+    gap: 0.5rem;
     height: 40px;
+    flex-shrink: 0;
+
+    @media screen and (width <= $breakpoint-medium) {
+      width: 100%;
+      flex-direction: column;
+      height: auto;
+      align-items: flex-start;
+    }
 
     .govuk-checkboxes__label {
       padding: 0;
