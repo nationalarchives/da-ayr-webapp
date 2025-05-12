@@ -106,11 +106,12 @@ class TestRecord:
         html = response.data.decode()
 
         soup = BeautifulSoup(html, "html.parser")
-        label = soup.find("h1", string="Search for digital records")
+        label = soup.find("legend", {"class": "top-search__els__heading"})
+        label_text = label.get_text(strip=True)
         textbox = soup.find("input", {"id": "search-input"})
         button = soup.find("button", {"id": "search-submit"})
 
-        assert label is not None
+        assert label is not None and label_text == "Search for digital records"
         assert textbox is not None
         assert button is not None
 

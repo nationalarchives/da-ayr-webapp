@@ -123,15 +123,14 @@ a.govuk-link {
 
 .govuk-button {
   &__search-filters-form-apply-button {
-    height: 35px;
-    width: 110px;
-    font-size: 1rem;
-    margin: 0 26px 0 0;
+    margin: 0;
   }
 }
 
 .search-form__buttons {
   display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
   align-items: center;
   width: auto;
   margin-top: 0.9rem;
