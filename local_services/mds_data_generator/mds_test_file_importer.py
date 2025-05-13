@@ -87,7 +87,7 @@ def create_test_files(file_type_counts):
             raise FileNotFoundError(f"Source file not found: {source_file}")
 
         for i in range(count):
-            filename = f"test_file_{i+1}.{ext}"
+            filename = f"test_file_{i + 1}.{ext}"
             file_path = os.path.join(example_folder, filename)
             shutil.copy2(source_file, file_path)
             created_files.append((file_path, ext))
@@ -163,7 +163,7 @@ def process_files(file_paths):
                     "closure_period": "0",
                     "foi_exemption_code": "None",
                     "foi_exemption_code_description": "None",
-                    "title": f"Test File {i+1}",
+                    "title": f"Test File {i + 1}",
                     "description": "Test file for AYR development",
                     "language": "English",
                     "security_classification": "Open",
