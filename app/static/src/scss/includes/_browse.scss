@@ -127,9 +127,11 @@
 
   &__sort-container {
     margin-top: 2rem;
+    flex-shrink: 0;
 
     @include on-mobile {
       margin-top: 2rem;
+      width: 100%;
     }
   }
 }
