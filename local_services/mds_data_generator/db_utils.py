@@ -13,7 +13,7 @@ def get_db_connection():
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASSWORD"),
         sslmode="verify-full",
-        sslrootcert=os.getenv("DB_SSL_ROOTCERT"),
+        sslrootcert=os.getenv("DB_SSL_ROOT_CERTIFICATE"),
     )
 
 
