@@ -2,73 +2,34 @@ import os
 
 import boto3
 from botocore.config import Config
-from db_utils import get_db_connection
 from dotenv import load_dotenv
+
+from app import create_app, db
+from app.main.db.models import Body, Consignment, File, FileMetadata, Series
+from configs.env_config import EnvConfig
 
 load_dotenv()
 
 
 def clean_database():
     """Clean up all test data from the database."""
-    conn = get_db_connection()
+    app = create_app(EnvConfig)
+    with app.app_context():
+        try:
+            models = [FileMetadata, File, Consignment, Series, Body]
 
-    try:
-        with conn.cursor() as cur:
-            print("Cleaning up database test data...")
+            for model in models:
+                print(f"Cleaning data from {model}")
+                model.query.delete()
+                print(f"Deleted all records from {model}")
 
-            # Delete in reverse order of dependencies
-            tables_to_clean = [
-                {
-                    "table": "FileMetadata",
-                    "condition": 'WHERE "FileId" IN (SELECT "FileId" FROM "File" WHERE "FileType" = %s)',
-                    "params": ("File",),
-                },
-                {
-                    "table": "AVMetadata",
-                    "condition": 'WHERE "FileId" IN (SELECT "FileId" FROM "File" WHERE "FileType" = %s)',
-                    "params": ("File",),
-                },
-                {
-                    "table": "FFIDMetadata",
-                    "condition": 'WHERE "FileId" IN (SELECT "FileId" FROM "File" WHERE "FileType" = %s)',
-                    "params": ("File",),
-                },
-                {
-                    "table": "File",
-                    "condition": 'WHERE "FileType" = %s',
-                    "params": ("File",),
-                },
-                {
-                    "table": "Consignment",
-                    "condition": 'WHERE "ConsignmentReference" LIKE %s',
-                    "params": ("TEST-%",),
-                },
-                {
-                    "table": "Series",
-                    "condition": 'WHERE "Name" LIKE %s',
-                    "params": ("Test Series%",),
-                },
-                {
-                    "table": "Body",
-                    "condition": 'WHERE "Name" LIKE %s',
-                    "params": ("Test Transferring Body%",),
-                },
-            ]
-
-            for table_info in tables_to_clean:
-                query = f'DELETE FROM "{table_info["table"]}" {table_info["condition"]}'  # nosec
-                cur.execute(query, table_info["params"])
-                print(f"Deleted {table_info['table']} records")
-
-            conn.commit()
+            db.session.commit()
             print("Database cleanup completed successfully")
             return True
-    except Exception as e:
-        print(f"Error during database cleanup: {e}")
-        conn.rollback()
-        return False
-    finally:
-        conn.close()
+        except Exception as e:
+            print(f"Error during database cleanup: {e}")
+            db.session.rollback()
+            return False
 
 
 def clean_example_files():
@@ -134,16 +95,7 @@ def clean_minio():
         return False
 
 
-def cleanup_test_data():
-    """Cleanup of all test data from database, example files, and MinIO."""
-    results = {
-        "database": clean_database(),
-        "files": clean_example_files(),
-        "minio": clean_minio(),
-    }
-
-    return results
-
-
 if __name__ == "__main__":
-    cleanup_test_data()
+    clean_database()
+    clean_example_files()
+    clean_minio()

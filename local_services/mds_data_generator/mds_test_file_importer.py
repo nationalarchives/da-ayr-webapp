@@ -9,8 +9,8 @@ import boto3
 from botocore.client import Config
 from dotenv import load_dotenv
 
-from app import create_app
-from app.main.db.models import db
+from app import create_app, db
+from app.main.db.models import Body, Series
 from app.tests.factories import (
     BodyFactory,
     ConsignmentFactory,
@@ -100,22 +100,28 @@ def process_files(file_paths):
     app = create_app(EnvConfig)
     with app.app_context():
         try:
-            body = BodyFactory.create_batch(
-                1,
-                Name="Test Transferring Body",
-                Description="Test Transferring Body Description",
-            )[0]
-            print(f"Created or using Body: {body.Name} (ID: {body.BodyId})")
-
-            series = SeriesFactory.create_batch(
-                1,
-                body=body,
-                Name="Test Series",
-                Description="Test Series Description",
-            )[0]
-            print(
-                f"Created or using Series: {series.Name} (ID: {series.SeriesId})"
+            body = (
+                db.session.query(Body)
+                .filter_by(Name="Test Transferring Body")
+                .first()
             )
+            if not body:
+                body = BodyFactory.create(
+                    Name="Test Transferring Body",
+                    Description="Test Transferring Body Description",
+                )
+
+            series = (
+                db.session.query(Series)
+                .filter_by(Name="Test Series", body=body)
+                .first()
+            )
+            if not series:
+                series = SeriesFactory.create(
+                    body=body,
+                    Name="Test Series",
+                    Description="Test Series Description",
+                )
 
             timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
             consignment_ref = f"TEST-{timestamp}"
@@ -128,9 +134,6 @@ def process_files(file_paths):
                 ContactEmail="test@example.com",
                 TransferStartDatetime=datetime.utcnow(),
                 CreatedDatetime=datetime.utcnow(),
-            )
-            print(
-                f"Created new consignment: {consignment_ref} (ID: {consignment.ConsignmentId})"
             )
 
             for i, (file_path, file_ext) in enumerate(file_paths):
@@ -214,6 +217,7 @@ def main():
 
     Example usage:
         python mds_test_file_importer.py --num-pdf 2 --num-png 1
+        if no args are passed, the default will be 1 of each file
     """
     parser = argparse.ArgumentParser(
         description="Generate and process test files for AYR testing"
@@ -243,8 +247,12 @@ def main():
     file_type_counts = {k: v for k, v in file_type_counts.items() if v > 0}
 
     if not file_type_counts:
-        print("No files requested.")
-        return
+        file_type_counts = {
+            "pdf": 1,
+            "png": 1,
+            "jpg": 1,
+            "tiff": 1,
+        }
 
     file_paths = create_test_files(file_type_counts)
     process_files(file_paths)

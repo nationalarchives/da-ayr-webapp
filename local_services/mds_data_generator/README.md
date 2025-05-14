@@ -24,23 +24,6 @@ AWS_ENDPOINT_URL=http://localhost:9000
 RECORD_BUCKET_NAME=test-record-download
 
 
-The PostgreSQL database is expected to be running locally in Docker, and the connection is configured with a password as:
-
-```python
-def get_db_connection():
-    """Get a secure connection to the webapp database using environment variables."""
-    return psycopg2.connect(
-        host=os.getenv("DB_HOST"),
-        port=int(os.getenv("DB_PORT")),
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        sslmode="verify-full",
-        sslrootcert=os.getenv("DB_SSL_ROOTCERT"),
-    )
-
-```
-
 ## To Run
 
 python local_services/mds_data_generator/mds_test_file_importer.py --num-tif 5 --num-pdf 5
