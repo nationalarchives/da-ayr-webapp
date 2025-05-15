@@ -342,7 +342,7 @@ class TestSearchResultsSummary:
         response = client.get(f"{self.route_url}", data=form_data)
         soup = BeautifulSoup(response.data, "html.parser")
         browse_details_div = soup.find("div", {"class": "browse-details"})
-        heading = browse_details_div.find("h1")
+        heading = browse_details_div.find("h2")
         heading_text = heading.get_text(strip=True)
         assert heading and browse_details_div
         assert heading_text == "Records found 69"
@@ -571,7 +571,8 @@ class TestSearchTransferringBody:
         html = response.data.decode()
 
         soup = BeautifulSoup(html, "html.parser")
-        label = soup.find("h1", string="Search for digital records")
+        label = soup.find("legend", {"class": "top-search__els__heading"})
+        label_text = label.get_text(strip=True)
         textbox = soup.find("input", {"id": "search-input"})
         button = soup.find("button", {"id": "search-submit"})
 
@@ -579,7 +580,7 @@ class TestSearchTransferringBody:
         radio_2 = soup.find("input", {"id": "metadata"})
         radio_3 = soup.find("input", {"id": "record"})
 
-        assert label is not None
+        assert label is not None and label_text == "Search for digital records"
         assert textbox is not None
         assert button is not None
         assert radio_1 and radio_2 and radio_3
