@@ -1,14 +1,41 @@
 import os
 
 import boto3
+import requests
 from botocore.config import Config
 from dotenv import load_dotenv
+from requests.auth import HTTPBasicAuth
 
 from app import create_app, db
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series
 from configs.env_config import EnvConfig
 
 load_dotenv()
+
+
+def clean_opensearch():
+    host = os.getenv("OPEN_SEARCH_HOST")
+    username = os.getenv("OPEN_SEARCH_USERNAME")
+    password = os.getenv("OPEN_SEARCH_PASSWORD")
+    index_name = "documents"
+
+    try:
+        response = requests.delete(
+            f"{host}/{index_name}",
+            auth=HTTPBasicAuth(username, password),
+            verify=False,  # nosec
+            timeout=20,
+        )
+        if response.status_code == 200:
+            print(f"Deleted OpenSearch index: {index_name}")
+        elif response.status_code == 404:
+            print(f"OpenSearch index '{index_name}' not found.")
+        else:
+            print(
+                f"Failed to delete OpenSearch index: {response.status_code} - {response.text}"
+            )
+    except Exception as e:
+        print(f"Error deleting OpenSearch index: {e}")
 
 
 def clean_database():
@@ -99,3 +126,4 @@ if __name__ == "__main__":
     clean_database()
     clean_example_files()
     clean_minio()
+    clean_opensearch()

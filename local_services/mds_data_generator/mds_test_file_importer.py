@@ -1,16 +1,17 @@
 import argparse
 import json
 import os
-import shutil
 import uuid
 from datetime import datetime
+from pathlib import Path
 
 import boto3
 from botocore.client import Config
 from dotenv import load_dotenv
+from requests_aws4auth import AWS4Auth
 
 from app import create_app, db
-from app.main.db.models import Body, Series
+from app.main.db.models import Body, File, Series
 from app.tests.factories import (
     BodyFactory,
     ConsignmentFactory,
@@ -19,6 +20,11 @@ from app.tests.factories import (
     SeriesFactory,
 )
 from configs.env_config import EnvConfig
+from data_management.opensearch_indexer.opensearch_indexer.index_file_content_and_metadata_in_opensearch import (
+    _fetch_file_data,
+    _index_in_opensearch,
+    add_text_content,
+)
 
 load_dotenv()
 
@@ -73,30 +79,43 @@ def upload_file_to_s3(file_path, s3_key):
 
 
 def create_test_files(file_type_counts):
-    """Create test files by copying example files of specified types."""
-    example_folder = os.path.join(
-        os.getcwd(), "local_services/mds_data_generator/example_files"
-    )
-    os.makedirs(example_folder, exist_ok=True)
+    """
+    Instead of copying files, generate random file IDs and pair them with
+    example files by file type.
+
+    Returns:
+        List of tuples: (file_id: str, file_ext: str, source_path: Path)
+    """
+    example_files = Path("local_services/mds_data_generator/example_files")
+
+    example_file_paths = {
+        "pdf": example_files / "file.pdf",
+        "png": example_files / "file.png",
+        "jpg": example_files / "file.jpg",
+        "tiff": example_files / "file.tiff",
+        "txt": example_files / "file.txt",
+    }
 
     created_files = []
 
     for ext, count in file_type_counts.items():
-        source_file = os.path.join(example_folder, f"file.{ext}")
-        if not os.path.exists(source_file):
-            raise FileNotFoundError(f"Source file not found: {source_file}")
+        source_path = example_file_paths.get(ext)
 
-        for i in range(count):
-            filename = f"test_file_{i + 1}.{ext}"
-            file_path = os.path.join(example_folder, filename)
-            shutil.copy2(source_file, file_path)
-            created_files.append((file_path, ext))
+        for _ in range(count):
+            file_id = str(uuid.uuid4())
+            created_files.append((file_id, ext, source_path))
 
     return created_files
 
 
-def process_files(file_paths):
-    """Process files by uploading to S3 and adding metadata to database."""
+def process_files(files):
+    """
+    files: List of tuples (file_id: str, file_ext: str, source_path: Path)
+
+    For each file:
+    - Upload example file from source_path to S3 using file_id as key
+    - Create DB entries with FileFactory and metadata
+    """
     app = create_app(EnvConfig)
     with app.app_context():
         try:
@@ -136,11 +155,10 @@ def process_files(file_paths):
                 CreatedDatetime=datetime.utcnow(),
             )
 
-            for i, (file_path, file_ext) in enumerate(file_paths):
-                filename = os.path.basename(file_path)
-                file_id = str(uuid.uuid4())
+            for i, (file_id, file_ext, source_path) in enumerate(files):
+                filename = source_path.name
 
-                upload_file_to_s3(file_path, f"{consignment_ref}/{file_id}")
+                upload_file_to_s3(source_path, f"{consignment_ref}/{file_id}")
 
                 file = FileFactory.create(
                     FileId=file_id,
@@ -157,7 +175,7 @@ def process_files(file_paths):
                     "file_type": file_ext,
                     "created_at": datetime.utcnow().isoformat(),
                     "last_transfer_date": datetime.utcnow().isoformat(),
-                    "file_size": str(os.path.getsize(file_path)),
+                    "file_size": str(os.path.getsize(source_path)),
                     "file_format": file_ext.upper(),
                     "file_extension": file_ext,
                     "mime_type": f"application/{file_ext}",
@@ -190,6 +208,71 @@ def process_files(file_paths):
             print(f"Error processing files: {e}")
             db.session.rollback()
             raise
+
+
+def index_in_opensearch(files):
+    """Index each processed file in OpenSearch."""
+    app = create_app(EnvConfig)
+    with app.app_context():
+        try:
+
+            s3 = get_s3_client()
+            bucket = os.getenv("RECORD_BUCKET_NAME")
+
+            open_search_host_url = os.getenv("OPEN_SEARCH_HOST")
+
+            aws_service = "es"
+            aws_region = os.getenv("AWS_REGION")
+            aws_key = os.getenv("AWS_ACCESS_KEY_ID")
+            aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
+
+            open_search_http_auth = AWS4Auth(
+                aws_key, aws_secret, aws_region, aws_service
+            )
+
+            open_search_ca_certs = os.getenv("OPEN_SEARCH_CA_CERTS")
+            database_url = app.config["SQLALCHEMY_DATABASE_URI"]
+
+            for file_id, file_ext, file_path in files:
+                file = db.session.query(File).filter_by(FileId=file_id).first()
+                if file is None:
+                    print(f"File with ID {file_id} not found in DB, skipping.")
+                    continue
+
+                filename = os.path.basename(file_path)
+
+                file_id = file.FileId
+                consignment_ref = file.consignment.ConsignmentReference
+
+                try:
+                    s3_key = f"{consignment_ref}/{file_id}"
+                    response = s3.get_object(Bucket=bucket, Key=s3_key)
+                    file_stream = response["Body"].read()
+
+                    file_data = _fetch_file_data(file_id, database_url)
+                    file_data_with_text_content = add_text_content(
+                        file_data, file_stream
+                    )
+
+                    _index_in_opensearch(
+                        file_id,
+                        file_data_with_text_content,
+                        open_search_host_url,
+                        open_search_http_auth,
+                        open_search_ca_certs,
+                    )
+
+                    print(
+                        f"Successfully indexed file: {filename} (ID: {file_id})"
+                    )
+
+                except Exception as e:
+                    print(
+                        f"Error indexing file {filename} (ID: {file_id}): {e}"
+                    )
+
+        except Exception as e:
+            print(f"Error during OpenSearch indexing: {e}")
 
 
 def remove_created_files():
@@ -252,11 +335,13 @@ def main():
             "png": 1,
             "jpg": 1,
             "tiff": 1,
+            "txt": 1,
         }
 
     file_paths = create_test_files(file_type_counts)
     process_files(file_paths)
-    print(f"\nSuccessfully processed {len(file_paths)} files")
+    index_in_opensearch(file_paths)
+    print("Successfully processed files")
     remove_created_files()
 
 
