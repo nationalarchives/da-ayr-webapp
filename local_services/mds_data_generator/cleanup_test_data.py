@@ -94,7 +94,7 @@ def clean_example_files():
 def clean_minio():
     """Clean up test objects from MinIO storage."""
     try:
-        s3 = boto3.client(
+        s3_resource = boto3.resource(
             "s3",
             endpoint_url=os.getenv("AWS_ENDPOINT_URL"),
             aws_access_key_id=os.getenv("MINIO_ROOT_USER"),
@@ -103,17 +103,14 @@ def clean_minio():
             region_name="us-east-1",
         )
 
-        # List all objects in the bucket
-        bucket = os.getenv("RECORD_BUCKET_NAME")
-        response = s3.list_objects_v2(Bucket=bucket)
-        deleted_count = 0
+        bucket_name = os.getenv("RECORD_BUCKET_NAME")
+        bucket = s3_resource.Bucket(bucket_name)
 
-        if "Contents" in response:
-            for obj in response["Contents"]:
-                # Delete objects that are in TEST-* folders
-                if obj["Key"].startswith("TEST-"):
-                    s3.delete_object(Bucket=bucket, Key=obj["Key"])
-                    deleted_count += 1
+        deleted_count = 0
+        for obj in bucket.objects.all():
+            if obj.key.startswith("TEST-"):
+                obj.delete()
+                deleted_count += 1
 
         print(f"MinIO cleanup completed - deleted {deleted_count} objects")
         return True
