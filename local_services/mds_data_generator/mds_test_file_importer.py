@@ -78,7 +78,7 @@ def upload_file_to_s3(file_path, s3_key):
         )
 
 
-def create_test_files(file_type_counts):
+def create_test_filepaths(file_type_counts):
     """
     Instead of copying files, generate random file IDs and pair them with
     example files by file type.
@@ -275,25 +275,6 @@ def index_in_opensearch(files):
             print(f"Error during OpenSearch indexing: {e}")
 
 
-def remove_created_files():
-    """Delete the test files that were created."""
-    print("Deleting created files")
-
-    example_folder = os.path.join(
-        os.getcwd(), "local_services/mds_data_generator/example_files"
-    )
-    print(f"Looking in: {example_folder}")
-    print("Files:", os.listdir(example_folder))
-
-    for filename in os.listdir(example_folder):
-        print(f"Checking: {filename}")
-        if filename.startswith("test_"):
-            file_path = os.path.join(example_folder, filename)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-                print(f"Deleted: {file_path}")
-
-
 def main():
     """
     Generate and process test files for AYR testing using Factory Boy.
@@ -306,16 +287,20 @@ def main():
         description="Generate and process test files for AYR testing"
     )
     parser.add_argument(
-        "--num-pdf", type=int, default=0, help="Number of PDF files to create"
+        "--num-pdf", type=int, default=1, help="Number of PDF files to create"
     )
     parser.add_argument(
-        "--num-png", type=int, default=0, help="Number of PNG files to create"
+        "--num-png", type=int, default=1, help="Number of PNG files to create"
     )
     parser.add_argument(
-        "--num-jpg", type=int, default=0, help="Number of JPG files to create"
+        "--num-jpg", type=int, default=1, help="Number of JPG files to create"
     )
     parser.add_argument(
-        "--num-tiff", type=int, default=0, help="Number of TIF files to create"
+        "--num-tiff", type=int, default=1, help="Number of TIF files to create"
+    )
+
+    parser.add_argument(
+        "--num-txt", type=int, default=1, help="Number of txt files to create"
     )
 
     args = parser.parse_args()
@@ -325,24 +310,15 @@ def main():
         "png": args.num_png,
         "jpg": args.num_jpg,
         "tiff": args.num_tiff,
+        "txt": args.num_txt,
     }
 
     file_type_counts = {k: v for k, v in file_type_counts.items() if v > 0}
 
-    if not file_type_counts:
-        file_type_counts = {
-            "pdf": 1,
-            "png": 1,
-            "jpg": 1,
-            "tiff": 1,
-            "txt": 1,
-        }
-
-    file_paths = create_test_files(file_type_counts)
+    file_paths = create_test_filepaths(file_type_counts)
     process_files(file_paths)
     index_in_opensearch(file_paths)
     print("Successfully processed files")
-    remove_created_files()
 
 
 if __name__ == "__main__":
