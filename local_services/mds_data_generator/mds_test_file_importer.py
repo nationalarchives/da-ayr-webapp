@@ -21,9 +21,7 @@ from app.tests.factories import (
 )
 from configs.env_config import EnvConfig
 from data_management.opensearch_indexer.opensearch_indexer.index_file_content_and_metadata_in_opensearch import (
-    _fetch_file_data,
-    _index_in_opensearch,
-    add_text_content,
+    index_file_content_and_metadata_in_opensearch,
 )
 
 load_dotenv()
@@ -219,8 +217,6 @@ def index_in_opensearch(files):
             s3 = get_s3_client()
             bucket = os.getenv("RECORD_BUCKET_NAME")
 
-            open_search_host_url = os.getenv("OPEN_SEARCH_HOST")
-
             aws_service = "es"
             aws_region = os.getenv("AWS_REGION")
             aws_key = os.getenv("AWS_ACCESS_KEY_ID")
@@ -249,15 +245,10 @@ def index_in_opensearch(files):
                     response = s3.get_object(Bucket=bucket, Key=s3_key)
                     file_stream = response["Body"].read()
 
-                    file_data = _fetch_file_data(file_id, database_url)
-                    file_data_with_text_content = add_text_content(
-                        file_data, file_stream
-                    )
-
-                    _index_in_opensearch(
+                    index_file_content_and_metadata_in_opensearch(
                         file_id,
-                        file_data_with_text_content,
-                        open_search_host_url,
+                        file_stream,
+                        database_url,
                         open_search_http_auth,
                         open_search_ca_certs,
                     )
@@ -312,8 +303,6 @@ def main():
         "tiff": args.num_tiff,
         "txt": args.num_txt,
     }
-
-    file_type_counts = {k: v for k, v in file_type_counts.items() if v > 0}
 
     file_paths = create_test_filepaths(file_type_counts)
     process_files(file_paths)
