@@ -1,4 +1,5 @@
 import io
+import os
 from typing import Any
 
 import boto3
@@ -35,15 +36,24 @@ def get_download_filename(file):
 
 
 def create_presigned_url(file: File) -> str:
-    s3 = boto3.client("s3")
+    """Create a presigned URL for accessing a file."""
+    s3 = boto3.client(
+        "s3",
+        aws_access_key_id=os.getenv("MINIO_ROOT_USER"),
+        aws_secret_access_key=os.getenv("MINIO_ROOT_PASSWORD"),
+        verify=False,
+    )
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
-    presigned_url = s3.generate_presigned_url(
-        "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=10
-    )
-
-    return presigned_url
+    try:
+        presigned_url = s3.generate_presigned_url(
+            "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=10
+        )
+        return presigned_url
+    except Exception as e:
+        current_app.logger.error(f"Failed to generate presigned URL: {str(e)}")
+        raise
 
 
 def generate_pdf_manifest(
@@ -93,6 +103,149 @@ def generate_pdf_manifest(
         ],
     }
 
+    return jsonify(manifest)
+
+
+def generate_audio_manifest(
+    file_name: str, file_url: str, manifest_url: str, s3_file_object: Any
+) -> Response:
+    manifest = {
+        "@context": [
+            "https://iiif.io/api/presentation/3/context.json",
+        ],
+        "id": manifest_url,
+        "type": "Manifest",
+        "label": {"en": [file_name]},
+        "requiredStatement": {
+            "label": {"en": ["File name"]},
+            "value": {"en": [file_name]},
+        },
+        "viewingDirection": "left-to-right",
+        "behavior": ["individuals"],
+        "description": f"Manifest for {file_name}",
+        "items": [
+            {
+                "id": manifest_url,
+                "type": "Canvas",
+                "label": {"en": ["test"]},
+                "items": [
+                    {
+                        "id": file_url,
+                        "type": "AnnotationPage",
+                        "label": {"en": ["test"]},
+                        "items": [
+                            {
+                                "id": file_url,
+                                "type": "Annotation",
+                                "motivation": "painting",
+                                "label": {"en": ["test"]},
+                                "body": {
+                                    "id": file_url,
+                                    "type": "Sound",
+                                    "format": "audio/mp3",
+                                },
+                                "target": file_url,
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+
+    return jsonify(manifest)
+
+
+def generate_video_manifest(
+    file_name: str, file_url: str, manifest_url: str, s3_file_object: Any
+) -> Response:
+    manifest = {
+        "@context": [
+            "https://iiif.io/api/presentation/3/context.json",
+        ],
+        "id": manifest_url,
+        "type": "Manifest",
+        "label": {"en": [file_name]},
+        "requiredStatement": {
+            "label": {"en": ["File name"]},
+            "value": {"en": [file_name]},
+        },
+        "viewingDirection": "left-to-right",
+        "behavior": ["individuals"],
+        "description": f"Manifest for {file_name}",
+        "items": [
+            {
+                "id": manifest_url + "/canvas",
+                "type": "Canvas",
+                "width": 1920,  
+                "height": 1080,  
+                "duration": 60.0,
+                "label": {"en": ["Video content"]},
+                "items": [
+                    {
+                        "id": manifest_url + "/canvas/page",
+                        "type": "AnnotationPage",
+                        "items": [
+                            {
+                                "id": manifest_url + "/canvas/page/annotation",
+                                "type": "Annotation",
+                                "motivation": "painting",
+                                "body": {
+                                    "id": file_url,
+                                    "type": "Video",
+                                    "format": "video/mp4",
+                                },
+                                "target": manifest_url + "/canvas",
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+
+    return jsonify(manifest)
+
+
+def generate_ebook_manifest(
+    file_name: str, file_url: str, manifest_url: str
+) -> Response:
+    manifest = {
+        "@context": ["https://iiif.io/api/presentation/3/context.json"],
+        "id": manifest_url,
+        "type": "Manifest",
+        "label": {"en": [file_name]},
+        "requiredStatement": {
+            "label": {"en": ["File name"]},
+            "value": {"en": [file_name]},
+        },
+        "items": [
+            {
+                "id": f"{manifest_url}/canvas/1",
+                "type": "Canvas",
+                "label": {"en": ["eBook"]},
+                "items": [
+                    {
+                        "id": f"{manifest_url}/canvas/1/annotationpage/1",
+                        "type": "AnnotationPage",
+                        "items": [
+                            {
+                                "id": f"{manifest_url}/canvas/1/annotation/1",
+                                "type": "Annotation",
+                                "motivation": "painting",
+                                "body": {
+                                    "id": file_url,
+                                    "type": "Text",
+                                    "format": "application/epub+zip",
+                                },
+                                "target": f"{manifest_url}/canvas/1",
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
     return jsonify(manifest)
 
 

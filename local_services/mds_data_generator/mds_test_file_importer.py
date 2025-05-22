@@ -36,6 +36,7 @@ def get_s3_client():
         aws_secret_access_key=os.getenv("MINIO_ROOT_PASSWORD"),
         config=Config(signature_version="s3v4"),
         region_name="us-east-1",
+        verify=False,
     )
 
 
@@ -92,6 +93,19 @@ def create_test_filepaths(file_type_counts):
         "jpg": example_files / "file.jpg",
         "tiff": example_files / "file.tiff",
         "txt": example_files / "file.txt",
+        "epub": example_files / "file.epub",
+        "gif": example_files / "file.gif",
+        "svg": example_files / "file.svg",
+        "jp2": example_files / "file.jp2",
+        "webp": example_files / "file.webp",
+        "mp3": example_files / "file.mp3",
+        "wav": example_files / "file.wav",
+        "ogg": example_files / "file.ogg",
+        "m4a": example_files / "file.m4a",
+        "flac": example_files / "file.flac",
+        "mp4": example_files / "file.mp4",
+        "webm": example_files / "file.webm",
+        "mpeg": example_files / "file.mpeg",
     }
 
     created_files = []
@@ -267,42 +281,54 @@ def index_in_opensearch(files):
 
 
 def main():
-    """
-    Generate and process test files for AYR testing using Factory Boy.
 
-    Example usage:
-        python mds_test_file_importer.py --num-pdf 2 --num-png 1
-        if no args are passed, the default will be 1 of each file
-    """
+    file_type_args = [
+        "pdf",
+        "png",
+        "jpg",
+        "tiff",
+        "txt",
+        "epub",
+        "jp2",
+        "gif",
+        "svg",
+        "webp",
+        "mp3",
+        "wav",
+        "ogg",
+        "m4a",
+        "flac",
+        "mp4",
+        "webm",
+        "mpeg",
+    ]
+
     parser = argparse.ArgumentParser(
         description="Generate and process test files for AYR testing"
     )
-    parser.add_argument(
-        "--num-pdf", type=int, default=1, help="Number of PDF files to create"
-    )
-    parser.add_argument(
-        "--num-png", type=int, default=1, help="Number of PNG files to create"
-    )
-    parser.add_argument(
-        "--num-jpg", type=int, default=1, help="Number of JPG files to create"
-    )
-    parser.add_argument(
-        "--num-tiff", type=int, default=1, help="Number of TIF files to create"
-    )
-
-    parser.add_argument(
-        "--num-txt", type=int, default=1, help="Number of txt files to create"
-    )
+    for ext in file_type_args:
+        parser.add_argument(
+            f"--num-{ext}",
+            type=int,
+            help=f"Number of {ext.upper()} files to create",
+        )
 
     args = parser.parse_args()
+    args_dict = vars(args)
 
-    file_type_counts = {
-        "pdf": args.num_pdf,
-        "png": args.num_png,
-        "jpg": args.num_jpg,
-        "tiff": args.num_tiff,
-        "txt": args.num_txt,
-    }
+    any_args_provided = any(value is not None for value in args_dict.values())
+
+    if any_args_provided:
+        file_type_counts = {
+            ext: (
+                args_dict.get(f"num_{ext}")
+                if args_dict.get(f"num_{ext}") is not None
+                else 0
+            )
+            for ext in file_type_args
+        }
+    else:
+        file_type_counts = {ext: 1 for ext in file_type_args}
 
     file_paths = create_test_filepaths(file_type_counts)
     process_files(file_paths)

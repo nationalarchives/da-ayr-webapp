@@ -1,3 +1,4 @@
+import os
 import uuid
 
 import boto3
@@ -48,9 +49,12 @@ from app.main.util.pagination import (
 )
 from app.main.util.render_utils import (
     create_presigned_url,
+    generate_audio_manifest,
     generate_breadcrumb_values,
+    generate_ebook_manifest,
     generate_image_manifest,
     generate_pdf_manifest,
+    generate_video_manifest,
     get_download_filename,
 )
 from app.main.util.search_utils import (
@@ -739,7 +743,13 @@ def record(record_id: uuid.UUID):
 @access_token_sign_in_required
 @log_page_view
 def download_record(record_id: uuid.UUID):
-    s3 = boto3.client("s3")
+    s3 = boto3.client(
+        "s3",
+        aws_access_key_id=os.getenv("MINIO_ROOT_USER"),
+        aws_secret_access_key=os.getenv("MINIO_ROOT_PASSWORD"),
+        verify=False,
+    )
+
     file = db.session.get(File, record_id)
     ayr_user = AYRUser(session.get("user_groups"))
     can_download_records = ayr_user.can_download_records
@@ -840,11 +850,63 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]
     ):
-        s3 = boto3.client("s3")
+        s3 = boto3.client(
+            "s3",
+            aws_access_key_id=os.getenv("MINIO_ROOT_USER"),
+            aws_secret_access_key=os.getenv("MINIO_ROOT_PASSWORD"),
+            verify=False,
+        )
+
         bucket = current_app.config["RECORD_BUCKET_NAME"]
         key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
         s3_file_object = s3.get_object(Bucket=bucket, Key=key)
         return generate_image_manifest(
+            file_name, file_url, manifest_url, s3_file_object
+        )
+    elif (
+        file_type
+        in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_AUDIO_TYPES"]
+    ):
+        s3 = boto3.client(
+            "s3",
+            aws_access_key_id=os.getenv("MINIO_ROOT_USER"),
+            aws_secret_access_key=os.getenv("MINIO_ROOT_PASSWORD"),
+            verify=False,
+        )
+
+        bucket = current_app.config["RECORD_BUCKET_NAME"]
+        key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+        return generate_audio_manifest(
+            file_name, file_url, manifest_url, s3_file_object
+        )
+    elif (
+        file_type in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_BOOK_TYPES"]
+    ):
+        s3 = boto3.client(
+            "s3",
+            aws_access_key_id=os.getenv("MINIO_ROOT_USER"),
+            aws_secret_access_key=os.getenv("MINIO_ROOT_PASSWORD"),
+            verify=False,
+        )
+
+        bucket = current_app.config["RECORD_BUCKET_NAME"]
+        key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+        return generate_ebook_manifest(file_name, file_url, manifest_url)
+    elif file_type in ["mp4", "webm", "mpeg"]:
+        s3 = boto3.client(
+            "s3",
+            aws_access_key_id=os.getenv("MINIO_ROOT_USER"),
+            aws_secret_access_key=os.getenv("MINIO_ROOT_PASSWORD"),
+            verify=False,
+        )
+
+        bucket = current_app.config["RECORD_BUCKET_NAME"]
+        key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+
+        return generate_video_manifest(
             file_name, file_url, manifest_url, s3_file_object
         )
 

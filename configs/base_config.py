@@ -8,8 +8,34 @@ UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES = {
     "png": "image/png",
     "gif": "image/gif",
     "webp": "image/webp",
+    "tiff": "image/tiff",
+    "jp2": "image/jp2",
+    "svg": "image/svg",
 }
-UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES = {"pdf": "application/pdf"}
+
+UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES = {
+    "pdf": "application/pdf",
+}
+
+UNIVERSAL_VIEWER_SUPPORTED_BOOK_TYPES = {
+    "epub": "application/epub+zip",
+    "mobi": "application/x-mobipocket-ebook",
+}
+
+UNIVERSAL_VIEWER_SUPPORTED_AUDIO_TYPES = {
+    "mp3": "audio/mp3",
+    "flac": "audio/flac",
+    "ogg": "audio/ogg",
+    "ogg": "audio/ogg",
+    "m4a": "audio/mp3",
+    "wav": "audio/wav",
+}
+
+UNIVERSAL_VIEWER_SUPPORTED_VIDEO_TYPES = {
+    "mp4": "video/mp4",
+    "mpeg": "video/mpeg",
+    "webm": "video/webm",
+}
 
 
 class BaseConfig(object):
@@ -24,9 +50,21 @@ class BaseConfig(object):
     UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES = (
         UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES
     )
+    UNIVERSAL_VIEWER_SUPPORTED_AUDIO_TYPES = (
+        UNIVERSAL_VIEWER_SUPPORTED_AUDIO_TYPES
+    )
+    UNIVERSAL_VIEWER_SUPPORTED_BOOK_TYPES = (
+        UNIVERSAL_VIEWER_SUPPORTED_BOOK_TYPES
+    )
+    UNIVERSAL_VIEWER_SUPPORTED_VIDEO_TYPES = (
+        UNIVERSAL_VIEWER_SUPPORTED_VIDEO_TYPES
+    )
     SUPPORTED_RENDER_EXTENSIONS = [
         *UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES,
         *UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES,
+        *UNIVERSAL_VIEWER_SUPPORTED_AUDIO_TYPES,
+        *UNIVERSAL_VIEWER_SUPPORTED_BOOK_TYPES,
+        *UNIVERSAL_VIEWER_SUPPORTED_VIDEO_TYPES,
     ]
 
     @staticmethod
