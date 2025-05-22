@@ -10,7 +10,7 @@ import textract
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-CONVERT_MAP = {"xls": "xlsx", "doc": "docx"}
+TEXTRACT_FILE_FORMAT_FALLBACK_CONVERSION_MAP = {"xls": "xlsx", "doc": "docx"}
 
 
 class TextExtractionStatus(Enum):
@@ -89,22 +89,34 @@ def extract_text(file_stream: bytes, file_extension: str) -> str:
         except Exception as e:
             logger.warning(f"Textract failed on {file_path}: {e}")
 
-            if file_extension not in CONVERT_MAP:
+            if (
+                file_extension
+                not in TEXTRACT_FILE_FORMAT_FALLBACK_CONVERSION_MAP
+            ):
                 raise e
+
+            output_file_type = TEXTRACT_FILE_FORMAT_FALLBACK_CONVERSION_MAP[
+                file_extension
+            ]
+            logger.info(
+                f"Attempting to convert to {output_file_type} before trying textract again..."
+            )
+
             try:
-                logger.info("Attempting to convert via LibreOffice...")
-                converted_path = convert_failed_files(file_path)
+                converted_path = convert_file_with_libreoffice(
+                    file_path, output_file_type
+                )
                 logger.info(f"Converted to: {converted_path}")
                 text = textract.process(converted_path)
                 return text.decode("utf-8")
             except Exception as convert_err:
-                logger.error(f"LibreOffice conversion failed: {convert_err}")
+                logger.error(f"LibreOffice fallback also failed: {convert_err}")
                 raise convert_err
 
 
-def convert_failed_files(input_path: str) -> str:
-    ext = os.path.splitext(input_path)[1][1:].lower()
-    output_file_type = CONVERT_MAP[ext]
+def convert_file_with_libreoffice(
+    input_path: str, output_file_type: str
+) -> str:
     output_dir = tempfile.gettempdir()
     result = subprocess.run(  # nosec
         [
