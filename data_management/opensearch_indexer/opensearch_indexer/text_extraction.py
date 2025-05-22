@@ -103,9 +103,6 @@ def extract_text(file_stream: bytes, file_extension: str) -> str:
                     raise convert_err
             else:
                 raise e
-        finally:
-            if os.path.exists(file_path):
-                os.remove(file_path)
 
 
 def convert_xls_to_xlsx(input_path: str) -> str:
