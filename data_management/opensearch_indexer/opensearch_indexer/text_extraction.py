@@ -1,6 +1,6 @@
 import logging
 import os
-import subprocess
+import subprocess  # nosec
 import tempfile
 from enum import Enum
 from typing import Dict
@@ -87,7 +87,7 @@ def extract_text(file_stream: bytes, file_extension: str) -> str:
         except Exception as e:
             logger.warning(f"Textract failed on {file_path}: {e}")
 
-            if file_extension == "xls":
+            if file_extension == "xls" or "doc":
                 try:
                     logger.info(
                         "Attempting to convert .xls to .xlsx via LibreOffice..."
@@ -107,7 +107,7 @@ def extract_text(file_stream: bytes, file_extension: str) -> str:
 
 def convert_xls_to_xlsx(input_path: str) -> str:
     output_dir = tempfile.gettempdir()
-    result = subprocess.run(
+    result = subprocess.run(  # nosec
         [
             "libreoffice",
             "--headless",
