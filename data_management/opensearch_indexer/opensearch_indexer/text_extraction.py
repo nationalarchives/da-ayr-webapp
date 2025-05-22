@@ -10,6 +10,8 @@ import textract
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+CONVERT_MAP = {"xls": "xlsx", "doc": "docx"}
+
 
 class TextExtractionStatus(Enum):
     SUCCEEDED = "SUCCEEDED"
@@ -87,32 +89,29 @@ def extract_text(file_stream: bytes, file_extension: str) -> str:
         except Exception as e:
             logger.warning(f"Textract failed on {file_path}: {e}")
 
-            if file_extension == "xls" or "doc":
-                try:
-                    logger.info(
-                        "Attempting to convert .xls to .xlsx via LibreOffice..."
-                    )
-                    converted_path = convert_xls_to_xlsx(file_path)
-                    logger.info(f"Converted to: {converted_path}")
-                    text = textract.process(converted_path)
-                    return text.decode("utf-8")
-                except Exception as convert_err:
-                    logger.error(
-                        f"LibreOffice conversion failed: {convert_err}"
-                    )
-                    raise convert_err
-            else:
+            if file_extension not in CONVERT_MAP:
                 raise e
+            try:
+                logger.info("Attempting to convert via LibreOffice...")
+                converted_path = convert_failed_files(file_path)
+                logger.info(f"Converted to: {converted_path}")
+                text = textract.process(converted_path)
+                return text.decode("utf-8")
+            except Exception as convert_err:
+                logger.error(f"LibreOffice conversion failed: {convert_err}")
+                raise convert_err
 
 
-def convert_xls_to_xlsx(input_path: str) -> str:
+def convert_failed_files(input_path: str) -> str:
+    ext = os.path.splitext(input_path)[1][1:].lower()
+    output_file_type = CONVERT_MAP[ext]
     output_dir = tempfile.gettempdir()
     result = subprocess.run(  # nosec
         [
             "libreoffice",
             "--headless",
             "--convert-to",
-            "xlsx",
+            output_file_type,
             "--outdir",
             output_dir,
             input_path,
@@ -126,7 +125,7 @@ def convert_xls_to_xlsx(input_path: str) -> str:
         )
 
     base_name = os.path.splitext(os.path.basename(input_path))[0]
-    output_path = os.path.join(output_dir, base_name + ".xlsx")
+    output_path = os.path.join(output_dir, base_name + f".{output_file_type}")
 
     if not os.path.exists(output_path):
         raise FileNotFoundError(
