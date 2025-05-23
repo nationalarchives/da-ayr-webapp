@@ -221,3 +221,61 @@ def test_add_text_content_no_extension():
     assert (
         result["text_extraction_status"] == TextExtractionStatus.SKIPPED.value
     )
+
+
+def test_extract_text_fallback_conversion_success():
+    """
+    Given textract fails on the original file but succeeds on converted file,
+    Then fallback conversion should succeed and return the converted content.
+    """
+    file_bytes = b"dummy file content"
+    converted_path = "/tmp/converted.xlsx"
+
+    with patch(
+        "opensearch_indexer.text_extraction.textract.process"
+    ) as mock_textract, patch(
+        "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
+    ) as mock_convert:
+        # Given
+        mock_textract.side_effect = [
+            Exception("textract failed"),
+            b"converted content",
+        ]
+        mock_convert.return_value = converted_path
+
+        # When
+        result = extract_text(file_bytes, "xls")
+
+        # Then
+        assert result == "converted content"
+        assert mock_textract.call_count == 2
+        mock_convert.assert_called_once()
+
+
+def test_extract_text_fallback_conversion_failure():
+    """
+    Given textract fails on both original and converted files,
+    Then extract_text should raise the second exception.
+    """
+    file_bytes = b"dummy file content"
+    converted_path = "/tmp/converted.xlsx"
+
+    with patch(
+        "opensearch_indexer.text_extraction.textract.process"
+    ) as mock_textract, patch(
+        "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
+    ) as mock_convert:
+
+        # Given
+        mock_textract.side_effect = [
+            Exception("initial textract failed"),
+            Exception("converted textract failed"),
+        ]
+        mock_convert.return_value = converted_path
+
+        # Then
+        with pytest.raises(Exception, match="converted textract failed"):
+            extract_text(file_bytes, "xls")
+
+        assert mock_textract.call_count == 2
+        mock_convert.assert_called_once()
