@@ -117,7 +117,9 @@ def callback():
             redirect_uri=f"{request.url_root}callback",
         )
     except Exception as e:
-        current_app.app_logger.error("Error during Keycloak token exchange")
+        current_app.app_logger.error(
+            f"Error during Keycloak token exchange: {e}"
+        )
         return redirect(url_for("main.sign_in"))
 
     try:
@@ -125,7 +127,7 @@ def callback():
             access_token_response["access_token"]
         )
     except Exception as e:
-        current_app.app_logger.error("Failed to introspect access token")
+        current_app.app_logger.error(f"Failed to introspect access token: {e}")
         return redirect(url_for("main.sign_in"))
 
     session["access_token"] = access_token_response["access_token"]
