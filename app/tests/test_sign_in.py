@@ -67,3 +67,44 @@ def test_callback_route_standard_user(mock_keycloak, client):
     with client.session_transaction() as sess:
         assert "user_type" in sess
         assert sess["user_type"] == "standard_user"
+
+
+@patch("app.main.routes.get_keycloak_instance_from_flask_config")
+def test_callback_missing_code(mock_keycloak, client):
+    response = client.get("/callback")
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == url_for("main.sign_in")
+
+
+@patch("app.main.routes.get_keycloak_instance_from_flask_config")
+def test_callback_invalid_access_token(mock_keycloak, client):
+    mock_keycloak_instance = mock_keycloak.return_value
+
+    mock_keycloak_instance.token.return_value = {
+        "refresh_token": "refresh_token",
+    }
+
+    mock_keycloak_instance.introspect.return_value = {"active": False}
+
+    response = client.get("/callback?code=some_code")
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == url_for("main.sign_in")
+
+
+@patch("app.main.routes.get_keycloak_instance_from_flask_config")
+def test_callback_introspect_invalid_response(mock_keycloak, client):
+    mock_keycloak.return_value.token.return_value = {
+        "access_token": "some_access_token",
+        "refresh_token": "some_refresh_token",
+    }
+
+    mock_keycloak.return_value.introspect.side_effect = Exception(
+        "Introspection failed"
+    )
+
+    response = client.get("/callback?code=some_code")
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == url_for("main.sign_in")
