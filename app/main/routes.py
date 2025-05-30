@@ -103,15 +103,35 @@ def sign_in():
 def callback():
     keycloak_openid = get_keycloak_instance_from_flask_config()
     code = request.args.get("code")
-    access_token_response = keycloak_openid.token(
-        grant_type="authorization_code",
-        code=code,
-        redirect_uri=f"{request.url_root}callback",
-    )
+
+    if not code:
+        current_app.app_logger.warning(
+            "Missing 'code' parameter in OIDC callback"
+        )
+        return redirect(url_for("main.sign_in"))
+
+    try:
+        access_token_response = keycloak_openid.token(
+            grant_type="authorization_code",
+            code=code,
+            redirect_uri=f"{request.url_root}callback",
+        )
+    except Exception as e:
+        current_app.app_logger.error(
+            f"Error during Keycloak token exchange: {e}"
+        )
+        return redirect(url_for("main.sign_in"))
+
+    try:
+        decoded_access_token = keycloak_openid.introspect(
+            access_token_response["access_token"]
+        )
+    except Exception as e:
+        current_app.app_logger.error(f"Failed to introspect access token: {e}")
+        return redirect(url_for("main.sign_in"))
 
     session["access_token"] = access_token_response["access_token"]
     session["refresh_token"] = access_token_response["refresh_token"]
-    decoded_access_token = keycloak_openid.introspect(session["access_token"])
     session["user_groups"] = decoded_access_token["groups"]
     session["user_id"] = decoded_access_token["sub"]
     ayr_user = AYRUser(session.get("user_groups"))
