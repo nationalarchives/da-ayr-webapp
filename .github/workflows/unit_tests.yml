@@ -99,6 +99,17 @@ jobs:
           cd local_services
           docker compose up -d
           echo "Services started"
+        env:
+          OPENSEARCH_INITIAL_ADMIN_PASSWORD: FOOBARCARabc123! # pragma: allowlist secret
+          POSTGRES_DB: local_db
+          POSTGRES_USER: local_db_user
+          POSTGRES_PASSWORD: local_db_user_password # pragma: allowlist secret
+          KEYCLOAK_ADMIN: admin
+          KEYCLOAK_ADMIN_PASSWORD: password # pragma: allowlist secret
+          KC_POSTGRES_PORT: 5432
+          WEBAPP_POSTGRES_PORT: 5434
+          MINIO_ROOT_USER: ROOTNAME
+          MINIO_ROOT_PASSWORD: CHANGEME123 # pragma: allowlist secret
 
       - name: Wait for services to be ready
         run: |
