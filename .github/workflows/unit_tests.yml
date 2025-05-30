@@ -167,7 +167,7 @@ jobs:
             --self-contained-html
 
       - name: Upload E2E test results
-        if: always()
+        # if: always()
         uses: actions/upload-artifact@v3
         with:
           name: e2e-test-results
@@ -177,7 +177,7 @@ jobs:
             flask.log
 
       - name: Cleanup services
-        if: always()
+        # if: always()
         run: |
           if [ -f flask.pid ]; then
             kill $(cat flask.pid) || true
@@ -186,7 +186,7 @@ jobs:
           docker compose down -v || true
 
       - name: Show Flask logs on failure
-        if: failure()
+        # if: failure()
         run: |
           echo "=== Flask Application Logs ==="
           cat flask.log || echo "No Flask logs found"
