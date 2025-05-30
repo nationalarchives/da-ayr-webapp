@@ -133,7 +133,7 @@ jobs:
             sox libjpeg-dev swig
 
           python -m pip install --upgrade "pip<24.1"
-          pip install textract
+          poetry run pip install textract
 
       - name: Run database migrations and setup test data
         run: | # pragma: allowlist secret
