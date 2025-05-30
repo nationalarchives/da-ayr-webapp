@@ -68,3 +68,59 @@ jobs:
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
+
+  run-e2e-tests:
+    environment: ${{ inputs.environment || vars.e2e_test_environment }}
+    runs-on: ubuntu-latest-x64-2cpu-8gb-static-ip
+    steps:
+      - name: Setup AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.SOURCE_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Assume role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-skip-session-tagging: true
+          role-to-assume: ${{ vars.TEST_RUNNER_ROLE_ARN }}
+          aws-region: eu-west-2
+          role-chaining: true
+
+      - name: Retrieve Keycloak Client Secret from Secrets Manager
+        id: retrieve-secret
+        env:
+          KEYCLOAK_CLIENT_SECRET_ID: ${{ vars.KEYCLOAK_CLIENT_SECRET_ID }}
+        run: |
+          SECRET_VALUE=$(aws secretsmanager get-secret-value --secret-id $KEYCLOAK_CLIENT_SECRET_ID --query SecretString --output text | jq -r '.SECRET')
+          echo "::add-mask::$SECRET_VALUE"
+          echo "secret-value=$SECRET_VALUE" >> $GITHUB_OUTPUT
+
+      - name: Checkout Webapp
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.code_ref }}
+          repository: nationalarchives/da-ayr-beta-webapp
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: cd e2e_tests/ && poetry install --no-root && poetry run playwright install --with-deps
+
+      - name: Run e2e tests
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          KEYCLOAK_BASE_URI: ${{ vars.KEYCLOAK_BASE_URI }}
+          KEYCLOAK_CLIENT_ID: ayr-beta
+          KEYCLOAK_REALM_NAME: tdr
+          KEYCLOAK_CLIENT_SECRET: ${{ steps.retrieve-secret.outputs.secret-value }}
+          WEBAPP_BASE_URL: ${{ vars.WEBAPP_BASE_URL }}
+        run:
+          cd e2e_tests/ && poetry run pytest . --base-url=$WEBAPP_BASE_URL -k "not test_css_no_visual_regression" -vvvv -rsa --slowmo 100 -ra -vvvv --tracing on --browser chromium
+
