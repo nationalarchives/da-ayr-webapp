@@ -123,4 +123,3 @@ jobs:
           WEBAPP_BASE_URL: ${{ vars.WEBAPP_BASE_URL }}
         run:
           cd e2e_tests/ && poetry run pytest . --base-url=$WEBAPP_BASE_URL -k "not test_css_no_visual_regression" -vvvv -rsa --slowmo 100 -ra -vvvv --tracing on --browser chromium
-
