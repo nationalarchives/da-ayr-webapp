@@ -113,16 +113,16 @@ jobs:
           docker compose up -d
           echo "Services started"
 
-      - name: Wait for services to be ready
-        run: |
-          echo "Waiting for PostgreSQL"
-          timeout 60s bash -c 'until docker compose -f local_services/docker-compose.yml exec -T postgres pg_isready -U postgres; do sleep 2; done'
+      # - name: Wait for services to be ready
+      #   run: |
+      #     echo "Waiting for PostgreSQL"
+      #     timeout 60s bash -c 'until docker compose -f local_services/docker-compose.yml exec -T postgres pg_isready -U postgres; do sleep 2; done'
 
-          echo "Waiting for OpenSearch"
-          timeout 120s bash -c 'until curl -s http://localhost:9200/_cluster/health | grep -q "yellow\|green"; do sleep 5; done'
+      #     echo "Waiting for OpenSearch"
+      #     timeout 120s bash -c 'until curl -s http://localhost:9200/_cluster/health | grep -q "yellow\|green"; do sleep 5; done'
 
-          echo "Waiting for MinIO"
-          timeout 60s bash -c 'until curl -s http://localhost:9000/minio/health/live; do sleep 2; done'
+      #     echo "Waiting for MinIO"
+      #     timeout 60s bash -c 'until curl -s http://localhost:9000/minio/health/live; do sleep 2; done'
 
       - name: Run database migrations and setup test data
         run: | # pragma: allowlist secret
