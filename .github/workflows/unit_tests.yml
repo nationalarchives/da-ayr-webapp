@@ -143,6 +143,7 @@ jobs:
           export MINIO_ACCESS_KEY=minioadmin
           export MINIO_SECRET_KEY=minioadmin
           export AWS_DEFAULT_REGION=eu-west-2
+          export AWS_REGION=eu-west-2
 
           # Import test files and index them
           poetry run python local_services/mds_data_generator/mds_test_file_importer.py || echo "Failed to import test files"
