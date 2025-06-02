@@ -162,7 +162,7 @@ jobs:
           echo $! > flask.pid
 
           echo "Waiting for Flask application to start"
-          timeout 60s bash -c 'until curl -s http://localhost:5000; do sleep 2; done'
+          timeout 60s bash -c 'until curl -s http://127.0.0.1:5000; do sleep 2; done'
           echo "Flask application is ready"
 
       - name: Install E2E test dependencies
