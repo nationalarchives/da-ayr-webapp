@@ -132,7 +132,7 @@ jobs:
             ghostscript tesseract-ocr flac ffmpeg lame libmad0 libsox-fmt-mp3 \
             sox libjpeg-dev swig zlib1g-dev
 
-          poetry python -m pip install --upgrade "pip<24.1"
+          poetry run python -m pip install --upgrade "pip<24.1"
           poetry run pip install textract
 
       - name: Run database migrations and setup test data
