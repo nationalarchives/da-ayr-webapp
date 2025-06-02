@@ -130,9 +130,9 @@ jobs:
           sudo apt-get install -y \
             python3-dev libxml2-dev libxslt1-dev antiword unrtf poppler-utils \
             ghostscript tesseract-ocr flac ffmpeg lame libmad0 libsox-fmt-mp3 \
-            sox libjpeg-dev swig
+            sox libjpeg-dev swig zlib1g-dev
 
-          python -m pip install --upgrade "pip<24.1"
+          poetry python -m pip install --upgrade "pip<24.1"
           poetry run pip install textract
 
       - name: Run database migrations and setup test data
