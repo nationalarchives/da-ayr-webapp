@@ -135,17 +135,16 @@ jobs:
           poetry run python -m pip install --upgrade "pip<24.1"
           poetry run pip install textract
 
-      - name: Generate PostgreSQL certs
+      - name: Generate SSL certs
         run: |
-          cd local_services/webapp_postgres_certs
-          chmod +x generate_webapp_postgres_certs.sh
-          ./generate_webapp_postgres_certs.sh
-
-      - name: Generate OpenSearch certs
-        run: |
-          cd local_services/opensearch_certs
-          chmod +x generate_opensearch_certs.sh
-          ./generate_opensearch_certs.sh
+          chmod +x local_services/webapp_postgres_certs/generate_webapp_postgres_certs.sh
+          chmod +x local_services/opensearch_certs/generate_opensearch_certs.sh
+          rm -rf local_services/webapp_postgres_certs/*
+          rm -rf local_services/opensearch_certs/*
+          mkdir -p local_services/webapp_postgres_certs
+          mkdir -p local_services/opensearch_certs
+          cd local_services/webapp_postgres_certs && ./generate_webapp_postgres_certs.sh
+          cd ../opensearch_certs && ./generate_opensearch_certs.sh
 
       - name: Run database migrations and setup test data
         run: | # pragma: allowlist secret
