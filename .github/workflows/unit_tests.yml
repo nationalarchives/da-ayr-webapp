@@ -135,6 +135,18 @@ jobs:
           poetry run python -m pip install --upgrade "pip<24.1"
           poetry run pip install textract
 
+      - name: Generate PostgreSQL certs
+        run: |
+          cd local_services/webapp_postgres_certs
+          chmod +x generate_webapp_postgres_certs.sh
+          ./generate_webapp_postgres_certs.sh
+
+      - name: Generate OpenSearch certs
+        run: |
+          cd local_services/opensearch_certs
+          chmod +x generate_opensearch_certs.sh
+          ./generate_opensearch_certs.sh
+
       - name: Run database migrations and setup test data
         run: | # pragma: allowlist secret
           export DATABASE_URL=postgresql://postgres:password@localhost:5432/testdb
@@ -155,6 +167,9 @@ jobs:
           export DB_USER=local_db_user
           export DB_PASSWORD=local_db_user_password
           export AWS_ENDPOINT_URL=http://localhost:9000
+
+          export DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
+          export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
 
           # Import test files and index them
           poetry run python local_services/mds_data_generator/mds_test_file_importer.py || echo "Failed to import test files"
