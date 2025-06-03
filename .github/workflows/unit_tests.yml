@@ -146,6 +146,9 @@ jobs:
           export AWS_REGION=eu-west-2
           export FLASKS3_CDN_DOMAIN=""
           export FLASKS3_ACTIVE=True
+          export RECORD_BUCKET_NAME="test-record-download"
+          export DEFAULT_DATE_FORMAT=DD/MM/YYYY
+          export DEFAULT_PAGE_SIZE=10
 
           # Import test files and index them
           poetry run python local_services/mds_data_generator/mds_test_file_importer.py || echo "Failed to import test files"
