@@ -163,7 +163,7 @@ jobs:
           export DB_USER=local_db_user
           export DB_PASSWORD=local_db_user_password
           export AWS_ENDPOINT_URL=http://localhost:9000
-
+          export FLASKS3_BUCKET_NAME="test-record-download"
           export DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
           export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
 
@@ -193,6 +193,7 @@ jobs:
           export AWS_ENDPOINT_URL=http://localhost:9000
           export DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
           export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
+          export FLASKS3_BUCKET_NAME="test-record-download"
 
           nohup poetry run python app.py > flask.log 2>&1 &
           echo $! > flask.pid
