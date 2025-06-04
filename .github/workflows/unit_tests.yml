@@ -144,6 +144,8 @@ jobs:
           mkdir -p ./local_services/webapp_postgres_certs
           mkdir -p ./local_services/opensearch_certs
           cd ./local_services/webapp_postgres_certs
+          ls -al local_services/webapp_postgres_certs
+          ls -al local_services/opensearch_certs
           ls -al
           ./generate_webapp_postgres_certs.sh
           cd ../opensearch_certs && ./generate_opensearch_certs.sh
