@@ -148,7 +148,7 @@ jobs:
             local_services/opensearch_certs/opensearch-node1.key \
             # local_services/opensearch_certs/opensearch-node1.csr \
             # local_services/opensearch_certs/opensearch-node1.crt \
-            local_services/opensearch_certs/opensearch-node2.key \
+            # local_services/opensearch_certs/opensearch-node2.key \
             # local_services/opensearch_certs/opensearch-node2.csr \
             # local_services/opensearch_certs/opensearch-node2.crt
           cd ../opensearch_certs && ./generate_opensearch_certs.sh
