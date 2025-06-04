@@ -27,6 +27,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> None:
         BUCKET_NAME (str): The name of the S3 bucket where the files are stored.
         SECRET_ID (str): The identifier for the AWS Secrets Manager secret containing database
                          and OpenSearch credentials.
+
     Raises:
         Exception: If `consignment_reference` or `SECRET_ID` are missing.
     """
