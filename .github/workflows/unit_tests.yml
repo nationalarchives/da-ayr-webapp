@@ -135,23 +135,13 @@ jobs:
           poetry run python -m pip install --upgrade "pip<24.1"
           poetry run pip install textract
 
-      - name: Generate SSL certs
+      - name: Generate SSL certs inside Docker
         run: |
-          chmod +x ./local_services/webapp_postgres_certs/generate_webapp_postgres_certs.sh
-          chmod +x ./local_services/opensearch_certs/generate_opensearch_certs.sh
-          rm -rf local_services/webapp_postgres_certs/root-ca.pem \
-            local_services/webapp_postgres_certs/postgres_localhost.key \
-            local_services/webapp_postgres_certs/postgres_localhost.csr \
-            local_services/webapp_postgres_certs/postgres_localhost.crt
-          cd ./local_services/webapp_postgres_certs && ./generate_webapp_postgres_certs.sh
-          rm -rf local_services/opensearch_certs/root-ca.pem \
-            local_services/opensearch_certs/opensearch-node1.key \
-            # local_services/opensearch_certs/opensearch-node1.csr \
-            # local_services/opensearch_certs/opensearch-node1.crt \
-            # local_services/opensearch_certs/opensearch-node2.key \
-            # local_services/opensearch_certs/opensearch-node2.csr \
-            # local_services/opensearch_certs/opensearch-node2.crt
-          cd ../opensearch_certs && ./generate_opensearch_certs.sh
+          docker build -t certs-builder ./local_services/certs-builder
+          docker run --rm \
+            -v "$(pwd)/local_services/webapp_postgres_certs:/certs/webapp_postgres_certs" \
+            -v "$(pwd)/local_services/opensearch_certs:/certs/opensearch_certs" \
+            certs-builder
 
       - name: Run database migrations and setup test data
         run: | # pragma: allowlist secret
