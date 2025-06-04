@@ -146,11 +146,10 @@ jobs:
           cd ./local_services/webapp_postgres_certs && ./generate_webapp_postgres_certs.sh
           rm -rf local_services/opensearch_certs/root-ca.pem \
             local_services/opensearch_certs/opensearch-node1.key \
-            local_services/opensearch_certs/opensearch-node1.csr \
-            local_services/opensearch_certs/opensearch-node1.crt
-          rm -rf local_services/opensearch_certs/root-ca.pem \
+            # local_services/opensearch_certs/opensearch-node1.csr \
+            local_services/opensearch_certs/opensearch-node1.crt \
             local_services/opensearch_certs/opensearch-node2.key \
-            local_services/opensearch_certs/opensearch-node2.csr \
+            # local_services/opensearch_certs/opensearch-node2.csr \
             local_services/opensearch_certs/opensearch-node2.crt
           cd ../opensearch_certs && ./generate_opensearch_certs.sh
 
