@@ -147,10 +147,10 @@ jobs:
           rm -rf local_services/opensearch_certs/root-ca.pem \
             local_services/opensearch_certs/opensearch-node1.key \
             # local_services/opensearch_certs/opensearch-node1.csr \
-            local_services/opensearch_certs/opensearch-node1.crt \
+            # local_services/opensearch_certs/opensearch-node1.crt \
             local_services/opensearch_certs/opensearch-node2.key \
             # local_services/opensearch_certs/opensearch-node2.csr \
-            local_services/opensearch_certs/opensearch-node2.crt
+            # local_services/opensearch_certs/opensearch-node2.crt
           cd ../opensearch_certs && ./generate_opensearch_certs.sh
 
       - name: Run database migrations and setup test data
