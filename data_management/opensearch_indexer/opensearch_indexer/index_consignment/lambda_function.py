@@ -31,7 +31,6 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> None:
     Raises:
         Exception: If `consignment_reference` or `SECRET_ID` are missing.
     """
-
     logger.info("Lambda started")
     logger.info("Event received: %s", json.dumps(event))
 
