@@ -176,6 +176,7 @@ jobs:
           export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
           export OPEN_SEARCH_TIMEOUT=10
           export PERF_TEST=false
+          export SECRET_KEY="secret"
 
           # Import test files and index them
           poetry run python local_services/mds_data_generator/mds_test_file_importer.py || echo "Failed to import test files"
