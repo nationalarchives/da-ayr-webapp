@@ -170,6 +170,11 @@ jobs:
           export KEYCLOAK_REALM_NAME=tdr
           export KEYCLOAK_CLIENT_ID=ayr-beta
           export KEYCLOAK_CLIENT_SECRET=bTOIXx2JXA9XzevkpWn3lQG27diVCTHa
+          export OPEN_SEARCH_HOST=https://localhost:9200
+          export OPEN_SEARCH_USERNAME=admin
+          export OPEN_SEARCH_PASSWORD=FOOBARCARabc123!
+          export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
+          export OPEN_SEARCH_TIMEOUT=10
 
           # Import test files and index them
           poetry run python local_services/mds_data_generator/mds_test_file_importer.py || echo "Failed to import test files"
