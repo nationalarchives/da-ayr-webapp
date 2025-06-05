@@ -1,4 +1,6 @@
 import logging
+import os
+import subprocess  # nosec
 import tempfile
 from enum import Enum
 from typing import Dict
@@ -7,6 +9,8 @@ import textract
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+TEXTRACT_FILE_FORMAT_FALLBACK_CONVERSION_MAP = {"xls": "xlsx", "doc": "docx"}
 
 
 class TextExtractionStatus(Enum):
@@ -76,5 +80,68 @@ def extract_text(file_stream: bytes, file_extension: str) -> str:
     ) as temp:
         temp.write(file_stream)
         temp.flush()
-        context = textract.process(temp.name)
-    return context.decode("utf-8")
+        file_path = temp.name
+
+        try:
+            context = textract.process(file_path)
+            return context.decode("utf-8")
+
+        except Exception as e:
+            logger.warning(f"Textract failed on {file_path}: {e}")
+
+            if (
+                file_extension
+                not in TEXTRACT_FILE_FORMAT_FALLBACK_CONVERSION_MAP
+            ):
+                raise e
+
+            output_file_type = TEXTRACT_FILE_FORMAT_FALLBACK_CONVERSION_MAP[
+                file_extension
+            ]
+            logger.info(
+                f"Attempting to convert to {output_file_type} before trying textract again..."
+            )
+
+            try:
+                converted_path = convert_file_with_libreoffice(
+                    file_path, output_file_type
+                )
+                logger.info(f"Converted to: {converted_path}")
+                text = textract.process(converted_path)
+                return text.decode("utf-8")
+            except Exception as convert_err:
+                logger.error(f"LibreOffice fallback also failed: {convert_err}")
+                raise convert_err
+
+
+def convert_file_with_libreoffice(
+    input_path: str, output_file_type: str
+) -> str:
+    output_dir = tempfile.gettempdir()
+    result = subprocess.run(  # nosec
+        [
+            "libreoffice",
+            "--headless",
+            "--convert-to",
+            output_file_type,
+            "--outdir",
+            output_dir,
+            input_path,
+        ],
+        capture_output=True,
+    )
+
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"LibreOffice conversion failed: {result.stderr.decode()}"
+        )
+
+    base_name = os.path.splitext(os.path.basename(input_path))[0]
+    output_path = os.path.join(output_dir, base_name + f".{output_file_type}")
+
+    if not os.path.exists(output_path):
+        raise FileNotFoundError(
+            f"Expected LibreOffice output not found: {output_path}"
+        )
+
+    return output_path
