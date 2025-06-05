@@ -166,6 +166,10 @@ jobs:
           export FLASKS3_BUCKET_NAME="test-record-download"
           export DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
           export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
+          export KEYCLOAK_BASE_URI=http://localhost:8080
+          export KEYCLOAK_REALM_NAME=tdr
+          export KEYCLOAK_CLIENT_ID=ayr-beta
+          export KEYCLOAK_CLIENT_SECRET=bTOIXx2JXA9XzevkpWn3lQG27diVCTHa
 
           # Import test files and index them
           poetry run python local_services/mds_data_generator/mds_test_file_importer.py || echo "Failed to import test files"
