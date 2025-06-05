@@ -5,7 +5,7 @@ from uuid import uuid4
 import boto3
 import pytest
 from moto import mock_aws
-from opensearch_indexer.index_consignment.main import main as main_entrypoint
+from opensearch_indexer.index_consignment.main import consingment_indexer
 from requests_aws4auth import AWS4Auth
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -178,7 +178,7 @@ def test_main_invokes_bulk_index_with_correct_file_data(monkeypatch, database):
     with patch(
         "opensearch_indexer.index_consignment.bulk_index_consignment.bulk_index_files_in_opensearch"
     ) as mock_bulk_index:
-        main_entrypoint()
+        consingment_indexer()
 
         args, _ = mock_bulk_index.call_args
         assert args[1] == "https://test-opensearch.com"
@@ -226,7 +226,7 @@ def test_main_raises_exception_when_no_reference(monkeypatch):
         Exception,
         match="Missing reference in SNS Message required for indexing",
     ):
-        main_entrypoint()
+        consingment_indexer()
 
 
 @mock_aws
@@ -238,7 +238,7 @@ def test_main_raises_exception_when_no_sns_message(monkeypatch):
     with pytest.raises(
         Exception, match="SNS_MESSAGE environment variable not found"
     ):
-        main_entrypoint()
+        consingment_indexer()
 
 
 @mock_aws
@@ -254,4 +254,4 @@ def test_main_raises_exception_when_missing_env_vars(monkeypatch):
         Exception,
         match="Missing required environment variables: SECRET_ID or DB_SECRET_ID",
     ):
-        main_entrypoint()
+        consingment_indexer()

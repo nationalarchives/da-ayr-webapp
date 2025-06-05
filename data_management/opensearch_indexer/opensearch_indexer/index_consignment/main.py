@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger()
 
 
-def main():
+def consingment_indexer():
 
     raw_sns_message = os.getenv("SNS_MESSAGE")
     logger.info(f"Message Received: {raw_sns_message}")
@@ -44,4 +44,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    consingment_indexer()
