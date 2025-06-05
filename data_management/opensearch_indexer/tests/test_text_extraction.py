@@ -223,32 +223,64 @@ def test_add_text_content_no_extension():
     )
 
 
-def test_extract_text_fallback_conversion_success():
+def test_add_text_content_fallback_success():
     """
-    Given textract fails on the original file but succeeds on converted file,
-    Then fallback conversion should succeed and return the converted content.
+    Given a supported file type that initially fails textract,
+    When fallback conversion succeeds,
+    Then the content is extracted from the converted file and status is SUCCEEDED.
     """
-    file_bytes = b"dummy file content"
-    converted_path = "/tmp/converted.xlsx"
+    file = {
+        "file_id": 5,
+        "file_name": "example.xls",  # In fallback map
+        "content": "",
+        "text_extraction_status": "",
+    }
+    file_stream = b"original xls content"
 
     with patch(
         "opensearch_indexer.text_extraction.textract.process"
     ) as mock_textract, patch(
         "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
     ) as mock_convert:
-        # Given
+        # Simulate first textract failure, second success after conversion
         mock_textract.side_effect = [
-            Exception("textract failed"),
+            Exception("initial fail"),
             b"converted content",
         ]
-        mock_convert.return_value = converted_path
+        mock_convert.return_value = "/tmp/example.xlsx"
 
-        # When
-        result = extract_text(file_bytes, "xls")
+        result = add_text_content(file, file_stream)
 
-        # Then
-        assert result == "converted content"
+        assert result["content"] == "converted content"
+        assert (
+            result["text_extraction_status"]
+            == TextExtractionStatus.SUCCEEDED.value
+        )
         assert mock_textract.call_count == 2
+        mock_convert.assert_called_once()
+
+
+def test_extract_text_libreoffice_conversion_failure():
+    """
+    Given textract fails on the original file,
+    And LibreOffice conversion also fails (e.g. subprocess error),
+    Then extract_text should raise the conversion exception.
+    """
+    file_bytes = b"dummy content"
+
+    with patch(
+        "opensearch_indexer.text_extraction.textract.process"
+    ) as mock_textract, patch(
+        "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
+    ) as mock_convert:
+
+        mock_textract.side_effect = Exception("initial textract failed")
+        mock_convert.side_effect = Exception("libreoffice conversion failed")
+
+        with pytest.raises(Exception, match="libreoffice conversion failed"):
+            extract_text(file_bytes, "xls")
+
+        mock_textract.assert_called_once()
         mock_convert.assert_called_once()
 
 
