@@ -234,7 +234,7 @@ jobs:
 
       - name: Run database migrations and setup test data
         run: | # pragma: allowlist secret
-          export DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${WEBAPP_POSTGRES_PORT}/${POSTGRES_DB}?sslmode=prefer
+          export DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${WEBAPP_POSTGRES_PORT}/${POSTGRES_DB}?sslmode=verify-full&sslcert=local_services/webapp_postgres_certs/postgres_localhost.crt&sslkey=local_services/webapp_postgres_certs/postgres_localhost.key&sslrootcert=local_services/webapp_postgres_certs/root-ca.pem
           export OPENSEARCH_URL=http://localhost:9200
           export MINIO_ENDPOINT=localhost:9000
           export MINIO_ACCESS_KEY=minioadmin
@@ -272,7 +272,7 @@ jobs:
 
       - name: Start Flask application
         run: | # pragma: allowlist secret
-          export DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${WEBAPP_POSTGRES_PORT}/${POSTGRES_DB}?sslmode=prefer
+          export DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${WEBAPP_POSTGRES_PORT}/${POSTGRES_DB}?sslmode=verify-full&sslcert=local_services/webapp_postgres_certs/postgres_localhost.crt&sslkey=local_services/webapp_postgres_certs/postgres_localhost.key&sslrootcert=local_services/webapp_postgres_certs/root-ca.pem
           export OPENSEARCH_URL=http://localhost:9200
           export MINIO_ENDPOINT=localhost:9000
           export MINIO_ACCESS_KEY=minioadmin
