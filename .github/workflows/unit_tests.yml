@@ -145,7 +145,7 @@ jobs:
 
       - name: Run database migrations and setup test data
         run: | # pragma: allowlist secret
-          export DATABASE_URL=postgresql://postgres:password@localhost:5432/testdb?sslmode=disable
+          export DATABASE_URL=postgresql://postgres:password@localhost:5432/testdb?sslmode=require
           export OPENSEARCH_URL=http://localhost:9200
           export MINIO_ENDPOINT=localhost:9000
           export MINIO_ACCESS_KEY=minioadmin
@@ -183,7 +183,7 @@ jobs:
 
       - name: Start Flask application
         run: | # pragma: allowlist secret
-          export DATABASE_URL=postgresql://postgres:password@localhost:5432/testdb?sslmode=disable
+          export DATABASE_URL=postgresql://postgres:password@localhost:5432/testdb?sslmode=require
           export OPENSEARCH_URL=http://localhost:9200
           export MINIO_ENDPOINT=localhost:9000
           export MINIO_ACCESS_KEY=minioadmin
@@ -213,6 +213,7 @@ jobs:
           export OPEN_SEARCH_USERNAME=admin
           export OPEN_SEARCH_PASSWORD=FOOBARCARabc123!
           export OPEN_SEARCH_TIMEOUT=10
+          export PERF_TEST=false
           export SECRET_KEY="secret"
 
           # Start Flask with more verbose output
