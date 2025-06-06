@@ -171,13 +171,13 @@ jobs:
 
           # Create a temporary docker-compose override for GitHub Actions
           cat <<EOF > docker-compose.override.yml
-          version: '3.8'
           services:
             webapp_postgres:
+              user: postgres
               command: [
                 "bash",
                 "-c",
-                "chown postgres:postgres /var/lib/postgresql/postgres_localhost.key /var/lib/postgresql/postgres_localhost.crt /var/lib/postgresql/root-ca.pem && chmod 600 /var/lib/postgresql/postgres_localhost.key && chmod 644 /var/lib/postgresql/postgres_localhost.crt /var/lib/postgresql/root-ca.pem && postgres -c ssl=on -c ssl_cert_file=/var/lib/postgresql/postgres_localhost.crt -c ssl_key_file=/var/lib/postgresql/postgres_localhost.key -c ssl_ca_file=/var/lib/postgresql/root-ca.pem"
+                "chmod 600 /var/lib/postgresql/postgres_localhost.key && chmod 644 /var/lib/postgresql/postgres_localhost.crt /var/lib/postgresql/root-ca.pem && postgres -c ssl=on -c ssl_cert_file=/var/lib/postgresql/postgres_localhost.crt -c ssl_key_file=/var/lib/postgresql/postgres_localhost.key -c ssl_ca_file=/var/lib/postgresql/root-ca.pem"
               ]
           EOF
 
