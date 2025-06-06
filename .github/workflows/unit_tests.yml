@@ -112,17 +112,25 @@ jobs:
 
           docker compose up -d
           echo "Services started"
-
-      # - name: Wait for services to be ready
-      #   run: |
-      #     echo "Waiting for PostgreSQL"
-      #     timeout 60s bash -c 'until docker compose -f local_services/docker-compose.yml exec -T postgres pg_isready -U postgres; do sleep 2; done'
-
-      #     echo "Waiting for OpenSearch"
-      #     timeout 120s bash -c 'until curl -s http://localhost:9200/_cluster/health | grep -q "yellow\|green"; do sleep 5; done'
-
-      #     echo "Waiting for MinIO"
-      #     timeout 60s bash -c 'until curl -s http://localhost:9000/minio/health/live; do sleep 2; done'
+          
+          # Debug: Check container status
+          echo "=== Container Status ==="
+          docker compose ps
+          
+          # Debug: Check PostgreSQL logs
+          echo "=== PostgreSQL Logs ==="
+          docker compose logs webapp_postgres
+          
+          # Debug: Check if PostgreSQL is accepting connections
+          echo "=== Testing PostgreSQL Connection ==="
+          docker compose exec -T webapp_postgres pg_isready -U local_db_user
+          
+          # Debug: Check SSL configuration
+          echo "=== PostgreSQL SSL Configuration ==="
+          docker compose exec -T webapp_postgres psql -U local_db_user -d local_db -c "SHOW ssl;"
+          docker compose exec -T webapp_postgres psql -U local_db_user -d local_db -c "SHOW ssl_cert_file;"
+          docker compose exec -T webapp_postgres psql -U local_db_user -d local_db -c "SHOW ssl_key_file;"
+          docker compose exec -T webapp_postgres psql -U local_db_user -d local_db -c "SHOW ssl_ca_file;"
 
       - name: Install dependencies for textract
         run: |
@@ -145,7 +153,7 @@ jobs:
 
       - name: Run database migrations and setup test data
         run: | # pragma: allowlist secret
-          export DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${WEBAPP_POSTGRES_PORT}/${POSTGRES_DB}?sslmode=verify-full&sslcert=local_services/webapp_postgres_certs/client-cert.pem&sslkey=local_services/webapp_postgres_certs/client-key.pem&sslrootcert=local_services/webapp_postgres_certs/root-ca.pem
+          export DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${WEBAPP_POSTGRES_PORT}/${POSTGRES_DB}?sslmode=prefer
           export OPENSEARCH_URL=http://localhost:9200
           export MINIO_ENDPOINT=localhost:9000
           export MINIO_ACCESS_KEY=minioadmin
@@ -183,7 +191,7 @@ jobs:
 
       - name: Start Flask application
         run: | # pragma: allowlist secret
-          export DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${WEBAPP_POSTGRES_PORT}/${POSTGRES_DB}?sslmode=verify-full&sslcert=local_services/webapp_postgres_certs/client-cert.pem&sslkey=local_services/webapp_postgres_certs/client-key.pem&sslrootcert=local_services/webapp_postgres_certs/root-ca.pem
+          export DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${WEBAPP_POSTGRES_PORT}/${POSTGRES_DB}?sslmode=prefer
           export OPENSEARCH_URL=http://localhost:9200
           export MINIO_ENDPOINT=localhost:9000
           export MINIO_ACCESS_KEY=minioadmin
