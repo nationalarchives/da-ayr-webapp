@@ -4,10 +4,15 @@ RUN apk add --no-cache openssl bash
 
 WORKDIR /certs
 
-COPY ./webapp_postgres_certs ./webapp_postgres_certs
-COPY ./opensearch_certs ./opensearch_certs
+# Create directories
+RUN mkdir -p /certs/webapp_postgres_certs /certs/opensearch_certs
 
-RUN chmod +x ./webapp_postgres_certs/generate_webapp_postgres_certs.sh \
-    && chmod +x ./opensearch_certs/generate_opensearch_certs.sh \
-    && ./webapp_postgres_certs/generate_webapp_postgres_certs.sh \
-    && ./opensearch_certs/generate_opensearch_certs.sh
+# Copy scripts
+COPY ./webapp_postgres_certs/generate_webapp_postgres_certs.sh /certs/webapp_postgres_certs/
+COPY ./opensearch_certs/generate_opensearch_certs.sh /certs/opensearch_certs/
+
+# Make scripts executable and run them
+RUN chmod +x /certs/webapp_postgres_certs/generate_webapp_postgres_certs.sh \
+    && chmod +x /certs/opensearch_certs/generate_opensearch_certs.sh \
+    && /certs/webapp_postgres_certs/generate_webapp_postgres_certs.sh \
+    && /certs/opensearch_certs/generate_opensearch_certs.sh

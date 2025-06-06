@@ -110,6 +110,9 @@ jobs:
           MINIO_ROOT_PASSWORD=CHANGEME123
           EOF
 
+          # Create certificate directories
+          mkdir -p webapp_postgres_certs opensearch_certs
+
           # Generate SSL certs first
           echo "=== Generating SSL Certificates ==="
           docker build -t certs-builder ./certs-builder
@@ -122,11 +125,26 @@ jobs:
           echo "=== Verifying SSL Certificates ==="
           ls -la ./webapp_postgres_certs/
           echo "=== Certificate Contents ==="
-          cat ./webapp_postgres_certs/postgres_localhost.crt
+          if [ -f ./webapp_postgres_certs/postgres_localhost.crt ]; then
+            cat ./webapp_postgres_certs/postgres_localhost.crt
+          else
+            echo "Certificate file not found!"
+            exit 1
+          fi
           echo "=== Key Contents ==="
-          cat ./webapp_postgres_certs/postgres_localhost.key
+          if [ -f ./webapp_postgres_certs/postgres_localhost.key ]; then
+            cat ./webapp_postgres_certs/postgres_localhost.key
+          else
+            echo "Key file not found!"
+            exit 1
+          fi
           echo "=== CA Contents ==="
-          cat ./webapp_postgres_certs/root-ca.pem
+          if [ -f ./webapp_postgres_certs/root-ca.pem ]; then
+            cat ./webapp_postgres_certs/root-ca.pem
+          else
+            echo "CA file not found!"
+            exit 1
+          fi
 
           # Start services
           docker compose up -d
