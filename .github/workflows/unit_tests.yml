@@ -121,6 +121,9 @@ jobs:
             -v "$(pwd)/opensearch_certs:/certs/opensearch_certs" \
             certs-builder
 
+          # Wait a moment for files to be written
+          sleep 2
+
           # Verify certificates
           echo "=== Verifying SSL Certificates ==="
           ls -la ./webapp_postgres_certs/
@@ -129,6 +132,8 @@ jobs:
             cat ./webapp_postgres_certs/postgres_localhost.crt
           else
             echo "Certificate file not found!"
+            echo "=== Directory Contents ==="
+            find ./webapp_postgres_certs -type f
             exit 1
           fi
           echo "=== Key Contents ==="
@@ -136,6 +141,8 @@ jobs:
             cat ./webapp_postgres_certs/postgres_localhost.key
           else
             echo "Key file not found!"
+            echo "=== Directory Contents ==="
+            find ./webapp_postgres_certs -type f
             exit 1
           fi
           echo "=== CA Contents ==="
@@ -143,6 +150,8 @@ jobs:
             cat ./webapp_postgres_certs/root-ca.pem
           else
             echo "CA file not found!"
+            echo "=== Directory Contents ==="
+            find ./webapp_postgres_certs -type f
             exit 1
           fi
 

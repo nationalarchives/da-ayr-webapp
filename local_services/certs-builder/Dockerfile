@@ -11,8 +11,10 @@ RUN mkdir -p /certs/webapp_postgres_certs /certs/opensearch_certs
 COPY ./webapp_postgres_certs/generate_webapp_postgres_certs.sh /certs/webapp_postgres_certs/
 COPY ./opensearch_certs/generate_opensearch_certs.sh /certs/opensearch_certs/
 
-# Make scripts executable and run them
+# Make scripts executable
 RUN chmod +x /certs/webapp_postgres_certs/generate_webapp_postgres_certs.sh \
-    && chmod +x /certs/opensearch_certs/generate_opensearch_certs.sh \
-    && /certs/webapp_postgres_certs/generate_webapp_postgres_certs.sh \
-    && /certs/opensearch_certs/generate_opensearch_certs.sh
+    && chmod +x /certs/opensearch_certs/generate_opensearch_certs.sh
+
+# Set the entrypoint to run the certificate generation
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["/certs/webapp_postgres_certs/generate_webapp_postgres_certs.sh && /certs/opensearch_certs/generate_opensearch_certs.sh"]
