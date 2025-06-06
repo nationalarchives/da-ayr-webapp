@@ -110,27 +110,36 @@ jobs:
           MINIO_ROOT_PASSWORD=CHANGEME123
           EOF
 
+          # Start services
           docker compose up -d
           echo "Services started"
-          
+
           # Debug: Check container status
           echo "=== Container Status ==="
           docker compose ps
-          
+
           # Debug: Check PostgreSQL logs
           echo "=== PostgreSQL Logs ==="
           docker compose logs webapp_postgres
-          
+
+          # Wait for PostgreSQL to be ready
+          echo "=== Waiting for PostgreSQL to be ready ==="
+          timeout 60s bash -c 'until docker compose exec -T webapp_postgres pg_isready -U local_db_user; do sleep 2; echo "Waiting for PostgreSQL..."; docker compose logs --tail=50 webapp_postgres; done'
+
           # Debug: Check if PostgreSQL is accepting connections
           echo "=== Testing PostgreSQL Connection ==="
           docker compose exec -T webapp_postgres pg_isready -U local_db_user
-          
+
           # Debug: Check SSL configuration
           echo "=== PostgreSQL SSL Configuration ==="
           docker compose exec -T webapp_postgres psql -U local_db_user -d local_db -c "SHOW ssl;"
           docker compose exec -T webapp_postgres psql -U local_db_user -d local_db -c "SHOW ssl_cert_file;"
           docker compose exec -T webapp_postgres psql -U local_db_user -d local_db -c "SHOW ssl_key_file;"
           docker compose exec -T webapp_postgres psql -U local_db_user -d local_db -c "SHOW ssl_ca_file;"
+
+          # Debug: Check if certificates exist
+          echo "=== Checking SSL Certificates ==="
+          ls -la ./webapp_postgres_certs/
 
       - name: Install dependencies for textract
         run: |
