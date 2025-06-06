@@ -169,16 +169,23 @@ jobs:
             exit 1
           fi
 
+          # Create entrypoint script
+          cat <<EOF > entrypoint.sh
+          #!/bin/bash
+          chown postgres:postgres /var/lib/postgresql/postgres_localhost.key /var/lib/postgresql/postgres_localhost.crt /var/lib/postgresql/root-ca.pem
+          chmod 600 /var/lib/postgresql/postgres_localhost.key
+          chmod 644 /var/lib/postgresql/postgres_localhost.crt /var/lib/postgresql/root-ca.pem
+          exec postgres -c ssl=on -c ssl_cert_file=/var/lib/postgresql/postgres_localhost.crt -c ssl_key_file=/var/lib/postgresql/postgres_localhost.key -c ssl_ca_file=/var/lib/postgresql/root-ca.pem
+          EOF
+          chmod +x entrypoint.sh
+
           # Create a temporary docker-compose override for GitHub Actions
           cat <<EOF > docker-compose.override.yml
           services:
             webapp_postgres:
-              user: postgres
-              command: [
-                "bash",
-                "-c",
-                "chmod 600 /var/lib/postgresql/postgres_localhost.key && chmod 644 /var/lib/postgresql/postgres_localhost.crt /var/lib/postgresql/root-ca.pem && postgres -c ssl=on -c ssl_cert_file=/var/lib/postgresql/postgres_localhost.crt -c ssl_key_file=/var/lib/postgresql/postgres_localhost.key -c ssl_ca_file=/var/lib/postgresql/root-ca.pem"
-              ]
+              entrypoint: ["/bin/bash", "/entrypoint.sh"]
+              volumes:
+                - ./entrypoint.sh:/entrypoint.sh
           EOF
 
           # Start services with the override
