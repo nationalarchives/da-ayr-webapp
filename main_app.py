@@ -7,7 +7,8 @@ from configs.env_config import EnvConfig
 
 if os.getenv("CONFIG_SOURCE") == "AWS_SECRETS_MANAGER":
     config_class = AWSSecretsManagerConfig
-elif os.getenv("CONFIG_SOURCE") == "ENVIRONMENT_VARIABLES":
+else:
+    # Default to environment variables configuration
     config_class = EnvConfig
 
 try:

@@ -205,6 +205,15 @@ jobs:
           export DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
           export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
           export FLASKS3_BUCKET_NAME="test-record-download"
+          export KEYCLOAK_BASE_URI=http://localhost:8080
+          export KEYCLOAK_REALM_NAME=tdr
+          export KEYCLOAK_CLIENT_ID=ayr-beta
+          export KEYCLOAK_CLIENT_SECRET=bTOIXx2JXA9XzevkpWn3lQG27diVCTHa
+          export OPEN_SEARCH_HOST=https://localhost:9200
+          export OPEN_SEARCH_USERNAME=admin
+          export OPEN_SEARCH_PASSWORD=FOOBARCARabc123!
+          export OPEN_SEARCH_TIMEOUT=10
+          export SECRET_KEY="secret"
 
           # Start Flask with more verbose output
           nohup poetry run python -u main_app.py > flask.log 2>&1 &
