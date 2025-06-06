@@ -113,16 +113,30 @@ jobs:
           # Create certificate directories
           mkdir -p webapp_postgres_certs opensearch_certs
 
-          # Generate SSL certs first
+          # Generate SSL certs directly
           echo "=== Generating SSL Certificates ==="
-          docker build -t certs-builder ./certs-builder
-          docker run --rm \
-            -v "$(pwd)/webapp_postgres_certs:/certs/webapp_postgres_certs" \
-            -v "$(pwd)/opensearch_certs:/certs/opensearch_certs" \
-            certs-builder
-
-          # Wait a moment for files to be written
-          sleep 2
+          cd webapp_postgres_certs
+          
+          # Create a private key
+          openssl genrsa -out root-ca.key 2048
+          
+          # Generate a root CA
+          openssl req -x509 -new -nodes -key root-ca.key -sha256 -out root-ca.pem -subj "/CN=RootCA"
+          
+          # Generate server key
+          openssl genrsa -out postgres_localhost.key 2048
+          
+          # Create a self-signed certificate
+          openssl req -new -key postgres_localhost.key -out postgres_localhost.csr -subj "/CN=localhost"
+          
+          # Create a CA certificate
+          openssl x509 -req -in postgres_localhost.csr -CA root-ca.pem -CAkey root-ca.key -CAcreateserial -out postgres_localhost.crt -days 365 -sha256
+          
+          # Set proper permissions
+          chmod 600 postgres_localhost.key root-ca.key
+          chmod 644 postgres_localhost.crt root-ca.pem
+          
+          cd ..
 
           # Verify certificates
           echo "=== Verifying SSL Certificates ==="
