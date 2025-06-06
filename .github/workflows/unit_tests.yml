@@ -164,7 +164,7 @@ jobs:
           export DB_PASSWORD=local_db_user_password
           export AWS_ENDPOINT_URL=http://localhost:9000
           export FLASKS3_BUCKET_NAME="test-record-download"
-          export DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
+          # export DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
           export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
           export KEYCLOAK_BASE_URI=http://localhost:8080
           export KEYCLOAK_REALM_NAME=tdr
