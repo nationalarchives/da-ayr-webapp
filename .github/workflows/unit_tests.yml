@@ -177,8 +177,14 @@ jobs:
           chmod 600 /var/lib/postgresql/postgres_localhost.key
           chmod 644 /var/lib/postgresql/postgres_localhost.crt /var/lib/postgresql/root-ca.pem
           
+          # Initialize database if needed
+          if [ ! -f "/var/lib/postgresql/data/PG_VERSION" ]; then
+            echo "Initializing PostgreSQL database..."
+            gosu postgres initdb -D /var/lib/postgresql/data
+          fi
+          
           # Switch to postgres user and start PostgreSQL
-          exec gosu postgres postgres -c ssl=on -c ssl_cert_file=/var/lib/postgresql/postgres_localhost.crt -c ssl_key_file=/var/lib/postgresql/postgres_localhost.key -c ssl_ca_file=/var/lib/postgresql/root-ca.pem
+          exec gosu postgres postgres -D /var/lib/postgresql/data -c ssl=on -c ssl_cert_file=/var/lib/postgresql/postgres_localhost.crt -c ssl_key_file=/var/lib/postgresql/postgres_localhost.key -c ssl_ca_file=/var/lib/postgresql/root-ca.pem
           EOF
           chmod +x entrypoint.sh
 
