@@ -116,26 +116,26 @@ jobs:
           # Generate SSL certs directly
           echo "=== Generating SSL Certificates ==="
           cd webapp_postgres_certs
-          
+
           # Create a private key
           openssl genrsa -out root-ca.key 2048
-          
+
           # Generate a root CA
           openssl req -x509 -new -nodes -key root-ca.key -sha256 -out root-ca.pem -subj "/CN=RootCA"
-          
+
           # Generate server key
           openssl genrsa -out postgres_localhost.key 2048
-          
+
           # Create a self-signed certificate
           openssl req -new -key postgres_localhost.key -out postgres_localhost.csr -subj "/CN=localhost"
-          
+
           # Create a CA certificate
           openssl x509 -req -in postgres_localhost.csr -CA root-ca.pem -CAkey root-ca.key -CAcreateserial -out postgres_localhost.crt -days 365 -sha256
-          
-          # Set proper permissions
+
+          # Set proper permissions for GitHub Actions
           chmod 600 postgres_localhost.key root-ca.key
           chmod 644 postgres_localhost.crt root-ca.pem
-          
+
           cd ..
 
           # Verify certificates
@@ -169,18 +169,30 @@ jobs:
             exit 1
           fi
 
-          # Start services
-          docker compose up -d
+          # Create a temporary docker-compose override for GitHub Actions
+          cat <<EOF > docker-compose.override.yml
+          version: '3.8'
+          services:
+            webapp_postgres:
+              command: [
+                "bash",
+                "-c",
+                "chown postgres:postgres /var/lib/postgresql/postgres_localhost.key /var/lib/postgresql/postgres_localhost.crt /var/lib/postgresql/root-ca.pem && chmod 600 /var/lib/postgresql/postgres_localhost.key && chmod 644 /var/lib/postgresql/postgres_localhost.crt /var/lib/postgresql/root-ca.pem && postgres -c ssl=on -c ssl_cert_file=/var/lib/postgresql/postgres_localhost.crt -c ssl_key_file=/var/lib/postgresql/postgres_localhost.key -c ssl_ca_file=/var/lib/postgresql/root-ca.pem"
+              ]
+          EOF
+
+          # Start services with the override
+          docker compose -f docker-compose.yml -f docker-compose.override.yml up -d
           echo "Services started"
-          
+
           # Debug: Check container status
           echo "=== Container Status ==="
           docker compose ps
-          
+
           # Debug: Check PostgreSQL logs
           echo "=== PostgreSQL Logs ==="
           docker compose logs webapp_postgres
-          
+
           # Wait for PostgreSQL to be ready
           echo "=== Waiting for PostgreSQL to be ready ==="
           timeout 60s bash -c 'until docker compose exec -T webapp_postgres pg_isready -U local_db_user; do sleep 2; echo "Waiting for PostgreSQL..."; docker compose logs --tail=50 webapp_postgres; done'
