@@ -98,6 +98,7 @@ services:
       - ./webapp_postgres_certs/postgres_localhost.crt:/var/lib/postgresql/postgres_localhost.crt
       - ./webapp_postgres_certs/postgres_localhost.key:/var/lib/postgresql/postgres_localhost.key
       - ./webapp_postgres_certs/root-ca.pem:/var/lib/postgresql/root-ca.pem
+      - ./pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -111,6 +112,8 @@ services:
       "-c", "ssl_key_file=/var/lib/postgresql/postgres_localhost.key",
       "-c", "ssl_ca_file=/var/lib/postgresql/root-ca.pem"
     ]
+    networks:
+      - keycloak_network
 
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.6
