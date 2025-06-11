@@ -1,25 +1,25 @@
 FROM python:3.13.2
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     python-dev-is-python3 \
     libxml2-dev libxslt1-dev \
     antiword unrtf poppler-utils tesseract-ocr \
     flac ffmpeg lame libmad0 libsox-fmt-mp3 sox \
     libjpeg-dev swig \
-    libreoffice
+    libreoffice \
+    && apt-get clean
 
+# Set working directory
+WORKDIR /app
 
-COPY requirements.txt ${LAMBDA_TASK_ROOT}
+# Copy dependencies
+COPY requirements.txt .
 
-# Install the function's dependencies
-RUN pip install \
-        awslambdaric \
-        -r requirements.txt
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY opensearch_indexer/ ${LAMBDA_TASK_ROOT}/opensearch_indexer
+COPY opensearch_indexer/ ./opensearch_indexer
 
-# Set runtime interface client as default command for the container runtime
-ENTRYPOINT [ "/usr/local/bin/python", "-m", "awslambdaric" ]
-
-# Pass the name of the function handler as an argument to the runtime
-CMD [ "opensearch_indexer.index_consignment.lambda_function.lambda_handler" ]
+# Run main.py
+CMD ["python", "-m", "opensearch_indexer.index_consignment.main"]
