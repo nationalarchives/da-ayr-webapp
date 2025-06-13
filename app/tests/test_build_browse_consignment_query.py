@@ -90,7 +90,7 @@ class TestBrowseConsignment:
 
         # Verify that files with end_date are sorted by end_date
         # and files without end_date are sorted by date_last_modified
-        dates = [r[2] for r in results]  # Get the date column
+        dates = [r[2] for r in results]
         assert dates == sorted(dates, reverse=True)
 
     def test_build_browse_consignment_query_filters_by_end_date_when_available(
@@ -118,7 +118,6 @@ class TestBrowseConsignment:
 
         results = query.all()
 
-        # Verify that all returned dates are within the filter range
         for result in results:
-            date = result[2]  # Get the date column
-            assert "2023" in date  # Simple check that date is in 2023
+            date = result[2]
+            assert "2023" in date
