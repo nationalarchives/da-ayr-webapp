@@ -230,6 +230,12 @@ class TestGetFileMetadata:
                         record_files[1]["opening_date"].Value, db_date_format
                     ).strftime(python_date_format)
                 ),
+                "end_date": str(
+                    datetime.strptime(
+                        record_files[1]["end_date"].Value,
+                        db_date_format,
+                    ).strftime(python_date_format)
+                ),
                 "date_last_modified": str(
                     datetime.strptime(
                         record_files[1]["date_last_modified"].Value,
@@ -296,5 +302,6 @@ class TestGetFileMetadata:
                 "transferring_body": file.consignment.series.body.Name,
                 "series": file.consignment.series.Name,
                 "consignment_reference": file.consignment.ConsignmentReference,
+                "end_date": None,
             }
         )

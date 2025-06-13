@@ -275,6 +275,15 @@ def build_browse_consignment_query(
         func.max(
             db.case(
                 (
+                    FileMetadata.PropertyName == "end_date",
+                    func.cast(FileMetadata.Value, DATE),
+                ),
+                else_=None,
+            )
+        ).label("end_date"),
+        func.max(
+            db.case(
+                (
                     FileMetadata.PropertyName == "closure_type",
                     FileMetadata.Value,
                 ),
@@ -314,6 +323,10 @@ def build_browse_consignment_query(
             sub_query.c.date_last_modified,
             current_app.config["DEFAULT_DATE_FORMAT"],
         ).label("date_last_modified"),
+        func.to_char(
+            sub_query.c.end_date,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("end_date"),
         sub_query.c.closure_type,
         func.to_char(
             sub_query.c.opening_date,
@@ -337,7 +350,10 @@ def build_browse_consignment_query(
             and date_filter_field.lower() == "date_last_modified"
         ):
             date_filter = _build_date_range_filter(
-                sub_query.c.date_last_modified,
+                db.case(
+                    (sub_query.c.end_date.isnot(None), sub_query.c.end_date),
+                    else_=sub_query.c.date_last_modified,
+                ),
                 filters.get("date_from"),
                 filters.get("date_to"),
             )
@@ -352,9 +368,21 @@ def build_browse_consignment_query(
             query = query.filter(date_filter)
 
     if sorting_orders:
-        query = _build_sorting_orders(query, sub_query, sorting_orders)
+        # Handle date_last_modified sorting to consider end_date
+        if "date_last_modified" in sorting_orders:
+            sort_field = db.case(
+                (sub_query.c.end_date.isnot(None), sub_query.c.end_date),
+                else_=sub_query.c.date_last_modified,
+            )
+            if sorting_orders["date_last_modified"] == "desc":
+                query = query.order_by(desc(sort_field))
+            else:
+                query = query.order_by(sort_field)
+        else:
+            query = _build_sorting_orders(query, sub_query, sorting_orders)
     else:
         query = query.order_by(sub_query.c.file_name)
+
     return query
 
 
@@ -384,7 +412,14 @@ def _build_browse_filters(query, sub_query, filters):
 
 def _build_sorting_orders(query, sub_query, sorting_orders):
     for field, order in sorting_orders.items():
-        column = getattr(sub_query.c, field, None)
+        if field == "end_date":
+            # Use end_date if available, otherwise fall back to date_last_modified
+            column = func.coalesce(
+                sub_query.c.end_date, sub_query.c.date_last_modified
+            )
+        else:
+            column = getattr(sub_query.c, field, None)
+
         if column is not None:
             query = (
                 query.order_by(desc(column))
@@ -491,6 +526,15 @@ def _get_file_metadata_query(file_id: uuid.UUID):
         func.max(
             db.case(
                 (
+                    FileMetadata.PropertyName == "end_date",
+                    func.cast(FileMetadata.Value, DATE),
+                ),
+                else_=None,
+            )
+        ).label("end_date"),
+        func.max(
+            db.case(
+                (
                     FileMetadata.PropertyName == "foi_exemption_code",
                     FileMetadata.Value,
                 ),
@@ -577,9 +621,15 @@ def _get_file_metadata_query(file_id: uuid.UUID):
                 current_app.config["DEFAULT_DATE_FORMAT"],
             ).label("opening_date"),
             func.to_char(
-                sub_query.c.date_last_modified,
+                func.coalesce(
+                    sub_query.c.end_date, sub_query.c.date_last_modified
+                ),
                 current_app.config["DEFAULT_DATE_FORMAT"],
             ).label("date_last_modified"),
+            func.to_char(
+                sub_query.c.end_date,
+                current_app.config["DEFAULT_DATE_FORMAT"],
+            ).label("end_date"),
             sub_query.c.foi_exemption_code,
             sub_query.c.file_reference,
             sub_query.c.former_reference,

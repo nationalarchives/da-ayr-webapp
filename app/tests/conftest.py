@@ -769,6 +769,9 @@ def record_files():
         "closure_type": FileMetadataFactory(
             file=file_1, PropertyName="closure_type", Value="Open"
         ),
+        "end_date": FileMetadataFactory(
+            file=file_1, PropertyName="end_date", Value="2023-01-15"
+        ),
         "date_last_modified": FileMetadataFactory(
             file=file_1, PropertyName="date_last_modified", Value="2023-01-15"
         ),
@@ -820,6 +823,9 @@ def record_files():
         ),
         "closure_type": FileMetadataFactory(
             file=file_2, PropertyName="closure_type", Value="Open"
+        ),
+        "end_date": FileMetadataFactory(
+            file=file_2, PropertyName="end_date", Value="2023-01-15"
         ),
         "date_last_modified": FileMetadataFactory(
             file=file_2, PropertyName="date_last_modified", Value="2023-01-15"
