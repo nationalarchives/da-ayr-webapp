@@ -375,9 +375,13 @@ def build_browse_consignment_query(
                 else_=sub_query.c.date_last_modified,
             )
             if sorting_orders["date_last_modified"] == "desc":
-                query = query.order_by(desc(sort_field), desc(sub_query.c.date_last_modified))
+                query = query.order_by(
+                    desc(sort_field), desc(sub_query.c.date_last_modified)
+                )
             else:
-                query = query.order_by(sort_field, sub_query.c.date_last_modified)
+                query = query.order_by(
+                    sort_field, sub_query.c.date_last_modified
+                )
         else:
             query = _build_sorting_orders(query, sub_query, sorting_orders)
     else:
