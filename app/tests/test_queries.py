@@ -287,12 +287,17 @@ class TestGetFileMetadata:
                 ].Value,
                 "closure_period": record_files[3]["closure_period"].Value,
                 "opening_date": record_files[3]["opening_date"].Value,
-                "date_of_record": None if record_files[3]["end_date"].Value is None and record_files[3]["date_last_modified"].Value is None else str(
-                    datetime.strptime(
-                        record_files[3]["end_date"].Value
-                        or record_files[3]["date_last_modified"].Value,
-                        db_date_format,
-                    ).strftime(python_date_format)
+                "date_of_record": (
+                    None
+                    if record_files[3]["end_date"].Value is None
+                    and record_files[3]["date_last_modified"].Value is None
+                    else str(
+                        datetime.strptime(
+                            record_files[3]["end_date"].Value
+                            or record_files[3]["date_last_modified"].Value,
+                            db_date_format,
+                        ).strftime(python_date_format)
+                    )
                 ),
                 "foi_exemption_code": record_files[3][
                     "foi_exemption_code"
