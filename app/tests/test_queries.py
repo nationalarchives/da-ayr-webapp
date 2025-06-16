@@ -238,7 +238,8 @@ class TestGetFileMetadata:
                 ),
                 "date_of_record": str(
                     datetime.strptime(
-                        record_files[1]["date_last_modified"].Value,
+                        record_files[1]["end_date"].Value
+                        or record_files[1]["date_last_modified"].Value,
                         db_date_format,
                     ).strftime(python_date_format)
                 ),
@@ -286,7 +287,13 @@ class TestGetFileMetadata:
                 ].Value,
                 "closure_period": record_files[3]["closure_period"].Value,
                 "opening_date": record_files[3]["opening_date"].Value,
-                "date_of_record": record_files[3]["date_last_modified"].Value,
+                "date_of_record": str(
+                    datetime.strptime(
+                        record_files[3]["end_date"].Value
+                        or record_files[3]["date_last_modified"].Value,
+                        db_date_format,
+                    ).strftime(python_date_format)
+                ),
                 "foi_exemption_code": record_files[3][
                     "foi_exemption_code"
                 ].Value,
