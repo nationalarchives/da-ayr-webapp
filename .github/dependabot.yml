@@ -5,11 +5,43 @@
 
 version: 2
 updates:
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+
   - package-ecosystem: "pip"
-    directory: "/" # Location of package manifests
+    directory: "/"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pip"
+    directory: "/e2e_tests"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pip"
+    directory: "/data_management/opensearch_indexer"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "docker"
+    directory: "/"
     schedule:
       interval: "daily"
   - package-ecosystem: "docker"
-    directory: "/" # Location of package manifests
+    directory: "/data_management/opensearch_indexer"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "docker-compose"
+    directory: "/" # Location of e2e_tests Dockerfile
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker-compose"
+    directory: "/local_services/"
     schedule:
       interval: "daily"
