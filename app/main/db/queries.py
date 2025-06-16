@@ -353,6 +353,10 @@ def build_browse_consignment_query(
             sub_query.c.opening_date,
             current_app.config["DEFAULT_DATE_FORMAT"],
         ).label("opening_date"),
+        func.to_char(
+            func.coalesce(sub_query.c.end_date, sub_query.c.date_last_modified),
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("date_of_record"),
     )
 
     if filters:
@@ -637,7 +641,7 @@ def _get_file_metadata_query(file_id: uuid.UUID):
                     sub_query.c.end_date, sub_query.c.date_last_modified
                 ),
                 current_app.config["DEFAULT_DATE_FORMAT"],
-            ).label("date_last_modified"),
+            ).label("date_of_record"),
             func.to_char(
                 sub_query.c.end_date,
                 current_app.config["DEFAULT_DATE_FORMAT"],
