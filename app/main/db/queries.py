@@ -297,8 +297,29 @@ def build_browse_consignment_query(
                     func.cast(FileMetadata.Value, DATE),
                 ),
                 else_=None,
-            ),
+            )
         ).label("opening_date"),
+        # Add coalesced date column for sorting
+        func.coalesce(
+            func.max(
+                db.case(
+                    (
+                        FileMetadata.PropertyName == "end_date",
+                        func.cast(FileMetadata.Value, DATE),
+                    ),
+                    else_=None,
+                )
+            ),
+            func.max(
+                db.case(
+                    (
+                        FileMetadata.PropertyName == "date_last_modified",
+                        func.cast(FileMetadata.Value, DATE),
+                    ),
+                    else_=None,
+                )
+            ),
+        ).label("sort_date"),
     )
 
     query_filters = [
@@ -336,12 +357,10 @@ def build_browse_consignment_query(
 
     if filters:
         record_status = filters.get("record_status")
-        if record_status:
-            if record_status and record_status.lower() != "all":
-                query = query.filter(
-                    func.lower(sub_query.c.closure_type)
-                    == record_status.lower()
-                )
+        if record_status and record_status.lower() != "all":
+            query = query.filter(
+                func.lower(sub_query.c.closure_type) == record_status.lower()
+            )
 
         date_filter = None
         date_filter_field = filters.get("date_filter_field")
@@ -350,10 +369,7 @@ def build_browse_consignment_query(
             and date_filter_field.lower() == "date_last_modified"
         ):
             date_filter = _build_date_range_filter(
-                db.case(
-                    (sub_query.c.end_date.isnot(None), sub_query.c.end_date),
-                    else_=sub_query.c.date_last_modified,
-                ),
+                sub_query.c.sort_date,
                 filters.get("date_from"),
                 filters.get("date_to"),
             )
@@ -368,12 +384,8 @@ def build_browse_consignment_query(
             query = query.filter(date_filter)
 
     if sorting_orders:
-        # Handle date_last_modified sorting to consider end_date
         if "date_last_modified" in sorting_orders:
-            sort_field = db.case(
-                (sub_query.c.end_date.isnot(None), sub_query.c.end_date),
-                else_=sub_query.c.date_last_modified,
-            )
+            sort_field = sub_query.c.sort_date
             if sorting_orders["date_last_modified"] == "desc":
                 query = query.order_by(desc(sort_field))
             else:
