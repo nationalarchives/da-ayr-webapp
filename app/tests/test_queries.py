@@ -236,7 +236,7 @@ class TestGetFileMetadata:
                         db_date_format,
                     ).strftime(python_date_format)
                 ),
-                "date_last_modified": str(
+                "date_of_record": str(
                     datetime.strptime(
                         record_files[1]["date_last_modified"].Value,
                         db_date_format,
@@ -286,9 +286,7 @@ class TestGetFileMetadata:
                 ].Value,
                 "closure_period": record_files[3]["closure_period"].Value,
                 "opening_date": record_files[3]["opening_date"].Value,
-                "date_last_modified": record_files[3][
-                    "date_last_modified"
-                ].Value,
+                "date_of_record": record_files[3]["date_last_modified"].Value,
                 "foi_exemption_code": record_files[3][
                     "foi_exemption_code"
                 ].Value,

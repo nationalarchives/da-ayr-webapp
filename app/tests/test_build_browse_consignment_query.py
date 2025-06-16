@@ -32,6 +32,7 @@ class TestBrowseConsignment:
                 None,
                 "Open",
                 None,
+                "20/05/2023",
             ),
             (
                 browse_consignment_files[1].FileId,
@@ -40,6 +41,7 @@ class TestBrowseConsignment:
                 None,
                 "Open",
                 None,
+                "15/01/2023",
             ),
         ]
         assert results == expected_results
