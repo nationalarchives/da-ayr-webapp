@@ -31,6 +31,7 @@ pillow = "^11.2.1"
 opensearch-py = "^2.8.0"
 requests-aws4auth = "^1.3.1"
 bleach = "^6.2.0"
+detect-secrets = "^1.5.0"
 
 [tool.poetry.group.dev.dependencies]
 testing-postgresql = "^1.3.0"
