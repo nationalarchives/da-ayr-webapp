@@ -6,7 +6,7 @@
             <div class="govuk-pagination__prev">
                 <a data-testid="pagination-link"
                    class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
-                   href="{% if id != None %} {{ url_for(view_name, _id=id, page=current_page-1, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=current_page-1, **query_string_parameters) }} {% endif %}"
+                   href="{% if id != None %} {{ url_for(view_name, _id=id, page=current_page-1, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=current_page-1, **query_string_parameters) }} {% endif %}#tbl_result"
                    rel="prev">
                     <svg class="govuk-pagination__icon govuk-pagination__icon--prev"
                          xmlns="http://www.w3.org/2000/svg"
@@ -31,7 +31,7 @@
                     {% else %}
                         <a data-testid="pagination-link"
                            class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
-                           href="{% if id != None %} {{ url_for(view_name, _id=id , page=page, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=page, **query_string_parameters) }} {% endif %}"
+                           href="{% if id != None %} {{ url_for(view_name, _id=id , page=page, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=page, **query_string_parameters) }} {% endif %}#tbl_result"
                            aria-label="Page {{ page }}">{{ page }}</a>
                     {% endif %}
                 </li>
@@ -41,7 +41,7 @@
             <div class="govuk-pagination__next">
                 <a data-testid="pagination-link"
                    class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
-                   href="{% if id != None %} {{ url_for(view_name, _id=id , page=current_page+1, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=current_page+1, **query_string_parameters) }}{% endif %}"
+                   href="{% if id != None %} {{ url_for(view_name, _id=id , page=current_page+1, **query_string_parameters) }} {% else %} {{ url_for(view_name, page=current_page+1, **query_string_parameters) }}{% endif %}#tbl_result"
                    rel="next">
                     <span data-testid="pagination-link-title"
                           class="govuk-pagination__link-title">Next<span class="govuk-visually-hidden">page</span></span>
