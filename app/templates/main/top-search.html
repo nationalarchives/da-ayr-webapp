@@ -1,3 +1,4 @@
+{% from 'macros/buttons.html' import govuk_button %}
 {% set search_areas = [
     {
         "value": "everywhere",
@@ -49,10 +50,10 @@
                            type="text"
                            value="{{ (filters['query'] if filters['query'] else '') | replace('+', ', ') }}"
                            aria-label="Enter search query for digital records" />
-                    <button class="govuk-button"
-                            id="search-submit"
-                            data-module="govuk-button"
-                            type="submit">Search</button>
+                    {{ govuk_button(
+                    "Search",
+                    button_id="search-submit",
+                    ) }}
                 </div>
             </fieldset>
         </form>

@@ -1,3 +1,4 @@
+{% from 'macros/buttons.html' import govuk_button %}
 {% set breadcrumbs = {
     "everything":"All available records",
     "body": breadcrumb_values[0]["transferring_body"]
@@ -114,9 +115,10 @@
                 <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Transfer date</h3>
                 {% include "date-filters.html" %}
                 <div class="filters-form__buttons">
-                    <button type="submit"
-                            class="govuk-button govuk-button__browse-all-filters-form-apply-button"
-                            data-module="govuk-button">Apply filters</button>
+                    {{ govuk_button(
+                    "Apply filters",
+                    classes="govuk-button__browse-all-filters-form-apply-button"
+                    ) }}
                     <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-all-filter"
                        href="{{ url_for('main.browse_transferring_body', _id=request.view_args['_id'], sort=request.args.get('sort'), _anchor='browse-records') }}">Clear filters</a>
                 </div>

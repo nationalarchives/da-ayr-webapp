@@ -1,0 +1,9 @@
+{% macro govuk_button(text, button_id="govuk-button", type="submit", classes="", attributes={}) %}
+    <button class="govuk-button {{ classes }}"
+            id="{{ button_id }}"
+            data-module="govuk-button"
+            type="{{ type }}"
+            {% for attr, value in attributes.items() %}{{ attr }}="{{ value }}"{% endfor %}>
+        {{ text }}
+    </button>
+{% endmacro %}

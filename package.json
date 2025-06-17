@@ -4,10 +4,13 @@
   "scripts": {
     "dev": "sass --watch app/static/src/scss:app/static/src/css",
     "lint": "prettier --write 'app/static/src/scss/**/*.scss' && stylelint --fix 'app/static/src/scss/**/*.scss'",
-    "build": "sass --style=compressed app/static/src/scss:app/static/src/css"
+    "build": "sass --style=compressed app/static/src/scss:app/static/src/css",
+    "prestorybook": "python storybook/render_macros.py",
+    "storybook": "storybook dev -p 6006"
   },
   "license": "MIT",
   "devDependencies": {
+    "@storybook/html-vite": "^9.0.11",
     "prettier": "^3.0.3",
     "sass": "^1.69.5",
     "stylelint": "^15.11.0",
