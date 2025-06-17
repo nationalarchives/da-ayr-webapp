@@ -106,7 +106,7 @@ class TestSearchResultsSummary:
             ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
             ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
             ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
         ]
 
         assert table_row_metadata == expected_row_metadata
