@@ -94,11 +94,7 @@ def render_macros():
                 with open(output_path, "w") as f:
                     f.write(rendered)
                 variant_name = variant.get("name", "default")
-                label = (
-                    f"{task['macro']} ({variant_name})"
-                    if variant_name
-                    else task["macro"]
-                )
+                label = f"{task['macro']} ({variant_name})"
                 print(f"Rendered {label} → {output_path}")
         else:
             rendered = macro_func(**task["context"])
