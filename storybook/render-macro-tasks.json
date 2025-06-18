@@ -1,0 +1,86 @@
+[
+    {
+      "template": "banners.html",
+      "macro": "alert_banner",
+      "variants": [
+        {
+          "context": {
+            "heading": "Default alert banner",
+            "message": "This is the default alert banner."
+          }
+        },
+        {
+          "name": "error",
+          "context": {
+            "variant": "error",
+            "heading": "Error alert banner",
+            "message": "This is the error alert banner."
+          }
+        },
+        {
+          "name": "success",
+          "context": {
+            "variant": "success",
+            "heading": "Success alert banner",
+            "message": "This is the success alert banner."
+          }
+        }
+      ]
+    },
+    {
+      "template": "banners.html",
+      "macro": "belly_band",
+      "variants": [
+        {
+          "context": {
+            "heading": "Need more help?",
+            "link_text": "Contact support",
+            "link_href": "https://support.example.com"
+          }
+        }
+      ]
+    },
+    {
+      "template": "buttons.html",
+      "macro": "govuk_button",
+      "variants": [
+        {
+          "context": {
+            "text": "Rendered button",
+            "classes": "extra-class"
+          }
+        },
+        {
+          "name": "start",
+          "context": {
+            "text": "Start now",
+            "classes": "govuk-button--start"
+          }
+        },
+        {
+          "name": "secondary",
+          "context": {
+            "text": "Secondary button",
+            "classes": "govuk-button--secondary"
+          }
+        },
+        {
+          "name": "warning",
+          "context": {
+            "text": "Warning button",
+            "classes": "govuk-button--warning"
+          }
+        },
+        {
+          "name": "disabled",
+          "context": {
+            "text": "Disabled button",
+            "classes": "govuk-button--disabled",
+            "attributes": {
+              "disabled": "disabled"
+            }
+          }
+        }
+      ]
+    }
+]

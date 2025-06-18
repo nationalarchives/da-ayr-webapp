@@ -1,3 +1,4 @@
+import json
 import os
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -10,61 +11,8 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "html")
 # Each task can either define:
 # - A single variant with "context" and "output", OR
 # - Multiple variants using a "variants" list.
-MACRO_RENDER_TASKS = [
-    {
-        "template": "banners.html",
-        "macro": "alert_banner",
-        "variants": [
-            {
-                "context": {
-                    "heading": "Default alert banner",
-                    "message": "This is the default alert banner.",
-                },
-            },
-            {
-                "name": "error",
-                "context": {
-                    "variant": "error",
-                    "heading": "Error alert banner",
-                    "message": "This is the error alert banner.",
-                },
-            },
-            {
-                "name": "success",
-                "context": {
-                    "variant": "success",
-                    "heading": "Success alert banner",
-                    "message": "This is the success alert banner.",
-                },
-            },
-        ],
-    },
-    {
-        "template": "banners.html",
-        "macro": "belly_band",
-        "variants": [
-            {
-                "context": {
-                    "heading": "Need more help?",
-                    "link_text": "Contact support",
-                    "link_href": "https://support.example.com",
-                },
-            }
-        ],
-    },
-    {
-        "template": "buttons.html",
-        "macro": "govuk_button",
-        "variants": [
-            {
-                "context": {
-                    "text": "Rendered button",
-                    "classes": "extra-class",
-                },
-            }
-        ],
-    },
-]
+with open(os.path.join(BASE_DIR, "render-macro-tasks.json"), "r") as f:
+    MACRO_RENDER_TASKS = json.load(f)
 
 
 def get_output_filename(macro_name, variant_name=None):
