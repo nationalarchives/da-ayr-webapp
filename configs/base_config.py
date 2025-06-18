@@ -186,7 +186,10 @@ class BaseConfig(object):
 
     @property
     def CSP_STYLE_SRC(self):
-        return [SELF]
+        return [
+            SELF,
+            self.FLASKS3_CDN_DOMAIN,
+        ]
 
     @property
     def CSP_STYLE_SRC_ELEM(self):
