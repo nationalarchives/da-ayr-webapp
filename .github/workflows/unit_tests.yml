@@ -209,9 +209,9 @@ jobs:
           echo "=== PostgreSQL Logs ==="
           docker compose logs webapp_postgres
 
-          # Wait for PostgreSQL to be ready
-          echo "=== Waiting for PostgreSQL to be ready ==="
-          timeout 60s bash -c 'until docker compose exec -T webapp_postgres pg_isready -U local_db_user; do sleep 2; echo "Waiting for PostgreSQL..."; docker compose logs --tail=50 webapp_postgres; done'
+          # # Wait for PostgreSQL to be ready
+          # echo "=== Waiting for PostgreSQL to be ready ==="
+          # timeout 60s bash -c 'until docker compose exec -T webapp_postgres pg_isready -U local_db_user; do sleep 2; echo "Waiting for PostgreSQL..."; docker compose logs --tail=50 webapp_postgres; done'
 
       - name: Install dependencies for textract
         run: |
