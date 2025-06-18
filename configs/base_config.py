@@ -203,7 +203,7 @@ class BaseConfig(object):
             "https://cdn.jsdelivr.net/npm/universalviewer@4.2.0/dist/uv.min.css",
             "'sha256-5F6wlVbvqAuNSR7vsCpdIP/UhcVEa+hoNTMpejqmEkY='",  # pragma: allowlist secret
             # for pdfs
-            "'sha256-cngw11JRRopLh6RDda+MT7Jk/9a0aKtyuseJMoDvEow='",  # pragma: allowlist secret
+            "'sha256-d+KBcHLMVDIG87TjOCYsHdPCu+k2B7Tld0nSNiwUllY='",  # pragma: allowlist secret
         ]
 
     @property
