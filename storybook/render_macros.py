@@ -45,21 +45,29 @@ MACRO_RENDER_TASKS = [
     {
         "template": "banners.html",
         "macro": "belly_band",
-        "output": "belly-band.html",
-        "context": {
-            "heading": "Need more help?",
-            "link_text": "Contact support",
-            "link_href": "https://support.example.com",
-        },
+        "variants": [
+            {
+                "output": "belly-band.html",
+                "context": {
+                    "heading": "Need more help?",
+                    "link_text": "Contact support",
+                    "link_href": "https://support.example.com",
+                },
+            }
+        ],
     },
     {
         "template": "buttons.html",
         "macro": "govuk_button",
-        "output": "govuk-button.html",
-        "context": {
-            "text": "Rendered button",
-            "classes": "extra-class",
-        },
+        "variants": [
+            {
+                "output": "govuk-button.html",
+                "context": {
+                    "text": "Rendered button",
+                    "classes": "extra-class",
+                },
+            }
+        ],
     },
 ]
 
@@ -96,13 +104,6 @@ def render_macros():
                 variant_name = variant.get("name", "default")
                 label = f"{task['macro']} ({variant_name})"
                 print(f"Rendered {label} → {output_path}")
-        else:
-            rendered = macro_func(**task["context"])
-            output_path = os.path.join(OUTPUT_DIR, task["output"])
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            with open(output_path, "w") as f:
-                f.write(rendered)
-            print(f"Rendered {task['macro']} → {output_path}")
 
 
 if __name__ == "__main__":
