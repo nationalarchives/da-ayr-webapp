@@ -104,7 +104,12 @@ def test_local_env_vars_config_initialized(monkeypatch):
         "'sha256-5F6wlVbvqAuNSR7vsCpdIP/UhcVEa+hoNTMpejqmEkY='",  # pragma: allowlist secret
         "'sha256-d+KBcHLMVDIG87TjOCYsHdPCu+k2B7Tld0nSNiwUllY='",  # pragma: allowlist secret
     ]
-    assert config.CSP_IMG_SRC == ["'self'", "test_flasks3_cdn_domain", "data:"]
+    assert config.CSP_IMG_SRC == [
+        "'self'",
+        "test_flasks3_cdn_domain",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+        "data:",
+    ]
     assert config.CSP_FRAME_SRC == [
         "'self'",
         "https://test_record_bucket_name.s3.amazonaws.com",
@@ -336,6 +341,7 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
     assert config.CSP_IMG_SRC == [
         "'self'",
         "test_flasks3_cdn_domain",
+        "https://test_record_bucket_name.s3.amazonaws.com",
         "data:",
     ]
     assert config.CSP_FRAME_SRC == [

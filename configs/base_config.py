@@ -208,7 +208,7 @@ class BaseConfig(object):
 
     @property
     def CSP_IMG_SRC(self):
-        return [SELF, self.FLASKS3_CDN_DOMAIN, "data:"]
+        return [SELF, self.FLASKS3_CDN_DOMAIN, self.S3_BUCKET_URL, "data:"]
 
     @property
     def CSP_FRAME_SRC(self):
