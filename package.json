@@ -6,11 +6,14 @@
     "lint": "prettier --write 'app/static/src/scss/**/*.scss' && stylelint --fix 'app/static/src/scss/**/*.scss'",
     "build": "sass --style=compressed app/static/src/scss:app/static/src/css",
     "prestorybook": "python storybook/render_macros.py",
-    "storybook": "storybook dev -p 6006"
+    "storybook": "concurrently \"npm run watch-macro-tasks\" \"storybook dev -p 6006\"",
+    "watch-macro-tasks": "chokidar 'storybook/render-macro-tasks.json' -c 'npm run prestorybook'"
   },
   "license": "MIT",
   "devDependencies": {
     "@storybook/html-vite": "9.0.11",
+    "chokidar-cli": "^3.0.0",
+    "concurrently": "^9.1.2",
     "prettier": "^3.5.3",
     "sass": "^1.69.5",
     "stylelint": "^16.20.0",
