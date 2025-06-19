@@ -1,3 +1,4 @@
+{% from 'macros/buttons.html' import govuk_button %}
 {% set sorting_list = {
     "Transferring body (A to Z)": "transferring_body-asc",
     "Transferring body (Z to A)": "transferring_body-desc",
@@ -132,9 +133,10 @@
                 <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Transfer date</h3>
                 {% include "date-filters.html" %}
                 <div class="filters-form__buttons">
-                    <button type="submit"
-                            class="govuk-button govuk-button__browse-all-filters-form-apply-button"
-                            data-module="govuk-button">Apply filters</button>
+                    {{ govuk_button(
+                    "Apply filters",
+                    classes="govuk-button__browse-all-filters-form-apply-button"
+                    ) }}
                     <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-all-filter"
                        href="{{ url_for('main.browse', sort=request.args.get('sort'), _anchor='browse-records') }}">Clear filters</a>
                 </div>
