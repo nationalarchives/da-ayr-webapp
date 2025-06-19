@@ -9,10 +9,10 @@
   "license": "MIT",
   "devDependencies": {
     "prettier": "^3.5.3",
-    "sass": "^1.69.5",
+    "sass": "^1.89.2",
     "stylelint": "^16.20.0",
     "stylelint-config-standard-scss": "^15.0.1",
-    "stylelint-selector-bem-pattern": "^3.0.1"
+    "stylelint-selector-bem-pattern": "^4.0.1"
   },
   "dependencies": {
     "govuk-frontend": "^5.10.2",

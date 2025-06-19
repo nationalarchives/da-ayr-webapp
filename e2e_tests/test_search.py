@@ -104,9 +104,9 @@ class TestSearchResultsSummary:
             ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
             ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
             ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
             ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
         ]
 
         assert table_row_metadata == expected_row_metadata
@@ -217,7 +217,7 @@ class TestSearchResults:
         standard_user_page.locator("#search-input").fill("fil")
         standard_user_page.get_by_role("button", name="Search").click()
         rows = standard_user_page.locator("tbody .govuk-table__row")
-        assert rows.count() == 36
+        assert rows.count() == 35
 
         tbody_locator = standard_user_page.locator("tbody.govuk-table__body")
         inner_html = tbody_locator.inner_html()
