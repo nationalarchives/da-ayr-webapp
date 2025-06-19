@@ -407,7 +407,7 @@ def test_execute_search(mock_open_search, app):
     dsl_query = {"query": {"match_all": {}}}
     execute_search(mock_open_search, dsl_query, page=1, per_page=10)
     mock_open_search.search.assert_called_once_with(
-        {"query": {"match_all": {}}}, from_=0, size=10, timeout=10
+        body={"query": {"match_all": {}}}, from_=0, size=10, timeout=10
     )
 
 

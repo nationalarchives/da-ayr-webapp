@@ -233,7 +233,7 @@ def execute_search(open_search, dsl_query, page, per_page):
     from_ = per_page * (page - 1)
     try:
         return open_search.search(
-            dsl_query,
+            body=dsl_query,
             from_=from_,
             size=per_page,
             timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
