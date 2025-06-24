@@ -29,12 +29,12 @@ from .utils.assertions import assert_matches_snapshot
             {"width": 1280, "height": 4000},
         ),
         (
-            "/browse/series/8bd7ad22-90d1-4c7f-ae00-645dfd1987cc",
+            "/browse/series/93ed0101-2318-45ab-8730-c681958ded7e",
             "browse_series.jpg",
             {"width": 1280, "height": 4000},
         ),
         (
-            "/browse/consignment/a03363ac-7e7b-4b92-817e-72ba6423edd5",
+            "/browse/consignment/2fd4e03e-5913-4c04-b4f2-5a823fafd430",
             "browse_consignment.jpg",
             {"width": 1280, "height": 4000},
         ),
@@ -49,7 +49,7 @@ from .utils.assertions import assert_matches_snapshot
             {"width": 1280, "height": 4000},
         ),
         (
-            "/record/41f94132-dbdf-43e4-a327-cc5bae432f98",
+            "/record/123e4567-e89b-12d3-a456-426614174000",
             "record.jpg",
             {"width": 1280, "height": 4000},
         ),
@@ -111,12 +111,12 @@ def test_css_no_visual_regression(
             {"width": 390, "height": 5000},
         ),
         (
-            "/browse/series/8bd7ad22-90d1-4c7f-ae00-645dfd1987cc",
+            "/browse/series/93ed0101-2318-45ab-8730-c681958ded7e",
             "browse_series_mobile.jpg",
             {"width": 390, "height": 5000},
         ),
         (
-            "/browse/consignment/a03363ac-7e7b-4b92-817e-72ba6423edd5",
+            "/browse/consignment/2fd4e03e-5913-4c04-b4f2-5a823fafd430",
             "browse_consignment_mobile.jpg",
             {"width": 390, "height": 5000},
         ),
@@ -131,7 +131,7 @@ def test_css_no_visual_regression(
             {"width": 390, "height": 5000},
         ),
         (
-            "/record/41f94132-dbdf-43e4-a327-cc5bae432f98",
+            "/record/123e4567-e89b-12d3-a456-426614174000",
             "record_mobile.jpg",
             {"width": 390, "height": 5000},
         ),
