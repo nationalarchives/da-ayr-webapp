@@ -1,3 +1,4 @@
+{% from 'macros/buttons.html' import govuk_button %}
 {% set search_areas = [
     {
         "value": "everywhere",
@@ -21,8 +22,8 @@
               method="get"
               action="{{ url_for('main.search') }}">
             <fieldset class="govuk-fieldset">
-                <legend class="govuk-fieldset__legend govuk-fieldset__legend--search">
-                    <h1 class="govuk-label top-search__els__heading">Search for digital records</h1>
+                <legend class="govuk-fieldset__legend govuk-fieldset__legend--search govuk-label top-search__els__heading">
+                    Search for digital records
                 </legend>
                 <div class="govuk-radios govuk-radios--small top-search__els__form__checkboxes"
                      data-module="govuk-radios">
@@ -49,10 +50,10 @@
                            type="text"
                            value="{{ (filters['query'] if filters['query'] else '') | replace('+', ', ') }}"
                            aria-label="Enter search query for digital records" />
-                    <button class="govuk-button"
-                            id="search-submit"
-                            data-module="govuk-button"
-                            type="submit">Search</button>
+                    {{ govuk_button(
+                    "Search",
+                    button_id="search-submit",
+                    ) }}
                 </div>
             </fieldset>
         </form>

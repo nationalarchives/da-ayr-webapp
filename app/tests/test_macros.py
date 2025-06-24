@@ -121,7 +121,7 @@ class TestBanners:
         belly_band = soup.find("div", class_="ayr-belly-band")
         assert belly_band is not None
 
-        heading_tag = belly_band.find("h1", class_="govuk-heading-m")
+        heading_tag = belly_band.find("h3", class_="govuk-heading-m")
         link_tag = belly_band.find(
             "a", class_="govuk-link govuk-link--no-visited-state"
         )

@@ -343,6 +343,11 @@
   display: none !important;
 }
 
+.paging.next .uv-icon-next,
+.paging.prev .uv-icon-prev {
+  display: none;
+}
+
 .thumb.selected .wrap {
   border: 5px solid yellow !important;
 }

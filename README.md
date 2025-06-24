@@ -415,6 +415,14 @@ python -m pytest --cov=app --cov-report=term-missing --cov-branch -vvv
 
 This also will generate a test coverage report.
 
+For the data_management tests there is a dockerfile that sets up a local postgres instance to be used as a database.
+
+To run tests for the opensearch_indexer you can run the command:
+
+```shell
+docker compose -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from opensearch_indexer_tests
+```
+
 #### Mocking user permissions in tests
 
 We have 2 fixtures used for mocking a user and their permissions in our non end to end, flask tests:
@@ -581,6 +589,20 @@ The following ENV Vars are required:
 4. Ensure the ENV variable PERF_TEST = True
 5. Access locust via the provided URL and start a new test with the required amount of users
 
+
+### Storybook
+
+Storybook is a powerful frontend tool that allows us to design, build and organize UI components or screens in isolation from the rest of the application. Because we make use of Jinja2 and its macro features, all of which are normally server-side rendered, we first pre-render each UI component (and its variations) using Jinja2 utilities into raw HTML, then configure Storybook to display them using its configuration and `*.stories.js` format.
+
+To first get started, make sure all NPM packages are installed and application styles are built, then run
+
+```npm run prestorybook```
+
+in order to build all of the raw HTML for each component, to start Storybook then run
+
+```npm run storybook```
+
+All of the pre-rendering logic lives inside `storybook/render_macros.py`, including the list of macros and each variation of a macro that needs to be rendered. The naming convention for a html file of a rendered component is just the name of the component itself, in kebab case, any other variation of the macro has an extension added in the form of `-<variation name>`.
 
 ## Logging
 

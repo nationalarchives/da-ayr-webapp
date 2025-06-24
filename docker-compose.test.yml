@@ -1,0 +1,40 @@
+services:
+  opensearch_indexer_tests:
+    build:
+      context: ./data_management/opensearch_indexer
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - ./test_results:/test_results
+    working_dir: /app
+    entrypoint: ""
+    command:
+    - sh
+    - -c
+    - |
+        set -e
+
+        apt-get update
+
+        echo 'Installing Python test dependencies...'
+        pip install -r data_management/opensearch_indexer/requirements-dev.txt
+
+        pytest \
+          --cov=data_management/opensearch_indexer/opensearch_indexer \
+          --cov-report=xml:/test_results/coverage.xml \
+          --cov-report=term-missing \
+          -vvs data_management/opensearch_indexer/tests
+
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testPass123 # pragma: allowlist secret
+      POSTGRES_DB: testdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

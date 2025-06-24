@@ -90,9 +90,9 @@ def test_local_env_vars_config_initialized(monkeypatch):
     assert config.CSP_SCRIPT_SRC_ELEM == [
         "'self'",
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.2.0/",
     ]
-    assert config.CSP_STYLE_SRC == ["'self'"]
+    assert config.CSP_STYLE_SRC == ["'self'", "test_flasks3_cdn_domain"]
     assert config.CSP_STYLE_SRC_ELEM == [
         "'self'",
         "test_flasks3_cdn_domain",
@@ -100,11 +100,16 @@ def test_local_env_vars_config_initialized(monkeypatch):
         "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
         "'sha256-7smvP9yjKljPbeD/NRIE3XgBZUTCaF936I8yK6wJUM4='",  # pragma: allowlist secret
         "'sha256-V4SarAiVbO77lJTzMaRut9Qr7Cx4R8jo8vH1dIFkVSc='",  # pragma: allowlist secret
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/uv.min.css",
-        "'sha256-XawOsBXgsJP8SK/f+1r5Hi9mlYtBA/KzL3kNIn0YzA4='",  # pragma: allowlist secret
-        "'sha256-cngw11JRRopLh6RDda+MT7Jk/9a0aKtyuseJMoDvEow='",  # pragma: allowlist secret
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.2.0/dist/uv.min.css",
+        "'sha256-5F6wlVbvqAuNSR7vsCpdIP/UhcVEa+hoNTMpejqmEkY='",  # pragma: allowlist secret
+        "'sha256-d+KBcHLMVDIG87TjOCYsHdPCu+k2B7Tld0nSNiwUllY='",  # pragma: allowlist secret
     ]
-    assert config.CSP_IMG_SRC == ["'self'", "test_flasks3_cdn_domain", "data:"]
+    assert config.CSP_IMG_SRC == [
+        "'self'",
+        "test_flasks3_cdn_domain",
+        "https://test_record_bucket_name.s3.amazonaws.com",
+        "data:",
+    ]
     assert config.CSP_FRAME_SRC == [
         "'self'",
         "https://test_record_bucket_name.s3.amazonaws.com",
@@ -319,9 +324,9 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
     assert config.CSP_SCRIPT_SRC_ELEM == [
         "'self'",
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/",
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.2.0/",
     ]
-    assert config.CSP_STYLE_SRC == ["'self'"]
+    assert config.CSP_STYLE_SRC == ["'self'", "test_flasks3_cdn_domain"]
     assert config.CSP_STYLE_SRC_ELEM == [
         "'self'",
         "test_flasks3_cdn_domain",
@@ -329,13 +334,14 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
         "'sha256-7smvP9yjKljPbeD/NRIE3XgBZUTCaF936I8yK6wJUM4='",  # pragma: allowlist secret
         "'sha256-V4SarAiVbO77lJTzMaRut9Qr7Cx4R8jo8vH1dIFkVSc='",  # pragma: allowlist secret
-        "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/uv.min.css",
-        "'sha256-XawOsBXgsJP8SK/f+1r5Hi9mlYtBA/KzL3kNIn0YzA4='",  # pragma: allowlist secret
-        "'sha256-cngw11JRRopLh6RDda+MT7Jk/9a0aKtyuseJMoDvEow='",  # pragma: allowlist secret
+        "https://cdn.jsdelivr.net/npm/universalviewer@4.2.0/dist/uv.min.css",
+        "'sha256-5F6wlVbvqAuNSR7vsCpdIP/UhcVEa+hoNTMpejqmEkY='",  # pragma: allowlist secret
+        "'sha256-d+KBcHLMVDIG87TjOCYsHdPCu+k2B7Tld0nSNiwUllY='",  # pragma: allowlist secret
     ]
     assert config.CSP_IMG_SRC == [
         "'self'",
         "test_flasks3_cdn_domain",
+        "https://test_record_bucket_name.s3.amazonaws.com",
         "data:",
     ]
     assert config.CSP_FRAME_SRC == [

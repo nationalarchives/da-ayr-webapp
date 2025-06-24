@@ -181,12 +181,15 @@ class BaseConfig(object):
         return [
             SELF,
             "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/",
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.2.0/",
         ]
 
     @property
     def CSP_STYLE_SRC(self):
-        return [SELF]
+        return [
+            SELF,
+            self.FLASKS3_CDN_DOMAIN,
+        ]
 
     @property
     def CSP_STYLE_SRC_ELEM(self):
@@ -197,15 +200,15 @@ class BaseConfig(object):
             "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",  # pragma: allowlist secret
             "'sha256-7smvP9yjKljPbeD/NRIE3XgBZUTCaF936I8yK6wJUM4='",  # pragma: allowlist secret
             "'sha256-V4SarAiVbO77lJTzMaRut9Qr7Cx4R8jo8vH1dIFkVSc='",  # pragma: allowlist secret
-            "https://cdn.jsdelivr.net/npm/universalviewer@4.1.0/dist/uv.min.css",
-            "'sha256-XawOsBXgsJP8SK/f+1r5Hi9mlYtBA/KzL3kNIn0YzA4='",  # pragma: allowlist secret
+            "https://cdn.jsdelivr.net/npm/universalviewer@4.2.0/dist/uv.min.css",
+            "'sha256-5F6wlVbvqAuNSR7vsCpdIP/UhcVEa+hoNTMpejqmEkY='",  # pragma: allowlist secret
             # for pdfs
-            "'sha256-cngw11JRRopLh6RDda+MT7Jk/9a0aKtyuseJMoDvEow='",  # pragma: allowlist secret
+            "'sha256-d+KBcHLMVDIG87TjOCYsHdPCu+k2B7Tld0nSNiwUllY='",  # pragma: allowlist secret
         ]
 
     @property
     def CSP_IMG_SRC(self):
-        return [SELF, self.FLASKS3_CDN_DOMAIN, "data:"]
+        return [SELF, self.FLASKS3_CDN_DOMAIN, self.S3_BUCKET_URL, "data:"]
 
     @property
     def CSP_FRAME_SRC(self):

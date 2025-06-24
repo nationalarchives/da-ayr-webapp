@@ -1,12 +1,8 @@
 name: Run Unit Tests
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
+  merge_group:
 
 jobs:
   app_tests:
@@ -14,10 +10,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
       with:
         python-version: 3.11
 
@@ -43,34 +39,28 @@ jobs:
       run: poetry run coverage xml
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24
 
   data_management_tests:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.11
+    - name: Set up Docker Compose
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker-compose
 
-    - name: Install Poetry
-      run: pip install poetry
+    - name: Run Docker Compose Tests
+      run: docker compose -f docker-compose.test.yml up --exit-code-from opensearch_indexer_tests
 
-    - name: Install dependencies
-      run: poetry install
-
-    - name: Install dependencies
-      run: pip install pip==24.0 && pip install -r data_management/opensearch_indexer/requirements.txt && pip install -r data_management/opensearch_indexer/requirements-dev.txt
-
-    - name: Run Data Management unit tests
-      run: AWS_DEFAULT_REGION=eu-west-2 pytest --cov=data_management/opensearch_indexer/opensearch_indexer --cov-report term-missing  -rsa -vvv data_management/opensearch_indexer/tests
-
-    - name: Generate coverage XML
-      run: coverage xml
+    - name: Copy coverage file from shared volume
+      run: |
+        cp ./test_results/coverage.xml ./coverage.xml || echo "Coverage file not found"
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24
+      with:
+        file: ./coverage.xml
