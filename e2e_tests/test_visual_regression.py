@@ -68,7 +68,7 @@ def test_css_no_visual_regression(
     """
 
     aau_user_page.set_viewport_size(viewport)
-    aau_user_page.goto(url, timeout=5000)
+    aau_user_page.goto(url, wait_until="networkidle")
     aau_user_page.wait_for_load_state("domcontentloaded")
     snapshot = aau_user_page.screenshot(full_page=True, type="jpeg")
     assert_matches_snapshot(
@@ -149,7 +149,7 @@ def test_css_no_visual_regression_mobile(
     run pytest with `--update-snapshots --headed` flags to update the stored screenshot
     """
     aau_user_page.set_viewport_size(viewport)
-    aau_user_page.goto(url, timeout=5000)
+    aau_user_page.goto(url, wait_until="networkidle")
     aau_user_page.wait_for_load_state("domcontentloaded")
     snapshot = aau_user_page.screenshot(full_page=True, type="jpeg")
     assert_matches_snapshot(
