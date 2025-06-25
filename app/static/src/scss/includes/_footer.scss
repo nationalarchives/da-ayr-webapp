@@ -36,7 +36,7 @@
       margin-right: 0;
       margin-bottom: 0;
       text-align: center;
-      padding: 10px 0;
+      padding: 15px;
     }
   }
 
@@ -68,6 +68,7 @@
   &__licence-description {
     @include on-mobile {
       text-align: center;
+      line-height: 1.3rem;
     }
   }
 }
