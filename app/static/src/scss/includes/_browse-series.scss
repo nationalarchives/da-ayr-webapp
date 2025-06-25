@@ -22,11 +22,6 @@
   &--consignment-reference {
     white-space: nowrap;
   }
-
-  &.word-break {
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
 }
 
 @media screen and (width <= $breakpoint-medium) {
