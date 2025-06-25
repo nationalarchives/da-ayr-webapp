@@ -63,9 +63,9 @@ repos:
   hooks:
     - id: stylelint
       additional_dependencies:
-        - stylelint@16.2.1
-        - stylelint-config-standard-scss@^13.0.0
-        - stylelint-selector-bem-pattern@^3.0.1
+        - stylelint@^16.21.0
+        - stylelint-config-standard-scss@^15.0.1
+        - stylelint-selector-bem-pattern@^4.0.1
 
 - repo: https://github.com/pre-commit/mirrors-prettier
   rev: v4.0.0-alpha.8
