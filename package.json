@@ -14,7 +14,7 @@
     "@storybook/html-vite": "9.0.13",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.2.0",
-    "prettier": "^3.6.0",
+    "prettier": "^3.6.1",
     "sass": "^1.89.2",
     "stylelint": "^16.21.0",
     "stylelint-config-standard-scss": "^15.0.1",
