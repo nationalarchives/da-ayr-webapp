@@ -39,7 +39,7 @@ class TestBrowseConsignment:
         assert standard_user_page.inner_html("text='Page not found'")
 
     def test_browse_consignment_sort_functionality_by_record_status_descending(
-        self, c: Page, utils, standard_user_page
+        self, standard_user_page: Page, utils
     ):
         """
         Scenario: Sorting functionality by record status in descending order
