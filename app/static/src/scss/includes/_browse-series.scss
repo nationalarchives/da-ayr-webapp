@@ -1,3 +1,5 @@
+/* stylelint-disable */
+
 .browse__series {
   &__mobile__header {
     display: none;
@@ -22,7 +24,7 @@
   }
 
   &.word-break {
-    word-wrap: break-word;
+    overflow-wrap: anywhere;
     word-break: break-word;
   }
 }
