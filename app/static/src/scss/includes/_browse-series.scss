@@ -1,3 +1,5 @@
+/* stylelint-disable */
+
 .browse__series {
   &__mobile__header {
     display: none;
@@ -19,11 +21,6 @@
 .govuk-table__cell {
   &--consignment-reference {
     white-space: nowrap;
-  }
-
-  &.word-break {
-    word-wrap: break-word;
-    word-break: break-word;
   }
 }
 

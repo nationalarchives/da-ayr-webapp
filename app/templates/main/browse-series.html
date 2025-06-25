@@ -53,7 +53,9 @@
                     <div class="main-content" id="main-content" role="main">
                         {% for record in results %}
                             <tr class="govuk-table__row govuk-table__row-ref">
-                                <td class="govuk-table__cell govuk-table--invisible-on-mobile word-break">{{ record["transferring_body"] }}</td>
+                                <td class="govuk-table__cell govuk-table__cell--word-break-all govuk-table--invisible-on-mobile">
+                                    {{ record["transferring_body"] }}
+                                </td>
                                 <td class="govuk-table__cell govuk-table--invisible-on-mobile">{{ record["series"] }}</td>
                                 <td class="govuk-table__cell govuk-table--on-desktop--right-align">{{ record["last_record_transferred"] }}</td>
                                 <td class="govuk-table__cell govuk-table--right-align">{{ record["records_held"] | format_number_with_commas }}</td>
