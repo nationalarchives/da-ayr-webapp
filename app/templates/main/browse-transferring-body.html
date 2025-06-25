@@ -101,17 +101,17 @@
                          class="browse-all-filter__icon"
                          alt="">
                 </div>
-                <label class="govuk-label govuk-label__filter" for="series_filter">Series reference</label>
-                <div class="govuk-form-group govuk-form-group--browse-all-filter">
-                    <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
-                           id="series_filter"
-                           name="series_filter"
-                           value="{% if filters['series'] %}{{ filters['series'] }}{% endif %}"
-                           aria-label="Filter for series reference"
-                           type="text">
+                <div class="govuk-form-group">
+                    <label class="govuk-label govuk-label__filter" for="series_filter">Series reference</label>
+                    <div class="govuk-form-group govuk-form-group--browse-all-filter">
+                        <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
+                               id="series_filter"
+                               name="series_filter"
+                               value="{% if filters['series'] %}{{ filters['series'] }}{% endif %}"
+                               aria-label="Filter for series reference"
+                               type="text">
+                    </div>
                 </div>
-            </div>
-            <div class="browse-all-filter-container">
                 <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Transfer date</h3>
                 {% include "date-filters.html" %}
                 <div class="filters-form__buttons">
