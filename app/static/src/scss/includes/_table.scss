@@ -58,6 +58,11 @@
         }
       }
     }
+
+    &--word-break-all {
+      overflow-wrap: anywhere;
+      word-break: break-all;
+    }
   }
 
   &--on-mobile {
