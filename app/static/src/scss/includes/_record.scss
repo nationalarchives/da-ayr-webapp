@@ -110,6 +110,7 @@
   &__value--record {
     font-size: 1rem;
     text-align: left;
+    word-break: break-all;
   }
 
   /* TNA DESIGNER HAS ASKED THAT WE LEAVE THIS STYLE COMMENTED OUT FOR FUTURE USE */
@@ -209,10 +210,6 @@
   }
 }
 
-.ayr-opening-date {
-  padding-left: 1rem;
-}
-
 .record-container .record-arrangement-list {
   list-style-type: none;
   padding: 0;
@@ -276,6 +273,9 @@
 
 .govuk-tabs__panel {
   padding: "3rem 0:0";
+  @include on-mobile {
+    padding: 0;
+  }
 }
 
 .js-enabled .govuk-tabs__panel {
