@@ -254,5 +254,9 @@
 }
 
 .sort-container__form {
-  margin-bottom: 24px;
+  margin-bottom: 1.5rem;
+
+  @include on-mobile {
+    margin-bottom: 0.5rem;
+  }
 }
