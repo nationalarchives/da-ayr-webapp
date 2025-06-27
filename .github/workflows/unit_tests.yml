@@ -254,21 +254,23 @@ jobs:
         
         echo "Found user IDs: AAU=$AAU_USER_ID, Standard=$STANDARD_USER_ID"
         
-        # Get view_all group ID
+        # Get group IDs
         VIEW_ALL_GROUP_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/groups?search=view_all" | jq -r '.[0].id')
-        echo "View all group ID: $VIEW_ALL_GROUP_ID"
+        VIEW_DEPT_GROUP_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/groups?search=view_dept" | jq -r '.[0].id')
+        echo "Group IDs - view_all: $VIEW_ALL_GROUP_ID, view_dept: $VIEW_DEPT_GROUP_ID"
         
-        # Add users to view_all group if they exist
+        # Add AAU user to view_all group
         if [ "$AAU_USER_ID" != "null" ] && [ -n "$AAU_USER_ID" ]; then
           curl -s -X PUT "http://localhost:8080/admin/realms/tdr/users/$AAU_USER_ID/groups/$VIEW_ALL_GROUP_ID" \
             -H "Authorization: Bearer $ADMIN_TOKEN"
           echo "Added AAU user to view_all group"
         fi
         
+        # Add Standard user to view_dept group
         if [ "$STANDARD_USER_ID" != "null" ] && [ -n "$STANDARD_USER_ID" ]; then
-          curl -s -X PUT "http://localhost:8080/admin/realms/tdr/users/$STANDARD_USER_ID/groups/$VIEW_ALL_GROUP_ID" \
+          curl -s -X PUT "http://localhost:8080/admin/realms/tdr/users/$STANDARD_USER_ID/groups/$VIEW_DEPT_GROUP_ID" \
             -H "Authorization: Bearer $ADMIN_TOKEN"
-          echo "Added Standard user to view_all group"
+          echo "Added Standard user to view_dept group"
         fi
         
         echo "Test user setup completed"
@@ -321,6 +323,8 @@ jobs:
         DEFAULT_DATE_FORMAT=DD/MM/YYYY
         RECORD_BUCKET_NAME=test-record-download
         FLASKS3_ACTIVE=False
+        FLASKS3_CDN_DOMAIN=localhost
+        FLASKS3_BUCKET_NAME=test-record-download
         PERF_TEST=False
         EOF
 
