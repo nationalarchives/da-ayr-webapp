@@ -81,6 +81,11 @@ jobs:
       run: |
         cd local_services/webapp_postgres_certs && ./generate_webapp_postgres_certs.sh
         cd ../opensearch_certs && ./generate_opensearch_certs.sh
+        
+        # Fix permissions for PostgreSQL SSL certificates
+        chmod 600 local_services/webapp_postgres_certs/postgres_localhost.key
+        chmod 644 local_services/webapp_postgres_certs/postgres_localhost.crt
+        chmod 644 local_services/webapp_postgres_certs/root-ca.pem
 
     - name: Create local services environment file
       run: |
