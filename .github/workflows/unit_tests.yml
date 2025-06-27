@@ -97,19 +97,20 @@ jobs:
       run: |
         cp local_services/.env.template local_services/.env
 
+    - name: Create CI-specific docker-compose override
+      run: |
+        cat > local_services/docker-compose.override.yml << 'EOF'
+        services:
+          webapp_postgres:
+            volumes:
+              - webapp_postgres_data:/var/lib/postgresql/data
+              - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
+            command: ["postgres"]
+        EOF
+
     - name: Start local services
       run: |
         cd local_services && docker compose up -d
-        
-        # Wait a moment for containers to initialize
-        sleep 5
-        
-        # Fix SSL certificate permissions inside PostgreSQL container
-        docker exec local_services-webapp_postgres-1 chown postgres:postgres /var/lib/postgresql/postgres_localhost.key
-        docker exec local_services-webapp_postgres-1 chmod 600 /var/lib/postgresql/postgres_localhost.key
-        
-        # Restart PostgreSQL to pick up the corrected permissions
-        docker restart local_services-webapp_postgres-1
 
     - name: Wait for services to be ready
       run: |
