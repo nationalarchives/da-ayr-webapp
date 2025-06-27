@@ -105,7 +105,16 @@ jobs:
             volumes:
               - webapp_postgres_data:/var/lib/postgresql/data
               - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
-            command: ["postgres"]
+              - ./webapp_postgres_certs/postgres_localhost.crt:/var/lib/postgresql/postgres_localhost.crt
+              - ./webapp_postgres_certs/postgres_localhost.key:/var/lib/postgresql/postgres_localhost.key
+              - ./webapp_postgres_certs/root-ca.pem:/var/lib/postgresql/root-ca.pem
+            command: [
+              "postgres",
+              "-c", "ssl=on",
+              "-c", "ssl_cert_file=/var/lib/postgresql/postgres_localhost.crt",
+              "-c", "ssl_key_file=/var/lib/postgresql/postgres_localhost.key",
+              "-c", "ssl_ca_file=/var/lib/postgresql/root-ca.pem"
+            ]
 
           opensearch-node1:
             environment:
@@ -132,6 +141,17 @@ jobs:
     - name: Start local services
       run: |
         cd local_services && docker compose up -d
+        
+        # Wait a moment for containers to start
+        sleep 5
+        
+        # Fix PostgreSQL SSL certificate permissions inside container
+        docker exec local_services-webapp_postgres-1 chown postgres:postgres /var/lib/postgresql/postgres_localhost.key /var/lib/postgresql/postgres_localhost.crt /var/lib/postgresql/root-ca.pem
+        docker exec local_services-webapp_postgres-1 chmod 600 /var/lib/postgresql/postgres_localhost.key
+        docker exec local_services-webapp_postgres-1 chmod 644 /var/lib/postgresql/postgres_localhost.crt /var/lib/postgresql/root-ca.pem
+        
+        # Restart PostgreSQL to pick up correct permissions
+        docker restart local_services-webapp_postgres-1
 
     - name: Wait for services to be ready
       run: |
@@ -326,7 +346,7 @@ jobs:
         FLASKS3_CDN_DOMAIN=localhost
         FLASKS3_BUCKET_NAME=test-record-download
         PERF_TEST=False
-        DB_SSL_ROOT_CERTIFICATE=
+        DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
         OPEN_SEARCH_HOST=
         OPEN_SEARCH_USERNAME=
         OPEN_SEARCH_PASSWORD=
