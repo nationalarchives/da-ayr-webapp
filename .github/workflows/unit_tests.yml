@@ -409,14 +409,14 @@ jobs:
         FLASK_PID=$!
         echo "Flask PID: $FLASK_PID"
         sleep 10  # Give webapp time to start
-        
+
         # Check if Flask is still running
         if ! ps -p $FLASK_PID > /dev/null; then
           echo "Flask process died! Logs:"
           cat webapp.log
           exit 1
         fi
-        
+
         # Wait for webapp to be ready
         timeout 60 bash -c 'until curl -k -f https://localhost:5000/health 2>/dev/null || curl -k -f https://localhost:5000/ 2>/dev/null; do echo "Webapp not ready yet... ($(date))"; sleep 2; done' || (echo "Webapp failed to start. Logs:"; cat webapp.log; exit 1)
         echo "Webapp is ready"
