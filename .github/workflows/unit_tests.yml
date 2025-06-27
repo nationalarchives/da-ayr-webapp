@@ -142,12 +142,12 @@ jobs:
       run: |
         cat > local_services/fix-ssl-permissions.sh << 'EOF'
         #!/bin/bash
-        # Fix SSL certificate permissions
+        # Fix SSL certificate permissions as root
         chown postgres:postgres /var/lib/postgresql/postgres_localhost.key /var/lib/postgresql/postgres_localhost.crt /var/lib/postgresql/root-ca.pem
         chmod 600 /var/lib/postgresql/postgres_localhost.key
         chmod 644 /var/lib/postgresql/postgres_localhost.crt /var/lib/postgresql/root-ca.pem
-        # Start PostgreSQL with the original command
-        exec "$@"
+        # Switch to postgres user and run original entrypoint
+        exec gosu postgres docker-entrypoint.sh "$@"
         EOF
         chmod +x local_services/fix-ssl-permissions.sh
 
