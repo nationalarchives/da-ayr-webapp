@@ -132,7 +132,9 @@ jobs:
         echo "Keycloak is ready"
         
         echo "Waiting for OpenSearch..."
-        timeout 300 bash -c 'until curl -s -k -u admin:FOOBARCARabc123! https://localhost:9200/_cluster/health | grep -q "yellow\|green"; do echo "OpenSearch not ready yet... ($(date))"; sleep 10; done'
+        echo "Checking OpenSearch container logs..."
+        docker logs opensearch-node1 --tail 10
+        timeout 300 bash -c 'until curl -s -k -u admin:FOOBARCARabc123! https://localhost:9200/_cluster/health | grep -q "yellow\|green"; do echo "OpenSearch not ready yet... ($(date))"; docker logs opensearch-node1 --tail 3; sleep 10; done'
         echo "OpenSearch is ready"
         
         echo "All services are ready!"
