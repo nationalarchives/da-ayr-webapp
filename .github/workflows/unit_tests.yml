@@ -64,3 +64,59 @@ jobs:
       uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24
       with:
         file: ./coverage.xml
+
+  e2e_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+    - name: Generate SSL certificates for local services
+      run: |
+        cd local_services/webapp_postgres_certs && ./generate_webapp_postgres_certs.sh
+        cd ../opensearch_certs && ./generate_opensearch_certs.sh
+
+    - name: Create local services environment file
+      run: |
+        cp local_services/.env.template local_services/.env
+
+    - name: Start local services
+      run: |
+        cd local_services && docker compose up -d
+        # Wait for services to be ready
+        sleep 60
+
+    - name: Setup opensearch data
+      run: |
+        source local_services/.env && local_services/opensearch-entrypoint.sh
+
+    - name: Set up Python
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+      with:
+        python-version: 3.11
+
+    - name: Install Poetry
+      run: pip install poetry
+
+    - name: Install E2E test dependencies
+      run: cd e2e_tests/ && poetry install --no-root && poetry run playwright install --with-deps
+
+    - name: Run E2E tests
+      env:
+        KEYCLOAK_BASE_URI: http://localhost:8080
+        KEYCLOAK_CLIENT_ID: ayr-beta
+        KEYCLOAK_REALM_NAME: tdr
+        KEYCLOAK_CLIENT_SECRET: test-secret
+        WEBAPP_BASE_URL: https://localhost:5000
+        AYR_AAU_USER_USERNAME: test-user
+        AYR_AAU_USER_PASSWORD: test-password
+        AYR_STANDARD_USER_USERNAME: standard-user
+        AYR_STANDARD_USER_PASSWORD: standard-password
+      run: |
+        cd e2e_tests/ && poetry run pytest . --base-url=https://localhost:5000 -k "not test_css_no_visual_regression" -vvvv -rsa --slowmo 100 -ra -vvvv --tracing on --browser chromium
+
+    - name: Stop local services
+      if: always()
+      run: |
+        cd local_services && docker compose down
