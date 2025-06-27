@@ -445,7 +445,7 @@ jobs:
         AYR_STANDARD_USER_PASSWORD: test-password
       run: |
         # Quick debug test to see what's on the login page
-        cd e2e_tests/ && python3 -c "
+        cd e2e_tests/ && poetry run python3 -c "
         import os
         from playwright.sync_api import sync_playwright
         
@@ -462,7 +462,7 @@ jobs:
         " || echo "Debug failed"
         
         # Run actual tests
-        cd e2e_tests/ && poetry run pytest . --base-url=https://localhost:5000 -k "not test_css_no_visual_regression" --tb=short --maxfail=1 -s --browser chromium --screenshot=on
+        poetry run pytest . --base-url=https://localhost:5000 -k "not test_css_no_visual_regression" --tb=short --maxfail=1 -s --browser chromium --screenshot=on
 
     - name: Upload test artifacts
       if: failure()
