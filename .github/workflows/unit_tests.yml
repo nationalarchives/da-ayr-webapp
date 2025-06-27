@@ -106,6 +106,27 @@ jobs:
               - webapp_postgres_data:/var/lib/postgresql/data
               - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
             command: ["postgres"]
+          
+          opensearch-node1:
+            environment:
+              - cluster.name=opensearch-cluster
+              - node.name=opensearch-node1
+              - discovery.type=single-node
+              - bootstrap.memory_lock=true
+              - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+              - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+              - DISABLE_SECURITY_PLUGIN=true
+            volumes:
+              - opensearch-data1:/usr/share/opensearch/data
+            ports:
+              - 9200:9200
+              - 9600:9600
+            networks:
+              - opensearch-net
+        
+          opensearch-node2:
+            deploy:
+              replicas: 0
         EOF
 
     - name: Start local services
@@ -134,7 +155,7 @@ jobs:
         echo "Waiting for OpenSearch..."
         echo "Checking OpenSearch container logs..."
         docker logs opensearch-node1 --tail 10
-        timeout 300 bash -c 'until curl -s -k -u admin:FOOBARCARabc123! https://localhost:9200/_cluster/health | grep -q "yellow\|green"; do echo "OpenSearch not ready yet... ($(date))"; docker logs opensearch-node1 --tail 3; sleep 10; done'
+        timeout 300 bash -c 'until curl -s http://localhost:9200/_cluster/health | grep -q "yellow\|green"; do echo "OpenSearch not ready yet... ($(date))"; docker logs opensearch-node1 --tail 3; sleep 10; done'
         echo "OpenSearch is ready"
         
         echo "All services are ready!"
@@ -170,10 +191,7 @@ jobs:
         AWS_ENDPOINT_URL=http://localhost:9000
         AWS_ACCESS_KEY_ID=ROOTNAME
         AWS_SECRET_ACCESS_KEY=CHANGEME123
-        OPEN_SEARCH_HOST=https://localhost:9200
-        OPEN_SEARCH_USERNAME=admin
-        OPEN_SEARCH_PASSWORD=FOOBARCARabc123!
-        OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
+        OPEN_SEARCH_HOST=http://localhost:9200
         OPEN_SEARCH_TIMEOUT=10
         SECRET_KEY=test-secret-key
         EOF
