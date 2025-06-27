@@ -326,6 +326,12 @@ jobs:
         FLASKS3_CDN_DOMAIN=localhost
         FLASKS3_BUCKET_NAME=test-record-download
         PERF_TEST=False
+        DB_SSL_ROOT_CERTIFICATE=
+        OPEN_SEARCH_HOST=
+        OPEN_SEARCH_USERNAME=
+        OPEN_SEARCH_PASSWORD=
+        OPEN_SEARCH_CA_CERTS=
+        OPEN_SEARCH_TIMEOUT=10
         EOF
 
     - name: Generate SSL certificate for webapp
