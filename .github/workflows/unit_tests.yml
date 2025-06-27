@@ -195,6 +195,27 @@ jobs:
         
         echo "Keycloak client configured with admin permissions"
         
+        echo "Creating missing groups..."
+        
+        # Create transferring_body_user parent group if it doesn't exist
+        curl -s -X POST "http://localhost:8080/admin/realms/tdr/groups" \
+          -H "Authorization: Bearer $ADMIN_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{"name":"transferring_body_user","path":"/transferring_body_user"}' 2>/dev/null || true
+        
+        # Get transferring_body_user group ID
+        TB_GROUP_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/groups?search=transferring_body_user" | jq -r '.[0].id')
+        
+        # Create "Testing A" subgroup under transferring_body_user
+        if [ "$TB_GROUP_ID" != "null" ] && [ -n "$TB_GROUP_ID" ]; then
+          curl -s -X POST "http://localhost:8080/admin/realms/tdr/groups/$TB_GROUP_ID/children" \
+            -H "Authorization: Bearer $ADMIN_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"Testing A","path":"/transferring_body_user/Testing A"}' 2>/dev/null || true
+        fi
+        
+        echo "Missing groups created"
+        
         echo "Creating test users..."
         
         # Create AAU test user
