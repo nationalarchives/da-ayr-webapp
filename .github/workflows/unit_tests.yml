@@ -273,6 +273,13 @@ jobs:
     - name: Install Poetry
       run: pip install poetry
 
+    - name: Install webapp dependencies
+      run: |
+        poetry install
+        npm install
+        ./build.sh
+        npm run build
+
     - name: Install E2E test dependencies
       run: cd e2e_tests/ && poetry install --no-root && poetry run playwright install --with-deps
 
