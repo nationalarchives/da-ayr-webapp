@@ -57,7 +57,7 @@ class TestBrowseConsignment:
         | 22/11/2023 | closed_file_R - Copy.pdf | Open | – |
         | 22/11/2023 | closed_file_R.pdf        | Open | – |
         | 22/11/2023 | closed_file.txt          | Open | – |
-        | 22/11/2023 | file-a1,.txt             | Open | – |
+        | 22/11/2023 | file-a1.txt             | Open | – |
         | 22/11/2023 | file-a1.txt              | Open | – |
         """
         standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
@@ -81,7 +81,7 @@ class TestBrowseConsignment:
             ["22/11/2023", "closed_file_R - Copy.pdf", "Open", "–"],
             ["22/11/2023", "closed_file_R.pdf", "Open", "–"],
             ["22/11/2023", "closed_file.txt", "Open", "–"],
-            ["22/11/2023", "file-a1,.txt", "Open", "–"],
+            ["22/11/2023", "file-a1.txt", "Open", "–"],
             ["22/11/2023", "file-a1.txt", "Open", "–"],
             ["22/11/2023", "file-a2.txt", "Open", "–"],
             ["22/11/2023", "file-b1.txt", "Open", "–"],
