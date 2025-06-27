@@ -128,7 +128,7 @@ jobs:
         echo "Waiting for Keycloak..."
         echo "Checking if Keycloak container is running..."
         docker logs local_services-keycloak-1 --tail 10
-        timeout 300 bash -c 'until curl -f http://localhost:8080/health/ready 2>/dev/null; do echo "Keycloak not ready yet... ($(date))"; docker logs local_services-keycloak-1 --tail 3; sleep 10; done'
+        timeout 300 bash -c 'until curl -f http://localhost:8080/realms/master 2>/dev/null; do echo "Keycloak not ready yet... ($(date))"; sleep 10; done'
         echo "Keycloak is ready"
         
         echo "Waiting for OpenSearch..."
