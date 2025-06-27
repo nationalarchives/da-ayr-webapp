@@ -405,12 +405,33 @@ jobs:
 
     - name: Start webapp
       run: |
-        source .env && poetry run flask run &
+        echo "Starting Flask webapp..."
+        source .env && poetry run flask run > webapp.log 2>&1 &
+        FLASK_PID=$!
+        echo "Flask PID: $FLASK_PID"
         sleep 10  # Give webapp time to start
-
+        
+        # Check if Flask is still running
+        if ! ps -p $FLASK_PID > /dev/null; then
+          echo "Flask process died! Logs:"
+          cat webapp.log
+          exit 1
+        fi
+        
         # Wait for webapp to be ready
-        timeout 60 bash -c 'until curl -k -f https://localhost:5000/health 2>/dev/null || curl -k -f https://localhost:5000/ 2>/dev/null; do echo "Webapp not ready yet..."; sleep 2; done'
+        timeout 60 bash -c 'until curl -k -f https://localhost:5000/health 2>/dev/null || curl -k -f https://localhost:5000/ 2>/dev/null; do echo "Webapp not ready yet... ($(date))"; sleep 2; done' || (echo "Webapp failed to start. Logs:"; cat webapp.log; exit 1)
         echo "Webapp is ready"
+
+    - name: Pre-test debugging
+      run: |
+        echo "=== Final service status check ==="
+        docker ps
+        echo "=== Webapp process check ==="
+        ps aux | grep flask || echo "No flask processes found"
+        echo "=== Test webapp connectivity ==="
+        curl -k -v https://localhost:5000/ || echo "Webapp not responding"
+        echo "=== Keycloak connectivity ==="
+        curl -f http://localhost:8080/realms/master || echo "Keycloak not responding"
 
     - name: Run E2E tests
       env:
@@ -423,7 +444,7 @@ jobs:
         AYR_STANDARD_USER_USERNAME: test-standard-user@example.com
         AYR_STANDARD_USER_PASSWORD: test-password
       run: |
-        cd e2e_tests/ && poetry run pytest . --base-url=https://localhost:5000 -k "not test_css_no_visual_regression" -vvvv -rsa --slowmo 100 -ra -vvvv --tracing on --browser chromium
+        cd e2e_tests/ && poetry run pytest . --base-url=https://localhost:5000 -k "not test_css_no_visual_regression" --tb=short --maxfail=5 -v --browser chromium
 
     - name: Show container logs on failure
       if: failure()
