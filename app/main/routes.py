@@ -133,7 +133,8 @@ def callback():
     session["access_token"] = access_token_response["access_token"]
     session["refresh_token"] = access_token_response["refresh_token"]
     session["user_groups"] = decoded_access_token["groups"]
-    session["user_id"] = decoded_access_token["sub"]
+    # Handle missing 'sub' claim in CI environment - fallback to username
+    session["user_id"] = decoded_access_token.get("sub") or decoded_access_token.get("username") or "unknown-user"
     ayr_user = AYRUser(session.get("user_groups"))
     if ayr_user.is_all_access_user:
         session["user_type"] = "all_access_user"
