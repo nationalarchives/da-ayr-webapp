@@ -219,7 +219,7 @@ jobs:
         echo "Creating test users..."
         
         # Create AAU test user
-        AAU_USER_ID=$(curl -s -X POST "http://localhost:8080/admin/realms/tdr/users" \
+        AAU_RESPONSE=$(curl -s -X POST "http://localhost:8080/admin/realms/tdr/users" \
           -H "Authorization: Bearer $ADMIN_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{
@@ -229,10 +229,12 @@ jobs:
             "lastName":"AAU",
             "enabled":true,
             "credentials":[{"type":"password","value":"test-password","temporary":false}]
-          }' | jq -r '.id' 2>/dev/null || echo "failed")
+          }')
+        
+        echo "AAU user creation response: $AAU_RESPONSE"
         
         # Create Standard test user  
-        STANDARD_USER_ID=$(curl -s -X POST "http://localhost:8080/admin/realms/tdr/users" \
+        STANDARD_RESPONSE=$(curl -s -X POST "http://localhost:8080/admin/realms/tdr/users" \
           -H "Authorization: Bearer $ADMIN_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{
@@ -242,20 +244,34 @@ jobs:
             "lastName":"Standard",
             "enabled":true,
             "credentials":[{"type":"password","value":"test-password","temporary":false}]
-          }' | jq -r '.id' 2>/dev/null || echo "failed")
+          }')
+        
+        echo "Standard user creation response: $STANDARD_RESPONSE"
+        
+        # Get user IDs by searching for them
+        AAU_USER_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/users?username=test-aau-user@example.com" | jq -r '.[0].id')
+        STANDARD_USER_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/users?username=test-standard-user@example.com" | jq -r '.[0].id')
+        
+        echo "Found user IDs: AAU=$AAU_USER_ID, Standard=$STANDARD_USER_ID"
         
         # Get view_all group ID
         VIEW_ALL_GROUP_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/groups?search=view_all" | jq -r '.[0].id')
+        echo "View all group ID: $VIEW_ALL_GROUP_ID"
         
-        # Add AAU user to view_all group
-        curl -s -X PUT "http://localhost:8080/admin/realms/tdr/users/$AAU_USER_ID/groups/$VIEW_ALL_GROUP_ID" \
-          -H "Authorization: Bearer $ADMIN_TOKEN"
+        # Add users to view_all group if they exist
+        if [ "$AAU_USER_ID" != "null" ] && [ -n "$AAU_USER_ID" ]; then
+          curl -s -X PUT "http://localhost:8080/admin/realms/tdr/users/$AAU_USER_ID/groups/$VIEW_ALL_GROUP_ID" \
+            -H "Authorization: Bearer $ADMIN_TOKEN"
+          echo "Added AAU user to view_all group"
+        fi
         
-        # Add Standard user to view_all group  
-        curl -s -X PUT "http://localhost:8080/admin/realms/tdr/users/$STANDARD_USER_ID/groups/$VIEW_ALL_GROUP_ID" \
-          -H "Authorization: Bearer $ADMIN_TOKEN"
+        if [ "$STANDARD_USER_ID" != "null" ] && [ -n "$STANDARD_USER_ID" ]; then
+          curl -s -X PUT "http://localhost:8080/admin/realms/tdr/users/$STANDARD_USER_ID/groups/$VIEW_ALL_GROUP_ID" \
+            -H "Authorization: Bearer $ADMIN_TOKEN"
+          echo "Added Standard user to view_all group"
+        fi
         
-        echo "Test users created and added to view_all group: AAU=$AAU_USER_ID, Standard=$STANDARD_USER_ID"
+        echo "Test user setup completed"
         
         echo "Skipping OpenSearch for CI - not essential for basic E2E tests"
         
@@ -299,7 +315,13 @@ jobs:
         AWS_ENDPOINT_URL=http://localhost:9000
         AWS_ACCESS_KEY_ID=ROOTNAME
         AWS_SECRET_ACCESS_KEY=CHANGEME123
+        AWS_REGION=eu-west-2
         SECRET_KEY=test-secret-key
+        DEFAULT_PAGE_SIZE=10
+        DEFAULT_DATE_FORMAT=DD/MM/YYYY
+        RECORD_BUCKET_NAME=test-record-download
+        FLASKS3_ACTIVE=False
+        PERF_TEST=False
         EOF
 
     - name: Generate SSL certificate for webapp
