@@ -461,8 +461,8 @@ jobs:
             browser.close()
         " || echo "Debug failed"
         
-        # Run actual tests
-        poetry run pytest . --base-url=https://localhost:5000 -k "not test_css_no_visual_regression" --tb=short --maxfail=1 -s --browser chromium --screenshot=on
+        # Run actual tests, excluding search tests since OpenSearch is disabled in CI
+        poetry run pytest . --base-url=https://localhost:5000 -k "not test_css_no_visual_regression and not test_search and not search" --tb=short -s --browser chromium --screenshot=on
 
     - name: Upload test artifacts
       if: failure()
