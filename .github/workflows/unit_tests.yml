@@ -72,10 +72,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-    - name: Install PostgreSQL client
+    - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y postgresql-client
+        sudo apt-get install -y postgresql-client jq
 
     - name: Generate SSL certificates for local services
       run: |
@@ -152,9 +152,34 @@ jobs:
         timeout 300 bash -c 'until curl -f http://localhost:8080/realms/master 2>/dev/null; do echo "Keycloak not ready yet... ($(date))"; sleep 10; done'
         echo "Keycloak is ready"
         
+        echo "Configuring Keycloak client secret..."
+        sleep 10  # Give Keycloak time to fully initialize
+        
+        # Get admin access token
+        ADMIN_TOKEN=$(curl -s -X POST "http://localhost:8080/realms/master/protocol/openid-connect/token" \
+          -H "Content-Type: application/x-www-form-urlencoded" \
+          -d "username=admin" \
+          -d "password=password" \
+          -d "grant_type=password" \
+          -d "client_id=admin-cli" | jq -r '.access_token')
+        
+        # Check if tdr realm exists, if not wait for import
+        until curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr" | grep -q "tdr"; do
+          echo "Waiting for tdr realm to be imported..."
+          sleep 5
+        done
+        
+        # Update client secret
+        curl -s -X PUT "http://localhost:8080/admin/realms/tdr/clients/$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/clients?clientId=ayr-beta" | jq -r '.[0].id')" \
+          -H "Authorization: Bearer $ADMIN_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{"secret":"test-client-secret"}'
+        
+        echo "Keycloak client secret configured"
+        
         echo "Skipping OpenSearch for CI - not essential for basic E2E tests"
         
-        echo "Essential services (PostgreSQL, Keycloak, MinIO) are ready!"
+        echo "Essential services (PostgreSQL, Keycloak, MinIO) are ready"
 
     - name: Skip OpenSearch data setup
       run: |
@@ -178,7 +203,7 @@ jobs:
         KEYCLOAK_BASE_URI=http://localhost:8080
         KEYCLOAK_CLIENT_ID=ayr-beta
         KEYCLOAK_REALM_NAME=tdr
-        KEYCLOAK_CLIENT_SECRET=test-secret
+        KEYCLOAK_CLIENT_SECRET=test-client-secret
         DB_PORT=5433
         DB_HOST=localhost
         DB_NAME=local_db
@@ -192,6 +217,10 @@ jobs:
 
     - name: Run E2E tests
       env:
+        KEYCLOAK_BASE_URI: http://localhost:8080
+        KEYCLOAK_REALM_NAME: tdr
+        KEYCLOAK_CLIENT_ID: ayr-beta
+        KEYCLOAK_CLIENT_SECRET: test-client-secret
         AYR_AAU_USER_USERNAME: test-user
         AYR_AAU_USER_PASSWORD: test-password
         AYR_STANDARD_USER_USERNAME: standard-user
