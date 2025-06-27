@@ -199,7 +199,7 @@ jobs:
         cd local_services && docker compose up -d
 
     - name: Wait for services to be ready
-      run: |
+      run: | # pragma: allowlist secret
         echo "Checking Docker containers status..."
         docker ps
 
@@ -441,9 +441,9 @@ jobs:
         KEYCLOAK_BASE_URI: http://localhost:8080
         KEYCLOAK_REALM_NAME: tdr
         KEYCLOAK_CLIENT_ID: ayr-beta
-        KEYCLOAK_CLIENT_SECRET: test-client-secret
+        KEYCLOAK_CLIENT_SECRET: test-client-secret # pragma: allowlist secret
         AYR_AAU_USER_USERNAME: test-aau-user@example.com
-        AYR_AAU_USER_PASSWORD: test-password
+        AYR_AAU_USER_PASSWORD: test-password # pragma: allowlist secret
         AYR_STANDARD_USER_USERNAME: test-standard-user@example.com
         AYR_STANDARD_USER_PASSWORD: test-password
       run: |
