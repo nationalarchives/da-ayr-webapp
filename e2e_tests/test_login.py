@@ -1,4 +1,5 @@
 import json
+import os
 import zlib
 
 import jwt
@@ -17,8 +18,13 @@ def test_sign_in_succeeds_when_valid_credentials(
     """
     username, password = create_aau_keycloak_user
     page.goto("/sign-in")
-    page.get_by_label("Email address").fill(username)
-    page.get_by_label("Password").fill(password)
+    # Use different field selector for GitHub CI vs local development
+    if os.environ.get("GITHUB_ACTIONS"):
+        page.get_by_label("Username or email").fill(username)
+        page.get_by_role("textbox", name="Password").fill(password)
+    else:
+        page.get_by_label("Email address").fill(username)
+        page.get_by_label("Password").fill(password)
     page.get_by_role("button", name="Sign in").click()
     expect(page).to_have_url("/browse")
 
@@ -80,8 +86,13 @@ def test_token_expiry(page: Page, create_aau_keycloak_user):
     username, password = create_aau_keycloak_user
 
     page.goto("/sign-in")
-    page.get_by_label("Email address").fill(username)
-    page.get_by_label("Password").fill(password)
+    # Use different field selector for GitHub CI vs local development
+    if os.environ.get("GITHUB_ACTIONS"):
+        page.get_by_label("Username or email").fill(username)
+        page.get_by_role("textbox", name="Password").fill(password)
+    else:
+        page.get_by_label("Email address").fill(username)
+        page.get_by_label("Password").fill(password)
     page.get_by_role("button", name="Sign in").click()
     expect(page).to_have_url("/browse")
 
@@ -151,7 +162,12 @@ def test_sign_in_fails_when_invalid_credentials(page: Page):
     Then they should see an error message indicating the provided credentials are invalid.
     """
     page.goto("/sign-in")
-    page.get_by_label("Email address").fill("bad")
-    page.get_by_label("Password").fill("credentials")
+    # Use different field selector for GitHub CI vs local development
+    if os.environ.get("GITHUB_ACTIONS"):
+        page.get_by_label("Username or email").fill("bad")
+        page.get_by_role("textbox", name="Password").fill("credentials")
+    else:
+        page.get_by_label("Email address").fill("bad")
+        page.get_by_label("Password").fill("credentials")
     page.get_by_role("button", name="Sign in").click()
     expect(page.get_by_text("Invalid username or password."))
