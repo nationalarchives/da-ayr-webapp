@@ -90,7 +90,11 @@ def create_user_page(
             page.get_by_label("Username or email").fill(username)
         else:
             page.get_by_label("Email address").fill(username)
-        page.get_by_label("Password").fill(password)
+        # Use different password field selector for GitHub CI vs local development
+        if os.environ.get("GITHUB_ACTIONS"):
+            page.get_by_role("textbox", name="Password").fill(password)
+        else:
+            page.get_by_label("Password").fill(password)
         page.get_by_role("button", name="Sign in").click()
         return page
 
