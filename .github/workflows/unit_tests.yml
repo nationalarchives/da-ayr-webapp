@@ -444,7 +444,32 @@ jobs:
         AYR_STANDARD_USER_USERNAME: test-standard-user@example.com
         AYR_STANDARD_USER_PASSWORD: test-password
       run: |
-        cd e2e_tests/ && poetry run pytest . --base-url=https://localhost:5000 -k "not test_css_no_visual_regression" --tb=short --maxfail=5 -v --browser chromium
+        # Quick debug test to see what's on the login page
+        cd e2e_tests/ && python3 -c "
+        import os
+        from playwright.sync_api import sync_playwright
+        
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page()
+            page.goto('https://localhost:5000/sign-in', wait_until='networkidle')
+            print('Page title:', page.title())
+            print('Page URL:', page.url)
+            print('Page content preview:')
+            print(page.content()[:1000])
+            page.screenshot(path='debug-screenshot.png')
+            browser.close()
+        " || echo "Debug failed"
+        
+        # Run actual tests
+        cd e2e_tests/ && poetry run pytest . --base-url=https://localhost:5000 -k "not test_css_no_visual_regression" --tb=short --maxfail=1 -s --browser chromium --screenshot=on
+
+    - name: Upload test artifacts
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: e2e_tests/test-results/
 
     - name: Show container logs on failure
       if: failure()
@@ -457,6 +482,8 @@ jobs:
         docker logs local_services-keycloak-1 || echo "No keycloak container found"
         echo "=== OpenSearch node1 logs ==="
         docker logs opensearch-node1 || echo "No opensearch-node1 container found"
+        echo "=== Webapp logs ==="
+        cat webapp.log || echo "No webapp logs found"
 
     - name: Stop local services
       if: always()
