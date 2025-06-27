@@ -241,7 +241,34 @@ jobs:
         curl -s -X PUT "http://localhost:8080/admin/realms/tdr/clients/$CLIENT_ID" \
           -H "Authorization: Bearer $ADMIN_TOKEN" \
           -H "Content-Type: application/json" \
-          -d '{"secret":"test-client-secret","serviceAccountsEnabled":true,"directAccessGrantsEnabled":true}'
+          -d '{
+            "secret":"test-client-secret",
+            "serviceAccountsEnabled":true,
+            "directAccessGrantsEnabled":true,
+            "standardFlowEnabled":true,
+            "implicitFlowEnabled":false,
+            "publicClient":false,
+            "protocol":"openid-connect",
+            "attributes":{
+              "access.token.lifespan":"300",
+              "client.secret.creation.time":"1640995200"
+            },
+            "protocolMappers":[
+              {
+                "name":"groups",
+                "protocol":"openid-connect",
+                "protocolMapper":"oidc-group-membership-mapper",
+                "consentRequired":false,
+                "config":{
+                  "full.path":"true",
+                  "id.token.claim":"true",
+                  "access.token.claim":"true",
+                  "claim.name":"groups",
+                  "userinfo.token.claim":"true"
+                }
+              }
+            ]
+          }'
 
         # Get realm management client ID
         REALM_MGMT_CLIENT_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/clients?clientId=realm-management" | jq -r '.[0].id')
@@ -339,6 +366,28 @@ jobs:
         fi
 
         echo "Test user setup completed"
+        
+        echo "Testing Keycloak token introspection..."
+        # Get a token for test user to verify 'sub' claim is present
+        USER_TOKEN=$(curl -s -X POST "http://localhost:8080/realms/tdr/protocol/openid-connect/token" \
+          -H "Content-Type: application/x-www-form-urlencoded" \
+          -d "username=test-aau-user@example.com" \
+          -d "password=test-password" \
+          -d "grant_type=password" \
+          -d "client_id=ayr-beta" \
+          -d "client_secret=test-client-secret" | jq -r '.access_token')
+        
+        # Test token introspection
+        if [ "$USER_TOKEN" != "null" ] && [ -n "$USER_TOKEN" ]; then
+          echo "Testing token introspection..."
+          curl -s -X POST "http://localhost:8080/realms/tdr/protocol/openid-connect/token/introspect" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "token=$USER_TOKEN" \
+            -d "client_id=ayr-beta" \
+            -d "client_secret=test-client-secret" | jq '.'
+        else
+          echo "Failed to get user token for testing"
+        fi
 
         echo "Skipping OpenSearch for CI - not essential for basic E2E tests"
 
@@ -406,6 +455,9 @@ jobs:
     - name: Start webapp
       run: |
         echo "Starting Flask webapp..."
+        # Set Flask to debug mode for better error logging in CI
+        export FLASK_ENV=development
+        export FLASK_DEBUG=1
         source .env && poetry run flask run > webapp.log 2>&1 &
         FLASK_PID=$!
         echo "Flask PID: $FLASK_PID"
