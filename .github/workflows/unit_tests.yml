@@ -150,13 +150,32 @@ jobs:
     - name: Install E2E test dependencies
       run: cd e2e_tests/ && poetry install --no-root && poetry run playwright install --with-deps
 
+    - name: Set up webapp environment
+      run: |
+        cat > .env << 'EOF'
+        CONFIG_SOURCE=ENVIRONMENT_VARIABLES
+        KEYCLOAK_BASE_URI=http://localhost:8080
+        KEYCLOAK_CLIENT_ID=ayr-beta
+        KEYCLOAK_REALM_NAME=tdr
+        KEYCLOAK_CLIENT_SECRET=test-secret
+        DB_PORT=5433
+        DB_HOST=localhost
+        DB_NAME=local_db
+        DB_USER=local_db_user
+        DB_PASSWORD=local_db_user_password
+        AWS_ENDPOINT_URL=http://localhost:9000
+        AWS_ACCESS_KEY_ID=ROOTNAME
+        AWS_SECRET_ACCESS_KEY=CHANGEME123
+        OPEN_SEARCH_HOST=https://localhost:9200
+        OPEN_SEARCH_USERNAME=admin
+        OPEN_SEARCH_PASSWORD=FOOBARCARabc123!
+        OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
+        OPEN_SEARCH_TIMEOUT=10
+        SECRET_KEY=test-secret-key
+        EOF
+
     - name: Run E2E tests
       env:
-        KEYCLOAK_BASE_URI: http://localhost:8080
-        KEYCLOAK_CLIENT_ID: ayr-beta
-        KEYCLOAK_REALM_NAME: tdr
-        KEYCLOAK_CLIENT_SECRET: test-secret
-        WEBAPP_BASE_URL: https://localhost:5000
         AYR_AAU_USER_USERNAME: test-user
         AYR_AAU_USER_PASSWORD: test-password
         AYR_STANDARD_USER_USERNAME: standard-user
