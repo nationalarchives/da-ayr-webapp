@@ -195,6 +195,47 @@ jobs:
         
         echo "Keycloak client configured with admin permissions"
         
+        echo "Creating test users..."
+        
+        # Create AAU test user
+        AAU_USER_ID=$(curl -s -X POST "http://localhost:8080/admin/realms/tdr/users" \
+          -H "Authorization: Bearer $ADMIN_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "username":"test-aau-user@example.com",
+            "email":"test-aau-user@example.com",
+            "firstName":"Test",
+            "lastName":"AAU",
+            "enabled":true,
+            "credentials":[{"type":"password","value":"test-password","temporary":false}]
+          }' | jq -r '.id' 2>/dev/null || echo "failed")
+        
+        # Create Standard test user  
+        STANDARD_USER_ID=$(curl -s -X POST "http://localhost:8080/admin/realms/tdr/users" \
+          -H "Authorization: Bearer $ADMIN_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "username":"test-standard-user@example.com",
+            "email":"test-standard-user@example.com", 
+            "firstName":"Test",
+            "lastName":"Standard",
+            "enabled":true,
+            "credentials":[{"type":"password","value":"test-password","temporary":false}]
+          }' | jq -r '.id' 2>/dev/null || echo "failed")
+        
+        # Get view_all group ID
+        VIEW_ALL_GROUP_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/groups?search=view_all" | jq -r '.[0].id')
+        
+        # Add AAU user to view_all group
+        curl -s -X PUT "http://localhost:8080/admin/realms/tdr/users/$AAU_USER_ID/groups/$VIEW_ALL_GROUP_ID" \
+          -H "Authorization: Bearer $ADMIN_TOKEN"
+        
+        # Add Standard user to view_all group  
+        curl -s -X PUT "http://localhost:8080/admin/realms/tdr/users/$STANDARD_USER_ID/groups/$VIEW_ALL_GROUP_ID" \
+          -H "Authorization: Bearer $ADMIN_TOKEN"
+        
+        echo "Test users created and added to view_all group: AAU=$AAU_USER_ID, Standard=$STANDARD_USER_ID"
+        
         echo "Skipping OpenSearch for CI - not essential for basic E2E tests"
         
         echo "Essential services (PostgreSQL, Keycloak, MinIO) are ready"
@@ -239,10 +280,10 @@ jobs:
         KEYCLOAK_REALM_NAME: tdr
         KEYCLOAK_CLIENT_ID: ayr-beta
         KEYCLOAK_CLIENT_SECRET: test-client-secret
-        AYR_AAU_USER_USERNAME: test-user
+        AYR_AAU_USER_USERNAME: test-aau-user@example.com
         AYR_AAU_USER_PASSWORD: test-password
-        AYR_STANDARD_USER_USERNAME: standard-user
-        AYR_STANDARD_USER_PASSWORD: standard-password
+        AYR_STANDARD_USER_USERNAME: test-standard-user@example.com
+        AYR_STANDARD_USER_PASSWORD: test-password
       run: |
         cd e2e_tests/ && poetry run pytest . --base-url=https://localhost:5000 -k "not test_css_no_visual_regression" -vvvv -rsa --slowmo 100 -ra -vvvv --tracing on --browser chromium
 
