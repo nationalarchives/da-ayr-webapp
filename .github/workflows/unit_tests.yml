@@ -295,6 +295,19 @@ jobs:
         SECRET_KEY=test-secret-key
         EOF
 
+    - name: Generate SSL certificate for webapp
+      run: |
+        poetry run openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365 -subj "/CN=localhost"
+
+    - name: Start webapp
+      run: |
+        source .env && poetry run flask run &
+        sleep 10  # Give webapp time to start
+        
+        # Wait for webapp to be ready
+        timeout 60 bash -c 'until curl -k -f https://localhost:5000/health 2>/dev/null || curl -k -f https://localhost:5000/ 2>/dev/null; do echo "Webapp not ready yet..."; sleep 2; done'
+        echo "Webapp is ready"
+
     - name: Run E2E tests
       env:
         KEYCLOAK_BASE_URI: http://localhost:8080
