@@ -100,6 +100,16 @@ jobs:
     - name: Start local services
       run: |
         cd local_services && docker compose up -d
+        
+        # Wait a moment for containers to initialize
+        sleep 5
+        
+        # Fix SSL certificate permissions inside PostgreSQL container
+        docker exec local_services-webapp_postgres-1 chown postgres:postgres /var/lib/postgresql/postgres_localhost.key
+        docker exec local_services-webapp_postgres-1 chmod 600 /var/lib/postgresql/postgres_localhost.key
+        
+        # Restart PostgreSQL to pick up the corrected permissions
+        docker restart local_services-webapp_postgres-1
 
     - name: Wait for services to be ready
       run: |
