@@ -82,11 +82,11 @@ jobs:
         # Generate PostgreSQL certificates
         cd local_services/webapp_postgres_certs
         ./generate_webapp_postgres_certs.sh
-        
-        # Generate OpenSearch certificates  
+
+        # Generate OpenSearch certificates
         cd ../opensearch_certs
         ./generate_opensearch_certs.sh
-        
+
         # Fix permissions for PostgreSQL SSL certificates
         cd ../webapp_postgres_certs
         chmod 600 postgres_localhost.key
@@ -106,7 +106,7 @@ jobs:
               - webapp_postgres_data:/var/lib/postgresql/data
               - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
             command: ["postgres"]
-          
+
           opensearch-node1:
             environment:
               - cluster.name=opensearch-cluster
@@ -123,7 +123,7 @@ jobs:
               - 9600:9600
             networks:
               - opensearch-net
-        
+
           opensearch-node2:
             deploy:
               replicas: 0
@@ -137,24 +137,24 @@ jobs:
       run: |
         echo "Checking Docker containers status..."
         docker ps
-        
+
         echo "Checking webapp_postgres container logs..."
         sleep 10  # Give containers a moment to start
         docker logs local_services-webapp_postgres-1 --tail 20
-        
+
         echo "Waiting for PostgreSQL (webapp)..."
         timeout 300 bash -c 'until pg_isready -h localhost -p 5433 -U local_db_user; do echo "PostgreSQL not ready yet... ($(date))"; docker logs local_services-webapp_postgres-1 --tail 5; sleep 10; done'
         echo "PostgreSQL is ready"
-        
+
         echo "Waiting for Keycloak..."
         echo "Checking if Keycloak container is running..."
         docker logs local_services-keycloak-1 --tail 10
         timeout 300 bash -c 'until curl -f http://localhost:8080/realms/master 2>/dev/null; do echo "Keycloak not ready yet... ($(date))"; sleep 10; done'
         echo "Keycloak is ready"
-        
+
         echo "Configuring Keycloak client secret..."
         sleep 10  # Give Keycloak time to fully initialize
-        
+
         # Get admin access token
         ADMIN_TOKEN=$(curl -s -X POST "http://localhost:8080/realms/master/protocol/openid-connect/token" \
           -H "Content-Type: application/x-www-form-urlencoded" \
@@ -162,50 +162,50 @@ jobs:
           -d "password=password" \
           -d "grant_type=password" \
           -d "client_id=admin-cli" | jq -r '.access_token')
-        
+
         # Check if tdr realm exists, if not wait for import
         until curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr" | grep -q "tdr"; do
           echo "Waiting for tdr realm to be imported..."
           sleep 5
         done
-        
+
         # Get client ID
         CLIENT_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/clients?clientId=ayr-beta" | jq -r '.[0].id')
-        
+
         # Update client secret and enable service accounts
         curl -s -X PUT "http://localhost:8080/admin/realms/tdr/clients/$CLIENT_ID" \
           -H "Authorization: Bearer $ADMIN_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{"secret":"test-client-secret","serviceAccountsEnabled":true,"directAccessGrantsEnabled":true}'
-        
-        # Get realm management client ID 
+
+        # Get realm management client ID
         REALM_MGMT_CLIENT_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/clients?clientId=realm-management" | jq -r '.[0].id')
-        
+
         # Get manage-users role ID
         MANAGE_USERS_ROLE_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/clients/$REALM_MGMT_CLIENT_ID/roles/manage-users" | jq -r '.id')
-        
+
         # Get service account user ID for ayr-beta client
         SERVICE_ACCOUNT_USER_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/clients/$CLIENT_ID/service-account-user" | jq -r '.id')
-        
+
         # Assign manage-users role to service account
         curl -s -X POST "http://localhost:8080/admin/realms/tdr/users/$SERVICE_ACCOUNT_USER_ID/role-mappings/clients/$REALM_MGMT_CLIENT_ID" \
           -H "Authorization: Bearer $ADMIN_TOKEN" \
           -H "Content-Type: application/json" \
           -d '[{"id":"'"$MANAGE_USERS_ROLE_ID"'","name":"manage-users"}]'
-        
+
         echo "Keycloak client configured with admin permissions"
-        
+
         echo "Creating missing groups..."
-        
+
         # Create transferring_body_user parent group if it doesn't exist
         curl -s -X POST "http://localhost:8080/admin/realms/tdr/groups" \
           -H "Authorization: Bearer $ADMIN_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{"name":"transferring_body_user","path":"/transferring_body_user"}' 2>/dev/null || true
-        
+
         # Get transferring_body_user group ID
         TB_GROUP_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/groups?search=transferring_body_user" | jq -r '.[0].id')
-        
+
         # Create "Testing A" subgroup under transferring_body_user
         if [ "$TB_GROUP_ID" != "null" ] && [ -n "$TB_GROUP_ID" ]; then
           curl -s -X POST "http://localhost:8080/admin/realms/tdr/groups/$TB_GROUP_ID/children" \
@@ -213,11 +213,11 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"name":"Testing A","path":"/transferring_body_user/Testing A"}' 2>/dev/null || true
         fi
-        
+
         echo "Missing groups created"
-        
+
         echo "Creating test users..."
-        
+
         # Create AAU test user
         AAU_RESPONSE=$(curl -s -X POST "http://localhost:8080/admin/realms/tdr/users" \
           -H "Authorization: Bearer $ADMIN_TOKEN" \
@@ -230,53 +230,53 @@ jobs:
             "enabled":true,
             "credentials":[{"type":"password","value":"test-password","temporary":false}]
           }')
-        
+
         echo "AAU user creation response: $AAU_RESPONSE"
-        
-        # Create Standard test user  
+
+        # Create Standard test user
         STANDARD_RESPONSE=$(curl -s -X POST "http://localhost:8080/admin/realms/tdr/users" \
           -H "Authorization: Bearer $ADMIN_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{
             "username":"test-standard-user@example.com",
-            "email":"test-standard-user@example.com", 
+            "email":"test-standard-user@example.com",
             "firstName":"Test",
             "lastName":"Standard",
             "enabled":true,
             "credentials":[{"type":"password","value":"test-password","temporary":false}]
           }')
-        
+
         echo "Standard user creation response: $STANDARD_RESPONSE"
-        
+
         # Get user IDs by searching for them
         AAU_USER_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/users?username=test-aau-user@example.com" | jq -r '.[0].id')
         STANDARD_USER_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/users?username=test-standard-user@example.com" | jq -r '.[0].id')
-        
+
         echo "Found user IDs: AAU=$AAU_USER_ID, Standard=$STANDARD_USER_ID"
-        
+
         # Get group IDs
         VIEW_ALL_GROUP_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/groups?search=view_all" | jq -r '.[0].id')
         VIEW_DEPT_GROUP_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/groups?search=view_dept" | jq -r '.[0].id')
         echo "Group IDs - view_all: $VIEW_ALL_GROUP_ID, view_dept: $VIEW_DEPT_GROUP_ID"
-        
+
         # Add AAU user to view_all group
         if [ "$AAU_USER_ID" != "null" ] && [ -n "$AAU_USER_ID" ]; then
           curl -s -X PUT "http://localhost:8080/admin/realms/tdr/users/$AAU_USER_ID/groups/$VIEW_ALL_GROUP_ID" \
             -H "Authorization: Bearer $ADMIN_TOKEN"
           echo "Added AAU user to view_all group"
         fi
-        
+
         # Add Standard user to view_dept group
         if [ "$STANDARD_USER_ID" != "null" ] && [ -n "$STANDARD_USER_ID" ]; then
           curl -s -X PUT "http://localhost:8080/admin/realms/tdr/users/$STANDARD_USER_ID/groups/$VIEW_DEPT_GROUP_ID" \
             -H "Authorization: Bearer $ADMIN_TOKEN"
           echo "Added Standard user to view_dept group"
         fi
-        
+
         echo "Test user setup completed"
-        
+
         echo "Skipping OpenSearch for CI - not essential for basic E2E tests"
-        
+
         echo "Essential services (PostgreSQL, Keycloak, MinIO) are ready"
 
     - name: Skip OpenSearch data setup
@@ -336,7 +336,7 @@ jobs:
       run: |
         source .env && poetry run flask run &
         sleep 10  # Give webapp time to start
-        
+
         # Wait for webapp to be ready
         timeout 60 bash -c 'until curl -k -f https://localhost:5000/health 2>/dev/null || curl -k -f https://localhost:5000/ 2>/dev/null; do echo "Webapp not ready yet..."; sleep 2; done'
         echo "Webapp is ready"
