@@ -92,14 +92,20 @@ jobs:
 
     - name: Wait for services to be ready
       run: |
-        echo "Waiting for PostgreSQL..."
-        timeout 120 bash -c 'until pg_isready -h localhost -p 5433 -U local_db_user -d local_db; do echo "PostgreSQL not ready yet..."; sleep 2; done'
+        echo "Checking Docker containers status..."
+        docker ps
+        
+        echo "Waiting for PostgreSQL (webapp)..."
+        timeout 300 bash -c 'until pg_isready -h localhost -p 5433 -U local_db_user; do echo "PostgreSQL not ready yet... ($(date))"; sleep 5; done'
+        echo "PostgreSQL is ready"
         
         echo "Waiting for Keycloak..."
-        timeout 180 bash -c 'until curl -f http://localhost:8080/health/ready; do echo "Keycloak not ready yet..."; sleep 5; done'
+        timeout 300 bash -c 'until curl -f http://localhost:8080/health/ready 2>/dev/null; do echo "Keycloak not ready yet... ($(date))"; sleep 5; done'
+        echo "Keycloak is ready"
         
         echo "Waiting for OpenSearch..."
-        timeout 300 bash -c 'until curl -s -k -u admin:FOOBARCARabc123! https://localhost:9200/_cluster/health | grep -q "yellow\|green"; do echo "OpenSearch not ready yet..."; sleep 10; done'
+        timeout 300 bash -c 'until curl -s -k -u admin:FOOBARCARabc123! https://localhost:9200/_cluster/health | grep -q "yellow\|green"; do echo "OpenSearch not ready yet... ($(date))"; sleep 10; done'
+        echo "OpenSearch is ready"
         
         echo "All services are ready!"
 
