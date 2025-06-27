@@ -169,13 +169,31 @@ jobs:
           sleep 5
         done
         
-        # Update client secret
-        curl -s -X PUT "http://localhost:8080/admin/realms/tdr/clients/$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/clients?clientId=ayr-beta" | jq -r '.[0].id')" \
+        # Get client ID
+        CLIENT_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/clients?clientId=ayr-beta" | jq -r '.[0].id')
+        
+        # Update client secret and enable service accounts
+        curl -s -X PUT "http://localhost:8080/admin/realms/tdr/clients/$CLIENT_ID" \
           -H "Authorization: Bearer $ADMIN_TOKEN" \
           -H "Content-Type: application/json" \
-          -d '{"secret":"test-client-secret"}'
+          -d '{"secret":"test-client-secret","serviceAccountsEnabled":true,"directAccessGrantsEnabled":true}'
         
-        echo "Keycloak client secret configured"
+        # Get realm management client ID 
+        REALM_MGMT_CLIENT_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/clients?clientId=realm-management" | jq -r '.[0].id')
+        
+        # Get manage-users role ID
+        MANAGE_USERS_ROLE_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/clients/$REALM_MGMT_CLIENT_ID/roles/manage-users" | jq -r '.id')
+        
+        # Get service account user ID for ayr-beta client
+        SERVICE_ACCOUNT_USER_ID=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "http://localhost:8080/admin/realms/tdr/clients/$CLIENT_ID/service-account-user" | jq -r '.id')
+        
+        # Assign manage-users role to service account
+        curl -s -X POST "http://localhost:8080/admin/realms/tdr/users/$SERVICE_ACCOUNT_USER_ID/role-mappings/clients/$REALM_MGMT_CLIENT_ID" \
+          -H "Authorization: Bearer $ADMIN_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '[{"id":"'"$MANAGE_USERS_ROLE_ID"'","name":"manage-users"}]'
+        
+        echo "Keycloak client configured with admin permissions"
         
         echo "Skipping OpenSearch for CI - not essential for basic E2E tests"
         
