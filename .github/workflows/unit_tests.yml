@@ -95,8 +95,12 @@ jobs:
         echo "Checking Docker containers status..."
         docker ps
         
+        echo "Checking webapp_postgres container logs..."
+        sleep 10  # Give containers a moment to start
+        docker logs local_services-webapp_postgres-1 --tail 20
+        
         echo "Waiting for PostgreSQL (webapp)..."
-        timeout 300 bash -c 'until pg_isready -h localhost -p 5433 -U local_db_user; do echo "PostgreSQL not ready yet... ($(date))"; sleep 5; done'
+        timeout 300 bash -c 'until pg_isready -h localhost -p 5433 -U local_db_user; do echo "PostgreSQL not ready yet... ($(date))"; docker logs local_services-webapp_postgres-1 --tail 5; sleep 10; done'
         echo "PostgreSQL is ready"
         
         echo "Waiting for Keycloak..."
@@ -137,6 +141,18 @@ jobs:
         AYR_STANDARD_USER_PASSWORD: standard-password
       run: |
         cd e2e_tests/ && poetry run pytest . --base-url=https://localhost:5000 -k "not test_css_no_visual_regression" -vvvv -rsa --slowmo 100 -ra -vvvv --tracing on --browser chromium
+
+    - name: Show container logs on failure
+      if: failure()
+      run: |
+        echo "=== Docker container status ==="
+        docker ps -a
+        echo "=== PostgreSQL logs ==="
+        docker logs local_services-webapp_postgres-1 || echo "No webapp_postgres container found"
+        echo "=== Keycloak logs ==="
+        docker logs local_services-keycloak-1 || echo "No keycloak container found"
+        echo "=== OpenSearch node1 logs ==="
+        docker logs opensearch-node1 || echo "No opensearch-node1 container found"
 
     - name: Stop local services
       if: always()
