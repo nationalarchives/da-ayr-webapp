@@ -84,12 +84,23 @@ jobs:
     - name: Start local services
       run: |
         cd local_services && docker compose up -d
-        # Wait for services to be ready
-        sleep 60
+
+    - name: Wait for services to be ready
+      run: |
+        echo "Waiting for PostgreSQL..."
+        timeout 120 bash -c 'until docker exec $(docker ps -qf "name=webapp_postgres") pg_isready -U local_db_user -d local_db; do sleep 2; done'
+
+        echo "Waiting for Keycloak..."
+        timeout 180 bash -c 'until curl -f http://localhost:8080/health/ready; do sleep 5; done'
+
+        echo "Waiting for OpenSearch..."
+        timeout 300 bash -c 'until curl -s -k -u admin:FOOBARCARabc123! https://localhost:9200/_cluster/health | grep -q "yellow\|green"; do echo "OpenSearch not ready yet..."; sleep 10; done'
+
+        echo "All services are ready!"
 
     - name: Setup opensearch data
       run: |
-        source local_services/.env && local_services/opensearch-entrypoint.sh
+        source local_services/.env && timeout 120 local_services/opensearch-entrypoint.sh
 
     - name: Set up Python
       uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
