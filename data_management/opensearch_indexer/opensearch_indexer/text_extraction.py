@@ -58,11 +58,14 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
     file_id = file["file_id"]
 
     if file_type not in SUPPORTED_TEXTRACT_FORMATS:
-        skipped_message = f"Text extraction skipped for file {file_id} due to unsupported file type: {file_type}"
-        logger.info(skipped_message)
+        logger.info(
+            f"Text extraction skipped for file {file_id} due to unsupported file type: {file_type}"
+        )
         file["content"] = ""
         file["text_extraction_status"] = TextExtractionStatus.SKIPPED.value
-        send_slack_alert(skipped_message)
+        send_slack_alert(
+            f"Text extraction *SKIPPED* for file *{file_id}* \n Reason: Unsupported file type: *{file_type}*"
+        )
     else:
         try:
             file["content"] = extract_text(file_stream, file_type)
@@ -71,11 +74,12 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
                 TextExtractionStatus.SUCCEEDED.value
             )
         except Exception as e:
-            failure_message = f"Text extraction failed for file {file_id}: {e}"
-            logger.error(failure_message)
+            logger.error(f"Text extraction failed for file {file_id}: {e}")
             file["content"] = ""
             file["text_extraction_status"] = TextExtractionStatus.FAILED.value
-            send_slack_alert(failure_message)
+            send_slack_alert(
+                f"Text extraction *FAILED* for file *{file_id}* \n Reason: `{e}`"
+            )
     return file
 
 
