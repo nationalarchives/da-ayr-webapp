@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import subprocess  # nosec
@@ -5,12 +6,15 @@ import tempfile
 from enum import Enum
 from typing import Dict
 
+import boto3
+import requests
 import textract
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 TEXTRACT_FILE_FORMAT_FALLBACK_CONVERSION_MAP = {"xls": "xlsx", "doc": "docx"}
+SLACK_CHANNEL = os.getenv("SLACK_CHANNEL")
 
 
 class TextExtractionStatus(Enum):
@@ -54,11 +58,11 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
     file_id = file["file_id"]
 
     if file_type not in SUPPORTED_TEXTRACT_FORMATS:
-        logger.info(
-            f"Text extraction skipped for file {file_id} due to unsupported file type: {file_type}"
-        )
+        skipped_message = f"Text extraction skipped for file {file_id} due to unsupported file type: {file_type}"
+        logger.info(skipped_message)
         file["content"] = ""
         file["text_extraction_status"] = TextExtractionStatus.SKIPPED.value
+        send_slack_alert(skipped_message)
     else:
         try:
             file["content"] = extract_text(file_stream, file_type)
@@ -67,10 +71,11 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
                 TextExtractionStatus.SUCCEEDED.value
             )
         except Exception as e:
-            logger.error(f"Text extraction failed for file {file_id}: {e}")
+            failure_message = f"Text extraction failed for file {file_id}: {e}"
+            logger.error(failure_message)
             file["content"] = ""
             file["text_extraction_status"] = TextExtractionStatus.FAILED.value
-
+            send_slack_alert(failure_message)
     return file
 
 
@@ -145,3 +150,31 @@ def convert_file_with_libreoffice(
         )
 
     return output_path
+
+
+def get_slack_webhook():
+    sm = boto3.client("secretsmanager")
+    response = sm.get_secret_value(
+        SecretId="slack-webhook"  # pragma: allowlist secret
+    )
+    secret_string = json.loads(response["SecretString"])
+    slack_webhook = secret_string["slack-webhook"]
+    return slack_webhook
+
+
+def send_slack_alert(message: str):
+    try:
+        webhook_url = get_slack_webhook()
+    except Exception:
+        logger.warning("Slack alert not sent due to webhook fetch failure.")
+        return
+
+    try:
+        response = requests.post(
+            webhook_url,
+            data=json.dumps({"text": message, "channel": SLACK_CHANNEL}),
+            timeout=5,
+        )
+        response.raise_for_status()
+    except Exception as e:
+        logger.error(f"Failed to send Slack alert: {e}")
