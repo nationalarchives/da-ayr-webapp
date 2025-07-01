@@ -388,9 +388,9 @@ def build_browse_consignment_query(
             query = query.filter(date_filter)
 
     if sorting_orders:
-        if "date_last_modified" in sorting_orders:
+        if "date_of_record" in sorting_orders:
             sort_field = sub_query.c.sort_date
-            if sorting_orders["date_last_modified"] == "desc":
+            if sorting_orders["date_of_record"] == "desc":
                 query = query.order_by(desc(sort_field))
             else:
                 query = query.order_by(sort_field)
@@ -428,7 +428,7 @@ def _build_browse_filters(query, sub_query, filters):
 
 def _build_sorting_orders(query, sub_query, sorting_orders):
     for field, order in sorting_orders.items():
-        if field == "end_date":
+        if field == "date_of_record":
             # Use end_date if available, otherwise fall back to date_last_modified
             column = func.coalesce(
                 sub_query.c.end_date, sub_query.c.date_last_modified
