@@ -15,6 +15,7 @@ logger.setLevel(logging.INFO)
 
 TEXTRACT_FILE_FORMAT_FALLBACK_CONVERSION_MAP = {"xls": "xlsx", "doc": "docx"}
 SLACK_CHANNEL = os.getenv("SLACK_CHANNEL")
+ENVIRONMENT = os.getenv("ENVIRONMENT")
 
 
 class TextExtractionStatus(Enum):
@@ -64,7 +65,9 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
         file["content"] = ""
         file["text_extraction_status"] = TextExtractionStatus.SKIPPED.value
         send_slack_alert(
-            f"Text extraction *SKIPPED* for file *{file_id}* \n Reason: Unsupported file type: *{file_type}*"
+            f"""Text extraction *SKIPPED* for file *{file_id}*\n
+            Environment: {ENVIRONMENT}\n
+            Reason: Unsupported file type- *{file_type}*"""
         )
     else:
         try:
@@ -78,7 +81,9 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
             file["content"] = ""
             file["text_extraction_status"] = TextExtractionStatus.FAILED.value
             send_slack_alert(
-                f"Text extraction *FAILED* for file *{file_id}* \n Reason: `{e}`"
+                f"""Text extraction *FAILED* for file *{file_id}*\n
+                Environment: {ENVIRONMENT}\n
+                Reason: `{e}`"""
             )
     return file
 
