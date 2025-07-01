@@ -10,12 +10,11 @@
                         {% else %}
                             <span class="govuk-tag govuk-tag--green">{{ value }}</span>
                         {% endif %}
-                        <span class="ayr-opening-date">Record opening date test</span>
-                        <!-- {% if dict.get("Closure start date") %}
+                        {% if dict.get("Closure start date") %}
                             {% if dict.get('opening_date') %}
                                 <p class="ayr-opening-date">Record opening date {{ dict.get('opening_date') }}</p>
                             {% endif %}
-                        {% endif %} -->
+                        {% endif %}
                     {% else %}
                         {{ value }}
                     {% endif %}
