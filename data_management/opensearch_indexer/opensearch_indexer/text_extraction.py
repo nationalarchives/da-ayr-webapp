@@ -66,8 +66,8 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
         file["text_extraction_status"] = TextExtractionStatus.SKIPPED.value
         send_slack_alert(
             f"""Text extraction *SKIPPED* for file *{file_id}*\n
-            Environment: {ENVIRONMENT}\n
-            Reason: Unsupported file type- *{file_type}*"""
+        *Environment:* `{ENVIRONMENT}`\n
+        *Reason:* Unsupported file type - *{file_type}*"""
         )
     else:
         try:
@@ -82,8 +82,8 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
             file["text_extraction_status"] = TextExtractionStatus.FAILED.value
             send_slack_alert(
                 f"""Text extraction *FAILED* for file *{file_id}*\n
-                Environment: {ENVIRONMENT}\n
-                Reason: `{e}`"""
+            *Environment:* `{ENVIRONMENT}`\n
+            *Reason:* `{e}`"""
             )
     return file
 
