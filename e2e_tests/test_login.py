@@ -37,13 +37,10 @@ def test_sign_in_succeeds_when_valid_credentials(
         access_token, options={"verify_signature": False}
     )
     assert set(decoded_token_dict.keys()) == {
-        "aud",
         "exp",
         "iat",
         "auth_time",
         "jti",
-        "realm_access",
-        "resource_access",
         "iss",
         "sub",
         "typ",
