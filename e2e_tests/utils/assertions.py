@@ -8,7 +8,8 @@ from skimage.metrics import structural_similarity as ssim
 
 
 def compare_snapshot(baseline_path, actual_image):
-    baseline_image = Image.open(baseline_path)
+    baseline_image = Image.open(baseline_path).convert("L")
+    actual_image = actual_image.convert("L")
 
     min_width = min(actual_image.width, baseline_image.width)
     min_height = min(actual_image.height, baseline_image.height)
@@ -31,7 +32,7 @@ def compare_snapshot(baseline_path, actual_image):
     score, _diff = ssim(
         actual_np, expected_np, full=True, win_size=win_size, channel_axis=-1
     )
-    return score >= 0.9, score
+    return score >= 0.99, score
 
 
 def assert_matches_snapshot(snapshot, device, page_name):
@@ -49,8 +50,7 @@ def assert_matches_snapshot(snapshot, device, page_name):
     result, score = compare_snapshot(baseline_path, screenshot_image)
 
     if not result:
-        print(
-            f"\n{page_name} has changed ({score}). Updating baseline snapshot."
-        )
         screenshot_image.save(baseline_path)
-        return
+        raise AssertionError(
+            f"{page_name} has changed. Similarity score: {score}. Overwiting baseline snapshot."
+        )
