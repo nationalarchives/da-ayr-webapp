@@ -91,6 +91,13 @@ class TestExtractText:
         assert extract_text(file_stream, file_type) == expected_output
 
 
+# Mock ENVIRONMENT for slack alerts
+@pytest.fixture(autouse=True)
+def patch_environment():
+    with patch("opensearch_indexer.text_extraction.ENVIRONMENT", "test-env"):
+        yield
+
+
 # Mock the extract_text function to simulate text extraction behavior
 @pytest.fixture
 def mock_extract_text():
@@ -311,3 +318,71 @@ def test_extract_text_fallback_conversion_failure():
 
         assert mock_textract.call_count == 2
         mock_convert.assert_called_once()
+
+
+def test_add_text_content_skipped_alert():
+    """
+    Given an unsupported file type,
+    When text extraction is skipped,
+    A slack alert is sent.
+    """
+    file = {
+        "file_id": "abc123",
+        "file_name": "unsupported.xyz",
+        "content": "",
+        "text_extraction_status": "SKIPPED",
+    }
+    file_stream = b"some content"
+
+    with patch(
+        "opensearch_indexer.text_extraction.send_slack_alert"
+    ) as mock_alert:
+
+        result = add_text_content(file, file_stream)
+
+        assert result["content"] == ""
+        assert (
+            result["text_extraction_status"]
+            == TextExtractionStatus.SKIPPED.value
+        )
+
+        mock_alert.assert_called_once_with(
+            "Text extraction *SKIPPED* for file `abc123`\n"
+            "*Environment:* `TEST-ENV`\n"
+            "*Reason:* Unsupported file type - `xyz`"
+        )
+
+
+def test_add_text_content_failed_alert(mock_extract_text):
+    """
+    Given a supported file type and a failing text extraction,
+    When text extraction fails due to an error,
+    A slack alert is sent.
+    """
+    file = {
+        "file_id": "def456",
+        "file_name": "example.pdf",
+        "content": "",
+        "text_extraction_status": "FAILED",
+    }
+    file_stream = b"some content"
+
+    mock_extract_text.side_effect = Exception("something broke")
+
+    with patch(
+        "opensearch_indexer.text_extraction.send_slack_alert"
+    ) as mock_alert:
+
+        result = add_text_content(file, file_stream)
+
+        assert result["content"] == ""
+        assert (
+            result["text_extraction_status"]
+            == TextExtractionStatus.FAILED.value
+        )
+
+        mock_alert.assert_called_once_with(
+            "Text extraction *FAILED* for file `def456`\n"
+            "*Environment:* `TEST-ENV`\n"
+            "*Reason:* `something broke`"
+        )
