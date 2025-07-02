@@ -1,3 +1,4 @@
+{% from 'macros/buttons.html' import govuk_button %}
 <div class="browse__sort-container">
     <label class="govuk-label" for="sort">Sort by</label>
     <select class="govuk-select govuk-select__sort-container-select"
@@ -14,7 +15,8 @@
             {% endif %}
         {% endfor %}
     </select>
-    <button type="submit"
-            class="govuk-button govuk-button__sort-container-update-button"
-            data-module="govuk-button">Apply</button>
+    {{ govuk_button(
+    "Apply",
+    classes="govuk-button__sort-container-update-button"
+    ) }}
 </div>

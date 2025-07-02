@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'macros/buttons.html' import govuk_button %}
 {% block pageTitle %}Search results – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
 {% set breadcrumbs = {} %}
@@ -31,7 +32,7 @@
                     id="browse-records"
                     aria-live="polite">
                     {% if num_records_found > 0 %}
-                        Records found {{ num_records_found }}
+                        Records found {{ num_records_found | format_number_with_commas }}
                     {% else %}
                         No results found
                     {% endif %}
@@ -56,9 +57,10 @@
                                             <option value="{{ value }}" {% if value == sort %}selected{% endif %}>{{ key }}</option>
                                         {% endfor %}
                                     </select>
-                                    <button type="submit"
-                                            class="govuk-button govuk-button__sort-container-update-button"
-                                            data-module="govuk-button">Apply</button>
+                                    {{ govuk_button(
+                                    "Apply",
+                                    classes="govuk-button__sort-container-update-button"
+                                    ) }}
                                 </div>
                                 <form>
                                     <div class="filter-group__checkboxes">
@@ -71,9 +73,10 @@
                                                    {% if open_all %}checked{% endif %}>
                                             <label class="govuk-label govuk-checkboxes__label" for="contact">Expand all results</label>
                                         </div>
-                                        <button type="submit"
-                                                class="govuk-button govuk-button__sort-container-update-button"
-                                                data-module="govuk-button">Apply</button>
+                                        {{ govuk_button(
+                                        "Apply",
+                                        classes="govuk-button__sort-container-update-button"
+                                        ) }}
                                     </div>
                                 </form>
                             </div>
@@ -245,9 +248,10 @@
                                         {% if key != 'page' and key != 'search_filter' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}
                                     {% endfor %}
                                     <div class="search-form__buttons">
-                                        <button type="submit"
-                                                class="govuk-button govuk-button__search-filters-form-apply-button"
-                                                data-module="govuk-button">Apply terms</button>
+                                        {{ govuk_button(
+                                        "Apply terms",
+                                        classes="govuk-button__search-filters-form-apply-button"
+                                        ) }}
                                         <a class="govuk-link govuk-link--transferring-filter"
                                            href="{% if session['user_type'] == 'all_access_user' %}{{ url_for('main.browse', _anchor='browse-records') }}{% else %}{{ url_for('main.browse_transferring_body', _id = request.view_args['_id'], _anchor='browse-records') }}{% endif %}">Clear all terms</a>
                                     </div>

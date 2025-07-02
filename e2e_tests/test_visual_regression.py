@@ -1,60 +1,62 @@
 import pytest
 from playwright.sync_api import Page
 
+from .utils.assertions import assert_matches_snapshot
+
 
 @pytest.mark.parametrize(
     "url,screenshot_file,viewport",
     [
         (
             "/how-to-use-this-service",
-            "how_to_use_this_service.png",
+            "how_to_use_this_service.jpg",
             {"width": 1280, "height": 4000},
         ),
-        ("/terms-of-use", "terms_of_use.png", {"width": 1280, "height": 4000}),
-        ("/privacy", "privacy.png", {"width": 1280, "height": 4000}),
-        ("/cookies", "cookies.png", {"width": 1280, "height": 4000}),
+        ("/terms-of-use", "terms_of_use.jpg", {"width": 1280, "height": 4000}),
+        ("/privacy", "privacy.jpg", {"width": 1280, "height": 4000}),
+        ("/cookies", "cookies.jpg", {"width": 1280, "height": 4000}),
         (
             "/accessibility",
-            "accessibility.png",
+            "accessibility.jpg",
             {"width": 1280, "height": 4000},
         ),
-        ("/signed-out", "signed_out.png", {"width": 1280, "height": 4000}),
-        ("/", "start.png", {"width": 1280, "height": 4000}),
-        ("/browse", "browse.png", {"width": 1280, "height": 4000}),
+        ("/signed-out", "signed_out.jpg", {"width": 1280, "height": 4000}),
+        ("/", "start.jpg", {"width": 1280, "height": 4000}),
+        ("/browse", "browse.jpg", {"width": 1280, "height": 4000}),
         (
             "/browse/transferring_body/8ccc8cd1-c0ee-431d-afad-70cf404ba337",
-            "browse_transferring_body.png",
+            "browse_transferring_body.jpg",
             {"width": 1280, "height": 4000},
         ),
         (
-            "/browse/series/8bd7ad22-90d1-4c7f-ae00-645dfd1987cc",
-            "browse_series.png",
+            "/browse/series/93ed0101-2318-45ab-8730-c681958ded7e",
+            "browse_series.jpg",
             {"width": 1280, "height": 4000},
         ),
         (
-            "/browse/consignment/a03363ac-7e7b-4b92-817e-72ba6423edd5",
-            "browse_consignment.png",
+            "/browse/consignment/2fd4e03e-5913-4c04-b4f2-5a823fafd430",
+            "browse_consignment.jpg",
             {"width": 1280, "height": 4000},
         ),
         (
             "/search_results_summary?query=a",
-            "search_results_summary.png",
+            "search_results_summary.jpg",
             {"width": 1280, "height": 4000},
         ),
         (
             "/search/transferring_body/8ccc8cd1-c0ee-431d-afad-70cf404ba337?query=a&sort=series-asc&search_filter=test",
-            "search_transferring_body.png",
+            "search_transferring_body.jpg",
             {"width": 1280, "height": 4000},
         ),
         (
-            "/record/41f94132-dbdf-43e4-a327-cc5bae432f98",
-            "record.png",
+            "/record/123e4567-e89b-12d3-a456-426614174000",
+            "record.jpg",
             {"width": 1280, "height": 4000},
         ),
     ],
 )
 def test_css_no_visual_regression(
-    url, screenshot_file, viewport, aau_user_page: Page, assert_snapshot
+    url, screenshot_file, viewport, aau_user_page: Page, browser_name
 ):
     """
     Given a page in the AYR webapp
@@ -64,18 +66,15 @@ def test_css_no_visual_regression(
     If any of these tests break due to intended changes to the design of the page,
     run pytest with `--update-snapshots --headed` flags to update the stored screenshot
     """
-    browser_context_str = str(aau_user_page.context)
-
-    start_index = browser_context_str.find("name=") + len("name=")
-    end_index = browser_context_str.find(" ", start_index)
-    current_browser = browser_context_str[start_index:end_index]
 
     aau_user_page.set_viewport_size(viewport)
-    aau_user_page.goto(url)
+    aau_user_page.goto(url, wait_until="networkidle")
     aau_user_page.wait_for_load_state("domcontentloaded")
-    screenshot = aau_user_page.screenshot(full_page=True)
-    assert_snapshot(
-        screenshot, name=f"{current_browser}-{screenshot_file}", threshold=0.1
+    snapshot = aau_user_page.screenshot(full_page=True, type="jpeg")
+    assert_matches_snapshot(
+        snapshot,
+        device="desktop",
+        page_name=f"{browser_name}-{screenshot_file}",
     )
 
 
@@ -84,62 +83,62 @@ def test_css_no_visual_regression(
     [
         (
             "/how-to-use-this-service",
-            "how_to_use_this_service_mobile.png",
+            "how_to_use_this_service_mobile.jpg",
             {"width": 390, "height": 5000},
         ),
         (
             "/terms-of-use",
-            "terms_of_use_mobile.png",
+            "terms_of_use_mobile.jpg",
             {"width": 390, "height": 5000},
         ),
-        ("/privacy", "privacy_mobile.png", {"width": 390, "height": 5000}),
-        ("/cookies", "cookies_mobile.png", {"width": 390, "height": 5000}),
+        ("/privacy", "privacy_mobile.jpg", {"width": 390, "height": 5000}),
+        ("/cookies", "cookies_mobile.jpg", {"width": 390, "height": 5000}),
         (
             "/accessibility",
-            "accessibility_mobile.png",
+            "accessibility_mobile.jpg",
             {"width": 390, "height": 5000},
         ),
         (
             "/signed-out",
-            "signed_out_mobile.png",
+            "signed_out_mobile.jpg",
             {"width": 390, "height": 5000},
         ),
-        ("/", "start_mobile.png", {"width": 390, "height": 5000}),
-        ("/browse", "browse_mobile.png", {"width": 390, "height": 5000}),
+        ("/", "start_mobile.jpg", {"width": 390, "height": 5000}),
+        ("/browse", "browse_mobile.jpg", {"width": 390, "height": 5000}),
         (
             "/browse/transferring_body/8ccc8cd1-c0ee-431d-afad-70cf404ba337",
-            "browse_transferring_body_mobile.png",
+            "browse_transferring_body_mobile.jpg",
             {"width": 390, "height": 5000},
         ),
         (
-            "/browse/series/8bd7ad22-90d1-4c7f-ae00-645dfd1987cc",
-            "browse_series_mobile.png",
+            "/browse/series/93ed0101-2318-45ab-8730-c681958ded7e",
+            "browse_series_mobile.jpg",
             {"width": 390, "height": 5000},
         ),
         (
-            "/browse/consignment/a03363ac-7e7b-4b92-817e-72ba6423edd5",
-            "browse_consignment_mobile.png",
+            "/browse/consignment/2fd4e03e-5913-4c04-b4f2-5a823fafd430",
+            "browse_consignment_mobile.jpg",
             {"width": 390, "height": 5000},
         ),
         (
             "/search_results_summary?query=a",
-            "search_results_summary_mobile.png",
+            "search_results_summary_mobile.jpg",
             {"width": 390, "height": 5000},
         ),
         (
             "/search/transferring_body/8ccc8cd1-c0ee-431d-afad-70cf404ba337?query=a&sort=series-asc&search_filter=test",
-            "search_transferring_body_mobile.png",
+            "search_transferring_body_mobile.jpg",
             {"width": 390, "height": 5000},
         ),
         (
-            "/record/41f94132-dbdf-43e4-a327-cc5bae432f98",
-            "record_mobile.png",
+            "/record/123e4567-e89b-12d3-a456-426614174000",
+            "record_mobile.jpg",
             {"width": 390, "height": 5000},
         ),
     ],
 )
 def test_css_no_visual_regression_mobile(
-    url, screenshot_file, viewport, aau_user_page: Page, assert_snapshot
+    url, screenshot_file, viewport, aau_user_page: Page, browser_name
 ):
     """
     Given a page in the AYR webapp
@@ -149,16 +148,10 @@ def test_css_no_visual_regression_mobile(
     If any of these tests break due to intended changes to the design of the page,
     run pytest with `--update-snapshots --headed` flags to update the stored screenshot
     """
-    browser_context_str = str(aau_user_page.context)
-
-    start_index = browser_context_str.find("name=") + len("name=")
-    end_index = browser_context_str.find(" ", start_index)
-    current_browser = browser_context_str[start_index:end_index]
-
     aau_user_page.set_viewport_size(viewport)
-    aau_user_page.goto(url)
+    aau_user_page.goto(url, wait_until="networkidle")
     aau_user_page.wait_for_load_state("domcontentloaded")
-    screenshot = aau_user_page.screenshot(full_page=True)
-    assert_snapshot(
-        screenshot, name=f"{current_browser}-{screenshot_file}", threshold=0.1
+    snapshot = aau_user_page.screenshot(full_page=True, type="jpeg")
+    assert_matches_snapshot(
+        snapshot, device="mobile", page_name=f"{browser_name}-{screenshot_file}"
     )

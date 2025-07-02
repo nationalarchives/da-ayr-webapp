@@ -605,7 +605,7 @@ class TestRecord:
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                 <span class="govuk-tag govuk-tag--green">{record_files[1]["closure_type"].Value}</span>
-<span class="ayr-opening-date">Record opening date {opening_date}</span></dd>
+<p class="ayr-opening-date">Record opening date {opening_date}</p></dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Closure start date</dt>
@@ -775,7 +775,7 @@ class TestRecord:
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                 <span class="govuk-tag govuk-tag--red">{record_files[2]["closure_type"].Value}</span>
-                <span class="ayr-opening-date">Record opening date {opening_date}</span></dd>
+                <p class="ayr-opening-date">Record opening date {opening_date}</p></dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Closure start date</dt>

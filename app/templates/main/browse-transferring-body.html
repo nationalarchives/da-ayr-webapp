@@ -1,3 +1,4 @@
+{% from 'macros/buttons.html' import govuk_button %}
 {% set breadcrumbs = {
     "everything":"All available records",
     "body": breadcrumb_values[0]["transferring_body"]
@@ -100,23 +101,24 @@
                          class="browse-all-filter__icon"
                          alt="">
                 </div>
-                <label class="govuk-label govuk-label__filter" for="series_filter">Series reference</label>
-                <div class="govuk-form-group govuk-form-group--browse-all-filter">
-                    <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
-                           id="series_filter"
-                           name="series_filter"
-                           value="{% if filters['series'] %}{{ filters['series'] }}{% endif %}"
-                           aria-label="Filter for series reference"
-                           type="text">
+                <div class="govuk-form-group">
+                    <label class="govuk-label govuk-label__filter" for="series_filter">Series reference</label>
+                    <div class="govuk-form-group govuk-form-group--browse-all-filter">
+                        <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
+                               id="series_filter"
+                               name="series_filter"
+                               value="{% if filters['series'] %}{{ filters['series'] }}{% endif %}"
+                               aria-label="Filter for series reference"
+                               type="text">
+                    </div>
                 </div>
-            </div>
-            <div class="browse-all-filter-container">
                 <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Transfer date</h3>
                 {% include "date-filters.html" %}
                 <div class="filters-form__buttons">
-                    <button type="submit"
-                            class="govuk-button govuk-button__browse-all-filters-form-apply-button"
-                            data-module="govuk-button">Apply filters</button>
+                    {{ govuk_button(
+                    "Apply filters",
+                    classes="govuk-button__browse-all-filters-form-apply-button"
+                    ) }}
                     <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-all-filter"
                        href="{{ url_for('main.browse_transferring_body', _id=request.view_args['_id'], sort=request.args.get('sort'), _anchor='browse-records') }}">Clear filters</a>
                 </div>

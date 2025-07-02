@@ -1,3 +1,4 @@
+{% from 'macros/buttons.html' import govuk_button %}
 {% set sorting_list = {
     "Transferring body (A to Z)": "transferring_body-asc",
     "Transferring body (Z to A)": "transferring_body-desc",
@@ -104,9 +105,9 @@
                          class="browse-all-filter__icon"
                          alt="">
                 </div>
-                <label class="govuk-label govuk-label__filter"
-                       for="transferring_body_filter">Transferring body</label>
-                <div class="govuk-form-group filters-form__group filters-form__transferring-body-group">
+                <div class="govuk-form-group">
+                    <label class="govuk-label govuk-label__filter"
+                           for="transferring_body_filter">Transferring body</label>
                     <input class="govuk-input"
                            id="transferring_body_filter"
                            name="transferring_body_filter"
@@ -117,24 +118,21 @@
                         {% for body in transferring_bodies %}<option value="{{ body }}" />{% endfor %}
                     </datalist>
                 </div>
-            </div>
-            <div class="browse-all-filter-container browse-all-filter-container--file-type">
-                <label class="govuk-label govuk-label__filter" for="series_filter">Series reference</label>
-                <div class="govuk-form-group govuk-form-group--browse-all-filter">
-                    <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
+                <div class="govuk-form-group">
+                    <label class="govuk-label govuk-label__filter" for="series_filter">Series reference</label>
+                    <input class="govuk-input govuk-!-width-full"
                            id="series_filter"
                            name="series_filter"
                            value="{% if filters['series'] %}{{ filters['series'] }}{% endif %}"
                            type="text">
                 </div>
-            </div>
-            <div class="browse-all-filter-container">
                 <h3 class="govuk-heading-s govuk-heading-s--browse-all-filter">Transfer date</h3>
                 {% include "date-filters.html" %}
                 <div class="filters-form__buttons">
-                    <button type="submit"
-                            class="govuk-button govuk-button__browse-all-filters-form-apply-button"
-                            data-module="govuk-button">Apply filters</button>
+                    {{ govuk_button(
+                    "Apply filters",
+                    classes="govuk-button__browse-all-filters-form-apply-button"
+                    ) }}
                     <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-all-filter"
                        href="{{ url_for('main.browse', sort=request.args.get('sort'), _anchor='browse-records') }}">Clear filters</a>
                 </div>
