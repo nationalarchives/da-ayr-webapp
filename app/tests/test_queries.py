@@ -314,16 +314,18 @@ class TestGetFileMetadata:
         Then date_of_record should be None
         """
         from app.tests.factories import FileFactory, FileMetadataFactory
-        
+
         # Create a file with both dates as None
         file = FileFactory(
             consignment=record_files[0]["file_object"].consignment,
             FileName="test_both_dates_none.txt",
-            FileType="file"
+            FileType="file",
         )
         FileMetadataFactory(file=file, PropertyName="end_date", Value=None)
-        FileMetadataFactory(file=file, PropertyName="date_last_modified", Value=None)
-        
+        FileMetadataFactory(
+            file=file, PropertyName="date_last_modified", Value=None
+        )
+
         result = get_file_metadata(file_id=file.FileId)
         assert result["date_of_record"] is None
 
@@ -336,21 +338,23 @@ class TestGetFileMetadata:
         Then date_of_record should use the date_last_modified value
         """
         from app.tests.factories import FileFactory, FileMetadataFactory
-        
+
         # Create a file with only date_last_modified (end_date is None)
         file = FileFactory(
             consignment=record_files[0]["file_object"].consignment,
-            FileName="test_only_date_last_modified.txt", 
-            FileType="file"
+            FileName="test_only_date_last_modified.txt",
+            FileType="file",
         )
         FileMetadataFactory(file=file, PropertyName="end_date", Value=None)
-        FileMetadataFactory(file=file, PropertyName="date_last_modified", Value="2023-03-20")
-        
+        FileMetadataFactory(
+            file=file, PropertyName="date_last_modified", Value="2023-03-20"
+        )
+
         result = get_file_metadata(file_id=file.FileId)
         assert result["date_of_record"] == "20/03/2023"
 
     def test_get_file_metadata_date_of_record_when_end_date_exists(
-        self, client: FlaskClient, record_files  
+        self, client: FlaskClient, record_files
     ):
         """
         Given a file where both end_date and date_last_modified have values,
@@ -358,16 +362,20 @@ class TestGetFileMetadata:
         Then date_of_record should use end_date over date_last_modified
         """
         from app.tests.factories import FileFactory, FileMetadataFactory
-        
+
         # Create a file with both dates (different values to test priority)
         file = FileFactory(
             consignment=record_files[0]["file_object"].consignment,
             FileName="test_end_date_priority.txt",
-            FileType="file"
+            FileType="file",
         )
-        FileMetadataFactory(file=file, PropertyName="end_date", Value="2023-06-15")
-        FileMetadataFactory(file=file, PropertyName="date_last_modified", Value="2023-01-10")
-        
+        FileMetadataFactory(
+            file=file, PropertyName="end_date", Value="2023-06-15"
+        )
+        FileMetadataFactory(
+            file=file, PropertyName="date_last_modified", Value="2023-01-10"
+        )
+
         result = get_file_metadata(file_id=file.FileId)
         # Should use end_date (15/06/2023) over date_last_modified (10/01/2023)
         assert result["date_of_record"] == "15/06/2023"
