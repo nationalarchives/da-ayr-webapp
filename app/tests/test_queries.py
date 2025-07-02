@@ -287,18 +287,7 @@ class TestGetFileMetadata:
                 ].Value,
                 "closure_period": record_files[3]["closure_period"].Value,
                 "opening_date": record_files[3]["opening_date"].Value,
-                "date_of_record": (
-                    None
-                    if record_files[3]["end_date"].Value is None
-                    and record_files[3]["date_last_modified"].Value is None
-                    else str(
-                        datetime.strptime(
-                            record_files[3]["end_date"].Value
-                            or record_files[3]["date_last_modified"].Value,
-                            db_date_format,
-                        ).strftime(python_date_format)
-                    )
-                ),
+                "date_of_record": None,
                 "foi_exemption_code": record_files[3][
                     "foi_exemption_code"
                 ].Value,
@@ -315,3 +304,70 @@ class TestGetFileMetadata:
                 "end_date": None,
             }
         )
+
+    def test_get_file_metadata_date_of_record_when_both_dates_are_none(
+        self, client: FlaskClient, record_files
+    ):
+        """
+        Given a file where both end_date and date_last_modified are None,
+        When get_file_metadata is called,
+        Then date_of_record should be None
+        """
+        from app.tests.factories import FileFactory, FileMetadataFactory
+        
+        # Create a file with both dates as None
+        file = FileFactory(
+            consignment=record_files[0]["file_object"].consignment,
+            FileName="test_both_dates_none.txt",
+            FileType="file"
+        )
+        FileMetadataFactory(file=file, PropertyName="end_date", Value=None)
+        FileMetadataFactory(file=file, PropertyName="date_last_modified", Value=None)
+        
+        result = get_file_metadata(file_id=file.FileId)
+        assert result["date_of_record"] is None
+
+    def test_get_file_metadata_date_of_record_when_only_date_last_modified_exists(
+        self, client: FlaskClient, record_files
+    ):
+        """
+        Given a file where end_date is None but date_last_modified has a value,
+        When get_file_metadata is called,
+        Then date_of_record should use the date_last_modified value
+        """
+        from app.tests.factories import FileFactory, FileMetadataFactory
+        
+        # Create a file with only date_last_modified (end_date is None)
+        file = FileFactory(
+            consignment=record_files[0]["file_object"].consignment,
+            FileName="test_only_date_last_modified.txt", 
+            FileType="file"
+        )
+        FileMetadataFactory(file=file, PropertyName="end_date", Value=None)
+        FileMetadataFactory(file=file, PropertyName="date_last_modified", Value="2023-03-20")
+        
+        result = get_file_metadata(file_id=file.FileId)
+        assert result["date_of_record"] == "20/03/2023"
+
+    def test_get_file_metadata_date_of_record_when_end_date_exists(
+        self, client: FlaskClient, record_files  
+    ):
+        """
+        Given a file where both end_date and date_last_modified have values,
+        When get_file_metadata is called,
+        Then date_of_record should use end_date over date_last_modified
+        """
+        from app.tests.factories import FileFactory, FileMetadataFactory
+        
+        # Create a file with both dates (different values to test priority)
+        file = FileFactory(
+            consignment=record_files[0]["file_object"].consignment,
+            FileName="test_end_date_priority.txt",
+            FileType="file"
+        )
+        FileMetadataFactory(file=file, PropertyName="end_date", Value="2023-06-15")
+        FileMetadataFactory(file=file, PropertyName="date_last_modified", Value="2023-01-10")
+        
+        result = get_file_metadata(file_id=file.FileId)
+        # Should use end_date (15/06/2023) over date_last_modified (10/01/2023)
+        assert result["date_of_record"] == "15/06/2023"
