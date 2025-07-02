@@ -6,8 +6,8 @@
     "consignment": breadcrumb_values[4]["consignment_reference"]
 } %}
 {% set sorting_list = {
-    "Date of record (newest)": "date_last_modified-desc",
-    "Date of record (oldest)": "date_last_modified-asc",
+    "Date of record (newest)": "date_of_record-desc",
+    "Date of record (oldest)": "date_of_record-asc",
     "File name (A to Z)": "file_name-asc",
     "File name (Z to A)": "file_name-desc",
     "Record opening date (sooner)": "opening_date-asc",
@@ -65,7 +65,7 @@
                         {% for record in results %}
                             <tr class="govuk-table__row govuk-table__row-ref">
                                 <td class="govuk-table__cell govuk-table__cell--word-break-all govuk-table__cell--on-mobile--flex-layout-col">
-                                    {{ record["date_last_modified"] }}
+                                    {{ record["date_of_record"] }}
                                     <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-2"
                                        href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
                                 </td>

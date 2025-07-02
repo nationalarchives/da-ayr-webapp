@@ -769,6 +769,9 @@ def record_files():
         "closure_type": FileMetadataFactory(
             file=file_1, PropertyName="closure_type", Value="Open"
         ),
+        "end_date": FileMetadataFactory(
+            file=file_1, PropertyName="end_date", Value="2023-01-15"
+        ),
         "date_last_modified": FileMetadataFactory(
             file=file_1, PropertyName="date_last_modified", Value="2023-01-15"
         ),
@@ -820,6 +823,9 @@ def record_files():
         ),
         "closure_type": FileMetadataFactory(
             file=file_2, PropertyName="closure_type", Value="Open"
+        ),
+        "end_date": FileMetadataFactory(
+            file=file_2, PropertyName="end_date", Value="2023-01-15"
         ),
         "date_last_modified": FileMetadataFactory(
             file=file_2, PropertyName="date_last_modified", Value="2023-01-15"
@@ -940,49 +946,52 @@ def record_files():
     file_4_metadata = {
         "file_object": file_4,
         "alternative_title": FileMetadataFactory(
-            file=file_3, PropertyName="title_alternate", Value=None
+            file=file_4, PropertyName="title_alternate", Value=None
         ),
         "description": FileMetadataFactory(
-            file=file_3, PropertyName="description", Value=None
+            file=file_4, PropertyName="description", Value=None
         ),
         "alternative_description": FileMetadataFactory(
-            file=file_3, PropertyName="description_alternate", Value=None
+            file=file_4, PropertyName="description_alternate", Value=None
         ),
         "closure_type": FileMetadataFactory(
-            file=file_3, PropertyName="closure_type", Value=None
+            file=file_4, PropertyName="closure_type", Value=None
+        ),
+        "end_date": FileMetadataFactory(
+            file=file_4, PropertyName="end_date", Value=None
         ),
         "date_last_modified": FileMetadataFactory(
-            file=file_3, PropertyName="date_last_modified", Value=None
+            file=file_4, PropertyName="date_last_modified", Value=None
         ),
         "opening_date": FileMetadataFactory(
-            file=file_3, PropertyName="opening_date", Value=None
+            file=file_4, PropertyName="opening_date", Value=None
         ),
         "closure_start_date": FileMetadataFactory(
-            file=file_3, PropertyName="closure_start_date", Value=None
+            file=file_4, PropertyName="closure_start_date", Value=None
         ),
         "closure_period": FileMetadataFactory(
-            file=file_3, PropertyName="closure_period", Value=None
+            file=file_4, PropertyName="closure_period", Value=None
         ),
         "foi_exemption_code": FileMetadataFactory(
-            file=file_3, PropertyName="foi_exemption_code", Value=None
+            file=file_4, PropertyName="foi_exemption_code", Value=None
         ),
         "former_reference": FileMetadataFactory(
-            file=file_3, PropertyName="former_reference_department", Value=None
+            file=file_4, PropertyName="former_reference_department", Value=None
         ),
         "translated_title": FileMetadataFactory(
-            file=file_3, PropertyName="file_name_translation", Value=None
+            file=file_4, PropertyName="file_name_translation", Value=None
         ),
         "held_by": FileMetadataFactory(
-            file=file_3, PropertyName="held_by", Value=None
+            file=file_4, PropertyName="held_by", Value=None
         ),
         "legal_status": FileMetadataFactory(
-            file=file_3, PropertyName="legal_status", Value=None
+            file=file_4, PropertyName="legal_status", Value=None
         ),
         "rights_copyright": FileMetadataFactory(
-            file=file_3, PropertyName="rights_copyright", Value=None
+            file=file_4, PropertyName="rights_copyright", Value=None
         ),
         "language": FileMetadataFactory(
-            file=file_3, PropertyName="language", Value=None
+            file=file_4, PropertyName="language", Value=None
         ),
     }
 
