@@ -336,9 +336,7 @@ def test_add_text_content_skipped_alert():
 
     with patch(
         "opensearch_indexer.text_extraction.send_slack_alert"
-    ) as mock_alert, patch(
-        "opensearch_indexer.text_extraction.ENVIRONMENT", "test-env"
-    ):
+    ) as mock_alert:
 
         result = add_text_content(file, file_stream)
 
@@ -373,9 +371,7 @@ def test_add_text_content_failed_alert(mock_extract_text):
 
     with patch(
         "opensearch_indexer.text_extraction.send_slack_alert"
-    ) as mock_alert, patch(
-        "opensearch_indexer.text_extraction.ENVIRONMENT", "test-env"
-    ):
+    ) as mock_alert:
 
         result = add_text_content(file, file_stream)
 
