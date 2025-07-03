@@ -1,3 +1,6 @@
+import os
+import subprocess  # nosec
+import tempfile
 import uuid
 
 import boto3
@@ -695,16 +698,6 @@ def search_transferring_body(_id: uuid.UUID):
 @access_token_sign_in_required
 @log_page_view
 def record(record_id: uuid.UUID):
-    """
-    Render the record details page.
-
-    This function retrieves search results from the session, looks for a specific
-    record based on the 'record_id' provided in the query parameters, and renders
-    the record details on the 'record.html' template.
-
-    Returns:
-        A rendered HTML page with record details.
-    """
     form = SearchForm()
     file = db.session.get(File, record_id)
     ayr_user = AYRUser(session.get("user_groups"))
@@ -718,24 +711,77 @@ def record(record_id: uuid.UUID):
 
     file_metadata = get_file_metadata(file.FileId)
     file_extension = file.FileName.split(".")[-1].lower()
-    can_render_file = (
-        file_extension in current_app.config["SUPPORTED_RENDER_EXTENSIONS"]
-    )
+
+    supported = current_app.config["SUPPORTED_RENDER_EXTENSIONS"]
+    can_render_file = file_extension in supported
+
+    s3 = boto3.client("s3")
+    bucket = current_app.config["RECORD_BUCKET_NAME"]
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+
+    if can_render_file:
+        try:
+            presigned_url = create_presigned_url(file)
+        except Exception as e:
+            current_app.logger.warning(f"Presigned URL error: {e}")
+    else:
+        try:
+            # 1. Download original file from S3
+            with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                s3.download_file(bucket, key, tmp.name)
+                input_path = tmp.name
+
+            # 2. Convert to PDF
+            output_dir = tempfile.gettempdir()
+            base_name = os.path.splitext(os.path.basename(file.FileName))[0]
+            output_path = os.path.join(output_dir, base_name + ".pdf")
+
+            result = subprocess.run(  # nosec
+                [
+                    "libreoffice",
+                    "--headless",
+                    "--convert-to",
+                    "pdf",
+                    "--outdir",
+                    output_dir,
+                    input_path,
+                ],
+                capture_output=True,
+            )
+
+            if result.returncode != 0:
+                raise RuntimeError(
+                    f"LibreOffice failed: {result.returncode}, stderr: {result.stderr.decode(errors='ignore')}"
+                )
+
+            if not os.path.exists(output_path):
+                raise FileNotFoundError(
+                    f"Converted PDF not found: {output_path}"
+                )
+
+            # 3. Upload to temporary S3 location
+            converted_key = f"temp/{file.FileId}.pdf"
+            s3.upload_file(output_path, bucket, converted_key)
+
+            # 4. Presign the converted file
+            presigned_url = s3.generate_presigned_url(
+                "get_object",
+                Params={"Bucket": bucket, "Key": converted_key},
+                ExpiresIn=600,
+            )
+
+            file_extension = "pdf"
+            can_render_file = True
+
+        except Exception as e:
+            current_app.logger.warning(f"On-the-fly conversion failed: {e}")
 
     breadcrumb_values = generate_breadcrumb_values(file)
-
     download_filename = get_download_filename(file)
 
     manifest_url = url_for(
         "main.generate_manifest", record_id=record_id, _external=True
     )
-
-    try:
-        presigned_url = create_presigned_url(file)
-    except Exception as e:
-        current_app.app_logger.info(
-            f"Failed to create presigned url for document render non-javascript fallback {e}"
-        )
 
     return render_template(
         "record.html",
