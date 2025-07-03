@@ -241,8 +241,11 @@ a.govuk-link {
   }
 }
 
-[class*="hidden-row"] {
+.hidden {
   display: none;
+}
+
+.hidden-row-styles {
   border-bottom: none;
 }
 
@@ -261,19 +264,21 @@ a.govuk-link {
     background-color: #fff199;
   }
 
-  details > summary {
+  &__toggle-button {
     cursor: pointer;
-    list-style: none;
     position: relative;
     width: 16px;
     height: 10px;
+    border: none;
+    padding: none;
+    background-color: transparent;
 
     &::before {
       content: "";
       position: absolute;
       inset: 0;
-      width: 100%;
-      height: 100%;
+      width: 16px;
+      height: 10px;
       background-image: url("/assets/image/accordion-chevron.svg");
       background-size: contain;
       background-repeat: no-repeat;
@@ -284,15 +289,19 @@ a.govuk-link {
     &:hover::before {
       background-image: url("/assets/image/accordion-chevron-hover.svg");
     }
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+
+    &[aria-expanded="true"]::before {
+      transform: rotate(180deg);
+    }
   }
 
   &--inner-table {
     border: none;
     margin-bottom: 0;
-  }
-
-  details[open] > summary::before {
-    transform: rotate(180deg);
   }
 
   &__header {

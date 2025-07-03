@@ -104,12 +104,17 @@
                                                         {% set first_field_formatted = first_field | format_opensearch_field_name %}
                                                         {% set first_result_value = record['highlight'].values() | list | first | join(' ... ')| clean_tags_and_replace_highlight_tag(highlight_tag) | safe %}
                                                         {% set total_fields = record['highlight'].keys() | length %}
+                                                        {% set file_name = record['_source']['file_name'] %}
                                                         <td class="govuk-table__cell">
                                                             <div class="govuk-table__cell__data">
-                                                                <details class="details-toggle-{{ main_loop_index }}"
-                                                                         {% if open_all %}open{% endif %}>
-                                                                    <summary />
-                                                                </details>
+                                                                <button disabled
+                                                                        data-main-row="{{ main_loop_index }}"
+                                                                        data-file-name="{{ file_name }}"
+                                                                        class="govuk-table__toggle-button"
+                                                                        aria-label="Expand rows for file {{ file_name }}"
+                                                                        aria-controls="{% for i in range(total_fields) %}hidden-row-{{ main_loop_index }}-{{ i }}{% if not loop.last %} {% endif %}{% endfor %}"
+                                                                        aria-expanded="false"
+                                                                        type="button"></button>
                                                                 {% if record['highlight'] %}
                                                                     {% if total_fields > 1 %}
                                                                         <span>{{ first_field_formatted }} <span class="field-count-{{ main_loop_index }}">+{{ total_fields - 1 }}</span></span>
@@ -150,7 +155,10 @@
                                                     {% set items = record['highlight'].items() | list %}
                                                     {% for key, value in items[1:] %}
                                                         {% if key != 'file_name' %}
-                                                            <tr class="govuk-table__row top-row hidden-row-{{ main_loop_index }}">
+                                                            <tr id="hidden-row-{{ main_loop_index }}-{{ loop.index }}"
+                                                                data-main-row="{{ main_loop_index }}"
+                                                                aria-expanded="false"
+                                                                class="govuk-table__row hidden-row-styles top-row">
                                                                 <td class="govuk-table__cell govuk-table__cell--with-padding govuk-table__cell--no-pt">
                                                                     {{ key | format_opensearch_field_name }}
                                                                 </td>
@@ -160,7 +168,10 @@
                                                             </tr>
                                                         {% endif %}
                                                     {% endfor %}
-                                                    <tr class="govuk-table__row top-row hidden-row-{{ main_loop_index }}">
+                                                    <tr id="hidden-row-{{ main_loop_index }}-0"
+                                                        data-main-row="{{ main_loop_index }}"
+                                                        aria-expanded="false"
+                                                        class="govuk-table__row hidden-row-styles top-row">
                                                         <td class="govuk-table__cell"></td>
                                                         <td class="govuk-table__cell govuk-table__cell--no-padding">
                                                             <table class="govuk-table govuk-table--inner-table" id="inner-table">
@@ -303,4 +314,35 @@
             </div>
         </div>
     </div>
+    <script nonce="{{ csp_nonce() }}">
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleButtons = document.querySelectorAll('.govuk-table__toggle-button');
+            const openAll = {{open_all|tojson}};
+
+            const expandableRows = document.querySelectorAll('tr[data-main-row]');
+            expandableRows.forEach(row => {
+                row.classList.add('hidden');
+                row.setAttribute('aria-hidden', 'true');
+                row.setAttribute('aria-expanded', 'false');
+            });
+
+            const toggleRows = (btn, expand) => {
+                const rows = document.querySelectorAll(`tr[data-main-row="${btn.dataset.mainRow}"]`);
+                rows.forEach(row => {
+                    row.classList.toggle('hidden', !expand);
+                    row.setAttribute('aria-hidden', !expand);
+                    row.setAttribute('aria-expanded', expand);
+                });
+                btn.setAttribute('aria-expanded', expand);
+                btn.setAttribute('aria-label',
+                    `${expand ? 'Collapse' : 'Expand'} rows for file ${btn.dataset.fileName}`);
+            };
+
+            toggleButtons.forEach(btn => {
+                btn.removeAttribute('disabled');
+                if (openAll) toggleRows(btn, true);
+                btn.onclick = () => toggleRows(btn, btn.getAttribute('aria-expanded') !== 'true');
+            });
+        });
+    </script>
 {% endblock %}
