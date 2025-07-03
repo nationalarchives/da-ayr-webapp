@@ -282,6 +282,7 @@ a.govuk-link {
 
     &:disabled {
       cursor: not-allowed;
+      filter: grayscale(1);
     }
 
     &[aria-expanded="true"]::before {
