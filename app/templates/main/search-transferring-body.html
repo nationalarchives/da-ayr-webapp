@@ -117,7 +117,7 @@
                                                                         type="button"></button>
                                                                 {% if record['highlight'] %}
                                                                     {% if total_fields > 1 %}
-                                                                        <span>{{ first_field_formatted }} <span class="field-count-{{ main_loop_index }}">+{{ total_fields - 1 }}</span></span>
+                                                                        <span>{{ first_field_formatted }} <span data-main-row="{{ main_loop_index }}" class="field-count hidden">+{{ total_fields - 1 }}</span></span>
                                                                     {% else %}
                                                                         {{ first_field_formatted }}
                                                                     {% endif %}
@@ -327,16 +327,27 @@
             });
 
             const toggleRows = (btn, expand) => {
-                const rows = document.querySelectorAll(`tr[data-main-row="${btn.dataset.mainRow}"]`);
-                rows.forEach(row => {
-                    row.classList.toggle('hidden', !expand);
-                    row.setAttribute('aria-hidden', !expand);
-                    row.setAttribute('aria-expanded', expand);
-                });
-                btn.setAttribute('aria-expanded', expand);
-                btn.setAttribute('aria-label',
-                    `${expand ? 'Collapse' : 'Expand'} rows for file ${btn.dataset.fileName}`);
+            const rows = document.querySelectorAll(`tr[data-main-row="${btn.dataset.mainRow}"]`);
+            const fieldCount = document.querySelector(`span[data-main-row="${btn.dataset.mainRow}"].field-count`);
+
+            rows.forEach(row => {
+                row.classList.toggle('hidden', !expand);
+                row.setAttribute('aria-hidden', !expand);
+                row.setAttribute('aria-expanded', expand);
+            });
+
+            if (fieldCount) {
+            fieldCount.classList.toggle('hidden', expand);
+            }
+
+            btn.setAttribute('aria-expanded', expand);
+            btn.setAttribute('aria-label',
+            `${expand ? 'Collapse' : 'Expand'} rows for file ${btn.dataset.fileName}`);
             };
+
+            document.querySelectorAll('.field-count').forEach(count => {
+                count.classList.remove('hidden');
+            });
 
             toggleButtons.forEach(btn => {
                 btn.removeAttribute('disabled');
