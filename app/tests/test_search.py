@@ -761,7 +761,7 @@ class TestSearchTransferringBody:
         Given a standard user with access to a body, and there are files from that body and another body
         and a search query which matches a property from related file data
         When they make a request on the search page with the search term
-        Then the result contains a button with aria-label to expand the file details
+        Then the result contains a button with aria-expanded set to false by default
         """
         mock_search_client.return_value = MockOpenSearch(
             search_return_value=os_mock_return_tb
