@@ -366,43 +366,7 @@ jobs:
         echo "Setting up test data"
 
         # Upload test files to MinIO bucket
-        echo "Uploading test files to MinIO"
-        pip install boto3
-        python -c
-        import boto3
-        import os
-        from pathlib import Path
-        from botocore.client import Config
-
-        # MinIO client setup
-        s3 = boto3.client(
-            's3',
-            endpoint_url='http://localhost:9000',
-            aws_access_key_id='ROOTNAME',
-            aws_secret_access_key='CHANGEME123',
-            config=Config(signature_version='s3v4'),
-            region_name='us-east-1'
-        )
-
-        # Create bucket if it doesn't exist
-        bucket_name = 'test-record-download'
-        try:
-            s3.head_bucket(Bucket=bucket_name)
-        except:
-            s3.create_bucket(Bucket=bucket_name)
-
-        # Upload all files from local_services/files/
-        files_dir = Path('local_services/files')
-        for consignment_dir in files_dir.iterdir():
-            if consignment_dir.is_dir():
-                for file_path in consignment_dir.iterdir():
-                    if file_path.is_file():
-                        key = f'{consignment_dir.name}/{file_path.name}'
-                        print(f'Uploading {key}')
-                        s3.upload_file(str(file_path), bucket_name, key)
-
-        print('MinIO file upload completed')
-        "
+        python local_services/upload_test_files_to_minio.py
 
         # Set up OpenSearch snapshot repository and restore
         echo "Setting up OpenSearch snapshot and restoring data"
