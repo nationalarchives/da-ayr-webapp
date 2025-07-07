@@ -367,8 +367,8 @@ jobs:
 
         # Upload test files to MinIO bucket
         echo "Uploading test files to MinIO"
-        poetry run pip install boto3
-        poetry run python -c "
+        pip install boto3
+        python -c
         import boto3
         import os
         from pathlib import Path
