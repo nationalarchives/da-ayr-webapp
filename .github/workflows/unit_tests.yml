@@ -379,7 +379,11 @@ jobs:
         npm run build
 
     - name: Install E2E test dependencies
-      run: cd e2e_tests/ && poetry install --no-root && poetry run playwright install --with-deps
+      run: |
+        cd e2e_tests/
+        poetry lock --no-update
+        poetry install --no-root
+        poetry run playwright install --with-deps
 
     - name: Set up webapp environment
       run: |
