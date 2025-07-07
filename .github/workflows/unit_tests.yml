@@ -129,6 +129,7 @@ jobs:
               - DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI=true
             volumes:
               - opensearch-data1:/usr/share/opensearch/data
+              - ./snapshots:/usr/share/opensearch/data/snapshots
             ports:
               - 9200:9200
               - 9600:9600
@@ -194,6 +195,7 @@ jobs:
               - DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI=true
             volumes:
               - opensearch-data1:/usr/share/opensearch/data
+              - ./snapshots:/usr/share/opensearch/data/snapshots
             ports:
               - 9200:9200
               - 9600:9600
@@ -359,9 +361,74 @@ jobs:
 
         echo "All services ready"
 
-    - name: Skip OpenSearch data setup
+    - name: Set up test data for OpenSearch and MinIO
       run: |
-        echo "Skipping OpenSearch data setup for CI environment"
+        echo "Setting up test data"
+
+        # Upload test files to MinIO bucket
+        echo "Uploading test files to MinIO"
+        poetry run pip install boto3
+        poetry run python -c "
+        import boto3
+        import os
+        from pathlib import Path
+        from botocore.client import Config
+
+        # MinIO client setup
+        s3 = boto3.client(
+            's3',
+            endpoint_url='http://localhost:9000',
+            aws_access_key_id='ROOTNAME',
+            aws_secret_access_key='CHANGEME123',
+            config=Config(signature_version='s3v4'),
+            region_name='us-east-1'
+        )
+
+        # Create bucket if it doesn't exist
+        bucket_name = 'test-record-download'
+        try:
+            s3.head_bucket(Bucket=bucket_name)
+        except:
+            s3.create_bucket(Bucket=bucket_name)
+
+        # Upload all files from local_services/files/
+        files_dir = Path('local_services/files')
+        for consignment_dir in files_dir.iterdir():
+            if consignment_dir.is_dir():
+                for file_path in consignment_dir.iterdir():
+                    if file_path.is_file():
+                        key = f'{consignment_dir.name}/{file_path.name}'
+                        print(f'Uploading {key}')
+                        s3.upload_file(str(file_path), bucket_name, key)
+
+        print('MinIO file upload completed')
+        "
+
+        # Set up OpenSearch snapshot repository and restore
+        echo "Setting up OpenSearch snapshot and restoring data"
+
+        # Wait for OpenSearch to be ready
+        sleep 10
+
+        # Register snapshot repository
+        curl -s -X PUT "http://localhost:9200/_snapshot/my-fs-repository" \
+          -H 'Content-Type: application/json' \
+          -d '{
+            "type": "fs",
+            "settings": {
+              "location": "/usr/share/opensearch/data/snapshots"
+            }
+          }' || echo "Repository registration failed"
+
+        # Restore from snapshot
+        curl -s -X POST "http://localhost:9200/_snapshot/my-fs-repository/1/_restore" \
+          -H 'Content-Type: application/json' \
+          -d '{
+            "indices": "documents",
+            "include_global_state": false
+          }' || echo "Snapshot restore failed"
+
+        echo "OpenSearch snapshot restore completed"
 
     - name: Set up Python
       uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
