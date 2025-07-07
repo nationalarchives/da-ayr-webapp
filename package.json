@@ -11,12 +11,12 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@storybook/html-vite": "9.0.13",
+    "@storybook/html-vite": "9.0.15",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.2.0",
-    "prettier": "^3.6.1",
+    "prettier": "^3.6.2",
     "sass": "^1.89.2",
-    "stylelint": "^16.21.0",
+    "stylelint": "^16.21.1",
     "stylelint-config-standard-scss": "^15.0.1",
     "stylelint-selector-bem-pattern": "^4.0.1"
   },

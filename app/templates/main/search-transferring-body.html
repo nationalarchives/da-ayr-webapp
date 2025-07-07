@@ -32,7 +32,7 @@
                     id="browse-records"
                     aria-live="polite">
                     {% if num_records_found > 0 %}
-                        Records found {{ num_records_found }}
+                        Records found {{ num_records_found | format_number_with_commas }}
                     {% else %}
                         No results found
                     {% endif %}

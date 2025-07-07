@@ -78,23 +78,18 @@ def page(page, request) -> Page:
 
 @pytest.fixture
 def create_user_page(
-    page, browser_name
+    page,
 ) -> (
     Page
 ):  # FIXME: browser_name specified until https://github.com/microsoft/playwright-pytest/issues/172 fixed
     # so that multiple browser flags in cli are honoured
     def _create_user_page(username, password) -> Page:
         page.goto("/sign-in")
-        # Use different field selector for GitHub CI vs local development
-        if os.environ.get("GITHUB_ACTIONS"):
-            page.get_by_label("Username or email").fill(username)
+        if page.locator("label:has-text('Email')").count() > 0:
+            page.get_by_label("Email").first.fill(username)
         else:
-            page.get_by_label("Email address").fill(username)
-        # Use different password field selector for GitHub CI vs local development
-        if os.environ.get("GITHUB_ACTIONS"):
-            page.get_by_role("textbox", name="Password").fill(password)
-        else:
-            page.get_by_label("Password").fill(password)
+            page.get_by_label("Username or email").first.fill(username)
+        page.get_by_label("Password").first.fill(password)
         page.get_by_role("button", name="Sign in").click()
         return page
 
