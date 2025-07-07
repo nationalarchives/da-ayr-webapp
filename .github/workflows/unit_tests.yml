@@ -129,7 +129,7 @@ jobs:
               - DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI=true
             volumes:
               - opensearch-data1:/usr/share/opensearch/data
-              - ./snapshots:/usr/share/opensearch/data/snapshots
+              - ./snapshots:/mnt/snapshots
             ports:
               - 9200:9200
               - 9600:9600
@@ -195,7 +195,7 @@ jobs:
               - DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI=true
             volumes:
               - opensearch-data1:/usr/share/opensearch/data
-              - ./snapshots:/usr/share/opensearch/data/snapshots
+              - ./snapshots:/mnt/snapshots
             ports:
               - 9200:9200
               - 9600:9600
@@ -398,7 +398,7 @@ jobs:
             -d '{
               "type": "fs",
               "settings": {
-                "location": "/usr/share/opensearch/data/snapshots"
+                "location": "/mnt/snapshots"
               }
             }' | grep -q "acknowledged"; then
             echo "Repository registered successfully"
