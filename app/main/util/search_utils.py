@@ -1,3 +1,4 @@
+import os
 import re
 import urllib.parse
 
@@ -218,14 +219,27 @@ def get_query_and_search_area(request):
 
 def setup_opensearch():
     """Setup and return an OpenSearch client"""
-    return OpenSearch(
-        hosts=current_app.config.get("OPEN_SEARCH_HOST"),
-        http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
-        use_ssl=True,
-        verify_certs=True,
-        ca_certs=current_app.config.get("OPEN_SEARCH_CA_CERTS"),
-        connection_class=RequestsHttpConnection,
-    )
+    host = current_app.config.get("OPEN_SEARCH_HOST")
+    
+    # Check if running in GitHub CI and host starts with http://
+    is_github_ci = os.environ.get("GITHUB_ACTIONS") == "true"
+    use_ssl = True
+    if is_github_ci and host and host.startswith("http://"):
+        use_ssl = False
+    
+    opensearch_config = {
+        "hosts": host,
+        "http_auth": current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
+        "use_ssl": use_ssl,
+        "verify_certs": use_ssl,
+        "connection_class": RequestsHttpConnection,
+    }
+    
+    # Only add ca_certs if SSL is enabled and ca_certs is configured
+    if use_ssl and current_app.config.get("OPEN_SEARCH_CA_CERTS"):
+        opensearch_config["ca_certs"] = current_app.config.get("OPEN_SEARCH_CA_CERTS")
+    
+    return OpenSearch(**opensearch_config)
 
 
 def execute_search(open_search, dsl_query, page, per_page):
