@@ -381,7 +381,7 @@ jobs:
     - name: Install E2E test dependencies
       run: |
         cd e2e_tests/
-        poetry lock --no-update
+        poetry lock
         poetry install --no-root
         poetry run playwright install --with-deps
 
