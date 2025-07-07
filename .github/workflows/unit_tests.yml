@@ -120,7 +120,7 @@ jobs:
             environment:
               - cluster.name=opensearch-cluster
               - node.name=opensearch-node1
-              # - discovery.type=single-node
+              - discovery.type=single-node
               - bootstrap.memory_lock=false
               - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
               - OPENSEARCH_INITIAL_ADMIN_PASSWORD=admin
@@ -186,7 +186,7 @@ jobs:
             environment:
               - cluster.name=opensearch-cluster
               - node.name=opensearch-node1
-              # - discovery.type=single-node
+              - discovery.type=single-node
               - bootstrap.memory_lock=false
               - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
               - OPENSEARCH_INITIAL_ADMIN_PASSWORD=admin
@@ -371,26 +371,73 @@ jobs:
         # Set up OpenSearch snapshot repository and restore
         echo "Setting up OpenSearch snapshot and restoring data"
 
-        # Wait for OpenSearch to be ready
-        sleep 10
+        # Wait for OpenSearch cluster
+        echo "Waiting for OpenSearch cluster to be ready"
+        for i in {1..30}; do
+          if curl -s http://localhost:9200/_cluster/health | grep -q "green\|yellow"; then
+            echo "OpenSearch cluster is responsive"
+            break
+          fi
+          echo "Attempt $i/30: Waiting for cluster health... $(date)"
+          docker logs local_services-opensearch-node1-1 --tail 5 2>/dev/null || true
+          sleep 10
+        done
+        
+        sleep 30
+        
+        # Check cluster status
+        echo "OpenSearch cluster status:"
+        curl -s http://localhost:9200/_cluster/health?pretty || echo "Failed to get cluster health"
+        curl -s http://localhost:9200/_nodes?pretty || echo "Failed to get nodes info"
 
-        # Register snapshot repository
-        curl -s -X PUT "http://localhost:9200/_snapshot/my-fs-repository" \
-          -H 'Content-Type: application/json' \
-          -d '{
-            "type": "fs",
-            "settings": {
-              "location": "/usr/share/opensearch/data/snapshots"
-            }
-          }' || echo "Repository registration failed"
+        # Register snapshot repository with retry logic
+        echo "Registering snapshot repository"
+        for i in {1..5}; do
+          if curl -s -X PUT "http://localhost:9200/_snapshot/my-fs-repository" \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "type": "fs",
+              "settings": {
+                "location": "/usr/share/opensearch/data/snapshots"
+              }
+            }' | grep -q "acknowledged"; then
+            echo "Repository registered successfully"
+            break
+          fi
+          echo "Attempt $i/5: Repository registration failed, retrying"
+          sleep 5
+        done
+        
+        curl -s -X GET "http://localhost:9200/_snapshot/my-fs-repository?pretty" || echo "Failed to verify repository"
+        curl -s -X GET "http://localhost:9200/_snapshot/my-fs-repository/_all?pretty" || echo "Failed to list snapshots"
 
-        # Restore from snapshot
-        curl -s -X POST "http://localhost:9200/_snapshot/my-fs-repository/1/_restore" \
-          -H 'Content-Type: application/json' \
-          -d '{
-            "indices": "documents",
-            "include_global_state": false
-          }' || echo "Snapshot restore failed"
+        # Restore from snapshot with retry logic
+        echo "Restoring from snapshot"
+        for i in {1..3}; do
+          if curl -s -X POST "http://localhost:9200/_snapshot/my-fs-repository/1/_restore" \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "indices": "documents",
+              "include_global_state": false
+            }' | grep -q "accepted"; then
+            echo "Snapshot restore initiated successfully"
+            break
+          fi
+          echo "Attempt $i/3: Snapshot restore failed, retrying"
+          sleep 10
+        done
+        
+        # Wait for restore to complete and verify
+        echo "Waiting for restore to complete"
+        for i in {1..12}; do
+          if curl -s http://localhost:9200/documents/_count 2>/dev/null | grep -q "count"; then
+            echo "Documents index restored successfully"
+            curl -s http://localhost:9200/documents/_count?pretty
+            break
+          fi
+          echo "Attempt $i/12: Waiting for documents index $(date)"
+          sleep 5
+        done
 
         echo "OpenSearch snapshot restore completed"
 
@@ -488,7 +535,7 @@ jobs:
         AYR_STANDARD_USER_PASSWORD: test-password # pragma: allowlist secret
       run: |
         # Run actual tests, excluding problematic tests for CI environment
-        cd e2e_tests/ && poetry run pytest . --base-url=https://localhost:5000 -k "not test_css_no_visual_regression and not test_record_download_record and not test_sign_in_succeeds_when_valid_credentials and not test_token_expiry" --tb=short -s --browser chromium --screenshot=on
+        cd e2e_tests/ && poetry run pytest . --base-url=https://localhost:5000 -k "not test_css_no_visual_regression and not test_record_download_record and not test_sign_in_succeeds_when_valid_credentials and not test_token_expiry" --tb=short -s --browser chromium --screenshot=only-on-failure --video=on
 
     - name: Upload test artifacts
       if: failure()
