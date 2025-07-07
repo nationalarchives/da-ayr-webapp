@@ -489,9 +489,9 @@ jobs:
         FLASKS3_BUCKET_NAME=test-record-download
         PERF_TEST=False
         DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
-        OPEN_SEARCH_HOST=localhost:9200
-        OPEN_SEARCH_USERNAME=admin
-        OPEN_SEARCH_PASSWORD=admin
+        OPEN_SEARCH_HOST=http://localhost:9200
+        OPEN_SEARCH_USERNAME=
+        OPEN_SEARCH_PASSWORD=
         OPEN_SEARCH_CA_CERTS=
         OPEN_SEARCH_TIMEOUT=10
         EOF
