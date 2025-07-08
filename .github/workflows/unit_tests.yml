@@ -127,6 +127,7 @@ jobs:
               - DISABLE_SECURITY_PLUGIN=true
               - DISABLE_INSTALL_DEMO_CONFIG=true
               - DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI=true
+              - path.repo=/mnt/snapshots
             volumes:
               - opensearch-data1:/usr/share/opensearch/data
               - ./snapshots:/mnt/snapshots

@@ -17,10 +17,10 @@ def main():
         "s3",
         endpoint_url="http://localhost:9000",
         aws_access_key_id="ROOTNAME",
-        aws_secret_access_key="CHANGEME123",  # pragma: allowlist secret
+        aws_secret_access_key="CHANGEME123",  # nosec B106 # pragma: allowlist secret
         config=Config(signature_version="s3v4"),
         region_name="us-east-1",
-    )  # pragma: allowlist secret
+    )
 
     # Create bucket if it doesn't exist
     bucket_name = "test-record-download"
