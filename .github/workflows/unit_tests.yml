@@ -184,30 +184,33 @@ jobs:
             ]
 
           opensearch-node1:
-            image: opensearchproject/opensearch:2.5.0
+            image: opensearchproject/opensearch:latest
             environment:
               - cluster.name=opensearch-cluster
               - node.name=opensearch-node1
               - discovery.type=single-node
               - bootstrap.memory_lock=false
               - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+              - OPENSEARCH_INITIAL_ADMIN_PASSWORD=admin
               - DISABLE_SECURITY_PLUGIN=true
               - DISABLE_INSTALL_DEMO_CONFIG=true
               - DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI=true
               - path.repo=/mnt/snapshots
-              - OPENSEARCH_INITIAL_ADMIN_PASSWORD=admin
             volumes:
               - opensearch-data1:/usr/share/opensearch/data
               - ./snapshots:/mnt/snapshots
             ports:
               - 9200:9200
+              - 9600:9600
+            networks:
+              - opensearch-net
             ulimits:
-              nofile:
-                soft: 65536
-                hard: 65536
               memlock:
                 soft: -1
                 hard: -1
+              nofile:
+                soft: 65536
+                hard: 65536
 
           opensearch-node2:
             deploy:
