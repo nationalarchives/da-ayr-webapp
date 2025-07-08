@@ -382,9 +382,9 @@ jobs:
           docker logs local_services-opensearch-node1-1 --tail 5 2>/dev/null || true
           sleep 10
         done
-        
+
         sleep 30
-        
+
         # Check cluster status
         echo "OpenSearch cluster status:"
         curl -s http://localhost:9200/_cluster/health?pretty || echo "Failed to get cluster health"
@@ -407,7 +407,7 @@ jobs:
           echo "Attempt $i/5: Repository registration failed, retrying"
           sleep 5
         done
-        
+
         curl -s -X GET "http://localhost:9200/_snapshot/my-fs-repository?pretty" || echo "Failed to verify repository"
         curl -s -X GET "http://localhost:9200/_snapshot/my-fs-repository/_all?pretty" || echo "Failed to list snapshots"
 
@@ -426,7 +426,7 @@ jobs:
           echo "Attempt $i/3: Snapshot restore failed, retrying"
           sleep 10
         done
-        
+
         # Wait for restore to complete and verify
         echo "Waiting for restore to complete"
         for i in {1..12}; do
