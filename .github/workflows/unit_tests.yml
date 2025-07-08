@@ -184,24 +184,22 @@ jobs:
             ]
 
           opensearch-node1:
+            image: opensearchproject/opensearch:2.5.0
             environment:
               - cluster.name=opensearch-cluster
               - node.name=opensearch-node1
               - discovery.type=single-node
               - bootstrap.memory_lock=false
-              - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
-              - OPENSEARCH_INITIAL_ADMIN_PASSWORD=admin
+              - OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m
               - DISABLE_SECURITY_PLUGIN=true
               - DISABLE_INSTALL_DEMO_CONFIG=true
               - DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI=true
+              - path.repo=/mnt/snapshots
             volumes:
               - opensearch-data1:/usr/share/opensearch/data
               - ./snapshots:/mnt/snapshots
             ports:
               - 9200:9200
-              - 9600:9600
-            networks:
-              - opensearch-net
             ulimits:
               memlock:
                 soft: -1
@@ -374,17 +372,24 @@ jobs:
 
         # Wait for OpenSearch cluster
         echo "Waiting for OpenSearch cluster to be ready"
-        for i in {1..30}; do
-          if curl -s http://localhost:9200/_cluster/health | grep -q "green\|yellow"; then
+        
+        # Check if container is running
+        docker ps | grep opensearch || echo "No OpenSearch container found"
+        
+        for i in {1..20}; do
+          if curl -s http://localhost:9200/_cluster/health 2>/dev/null | grep -q "green\|yellow"; then
             echo "OpenSearch cluster is responsive"
             break
           fi
-          echo "Attempt $i/30: Waiting for cluster health... $(date)"
-          docker logs local_services-opensearch-node1-1 --tail 5 2>/dev/null || true
-          sleep 10
+          echo "Attempt $i/20: Waiting for cluster health... $(date)"
+          if [ $((i % 4)) -eq 0 ]; then
+            echo "OpenSearch container logs:"
+            docker logs local_services-opensearch-node1-1 --tail 10 2>/dev/null || echo "Cannot get logs"
+          fi
+          sleep 12
         done
-
-        sleep 30
+        
+        sleep 20
 
         # Check cluster status
         echo "OpenSearch cluster status:"
@@ -440,7 +445,6 @@ jobs:
           sleep 5
         done
 
-        echo "OpenSearch snapshot restore completed"
 
     - name: Set up Python
       uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
