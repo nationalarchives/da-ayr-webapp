@@ -190,7 +190,7 @@ jobs:
               - node.name=opensearch-node1
               - discovery.type=single-node
               - bootstrap.memory_lock=false
-              - OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m
+              - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
               - DISABLE_SECURITY_PLUGIN=true
               - DISABLE_INSTALL_DEMO_CONFIG=true
               - DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI=true
@@ -358,7 +358,6 @@ jobs:
         echo "Waiting for OpenSearch to be available..."
         timeout 300 bash -c 'until curl -f http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s 2>/dev/null; do echo "OpenSearch not ready yet... ($(date))"; sleep 10; done' || echo "OpenSearch failed to start - continuing without search functionality"
 
-        echo "All services ready"
 
     - name: Set up test data for OpenSearch and MinIO
       run: |
@@ -383,8 +382,11 @@ jobs:
           fi
           echo "Attempt $i/20: Waiting for cluster health... $(date)"
           if [ $((i % 4)) -eq 0 ]; then
-            echo "OpenSearch container logs:"
-            docker logs local_services-opensearch-node1-1 --tail 10 2>/dev/null || echo "Cannot get logs"
+            echo "Debugging OpenSearch:"
+            curl -v http://localhost:9200 2>&1 | head -10 || echo "Curl failed"
+            echo "- Attempting to get container logs:"
+            docker logs opensearch-node1 --tail 10 2>&1 || echo "Cannot get logs from opensearch-node1"
+            docker ps | grep opensearch
           fi
           sleep 12
         done
