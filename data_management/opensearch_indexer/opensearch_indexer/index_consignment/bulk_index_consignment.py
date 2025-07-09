@@ -165,7 +165,9 @@ def construct_documents(files: List[Dict], bucket_name: str) -> List[Dict]:
 
         try:
             file_stream = get_s3_file(bucket_name, object_key)
-            document = add_text_content(file, file_stream)
+            document = add_text_content(
+                file, file_stream, file["file_extension"]
+            )
             return {"file_id": file["file_id"], "document": document}
         except Exception as e:
             logger.error(f"Failed to obtain file {object_key}: {e}")
@@ -185,7 +187,7 @@ def fetch_files_in_consignment(
     consignment_reference: str, database_url: str
 ) -> List[Dict]:
     """
-    Fetch file metadata associated with the given consignment reference.
+    Fetch file metadata associated with the given consignment reference, including FFID file extension.
 
     Args:
         consignment_reference (str): The unique reference identifying the consignment.
@@ -216,7 +218,8 @@ def fetch_files_in_consignment(
         c."ConsignmentId" AS consignment_id,
         c."ConsignmentReference" AS consignment_reference,
         fm."PropertyName",
-        fm."Value"
+        fm."Value",
+        ffid."Extension" AS file_extension
     FROM
         "File" f
     JOIN
@@ -227,6 +230,8 @@ def fetch_files_in_consignment(
         "Body" b ON s."BodyId" = b."BodyId"
     LEFT JOIN
         "FileMetadata" fm ON f."FileId" = fm."FileId"
+    LEFT JOIN
+        "FFIDMetadata" ffid ON f."FileId" = ffid."FileId"
     WHERE
         c."ConsignmentReference" = :consignment_reference
         AND f."FileType" = 'File';
@@ -264,6 +269,7 @@ def fetch_files_in_consignment(
                 ),
                 "consignment_id": str(row.consignment_id),
                 "consignment_reference": str(row.consignment_reference),
+                "file_extension": str(row.file_extension),
             }
 
         if row.PropertyName:

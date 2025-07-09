@@ -54,6 +54,12 @@ class File(db.Model):
     consignment = db.relationship(
         "Consignment", foreign_keys="File.ConsignmentId"
     )
+    ffid_metadata = db.relationship(
+        "FFIDMetadata",
+        back_populates="file",
+        uselist=False,
+        foreign_keys="FFIDMetadata.FileId",
+    )
 
 
 class FileMetadata(db.Model):
@@ -64,3 +70,24 @@ class FileMetadata(db.Model):
     Value = db.Column(Text)
     CreatedDatetime = db.Column(DateTime)
     file = db.relationship("File", foreign_keys="FileMetadata.FileId")
+
+
+class FFIDMetadata(db.Model):
+    __tablename__ = "FFIDMetadata"
+
+    FileId = db.Column(
+        UUID(as_uuid=True), db.ForeignKey("File.FileId"), primary_key=True
+    )
+    Extension = db.Column(Text)
+    PUID = db.Column(Text)
+    FormatName = db.Column(Text)
+    ExtensionMismatch = db.Column(Text)
+    FFID_Software = db.Column("FFID-Software", Text)
+    FFID_SoftwareVersion = db.Column("FFID-SoftwareVersion", Text)
+    FFID_BinarySignatureFileVersion = db.Column(
+        "FFID-BinarySignatureFileVersion", Text
+    )
+    FFID_ContainerSignatureFileVersion = db.Column(
+        "FFID-ContainerSignatureFileVersion", Text
+    )
+    file = db.relationship("File", foreign_keys=[FileId])
