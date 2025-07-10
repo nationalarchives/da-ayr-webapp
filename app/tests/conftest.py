@@ -1112,7 +1112,7 @@ def record_files():
             file=file_6, PropertyName="language", Value="English"
         ),
     }
-
+    db.session.flush()
     return [
         file_1_metadata,
         file_2_metadata,
