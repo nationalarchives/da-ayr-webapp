@@ -117,6 +117,7 @@ def test_add_text_content_success(mock_extract_text, caplog):
     file = {
         "file_id": 1,
         "file_name": "example.pdf",
+        "file_extension": "pdf",
         "content": "",
         "text_extraction_status": "",
     }
@@ -124,7 +125,7 @@ def test_add_text_content_success(mock_extract_text, caplog):
     mock_extract_text.return_value = "Extracted text"
 
     # When
-    result = add_text_content(file, file_stream)
+    result = add_text_content(file, file_stream, file["file_extension"])
 
     # Then
     assert result["content"] == "Extracted text"
@@ -148,13 +149,14 @@ def test_add_text_content_unsupported_format(caplog):
     file = {
         "file_id": 2,
         "file_name": "example.exe",  # Unsupported file type
+        "file_extension": "exe",
         "content": "",
         "text_extraction_status": "",
     }
     file_stream = b"Some content that won't be extracted"
 
     # When
-    result = add_text_content(file, file_stream)
+    result = add_text_content(file, file_stream, file["file_extension"])
 
     # Then
     assert result["content"] == ""
@@ -180,6 +182,7 @@ def test_add_text_content_failure(mock_extract_text, caplog):
     file = {
         "file_id": 3,
         "file_name": "example.txt",  # Supported file type
+        "file_extension": "txt",
         "content": "",
         "text_extraction_status": "",
     }
@@ -190,7 +193,7 @@ def test_add_text_content_failure(mock_extract_text, caplog):
 
     # When
     with caplog.at_level("ERROR"):
-        result = add_text_content(file, file_stream)
+        result = add_text_content(file, file_stream, file["file_extension"])
 
     # Then
     assert result["content"] == ""
@@ -215,13 +218,14 @@ def test_add_text_content_no_extension():
     file = {
         "file_id": 4,
         "file_name": "example",  # No file extension
+        "file_extension": "",  # no extension
         "content": "",
         "text_extraction_status": "",
     }
     file_stream = b"Some content"
 
     # When
-    result = add_text_content(file, file_stream)
+    result = add_text_content(file, file_stream, file["file_extension"])
 
     # Then
     assert result["content"] == ""
@@ -239,6 +243,7 @@ def test_add_text_content_fallback_success():
     file = {
         "file_id": 5,
         "file_name": "example.xls",  # In fallback map
+        "file_extension": "xls",
         "content": "",
         "text_extraction_status": "",
     }
@@ -256,7 +261,7 @@ def test_add_text_content_fallback_success():
         ]
         mock_convert.return_value = "/tmp/example.xlsx"
 
-        result = add_text_content(file, file_stream)
+        result = add_text_content(file, file_stream, file["file_extension"])
 
         assert result["content"] == "converted content"
         assert (
@@ -329,6 +334,7 @@ def test_add_text_content_skipped_alert():
     file = {
         "file_id": "abc123",
         "file_name": "unsupported.xyz",
+        "file_extension": "xyz",
         "content": "",
         "text_extraction_status": "SKIPPED",
     }
@@ -338,7 +344,7 @@ def test_add_text_content_skipped_alert():
         "opensearch_indexer.text_extraction.send_slack_alert"
     ) as mock_alert:
 
-        result = add_text_content(file, file_stream)
+        result = add_text_content(file, file_stream, file["file_extension"])
 
         assert result["content"] == ""
         assert (
@@ -362,6 +368,7 @@ def test_add_text_content_failed_alert(mock_extract_text):
     file = {
         "file_id": "def456",
         "file_name": "example.pdf",
+        "file_extension": "pdf",
         "content": "",
         "text_extraction_status": "FAILED",
     }
@@ -373,7 +380,7 @@ def test_add_text_content_failed_alert(mock_extract_text):
         "opensearch_indexer.text_extraction.send_slack_alert"
     ) as mock_alert:
 
-        result = add_text_content(file, file_stream)
+        result = add_text_content(file, file_stream, file["file_extension"])
 
         assert result["content"] == ""
         assert (

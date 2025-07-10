@@ -131,6 +131,7 @@ class TestRoutes:
             FileId=file_id,
             FileType="File",
             FileName="open_file_once_closed.pdf",
+            ffid_metadata__Extension="pdf",
         )
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -204,6 +205,7 @@ class TestRoutes:
             FileId=file_id,
             FileType="File",
             FileName="open_file_once_closed.png",
+            ffid_metadata__Extension="png",
         )
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -385,6 +387,7 @@ class TestRoutes:
         """
         mock_all_access_user(client)
         file = record_files[0]["file_object"]
+        file.ffid_metadata.Extension = "pdf"
         file.FileName = "document.pdf"
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -420,6 +423,7 @@ class TestRoutes:
         """
         mock_all_access_user(client)
         file = record_files[0]["file_object"]
+        file.ffid_metadata.Extension = image_format
         file.FileName = f"image.{image_format}"
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -450,6 +454,7 @@ class TestRoutes:
         """
         mock_all_access_user(client)
         file = record_files[0]["file_object"]
+        file.ffid_metadata.Extension = "xyz"
         file.FileName = "unsupported.xyz"
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
