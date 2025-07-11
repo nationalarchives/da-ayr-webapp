@@ -165,9 +165,7 @@ def construct_documents(files: List[Dict], bucket_name: str) -> List[Dict]:
 
         try:
             file_stream = get_s3_file(bucket_name, object_key)
-            document = add_text_content(
-                file, file_stream, file["file_extension"]
-            )
+            document = add_text_content(file, file_stream)
             return {"file_id": file["file_id"], "document": document}
         except Exception as e:
             logger.error(f"Failed to obtain file {object_key}: {e}")

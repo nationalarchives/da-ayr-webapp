@@ -54,10 +54,9 @@ SUPPORTED_TEXTRACT_FORMATS = [
 ]
 
 
-def add_text_content(
-    file: Dict, file_stream: bytes, file_extension: str
-) -> Dict:
-    file_type = file_extension.lower()
+def add_text_content(file: Dict, file_stream: bytes) -> Dict:
+    file_type = file["file_extension"].lower()
+    print(f"---------------------------------{file_type}")
     file_id = file["file_id"]
 
     if file_type not in SUPPORTED_TEXTRACT_FORMATS:
