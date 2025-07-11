@@ -87,7 +87,6 @@ class FileFactory(SQLAlchemyModelFactory):
     CiteableReference = FuzzyText(length=10)
     Checksum = FuzzyText(length=10)
     CreatedDatetime = factory.Faker("date_time")
-    ffid_metadata = factory.RelatedFactory(FFIDMetadataFactory, "file")
 
 
 class FileMetadataFactory(SQLAlchemyModelFactory):

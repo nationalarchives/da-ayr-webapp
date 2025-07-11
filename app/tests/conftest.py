@@ -10,6 +10,7 @@ from app.main.db.models import Body, db
 from app.tests.factories import (
     BodyFactory,
     ConsignmentFactory,
+    FFIDMetadataFactory,
     FileFactory,
     FileMetadataFactory,
     SeriesFactory,
@@ -761,7 +762,13 @@ def record_files():
         FilePath="data/content/test_folder/open_file.docx",
         CiteableReference="first_body/ABCDE",
     )
-    file_1.ffid_metadata
+    FFIDMetadataFactory(
+        file=file_1,
+        Extension="docx",
+        FormatName="Word Document",
+        ExtensionMismatch=False,
+        FFID_Software="Siegfried",
+    )
     file_1_metadata = {
         "file_object": file_1,
         "description": FileMetadataFactory(
@@ -809,7 +816,13 @@ def record_files():
         FilePath="data/content/test_folder/open_file_once_closed.pdf",
         CiteableReference="first_body/ABCDE",
     )
-    file_2.ffid_metadata
+    FFIDMetadataFactory(
+        file=file_2,
+        Extension="pdf",
+        FormatName="Adobe PDF",
+        ExtensionMismatch=False,
+        FFID_Software="Siegfried",
+    )
     file_2_metadata = {
         "file_object": file_2,
         "alternative_title": FileMetadataFactory(
@@ -879,7 +892,13 @@ def record_files():
         FilePath="data/content/test_folder/closed_file.pdf",
         CiteableReference="first_body/ABCDE",
     )
-    file_3.ffid_metadata
+    FFIDMetadataFactory(
+        file=file_3,
+        Extension="pdf",
+        FormatName="Adobe PDF",
+        ExtensionMismatch=False,
+        FFID_Software="DROID",
+    )
     file_3_metadata = {
         "file_object": file_3,
         "alternative_title": FileMetadataFactory(
@@ -946,7 +965,13 @@ def record_files():
         FilePath="data/content/test_folder/file_no_metadata.docx",
         CiteableReference="first_body/ABCDE",
     )
-    file_4.ffid_metadata
+    FFIDMetadataFactory(
+        file=file_4,
+        Extension="docx",
+        FormatName="Word Document",
+        ExtensionMismatch=False,
+        FFID_Software="Siegfried",
+    )
     file_4_metadata = {
         "file_object": file_4,
         "alternative_title": FileMetadataFactory(
@@ -1008,7 +1033,13 @@ def record_files():
         FilePath="data/content/test_folder/file_without_citeable_reference.docx",
         CiteableReference=None,
     )
-    file_5.ffid_metadata
+    FFIDMetadataFactory(
+        file=file_5,
+        Extension="docx",
+        FormatName="Word Document",
+        ExtensionMismatch=False,
+        FFID_Software="DROID",
+    )
     file_5_metadata = {
         "file_object": file_5,
         "description": FileMetadataFactory(
@@ -1055,7 +1086,13 @@ def record_files():
         FilePath="data/content/test_folder/open_file_once_closed.png",
         CiteableReference="first_body/ABCDE",
     )
-    file_6.ffid_metadata
+    FFIDMetadataFactory(
+        file=file_6,
+        Extension="png",
+        FormatName="PNG Image",
+        ExtensionMismatch=False,
+        FFID_Software="Siegfried",
+    )
     file_6_metadata = {
         "file_object": file_6,
         "alternative_title": FileMetadataFactory(
@@ -1112,7 +1149,9 @@ def record_files():
             file=file_6, PropertyName="language", Value="English"
         ),
     }
+
     db.session.flush()
+
     return [
         file_1_metadata,
         file_2_metadata,

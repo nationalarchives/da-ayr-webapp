@@ -6,7 +6,6 @@ from flask.testing import FlaskClient
 from moto import mock_aws
 
 from app.tests.assertions import assert_contains_html
-from app.tests.factories import FileFactory
 
 db_date_format = "%Y-%m-%d"
 python_date_format = "%d/%m/%Y"
@@ -242,10 +241,7 @@ class TestRecord:
         Then the alert banner responsible with alerting the user should be visible
         """
 
-        file = FileFactory(
-            FileName="open_file_once_closed.foobar",
-            FileType="file",
-        )
+        file = record_files[0]["file_object"]
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -274,10 +270,7 @@ class TestRecord:
         Then the alert banner responsible with alerting the user should NOT be visible
         """
 
-        file = FileFactory(
-            FileName="open_file_once_closed.pdf",
-            FileType="file",
-        )
+        file = record_files[1]["file_object"]
 
         bucket_name = "test_bucket"
 
@@ -337,7 +330,9 @@ class TestRecord:
         on the page
         """
         file = record_files[0]["file_object"]
-        download_filename = f"{file.CiteableReference}.docx"
+        download_filename = (
+            f"{file.CiteableReference}.{file.ffid_metadata.Extension}"
+        )
         mock_standard_user(
             client, file.consignment.series.body.Name, can_download=True
         )
