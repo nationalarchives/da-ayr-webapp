@@ -59,7 +59,6 @@ class FFIDMetadataFactory(SQLAlchemyModelFactory):
         model = FFIDMetadata
         sqlalchemy_session = db.session
 
-    FileId = factory.SelfAttribute("file.FileId")
     Extension = FuzzyChoice(["pdf", "txt", "docx", "jpg"])
     PUID = FuzzyText(length=8)
     FormatName = FuzzyChoice(
@@ -70,7 +69,6 @@ class FFIDMetadataFactory(SQLAlchemyModelFactory):
     FFID_SoftwareVersion = FuzzyText(length=5)
     FFID_BinarySignatureFileVersion = FuzzyText(length=5)
     FFID_ContainerSignatureFileVersion = FuzzyText(length=5)
-    file = factory.SubFactory("app.tests.factories.FileFactory")
 
 
 class FileFactory(SQLAlchemyModelFactory):
@@ -81,12 +79,15 @@ class FileFactory(SQLAlchemyModelFactory):
     FileId = factory.LazyFunction(uuid.uuid4)
     consignment = factory.SubFactory(ConsignmentFactory)
     FileReference = FuzzyText(length=10)
-    FileType = FuzzyText(length=10)
+    FileType = FuzzyChoice(["File"])
     FileName = FuzzyText(length=10)
     FilePath = FuzzyText(length=50)
     CiteableReference = FuzzyText(length=10)
     Checksum = FuzzyText(length=10)
     CreatedDatetime = factory.Faker("date_time")
+    ffid_metadata = factory.RelatedFactory(
+        FFIDMetadataFactory, factory_related_name="file"
+    )
 
 
 class FileMetadataFactory(SQLAlchemyModelFactory):

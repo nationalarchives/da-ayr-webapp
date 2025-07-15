@@ -10,7 +10,6 @@ from app.main.db.models import Body, db
 from app.tests.factories import (
     BodyFactory,
     ConsignmentFactory,
-    FFIDMetadataFactory,
     FileFactory,
     FileMetadataFactory,
     SeriesFactory,
@@ -761,13 +760,10 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/open_file.docx",
         CiteableReference="first_body/ABCDE",
-    )
-    FFIDMetadataFactory(
-        file=file_1,
-        Extension="docx",
-        FormatName="Word Document",
-        ExtensionMismatch=False,
-        FFID_Software="Siegfried",
+        ffid_metadata__Extension="docx",
+        ffid_metadata__FormatName="Word Document",
+        ffid_metadata__ExtensionMismatch=False,
+        ffid_metadata__FFID_Software="Siegfried",
     )
     file_1_metadata = {
         "file_object": file_1,
@@ -815,13 +811,10 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/open_file_once_closed.pdf",
         CiteableReference="first_body/ABCDE",
-    )
-    FFIDMetadataFactory(
-        file=file_2,
-        Extension="pdf",
-        FormatName="Adobe PDF",
-        ExtensionMismatch=False,
-        FFID_Software="Siegfried",
+        ffid_metadata__Extension="pdf",
+        ffid_metadata__FormatName="Adobe PDF",
+        ffid_metadata__ExtensionMismatch=False,
+        ffid_metadata__FFID_Software="Siegfried",
     )
     file_2_metadata = {
         "file_object": file_2,
@@ -891,13 +884,10 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/closed_file.pdf",
         CiteableReference="first_body/ABCDE",
-    )
-    FFIDMetadataFactory(
-        file=file_3,
-        Extension="pdf",
-        FormatName="Adobe PDF",
-        ExtensionMismatch=False,
-        FFID_Software="DROID",
+        ffid_metadata__Extension="pdf",
+        ffid_metadata__FormatName="Adobe PDF",
+        ffid_metadata__ExtensionMismatch=False,
+        ffid_metadata__FFID_Software="Siegfried",
     )
     file_3_metadata = {
         "file_object": file_3,
@@ -964,13 +954,10 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/file_no_metadata.docx",
         CiteableReference="first_body/ABCDE",
-    )
-    FFIDMetadataFactory(
-        file=file_4,
-        Extension="docx",
-        FormatName="Word Document",
-        ExtensionMismatch=False,
-        FFID_Software="Siegfried",
+        ffid_metadata__Extension="docx",
+        ffid_metadata__FormatName="Word Document",
+        ffid_metadata__ExtensionMismatch=False,
+        ffid_metadata__FFID_Software="Siegfried",
     )
     file_4_metadata = {
         "file_object": file_4,
@@ -1032,13 +1019,10 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/file_without_citeable_reference.docx",
         CiteableReference=None,
-    )
-    FFIDMetadataFactory(
-        file=file_5,
-        Extension="docx",
-        FormatName="Word Document",
-        ExtensionMismatch=False,
-        FFID_Software="DROID",
+        ffid_metadata__Extension="docx",
+        ffid_metadata__FormatName="Word Document",
+        ffid_metadata__ExtensionMismatch=False,
+        ffid_metadata__FFID_Software="Siegfried",
     )
     file_5_metadata = {
         "file_object": file_5,
@@ -1085,13 +1069,10 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/open_file_once_closed.png",
         CiteableReference="first_body/ABCDE",
-    )
-    FFIDMetadataFactory(
-        file=file_6,
-        Extension="png",
-        FormatName="PNG Image",
-        ExtensionMismatch=False,
-        FFID_Software="Siegfried",
+        ffid_metadata__Extension="png",
+        ffid_metadata__FormatName="PNG Image",
+        ffid_metadata__ExtensionMismatch=False,
+        ffid_metadata__FFID_Software="Siegfried",
     )
     file_6_metadata = {
         "file_object": file_6,

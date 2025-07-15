@@ -10,6 +10,7 @@ from flask.testing import FlaskClient
 from moto import mock_aws
 from PIL import Image
 
+from app.tests.factories import FileFactory
 from configs.base_config import UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES
 
 
@@ -118,14 +119,13 @@ class TestRoutes:
         app,
         client: FlaskClient,
         mock_all_access_user,
-        record_files,
     ):
         mock_create_presigned_url.return_value = (
             "https://presigned-url.com/download.pdf"
         )
 
         mock_all_access_user(client)
-        file = record_files[1]["file_object"]
+        file = FileFactory(ffid_metadata__Extension="pdf")
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_object(bucket_name, file)
@@ -187,11 +187,10 @@ class TestRoutes:
         app,
         client: FlaskClient,
         mock_all_access_user,
-        record_files,
     ):
 
         mock_all_access_user(client)
-        file = record_files[5]["file_object"]
+        file = FileFactory(ffid_metadata__Extension="png")
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_imaage_object(bucket_name, file)
@@ -365,13 +364,12 @@ class TestRoutes:
         app,
         client: FlaskClient,
         mock_all_access_user,
-        record_files,
     ):
         """
         Test that a PDF manifest is successfully generated.
         """
         mock_all_access_user(client)
-        file = record_files[1]["file_object"]
+        file = FileFactory(ffid_metadata__Extension="pdf")
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
@@ -398,16 +396,16 @@ class TestRoutes:
         app,
         client: FlaskClient,
         mock_all_access_user,
-        record_files,
         image_format,
     ):
         """
         Test that a image manifest is successfully generated.
         """
         mock_all_access_user(client)
-        file = record_files[0]["file_object"]
-        file.ffid_metadata.Extension = image_format
-        file.FileName = f"image.{image_format}"
+        file = FileFactory(
+            FileName=f"image.{image_format}",
+            ffid_metadata__Extension=image_format,
+        )
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
@@ -429,14 +427,13 @@ class TestRoutes:
         app,
         client: FlaskClient,
         mock_all_access_user,
-        record_files,
         caplog,
     ):
         """
         Test that an unsupported format will return a bad request and log the error
         """
         mock_all_access_user(client)
-        file = record_files[0]["file_object"]
+        file = FileFactory(ffid_metadata__Extension="docx")
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 

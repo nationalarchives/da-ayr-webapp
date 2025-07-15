@@ -155,7 +155,7 @@ def test_main_invokes_bulk_index_with_correct_file_data(monkeypatch, database):
             FFIDMetadata(
                 FileId=file_ids[0],
                 Extension="txt",
-                PUID="fmt/115",  # example, depends on your app logic
+                PUID="fmt/115",
                 FormatName="Plain Text",
             ),
             FFIDMetadata(

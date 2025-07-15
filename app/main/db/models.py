@@ -81,7 +81,7 @@ class FFIDMetadata(db.Model):
     Extension = db.Column(Text)
     PUID = db.Column(Text)
     FormatName = db.Column(Text)
-    ExtensionMismatch = db.Column(Text)
+    ExtensionMismatch = db.Column(Boolean)
     FFID_Software = db.Column("FFID-Software", Text)
     FFID_SoftwareVersion = db.Column("FFID-SoftwareVersion", Text)
     FFID_BinarySignatureFileVersion = db.Column(
@@ -90,4 +90,9 @@ class FFIDMetadata(db.Model):
     FFID_ContainerSignatureFileVersion = db.Column(
         "FFID-ContainerSignatureFileVersion", Text
     )
-    file = db.relationship("File", foreign_keys=[FileId])
+    file = db.relationship(
+        "File",
+        back_populates="ffid_metadata",
+        foreign_keys=[FileId],
+        uselist=False,
+    )
