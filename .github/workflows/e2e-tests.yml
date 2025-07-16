@@ -23,7 +23,7 @@ jobs:
     - name: Start services
       run: |
         cd local_services
-        docker-compose -f docker-compose.yml up -d
+        docker compose -f docker-compose.yml up -d
 
     - name: Wait for services to be ready
       run: |
@@ -68,5 +68,5 @@ jobs:
       if: always()
       run: |
         cd local_services
-        docker-compose -f docker-compose.yml down -v
+        docker compose -f docker-compose.yml down -v
         docker system prune -f
