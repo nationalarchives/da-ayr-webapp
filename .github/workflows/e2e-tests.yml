@@ -1,0 +1,72 @@
+name: Run E2E Tests
+
+on:
+  pull_request:
+  merge_group:
+
+jobs:
+  e2e_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+    - name: Set up Python
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+      with:
+        python-version: 3.11
+
+    - name: Install Poetry
+      run: pip install poetry
+
+    - name: Start services
+      run: |
+        cd local_services
+        docker-compose -f docker-compose.yml up -d
+
+    - name: Wait for services to be ready
+      run: |
+        echo "Waiting for services to start"
+        sleep 30
+
+
+    - name: Install E2E test dependencies
+      run: |
+        cd e2e_tests
+        poetry install
+        poetry run playwright install --with-deps chromium
+
+    - name: Run E2E tests
+      run: |
+        cd e2e_tests
+        poetry run python -m pytest . -v --browser=chromium
+      env:
+        WEBAPP_URL: https://127.0.0.1:8000
+        KEYCLOAK_BASE_URI: http://127.0.0.1:8080
+        KEYCLOAK_REALM_NAME: tdr
+        KEYCLOAK_CLIENT_ID: ayr-beta
+        KEYCLOAK_CLIENT_SECRET: test-client-secret # pragma: allowlist secret
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: e2e_tests/playwright-report/
+        retention-days: 7
+
+    - name: Upload screenshots on failure
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: playwright-screenshots
+        path: e2e_tests/test-results/
+        retention-days: 7
+
+    - name: Stop services
+      if: always()
+      run: |
+        cd local_services
+        docker-compose -f docker-compose.yml down -v
+        docker system prune -f

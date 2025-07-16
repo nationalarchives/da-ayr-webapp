@@ -79,11 +79,18 @@ class BaseConfig(object):
 
     @property
     def SQLALCHEMY_DATABASE_URI(self):
-        return (
+        try:
+            ssl_mode = self._get_config_value("SQLALCHEMY_SSL_MODE")
+        except KeyError:
+            ssl_mode = "verify-full"
+        base_uri = (
             f"postgresql+psycopg2://{self.DB_USER}:{quote_plus(self.DB_PASSWORD)}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-            f"?sslmode=verify-full&sslrootcert={self.DB_SSL_ROOT_CERTIFICATE}"
         )
+        if ssl_mode == "disable":
+            return f"{base_uri}?sslmode=disable"
+        else:
+            return f"{base_uri}?sslmode={ssl_mode}&sslrootcert={self.DB_SSL_ROOT_CERTIFICATE}"
 
     @property
     def KEYCLOAK_BASE_URI(self):

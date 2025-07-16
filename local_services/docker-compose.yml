@@ -122,6 +122,7 @@ services:
       KC_HTTP_ENABLED: true
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_HEALTH_ENABLED: true
+      KC_SSL_REQUIRED: none
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_DB: postgres
@@ -149,8 +150,29 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - ~/minio/data:/data
+      - ./minio_certs/root-ca.crt:/root/.minio/certs/CAs/my-ca.crt
+      - ./minio_certs/minio.key:/root/.minio/certs/private.key
+      - ./minio_certs/minio.crt:/root/.minio/certs/public.crt
     command: server /data --console-address ":9001"
 
+  webapp:
+    env_file:
+      - .docker.env
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: webapp
+    ports:
+      - "8000:8000"
+    depends_on:
+      - webapp_postgres
+      - keycloak
+      - minio
+      - opensearch-node1
+    networks:
+      - default
+      - keycloak_network
+      - opensearch-net
 
 volumes:
   opensearch-data1:
