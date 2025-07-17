@@ -51,4 +51,4 @@ RUN cd /app/local_services/minio_certs && \
 
 EXPOSE 8000
 
-CMD ["poetry", "run", "flask", "run", "--host=0.0.0.0", "--port=8000"]
+CMD ["poetry", "run", "python", "-m", "flask", "--app", "main_app:app", "run", "--host=0.0.0.0", "--port=8000"]
