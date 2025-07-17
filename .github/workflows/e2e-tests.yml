@@ -39,6 +39,17 @@ jobs:
     - name: Start services
       run: |
         cd local_services
+        export CONFIG_SOURCE=ENVIRONMENT_VARIABLES
+        export OPENSEARCH_INITIAL_ADMIN_PASSWORD=FOOBARCARabc123!
+        export POSTGRES_USER=local_db_user
+        export POSTGRES_PASSWORD=local_db_user_password
+        export POSTGRES_DB=local_db
+        export KC_POSTGRES_PORT=5432
+        export WEBAPP_POSTGRES_PORT=5433
+        export KEYCLOAK_ADMIN=admin
+        export KEYCLOAK_ADMIN_PASSWORD=password
+        export MINIO_ROOT_USER=ROOTNAME
+        export MINIO_ROOT_PASSWORD=CHANGEME123
         docker compose -f docker-compose.yml up -d
 
     - name: Wait for services to be ready
