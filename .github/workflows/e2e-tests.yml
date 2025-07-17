@@ -39,18 +39,20 @@ jobs:
     - name: Start services
       run: | # pragma: allowlist secret
         cd local_services
-        export CONFIG_SOURCE=ENVIRONMENT_VARIABLES
-        export OPENSEARCH_INITIAL_ADMIN_PASSWORD=FOOBARCARabc123!
-        export POSTGRES_USER=local_db_user
-        export POSTGRES_PASSWORD=local_db_user_password
-        export POSTGRES_DB=local_db
-        export KC_POSTGRES_PORT=5432
-        export WEBAPP_POSTGRES_PORT=5433
-        export KEYCLOAK_ADMIN=admin
-        export KEYCLOAK_ADMIN_PASSWORD=password
-        export MINIO_ROOT_USER=ROOTNAME
-        export MINIO_ROOT_PASSWORD=CHANGEME123
         docker compose -f docker-compose.yml up -d
+
+      env:
+        CONFIG_SOURCE: ENVIRONMENT_VARIABLES
+        OPENSEARCH_INITIAL_ADMIN_PASSWORD: FOOBARCARabc123! # pragma: allowlist secret
+        POSTGRES_USER: local_db_user
+        POSTGRES_PASSWORD: local_db_user_password # pragma: allowlist secret
+        POSTGRES_DB: local_db
+        KC_POSTGRES_PORT: 5432
+        WEBAPP_POSTGRES_PORT: 5433
+        KEYCLOAK_ADMIN: admin
+        KEYCLOAK_ADMIN_PASSWORD: password # pragma: allowlist secret
+        MINIO_ROOT_USER: ROOTNAME
+        MINIO_ROOT_PASSWORD: CHANGEME123 # pragma: allowlist secret
 
     - name: Wait for services to be ready
       run: |
