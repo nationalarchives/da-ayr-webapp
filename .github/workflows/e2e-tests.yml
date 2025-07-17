@@ -54,10 +54,7 @@ jobs:
         echo "Webapp logs:"
         docker logs webapp --tail 20
 
-        timeout 120 bash -c 'until curl -k -f https://127.0.0.1:8000/health || curl -f http://127.0.0.1:8000/health; do sleep 2; done'
-
-        # Wait for keycloak to be ready
-        timeout 120 bash -c 'until curl -f http://127.0.0.1:8080/health; do sleep 2; done'
+        timeout 120 bash -c 'until curl -k -f https://127.0.0.1:8000 || curl -f http://127.0.0.1:8000; do sleep 2; done'
 
         # Wait for keycloak realm to be ready
         timeout 120 bash -c 'until curl -f http://127.0.0.1:8080/realms/tdr/.well-known/openid-configuration; do sleep 2; done'
