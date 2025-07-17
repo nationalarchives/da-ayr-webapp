@@ -31,6 +31,9 @@ jobs:
         cd webapp_postgres_certs
         openssl req -x509 -newkey rsa:2048 -nodes -keyout postgres_localhost.key -out postgres_localhost.crt -days 1 -subj "/CN=localhost"
         openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.pem -days 1 -subj "/CN=root-ca"
+        # Set correct permissions for PostgreSQL
+        chmod 600 postgres_localhost.key root-ca.key
+        chmod 644 postgres_localhost.crt root-ca.pem
 
         # Generate opensearch certificates
         cd ../opensearch_certs
