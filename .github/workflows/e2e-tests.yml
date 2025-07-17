@@ -31,20 +31,25 @@ jobs:
         cd webapp_postgres_certs
         openssl req -x509 -newkey rsa:2048 -nodes -keyout postgres_localhost.key -out postgres_localhost.crt -days 1 -subj "/CN=localhost"
         openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.pem -days 1 -subj "/CN=root-ca"
-        # Set correct permissions for PostgreSQL
-        chmod 600 postgres_localhost.key root-ca.key
-        chmod 644 postgres_localhost.crt root-ca.pem
+        # Set correct permissions for PostgreSQL certificates
+        # Make all files readable by postgres user (UID 999)
+        chmod 644 postgres_localhost.key root-ca.key postgres_localhost.crt root-ca.pem
 
         # Generate opensearch certificates
         cd ../opensearch_certs
         openssl req -x509 -newkey rsa:2048 -nodes -keyout opensearch-node1.key -out opensearch-node1.crt -days 1 -subj "/CN=opensearch-node1"
         openssl req -x509 -newkey rsa:2048 -nodes -keyout opensearch-node2.key -out opensearch-node2.crt -days 1 -subj "/CN=opensearch-node2"
         openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.pem -days 1 -subj "/CN=root-ca"
+        # Set correct permissions for OpenSearch
+        chmod 644 opensearch-node1.key opensearch-node1.crt opensearch-node2.key opensearch-node2.crt root-ca.key root-ca.pem
 
         # Generate minio certificates
         cd ../minio_certs
         openssl req -x509 -newkey rsa:2048 -nodes -keyout minio.key -out minio.crt -days 1 -subj "/CN=localhost"
         openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.crt -days 1 -subj "/CN=root-ca"
+        # Set correct permissions for MinIO (runs as root)
+        chmod 600 minio.key root-ca.key
+        chmod 644 minio.crt root-ca.crt
 
     - name: Set up environment variables
       run: | # pragma: allowlist secret
