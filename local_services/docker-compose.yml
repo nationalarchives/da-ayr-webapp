@@ -105,12 +105,10 @@ services:
     ports:
       - ${WEBAPP_POSTGRES_PORT}:5432
     command: [
-      "postgres",
-      "-c", "ssl=on",
-      "-c", "ssl_cert_file=/var/lib/postgresql/postgres_localhost.crt",
-      "-c", "ssl_key_file=/var/lib/postgresql/postgres_localhost.key",
-      "-c", "ssl_ca_file=/var/lib/postgresql/root-ca.pem"
+      "bash", "-c",
+      "chown postgres:postgres /var/lib/postgresql/postgres_localhost.key && exec postgres -c ssl=on -c ssl_cert_file=/var/lib/postgresql/postgres_localhost.crt -c ssl_key_file=/var/lib/postgresql/postgres_localhost.key -c ssl_ca_file=/var/lib/postgresql/root-ca.pem"
     ]
+
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.3.3
