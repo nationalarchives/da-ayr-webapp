@@ -20,6 +20,22 @@ jobs:
     - name: Install Poetry
       run: pip install poetry
 
+    - name: Set up environment variables
+      run: | # pragma: allowlist secret
+        cd local_services
+        cat > .docker.env << EOF
+        OPENSEARCH_INITIAL_ADMIN_PASSWORD=FOOBARCARabc123!
+        POSTGRES_USER=local_db_user
+        POSTGRES_PASSWORD=local_db_user_password
+        POSTGRES_DB=local_db
+        KC_POSTGRES_PORT=5432
+        WEBAPP_POSTGRES_PORT=5433
+        KEYCLOAK_ADMIN=admin
+        KEYCLOAK_ADMIN_PASSWORD=password
+        MINIO_ROOT_USER=ROOTNAME
+        MINIO_ROOT_PASSWORD=CHANGEME123
+        EOF
+
     - name: Start services
       run: |
         cd local_services
@@ -34,7 +50,7 @@ jobs:
     - name: Install E2E test dependencies
       run: |
         cd e2e_tests
-        poetry install
+        poetry install --no-root
         poetry run playwright install --with-deps chromium
 
     - name: Run E2E tests
