@@ -164,6 +164,38 @@ services:
     container_name: webapp
     ports:
       - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - FLASK_ENV=development
+      - CONFIG_SOURCE=ENVIRONMENT_VARIABLES
+      - DB_HOST=webapp_postgres
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB}
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_SSL_ROOT_CERTIFICATE=/app/local_services/webapp_postgres_certs/root-ca.pem
+      - SQLALCHEMY_SSL_MODE=disable
+      - KEYCLOAK_BASE_URI=http://keycloak:8080
+      - KEYCLOAK_CLIENT_ID=ayr-beta
+      - KEYCLOAK_REALM_NAME=tdr
+      - KEYCLOAK_CLIENT_SECRET=test-client-secret
+      - AWS_ENDPOINT_URL=https://127.0.0.1:9000
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - AWS_REGION=eu-west-2
+      - SECRET_KEY=test-secret-key
+      - DEFAULT_PAGE_SIZE=10
+      - DEFAULT_DATE_FORMAT=DD/MM/YYYY
+      - RECORD_BUCKET_NAME=test-record-download
+      - FLASKS3_ACTIVE=False
+      - FLASKS3_CDN_DOMAIN=localhost
+      - FLASKS3_BUCKET_NAME=test-record-download
+      - PERF_TEST=False
+      - OPEN_SEARCH_HOST=https://opensearch-node1:9200
+      - OPEN_SEARCH_USERNAME=admin
+      - OPEN_SEARCH_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      - OPEN_SEARCH_CA_CERTS=/app/local_services/opensearch_certs/root-ca.pem
+      - OPEN_SEARCH_TIMEOUT=10
     depends_on:
       - webapp_postgres
       - keycloak
