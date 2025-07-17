@@ -95,7 +95,7 @@ services:
     volumes:
       - webapp_postgres_data:/var/lib/postgresql/data
       - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
-      - ./webapp_postgres_certs:/certs
+      - ./webapp_postgres_certs:/certs:ro
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -103,15 +103,16 @@ services:
     ports:
       - ${WEBAPP_POSTGRES_PORT}:5432
     command:
-    - bash
-    - -c
-    - >
-      chown postgres:postgres /certs/postgres_localhost.key &&
-      exec postgres
-        -c ssl=on
-        -c ssl_cert_file=/certs/postgres_localhost.crt
-        -c ssl_key_file=/certs/postgres_localhost.key
-        -c ssl_ca_file=/certs/root-ca.pem
+      [
+        "bash", "-c",
+        "cp /certs/postgres_localhost.key /tmp/postgres_localhost.key && \
+        chmod 600 /tmp/postgres_localhost.key && \
+        exec postgres \
+          -c ssl=on \
+          -c ssl_cert_file=/certs/postgres_localhost.crt \
+          -c ssl_key_file=/tmp/postgres_localhost.key \
+          -c ssl_ca_file=/certs/root-ca.pem"
+      ]
 
 
   keycloak:
