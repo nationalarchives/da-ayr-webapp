@@ -88,7 +88,13 @@ jobs:
         echo "All containers (including stopped):"
         docker compose ps -a
 
-        # Check webapp logs
+        # Check logs for failed services
+        echo "webapp_postgres logs:"
+        docker logs local_services-webapp_postgres-1 --tail 20
+
+        echo "opensearch-node1 logs:"
+        docker logs opensearch-node1 --tail 20
+
         echo "Webapp logs:"
         docker logs webapp --tail 20
 
