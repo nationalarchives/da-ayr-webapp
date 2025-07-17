@@ -33,7 +33,10 @@ jobs:
         openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.pem -days 1 -subj "/CN=root-ca"
         # Set correct permissions for PostgreSQL certificates
         # Make all files readable by postgres user (UID 999)
-        chmod 644 postgres_localhost.key root-ca.key postgres_localhost.crt root-ca.pem
+        chown 999:999 postgres_localhost.key
+        chmod 600 postgres_localhost.key
+        chmod 644 root-ca.key postgres_localhost.crt root-ca.pem
+
 
         # Generate opensearch certificates
         cd ../opensearch_certs
