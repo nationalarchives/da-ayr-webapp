@@ -20,6 +20,29 @@ jobs:
     - name: Install Poetry
       run: pip install poetry
 
+    - name: Create certificate directories and generate certs
+      run: |
+        cd local_services
+
+        # Create directories
+        mkdir -p webapp_postgres_certs opensearch_certs minio_certs
+
+        # Generate webapp_postgres certificates
+        cd webapp_postgres_certs
+        openssl req -x509 -newkey rsa:2048 -nodes -keyout postgres_localhost.key -out postgres_localhost.crt -days 1 -subj "/CN=localhost"
+        openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.pem -days 1 -subj "/CN=root-ca"
+
+        # Generate opensearch certificates
+        cd ../opensearch_certs
+        openssl req -x509 -newkey rsa:2048 -nodes -keyout opensearch-node1.key -out opensearch-node1.crt -days 1 -subj "/CN=opensearch-node1"
+        openssl req -x509 -newkey rsa:2048 -nodes -keyout opensearch-node2.key -out opensearch-node2.crt -days 1 -subj "/CN=opensearch-node2"
+        openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.pem -days 1 -subj "/CN=root-ca"
+
+        # Generate minio certificates
+        cd ../minio_certs
+        openssl req -x509 -newkey rsa:2048 -nodes -keyout minio.key -out minio.crt -days 1 -subj "/CN=localhost"
+        openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.crt -days 1 -subj "/CN=root-ca"
+
     - name: Set up environment variables
       run: | # pragma: allowlist secret
         cd local_services
