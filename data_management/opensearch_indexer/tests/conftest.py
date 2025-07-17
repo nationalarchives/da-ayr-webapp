@@ -75,6 +75,27 @@ class FileMetadata(Base):
     file = relationship("File", foreign_keys="FileMetadata.FileId")
 
 
+class FFIDMetadata(Base):
+    __tablename__ = "FFIDMetadata"
+
+    FileId = Column(
+        UUID(as_uuid=True), ForeignKey("File.FileId"), primary_key=True
+    )
+    Extension = Column(Text)
+    PUID = Column(Text)
+    FormatName = Column(Text)
+    ExtensionMismatch = Column(Text)
+    FFID_Software = Column("FFID-Software", Text)
+    FFID_SoftwareVersion = Column("FFID-SoftwareVersion", Text)
+    FFID_BinarySignatureFileVersion = Column(
+        "FFID-BinarySignatureFileVersion", Text
+    )
+    FFID_ContainerSignatureFileVersion = Column(
+        "FFID-ContainerSignatureFileVersion", Text
+    )
+    file = relationship("File", foreign_keys=[FileId])
+
+
 @pytest.fixture()
 def temp_db():
     temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)

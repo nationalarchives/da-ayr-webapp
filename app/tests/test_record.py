@@ -6,7 +6,7 @@ from flask.testing import FlaskClient
 from moto import mock_aws
 
 from app.tests.assertions import assert_contains_html
-from app.tests.factories import FileFactory
+from app.tests.factories import FileFactory, FileMetadataFactory
 
 db_date_format = "%Y-%m-%d"
 python_date_format = "%d/%m/%Y"
@@ -81,7 +81,7 @@ class TestRecord:
 
     @mock_aws
     def test_record_top_search(
-        self, app, client: FlaskClient, mock_all_access_user, record_files
+        self, app, client: FlaskClient, mock_all_access_user
     ):
         """
         Given a File in the database
@@ -92,7 +92,7 @@ class TestRecord:
         """
         mock_all_access_user(client)
 
-        file = record_files[0]["file_object"]
+        file = FileFactory()
 
         bucket_name = "test_bucket"
 
@@ -117,7 +117,7 @@ class TestRecord:
 
     @mock_aws
     def test_record_breadcrumbs(
-        self, app, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
@@ -127,7 +127,8 @@ class TestRecord:
          All available records > transferring body > series > consignment reference > file name
         on the page
         """
-        file = record_files[0]["file_object"]
+
+        file = FileFactory()
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -187,7 +188,7 @@ class TestRecord:
 
     @mock_aws
     def test_record_record_arrangement(
-        self, app, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
@@ -196,7 +197,8 @@ class TestRecord:
         And the HTML content should see record arrangement based on file path
         on the page
         """
-        file = record_files[0]["file_object"]
+
+        file = FileFactory(FilePath="data/content/test_folder/open_file.docx")
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -232,7 +234,7 @@ class TestRecord:
 
     @mock_aws
     def test_record_record_alert_banner_is_visible_when_unsupported_file_extension(
-        self, app, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
@@ -242,10 +244,8 @@ class TestRecord:
         Then the alert banner responsible with alerting the user should be visible
         """
 
-        file = FileFactory(
-            FileName="open_file_once_closed.foobar",
-            FileType="file",
-        )
+        file = FileFactory(ffid_metadata__Extension="docx")
+
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -264,7 +264,7 @@ class TestRecord:
 
     @mock_aws
     def test_record_record_alert_banner_is_not_visible_when_supported_file_extension(
-        self, app, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
@@ -274,11 +274,7 @@ class TestRecord:
         Then the alert banner responsible with alerting the user should NOT be visible
         """
 
-        file = FileFactory(
-            FileName="open_file_once_closed.pdf",
-            FileType="file",
-        )
-
+        file = FileFactory(ffid_metadata__Extension="pdf")
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -296,7 +292,7 @@ class TestRecord:
         assert banner is None
 
     def test_record_standard_user_with_perms_can_download_record_without_citeable_reference(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
@@ -305,7 +301,7 @@ class TestRecord:
         And the HTML content should see record download component
         on the page
         """
-        file = record_files[4]["file_object"]
+        file = FileFactory(CiteableReference=None)
         mock_standard_user(
             client, file.consignment.series.body.Name, can_download=True
         )
@@ -327,7 +323,7 @@ class TestRecord:
 
     @mock_aws
     def test_record_standard_user_with_perms_can_download_record_with_citeable_reference(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
@@ -336,8 +332,14 @@ class TestRecord:
         And the HTML content should see record download component
         on the page
         """
-        file = record_files[0]["file_object"]
-        download_filename = f"{file.CiteableReference}.docx"
+        file = FileFactory(
+            FileName="open_file.docx",
+            CiteableReference="first_body/ABCDE",
+            ffid_metadata__Extension="docx",
+        )
+        download_filename = (
+            f"{file.CiteableReference}.{file.ffid_metadata.Extension}"
+        )
         mock_standard_user(
             client, file.consignment.series.body.Name, can_download=True
         )
@@ -357,7 +359,7 @@ class TestRecord:
         )
 
     def test_record_standard_user_without_perms_cant_see_download_button(
-        self, client: FlaskClient, mock_standard_user, record_files
+        self, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
@@ -366,7 +368,7 @@ class TestRecord:
         And the HTML content should NOT see record download component
         on the page
         """
-        file = record_files[4]["file_object"]
+        file = FileFactory()
         mock_standard_user(client, file.consignment.series.body.Name)
 
         response = client.get(f"{self.route_url}/{file.FileId}")
@@ -381,7 +383,7 @@ class TestRecord:
         assert button is None
 
     def test_record_aau_user_without_perms_cant_see_download_button(
-        self, client: FlaskClient, mock_all_access_user, record_files
+        self, client: FlaskClient, mock_all_access_user
     ):
         """
         Given a File in the database
@@ -390,7 +392,7 @@ class TestRecord:
         And the HTML content should NOT see record download component
         on the page
         """
-        file = record_files[4]["file_object"]
+        file = FileFactory()
         mock_all_access_user(client)
 
         response = client.get(f"{self.route_url}/{file.FileId}")
@@ -405,7 +407,7 @@ class TestRecord:
 
     @mock_aws
     def test_record_summary_list_open_file(
-        self, app, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
@@ -415,7 +417,26 @@ class TestRecord:
         And the HTML content should see summary list with specific items
         on the page
         """
-        file = record_files[0]["file_object"]
+        file = FileFactory()
+
+        metadata_values = {
+            "description": ("description", "open document file"),
+            "closure_type": ("closure_type", "Open"),
+            "end_date": ("end_date", "2023-01-15"),
+            "date_last_modified": ("date_last_modified", "2023-01-15"),
+            "former_reference": ("former_reference_department", "-"),
+            "translated_title": ("file_name_translation", "-"),
+            "held_by": ("held_by", "The National Archives, Kew"),
+            "legal_status": ("legal_status", "Public record(s)"),
+            "rights_copyright": ("rights_copyright", "Crown copyright"),
+            "language": ("language", "English"),
+        }
+
+        metadata_by_key = {
+            key: FileMetadataFactory(file=file, PropertyName=prop, Value=value)
+            for key, (prop, value) in metadata_values.items()
+        }
+
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -423,7 +444,7 @@ class TestRecord:
 
         mock_standard_user(client, file.consignment.series.body.Name)
         date_last_modified = datetime.strptime(
-            record_files[0]["date_last_modified"].Value, db_date_format
+            metadata_by_key["date_last_modified"].Value, db_date_format
         ).strftime(python_date_format)
 
         response = client.get(f"{self.route_url}/{file.FileId}#record-details")
@@ -443,7 +464,7 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Description</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {record_files[0]["description"].Value}
+                        {metadata_by_key["description"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -455,7 +476,7 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                <span class="govuk-tag govuk-tag--green">{record_files[0]["closure_type"].Value}</span>
+                <span class="govuk-tag govuk-tag--green">{metadata_by_key["closure_type"].Value}</span>
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -491,37 +512,37 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Former reference</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {record_files[0]["former_reference"].Value}
+                        {metadata_by_key["former_reference"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Translated file name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[0]["translated_title"].Value}
+                            {metadata_by_key["translated_title"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[0]["held_by"].Value}
+                            {metadata_by_key["held_by"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Legal status</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[0]["legal_status"].Value}
+                            {metadata_by_key["legal_status"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Rights copyright</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[0]["rights_copyright"].Value}
+                            {metadata_by_key["rights_copyright"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Language</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[0]["language"].Value}
+                            {metadata_by_key["language"].Value}
                 </dd>
             </div>
                     </dl>"""
@@ -535,7 +556,7 @@ class TestRecord:
 
     @mock_aws
     def test_record_summary_list_open_closed_before_file(
-        self, app, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
@@ -545,7 +566,33 @@ class TestRecord:
         And the HTML content should see summary list with specific items
         on the page
         """
-        file = record_files[1]["file_object"]
+        file = FileFactory()
+        metadata_values = {
+            "alternative_title": ("title_alternate", "alternate title"),
+            "description": ("description", "open once closed document file"),
+            "alternative_description": ("description_alternate", "-"),
+            "closure_type": ("closure_type", "Open"),
+            "end_date": ("end_date", "2023-01-15"),
+            "date_last_modified": ("date_last_modified", "2023-01-15"),
+            "opening_date": ("opening_date", "2023-02-25"),
+            "closure_start_date": ("closure_start_date", "2023-01-15"),
+            "closure_period": ("closure_period", "10"),
+            "foi_exemption_code": ("foi_exemption_code", "14(2)(b)"),
+            "former_reference": (
+                "former_reference_department",
+                "former reference",
+            ),
+            "translated_title": ("file_name_translation", "-"),
+            "held_by": ("held_by", "The National Archives, Kew"),
+            "legal_status": ("legal_status", "Public record(s)"),
+            "rights_copyright": ("rights_copyright", "Crown copyright"),
+            "language": ("language", "English"),
+        }
+
+        metadata_by_key = {
+            key: FileMetadataFactory(file=file, PropertyName=prop, Value=value)
+            for key, (prop, value) in metadata_values.items()
+        }
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -554,13 +601,13 @@ class TestRecord:
         mock_standard_user(client, file.consignment.series.body.Name)
 
         opening_date = datetime.strptime(
-            record_files[1]["opening_date"].Value, db_date_format
+            metadata_by_key["opening_date"].Value, db_date_format
         ).strftime(python_date_format)
         closure_start_date = datetime.strptime(
-            record_files[1]["closure_start_date"].Value, db_date_format
+            metadata_by_key["closure_start_date"].Value, db_date_format
         ).strftime(python_date_format)
         date_last_modified = datetime.strptime(
-            record_files[1]["date_last_modified"].Value, db_date_format
+            metadata_by_key["date_last_modified"].Value, db_date_format
         ).strftime(python_date_format)
 
         response = client.get(f"{self.route_url}/{file.FileId}#record-details")
@@ -580,13 +627,13 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative file name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[1]["alternative_title"].Value}
+                            {metadata_by_key["alternative_title"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Description</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[1]["description"].Value}
+                            {metadata_by_key["description"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -598,13 +645,13 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative description</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[1]["alternative_description"].Value}
+                            {metadata_by_key["alternative_description"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                <span class="govuk-tag govuk-tag--green">{record_files[1]["closure_type"].Value}</span>
+                <span class="govuk-tag govuk-tag--green">{metadata_by_key["closure_type"].Value}</span>
 <p class="ayr-opening-date">Record opening date {opening_date}</p></dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -616,7 +663,7 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Closure period</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[1]["closure_period"].Value + " years"}
+                            {metadata_by_key["closure_period"].Value + " years"}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -628,7 +675,7 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">FOI exemption code(s)</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[1]["foi_exemption_code"].Value}
+                            {metadata_by_key["foi_exemption_code"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -658,37 +705,37 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Former reference</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[1]["former_reference"].Value}
+                            {metadata_by_key["former_reference"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Translated file name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {record_files[1]["translated_title"].Value}
+                        {metadata_by_key["translated_title"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[1]["held_by"].Value}
+                            {metadata_by_key["held_by"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Legal status</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[1]["legal_status"].Value}
+                            {metadata_by_key["legal_status"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Rights copyright</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[1]["rights_copyright"].Value}
+                            {metadata_by_key["rights_copyright"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Language</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[1]["language"].Value}
+                            {metadata_by_key["language"].Value}
                 </dd>
             </div>
                     </dl>"""
@@ -702,7 +749,7 @@ class TestRecord:
 
     @mock_aws
     def test_record_summary_list_closed_file(
-        self, app, client: FlaskClient, mock_standard_user, record_files
+        self, app, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
@@ -712,7 +759,32 @@ class TestRecord:
         And the HTML content should see summary list with specific items
         on the page
         """
-        file = record_files[2]["file_object"]
+        file = FileFactory()
+        metadata_values = {
+            "alternative_title": ("title_alternate", "alternate title"),
+            "description": ("description", "closed document file"),
+            "alternative_description": ("description_alternate", "-"),
+            "closure_type": ("closure_type", "Closed"),
+            "date_last_modified": ("date_last_modified", "2023-01-15"),
+            "opening_date": ("opening_date", "2023-02-25"),
+            "closure_start_date": ("closure_start_date", "2023-01-15"),
+            "closure_period": ("closure_period", "10"),
+            "foi_exemption_code": ("foi_exemption_code", "14(2)(b)"),
+            "former_reference": (
+                "former_reference_department",
+                "former reference",
+            ),
+            "translated_title": ("file_name_translation", "-"),
+            "held_by": ("held_by", "The National Archives, Kew"),
+            "legal_status": ("legal_status", "Public record(s)"),
+            "rights_copyright": ("rights_copyright", "Crown copyright"),
+            "language": ("language", "English"),
+        }
+
+        metadata_by_key = {
+            key: FileMetadataFactory(file=file, PropertyName=prop, Value=value)
+            for key, (prop, value) in metadata_values.items()
+        }
 
         bucket_name = "test_bucket"
 
@@ -722,15 +794,15 @@ class TestRecord:
         mock_standard_user(client, file.consignment.series.body.Name)
 
         opening_date = datetime.strptime(
-            record_files[1]["opening_date"].Value, db_date_format
+            metadata_by_key["opening_date"].Value, db_date_format
         ).strftime(python_date_format)
 
         closure_start_date = datetime.strptime(
-            record_files[1]["closure_start_date"].Value, db_date_format
+            metadata_by_key["closure_start_date"].Value, db_date_format
         ).strftime(python_date_format)
 
         date_last_modified = datetime.strptime(
-            record_files[1]["date_last_modified"].Value, db_date_format
+            metadata_by_key["date_last_modified"].Value, db_date_format
         ).strftime(python_date_format)
 
         response = client.get(f"{self.route_url}/{file.FileId}#record-details")
@@ -750,13 +822,13 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative file name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[2]["alternative_title"].Value}
+                            {metadata_by_key["alternative_title"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Description</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[2]["description"].Value}
+                            {metadata_by_key["description"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -768,13 +840,13 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative description</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[2]["alternative_description"].Value}
+                            {metadata_by_key["alternative_description"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                <span class="govuk-tag govuk-tag--red">{record_files[2]["closure_type"].Value}</span>
+                <span class="govuk-tag govuk-tag--red">{metadata_by_key["closure_type"].Value}</span>
                 <p class="ayr-opening-date">Record opening date {opening_date}</p></dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -786,7 +858,7 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Closure period</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[2]["closure_period"].Value + " years"}
+                            {metadata_by_key["closure_period"].Value + " years"}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -798,7 +870,7 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">FOI exemption code(s)</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[2]["foi_exemption_code"].Value}
+                            {metadata_by_key["foi_exemption_code"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
@@ -828,41 +900,40 @@ class TestRecord:
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Former reference</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[2]["former_reference"].Value}
+                            {metadata_by_key["former_reference"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Translated file name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {record_files[2]["translated_title"].Value}
+                        {metadata_by_key["translated_title"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[2]["held_by"].Value}
+                            {metadata_by_key["held_by"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Legal status</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[2]["legal_status"].Value}
+                            {metadata_by_key["legal_status"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Rights copyright</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[2]["rights_copyright"].Value}
+                            {metadata_by_key["rights_copyright"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Language</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {record_files[2]["language"].Value}
+                            {metadata_by_key["language"].Value}
                 </dd>
             </div>
                     </dl>"""
-
         assert_contains_html(
             expected_record_summary_html,
             html,
@@ -872,7 +943,7 @@ class TestRecord:
 
     @mock_aws
     def test_record_view_renders(
-        self, app, client: FlaskClient, mock_all_access_user, record_files
+        self, app, client: FlaskClient, mock_all_access_user
     ):
         """
         Given a File in the database
@@ -883,7 +954,7 @@ class TestRecord:
         """
         mock_all_access_user(client)
 
-        file = record_files[1]["file_object"]
+        file = FileFactory(ffid_metadata__Extension="pdf")
 
         bucket_name = "test_bucket"
 
