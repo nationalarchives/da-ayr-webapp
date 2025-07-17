@@ -37,7 +37,7 @@ jobs:
         EOF
 
     - name: Start services
-      run: |
+      run: | # pragma: allowlist secret
         cd local_services
         export CONFIG_SOURCE=ENVIRONMENT_VARIABLES
         export OPENSEARCH_INITIAL_ADMIN_PASSWORD=FOOBARCARabc123!
