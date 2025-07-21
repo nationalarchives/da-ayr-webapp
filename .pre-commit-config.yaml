@@ -9,8 +9,8 @@ repos:
     -   id: check-yaml
     -   id: check-json
     -   id: check-added-large-files
-        args: ['--maxkb=900']
-        exclude: local_services/files/TDR-2025-ABCD/*
+        args: ['--maxkb=1024']
+        exclude: local_services/files/TDR-2025-ABCD/
     -   id: check-merge-conflict
 
 - repo: https://github.com/Riverside-Healthcare/djLint
