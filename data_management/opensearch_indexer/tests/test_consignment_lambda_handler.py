@@ -12,7 +12,21 @@ from requests_aws4auth import AWS4Auth
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .conftest import Body, Consignment, File, FileMetadata, Series
+from .conftest import (
+    Body,
+    Consignment,
+    FFIDMetadata,
+    File,
+    FileMetadata,
+    Series,
+)
+
+
+# Mock ENVIRONMENT for slack alerts
+@pytest.fixture(autouse=True)
+def patch_environment():
+    with patch("opensearch_indexer.text_extraction.ENVIRONMENT", "test-env"):
+        yield
 
 
 @mock_aws
@@ -193,6 +207,30 @@ def test_lambda_handler_invokes_bulk_index_with_correct_file_data(
                 PropertyName="Key6",
                 Value="Value6",
             ),
+            FFIDMetadata(
+                FileId=file_1_id,
+                Extension="txt",
+                PUID="fmt/115",
+                FormatName="Plain Text",
+            ),
+            FFIDMetadata(
+                FileId=file_2_id,
+                Extension="txt",
+                PUID="fmt/115",
+                FormatName="Plain Text",
+            ),
+            FFIDMetadata(
+                FileId=file_3_id,
+                Extension="txt",
+                PUID="x-fmt/111",
+                FormatName="Binary",
+            ),
+            FFIDMetadata(
+                FileId=file_4_id,
+                Extension="txt",
+                PUID="fmt/115",
+                FormatName="Plain Text",
+            ),
         ]
     )
     session.commit()
@@ -250,6 +288,7 @@ def test_lambda_handler_invokes_bulk_index_with_correct_file_data(
                 "document": {
                     "file_id": str(file_1_id),
                     "file_name": "test-document.txt",
+                    "file_extension": "txt",
                     "file_reference": "file-123",
                     "file_path": "/path/to/file",
                     "citeable_reference": "cite-ref-123",
@@ -270,6 +309,7 @@ def test_lambda_handler_invokes_bulk_index_with_correct_file_data(
                 "document": {
                     "file_id": str(file_2_id),
                     "file_name": "test-document.txt",
+                    "file_extension": "txt",
                     "file_reference": "file-123",
                     "file_path": "/path/to/file",
                     "citeable_reference": "cite-ref-123",
@@ -291,6 +331,7 @@ def test_lambda_handler_invokes_bulk_index_with_correct_file_data(
                 "document": {
                     "file_id": str(file_3_id),
                     "file_name": "test-document.txt",
+                    "file_extension": "txt",
                     "file_reference": "file-123",
                     "file_path": "/path/to/file",
                     "citeable_reference": "cite-ref-123",
@@ -311,6 +352,7 @@ def test_lambda_handler_invokes_bulk_index_with_correct_file_data(
                 "document": {
                     "file_id": str(file_4_id),
                     "file_name": "test-document.txt",
+                    "file_extension": "txt",
                     "file_reference": "file-123",
                     "file_path": "/path/to/file",
                     "citeable_reference": "cite-ref-123",

@@ -10,7 +10,21 @@ from requests_aws4auth import AWS4Auth
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .conftest import Body, Consignment, File, FileMetadata, Series
+from .conftest import (
+    Body,
+    Consignment,
+    FFIDMetadata,
+    File,
+    FileMetadata,
+    Series,
+)
+
+
+# Mock ENVIRONMENT for slack alerts
+@pytest.fixture(autouse=True)
+def patch_environment():
+    with patch("opensearch_indexer.text_extraction.ENVIRONMENT", "test-env"):
+        yield
 
 
 @mock_aws
@@ -138,6 +152,30 @@ def test_main_invokes_bulk_index_with_correct_file_data(monkeypatch, database):
                 PropertyName="Key6",
                 Value="Value6",
             ),
+            FFIDMetadata(
+                FileId=file_ids[0],
+                Extension="txt",
+                PUID="fmt/115",
+                FormatName="Plain Text",
+            ),
+            FFIDMetadata(
+                FileId=file_ids[1],
+                Extension="txt",
+                PUID="fmt/115",
+                FormatName="Plain Text",
+            ),
+            FFIDMetadata(
+                FileId=file_ids[2],
+                Extension="bin",
+                PUID="x-fmt/111",
+                FormatName="Binary",
+            ),
+            FFIDMetadata(
+                FileId=file_ids[3],
+                Extension="txt",
+                PUID="fmt/115",
+                FormatName="Plain Text",
+            ),
         ]
     )
     session.commit()
@@ -201,6 +239,7 @@ def test_main_invokes_bulk_index_with_correct_file_data(monkeypatch, database):
             d["document"] for d in args[0] if d["file_id"] == str(file_ids[0])
         )
         assert doc["file_name"] == "test-document.txt"
+        assert doc["file_extension"] == "txt"
         assert doc["Key1"] == "Value1"
         assert doc["content"] == "Test file content"
 

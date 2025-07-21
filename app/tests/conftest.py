@@ -760,6 +760,10 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/open_file.docx",
         CiteableReference="first_body/ABCDE",
+        ffid_metadata__Extension="docx",
+        ffid_metadata__FormatName="Word Document",
+        ffid_metadata__ExtensionMismatch=False,
+        ffid_metadata__FFID_Software="Siegfried",
     )
     file_1_metadata = {
         "file_object": file_1,
@@ -807,6 +811,10 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/open_file_once_closed.pdf",
         CiteableReference="first_body/ABCDE",
+        ffid_metadata__Extension="pdf",
+        ffid_metadata__FormatName="Adobe PDF",
+        ffid_metadata__ExtensionMismatch=False,
+        ffid_metadata__FFID_Software="Siegfried",
     )
     file_2_metadata = {
         "file_object": file_2,
@@ -876,6 +884,10 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/closed_file.pdf",
         CiteableReference="first_body/ABCDE",
+        ffid_metadata__Extension="pdf",
+        ffid_metadata__FormatName="Adobe PDF",
+        ffid_metadata__ExtensionMismatch=False,
+        ffid_metadata__FFID_Software="Siegfried",
     )
     file_3_metadata = {
         "file_object": file_3,
@@ -942,6 +954,10 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/file_no_metadata.docx",
         CiteableReference="first_body/ABCDE",
+        ffid_metadata__Extension="docx",
+        ffid_metadata__FormatName="Word Document",
+        ffid_metadata__ExtensionMismatch=False,
+        ffid_metadata__FFID_Software="Siegfried",
     )
     file_4_metadata = {
         "file_object": file_4,
@@ -1003,6 +1019,10 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/file_without_citeable_reference.docx",
         CiteableReference=None,
+        ffid_metadata__Extension="docx",
+        ffid_metadata__FormatName="Word Document",
+        ffid_metadata__ExtensionMismatch=False,
+        ffid_metadata__FFID_Software="Siegfried",
     )
     file_5_metadata = {
         "file_object": file_5,
@@ -1049,6 +1069,10 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/open_file_once_closed.png",
         CiteableReference="first_body/ABCDE",
+        ffid_metadata__Extension="png",
+        ffid_metadata__FormatName="PNG Image",
+        ffid_metadata__ExtensionMismatch=False,
+        ffid_metadata__FFID_Software="Siegfried",
     )
     file_6_metadata = {
         "file_object": file_6,
@@ -1106,6 +1130,8 @@ def record_files():
             file=file_6, PropertyName="language", Value="English"
         ),
     }
+
+    db.session.flush()
 
     return [
         file_1_metadata,

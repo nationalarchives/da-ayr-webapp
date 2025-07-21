@@ -11,17 +11,17 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@storybook/html-vite": "9.0.16",
+    "@storybook/html-vite": "9.0.17",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.2.0",
     "prettier": "^3.6.2",
     "sass": "^1.89.2",
-    "stylelint": "^16.21.1",
+    "stylelint": "^16.22.0",
     "stylelint-config-standard-scss": "^15.0.1",
     "stylelint-selector-bem-pattern": "^4.0.1"
   },
   "dependencies": {
-    "govuk-frontend": "^5.11.0",
+    "govuk-frontend": "^5.11.1",
     "npm": "^11.4.2"
   }
 }

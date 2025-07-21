@@ -20,7 +20,7 @@ from opensearchpy import RequestsHttpConnection
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
-from .conftest import Body, Consignment, File, Series
+from .conftest import Body, Consignment, FFIDMetadata, File, Series
 
 
 @mock.patch(
@@ -624,6 +624,16 @@ def test_bulk_index_consignment_error_handling(
                 FilePath="/path/to/file",
                 CiteableReference="cite-ref-123",
                 ConsignmentId=consignment_id,
+            ),
+            FFIDMetadata(
+                FileId=file_id,
+                Extension="txt",
+                FormatName="Plain Text",
+                ExtensionMismatch=False,
+                FFID_Software="Siegfried",
+                FFID_SoftwareVersion="1.0",
+                FFID_BinarySignatureFileVersion="1",
+                FFID_ContainerSignatureFileVersion="1",
             ),
         ]
     )
