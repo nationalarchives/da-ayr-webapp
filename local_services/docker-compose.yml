@@ -11,10 +11,15 @@ services:
       - bootstrap.memory_lock=true
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
-      - OPENSEARCH_SSL_CERTIFICATE=/usr/share/opensearch/config/opensearch-node1.crt
-      - OPENSEARCH_SSL_KEY=/usr/share/opensearch/config/opensearch-node1.key
-      - OPENSEARCH_SSL_ROOT_CERT=/usr/share/opensearch/config/root-ca.pem
-      - OPENSEARCH_SSL_ENABLED=true
+      - plugins.security.ssl.transport.pemcert_filepath=/usr/share/opensearch/config/opensearch-node1.crt
+      - plugins.security.ssl.transport.pemkey_filepath=/usr/share/opensearch/config/opensearch-node1.key
+      - plugins.security.ssl.transport.pemtrustedcas_filepath=/usr/share/opensearch/config/root-ca.pem
+      - plugins.security.ssl.http.enabled=true
+      - plugins.security.ssl.http.pemcert_filepath=/usr/share/opensearch/config/opensearch-node1.crt
+      - plugins.security.ssl.http.pemkey_filepath=/usr/share/opensearch/config/opensearch-node1.key
+      - plugins.security.ssl.http.pemtrustedcas_filepath=/usr/share/opensearch/config/root-ca.pem
+      - plugins.security.allow_unsafe_democertificates=true
+      - plugins.security.allow_default_init_securityindex=true
       - path.repo=/mnt/snapshots
     ulimits:
       memlock:
@@ -25,15 +30,17 @@ services:
         hard: 65536
     volumes:
       - opensearch-data1:/usr/share/opensearch/data
-      - ./opensearch_certs/opensearch-node1.crt:/usr/share/opensearch/config/opensearch-node1.crt
-      - ./opensearch_certs/opensearch-node1.key:/usr/share/opensearch/config/opensearch-node1.key
-      - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
       - ./snapshots:/mnt/snapshots
     ports:
       - 9200:9200
       - 9600:9600
     networks:
       - opensearch-net
+    user: "0:0"
+    command: [
+      "bash", "-c",
+      "yum install -y openssl util-linux && cd /usr/share/opensearch/config && openssl req -x509 -newkey rsa:2048 -nodes -keyout opensearch-node1.key -out opensearch-node1.crt -days 1 -subj '/CN=opensearch-node1' && openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.pem -days 1 -subj '/CN=root-ca' && chown opensearch:opensearch opensearch-node1.* root-ca.* && chmod 644 opensearch-node1.key opensearch-node1.crt root-ca.key root-ca.pem && exec runuser -u opensearch -- /usr/share/opensearch/opensearch-docker-entrypoint.sh"
+    ]
 
   opensearch-node2:
     image: opensearchproject/opensearch:latest
@@ -46,10 +53,15 @@ services:
       - bootstrap.memory_lock=true
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
-      - OPENSEARCH_SSL_CERTIFICATE=/usr/share/opensearch/config/opensearch-node2.crt
-      - OPENSEARCH_SSL_KEY=/usr/share/opensearch/config/opensearch-node2.key
-      - OPENSEARCH_SSL_ROOT_CERT=/usr/share/opensearch/config/root-ca.pem
-      - OPENSEARCH_SSL_ENABLED=true
+      - plugins.security.ssl.transport.pemcert_filepath=/usr/share/opensearch/config/opensearch-node2.crt
+      - plugins.security.ssl.transport.pemkey_filepath=/usr/share/opensearch/config/opensearch-node2.key
+      - plugins.security.ssl.transport.pemtrustedcas_filepath=/usr/share/opensearch/config/root-ca.pem
+      - plugins.security.ssl.http.enabled=true
+      - plugins.security.ssl.http.pemcert_filepath=/usr/share/opensearch/config/opensearch-node2.crt
+      - plugins.security.ssl.http.pemkey_filepath=/usr/share/opensearch/config/opensearch-node2.key
+      - plugins.security.ssl.http.pemtrustedcas_filepath=/usr/share/opensearch/config/root-ca.pem
+      - plugins.security.allow_unsafe_democertificates=true
+      - plugins.security.allow_default_init_securityindex=true
       - path.repo=/mnt/snapshots
     ulimits:
       memlock:
@@ -60,12 +72,14 @@ services:
         hard: 65536
     volumes:
       - opensearch-data2:/usr/share/opensearch/data
-      - ./opensearch_certs/opensearch-node1.crt:/usr/share/opensearch/config/opensearch-node1.crt
-      - ./opensearch_certs/opensearch-node1.key:/usr/share/opensearch/config/opensearch-node1.key
-      - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
       - ./snapshots:/mnt/snapshots
     networks:
       - opensearch-net
+    user: "0:0"
+    command: [
+      "bash", "-c",
+      "yum install -y openssl util-linux && cd /usr/share/opensearch/config && openssl req -x509 -newkey rsa:2048 -nodes -keyout opensearch-node2.key -out opensearch-node2.crt -days 1 -subj '/CN=opensearch-node2' && openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.pem -days 1 -subj '/CN=root-ca' && chown opensearch:opensearch opensearch-node2.* root-ca.* && chmod 644 opensearch-node2.key opensearch-node2.crt root-ca.key root-ca.pem && exec runuser -u opensearch -- /usr/share/opensearch/opensearch-docker-entrypoint.sh"
+    ]
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:latest
     container_name: opensearch-dashboards
@@ -95,25 +109,16 @@ services:
     volumes:
       - webapp_postgres_data:/var/lib/postgresql/data
       - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
-      - ./webapp_postgres_certs:/certs:ro
+      - ./postgres-init.sh:/docker-entrypoint-initdb.d/postgres-init.sh
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
     ports:
       - ${WEBAPP_POSTGRES_PORT}:5432
-    command:
-      [
-        "bash", "-c",
-        "cp /certs/postgres_localhost.key /tmp/postgres_localhost.key && \
-        chmod 600 /tmp/postgres_localhost.key && \
-        exec postgres \
-          -c ssl=on \
-          -c ssl_cert_file=/certs/postgres_localhost.crt \
-          -c ssl_key_file=/tmp/postgres_localhost.key \
-          -c ssl_ca_file=/certs/root-ca.pem"
-      ]
-
+    networks:
+      - default
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.3.3
@@ -218,6 +223,8 @@ volumes:
     driver: local
 
 networks:
+  default:
+    driver: bridge
   opensearch-net:
   keycloak_network:
     driver: bridge
