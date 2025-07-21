@@ -85,11 +85,13 @@ def create_user_page(
     # so that multiple browser flags in cli are honoured
     def _create_user_page(username, password) -> Page:
         page.goto("/sign-in")
-        if page.locator("label:has-text('Email')").count() > 0:
+        if page.locator("label:has-text('Email address')").count() > 0:
+            page.get_by_label("Email address").first.fill(username)
+        elif page.locator("label:has-text('Email')").count() > 0:
             page.get_by_label("Email").first.fill(username)
         else:
             page.get_by_label("Username or email").first.fill(username)
-        page.get_by_label("Password").first.fill(password)
+        page.get_by_role("textbox", name="Password").fill(password)
         page.get_by_role("button", name="Sign in").click()
         return page
 
@@ -98,23 +100,20 @@ def create_user_page(
 
 @pytest.fixture(scope="session")
 def keycloak_admin():
-    realm_name = os.environ.get("KEYCLOAK_REALM_NAME")
-    client_id = os.environ.get("KEYCLOAK_CLIENT_ID")
-    client_secret = os.environ.get("KEYCLOAK_CLIENT_SECRET")
+    target_realm = os.environ.get("KEYCLOAK_REALM_NAME")
     server_url = os.environ.get("KEYCLOAK_BASE_URI")
+    admin_user = os.environ.get("KEYCLOAK_ADMIN_USER", "admin")
+    admin_password = os.environ.get("KEYCLOAK_ADMIN_PASSWORD", "password")
 
-    keycloak_openid = keycloak.KeycloakOpenID(
-        server_url=server_url,
-        client_id=client_id,
-        realm_name=realm_name,
-        client_secret_key=client_secret,
-    )
-
-    token = keycloak_openid.token(grant_type="client_credentials")
+    # Use admin credentials for user management operations
+    # Admin authenticates against master realm but manages target realm
     keycload_admin = keycloak.KeycloakAdmin(
         server_url=server_url,
-        realm_name=realm_name,
-        token=token,
+        username=admin_user,
+        password=admin_password,
+        realm_name=target_realm,
+        user_realm_name="master",  # Admin user is in master realm
+        verify=False,  # For development with self-signed certs
     )
     return keycload_admin
 

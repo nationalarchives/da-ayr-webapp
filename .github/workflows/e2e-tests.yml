@@ -23,34 +23,20 @@ jobs:
     - name: Create certificate directories and generate certs
       run: |
         cd local_services
-
-        # Create directories
-        mkdir -p webapp_postgres_certs opensearch_certs minio_certs
-
-        # Generate webapp_postgres certificates
-        cd webapp_postgres_certs
-        openssl req -x509 -newkey rsa:2048 -nodes -keyout postgres_localhost.key -out postgres_localhost.crt -days 1 -subj "/CN=localhost"
-        openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.pem -days 1 -subj "/CN=root-ca"
-        # Set correct permissions for PostgreSQL certificates
-        # Make all files readable by postgres user (UID 999)
-        chown 999:999 postgres_localhost.key
-        chmod 600 postgres_localhost.key
-        chmod 644 root-ca.key postgres_localhost.crt root-ca.pem
-
+        # Only create directories for services that actually need certificates
+        mkdir -p opensearch_certs minio_certs
 
         # Generate opensearch certificates
-        cd ../opensearch_certs
+        cd opensearch_certs
         openssl req -x509 -newkey rsa:2048 -nodes -keyout opensearch-node1.key -out opensearch-node1.crt -days 1 -subj "/CN=opensearch-node1"
         openssl req -x509 -newkey rsa:2048 -nodes -keyout opensearch-node2.key -out opensearch-node2.crt -days 1 -subj "/CN=opensearch-node2"
         openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.pem -days 1 -subj "/CN=root-ca"
-        # Set correct permissions for OpenSearch
         chmod 644 opensearch-node1.key opensearch-node1.crt opensearch-node2.key opensearch-node2.crt root-ca.key root-ca.pem
 
         # Generate minio certificates
         cd ../minio_certs
         openssl req -x509 -newkey rsa:2048 -nodes -keyout minio.key -out minio.crt -days 1 -subj "/CN=localhost"
         openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.crt -days 1 -subj "/CN=root-ca"
-        # Set correct permissions for MinIO (runs as root)
         chmod 600 minio.key root-ca.key
         chmod 644 minio.crt root-ca.crt
 
@@ -111,7 +97,7 @@ jobs:
     - name: Wait for services to be ready
       run: |
         echo "Waiting for services to start"
-        sleep 30
+        sleep 90
 
         # Check Docker services status
         cd local_services
@@ -131,6 +117,24 @@ jobs:
 
         echo "Webapp logs:"
         docker logs webapp --tail 20
+
+        # Wait for postgres to be ready for connections
+        echo "Waiting for postgres to be ready..."
+        timeout 120 bash -c 'until docker exec local_services-webapp_postgres-1 pg_isready -h localhost -p 5432; do sleep 2; done'
+
+        # Test postgres connectivity
+        echo "Testing postgres connectivity..."
+        timeout 60 bash -c 'until docker exec webapp python -c "import psycopg2; psycopg2.connect(host=\"webapp_postgres\", port=5432, user=\"local_db_user\", password=\"local_db_user_password\", dbname=\"local_db\")" 2>/dev/null; do echo "Waiting for postgres..."; sleep 5; done'
+        echo "PostgreSQL connection successful"
+
+        echo "Final service status check:"
+        docker compose ps
+
+        echo "Checking webapp logs:"
+        docker logs webapp --tail 20
+
+        echo "Checking postgres logs:"
+        docker logs local_services-webapp_postgres-1 --tail 20
 
         timeout 120 bash -c 'until curl -k -f https://127.0.0.1:8000 || curl -f http://127.0.0.1:8000; do sleep 2; done'
 
@@ -154,19 +158,22 @@ jobs:
     - name: Install E2E test dependencies
       run: |
         cd e2e_tests
+        poetry lock
         poetry install --no-root
         poetry run playwright install --with-deps chromium
 
     - name: Run E2E tests
       run: |
         cd e2e_tests
-        poetry run python -m pytest . -v --browser=chromium
+        poetry run python -m pytest . -v --browser=chromium --base-url=https://127.0.0.1:8000
       env:
         WEBAPP_URL: https://127.0.0.1:8000
         KEYCLOAK_BASE_URI: http://127.0.0.1:8080
         KEYCLOAK_REALM_NAME: tdr
         KEYCLOAK_CLIENT_ID: ayr-beta
         KEYCLOAK_CLIENT_SECRET: test-client-secret # pragma: allowlist secret
+        KEYCLOAK_ADMIN_USER: admin
+        KEYCLOAK_ADMIN_PASSWORD: password # pragma: allowlist secret
 
     - name: Upload test results
       uses: actions/upload-artifact@v4

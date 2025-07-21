@@ -20,6 +20,16 @@
           "path": "/ayr_user_type/view_dept"
         }
       ]
+    },
+    {
+      "name": "transferring_body_user",
+      "path": "/transferring_body_user",
+      "subGroups": [
+        {
+          "name": "Testing A",
+          "path": "/transferring_body_user/Testing A"
+        }
+      ]
     }
   ],
   "requiredCredentials": [
@@ -60,7 +70,10 @@
       },
       "fullScopeAllowed": true,
       "defaultClientScopes": [
-        "group_mapper_client_scope"
+        "group_mapper_client_scope",
+        "basic",
+        "roles",
+        "web-origins"
       ]
     }
   ],
