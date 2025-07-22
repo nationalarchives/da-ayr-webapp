@@ -11,3 +11,7 @@ openssl req -new -key postgres_localhost.key -out postgres_localhost.csr -subj "
 
 # (Optional) Create a CA certificate
 openssl x509 -req -in postgres_localhost.csr -CA root-ca.pem -CAkey root-ca.key -CAcreateserial -out postgres_localhost.crt -days 365 -sha256
+
+chmod 600 postgres_localhost.key
+chmod 644 postgres_localhost.crt
+chmod 644 root-ca.pem
