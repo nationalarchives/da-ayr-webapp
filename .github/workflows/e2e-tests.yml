@@ -40,6 +40,11 @@ jobs:
         chmod 600 minio.key root-ca.key
         chmod 644 minio.crt root-ca.crt
 
+        # Genrerate webapp postgres certificates
+        cd ../webapp_postgres_certs
+        chmod +x generate_minio_certs.sh
+        ./generate_postgres_certs.sh
+
     - name: Set up environment variables
       run: | # pragma: allowlist secret
         cd local_services
