@@ -15,3 +15,5 @@ openssl x509 -req -in postgres_localhost.csr -CA root-ca.pem -CAkey root-ca.key 
 chmod 600 postgres_localhost.key
 chmod 644 postgres_localhost.crt
 chmod 644 root-ca.pem
+
+chown 999:999 postgres_localhost.key root-ca.key
