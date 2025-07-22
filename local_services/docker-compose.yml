@@ -34,6 +34,8 @@ services:
       - 9600:9600
     networks:
       - opensearch-net
+    depends_on:
+      - ssl-init
 
   opensearch-node2:
     image: opensearchproject/opensearch:latest
@@ -77,6 +79,18 @@ services:
       OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
     networks:
       - opensearch-net
+    depends_on:
+      - ssl-init
+
+  ssl-init:
+    image: alpine:latest
+    restart: "no"
+    volumes:
+      - webapp_postgres_certs:webapp_postgres_certs
+      - opensearch_certs:opensearch_certs
+      - minio_certs:minio_certs
+    entrypoint: ssl_certs_setup.sh
+
   postgres:
     image: postgres:17.6
     volumes:
@@ -89,6 +103,8 @@ services:
       - ${KC_POSTGRES_PORT}:5432
     networks:
       - keycloak_network
+    depends_on:
+      - ssl-init
 
   webapp_postgres:
     image: postgres:17.6
@@ -116,6 +132,8 @@ services:
       "-c", "ssl_key_file=/var/lib/postgresql/postgres_localhost.key",
       "-c", "ssl_ca_file=/var/lib/postgresql/root-ca.pem"
     ]
+    depends_on:
+      - ssl-init
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.3.3
@@ -159,6 +177,8 @@ services:
       - ./minio_certs/minio.key:/root/.minio/certs/private.key
       - ./minio_certs/minio.crt:/root/.minio/certs/public.crt
     command: server /data --console-address ":9001"
+    depends_on:
+      - ssl-init
 
   webapp:
     env_file:
@@ -206,6 +226,7 @@ services:
       - keycloak
       - minio
       - opensearch-node1
+      - ssl-init
     networks:
       - default
       - keycloak_network
