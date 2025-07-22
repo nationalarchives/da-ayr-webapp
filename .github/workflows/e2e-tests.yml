@@ -81,6 +81,9 @@ jobs:
     - name: Start services
       run: |
         cd local_services
+        chmod 600 /var/lib/postgresql/postgres_localhost.key
+        chmod 644 /var/lib/postgresql/postgres_localhost.crt
+        chmod 644 /var/lib/postgresql/root-ca.pem
         docker compose -f docker-compose.yml up -d
       env:
         CONFIG_SOURCE: ENVIRONMENT_VARIABLES
