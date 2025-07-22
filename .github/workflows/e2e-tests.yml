@@ -39,7 +39,7 @@ jobs:
         # Genrerate webapp postgres certificates
         cd ../webapp_postgres_certs
         chmod +x generate_webapp_postgres_certs.sh
-        ./generate_postgres_certs.sh
+        ./generate_webapp_postgres_certs.sh
 
     - name: Set up environment variables
       run: | # pragma: allowlist secret
