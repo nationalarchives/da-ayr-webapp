@@ -81,9 +81,17 @@ jobs:
     - name: Start services
       run: |
         cd local_services
-        chmod 600 /var/lib/postgresql/postgres_localhost.key
-        chmod 644 /var/lib/postgresql/postgres_localhost.crt
-        chmod 644 /var/lib/postgresql/root-ca.pem
+
+        chmod 600 webapp_postgres_certs/postgres_localhost.key
+        chmod 644 webapp_postgres_certs/postgres_localhost.crt
+        chmod 644 webapp_postgres_certs/root-ca.pem
+                
+        chmod 600 opensearch_certs/opensearch-node1.key opensearch_certs/opensearch-node2.key opensearch_certs/root-ca.key
+        chmod 644 opensearch_certs/opensearch-node1.crt opensearch_certs/opensearch-node2.crt opensearch_certs/root-ca.pem
+
+        chmod 600 minio_certs/minio.key minio_certs/root-ca.key
+        chmod 644 minio_certs/minio.crt minio_certs/root-ca.crt
+        # Start Docker Compose
         docker compose -f docker-compose.yml up -d
       env:
         CONFIG_SOURCE: ENVIRONMENT_VARIABLES
