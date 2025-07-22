@@ -31,6 +31,90 @@ def verify_cookies_header_row(data):
     ] == expected_row[0]
 
 
+def build_expected_pdf_manifest(file, extension):
+    return {
+        "@context": ["https://iiif.io/api/presentation/3/context.json"],
+        "behavior": ["individuals"],
+        "description": f"Manifest for {file.FileName}",
+        "id": f"http://localhost/record/{file.FileId}/manifest",
+        "items": [
+            {
+                "id": f"http://localhost/record/{file.FileId}/manifest",
+                "items": [
+                    {
+                        "id": f"https://presigned-url.com/download.{extension}",
+                        "items": [
+                            {
+                                "body": {
+                                    "format": f"application/{extension}",
+                                    "id": f"https://presigned-url.com/download.{extension}",
+                                    "type": "Text",
+                                },
+                                "id": f"https://presigned-url.com/download.{extension}",
+                                "label": {"en": ["test"]},
+                                "motivation": "painting",
+                                "target": f"https://presigned-url.com/download.{extension}",
+                                "type": "Annotation",
+                            }
+                        ],
+                        "label": {"en": ["test"]},
+                        "type": "AnnotationPage",
+                    }
+                ],
+                "label": {"en": ["test"]},
+                "type": "Canvas",
+            }
+        ],
+        "label": {"en": [f"{file.FileName}"]},
+        "requiredStatement": {
+            "label": {"en": ["File name"]},
+            "value": {"en": [f"{file.FileName}"]},
+        },
+        "type": "Manifest",
+        "viewingDirection": "left-to-right",
+    }
+
+
+def build_expected_image_manifest(file, extension):
+    return {
+        "@context": "https://iiif.io/api/presentation/3/context.json",
+        "@id": f"http://localhost/record/{file.FileId}/manifest",
+        "@type": "sc:Manifest",
+        "description": f"Manifest for {file.FileName}",
+        "label": {"en": [f"{file.FileName}"]},
+        "sequences": [
+            {
+                "@id": f"https://presigned-url.com/download.{extension}",
+                "@type": "sc:Sequence",
+                "canvases": [
+                    {
+                        "@id": f"https://presigned-url.com/download.{extension}",
+                        "@type": "sc:Canvas",
+                        "height": 600,
+                        "width": 800,
+                        "images": [
+                            {
+                                "@id": f"https://presigned-url.com/download.{extension}",
+                                "@type": "oa:Annotation",
+                                "motivation": "sc:painting",
+                                "on": f"https://presigned-url.com/download.{extension}",
+                                "resource": {
+                                    "@id": f"https://presigned-url.com/download.{extension}",
+                                    "format": f"image/{extension}",
+                                    "height": 600,
+                                    "type": "dctypes:Image",
+                                    "width": 800,
+                                },
+                            }
+                        ],
+                        "label": "Image 1",
+                    }
+                ],
+            }
+        ],
+    }
+
+
 def verify_cookies_data_rows(data, expected_rows):
     """
     this function check data rows for data table compared with expected rows
@@ -133,49 +217,44 @@ class TestRoutes:
         response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
         assert response.status_code == 200
 
-        expected_pdf_manifest = {
-            "@context": ["https://iiif.io/api/presentation/3/context.json"],
-            "behavior": ["individuals"],
-            "description": f"Manifest for {file.FileName}",
-            "id": f"http://localhost/record/{file.FileId}/manifest",
-            "items": [
-                {
-                    "id": f"http://localhost/record/{file.FileId}/manifest",
-                    "items": [
-                        {
-                            "id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                            "items": [
-                                {
-                                    "body": {
-                                        "format": f"application/{file.ffid_metadata.Extension}",
-                                        "id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                        "type": "Text",
-                                    },
-                                    "id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                    "label": {"en": ["test"]},
-                                    "motivation": "painting",
-                                    "target": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                    "type": "Annotation",
-                                }
-                            ],
-                            "label": {"en": ["test"]},
-                            "type": "AnnotationPage",
-                        }
-                    ],
-                    "label": {"en": ["test"]},
-                    "type": "Canvas",
-                }
-            ],
-            "label": {"en": [f"{file.FileName}"]},
-            "requiredStatement": {
-                "label": {"en": ["File name"]},
-                "value": {"en": [f"{file.FileName}"]},
-            },
-            "type": "Manifest",
-            "viewingDirection": "left-to-right",
-        }
+        expected_pdf_manifest = build_expected_pdf_manifest(
+            file, file.ffid_metadata.Extension
+        )
 
         actual_manifest = json.loads(response.text)
+        assert response.status_code == 200
+        assert actual_manifest == expected_pdf_manifest
+
+    @mock_aws
+    @patch("app.main.routes.create_presigned_url")
+    def test_route_generate_pdf_manifest_no_ffid_metadata(
+        self,
+        mock_create_presigned_url,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        mock_create_presigned_url.return_value = (
+            "https://presigned-url.com/download.pdf"
+        )
+
+        mock_all_access_user(client)
+        file = FileFactory(
+            FileName="open_file.pdf", ffid_metadata__Extension=None
+        )
+
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
+        assert response.status_code == 200
+
+        expected_pdf_manifest = build_expected_pdf_manifest(file, "pdf")
+
+        actual_manifest = json.loads(response.text)
+        print(f"Expected PDF manifest:\n{expected_pdf_manifest}")
+        print(f"Actual image Manifest:\n{actual_manifest}")
         assert response.status_code == 200
         assert actual_manifest == expected_pdf_manifest
 
@@ -202,43 +281,41 @@ class TestRoutes:
         response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
         assert response.status_code == 200
 
-        expected_image_manifest = {
-            "@context": "https://iiif.io/api/presentation/3/context.json",
-            "@id": f"http://localhost/record/{file.FileId}/manifest",
-            "@type": "sc:Manifest",
-            "description": f"Manifest for {file.FileName}",
-            "label": {"en": [f"{file.FileName}"]},
-            "sequences": [
-                {
-                    "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                    "@type": "sc:Sequence",
-                    "canvases": [
-                        {
-                            "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                            "@type": "sc:Canvas",
-                            "height": 600,
-                            "width": 800,
-                            "images": [
-                                {
-                                    "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                    "@type": "oa:Annotation",
-                                    "motivation": "sc:painting",
-                                    "on": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                    "resource": {
-                                        "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                        "format": f"image/{file.ffid_metadata.Extension}",
-                                        "height": 600,
-                                        "type": "dctypes:Image",
-                                        "width": 800,
-                                    },
-                                }
-                            ],
-                            "label": "Image 1",
-                        }
-                    ],
-                }
-            ],
-        }
+        expected_image_manifest = build_expected_image_manifest(
+            file, file.ffid_metadata.Extension
+        )
+
+        actual_manifest = json.loads(response.text)
+
+        assert response.status_code == 200
+        assert actual_manifest == expected_image_manifest
+
+    @mock_aws
+    @patch("app.main.routes.create_presigned_url")
+    def test_route_generate_image_manifest_no_ffid_metadata(
+        self,
+        mock_create_presigned_url,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+
+        mock_all_access_user(client)
+        file = FileFactory(
+            FileName="open_file.png", ffid_metadata__Extension=None
+        )
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_imaage_object(bucket_name, file)
+
+        mock_create_presigned_url.return_value = (
+            "https://presigned-url.com/download.png"
+        )
+
+        response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
+        assert response.status_code == 200
+
+        expected_image_manifest = build_expected_image_manifest(file, "png")
 
         actual_manifest = json.loads(response.text)
 
@@ -383,6 +460,37 @@ class TestRoutes:
         assert response.status_code == 200
         assert json.loads(response.text) == {"mock": "pdf_manifest"}
 
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    @patch("app.main.routes.generate_pdf_manifest")
+    def test_generate_manifest_pdf_no_ffid_metadata(
+        self,
+        mock_pdf,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        """
+        Test that a PDF manifest is successfully generated when there's no FFID Metadata
+        """
+        mock_all_access_user(client)
+        file = FileFactory(
+            FileName="open_file.pdf", ffid_metadata__Extension=None
+        )
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {"Body": b"file content"}
+
+        mock_pdf.return_value = ({"mock": "pdf_manifest"}, 200)
+        response = client.get(f"/record/{file.FileId}/manifest")
+
+        mock_pdf.assert_called_once()
+        assert response.status_code == 200
+        assert json.loads(response.text) == {"mock": "pdf_manifest"}
+
     @pytest.mark.parametrize(
         "image_format", UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES
     )
@@ -419,6 +527,42 @@ class TestRoutes:
         assert response.status_code == 200
         assert json.loads(response.text) == {"mock": "image_manifest"}
 
+    @pytest.mark.parametrize(
+        "image_format", UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES
+    )
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    @patch("app.main.routes.generate_image_manifest")
+    def test_generate_manifest_image_no_ffid_metadata(
+        self,
+        mock_image,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+        image_format,
+    ):
+        """
+        Test that a image manifest is successfully generated
+        """
+        mock_all_access_user(client)
+        file = FileFactory(
+            FileName=f"image.{image_format}",
+            ffid_metadata__Extension=None,
+        )
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {"Body": b"file content"}
+
+        mock_image.return_value = ({"mock": "image_manifest"}, 200)
+        response = client.get(f"/record/{file.FileId}/manifest")
+
+        mock_image.assert_called_once()
+        assert response.status_code == 200
+        assert json.loads(response.text) == {"mock": "image_manifest"}
+
     @mock_aws
     @patch("app.main.routes.boto3.client")
     def test_generate_manifest_unsupported(
@@ -434,6 +578,33 @@ class TestRoutes:
         """
         mock_all_access_user(client)
         file = FileFactory(ffid_metadata__Extension="docx")
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {"Body": b"file content"}
+
+        response = client.get(f"/record/{file.FileId}/manifest")
+        assert response.status_code == 400
+        assert "Failed to create manifest for file with ID" in caplog.text
+
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    def test_generate_manifest_unsupported_no_ffid_metadata(
+        self,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+        caplog,
+    ):
+        """
+        Test that an unsupported format will return a bad request and log the error
+        """
+        mock_all_access_user(client)
+        file = FileFactory(
+            FileName="open_file.docx", ffid_metadata__Extension=None
+        )
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
