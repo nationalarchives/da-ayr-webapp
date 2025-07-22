@@ -83,13 +83,14 @@ services:
       - ssl-init
 
   ssl-init:
-    image: alpine:latest
+    image: python
     restart: "no"
     volumes:
-      - webapp_postgres_certs:webapp_postgres_certs
-      - opensearch_certs:opensearch_certs
-      - minio_certs:minio_certs
-    entrypoint: ssl_certs_setup.sh
+      - ./ssl_certs_setup.sh:/ssl_certs_setup.sh
+      - ./webapp_postgres_certs:/webapp_postgres_certs
+      - ./opensearch_certs:/opensearch_certs
+      - ./minio_certs:/minio_certs
+    command: ["bash", "-c", "chmod +x /ssl_certs_setup.sh && /ssl_certs_setup.sh"]
 
   postgres:
     image: postgres:17.6
