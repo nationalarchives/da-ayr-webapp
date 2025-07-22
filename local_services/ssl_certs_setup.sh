@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # generate_openesearch_certs.sh
 ./minio_certs/generate_minio_certs.sh
 
