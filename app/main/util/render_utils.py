@@ -24,6 +24,15 @@ def generate_breadcrumb_values(file):
     }
 
 
+def get_file_extension(file):
+    """Extarct file_extension"""
+    if file.ffid_metadata and file.ffid_metadata.Extension is not None:
+        file_extension = file.ffid_metadata.Extension.lower()
+    else:
+        file_extension = file.FileName.split(".")[-1].lower()
+    return file_extension
+
+
 def get_download_filename(file):
     """Generate download filename for a file."""
     if file.CiteableReference:

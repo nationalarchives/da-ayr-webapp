@@ -52,6 +52,7 @@ from app.main.util.render_utils import (
     generate_image_manifest,
     generate_pdf_manifest,
     get_download_filename,
+    get_file_extension,
 )
 from app.main.util.search_utils import (
     build_search_results_summary_query,
@@ -717,10 +718,8 @@ def record(record_id: uuid.UUID):
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
     file_metadata = get_file_metadata(file.FileId)
-    if file.ffid_metadata and file.ffid_metadata.Extension:
-        file_extension = file.ffid_metadata.Extension.lower()
-    else:
-        file_extension = file.FileName.split(".")[-1].lower()
+
+    file_extension = get_file_extension(file)
 
     can_render_file = (
         file_extension in current_app.config["SUPPORTED_RENDER_EXTENSIONS"]
@@ -853,10 +852,8 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
     file_name = file.FileName
     file_url = create_presigned_url(file)
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
-    if file.ffid_metadata and file.ffid_metadata.Extension:
-        file_type = file.ffid_metadata.Extension.lower()
-    else:
-        file_type = file.FileName.split(".")[-1].lower()
+
+    file_type = get_file_extension(file)
 
     if (
         file_type
