@@ -92,6 +92,7 @@ services:
 
   webapp_postgres:
     image: postgres:17.5
+    user: postgres
     volumes:
       - webapp_postgres_data:/var/lib/postgresql/data
       - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
