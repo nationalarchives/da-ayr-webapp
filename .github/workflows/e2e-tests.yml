@@ -27,7 +27,7 @@ jobs:
         mkdir -p opensearch_certs minio_certs
 
         # Genrerate minio certificates
-        cd ../minio_certs
+        cd /minio_certs
         chmod +x generate_minio_certs.sh
         ./generate_minio_certs.sh
 
