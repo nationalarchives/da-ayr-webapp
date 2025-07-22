@@ -37,17 +37,17 @@ COPY --from=node-builder /app/app/static/src/css app/static/src/css
 RUN openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365 \
     -subj "/C=GB/ST=England/L=London/O=Test/CN=localhost"
 
-RUN cd /app/local_services/webapp_postgres_certs && \
-    chmod +x generate_webapp_postgres_certs.sh && \
-    ./generate_webapp_postgres_certs.sh
+# RUN cd /app/local_services/webapp_postgres_certs && \
+#     chmod +x generate_webapp_postgres_certs.sh && \
+#     ./generate_webapp_postgres_certs.sh
 
-RUN cd /app/local_services/opensearch_certs && \
-    chmod +x generate_opensearch_certs.sh && \
-    ./generate_opensearch_certs.sh
+# RUN cd /app/local_services/opensearch_certs && \
+#     chmod +x generate_opensearch_certs.sh && \
+#     ./generate_opensearch_certs.sh
 
-RUN cd /app/local_services/minio_certs && \
-    chmod +x generate_minio_certs.sh && \
-    ./generate_minio_certs.sh
+# RUN cd /app/local_services/minio_certs && \
+#     chmod +x generate_minio_certs.sh && \
+#     ./generate_minio_certs.sh
 
 EXPOSE 8000
 

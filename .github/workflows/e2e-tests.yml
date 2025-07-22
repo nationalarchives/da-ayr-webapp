@@ -26,23 +26,19 @@ jobs:
         # Only create directories for services that actually need certificates
         mkdir -p opensearch_certs minio_certs
 
-        # Generate opensearch certificates
-        cd opensearch_certs
-        openssl req -x509 -newkey rsa:2048 -nodes -keyout opensearch-node1.key -out opensearch-node1.crt -days 1 -subj "/CN=opensearch-node1"
-        openssl req -x509 -newkey rsa:2048 -nodes -keyout opensearch-node2.key -out opensearch-node2.crt -days 1 -subj "/CN=opensearch-node2"
-        openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.pem -days 1 -subj "/CN=root-ca"
-        chmod 644 opensearch-node1.key opensearch-node1.crt opensearch-node2.key opensearch-node2.crt root-ca.key root-ca.pem
-
-        # Generate minio certificates
+        # Genrerate minio certificates
         cd ../minio_certs
-        openssl req -x509 -newkey rsa:2048 -nodes -keyout minio.key -out minio.crt -days 1 -subj "/CN=localhost"
-        openssl req -x509 -newkey rsa:2048 -nodes -keyout root-ca.key -out root-ca.crt -days 1 -subj "/CN=root-ca"
-        chmod 600 minio.key root-ca.key
-        chmod 644 minio.crt root-ca.crt
+        chmod +x generate_minio_certs.sh
+        ./generate_minio_certs.sh
+
+        # genrerate opensearch certificates
+        cd ../opensearch_certs
+        chmod +x generate_opensearch_certs.sh
+        ./generate_opensearch_certs.sh
 
         # Genrerate webapp postgres certificates
         cd ../webapp_postgres_certs
-        chmod +x generate_minio_certs.sh
+        chmod +x generate_webapp_postgres_certs.sh
         ./generate_postgres_certs.sh
 
     - name: Set up environment variables
