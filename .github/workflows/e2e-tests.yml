@@ -98,19 +98,21 @@ jobs:
         chmod +x generate_webapp_postgres_certs.sh
         ./generate_webapp_postgres_certs.sh
 
-        # Fix certificate permissions for all services
         cd ..
         # webapp_postgres certificates
         chmod 600 webapp_postgres_certs/postgres_localhost.key webapp_postgres_certs/root-ca.key
         chmod 644 webapp_postgres_certs/postgres_localhost.crt webapp_postgres_certs/root-ca.pem
+        chown 999:999 webapp_postgres_certs/postgres_localhost.key webapp_postgres_certs/root-ca.key
 
-        # opensearch certificates  
+
         chmod 600 opensearch_certs/opensearch-node1.key opensearch_certs/opensearch-node2.key opensearch_certs/root-ca.key
         chmod 644 opensearch_certs/opensearch-node1.crt opensearch_certs/opensearch-node2.crt opensearch_certs/root-ca.pem
+        chown 999:999 opensearch_certs/opensearch-node1.key opensearch_certs/opensearch-node2.key opensearch_certs/root-ca.key
 
         # minio certificates
         chmod 600 minio_certs/minio.key minio_certs/root-ca.key
         chmod 644 minio_certs/minio.crt minio_certs/root-ca.crt
+        chown 999:999 minio_certs/minio.key minio_certs/root-ca.key
 
         # Start Docker Compose
         docker compose -f docker-compose.yml up -d
