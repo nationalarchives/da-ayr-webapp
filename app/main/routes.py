@@ -859,7 +859,7 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES"]
     ):
-        return generate_pdf_manifest(file_name, file_url, manifest_url)
+        return generate_pdf_manifest(file_name, file_url, manifest_url, file)
     elif (
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]

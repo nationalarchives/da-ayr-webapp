@@ -1,8 +1,10 @@
+import base64
 import io
-from typing import Any
+from typing import Any, List
 
 import boto3
 from flask import Response, current_app, jsonify
+from pdf2image import convert_from_bytes
 from PIL import Image
 
 from app.main.db.models import File
@@ -55,9 +57,139 @@ def create_presigned_url(file: File) -> str:
     return presigned_url
 
 
+def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
+    """Extract PDF pages as images and return page info with base64 thumbnails."""
+    try:
+        # Convert PDF pages to PIL Images
+        pages = convert_from_bytes(pdf_bytes, dpi=150)
+        page_data = []
+
+        for i, page_image in enumerate(pages):
+            # Create thumbnail (150x200 pixels)
+            thumbnail = page_image.copy()
+            thumbnail.thumbnail((150, 200), Image.Resampling.LANCZOS)
+
+            # Convert thumbnail to base64 data URL
+            thumbnail_buffer = io.BytesIO()
+            thumbnail.save(thumbnail_buffer, format="JPEG", quality=85)
+            thumbnail_base64 = base64.b64encode(
+                thumbnail_buffer.getvalue()
+            ).decode()
+            thumbnail_data_url = f"data:image/jpeg;base64,{thumbnail_base64}"
+
+            # Get original page dimensions
+            width, height = page_image.size
+
+            page_data.append(
+                {
+                    "page_number": i + 1,
+                    "width": width,
+                    "height": height,
+                    "thumbnail_url": thumbnail_data_url,
+                }
+            )
+
+        return page_data
+    except Exception as e:
+        current_app.logger.error(f"Error extracting PDF pages: {e}")
+        return []
+
+
 def generate_pdf_manifest(
-    file_name: str, file_url: str, manifest_url: str
+    file_name: str, file_url: str, manifest_url: str, file_obj: File = None
 ) -> Response:
+    # Try to extract PDF pages for thumbnails
+    page_data = []
+    if file_obj:
+        try:
+            # Fetch PDF content from S3
+            s3 = boto3.client("s3")
+            bucket = current_app.config["RECORD_BUCKET_NAME"]
+            key = (
+                f"{file_obj.consignment.ConsignmentReference}/{file_obj.FileId}"
+            )
+
+            response = s3.get_object(Bucket=bucket, Key=key)
+            pdf_bytes = response["Body"].read()
+            page_data = extract_pdf_pages_as_images(pdf_bytes)
+        except Exception as e:
+            current_app.logger.error(
+                f"Error processing PDF for thumbnails: {e}"
+            )
+
+    # Create canvas items - either individual pages or single PDF
+    canvas_items = []
+
+    if page_data:
+        # Multi-page manifest with thumbnails
+        for page_info in page_data:
+            canvas_id = f"{manifest_url}/canvas/{page_info['page_number']}"
+            canvas_items.append(
+                {
+                    "id": canvas_id,
+                    "type": "Canvas",
+                    "label": {"en": [f"Page {page_info['page_number']}"]},
+                    "width": page_info["width"],
+                    "height": page_info["height"],
+                    "thumbnail": [
+                        {
+                            "id": page_info["thumbnail_url"],
+                            "type": "Image",
+                            "format": "image/jpeg",
+                            "width": 150,
+                            "height": 200,
+                        }
+                    ],
+                    "items": [
+                        {
+                            "id": f"{canvas_id}/page",
+                            "type": "AnnotationPage",
+                            "items": [
+                                {
+                                    "id": f"{canvas_id}/annotation",
+                                    "type": "Annotation",
+                                    "motivation": "painting",
+                                    "body": {
+                                        "id": file_url,
+                                        "type": "Text",
+                                        "format": "application/pdf",
+                                    },
+                                    "target": canvas_id,
+                                }
+                            ],
+                        }
+                    ],
+                }
+            )
+    else:
+        # Fallback to single canvas (original behavior)
+        canvas_items.append(
+            {
+                "id": manifest_url,
+                "type": "Canvas",
+                "label": {"en": ["PDF Document"]},
+                "items": [
+                    {
+                        "id": file_url,
+                        "type": "AnnotationPage",
+                        "items": [
+                            {
+                                "id": file_url,
+                                "type": "Annotation",
+                                "motivation": "painting",
+                                "body": {
+                                    "id": file_url,
+                                    "type": "Text",
+                                    "format": "application/pdf",
+                                },
+                                "target": file_url,
+                            }
+                        ],
+                    }
+                ],
+            }
+        )
+
     manifest = {
         "@context": [
             "https://iiif.io/api/presentation/3/context.json",
@@ -72,34 +204,7 @@ def generate_pdf_manifest(
         "viewingDirection": "left-to-right",
         "behavior": ["paged"],
         "description": f"Manifest for {file_name}",
-        "items": [
-            {
-                "id": manifest_url,
-                "type": "Canvas",
-                "label": {"en": ["test"]},
-                "items": [
-                    {
-                        "id": file_url,
-                        "type": "AnnotationPage",
-                        "label": {"en": ["test"]},
-                        "items": [
-                            {
-                                "id": file_url,
-                                "type": "Annotation",
-                                "motivation": "painting",
-                                "label": {"en": ["test"]},
-                                "body": {
-                                    "id": file_url,
-                                    "type": "Text",
-                                    "format": "application/pdf",
-                                },
-                                "target": file_url,
-                            }
-                        ],
-                    }
-                ],
-            }
-        ],
+        "items": canvas_items,
     }
 
     return jsonify(manifest)
