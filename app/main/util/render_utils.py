@@ -70,7 +70,7 @@ def generate_pdf_manifest(
             "value": {"en": [file_name]},
         },
         "viewingDirection": "left-to-right",
-        "behavior": ["individuals"],
+        "behavior": ["paged"],
         "description": f"Manifest for {file_name}",
         "items": [
             {

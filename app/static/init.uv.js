@@ -12,6 +12,9 @@ function initUniversalViewer() {
     config.modules.centerPanel.options = {
       usePdfJs: true,
     };
+    config.modules.contentLeftPanel.options = {
+      defaultToTreeEnabled: true,
+    };
     config.modules.footerPanel.options = {
       downloadEnabled: false,
       embedEnabled: false,
