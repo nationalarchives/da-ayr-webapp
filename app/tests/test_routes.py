@@ -239,7 +239,6 @@ class TestRoutes:
                 }
             ],
         }
-
         actual_manifest = json.loads(response.text)
 
         assert response.status_code == 200

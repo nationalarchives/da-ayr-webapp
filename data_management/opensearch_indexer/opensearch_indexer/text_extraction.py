@@ -55,7 +55,11 @@ SUPPORTED_TEXTRACT_FORMATS = [
 
 
 def add_text_content(file: Dict, file_stream: bytes) -> Dict:
-    file_type = file["file_extension"].lower()
+
+    if file["file_extension"] is None:
+        file_type = file["file_name"].split(".")[-1].lower()
+    else:
+        file_type = file["file_extension"].lower()
     file_id = file["file_id"]
 
     if file_type not in SUPPORTED_TEXTRACT_FORMATS:

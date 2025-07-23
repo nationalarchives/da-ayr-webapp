@@ -6,7 +6,26 @@ from app.main.util.render_utils import (
     create_presigned_url,
     generate_breadcrumb_values,
     get_download_filename,
+    get_file_extension,
 )
+
+
+def test_get_file_extension_with_ffid_extension():
+    mock_file = Mock()
+    mock_file.ffid_metadata.Extension = "PDF"
+    mock_file.FileName = "ignored.txt"
+
+    ext = get_file_extension(mock_file)
+    assert ext == "pdf"
+
+
+def test_get_file_extension_with_ffid_extension_none_uses_filename():
+    mock_file = Mock()
+    mock_file.ffid_metadata.Extension = None
+    mock_file.FileName = "example.DOC"
+
+    ext = get_file_extension(mock_file)
+    assert ext == "doc"
 
 
 def test_generate_breadcrumb_values():

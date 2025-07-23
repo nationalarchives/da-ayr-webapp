@@ -137,6 +137,37 @@ def test_add_text_content_success(mock_extract_text, caplog):
     assert "Text extraction succeeded for file 1" in caplog.text
 
 
+def test_add_text_content_no_ffid_metadata_success(mock_extract_text, caplog):
+    """
+    Given a supported file type and a valid file stream and without FFID metadata,
+    When text extraction succeeds,
+    Then the content is updated and the status is set to SUCCEEDED.
+    """
+
+    # Given
+    file = {
+        "file_id": 1,
+        "file_name": "example.pdf",
+        "file_extension": None,
+        "content": "",
+        "text_extraction_status": "",
+    }
+    file_stream = b"Some file content"
+    mock_extract_text.return_value = "Extracted text"
+
+    # When
+    result = add_text_content(file, file_stream)
+
+    # Then
+    assert result["content"] == "Extracted text"
+    assert (
+        result["text_extraction_status"] == TextExtractionStatus.SUCCEEDED.value
+    )
+    mock_extract_text.assert_called_once_with(file_stream, "pdf")
+
+    assert "Text extraction succeeded for file 1" in caplog.text
+
+
 # Test for unsupported file type
 def test_add_text_content_unsupported_format(caplog):
     """
