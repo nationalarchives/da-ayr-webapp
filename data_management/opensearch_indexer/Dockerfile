@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
     python-dev-is-python3 \
     libxml2-dev libxslt1-dev \
     antiword unrtf poppler-utils tesseract-ocr \
-    flac ffmpeg lame libmad0 libsox-fmt-mp3 sox \
+    flac lame libmad0 libsox-fmt-mp3 sox \
     libjpeg-dev swig \
     libreoffice \
     && apt-get clean
