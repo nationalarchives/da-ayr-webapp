@@ -1,14 +1,15 @@
-FROM python:3.13.5
+FROM python:3.13-slim-bookworm
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    python-dev-is-python3 \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-dev \
     libxml2-dev libxslt1-dev \
     antiword unrtf poppler-utils tesseract-ocr \
     flac lame libmad0 libsox-fmt-mp3 sox \
-    libjpeg-dev swig \
-    libreoffice \
-    && apt-get clean
+    libjpeg-dev swig libreoffice \
+    ffmpeg \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -19,7 +20,8 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy app
 COPY opensearch_indexer/ ./opensearch_indexer
 
-# Run main.py
+# Run main
 CMD ["python", "-m", "opensearch_indexer.index_consignment.main"]
