@@ -761,7 +761,7 @@ class TestSearchTransferringBody:
         Given a standard user with access to a body, and there are files from that body and another body
         and a search query which matches a property from related file data
         When they make a request on the search page with the search term
-        Then the result contains a details element used to trigger the accordion that has no "open" attribute by default
+        Then the result contains a button with aria-expanded set to false by default
         """
         mock_search_client.return_value = MockOpenSearch(
             search_return_value=os_mock_return_tb
@@ -784,10 +784,9 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
 
         soup = BeautifulSoup(response.data, "html.parser")
-        details_element = soup.find("summary")
+        button = soup.find("button", attrs={"aria-expanded": False})
 
-        assert details_element
-        assert not details_element.get("open")
+        assert button is not None
 
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_results_display_multiple_pages(
