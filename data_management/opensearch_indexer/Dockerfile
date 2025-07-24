@@ -5,11 +5,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     libxml2-dev libxslt1-dev \
     antiword unrtf poppler-utils tesseract-ocr \
-    flac lame libmad0 libsox-fmt-mp3 sox \
-    libjpeg-dev swig libreoffice \
-    ffmpeg \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    flac ffmpeg lame libmad0 libsox-fmt-mp3 sox \
+    libjpeg-dev swig \
+    libreoffice \
+    && apt-get clean
 
 # Set working directory
 WORKDIR /app
@@ -20,8 +19,7 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app
 COPY opensearch_indexer/ ./opensearch_indexer
 
-# Run main
+# Run main.py
 CMD ["python", "-m", "opensearch_indexer.index_consignment.main"]
