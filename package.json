@@ -22,6 +22,6 @@
   },
   "dependencies": {
     "govuk-frontend": "^5.11.1",
-    "npm": "^11.4.2"
+    "npm": "^11.5.1"
   }
 }
