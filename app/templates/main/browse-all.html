@@ -68,7 +68,7 @@
                                     <a href="{{ url_for('main.browse_series', _id= record['series_id']) }}">{{ record["series"] }}</a>
                                 </td>
                                 <td class="govuk-table__cell govuk-table--right-align govuk-table--on-mobile--no-padding-right">
-                                    {{ record["last_record_transferred"] }}
+                                    <time datetime="{{ record["last_record_transferred"] | format_date_iso }}">{{ record["last_record_transferred"] }}</time>
                                 </td>
                                 <td class="govuk-table__cell govuk-table--right-align govuk-table--invisible-on-mobile">
                                     {{ record["records_held"] | format_number_with_commas }}

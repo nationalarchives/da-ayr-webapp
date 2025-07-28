@@ -2,6 +2,7 @@ import pytest
 
 from app import (
     clean_tags_and_replace_highlight_tag,
+    format_date_iso,
     format_number_with_commas,
     format_opensearch_field_name,
     null_to_dash,
@@ -147,3 +148,32 @@ def test_format_opensearch_field_name(field, expected):
 )
 def test_format_number_with_commas(input_value, expected_output):
     assert format_number_with_commas(input_value) == expected_output
+
+
+@pytest.mark.parametrize(
+    "input_value, expected_output",
+    [
+        # Valid date
+        ("13/03/2025", "2025-03-13"),
+        # Leading zeros
+        ("01/01/2000", "2000-01-01"),
+        # End of year
+        ("31/12/1999", "1999-12-31"),
+        # Invalid format: wrong order
+        ("2025/03/13", "2025/03/13"),
+        # Invalid separator
+        ("13-03-2025", "13-03-2025"),
+        # Completely invalid string
+        ("not a date", "not a date"),
+        # Empty string
+        ("", ""),
+        # None input
+        (None, None),
+        # Integer input
+        (12345, 12345),
+        # List input
+        (["13/03/2025"], ["13/03/2025"]),
+    ],
+)
+def test_format_date_iso(input_value, expected_output):
+    assert format_date_iso(input_value) == expected_output
