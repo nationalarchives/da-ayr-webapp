@@ -1,4 +1,5 @@
 import inspect
+from datetime import datetime
 
 import bleach
 from flask import Flask, g
@@ -45,6 +46,18 @@ def format_number_with_commas(number):
     return f"{number:,}"
 
 
+def format_date_iso(value):
+    """Convert 'DD/MM/YYYY' to 'YYYY-MM-DD' if input is a string."""
+    if not isinstance(value, str):
+        return value
+
+    try:
+        date_obj = datetime.strptime(value, "%d/%m/%Y")
+        return date_obj.strftime("%Y-%m-%d")
+    except ValueError:
+        return value
+
+
 def create_app(config_class, database_uri=None):
     app = Flask(__name__, static_url_path="/assets")
     config = config_class()
@@ -65,6 +78,7 @@ def create_app(config_class, database_uri=None):
     app.jinja_env.filters["format_number_with_commas"] = (
         format_number_with_commas
     )
+    app.jinja_env.filters["format_date_iso"] = format_date_iso
     app.jinja_loader = ChoiceLoader(
         [
             PackageLoader("app"),

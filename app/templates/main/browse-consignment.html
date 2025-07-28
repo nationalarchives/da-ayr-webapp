@@ -65,7 +65,7 @@
                         {% for record in results %}
                             <tr class="govuk-table__row govuk-table__row-ref">
                                 <td class="govuk-table__cell govuk-table__cell--word-break-all govuk-table__cell--on-mobile--flex-layout-col">
-                                    {{ record["date_of_record"] }}
+                                    <time datetime="{{ record["date_of_record"] | format_date_iso }}">{{ record["date_of_record"] }}</time>
                                     <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-2"
                                        href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
                                 </td>
@@ -79,7 +79,7 @@
                                 </td>
                                 <td class="govuk-table__cell govuk-table--right-align">
                                     {% if record['opening_date'] %}
-                                        {{ record['opening_date'] }}
+                                        <time datetime="{{ record['opening_date'] | format_date_iso }}">{{ record['opening_date'] }}</time>
                                     {% else %}
                                         –
                                     {% endif %}

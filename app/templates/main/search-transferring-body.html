@@ -212,7 +212,7 @@
                                                                         </td>
                                                                         <td class="govuk-table__cell govuk-table__cell--metadata govuk-table--right-align">
                                                                             {% if record['_source']['opening_date'] %}
-                                                                                {{ record['_source']['opening_date'] }}
+                                                                                <time datetime="{{ record['_source']['opening_date'] | format_date_iso }}">{{ record['_source']['opening_date'] }}</time>
                                                                             {% else %}
                                                                                 –
                                                                             {% endif %}
