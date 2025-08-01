@@ -15,7 +15,7 @@
     </li>
     <li class="govuk-list__ayr-content">
         <a class="govuk-link govuk-link__1-rem-mb-font govuk-link__no-visited-color"
-           href="#improve-accessibility">What we’re doing to improve accessibility</a>
+           href="#resolved-accessibility">Resolved accessibility issues</a>
     </li>
     <li class="govuk-list__ayr-content">
         <a class="govuk-link govuk-link__1-rem-mb-font govuk-link__no-visited-color"
@@ -24,7 +24,7 @@
 {% endblock %}
 {% block static_content %}
     <p class="govuk-body-xs">
-        Last updated on <time datetime="2024-04-15">15 April 2024.</time>
+        Last updated on <time datetime="2025-07-31">31 July 2025.</time>
     </p>
     <h1 class="govuk-heading-l" id="accessibility-statement">Accessibility statement for Access Your Records</h1>
     <p class="govuk-body">
@@ -86,47 +86,38 @@
     </p>
     <h3 class="govuk-heading-s">Compliance status</h3>
     <p class="govuk-body">
-        This website is partially compliant with the <a href="https://www.w3.org/TR/WCAG22/" class="govuk-link">Web Content Accessibility Guidelines version 2.2</a> AA standard, due to the non-compliances and exemptions listed below.
+        This website is currently compliant with the <a href="https://www.w3.org/TR/WCAG22/" class="govuk-link">Web Content Accessibility Guidelines version 2.2</a> AA standard.
     </p>
     <h3 class="govuk-heading-s">Non-accessible content</h3>
-    <p class="govuk-body">The content listed below is non-accessible for the following reasons:</p>
-    <h3 class="govuk-heading-s">Non-compliance with the accessibility regulations</h3>
-    <ul class="govuk-list govuk-list--bullet">
-        <li>
-            Breadcrumb navigation links have been placed inside of the main content region of the
-            page. This issue may affect keyboard only and screen reader users who use the 'Skip to main
-            content' link and would expect to bypass repeated blocks of content including the header
-            and any navigational regions.
-        </li>
-        <li>
-            Some HTML heading markup has been used in a way that does not accurately represent relationships
-            in the content, particularly on the static page content.
-        </li>
-    </ul>
-    <h3 class="govuk-heading-s">Disproportionate burden</h3>
     <p class="govuk-body">
-        It would be a disproportionate burden to fix records held on the Access Your Records platform as we are required to keep all records exactly as they have been delivered. This is to ensure that each record is completely authentic and faithfully matches what has been published by the original source.
+        As of <time datetime="2025-07-31">31 July 2025</time> the website does not contain non-compliant content.
     </p>
-    <h2 class="govuk-heading-m" id="improve-accessibility">What we're doing to improve accessibility</h2>
-    <p class="govuk-body">We are working to resolve accessibility issues as soon as possible. These issues include:</p>
+    <h2 class="govuk-heading-s" id="resolved-accessibility">Resolved accessibility issues</h2>
+    <p class="govuk-body">
+        The following accessibility issues have been resolved in line with WCAG 2.2 Level A and AA requirements:
+    </p>
     <ul class="govuk-list govuk-list--bullet">
         <li>
-            moving the breadcrumb navigation links so they are outside the main content region to enable keyboard and screen reader users to skip to the main content
+            Issues identified by a <a href="{{ url_for('static', filename= 'accessibility_audit_report_2024.pdf') }}"
+    class="govuk-link">previous DAC accessibility report</a> performed on <time datetime="2024-03-15">15 March 2024.</time>
         </li>
-        <li>fixing the HTML heading markup issues found on some static content pages</li>
+        <li>
+            Issues identified by the <a href="{{ url_for('static', filename= 'accessibility_audit_report_2025.pdf') }}"
+    class="govuk-link">latest DAC accessibility report</a> performed on <time datetime="2025-03-21">21 March 2025.</time>
+        </li>
     </ul>
     <h2 class="govuk-heading-m" id="preparation-of-accessibility-statement">
         Preparation of this accessibility statement
     </h2>
     <p class="govuk-body">
-        This website was last tested on 15th March 2024.
+        This website was last tested on 21st March 2025.
         <br>
         <br>
         The test was carried out by Digital Accessibility Centre. The most viewed pages were tested using automated testing tools by our website team. A further audit of the website was carried out to the WCAG 2.2 AA standard.
         <br>
     </p>
     <p class="govuk-body">
-        You can read the full accessibility test report <a href="{{ url_for('static', filename= 'accessibility_audit_report.pdf') }}"
+        You can read the latest full accessibility test report <a href="{{ url_for('static', filename= 'accessibility_audit_report_2025.pdf') }}"
     class="govuk-link">DAC accessibility report for Access Your Records</a>.
     </p>
     <div class="govuk-!-margin-top-9">
