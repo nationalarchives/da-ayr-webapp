@@ -89,36 +89,21 @@
         This website is currently compliant with the <a href="https://www.w3.org/TR/WCAG22/" class="govuk-link">Web Content Accessibility Guidelines version 2.2</a> AA standard.
     </p>
     <h3 class="govuk-heading-s">Non-accessible content</h3>
-    <p class="govuk-body">As of the 31st of July 2025 the website does not contain non-compliant content.</p>
+    <p class="govuk-body">
+        As of <time datetime="2025-07-31">31 July 2025</time> the website does not contain non-compliant content.
+    </p>
     <h2 class="govuk-heading-s" id="resolved-accessibility">Resolved accessibility issues</h2>
     <p class="govuk-body">
         The following accessibility issues have been resolved in line with WCAG 2.2 Level A and AA requirements:
     </p>
     <ul class="govuk-list govuk-list--bullet">
-        <li>Breadcrumbs have been moved to a more appropriate section of the page in order to prevent focus issues.</li>
-        <li>Static pages have been adjusted to contain correct heading levels and consistent layout.</li>
         <li>
-            Radio buttons under "Search for digital records" now have accessible names that match their visible labels, enabling proper voice control interaction.
+            Issues identified by a <a href="{{ url_for('static', filename= 'accessibility_audit_report_2024.pdf') }}"
+    class="govuk-link">previous DAC accessibility report</a> performed on <time datetime="2024-03-15">15 March 2024.</time>
         </li>
         <li>
-            Pages now have a single &lt;h1&gt; heading to reflect the main topic, with correct use of &lt;h2&gt; and &lt;legend&gt; for structure clarity in screen readers.
-        </li>
-        <li>
-            Additional content shown in expandable rows within tables is now programatically associated with the related table data.
-        </li>
-        <li>Expand/collapse controls in search results now include descriptive accessible names.</li>
-        <li>
-            "Remove filter" buttons no longer nest anchor tags, ensuring predictable and accessible interaction for all users.
-        </li>
-        <li>
-            PDF viewer navigation controls now use semantic HTML and appropriate ARIA roles, additionally, the "Go" button that is part of the controls cluster is no longer hidden behind content when focused.
-        </li>
-        <li>
-            Status updates like "No results found" are now coded with ARIA live controls, so they are announced to screen readers.
-        </li>
-        <li>Layout adjusts correctly at various different resolutions and zoom levels.</li>
-        <li>
-            Some buttons have been given more accessible and descriptive names, such as buttons that contain "Next" being given an ARIA label of "Next page".
+            Issues identified by the <a href="{{ url_for('static', filename= 'accessibility_audit_report_2025.pdf') }}"
+    class="govuk-link">latest DAC accessibility report</a> performed on <time datetime="2025-03-21">21 March 2025.</time>
         </li>
     </ul>
     <h2 class="govuk-heading-m" id="preparation-of-accessibility-statement">
@@ -132,7 +117,7 @@
         <br>
     </p>
     <p class="govuk-body">
-        You can read the full accessibility test report <a href="{{ url_for('static', filename= 'accessibility_audit_report_2025.pdf') }}"
+        You can read the latest full accessibility test report <a href="{{ url_for('static', filename= 'accessibility_audit_report_2025.pdf') }}"
     class="govuk-link">DAC accessibility report for Access Your Records</a>.
     </p>
     <div class="govuk-!-margin-top-9">
