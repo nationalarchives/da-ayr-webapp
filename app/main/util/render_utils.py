@@ -77,6 +77,12 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
             ).decode()
             thumbnail_data_url = f"data:image/jpeg;base64,{thumbnail_base64}"
 
+            # Convert full page to base64 data URL for display
+            page_buffer = io.BytesIO()
+            page_image.save(page_buffer, format="JPEG", quality=90)
+            page_base64 = base64.b64encode(page_buffer.getvalue()).decode()
+            page_data_url = f"data:image/jpeg;base64,{page_base64}"
+
             # Get original page dimensions
             width, height = page_image.size
 
@@ -86,6 +92,7 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
                     "width": width,
                     "height": height,
                     "thumbnail_url": thumbnail_data_url,
+                    "page_image_url": page_data_url,
                 }
             )
 
@@ -143,9 +150,11 @@ def generate_pdf_manifest(
                             "@type": "oa:Annotation",
                             "motivation": "sc:painting",
                             "resource": {
-                                "@id": file_url,
-                                "@type": "dctypes:Text",
-                                "format": "application/pdf",
+                                "@id": page_info["page_image_url"],
+                                "@type": "dctypes:Image",
+                                "format": "image/jpeg",
+                                "width": page_info["width"],
+                                "height": page_info["height"],
                             },
                             "on": canvas_id,
                         }
