@@ -46,7 +46,11 @@ def get_download_filename(file):
 
 
 def create_presigned_url(file: File) -> str:
-    s3 = boto3.client("s3")
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=current_app.config.get("AWS_ENDPOINT_URL"),
+        verify=False,  # Disable SSL verification for self-signed certificates
+    )
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
@@ -107,22 +111,42 @@ def generate_pdf_manifest(
 ) -> Response:
     # Try to extract PDF pages for thumbnails
     page_data = []
+    current_app.logger.info(
+        f"Generating PDF manifest for {file_name}, file_obj: {file_obj is not None}"
+    )
+
     if file_obj:
         try:
             # Fetch PDF content from S3
-            s3 = boto3.client("s3")
+            s3 = boto3.client(
+                "s3",
+                endpoint_url=current_app.config.get("AWS_ENDPOINT_URL"),
+                verify=False,  # Disable SSL verification for self-signed certificates
+            )
             bucket = current_app.config["RECORD_BUCKET_NAME"]
             key = (
                 f"{file_obj.consignment.ConsignmentReference}/{file_obj.FileId}"
             )
 
+            current_app.logger.info(
+                f"Fetching PDF from S3: bucket={bucket}, key={key}"
+            )
             response = s3.get_object(Bucket=bucket, Key=key)
             pdf_bytes = response["Body"].read()
+            current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
+
             page_data = extract_pdf_pages_as_images(pdf_bytes)
+            current_app.logger.info(
+                f"Extracted {len(page_data)} pages from PDF"
+            )
         except Exception as e:
             current_app.logger.error(
-                f"Error processing PDF for thumbnails: {e}"
+                f"Error processing PDF for thumbnails: {e}", exc_info=True
             )
+    else:
+        current_app.logger.warning(
+            "No file_obj provided, cannot extract PDF pages"
+        )
 
     # Create canvas items - either individual pages or single PDF
     canvas_items = []
