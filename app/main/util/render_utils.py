@@ -3,8 +3,8 @@ import io
 from typing import Any, List
 
 import boto3
+import pymupdf
 from flask import Response, current_app, jsonify
-from pdf2image import convert_from_bytes
 from PIL import Image
 
 from app.main.db.models import File
@@ -64,42 +64,58 @@ def create_presigned_url(file: File) -> str:
 def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
     """Extract PDF pages as images and return page info with base64 thumbnails."""
     try:
-        # Convert PDF pages to PIL Images
-        pages = convert_from_bytes(pdf_bytes, dpi=150)
+        # Convert PDF pages using PyMuPDF
+        pdf_document = pymupdf.open("pdf", io.BytesIO(pdf_bytes))
         page_data = []
 
-        for i, page_image in enumerate(pages):
+        for page_num in range(pdf_document.page_count):
+            page = pdf_document.load_page(page_num)
+
+            # Get page dimensions (used for reference)
+
+            # Render page as pixmap (similar to pdf2image at 150 DPI)
+            mat = pymupdf.Matrix(150 / 72, 150 / 72)  # 150 DPI scaling
+            pix = page.get_pixmap(matrix=mat)
+            img_bytes = pix.tobytes("png")
+
+            # Convert to PIL Image for thumbnail processing
+            page_image = Image.open(io.BytesIO(img_bytes))
+
             # Create thumbnail (150x200 pixels)
             thumbnail = page_image.copy()
             thumbnail.thumbnail((150, 200), Image.Resampling.LANCZOS)
 
-            # Convert thumbnail to base64 data URL
+            # Convert thumbnail to base64 data URL with lower quality for smaller size
             thumbnail_buffer = io.BytesIO()
-            thumbnail.save(thumbnail_buffer, format="JPEG", quality=85)
+            thumbnail.save(thumbnail_buffer, format="JPEG", quality=70)
             thumbnail_base64 = base64.b64encode(
                 thumbnail_buffer.getvalue()
             ).decode()
             thumbnail_data_url = f"data:image/jpeg;base64,{thumbnail_base64}"
 
-            # Convert full page to base64 data URL for display
+            # Convert full page to base64 data URL for display with reduced quality
             page_buffer = io.BytesIO()
-            page_image.save(page_buffer, format="JPEG", quality=90)
+            page_image.save(page_buffer, format="JPEG", quality=75)
             page_base64 = base64.b64encode(page_buffer.getvalue()).decode()
             page_data_url = f"data:image/jpeg;base64,{page_base64}"
 
-            # Get original page dimensions
-            width, height = page_image.size
+            current_app.logger.debug(
+                f"Page {page_num + 1}: thumbnail={len(thumbnail_base64)} chars, full={len(page_base64)} chars"
+            )
 
             page_data.append(
                 {
-                    "page_number": i + 1,
-                    "width": width,
-                    "height": height,
+                    "page_number": page_num + 1,
+                    "width": page_image.width,
+                    "height": page_image.height,
                     "thumbnail_url": thumbnail_data_url,
                     "page_image_url": page_data_url,
+                    "thumbnail_base64_size": len(thumbnail_base64),
+                    "page_base64_size": len(page_base64),
                 }
             )
 
+        pdf_document.close()
         return page_data
     except Exception as e:
         current_app.logger.error(f"Error extracting PDF pages: {e}")
@@ -226,6 +242,9 @@ def generate_pdf_manifest(
         ],
     }
 
+    current_app.logger.info(
+        f"Generated PDF manifest with {len(canvas_items)} canvases for {file_name}"
+    )
     return jsonify(manifest)
 
 
@@ -235,36 +254,51 @@ def generate_image_manifest(
     image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
     image_width, image_height = image.size
 
+    # Detect image format
+    image_format = image.format.lower() if image.format else "png"
+    if image_format == "jpeg":
+        mime_type = "image/jpeg"
+    elif image_format == "png":
+        mime_type = "image/png"
+    elif image_format in ["tiff", "tif"]:
+        mime_type = "image/tiff"
+    elif image_format == "gif":
+        mime_type = "image/gif"
+    elif image_format == "webp":
+        mime_type = "image/webp"
+    else:
+        mime_type = f"image/{image_format}"
+
     manifest = {
-        "@context": "https://iiif.io/api/presentation/3/context.json",
+        "@context": "http://iiif.io/api/presentation/2/context.json",
         "@id": manifest_url,
         "@type": "sc:Manifest",
-        "label": {"en": [file_name]},
+        "label": file_name,
         "description": f"Manifest for {file_name}",
         "sequences": [
             {
-                "@id": file_url,
+                "@id": f"{manifest_url}/sequence/1",
                 "@type": "sc:Sequence",
                 "canvases": [
                     {
-                        "@id": file_url,
+                        "@id": f"{manifest_url}/canvas/1",
                         "@type": "sc:Canvas",
                         "label": "Image 1",
                         "width": image_width,
                         "height": image_height,
                         "images": [
                             {
-                                "@id": file_url,
+                                "@id": f"{manifest_url}/annotation/1",
                                 "@type": "oa:Annotation",
                                 "motivation": "sc:painting",
                                 "resource": {
                                     "@id": file_url,
-                                    "type": "dctypes:Image",
-                                    "format": "image/png",
+                                    "@type": "dctypes:Image",
+                                    "format": mime_type,
                                     "width": image_width,
                                     "height": image_height,
                                 },
-                                "on": file_url,
+                                "on": f"{manifest_url}/canvas/1",
                             }
                         ],
                     }
