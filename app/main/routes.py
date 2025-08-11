@@ -849,6 +849,10 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
 
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
+    current_app.logger.info(
+        f"File object type: {type(file)}, File object: {file}"
+    )
+
     file_name = file.FileName
     file_url = create_presigned_url(file)
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
@@ -859,7 +863,9 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES"]
     ):
-        return generate_pdf_manifest(file_name, file_url, manifest_url)
+        return generate_pdf_manifest(
+            file_name, file_url, manifest_url, file_obj=file
+        )
     elif (
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]
