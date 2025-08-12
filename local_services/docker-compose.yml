@@ -7,14 +7,10 @@ services:
       - cluster.name=opensearch-cluster
       - node.name=opensearch-node1
       - discovery.seed_hosts=opensearch-node1,opensearch-node2
-      - cluster.initial_cluster_manager_nodes=opensearch-node1,opensearch-node2
+      - cluster.initial_master_nodes=opensearch-node1,opensearch-node2
       - bootstrap.memory_lock=true
-      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
-      - OPENSEARCH_SSL_CERTIFICATE=/usr/share/opensearch/config/opensearch-node1.crt
-      - OPENSEARCH_SSL_KEY=/usr/share/opensearch/config/opensearch-node1.key
-      - OPENSEARCH_SSL_ROOT_CERT=/usr/share/opensearch/config/root-ca.pem
-      - OPENSEARCH_SSL_ENABLED=true
       - path.repo=/mnt/snapshots
     ulimits:
       memlock:
@@ -25,9 +21,10 @@ services:
         hard: 65536
     volumes:
       - opensearch-data1:/usr/share/opensearch/data
-      - ./opensearch_certs/opensearch-node1.crt:/usr/share/opensearch/config/opensearch-node1.crt
-      - ./opensearch_certs/opensearch-node1.key:/usr/share/opensearch/config/opensearch-node1.key
-      - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
+      - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/certs/root-ca.pem
+      - ./opensearch_certs/opensearch-node1.crt:/usr/share/opensearch/config/certs/opensearch-node1.crt
+      - ./opensearch_certs/opensearch-node1.key:/usr/share/opensearch/config/certs/opensearch-node1.key
+      - ./opensearch_certs/opensearch-1.yml:/usr/share/opensearch/config/opensearch.yml
       - ./snapshots:/mnt/snapshots
     ports:
       - 9200:9200
@@ -35,7 +32,8 @@ services:
     networks:
       - opensearch-net
     depends_on:
-      - ssl-init
+      ssl-init:
+        condition: service_completed_successfully
 
   opensearch-node2:
     image: opensearchproject/opensearch:latest
@@ -44,14 +42,10 @@ services:
       - cluster.name=opensearch-cluster
       - node.name=opensearch-node2
       - discovery.seed_hosts=opensearch-node1,opensearch-node2
-      - cluster.initial_cluster_manager_nodes=opensearch-node1,opensearch-node2
+      - cluster.initial_master_nodes=opensearch-node1,opensearch-node2
       - bootstrap.memory_lock=true
-      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
-      - OPENSEARCH_SSL_CERTIFICATE=/usr/share/opensearch/config/opensearch-node2.crt
-      - OPENSEARCH_SSL_KEY=/usr/share/opensearch/config/opensearch-node2.key
-      - OPENSEARCH_SSL_ROOT_CERT=/usr/share/opensearch/config/root-ca.pem
-      - OPENSEARCH_SSL_ENABLED=true
       - path.repo=/mnt/snapshots
     ulimits:
       memlock:
@@ -62,24 +56,45 @@ services:
         hard: 65536
     volumes:
       - opensearch-data2:/usr/share/opensearch/data
-      - ./opensearch_certs/opensearch-node1.crt:/usr/share/opensearch/config/opensearch-node1.crt
-      - ./opensearch_certs/opensearch-node1.key:/usr/share/opensearch/config/opensearch-node1.key
-      - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
+      - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/certs/root-ca.pem
+      - ./opensearch_certs/opensearch-node2.crt:/usr/share/opensearch/config/certs/opensearch-node2.crt
+      - ./opensearch_certs/opensearch-node2.key:/usr/share/opensearch/config/certs/opensearch-node2.key
+      - ./opensearch_certs/opensearch-2.yml:/usr/share/opensearch/config/opensearch.yml
       - ./snapshots:/mnt/snapshots
     networks:
       - opensearch-net
+    depends_on:
+      ssl-init:
+        condition: service_completed_successfully
+
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:latest
     container_name: opensearch-dashboards
     ports:
       - 5601:5601
     expose:
-      - '5601'
+      - "5601"
     environment:
       OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
     networks:
       - opensearch-net
     depends_on:
+      - opensearch-node1
+      - opensearch-node2
+      - ssl-init
+
+  opensearch-restore:
+    image: python
+    environment:
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+    volumes:
+      - ./opensearch-entrypoint.sh:/opensearch-entrypoint.sh
+    command: ["bash", "-c", "chmod +x /opensearch-entrypoint.sh && /opensearch-entrypoint.sh"]
+    networks:
+      - opensearch-net
+    depends_on:
+      - opensearch-node1
+      - opensearch-node2
       - ssl-init
 
   ssl-init:
@@ -105,7 +120,8 @@ services:
     networks:
       - keycloak_network
     depends_on:
-      - ssl-init
+      ssl-init:
+          condition: service_completed_successfully
 
   webapp_postgres:
     image: postgres:17.6
@@ -134,7 +150,8 @@ services:
       "-c", "ssl_ca_file=/var/lib/postgresql/root-ca.pem"
     ]
     depends_on:
-      - ssl-init
+      ssl-init:
+          condition: service_completed_successfully
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.3.3
@@ -172,6 +189,7 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_CERTS_DIR: /root/.minio/certs
     volumes:
       - ~/minio/data:/data
       - ./minio_certs/root-ca.crt:/root/.minio/certs/CAs/my-ca.crt
@@ -179,7 +197,19 @@ services:
       - ./minio_certs/minio.crt:/root/.minio/certs/public.crt
     command: server /data --console-address ":9001"
     depends_on:
-      - ssl-init
+      ssl-init:
+          condition: service_completed_successfully
+    networks:
+      minio_network:
+        aliases:
+          - 127.0.0.1
+
+  socat-localhost:
+    image: alpine/socat
+    command: tcp-listen:9000,fork,reuseaddr tcp-connect:minio:9000
+    network_mode: service:webapp
+    depends_on:
+      - minio
 
   webapp:
     env_file:
@@ -209,6 +239,7 @@ services:
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
       - AWS_REGION=eu-west-2
+      - AWS_CA_BUNDLE=/app/local_services/minio_certs/root-ca.crt
       - SECRET_KEY=test-secret-key
       - DEFAULT_PAGE_SIZE=10
       - DEFAULT_DATE_FORMAT=DD/MM/YYYY
@@ -222,6 +253,10 @@ services:
       - OPEN_SEARCH_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
       - OPEN_SEARCH_CA_CERTS=/app/local_services/opensearch_certs/root-ca.pem
       - OPEN_SEARCH_TIMEOUT=10
+    volumes:
+      - ./minio_certs:/app/local_services/minio_certs
+      - ./opensearch_certs:/app/local_services/opensearch_certs
+      - ./webapp_postgres_certs:/app/local_services/webapp_postgres_certs
     depends_on:
       - webapp_postgres
       - keycloak
@@ -232,6 +267,7 @@ services:
       - default
       - keycloak_network
       - opensearch-net
+      - minio_network
 
 volumes:
   opensearch-data1:
@@ -246,4 +282,6 @@ networks:
     driver: bridge
   opensearch-net:
   keycloak_network:
+    driver: bridge
+  minio_network:
     driver: bridge

@@ -1,3 +1,5 @@
+#!/bin/sh
+set -x
 # Create a private key
 openssl genrsa -out root-ca.key 2048
 
