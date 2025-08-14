@@ -78,7 +78,7 @@ services:
     networks:
       - opensearch-net
   postgres:
-    image: postgres:17.5
+    image: postgres:17.6
     volumes:
       - kc_postgres_data:/var/lib/postgresql/data
     environment:
@@ -91,7 +91,7 @@ services:
       - keycloak_network
 
   webapp_postgres:
-    image: postgres:17.5
+    image: postgres:17.6
     volumes:
       - webapp_postgres_data:/var/lib/postgresql/data
       - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
