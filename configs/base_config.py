@@ -119,6 +119,10 @@ class BaseConfig(object):
         return self._get_config_value("RECORD_BUCKET_NAME")
 
     @property
+    def ACCESS_COPY_BUCKET(self):
+        return self._get_config_value("ACCESS_COPY_BUCKET")
+
+    @property
     def S3_BUCKET_URL(self):
         return f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"
 
