@@ -20,26 +20,26 @@ jobs:
     - name: Install Poetry
       run: pip install poetry
 
-    - name: Create certificate directories and generate certs
-      run: |
-        cd local_services
-        # Only create directories for services that actually need certificates
-        mkdir -p opensearch_certs minio_certs
+    # - name: Create certificate directories and generate certs
+    #   run: |
+    #     cd local_services
+    #     # Only create directories for services that actually need certificates
+    #     mkdir -p opensearch_certs minio_certs
 
-        # Genrerate minio certificates
-        cd minio_certs
-        chmod +x generate_minio_certs.sh
-        ./generate_minio_certs.sh
+    #     # Genrerate minio certificates
+    #     cd minio_certs
+    #     chmod +x generate_minio_certs.sh
+    #     ./generate_minio_certs.sh
 
-        # genrerate opensearch certificates
-        cd ../opensearch_certs
-        chmod +x generate_opensearch_certs.sh
-        ./generate_opensearch_certs.sh
+    #     # genrerate opensearch certificates
+    #     cd ../opensearch_certs
+    #     chmod +x generate_opensearch_certs.sh
+    #     ./generate_opensearch_certs.sh
 
-        # Genrerate webapp postgres certificates
-        cd ../webapp_postgres_certs
-        chmod +x generate_webapp_postgres_certs.sh
-        ./generate_webapp_postgres_certs.sh
+    #     # Genrerate webapp postgres certificates
+    #     cd ../webapp_postgres_certs
+    #     chmod +x generate_webapp_postgres_certs.sh
+    #     ./generate_webapp_postgres_certs.sh
 
     - name: Set up environment variables
       run: | # pragma: allowlist secret
