@@ -191,7 +191,7 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MINIO_CERTS_DIR: /root/.minio/certs
     volumes:
-      - ~/minio/data:/data
+      - ./files:/data/test-record-download
       - ./minio_certs/root-ca.crt:/root/.minio/certs/CAs/my-ca.crt
       - ./minio_certs/minio.key:/root/.minio/certs/private.key
       - ./minio_certs/minio.crt:/root/.minio/certs/public.crt
