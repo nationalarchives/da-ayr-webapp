@@ -28,6 +28,7 @@ class BaseConfig(object):
         *UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES,
         *UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES,
     ]
+    ACCESS_COPY_EXTENSIONS = {"doc", "docx", "xls", "xlsx"}
 
     @staticmethod
     def _parse_config_value(config_value):
