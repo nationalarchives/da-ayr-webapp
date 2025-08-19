@@ -197,6 +197,7 @@ jobs:
       if: failure()
       run: |
           echo "=== Webapp logs ==="
+          cd local_services
           docker compose -f docker-compose.yml logs webapp
           echo "=== Database logs ==="
           docker compose -f docker-compose.yml logs webapp_postgres
