@@ -191,7 +191,7 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MINIO_CERTS_DIR: /root/.minio/certs
     volumes:
-      - ./files:/data/test-record-download
+      - minio_data:/data
       - ./minio_certs/root-ca.crt:/root/.minio/certs/CAs/my-ca.crt
       - ./minio_certs/minio.key:/root/.minio/certs/private.key
       - ./minio_certs/minio.crt:/root/.minio/certs/public.crt
@@ -203,6 +203,23 @@ services:
       minio_network:
         aliases:
           - 127.0.0.1
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    volumes:
+      - ./files:/tmp/files:ro
+      - ./minio_certs/root-ca.crt:/root/.minio/certs/CAs/root-ca.crt
+    networks:
+      - minio_network
+    entrypoint: >
+      /bin/sh -c "
+      sleep 15;
+      /usr/bin/mc alias set myminio https://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} --insecure;
+      /usr/bin/mc mb myminio/test-record-download --ignore-existing --insecure;
+      /usr/bin/mc cp --recursive /tmp/files/ myminio/test-record-download/ --insecure || echo 'No files to copy or copy failed';
+      "
 
   socat-localhost:
     image: alpine/socat
@@ -275,6 +292,8 @@ volumes:
   kc_postgres_data:
     driver: local
   webapp_postgres_data:
+    driver: local
+  minio_data:
     driver: local
 
 networks:
