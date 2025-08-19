@@ -197,13 +197,13 @@ jobs:
       if: failure()
       run: |
           echo "=== Webapp logs ==="
-          docker-compose -f docker-compose.yml logs webapp
+          docker compose -f docker-compose.yml logs webapp
           echo "=== Database logs ==="
-          docker-compose -f docker-compose.yml logs webapp_postgres
+          docker compose -f docker-compose.yml logs webapp_postgres
           echo "=== OpenSearch logs ==="
-          docker-compose -f docker-compose.yml logs opensearch-node1
+          docker compose -f docker-compose.yml logs opensearch-node1
           echo "=== MinIO logs ==="
-          docker-compose -f docker-compose.yml logs minio
+          docker compose -f docker-compose.yml logs minio
 
     - name: Stop services
       if: always()
