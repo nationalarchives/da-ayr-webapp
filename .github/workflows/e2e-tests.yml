@@ -193,6 +193,17 @@ jobs:
         name: playwright-screenshots
         path: e2e_tests/test-results/
         retention-days: 7
+    - name: Check logs after test failure
+      if: failure()
+      run: |
+          echo "=== Webapp logs ==="
+          docker-compose -f docker-compose.yml logs webapp
+          echo "=== Database logs ==="
+          docker-compose -f docker-compose.yml logs webapp_postgres
+          echo "=== OpenSearch logs ==="
+          docker-compose -f docker-compose.yml logs opensearch-node1
+          echo "=== MinIO logs ==="
+          docker-compose -f docker-compose.yml logs minio
 
     - name: Stop services
       if: always()
