@@ -116,6 +116,10 @@ services:
       - OPEN_SEARCH_USERNAME=
       - OPEN_SEARCH_PASSWORD=
       - OPEN_SEARCH_TIMEOUT=30
+      # Disable SSL for CI
+      - OPEN_SEARCH_USE_SSL=false
+      - OPEN_SEARCH_VERIFY_CERTS=false
+      - OPEN_SEARCH_CA_CERTS=
     depends_on:
       - webapp_postgres
       - keycloak
