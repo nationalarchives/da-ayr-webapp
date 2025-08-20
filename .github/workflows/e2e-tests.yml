@@ -116,7 +116,11 @@ jobs:
         docker logs local_services-webapp_postgres-1 --tail 20
 
         echo "opensearch-node1 logs:"
-        docker logs opensearch-node1 --tail 20
+        docker logs opensearch-node1 --tail 30 || echo "Failed to get opensearch-node1 logs"
+
+        echo "Network inspection:"
+        docker network ls
+        docker network inspect local_services_ci_network || echo "CI network not found"
 
         echo "Webapp logs:"
         docker logs webapp --tail 20
