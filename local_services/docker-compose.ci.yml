@@ -4,7 +4,7 @@ services:
   opensearch-node1:
     # Override ALL environment variables to prevent duplicates
     environment:
-      - cluster.name=opensearch-cluster  
+      - cluster.name=opensearch-cluster
       - node.name=opensearch-node1
       - discovery.type=single-node
       - bootstrap.memory_lock=false
@@ -18,20 +18,56 @@ services:
     # Create minimal config and start
     command: |
       bash -c "
-        echo 'cluster.name: opensearch-cluster
-        node.name: opensearch-node1
-        discovery.type: single-node
-        network.host: 0.0.0.0
-        bootstrap.memory_lock: false
-        plugins.security.disabled: true' > /usr/share/opensearch/config/opensearch.yml && 
-        chown opensearch:opensearch /usr/share/opensearch/config/opensearch.yml &&
-        su opensearch -c /usr/share/opensearch/bin/opensearch
+        cat > /usr/share/opensearch/config/opensearch.yml << 'EOF'
+      cluster.name: opensearch-cluster
+      node.name: opensearch-node1
+      discovery.type: single-node
+      network.host: 0.0.0.0
+      bootstrap.memory_lock: false
+      plugins.security.disabled: true
+      path.repo: /mnt/snapshots
+      EOF
+        /usr/share/opensearch/bin/opensearch
       "
 
   # Disable node2 for CI simplicity
   opensearch-node2:
     deploy:
       replicas: 0
+
+  # Fix opensearch-restore to use HTTP instead of HTTPS
+  opensearch-restore:
+    environment:
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+    # Override the script to use HTTP without auth
+    command: |
+      bash -c "
+        # Wait until OpenSearch is available via HTTP (no auth needed)
+        until curl -s http://opensearch-node1:9200 -o /dev/null; do
+          echo 'Waiting for OpenSearch to be available...'
+          sleep 5
+        done
+
+        echo 'OpenSearch is available!'
+
+        # Register the snapshot repository (no auth needed)
+        curl -s -X PUT 'http://opensearch-node1:9200/_snapshot/my-fs-repository' -H 'Content-Type: application/json' -d '{\"type\": \"fs\", \"settings\": {\"location\": \"/mnt/snapshots\"}}'
+
+        echo 'Repository registered.'
+
+        # Delete existing documents index if it exists
+        curl -s -X DELETE 'http://opensearch-node1:9200/documents' || echo 'No existing index to delete'
+
+        echo 'Existing index cleared.'
+
+        # Restore from snapshot (no auth needed)
+        curl -s -X POST 'http://opensearch-node1:9200/_snapshot/my-fs-repository/1/_restore' -H 'Content-Type: application/json' -d '{\"indices\": \"documents\", \"include_global_state\": false}'
+
+        echo 'Restore completed.'
+
+        # Keep container running briefly to see results
+        sleep 10
+      "
 
   webapp:
     environment:
@@ -64,7 +100,7 @@ services:
       - PERF_TEST=False
       # Use service name for OpenSearch with HTTP
       - OPEN_SEARCH_HOST=http://opensearch-node1:9200
-      - OPEN_SEARCH_USERNAME=admin  
+      - OPEN_SEARCH_USERNAME=admin
       - OPEN_SEARCH_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
       - OPEN_SEARCH_TIMEOUT=30
     depends_on:
