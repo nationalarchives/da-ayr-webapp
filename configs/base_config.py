@@ -173,11 +173,11 @@ class BaseConfig(object):
 
     @property
     def OPEN_SEARCH_USE_SSL(self) -> bool:
-        return self._get_config_value("OPEN_SEARCH_USE_SSL", "true").lower() == "true"
+        return self._get_config_value("OPEN_SEARCH_USE_SSL") == "true"
 
     @property
     def OPEN_SEARCH_VERIFY_CERTS(self) -> bool:
-        return self._get_config_value("OPEN_SEARCH_VERIFY_CERTS", "true").lower() == "true"
+        return self._get_config_value("OPEN_SEARCH_VERIFY_CERTS") == "true"
 
     @property
     def PERF_TEST(self):
