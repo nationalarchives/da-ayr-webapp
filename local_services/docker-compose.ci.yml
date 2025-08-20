@@ -10,7 +10,12 @@ services:
       - DISABLE_INSTALL_DEMO_CONFIG=true
       - DISABLE_SECURITY_PLUGIN=true
       - path.repo=/mnt/snapshots
-      # Only set plugins.security.disabled once
+      # Override cluster settings that conflict with single-node
+      - cluster.name=opensearch-ci
+      - node.name=opensearch-ci-node1
+      # Explicitly set conflicting vars to empty to override base config
+      - cluster.initial_master_nodes=
+      - discovery.seed_hosts=
     volumes:
       - opensearch-data1:/usr/share/opensearch/data
       - ./snapshots:/mnt/snapshots
@@ -28,10 +33,24 @@ services:
     deploy:
       replicas: 0
 
+  # Override PostgreSQL to disable SSL for CI
+  webapp_postgres:
+    volumes:
+      - webapp_postgres_data:/var/lib/postgresql/data
+      - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
+      - ./postgres-init.sh:/docker-entrypoint-initdb.d/postgres-init.sh
+    command: ["postgres"]
+    # Remove SSL-related command options and dependencies
+    depends_on: {}
+    # Remove ssl-init dependency completely
+
   # Fix opensearch-restore to use HTTP instead of HTTPS
   opensearch-restore:
     environment:
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+    depends_on:
+      - opensearch-node1
+    # Remove dependencies on node2 and ssl-init
     # Override the script to use HTTP without auth
     command: |
       bash -c "
