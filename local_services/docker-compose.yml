@@ -279,7 +279,11 @@ services:
       - keycloak
       - minio
       - opensearch-node1
+      - opensearch-node2
       - ssl-init
+    links:
+      - opensearch-node1
+      - opensearch-node2
     networks:
       - default
       - keycloak_network
