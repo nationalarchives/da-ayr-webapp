@@ -47,7 +47,7 @@ def get_extension(file_id, conn, metadata):
         if result and result[0]:
             return result[0].lower()
     except SQLAlchemyError as e:
-        logger.error(f"Error querying FFIDMetadata: {e}")
+        logger.error(f"Error querying FFIDMetadata table: {e}")
 
     try:
         stmt = (
