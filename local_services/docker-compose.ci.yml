@@ -2,36 +2,29 @@
 services:
   # Single OpenSearch node for CI - use existing networks but disable SSL
   opensearch-node1:
-    # Override ALL environment variables to prevent duplicates
+    # Override specific settings for CI while keeping main config
     environment:
-      - cluster.name=opensearch-cluster
-      - node.name=opensearch-node1
       - discovery.type=single-node
       - bootstrap.memory_lock=false
       - "OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m"
-      - network.host=0.0.0.0
       - DISABLE_INSTALL_DEMO_CONFIG=true
       - DISABLE_SECURITY_PLUGIN=true
-    # Create simple config file inline
+      - path.repo=/mnt/snapshots
+      # Only set plugins.security.disabled once
     volumes:
       - opensearch-data1:/usr/share/opensearch/data
-    # Create minimal config and start
-    command: |
-      bash -c "
-        cat > /usr/share/opensearch/config/opensearch.yml << 'EOF'
-      cluster.name: opensearch-cluster
-      node.name: opensearch-node1
-      discovery.type: single-node
-      network.host: 0.0.0.0
-      bootstrap.memory_lock: false
-      plugins.security.disabled: true
-      path.repo: /mnt/snapshots
-      EOF
-        /usr/share/opensearch/bin/opensearch
-      "
+      - ./snapshots:/mnt/snapshots
+    # Completely override volumes to remove all SSL certificate mounts
+    depends_on: null
+    # Remove all dependencies for CI
 
   # Disable node2 for CI simplicity
   opensearch-node2:
+    deploy:
+      replicas: 0
+
+  # Disable SSL initialization for CI
+  ssl-init:
     deploy:
       replicas: 0
 
@@ -100,8 +93,9 @@ services:
       - PERF_TEST=False
       # Use service name for OpenSearch with HTTP
       - OPEN_SEARCH_HOST=http://opensearch-node1:9200
-      - OPEN_SEARCH_USERNAME=admin
-      - OPEN_SEARCH_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      # Remove auth since security is disabled
+      - OPEN_SEARCH_USERNAME=
+      - OPEN_SEARCH_PASSWORD=
       - OPEN_SEARCH_TIMEOUT=30
     depends_on:
       - webapp_postgres
