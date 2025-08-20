@@ -12,10 +12,21 @@ services:
       - network.host=0.0.0.0
       - DISABLE_INSTALL_DEMO_CONFIG=true
       - DISABLE_SECURITY_PLUGIN=true
-    # Remove ALL volume mounts that reference certificates/config
-    volumes: []
-    # Use minimal command without security
-    command: ["opensearch"]
+    # Create simple config file inline
+    volumes:
+      - opensearch-data1:/usr/share/opensearch/data
+    # Create minimal config and start
+    command: |
+      bash -c "
+        echo 'cluster.name: opensearch-cluster
+        node.name: opensearch-node1
+        discovery.type: single-node
+        network.host: 0.0.0.0
+        bootstrap.memory_lock: false
+        plugins.security.disabled: true' > /usr/share/opensearch/config/opensearch.yml && 
+        chown opensearch:opensearch /usr/share/opensearch/config/opensearch.yml &&
+        su opensearch -c /usr/share/opensearch/bin/opensearch
+      "
 
   # Disable node2 for CI simplicity
   opensearch-node2:
