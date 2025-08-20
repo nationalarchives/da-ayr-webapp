@@ -1,62 +1,33 @@
 version: '3.8'
 
-# GitHub CI specific Docker Compose overrides
+# GitHub CI specific Docker Compose overrides - Simplified single network approach
 services:
+  # Single OpenSearch node for CI simplicity
   opensearch-node1:
-    hostname: opensearch-node1
     environment:
       - cluster.name=opensearch-cluster
       - node.name=opensearch-node1
-      - discovery.seed_hosts=opensearch-node1,opensearch-node2
-      - cluster.initial_master_nodes=opensearch-node1,opensearch-node2
+      - discovery.type=single-node
       - bootstrap.memory_lock=true
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
-      - path.repo=/mnt/snapshots
       - plugins.security.disabled=true
       - network.host=0.0.0.0
     volumes:
       - opensearch-data1:/usr/share/opensearch/data
-      - ./snapshots:/mnt/snapshots
-    networks:
-      opensearch-net:
-        aliases:
-          - opensearch-node1
-          - opensearch1
-    # Removed extra_hosts to avoid CI networking issues
-
-  opensearch-node2:
-    hostname: opensearch-node2
-    environment:
-      - cluster.name=opensearch-cluster
-      - node.name=opensearch-node2
-      - discovery.seed_hosts=opensearch-node1,opensearch-node2
-      - cluster.initial_master_nodes=opensearch-node1,opensearch-node2
-      - bootstrap.memory_lock=true
-      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
-      - path.repo=/mnt/snapshots
-      - plugins.security.disabled=true
-      - network.host=0.0.0.0
-    volumes:
-      - opensearch-data2:/usr/share/opensearch/data
-      - ./snapshots:/mnt/snapshots
-    networks:
-      opensearch-net:
-        aliases:
-          - opensearch-node2
-          - opensearch2
-    # Removed extra_hosts to avoid CI networking issues
-
-  webapp:
-    # Use multiple networks for proper service communication
     networks:
       - default
-      - keycloak_network
-      - opensearch-net
-      - minio_network
-    # Removed extra_hosts to avoid CI networking issues
-    # Override environment to use more reliable networking
+
+  # Disable node2 for CI to simplify
+  opensearch-node2:
+    deploy:
+      replicas: 0
+
+  webapp:
+    # Simplified networking - use default network only
+    networks:
+      - default
+    # Connect to OpenSearch via localhost
     environment:
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=development
@@ -85,49 +56,36 @@ services:
       - FLASKS3_CDN_DOMAIN=localhost
       - FLASKS3_BUCKET_NAME=test-record-download
       - PERF_TEST=False
-      # Use single OpenSearch endpoint with HTTP for CI
+      # Use service name for OpenSearch in CI (single network)
       - OPEN_SEARCH_HOST=http://opensearch-node1:9200
       - OPEN_SEARCH_USERNAME=admin
       - OPEN_SEARCH_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
       - OPEN_SEARCH_TIMEOUT=30
-    # Remove links as they're redundant with extra_hosts
-    links: []
+    depends_on:
+      - webapp_postgres
+      - keycloak
+      - minio
+      - opensearch-node1
 
+  # Put all services on default network for CI simplicity
+  
   keycloak:
-    hostname: keycloak
     networks:
-      keycloak_network:
-        aliases:
-          - keycloak
+      - default
 
   webapp_postgres:
-    hostname: webapp_postgres
     networks:
-      default:
-        aliases:
-          - webapp_postgres
+      - default
 
   postgres:
-    hostname: postgres
     networks:
-      keycloak_network:
-        aliases:
-          - postgres
+      - default
 
   minio:
-    hostname: minio
     networks:
-      minio_network:
-        aliases:
-          - minio
+      - default
 
-# Simplified networking for CI
+# Use only default network for CI simplicity
 networks:
-  opensearch-net:
-    driver: bridge
-  keycloak_network:
-    driver: bridge
-  minio_network:
-    driver: bridge
   default:
     driver: bridge
