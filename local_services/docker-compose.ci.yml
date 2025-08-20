@@ -1,8 +1,8 @@
 version: '3.8'
 
-# GitHub CI specific Docker Compose overrides - Simplified single network approach
+# GitHub CI specific Docker Compose overrides - Fixed IP approach
 services:
-  # Single OpenSearch node for CI simplicity
+  # Single OpenSearch node with fixed IP
   opensearch-node1:
     environment:
       - cluster.name=opensearch-cluster
@@ -16,34 +16,36 @@ services:
     volumes:
       - opensearch-data1:/usr/share/opensearch/data
     networks:
-      - default
+      ci_network:
+        ipv4_address: 172.20.0.10
+    container_name: opensearch-node1
 
-  # Disable node2 for CI to simplify
+  # Disable node2 for CI
   opensearch-node2:
     deploy:
       replicas: 0
 
   webapp:
-    # Simplified networking - use default network only
+    container_name: webapp
     networks:
-      - default
-    # Connect to OpenSearch via localhost
+      ci_network:
+        ipv4_address: 172.20.0.20
     environment:
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=development
       - CONFIG_SOURCE=ENVIRONMENT_VARIABLES
-      - DB_HOST=webapp_postgres
+      - DB_HOST=172.20.0.30
       - DB_PORT=5432
       - DB_NAME=${POSTGRES_DB}
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_SSL_ROOT_CERTIFICATE=/app/local_services/webapp_postgres_certs/root-ca.pem
       - SQLALCHEMY_SSL_MODE=disable
-      - KEYCLOAK_BASE_URI=http://keycloak:8080
+      - KEYCLOAK_BASE_URI=http://172.20.0.40:8080
       - KEYCLOAK_CLIENT_ID=ayr-beta
       - KEYCLOAK_REALM_NAME=tdr
       - KEYCLOAK_CLIENT_SECRET=test-client-secret
-      - AWS_ENDPOINT_URL=https://127.0.0.1:9000
+      - AWS_ENDPOINT_URL=https://172.20.0.50:9000
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
       - AWS_REGION=eu-west-2
@@ -56,8 +58,8 @@ services:
       - FLASKS3_CDN_DOMAIN=localhost
       - FLASKS3_BUCKET_NAME=test-record-download
       - PERF_TEST=False
-      # Use service name for OpenSearch in CI (single network)
-      - OPEN_SEARCH_HOST=http://opensearch-node1:9200
+      # Use fixed IP for OpenSearch
+      - OPEN_SEARCH_HOST=http://172.20.0.10:9200
       - OPEN_SEARCH_USERNAME=admin
       - OPEN_SEARCH_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
       - OPEN_SEARCH_TIMEOUT=30
@@ -67,25 +69,35 @@ services:
       - minio
       - opensearch-node1
 
-  # Put all services on default network for CI simplicity
-  
   keycloak:
+    container_name: keycloak
     networks:
-      - default
+      ci_network:
+        ipv4_address: 172.20.0.40
 
   webapp_postgres:
+    container_name: webapp_postgres
     networks:
-      - default
+      ci_network:
+        ipv4_address: 172.20.0.30
 
   postgres:
+    container_name: postgres
     networks:
-      - default
+      ci_network:
+        ipv4_address: 172.20.0.60
 
   minio:
+    container_name: minio
     networks:
-      - default
+      ci_network:
+        ipv4_address: 172.20.0.50
 
-# Use only default network for CI simplicity
+# Custom network with fixed subnet for reliable IPs
 networks:
-  default:
+  ci_network:
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
