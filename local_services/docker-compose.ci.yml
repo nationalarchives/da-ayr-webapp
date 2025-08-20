@@ -1,5 +1,3 @@
-version: '3.8'
-
 # GitHub CI specific Docker Compose overrides - Fixed IP approach
 services:
   # Single OpenSearch node with fixed IP
@@ -8,8 +6,8 @@ services:
       - cluster.name=opensearch-cluster
       - node.name=opensearch-node1
       - discovery.type=single-node
-      - bootstrap.memory_lock=true
-      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - bootstrap.memory_lock=false
+      - "OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m"
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
       - plugins.security.disabled=true
       - network.host=0.0.0.0
@@ -18,7 +16,7 @@ services:
     networks:
       ci_network:
         ipv4_address: 192.168.100.10
-    container_name: opensearch-node1
+    # Remove custom container name to use default naming
 
   # Disable node2 for CI
   opensearch-node2:
@@ -26,7 +24,7 @@ services:
       replicas: 0
 
   webapp:
-    container_name: webapp
+    # Remove custom container name to use default naming
     networks:
       ci_network:
         ipv4_address: 192.168.100.20
@@ -70,25 +68,25 @@ services:
       - opensearch-node1
 
   keycloak:
-    container_name: keycloak
+    # Remove custom container name to use default naming
     networks:
       ci_network:
         ipv4_address: 192.168.100.40
 
   webapp_postgres:
-    container_name: webapp_postgres
+    # Remove custom container name to use default naming
     networks:
       ci_network:
         ipv4_address: 192.168.100.30
 
   postgres:
-    container_name: postgres
+    # Remove custom container name to use default naming
     networks:
       ci_network:
         ipv4_address: 192.168.100.60
 
   minio:
-    container_name: minio
+    # Remove custom container name to use default naming
     networks:
       ci_network:
         ipv4_address: 192.168.100.50
