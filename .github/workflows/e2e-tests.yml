@@ -82,8 +82,8 @@ jobs:
       run: |
         cd local_services
 
-        # Start Docker Compose
-        docker compose -f docker-compose.yml up -d
+        # Start Docker Compose with CI-specific overrides
+        docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
       env:
         CONFIG_SOURCE: ENVIRONMENT_VARIABLES
         OPENSEARCH_INITIAL_ADMIN_PASSWORD: FOOBARCARabc123! # pragma: allowlist secret
@@ -100,16 +100,16 @@ jobs:
     - name: Wait for services to be ready
       run: |
         echo "Waiting for services to start"
-        sleep 90
+        sleep 120
 
         # Check Docker services status
         cd local_services
         echo "All services in docker-compose.yml:"
-        docker compose config --services
+        docker compose -f docker-compose.yml -f docker-compose.ci.yml config --services
         echo "Running services:"
-        docker compose ps
+        docker compose -f docker-compose.yml -f docker-compose.ci.yml ps
         echo "All containers (including stopped):"
-        docker compose ps -a
+        docker compose -f docker-compose.yml -f docker-compose.ci.yml ps -a
 
         # Check logs for failed services
         echo "webapp_postgres logs:"
@@ -131,7 +131,7 @@ jobs:
         echo "PostgreSQL connection successful"
 
         echo "Final service status check:"
-        docker compose ps
+        docker compose -f docker-compose.yml -f docker-compose.ci.yml ps
 
         echo "Checking webapp logs:"
         docker logs webapp --tail 20
@@ -198,17 +198,17 @@ jobs:
       run: |
           echo "=== Webapp logs ==="
           cd local_services
-          docker compose -f docker-compose.yml logs webapp
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs webapp
           echo "=== Database logs ==="
-          docker compose -f docker-compose.yml logs webapp_postgres
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs webapp_postgres
           echo "=== OpenSearch logs ==="
-          docker compose -f docker-compose.yml logs opensearch-node1
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs opensearch-node1
           echo "=== MinIO logs ==="
-          docker compose -f docker-compose.yml logs minio
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs minio
 
     - name: Stop services
       if: always()
       run: |
         cd local_services
-        docker compose -f docker-compose.yml down -v
+        docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
         docker system prune -f

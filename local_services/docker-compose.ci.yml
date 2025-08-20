@@ -1,0 +1,119 @@
+version: '3.8'
+
+# GitHub CI specific Docker Compose overrides
+services:
+  opensearch-node1:
+    hostname: opensearch-node1
+    networks:
+      opensearch-net:
+        aliases:
+          - opensearch-node1
+          - opensearch1
+    extra_hosts:
+      - "opensearch-node2:host-gateway"
+
+  opensearch-node2:
+    hostname: opensearch-node2
+    networks:
+      opensearch-net:
+        aliases:
+          - opensearch-node2
+          - opensearch2
+    extra_hosts:
+      - "opensearch-node1:host-gateway"
+
+  webapp:
+    # Use single network for simpler CI networking
+    networks:
+      - opensearch-net
+    # Add explicit DNS entries for CI environments
+    extra_hosts:
+      - "opensearch-node1:host-gateway"
+      - "opensearch-node2:host-gateway"
+      - "keycloak:host-gateway"
+      - "webapp_postgres:host-gateway"
+      - "minio:host-gateway"
+    # Override environment to use more reliable networking
+    environment:
+      - PYTHONUNBUFFERED=1
+      - FLASK_ENV=development
+      - CONFIG_SOURCE=ENVIRONMENT_VARIABLES
+      - DB_HOST=webapp_postgres
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB}
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_SSL_ROOT_CERTIFICATE=/app/local_services/webapp_postgres_certs/root-ca.pem
+      - SQLALCHEMY_SSL_MODE=disable
+      - KEYCLOAK_BASE_URI=http://keycloak:8080
+      - KEYCLOAK_CLIENT_ID=ayr-beta
+      - KEYCLOAK_REALM_NAME=tdr
+      - KEYCLOAK_CLIENT_SECRET=test-client-secret
+      - AWS_ENDPOINT_URL=https://127.0.0.1:9000
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - AWS_REGION=eu-west-2
+      - AWS_CA_BUNDLE=/app/local_services/minio_certs/root-ca.crt
+      - SECRET_KEY=test-secret-key
+      - DEFAULT_PAGE_SIZE=10
+      - DEFAULT_DATE_FORMAT=DD/MM/YYYY
+      - RECORD_BUCKET_NAME=test-record-download
+      - FLASKS3_ACTIVE=False
+      - FLASKS3_CDN_DOMAIN=localhost
+      - FLASKS3_BUCKET_NAME=test-record-download
+      - PERF_TEST=False
+      # Try multiple OpenSearch endpoints for better reliability
+      - OPEN_SEARCH_HOST=https://opensearch-node1:9200,https://opensearch-node2:9200
+      - OPEN_SEARCH_USERNAME=admin
+      - OPEN_SEARCH_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      - OPEN_SEARCH_CA_CERTS=/app/local_services/opensearch_certs/root-ca.pem
+      - OPEN_SEARCH_TIMEOUT=30
+    # Remove links as they're redundant with extra_hosts
+    links: []
+
+  keycloak:
+    hostname: keycloak
+    networks:
+      keycloak_network:
+        aliases:
+          - keycloak
+
+  webapp_postgres:
+    hostname: webapp_postgres
+    networks:
+      default:
+        aliases:
+          - webapp_postgres
+
+  postgres:
+    hostname: postgres
+    networks:
+      keycloak_network:
+        aliases:
+          - postgres
+
+  minio:
+    hostname: minio
+    networks:
+      minio_network:
+        aliases:
+          - minio
+
+# Simplified networking for CI
+networks:
+  opensearch-net:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: opensearch-bridge
+  keycloak_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: keycloak-bridge
+  minio_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: minio-bridge
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: default-bridge
