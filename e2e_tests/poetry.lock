@@ -862,14 +862,14 @@ pytest-playwright = ">=0.1.2"
 
 [[package]]
 name = "python-keycloak"
-version = "5.7.0"
+version = "5.8.0"
 description = "python-keycloak is a Python package providing access to the Keycloak API."
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "python_keycloak-5.7.0-py3-none-any.whl", hash = "sha256:e210b0c6949417489f35f2087fce457adf66f189c9a2660cff39c51a2d1c4f4e"},
-    {file = "python_keycloak-5.7.0.tar.gz", hash = "sha256:96af6200bb6cc6822f82677018f969f1566f204451e61cc314bd740d1fd6e4a1"},
+    {file = "python_keycloak-5.8.0-py3-none-any.whl", hash = "sha256:97114e5548cd06d571236292ab6b23c0182b9f4adb851e1f683aed99adf4e75a"},
+    {file = "python_keycloak-5.8.0.tar.gz", hash = "sha256:b791647bbb91e3e8c9323dd41913c85a02690dedab90f391f4db1d5b46537f31"},
 ]
 
 [package.dependencies]
@@ -1036,4 +1036,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">3.9.1,<4.0"
-content-hash = "48156c96950a25193bcb0a886d7bb70fc9ee05f8765cbee92e1e8a239ec42580"
+content-hash = "1313520cd84c3a8087d14f440ba2a07be14f4e00cf9658c6841e87ffc206bc24"
