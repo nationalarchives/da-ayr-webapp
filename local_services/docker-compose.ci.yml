@@ -8,12 +8,19 @@ services:
       - discovery.type=single-node
       - bootstrap.memory_lock=false
       - "OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m"
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
       - plugins.security.disabled=true
       - network.host=0.0.0.0
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - DISABLE_SECURITY_PLUGIN=true
     volumes:
       - opensearch-data1:/usr/share/opensearch/data
-    # Use default networks from main compose file
+    # Remove all certificate volumes for CI
+    command: >
+      bash -c "
+        export OPENSEARCH_JAVA_OPTS='-Xms256m -Xmx256m';
+        export plugins.security.disabled=true;
+        /usr/share/opensearch/opensearch-docker-entrypoint.sh
+      "
 
   # Disable node2 for CI simplicity
   opensearch-node2:
