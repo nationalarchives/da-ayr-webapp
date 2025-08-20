@@ -17,7 +17,7 @@ services:
       - opensearch-data1:/usr/share/opensearch/data
     networks:
       ci_network:
-        ipv4_address: 172.20.0.10
+        ipv4_address: 192.168.100.10
     container_name: opensearch-node1
 
   # Disable node2 for CI
@@ -29,23 +29,23 @@ services:
     container_name: webapp
     networks:
       ci_network:
-        ipv4_address: 172.20.0.20
+        ipv4_address: 192.168.100.20
     environment:
       - PYTHONUNBUFFERED=1
       - FLASK_ENV=development
       - CONFIG_SOURCE=ENVIRONMENT_VARIABLES
-      - DB_HOST=172.20.0.30
+      - DB_HOST=192.168.100.30
       - DB_PORT=5432
       - DB_NAME=${POSTGRES_DB}
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_SSL_ROOT_CERTIFICATE=/app/local_services/webapp_postgres_certs/root-ca.pem
       - SQLALCHEMY_SSL_MODE=disable
-      - KEYCLOAK_BASE_URI=http://172.20.0.40:8080
+      - KEYCLOAK_BASE_URI=http://192.168.100.40:8080
       - KEYCLOAK_CLIENT_ID=ayr-beta
       - KEYCLOAK_REALM_NAME=tdr
       - KEYCLOAK_CLIENT_SECRET=test-client-secret
-      - AWS_ENDPOINT_URL=https://172.20.0.50:9000
+      - AWS_ENDPOINT_URL=https://192.168.100.50:9000
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
       - AWS_REGION=eu-west-2
@@ -59,7 +59,7 @@ services:
       - FLASKS3_BUCKET_NAME=test-record-download
       - PERF_TEST=False
       # Use fixed IP for OpenSearch
-      - OPEN_SEARCH_HOST=http://172.20.0.10:9200
+      - OPEN_SEARCH_HOST=http://192.168.100.10:9200
       - OPEN_SEARCH_USERNAME=admin
       - OPEN_SEARCH_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
       - OPEN_SEARCH_TIMEOUT=30
@@ -73,25 +73,25 @@ services:
     container_name: keycloak
     networks:
       ci_network:
-        ipv4_address: 172.20.0.40
+        ipv4_address: 192.168.100.40
 
   webapp_postgres:
     container_name: webapp_postgres
     networks:
       ci_network:
-        ipv4_address: 172.20.0.30
+        ipv4_address: 192.168.100.30
 
   postgres:
     container_name: postgres
     networks:
       ci_network:
-        ipv4_address: 172.20.0.60
+        ipv4_address: 192.168.100.60
 
   minio:
     container_name: minio
     networks:
       ci_network:
-        ipv4_address: 172.20.0.50
+        ipv4_address: 192.168.100.50
 
 # Custom network with fixed subnet for reliable IPs
 networks:
@@ -100,4 +100,4 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 192.168.100.0/24
