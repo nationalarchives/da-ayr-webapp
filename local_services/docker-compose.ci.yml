@@ -9,8 +9,7 @@ services:
         aliases:
           - opensearch-node1
           - opensearch1
-    extra_hosts:
-      - "opensearch-node2:host-gateway"
+    # Removed extra_hosts to avoid CI networking issues
 
   opensearch-node2:
     hostname: opensearch-node2
@@ -19,20 +18,16 @@ services:
         aliases:
           - opensearch-node2
           - opensearch2
-    extra_hosts:
-      - "opensearch-node1:host-gateway"
+    # Removed extra_hosts to avoid CI networking issues
 
   webapp:
-    # Use single network for simpler CI networking
+    # Use multiple networks for proper service communication
     networks:
+      - default
+      - keycloak_network
       - opensearch-net
-    # Add explicit DNS entries for CI environments
-    extra_hosts:
-      - "opensearch-node1:host-gateway"
-      - "opensearch-node2:host-gateway"
-      - "keycloak:host-gateway"
-      - "webapp_postgres:host-gateway"
-      - "minio:host-gateway"
+      - minio_network
+    # Removed extra_hosts to avoid CI networking issues
     # Override environment to use more reliable networking
     environment:
       - PYTHONUNBUFFERED=1
@@ -103,17 +98,9 @@ services:
 networks:
   opensearch-net:
     driver: bridge
-    driver_opts:
-      com.docker.network.bridge.name: opensearch-bridge
   keycloak_network:
     driver: bridge
-    driver_opts:
-      com.docker.network.bridge.name: keycloak-bridge
   minio_network:
     driver: bridge
-    driver_opts:
-      com.docker.network.bridge.name: minio-bridge
   default:
     driver: bridge
-    driver_opts:
-      com.docker.network.bridge.name: default-bridge
