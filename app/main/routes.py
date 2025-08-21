@@ -733,9 +733,8 @@ def record(record_id: uuid.UUID):
     manifest_url = url_for(
         "main.generate_manifest", record_id=record_id, _external=True
     )
-    if (
-        not can_render_file
-        and file_extension in current_app.config["ACCESS_COPY_EXTENSIONS"]
+    if not can_render_file and file_extension in set(
+        current_app.config["CONVERTIBLE_EXTENSIONS"]
     ):
         try:
             presigned_url = create_presigned_url_for_access_copy(file)
@@ -886,7 +885,7 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         return generate_image_manifest(
             file_name, file_url, manifest_url, s3_file_object
         )
-    elif file_type in current_app.config["ACCESS_COPY_EXTENSIONS"]:
+    elif file_type in set(current_app.config["CONVERTIBLE_EXTENSIONS"]):
         file_url = create_presigned_url_for_access_copy(file)
         return generate_pdf_manifest(file.FileName, file_url, manifest_url)
 

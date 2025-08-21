@@ -28,7 +28,6 @@ class BaseConfig(object):
         *UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES,
         *UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES,
     ]
-    ACCESS_COPY_EXTENSIONS = {"doc", "docx", "xls", "xlsx"}
 
     @staticmethod
     def _parse_config_value(config_value):
@@ -129,6 +128,10 @@ class BaseConfig(object):
     @property
     def ACCESS_COPY_BUCKET_URL(self):
         return f"https://{self.ACCESS_COPY_BUCKET}.s3.amazonaws.com"
+
+    @property
+    def CONVERTIBLE_EXTENSIONS(self):
+        return self._get_config_value("CONVERTIBLE_EXTENSIONS")
 
     @property
     def FLASKS3_ACTIVE(self):
