@@ -17,9 +17,7 @@ sm = boto3.client("secretsmanager")
 
 
 def get_secret_string(secret_id):
-    secret_value = sm.get_secret_value(
-        SecretId=secret_id  # pragma: allowlist secret
-    )
+    secret_value = sm.get_secret_value(SecretId=secret_id)
     secret = json.loads(
         secret_value["SecretString"]  # pragma: allowlist secret
     )
@@ -137,9 +135,7 @@ def process_consignment(consignment_ref: str):
 
                     dest_key = f"{consignment_ref}/{file_id}"
                     s3.upload_file(output_path, dest_bucket, dest_key)
-                    logger.info(
-                        f"Uploaded converted PDF to s3://{dest_bucket}/{dest_key}"
-                    )
+                    logger.info("Uploaded converted PDF to Access Copy Bucket")
             else:
                 logger.info(f"File {file_id} does not require conversion")
 
