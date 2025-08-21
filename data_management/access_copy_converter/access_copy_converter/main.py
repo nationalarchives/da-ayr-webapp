@@ -18,8 +18,8 @@ sm = boto3.client("secretsmanager")
 
 def get_secret_string(secret_id):
     secret_value = sm.get_secret_value(
-        SecretId=secret_id
-    )  # pragma: allowlist secret
+        SecretId=secret_id  # pragma: allowlist secret
+    )
     secret = json.loads(
         secret_value["SecretString"]  # pragma: allowlist secret
     )
