@@ -19,7 +19,9 @@ sm = boto3.client("secretsmanager")
 
 def get_secret_string(secret_id):
     secret_value = sm.get_secret_value(SecretId=secret_id)
-    secret = json.loads(secret_value["SecretString"])
+    secret = json.loads(
+        secret_value["SecretString"]
+    )  # pragma: allowlist secret
     return secret
 
 
@@ -48,6 +50,7 @@ def get_extension(file_id, conn, metadata):
             return result[0].lower()
     except SQLAlchemyError as e:
         logger.error(f"Error querying FFIDMetadata table: {e}")
+        conn.rollback()
 
     try:
         stmt = (
@@ -62,6 +65,7 @@ def get_extension(file_id, conn, metadata):
                 return filename.rsplit(".", 1)[1].lower()
     except SQLAlchemyError as e:
         logger.error(f"Error querying File table: {e}")
+        conn.rollback()
 
     return None
 
@@ -94,6 +98,9 @@ def process_consignment(consignment_ref: str):
     app_secret = get_secret_string(secret_id)
     source_bucket = app_secret["RECORD_BUCKET_NAME"]
     dest_bucket = app_secret["ACCESS_COPY_BUCKET"]
+    convertible_extensions = set(
+        json.loads(app_secret["CONVERTIBLE_EXTENSIONS"])
+    )
     with engine.connect() as conn:
         response = s3.list_objects_v2(Bucket=source_bucket, Prefix=prefix)
         if "Contents" not in response:
@@ -108,7 +115,7 @@ def process_consignment(consignment_ref: str):
             extension = get_extension(file_id, conn, metadata)
             logger.info(f"File extension: {extension}")
 
-            if extension in CONVERTIBLE_EXTENSIONS:
+            if extension in convertible_extensions:
                 logger.info(f"File {file_id} requires conversion to PDF")
 
                 with tempfile.TemporaryDirectory() as tmpdir:
