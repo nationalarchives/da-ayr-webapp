@@ -21,7 +21,7 @@ OPENSEARCH_FIELD_NAME_MAP = {
     "series_name": "Series name",
     "transferring_body_description": "Transferring body description",
     "consignment_reference": "Consignment ref",
-    "closure_type": "Closure type",
+    # "closure_type": "Closure type",
 }
 
 
