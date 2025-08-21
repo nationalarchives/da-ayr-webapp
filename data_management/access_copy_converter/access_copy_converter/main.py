@@ -11,7 +11,6 @@ from sqlalchemy.exc import SQLAlchemyError
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger()
 
-CONVERTIBLE_EXTENSIONS = {"doc", "docx", "xls", "xlsx", "txt"}
 
 s3 = boto3.client("s3")
 sm = boto3.client("secretsmanager")
