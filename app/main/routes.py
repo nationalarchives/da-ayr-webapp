@@ -71,6 +71,8 @@ from app.main.util.search_utils import (
 
 from .forms import SearchForm
 
+CONVERTIBLE_EXTENSIONS = set(current_app.config["CONVERTIBLE_EXTENSIONS"])
+
 
 @bp.route("/", methods=["GET"])
 def index():
@@ -729,13 +731,11 @@ def record(record_id: uuid.UUID):
     breadcrumb_values = generate_breadcrumb_values(file)
 
     download_filename = get_download_filename(file)
-
+    print(CONVERTIBLE_EXTENSIONS)
     manifest_url = url_for(
         "main.generate_manifest", record_id=record_id, _external=True
     )
-    if not can_render_file and file_extension in set(
-        current_app.config["CONVERTIBLE_EXTENSIONS"]
-    ):
+    if not can_render_file and file_extension in CONVERTIBLE_EXTENSIONS:
         try:
             presigned_url = create_presigned_url_for_access_copy(file)
             can_render_file = True
@@ -866,7 +866,7 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
 
     file_type = get_file_extension(file)
-
+    print(CONVERTIBLE_EXTENSIONS)
     if (
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES"]
@@ -885,7 +885,7 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         return generate_image_manifest(
             file_name, file_url, manifest_url, s3_file_object
         )
-    elif file_type in set(current_app.config["CONVERTIBLE_EXTENSIONS"]):
+    elif file_type in CONVERTIBLE_EXTENSIONS:
         file_url = create_presigned_url_for_access_copy(file)
         return generate_pdf_manifest(file.FileName, file_url, manifest_url)
 
