@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import boto3
@@ -730,7 +731,9 @@ def record(record_id: uuid.UUID):
 
     download_filename = get_download_filename(file)
     print(current_app.config["CONVERTIBLE_EXTENSIONS"])
-    convertible_extensions = set(current_app.config["CONVERTIBLE_EXTENSIONS"])
+    convertible_extensions = json.loads(
+        set(current_app.config["CONVERTIBLE_EXTENSIONS"])
+    )
     print(convertible_extensions)
     manifest_url = url_for(
         "main.generate_manifest", record_id=record_id, _external=True
