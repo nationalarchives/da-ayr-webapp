@@ -730,12 +730,9 @@ def record(record_id: uuid.UUID):
     breadcrumb_values = generate_breadcrumb_values(file)
 
     download_filename = get_download_filename(file)
-    print(current_app.config["CONVERTIBLE_EXTENSIONS"])
     convertible_extensions = set(
         json.loads(current_app.config["CONVERTIBLE_EXTENSIONS"])
     )
-
-    print(convertible_extensions)
     manifest_url = url_for(
         "main.generate_manifest", record_id=record_id, _external=True
     )
