@@ -308,6 +308,34 @@
     background-color: #0b0c0c !important;
   }
 
+  .centerOptions {
+    .total {
+      font-size: 1rem !important;
+      font-style: 500 !important;
+      margin: 6px 0 0 5px !important;
+    }
+
+    .searchText {
+      font-size: 1rem !important;
+      font-weight: bold !important;
+    }
+
+    .go {
+      font-size: 1rem !important;
+      font-weight: bold !important;
+      height: 30px !important;
+      padding: 0 5px !important;
+    }
+  }
+
+  .prevOptions {
+    margin: 0 30px 0 0 !important;
+  }
+
+  .nextOptions {
+    margin: 0 0 0 33px !important;
+  }
+
   .headerPanel .centerOptions .mode {
     font-size: 1rem;
   }
