@@ -21,7 +21,7 @@
     "stylelint-selector-bem-pattern": "^4.0.1"
   },
   "dependencies": {
-    "govuk-frontend": "^5.11.1",
+    "govuk-frontend": "^5.11.2",
     "npm": "^11.5.2"
   }
 }
