@@ -731,9 +731,10 @@ def record(record_id: uuid.UUID):
 
     download_filename = get_download_filename(file)
     print(current_app.config["CONVERTIBLE_EXTENSIONS"])
-    convertible_extensions = json.loads(
-        set(current_app.config["CONVERTIBLE_EXTENSIONS"])
+    convertible_extensions = set(
+        json.loads(current_app.config["CONVERTIBLE_EXTENSIONS"])
     )
+
     print(convertible_extensions)
     manifest_url = url_for(
         "main.generate_manifest", record_id=record_id, _external=True
@@ -869,7 +870,9 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
 
     file_type = get_file_extension(file)
-    convertible_extensions = set(current_app.config["CONVERTIBLE_EXTENSIONS"])
+    convertible_extensions = set(
+        json.loads(current_app.config["CONVERTIBLE_EXTENSIONS"])
+    )
     if (
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES"]
