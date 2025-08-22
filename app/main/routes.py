@@ -743,7 +743,6 @@ def record(record_id: uuid.UUID):
         try:
             presigned_url = create_presigned_url_for_access_copy(file)
             can_render_file = True
-            file_extension = "pdf"  # so template knows it’s PDF
         except Exception as e:
             current_app.app_logger.error(
                 f"Failed to create presigned URL for access copy: {e}"
