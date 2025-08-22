@@ -1,4 +1,3 @@
-import json
 from urllib.parse import quote_plus
 
 SELF = "'self'"
@@ -132,7 +131,7 @@ class BaseConfig(object):
 
     @property
     def CONVERTIBLE_EXTENSIONS(self):
-        return json.loads(self._get_config_value("CONVERTIBLE_EXTENSIONS"))
+        return self._get_config_value("CONVERTIBLE_EXTENSIONS")
 
     @property
     def FLASKS3_ACTIVE(self):
