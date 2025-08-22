@@ -218,12 +218,17 @@ def get_query_and_search_area(request):
 
 def setup_opensearch():
     """Setup and return an OpenSearch client"""
+    verify_certs = current_app.config.get("OPEN_SEARCH_VERIFY_CERTS", True)
+    ca_certs = (
+        current_app.config.get("OPEN_SEARCH_CA_CERTS") if verify_certs else None
+    )
+
     return OpenSearch(
         hosts=current_app.config.get("OPEN_SEARCH_HOST"),
         http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
         use_ssl=current_app.config.get("OPEN_SEARCH_USE_SSL", True),
-        verify_certs=current_app.config.get("OPEN_SEARCH_VERIFY_CERTS", True),
-        ca_certs=current_app.config.get("OPEN_SEARCH_CA_CERTS"),
+        verify_certs=verify_certs,
+        ca_certs=ca_certs,
         connection_class=RequestsHttpConnection,
     )
 
