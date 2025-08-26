@@ -116,7 +116,8 @@ class TestPagination:
         actual_relative_url = aau_user_page.url.split("://", 1)[1].split(
             "/", 1
         )[1]
-        expected_next_url = f"{self.route_url}/{self.transferring_body_id}?page=2&query=a&search_area=everywhere#tbl_result"
+        expected_next_url = f"""{self.route_url}/{self.transferring_body_id}?
+        page=2&query=a&search_area=everywhere#tbl_result"""
         assert f"/{actual_relative_url}" == expected_next_url
 
     def test_search_transferring_body_pagination_get_ellipses_page(
