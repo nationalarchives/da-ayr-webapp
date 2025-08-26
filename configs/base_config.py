@@ -118,8 +118,20 @@ class BaseConfig(object):
         return self._get_config_value("RECORD_BUCKET_NAME")
 
     @property
+    def ACCESS_COPY_BUCKET(self):
+        return self._get_config_value("ACCESS_COPY_BUCKET")
+
+    @property
     def S3_BUCKET_URL(self):
         return f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"
+
+    @property
+    def ACCESS_COPY_BUCKET_URL(self):
+        return f"https://{self.ACCESS_COPY_BUCKET}.s3.amazonaws.com"
+
+    @property
+    def CONVERTIBLE_EXTENSIONS(self):
+        return self._get_config_value("CONVERTIBLE_EXTENSIONS")
 
     @property
     def FLASKS3_ACTIVE(self):
@@ -166,6 +178,7 @@ class BaseConfig(object):
             SELF,
             self.FLASKS3_CDN_DOMAIN,
             self.S3_BUCKET_URL,
+            self.ACCESS_COPY_BUCKET_URL,
         ]
 
     @property
@@ -174,6 +187,7 @@ class BaseConfig(object):
             SELF,
             self.FLASKS3_CDN_DOMAIN,
             self.S3_BUCKET_URL,
+            self.ACCESS_COPY_BUCKET_URL,
         ]
 
     @property
@@ -208,15 +222,29 @@ class BaseConfig(object):
 
     @property
     def CSP_IMG_SRC(self):
-        return [SELF, self.FLASKS3_CDN_DOMAIN, self.S3_BUCKET_URL, "data:"]
+        return [
+            SELF,
+            self.FLASKS3_CDN_DOMAIN,
+            self.S3_BUCKET_URL,
+            self.ACCESS_COPY_BUCKET_URL,
+            "data:",
+        ]
 
     @property
     def CSP_FRAME_SRC(self):
-        return [SELF, self.S3_BUCKET_URL]
+        return [
+            SELF,
+            self.S3_BUCKET_URL,
+            self.ACCESS_COPY_BUCKET_URL,
+        ]
 
     @property
     def CSP_OBJECT_SRC(self):
-        return [SELF, self.S3_BUCKET_URL]
+        return [
+            SELF,
+            self.S3_BUCKET_URL,
+            self.ACCESS_COPY_BUCKET_URL,
+        ]
 
     @property
     def CSP_WORKER_SRC(self):

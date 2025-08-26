@@ -128,6 +128,7 @@ class TestRoutes:
         file = FileFactory(ffid_metadata__Extension="pdf")
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
@@ -193,6 +194,7 @@ class TestRoutes:
         file = FileFactory(ffid_metadata__Extension="png")
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_imaage_object(bucket_name, file)
 
         mock_create_presigned_url.return_value = (
@@ -371,6 +373,38 @@ class TestRoutes:
         file = FileFactory(ffid_metadata__Extension="pdf")
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
+
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {"Body": b"file content"}
+
+        mock_pdf.return_value = ({"mock": "pdf_manifest"}, 200)
+        response = client.get(f"/record/{file.FileId}/manifest")
+
+        mock_pdf.assert_called_once()
+        assert response.status_code == 200
+        assert json.loads(response.text) == {"mock": "pdf_manifest"}
+
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    @patch("app.main.routes.generate_pdf_manifest")
+    def test_generate_manifest_pdf_for_convertible_file_extensions(
+        self,
+        mock_pdf,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        """
+        Test that a PDF manifest is successfully generated
+        When file_extension is in CONVERTIBLE_EXTENSIONS
+        """
+        mock_all_access_user(client)
+        file = FileFactory(ffid_metadata__Extension="doc")
+        bucket_name = "test_bucket"
+        app.config["ACCESS_COPY_BUCKET"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
 
         s3_mock = mock_boto_client.return_value
         s3_mock.get_object.return_value = {"Body": b"file content"}
@@ -407,6 +441,7 @@ class TestRoutes:
         )
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
 
         s3_mock = mock_boto_client.return_value
         s3_mock.get_object.return_value = {"Body": b"file content"}
@@ -432,9 +467,10 @@ class TestRoutes:
         Test that an unsupported format will return a bad request and log the error
         """
         mock_all_access_user(client)
-        file = FileFactory(ffid_metadata__Extension="docx")
+        file = FileFactory(ffid_metadata__Extension="xls")
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
 
         s3_mock = mock_boto_client.return_value
         s3_mock.get_object.return_value = {"Body": b"file content"}
