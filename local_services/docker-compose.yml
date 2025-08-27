@@ -264,6 +264,7 @@ services:
       - FLASKS3_ACTIVE=False
       - FLASKS3_CDN_DOMAIN=localhost
       - FLASKS3_BUCKET_NAME=test-record-download
+      - ACCESS_COPY_BUCKET="test-access-copy"
       - PERF_TEST=False
       - OPEN_SEARCH_HOST=https://opensearch-node1:9200
       - OPEN_SEARCH_USERNAME=admin
