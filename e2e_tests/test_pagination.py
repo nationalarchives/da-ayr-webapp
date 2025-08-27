@@ -41,7 +41,7 @@ class TestPagination:
             == "Pagination"
         )
 
-        url = f"{self.route_url}/{self.transferring_body_id}?page=1&query=a&search_area=everywhere"
+        url = f"{self.route_url}/{self.transferring_body_id}?page=1&query=a&search_area=everywhere#tbl_result"
         assert (
             aau_user_page.locator("data-testid=pagination-link")
             .first.get_attribute("href")
