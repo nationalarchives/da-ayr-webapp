@@ -38,7 +38,7 @@ jobs:
         KEYCLOAK_CLIENT_ID=ayr-beta
         KEYCLOAK_REALM_NAME=tdr
         KEYCLOAK_CLIENT_SECRET=test-client-secret
-        AWS_ENDPOINT_URL=https://minio:9000
+        AWS_ENDPOINT_URL=http://minio:9000
         AWS_ACCESS_KEY_ID=ROOTNAME
         AWS_SECRET_ACCESS_KEY=CHANGEME123
         AWS_REGION=eu-west-2
@@ -50,19 +50,23 @@ jobs:
         FLASKS3_CDN_DOMAIN=localhost
         FLASKS3_BUCKET_NAME=test-record-download
         PERF_TEST=False
-        OPEN_SEARCH_HOST=https://opensearch-node1:9200
-        OPEN_SEARCH_USERNAME=admin
-        OPEN_SEARCH_PASSWORD=FOOBARCARabc123!
-        OPEN_SEARCH_CA_CERTS=/app/local_services/opensearch_certs/root-ca.pem
-        OPEN_SEARCH_TIMEOUT=10
+        OPEN_SEARCH_HOST=http://opensearch-node1:9200
+        OPEN_SEARCH_USERNAME=
+        OPEN_SEARCH_PASSWORD=
+        OPEN_SEARCH_CA_CERTS=
+        OPEN_SEARCH_TIMEOUT=20
+        OPEN_SEARCH_USE_SSL=false
+        OPEN_SEARCH_VERIFY_CERTS=false
+        ACCESS_COPY_BUCKET=test-access-copy
+        CONVERTIBLE_EXTENSIONS=.doc,.docx
         EOF
 
     - name: Start services
       run: |
         cd local_services
 
-        # Start Docker Compose with CI-specific overrides
-        docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
+        # Start Docker Compose with CI-specific configuration
+        docker compose -f docker-compose.ci.yml up -d
       env:
         CONFIG_SOURCE: ENVIRONMENT_VARIABLES
         OPENSEARCH_INITIAL_ADMIN_PASSWORD: FOOBARCARabc123! # pragma: allowlist secret
@@ -83,12 +87,12 @@ jobs:
 
         # Check Docker services status
         cd local_services
-        echo "All services in docker-compose.yml:"
-        docker compose -f docker-compose.yml -f docker-compose.ci.yml config --services
+        echo "All services in docker-compose.ci.yml:"
+        docker compose -f docker-compose.ci.yml config --services
         echo "Running services:"
-        docker compose -f docker-compose.yml -f docker-compose.ci.yml ps
+        docker compose -f docker-compose.ci.yml ps
         echo "All containers (including stopped):"
-        docker compose -f docker-compose.yml -f docker-compose.ci.yml ps -a
+        docker compose -f docker-compose.ci.yml ps -a
 
         # Check logs for failed services
         echo "webapp_postgres logs:"
@@ -114,7 +118,7 @@ jobs:
         echo "PostgreSQL connection successful"
 
         echo "Final service status check:"
-        docker compose -f docker-compose.yml -f docker-compose.ci.yml ps
+        docker compose -f docker-compose.ci.yml ps
 
         echo "Checking webapp logs:"
         docker logs webapp --tail 20
@@ -181,17 +185,17 @@ jobs:
       run: |
           echo "=== Webapp logs ==="
           cd local_services
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs webapp
+          docker compose -f docker-compose.ci.yml logs webapp
           echo "=== Database logs ==="
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs webapp_postgres
+          docker compose -f docker-compose.ci.yml logs webapp_postgres
           echo "=== OpenSearch logs ==="
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs opensearch-node1
+          docker compose -f docker-compose.ci.yml logs opensearch-node1
           echo "=== MinIO logs ==="
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs minio
+          docker compose -f docker-compose.ci.yml logs minio
 
     - name: Stop services
       if: always()
       run: |
         cd local_services
-        docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
+        docker compose -f docker-compose.ci.yml down -v
         docker system prune -f

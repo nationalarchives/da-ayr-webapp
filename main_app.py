@@ -18,6 +18,3 @@ try:
 except Exception as e:
     print(e)
     print(traceback.format_exc())
-    from flask import Flask
-
-    app = Flask(__name__)
