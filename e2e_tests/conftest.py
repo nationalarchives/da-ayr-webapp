@@ -100,22 +100,26 @@ def create_user_page(
 
 @pytest.fixture(scope="session")
 def keycloak_admin():
-    target_realm = os.environ.get("KEYCLOAK_REALM_NAME")
+    realm_name = os.environ.get("KEYCLOAK_REALM_NAME")
+    client_id = os.environ.get("KEYCLOAK_CLIENT_ID")
+    client_secret = os.environ.get("KEYCLOAK_CLIENT_SECRET")
     server_url = os.environ.get("KEYCLOAK_BASE_URI")
-    admin_user = os.environ.get("KEYCLOAK_ADMIN_USER", "admin")
-    admin_password = os.environ.get("KEYCLOAK_ADMIN_PASSWORD", "password")
 
-    # Use admin credentials for user management operations
-    # Admin authenticates against master realm but manages target realm
-    keycload_admin = keycloak.KeycloakAdmin(
+    keycloak_openid = keycloak.KeycloakOpenID(
         server_url=server_url,
-        username=admin_user,
-        password=admin_password,
-        realm_name=target_realm,
-        user_realm_name="master",  # Admin user is in master realm
-        verify=False,  # For development with self-signed certs
+        client_id=client_id,
+        realm_name=realm_name,
+        client_secret_key=client_secret,
+        verify=False,
     )
-    return keycload_admin
+
+    token = keycloak_openid.token(grant_type="client_credentials")
+    keycloak_admin = keycloak.KeycloakAdmin(
+        server_url=server_url,
+        realm_name=realm_name,
+        token=token,
+    )
+    return keycloak_admin
 
 
 @pytest.fixture(scope="session")
