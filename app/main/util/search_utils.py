@@ -263,29 +263,61 @@ def build_must_clauses(search_fields, quoted_phrases, single_terms):
     """Helper function to build must_clauses for OpenSearch with AND"""
     must_clauses = []
 
+    # Define fields that require exact match (no fuzziness)
+    def is_exact_field(field):
+        lowered = field.lower()
+        return (
+            lowered == "consignment_ref"
+            or lowered == "series"
+            or "date" in lowered
+        )
+
+    exact_fields = [f for f in search_fields if is_exact_field(f)]
+    fuzzy_fields = [f for f in search_fields if not is_exact_field(f)]
+
+    # Helper to add term queries for exact fields
+    def add_term_clauses(must_clauses, fields, value):
+        for field in fields:
+            must_clauses.append({"term": {f"{field}.keyword": value}})
+
+    # Helper to add fuzzy queries for fuzzy fields
+    def add_fuzzy_clauses(must_clauses, fields, value):
+        for field in fields:
+            must_clauses.append({
+                "fuzzy": {
+                    field: {
+                        "value": value,
+                        "fuzziness": "AUTO",
+                        "max_expansions": 50,
+                        "prefix_length": 0,
+                        "transpositions": True,
+                        "rewrite": "constant_score"
+                    }
+                }
+            })
+
     for phrase in quoted_phrases:
-        must_clauses.append(
-            {
+        # Phrase search is always exact (no fuzziness)
+        if exact_fields:
+            add_term_clauses(must_clauses, exact_fields, phrase)
+        if fuzzy_fields:
+            # For phrases, use match_phrase (no fuzziness in phrase search)
+            must_clauses.append({
                 "multi_match": {
                     "query": phrase,
-                    "fields": search_fields,
+                    "fields": fuzzy_fields,
                     "type": "phrase",
                     "lenient": True,
                 }
-            }
-        )
+            })
 
     for term in single_terms:
-        must_clauses.append(
-            {
-                "multi_match": {
-                    "query": term,
-                    "fields": search_fields,
-                    "fuzziness": "AUTO",
-                    "lenient": True,
-                }
-            }
-        )
+        # Exact match for exact fields (no fuzziness)
+        if exact_fields:
+            add_term_clauses(must_clauses, exact_fields, term)
+        # Fuzzy match for other fields
+        if fuzzy_fields:
+            add_fuzzy_clauses(must_clauses, fuzzy_fields, term)
 
     return must_clauses
 
