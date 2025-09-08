@@ -827,14 +827,14 @@ test = ["black (>=22.1.0)", "flake8 (>=4.0.1)", "pre-commit (>=2.17.0)", "pytest
 
 [[package]]
 name = "pytest-playwright"
-version = "0.7.0"
+version = "0.7.1"
 description = "A pytest wrapper with fixtures for Playwright to automate web browsers"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "pytest_playwright-0.7.0-py3-none-any.whl", hash = "sha256:2516d0871fa606634bfe32afbcc0342d68da2dbff97fe3459849e9c428486da2"},
-    {file = "pytest_playwright-0.7.0.tar.gz", hash = "sha256:b3f2ea514bbead96d26376fac182f68dcd6571e7cb41680a89ff1673c05d60b6"},
+    {file = "pytest_playwright-0.7.1-py3-none-any.whl", hash = "sha256:fcc46510fb75f8eba6df3bc8e84e4e902483d92be98075f20b9d160651a36d90"},
+    {file = "pytest_playwright-0.7.1.tar.gz", hash = "sha256:94b551b2677ecdc16284fcd6a4f0045eafda47a60e74410f3fe4d8260e12cabf"},
 ]
 
 [package.dependencies]
@@ -1036,4 +1036,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">3.9.1,<4.0"
-content-hash = "a7a6ec65eb3aa07b12aaadd72fe404b42509329d61ab8ba41c485bc9a50b7e3a"
+content-hash = "eb681f682bcfc6d8e3f5416916d0b4980f6b2feab392152240a0d35f2b32294c"
