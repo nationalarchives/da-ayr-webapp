@@ -730,6 +730,20 @@
         "/ayr_user_type/download",
         "/ayr_user_type/view_all"
       ]
+    },
+    {
+      "username": "service-account-ayr-beta",
+      "enabled": true,
+      "serviceAccountClientId": "ayr-beta",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "create-client",
+          "manage-clients",
+          "view-clients"
+        ]
+      }
     }
   ]
 }
