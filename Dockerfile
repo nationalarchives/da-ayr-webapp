@@ -37,6 +37,6 @@ COPY --from=node-builder /app/app/static/src/css app/static/src/css
 RUN openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365 \
     -subj "/C=GB/ST=England/L=London/O=Test/CN=DNS:localhost,IP:127.0.0.1"
 
-EXPOSE 8000
+EXPOSE 5000
 
-CMD ["poetry", "run", "python", "-m", "flask", "--app", "main_app:app", "run", "--host=0.0.0.0", "--port=8000"]
+CMD ["poetry", "run", "python", "-m", "flask", "--app", "main_app:app", "run", "--host=0.0.0.0", "--port=5000"]

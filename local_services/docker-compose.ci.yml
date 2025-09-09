@@ -214,7 +214,7 @@ services:
       dockerfile: Dockerfile
     container_name: webapp
     ports:
-      - "8000:8000"
+      - "5000:5000"
     volumes:
       - ./minio_certs:/app/local_services/minio_certs
       - ./opensearch_certs:/app/local_services/opensearch_certs
