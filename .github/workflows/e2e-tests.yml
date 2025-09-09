@@ -126,7 +126,7 @@ jobs:
         echo "Checking postgres logs:"
         docker logs local_services-webapp_postgres-1 --tail 20
 
-        timeout 120 bash -c 'until curl -k -f https://127.0.0.1:8000 || curl -f http://127.0.0.1:8000; do sleep 2; done'
+        timeout 120 bash -c 'until curl -k -f https://127.0.0.1:5000 || curl -f http://127.0.0.1:5000; do sleep 2; done'
 
         # Wait for keycloak realm to be ready
         timeout 120 bash -c 'until curl -f http://127.0.0.1:8080/realms/tdr/.well-known/openid-configuration; do sleep 2; done'
@@ -155,9 +155,9 @@ jobs:
     - name: Run E2E tests
       run: |
         cd e2e_tests
-        poetry run python -m pytest . -v --browser=chromium --base-url=https://127.0.0.1:8000
+        poetry run python -m pytest . -v --browser=chromium --base-url=https://127.0.0.1:5000
       env:
-        WEBAPP_URL: https://127.0.0.1:8000
+        WEBAPP_URL: https://127.0.0.1:5000
         KEYCLOAK_BASE_URI: http://127.0.0.1:8080
         KEYCLOAK_REALM_NAME: tdr
         KEYCLOAK_CLIENT_ID: ayr-beta
