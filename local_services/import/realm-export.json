@@ -1,6 +1,7 @@
 {
   "realm": "tdr",
   "enabled": true,
+  "sslRequired": "none",
   "groups": [
     {
       "name": "ayr_user_type",
@@ -19,6 +20,16 @@
           "path": "/ayr_user_type/view_dept"
         }
       ]
+    },
+    {
+      "name": "transferring_body_user",
+      "path": "/transferring_body_user",
+      "subGroups": [
+        {
+          "name": "Testing A",
+          "path": "/transferring_body_user/Testing A"
+        }
+      ]
     }
   ],
   "requiredCredentials": [
@@ -31,11 +42,22 @@
       "description": "Access your records keycloak client",
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "test-client-secret",
       "redirectUris": [
         "https://127.0.0.1:5000/*",
         "https://localhost:5000/*",
-        "https://host.docker.internal:5000/*"
+        "https://host.docker.internal:5000/*",
+        "http://127.0.0.1:5000/*",
+        "http://localhost:5000/*",
+        "http://host.docker.internal:5000/*"
+      ],
+      "webOrigins": [
+        "https://127.0.0.1:5000",
+        "https://localhost:5000",
+        "https://host.docker.internal:5000",
+        "http://127.0.0.1:5000",
+        "http://localhost:5000",
+        "http://host.docker.internal:5000"
       ],
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
@@ -48,7 +70,10 @@
       },
       "fullScopeAllowed": true,
       "defaultClientScopes": [
-        "group_mapper_client_scope"
+        "group_mapper_client_scope",
+        "basic",
+        "roles",
+        "web-origins"
       ]
     }
   ],
@@ -684,6 +709,41 @@
           }
         }
       ]
+    }
+  ],
+  "users": [
+    {
+      "username": "testuser",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Test",
+      "lastName": "User",
+      "email": "testuser@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password123",
+          "temporary": false
+        }
+      ],
+      "groups": [
+        "/ayr_user_type/download",
+        "/ayr_user_type/view_all"
+      ]
+    },
+    {
+      "username": "service-account-ayr-beta",
+      "enabled": true,
+      "serviceAccountClientId": "ayr-beta",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "create-client",
+          "manage-clients",
+          "view-clients"
+        ]
+      }
     }
   ]
 }

@@ -1,0 +1,18 @@
+cluster.name: opensearch-cluster
+node.name: opensearch-node2
+network.host: 0.0.0.0
+path.repo: /mnt/snapshots
+plugins.security.disabled: false
+plugins.security.ssl.transport.pemcert_filepath: /usr/share/opensearch/config/certs/opensearch-node2.crt
+plugins.security.ssl.transport.pemkey_filepath: /usr/share/opensearch/config/certs/opensearch-node2.key
+plugins.security.ssl.transport.pemtrustedcas_filepath: /usr/share/opensearch/config/certs/root-ca.pem
+plugins.security.ssl.http.enabled: true
+plugins.security.ssl.http.pemcert_filepath: /usr/share/opensearch/config/certs/opensearch-node2.crt
+plugins.security.ssl.http.pemkey_filepath: /usr/share/opensearch/config/certs/opensearch-node2.key
+plugins.security.ssl.http.pemtrustedcas_filepath: /usr/share/opensearch/config/certs/root-ca.pem
+plugins.security.authcz.admin_dn:
+  - CN=admin,OU=SSL,O=Test,L=Test,C=GB
+plugins.security.nodes_dn:
+  - CN=opensearch-node1,OU=SSL,O=Test,L=Test,C=GB
+  - CN=opensearch-node2,OU=SSL,O=Test,L=Test,C=GB
+plugins.security.allow_default_init_securityindex: true

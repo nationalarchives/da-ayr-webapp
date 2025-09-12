@@ -193,6 +193,8 @@ export OPEN_SEARCH_USERNAME=admin
 export OPEN_SEARCH_PASSWORD=FOOBARCARabc123!
 export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
 export OPEN_SEARCH_TIMEOUT=10
+export OPEN_SEARCH_USE_SSL=true
+export OPEN_SEARCH_VERIFY_CERTS=true
 
 export DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
 ```
@@ -335,6 +337,8 @@ Properties configurable at runtime:
 - `OPEN_SEARCH_PASSWORD`: The password of the opensearch cluster to connect to.
 - `OPEN_SEARCH_CA_CERTS`: The path of the opensearch cluster certificate to connect with.
 - `OPEN_SEARCH_TIMEOUT`: The timeout for api calls to the opensearch cluster.
+- `OPEN_SEARCH_USE_SSL`: Whether to use SSL when connecting to OpenSearch (true/false). This is disabled when running docker in Github CI.
+- `OPEN_SEARCH_VERIFY_CERTS`: Whether to verify SSL certificates when connecting to OpenSearch (true/false).
 
 Calculated values:
 

@@ -1,0 +1,292 @@
+services:
+  # Single OpenSearch node for CI
+  opensearch-node1:
+    image: opensearchproject/opensearch:latest
+    container_name: opensearch-node1
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=false
+      - "OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m"
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - DISABLE_SECURITY_PLUGIN=true
+      - path.repo=/mnt/snapshots
+      - cluster.name=opensearch-ci
+      - node.name=opensearch-ci-node1
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data1:/usr/share/opensearch/data
+      - ./snapshots:/mnt/snapshots
+    ports:
+      - 9200:9200
+      - 9600:9600
+    networks:
+      - opensearch-net
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:latest
+    container_name: opensearch-dashboards
+    ports:
+      - 5601:5601
+    expose:
+      - "5601"
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch-node1:9200"]'
+    networks:
+      - opensearch-net
+    depends_on:
+      - opensearch-node1
+
+  opensearch-restore:
+    image: python
+    environment:
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+    depends_on:
+      - opensearch-node1
+    networks:
+      - opensearch-net
+    command: |
+      bash -c "
+        # Wait until OpenSearch is available via HTTP (no auth needed)
+        until curl -s http://opensearch-node1:9200 -o /dev/null; do
+          echo 'Waiting for OpenSearch to be available...'
+          sleep 5
+        done
+
+        echo 'OpenSearch is available!'
+
+        # Register the snapshot repository (no auth needed)
+        curl -s -X PUT 'http://opensearch-node1:9200/_snapshot/my-fs-repository' -H 'Content-Type: application/json' -d '{\"type\": \"fs\", \"settings\": {\"location\": \"/mnt/snapshots\"}}'
+
+        echo 'Repository registered.'
+
+        # Delete existing documents index if it exists
+        curl -s -X DELETE 'http://opensearch-node1:9200/documents' || echo 'No existing index to delete'
+
+        echo 'Existing index cleared.'
+
+        # Restore from snapshot (no auth needed)
+        curl -s -X POST 'http://opensearch-node1:9200/_snapshot/my-fs-repository/1/_restore' -H 'Content-Type: application/json' -d '{\"indices\": \"documents\", \"include_global_state\": false}'
+
+        echo 'Restore completed.'
+
+        # Keep container running briefly to see results
+        sleep 10
+      "
+
+  postgres:
+    image: postgres:17.6
+    volumes:
+      - kc_postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - ${KC_POSTGRES_PORT}:5432
+    networks:
+      - keycloak_network
+
+  webapp_postgres:
+    image: postgres:17.5
+    user: postgres
+    volumes:
+      - webapp_postgres_data:/var/lib/postgresql/data
+      - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
+      - ./postgres-init.sh:/docker-entrypoint-initdb.d/postgres-init.sh
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    ports:
+      - ${WEBAPP_POSTGRES_PORT}:5432
+    networks:
+      - default
+    command: ["postgres"]
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.3
+    command: start-dev --import-realm --spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true
+    environment:
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
+      KC_HOSTNAME_STRICT_BACKCHANNEL: false
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HEALTH_ENABLED: true
+      KC_SSL_REQUIRED: none
+      KC_PROXY: edge
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres/${POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./import:/opt/keycloak/data/import
+    ports:
+      - 8080:8080
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      - keycloak_network
+
+  keycloak-config:
+    image: alpine/curl
+    depends_on:
+      - keycloak
+    networks:
+      - keycloak_network
+    entrypoint: |
+      sh -c "
+        # Wait for Keycloak to be ready
+        echo 'Waiting for Keycloak to be ready...'
+        until curl -f http://keycloak:8080/realms/master/.well-known/openid-configuration; do
+          echo 'Still waiting for Keycloak...'
+          sleep 5
+        done
+
+        echo 'Keycloak is ready!'
+        echo 'Note: You may need to manually run the following commands in the keycloak container:'
+        echo 'docker exec keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password password'
+        echo 'docker exec keycloak /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE'
+        echo 'docker exec keycloak /opt/keycloak/bin/kcadm.sh update realms/tdr -s sslRequired=NONE'
+
+        # Keep container running briefly
+        sleep 30
+      "
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      minio_network:
+        aliases:
+          - 127.0.0.1
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    volumes:
+      - ./files:/tmp/files:ro
+    networks:
+      - minio_network
+    entrypoint: >
+      /bin/sh -c "
+      sleep 15;
+      /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb myminio/test-record-download --ignore-existing;
+      /usr/bin/mc cp --recursive /tmp/files/ myminio/test-record-download/ || echo 'No files to copy or copy failed';
+      "
+
+  socat-localhost:
+    image: alpine/socat
+    command: tcp-listen:9000,fork,reuseaddr tcp-connect:minio:9000
+    network_mode: service:webapp
+    depends_on:
+      - minio
+
+  webapp:
+    env_file:
+      - .docker.env
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: webapp
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./minio_certs:/app/local_services/minio_certs
+      - ./opensearch_certs:/app/local_services/opensearch_certs
+      - ./webapp_postgres_certs:/app/local_services/webapp_postgres_certs
+    networks:
+      - default
+      - keycloak_network
+      - opensearch-net
+      - minio_network
+    links:
+      - opensearch-node1
+    environment:
+      - PYTHONUNBUFFERED=1
+      - FLASK_ENV=development
+      - CONFIG_SOURCE=ENVIRONMENT_VARIABLES
+      - DB_HOST=webapp_postgres
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB}
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_SSL_ROOT_CERTIFICATE=/app/local_services/webapp_postgres_certs/root-ca.pem
+      - SQLALCHEMY_SSL_MODE=disable
+      - KEYCLOAK_BASE_URI=http://keycloak:8080
+      - KEYCLOAK_CLIENT_ID=ayr-beta
+      - KEYCLOAK_REALM_NAME=tdr
+      - KEYCLOAK_CLIENT_SECRET=test-client-secret
+      - AWS_ENDPOINT_URL=http://127.0.0.1:9000
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - AWS_REGION=eu-west-2
+      - AWS_CA_BUNDLE=/app/local_services/minio_certs/root-ca.crt
+      - SECRET_KEY=test-secret-key
+      - DEFAULT_PAGE_SIZE=10
+      - DEFAULT_DATE_FORMAT=DD/MM/YYYY
+      - RECORD_BUCKET_NAME=test-record-download
+      - FLASKS3_ACTIVE=False
+      - FLASKS3_CDN_DOMAIN=localhost
+      - FLASKS3_BUCKET_NAME=test-record-download
+      - ACCESS_COPY_BUCKET="test-access-copy"
+      - CONVERTIBLE_EXTENSIONS=".doc,.docx"
+      - PERF_TEST=False
+      # Use service name for OpenSearch with HTTP
+      - OPEN_SEARCH_HOST=http://opensearch-node1:9200
+      # Remove auth since security is disabled
+      - OPEN_SEARCH_USERNAME=
+      - OPEN_SEARCH_PASSWORD=
+      - OPEN_SEARCH_TIMEOUT=30
+      # Disable SSL for CI
+      - OPEN_SEARCH_USE_SSL=false
+      - OPEN_SEARCH_VERIFY_CERTS=false
+      - OPEN_SEARCH_CA_CERTS=
+    depends_on:
+      - webapp_postgres
+      - keycloak
+      - minio
+      - opensearch-node1
+
+volumes:
+  opensearch-data1:
+  opensearch-data2:
+  kc_postgres_data:
+    driver: local
+  webapp_postgres_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge
+  opensearch-net:
+  keycloak_network:
+    driver: bridge
+  minio_network:
+    driver: bridge

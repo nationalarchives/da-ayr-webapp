@@ -183,8 +183,8 @@ class TestRecord:
         standard_user_page_with_download.goto(f"{self.route_url}/{record_id}")
 
         with standard_user_page_with_download.expect_download() as download_record:
-            standard_user_page_with_download.get_by_text(
-                "Download record"
+            standard_user_page_with_download.get_by_role(
+                "link", name="Download record"
             ).click()
         download = download_record.value
         assert "file-a2.txt" == download.suggested_filename

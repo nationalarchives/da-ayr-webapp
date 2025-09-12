@@ -392,6 +392,7 @@ def test_setup_opensearch(app):
     app.config["OPEN_SEARCH_HOST"] = "localhost"
     app.config["OPEN_SEARCH_HTTP_AUTH"] = ("test_user", "test_pass")
     app.config["OPEN_SEARCH_CA_CERTS"] = "test/path/to/certs"
+    app.config["OPEN_SEARCH_VERIFY_CERTS"] = True
     client = setup_opensearch()
     assert isinstance(client, OpenSearch)
     assert client.transport.hosts == [{"host": "localhost"}]
