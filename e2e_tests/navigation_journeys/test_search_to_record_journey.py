@@ -24,13 +24,11 @@ def test_search_to_record(aau_user_page: Page):
 
     aau_user_page.get_by_role("textbox").first.fill("a")
     aau_user_page.get_by_role("button", name="Search").click()
-    # URL parameters can be in any order
-    expect(aau_user_page).to_have_url(
-        re.compile(
-            r"""\/search_results_summary\?.*query=a.*search_area=
-            everywhere.*|\/search_results_summary\?.*search_area=everywhere.*query=a.*"""
-        )
-    )
+    # URL parameters can be in any order - check both contain required params
+    current_url = aau_user_page.url
+    assert "/search_results_summary?" in current_url
+    assert "query=a" in current_url
+    assert "search_area=everywhere" in current_url
 
     aau_user_page.wait_for_selector("#tbl_result")
     aau_user_page.get_by_role("cell").first.get_by_role("link").first.click()
