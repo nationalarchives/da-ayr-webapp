@@ -215,9 +215,9 @@ def setup_opensearch():
         hosts=current_app.config.get("OPEN_SEARCH_HOST"),
         http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
         connection_class=RequestsHttpConnection,
-        use_ssl=False,
-        # verify_certs=True,
-        # ca_certs=current_app.config.get("OPEN_SEARCH_CA_CERTS"),
+        use_ssl=current_app.config.get("OPEN_SEARCH_USE_SSL", True),
+        verify_certs=verify_certs,
+        ca_certs=ca_certs,
     )
 
 
