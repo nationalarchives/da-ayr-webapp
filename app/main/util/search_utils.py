@@ -261,7 +261,6 @@ def get_all_fields_excluding(open_search, index_name, exclude_fields=None):
 
 def build_should_clauses(search_fields, quoted_phrases, single_terms):
     """Build should_clauses for OpenSearch with OR logic, separating non_fuzzy and fuzzy fields."""
-
     def is_non_fuzzy_field(field):
         # Define which fields should not use fuzziness (e.g., IDs, dates)
         return (
