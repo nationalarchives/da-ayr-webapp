@@ -70,7 +70,6 @@ def get_extension(file_id, conn, metadata):
         result = conn.execute(stmt).first()
         if result and result[0]:
             filename = result[0]
-            logger.info(f"FileName: {filename}")
             if "." in filename:
                 return filename.rsplit(".", 1)[1].lower()
             logger.warning("No extension in FileName")
@@ -95,10 +94,21 @@ def convert_with_libreoffice(input_path, output_path, convert_to="pdf"):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
+
     except subprocess.CalledProcessError as e:
         raise RuntimeError(
             f"LibreOffice conversion failed: {e.stderr.decode()}"
         )
+
+
+def convert_xls_xlsx_to_pdf(tmpdir, input_path, output_path):
+    temp_ods = os.path.join(tmpdir, "input.ods")
+    convert_with_libreoffice(input_path, temp_ods, convert_to="ods")
+    convert_with_libreoffice(
+        temp_ods,
+        output_path,
+        convert_to='pdf:calc_pdf_Export:{"SinglePageSheets":{"type":"boolean","value":"true"}}',
+    )
 
 
 def process_consignment(
@@ -152,15 +162,7 @@ def process_consignment(
 
                 try:
                     if extension in ("xls", "xlsx"):
-                        temp_ods = os.path.join(tmpdir, "input.ods")
-                        convert_with_libreoffice(
-                            input_path, temp_ods, convert_to="ods"
-                        )
-                        convert_with_libreoffice(
-                            temp_ods,
-                            output_path,
-                            convert_to='pdf:calc_pdf_Export:{"SinglePageSheets":{"type":"boolean","value":"true"}}',
-                        )
+                        convert_xls_xlsx_to_pdf(tmpdir, input_path, output_path)
                     else:
                         convert_with_libreoffice(input_path, output_path)
                     logger.info(f"Converted {input_path} to PDF {output_path}")
@@ -174,7 +176,9 @@ def process_consignment(
                 )
 
 
-def create_access_copies_for_all_consignments(source_bucket):
+def create_access_copies_for_all_consignments(
+    source_bucket, dest_bucket, convertible_extensions
+):
     paginator = s3.get_paginator("list_objects_v2")
     response = paginator.paginate(Bucket=source_bucket)
     consignments = set()
@@ -183,12 +187,16 @@ def create_access_copies_for_all_consignments(source_bucket):
             consignments.add(obj["Key"].split("/")[0])
 
     logger.info(f"Found {len(consignments)} consignments")
-
     for consignment_ref in consignments:
-        return consignment_ref
+        logger.info(f"Processing consignment: {consignment_ref}")
+        process_consignment(
+            consignment_ref, source_bucket, dest_bucket, convertible_extensions
+        )
 
 
-def create_access_copy_from_sns():
+def create_access_copy_from_sns(
+    source_bucket, dest_bucket, convertible_extensions
+):
     raw_sns_message = os.getenv("SNS_MESSAGE")
     if not raw_sns_message:
         raise Exception("SNS_MESSAGE environment variable not found")
@@ -204,7 +212,10 @@ def create_access_copy_from_sns():
 
     if not consignment_ref:
         raise Exception("Missing consignment_reference in SNS Message")
-    return consignment_ref
+    logger.info(f"Processing consignment: {consignment_ref}")
+    process_consignment(
+        consignment_ref, source_bucket, dest_bucket, convertible_extensions
+    )
 
 
 def main():
@@ -220,19 +231,18 @@ def main():
     if not conversion_type:
         raise Exception("CONVERSION_TYPE environment variable not found")
 
-    if conversion_type == "BULK":
-        consignment_ref = create_access_copies_for_all_consignments(
-            source_bucket
+    if conversion_type == "ALL":
+        create_access_copies_for_all_consignments(
+            source_bucket, dest_bucket, convertible_extensions
         )
-    elif conversion_type == "SINGLE":
-        consignment_ref = create_access_copy_from_sns()
-    else:
-        raise ValueError("Invalid CONVERSION_TYPE. Expected 'BULK' or 'SINGLE'")
 
-    logger.info(f"Processing consignment: {consignment_ref}")
-    process_consignment(
-        consignment_ref, source_bucket, dest_bucket, convertible_extensions
-    )
+    elif conversion_type == "SINGLE":
+        create_access_copy_from_sns(
+            source_bucket, dest_bucket, convertible_extensions
+        )
+
+    else:
+        raise ValueError("Invalid CONVERSION_TYPE. Expected 'ALL' or 'SINGLE'")
 
 
 if __name__ == "__main__":
