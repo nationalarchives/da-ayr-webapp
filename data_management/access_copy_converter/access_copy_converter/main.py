@@ -91,10 +91,9 @@ def convert_with_libreoffice(input_path, output_path, convert_to="pdf"):
                 input_path,
             ],
             check=True,
-            stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-
+        logger.info(f"Converted {input_path} to {output_path}")
     except subprocess.CalledProcessError as e:
         raise RuntimeError(
             f"LibreOffice conversion failed: {e.stderr.decode()}"
@@ -165,7 +164,7 @@ def process_consignment(
                         convert_xls_xlsx_to_pdf(tmpdir, input_path, output_path)
                     else:
                         convert_with_libreoffice(input_path, output_path)
-                    logger.info(f"Converted {input_path} to PDF {output_path}")
+                    logger.info(f"Converted {file_id} to PDF")
                 except Exception as e:
                     logger.error(f"Conversion failed for {file_id}: {e}")
                     continue
