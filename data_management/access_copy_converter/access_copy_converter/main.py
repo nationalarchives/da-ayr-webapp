@@ -226,6 +226,8 @@ def main():
         )
     elif conversion_type == "SINGLE":
         consignment_ref = create_access_copy_from_sns()
+    else:
+        raise ValueError("Invalid CONVERSION_TYPE. Expected 'BULK' or 'SINGLE'")
 
     logger.info(f"Processing consignment: {consignment_ref}")
     process_consignment(
