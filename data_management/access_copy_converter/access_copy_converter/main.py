@@ -55,9 +55,8 @@ def get_extension(file_id, conn, metadata):
         if result and result[0]:
             return result[0].lower()
     except SQLAlchemyError as e:
-        logger.error(f"Error querying FFIDMetadata table: {e}")
         conn.rollback()
-        return "ERROR"
+        raise Exception(f"Error querying FFIDMetadata table: {e}")
 
     logger.info(
         f"No extension found in FFIDMetadata for {file_id}. Trying to extract from file_name instead"
@@ -76,9 +75,8 @@ def get_extension(file_id, conn, metadata):
                 return filename.rsplit(".", 1)[1].lower()
             logger.warning("No extension in FileName")
     except SQLAlchemyError as e:
-        logger.error(f"Error querying File table: {e}")
         conn.rollback()
-        return "ERROR"
+        raise Exception(f"Error querying File table: {e}")
 
 
 def convert_with_libreoffice(input_path, output_path, convert_to="pdf"):
@@ -108,10 +106,10 @@ def process_consignment(
     source_bucket,
     dest_bucket,
     convertible_extensions,
-    engine,
-    metadata,
 ):
     prefix = f"{consignment_ref}/"
+    engine = get_engine()
+    metadata = MetaData()
 
     response = s3.list_objects_v2(Bucket=source_bucket, Prefix=prefix)
     if "Contents" not in response:
@@ -128,11 +126,11 @@ def process_consignment(
             file_id = key.split("/")[-1]
             logger.info(f"Checking file_id: {file_id}")
 
-            extension = get_extension(file_id, conn, metadata)
-            if extension == "ERROR":
-                logger.error(f"Failed to get file_extension for {file_id}")
+            try:
+                extension = get_extension(file_id, conn, metadata)
+            except Exception as e:
+                logger.error(f"Failed to get file_extension for {file_id}: {e}")
                 continue
-
             logger.info(f"File extension: {extension}")
 
             if extension not in convertible_extensions:
@@ -176,6 +174,39 @@ def process_consignment(
                 )
 
 
+def create_access_copies_for_all_consignments(source_bucket):
+    paginator = s3.get_paginator("list_objects_v2")
+    response = paginator.paginate(Bucket=source_bucket)
+    consignments = set()
+    for page in response:
+        for obj in page["Contents"]:
+            consignments.add(obj["Key"].split("/")[0])
+
+    logger.info(f"Found {len(consignments)} consignments")
+
+    for consignment_ref in consignments:
+        return consignment_ref
+
+
+def create_access_copy_from_sns():
+    raw_sns_message = os.getenv("SNS_MESSAGE")
+    if not raw_sns_message:
+        raise Exception("SNS_MESSAGE environment variable not found")
+    logger.info(f"Message Received: {raw_sns_message}")
+
+    try:
+        sns_message = json.loads(raw_sns_message)
+    except Exception as e:
+        logger.error(f"Error parsing SNS_MESSAGE: {e}")
+        raise
+
+    consignment_ref = sns_message.get("parameters", {}).get("reference")
+
+    if not consignment_ref:
+        raise Exception("Missing consignment_reference in SNS Message")
+    return consignment_ref
+
+
 def main():
     app_secret_id = os.getenv("APP_SECRET_ID")
     app_secret = get_secret_string(app_secret_id)
@@ -184,55 +215,22 @@ def main():
     convertible_extensions = set(
         json.loads(app_secret["CONVERTIBLE_EXTENSIONS"])
     )
-    engine = get_engine()
-    metadata = MetaData()
+
     conversion_type = os.getenv("CONVERSION_TYPE")
+    if not conversion_type:
+        raise Exception("CONVERSION_TYPE environment variable not found")
+
     if conversion_type == "BULK":
-        paginator = s3.get_paginator("list_objects_v2")
-        response = paginator.paginate(Bucket=source_bucket)
-        consignments = set()
-        for page in response:
-            for obj in page["Contents"]:
-                consignments.add(obj["Key"].split("/")[0])
-
-        logger.info(f"Found {len(consignments)} consignments")
-
-        for consignment_ref in consignments:
-            logger.info(f"Processing consignment: {consignment_ref}")
-            process_consignment(
-                consignment_ref,
-                source_bucket,
-                dest_bucket,
-                convertible_extensions,
-                engine,
-                metadata,
-            )
-    elif conversion_type == "SINGLE":
-        raw_sns_message = os.getenv("SNS_MESSAGE")
-        logger.info(f"Message Received: {raw_sns_message}")
-        if not raw_sns_message:
-            raise Exception("SNS_MESSAGE environment variable not found")
-
-        try:
-            sns_message = json.loads(raw_sns_message)
-        except Exception as e:
-            logger.error(f"Error parsing SNS_MESSAGE: {e}")
-            raise
-
-        consignment_ref = sns_message.get("parameters", {}).get("reference")
-
-        if not consignment_ref:
-            raise Exception("Missing consignment_reference in SNS Message")
-
-        logger.info(f"Processing consignment: {consignment_ref}")
-        process_consignment(
-            consignment_ref,
-            source_bucket,
-            dest_bucket,
-            convertible_extensions,
-            engine,
-            metadata,
+        consignment_ref = create_access_copies_for_all_consignments(
+            source_bucket
         )
+    elif conversion_type == "SINGLE":
+        consignment_ref = create_access_copy_from_sns()
+
+    logger.info(f"Processing consignment: {consignment_ref}")
+    process_consignment(
+        consignment_ref, source_bucket, dest_bucket, convertible_extensions
+    )
 
 
 if __name__ == "__main__":
