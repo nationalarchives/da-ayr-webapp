@@ -456,7 +456,7 @@ def test_build_search_transferring_body_query():
     query = '"non_fuzzy"+fuzzy'
     quoted_phrases, single_terms = extract_search_terms(query)
     search_fields = [
-       "file_name",
+        "file_name",
         "description",
         "foi_exemption_code",
         "content",
@@ -479,7 +479,6 @@ def test_build_search_transferring_body_query():
     # Split fields into non_fuzzy and fuzzy
     non_fuzzy_fields = [f for f in search_fields if is_non_fuzzy_field(f)]
     fuzzy_fields = [f for f in search_fields if not is_non_fuzzy_field(f)]
-
 
     expected_should_clauses = [
         # phrase on non_fuzzy fields
