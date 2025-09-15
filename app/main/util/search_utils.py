@@ -315,6 +315,7 @@ def build_should_clauses(search_fields, quoted_phrases, single_terms):
                         "fields": non_fuzzy_fields,
                         "fuzziness": 0,
                         "type": "phrase",
+                        "lenient": True,
                     }
                 }
             )
@@ -326,6 +327,7 @@ def build_should_clauses(search_fields, quoted_phrases, single_terms):
                         "fields": fuzzy_fields,
                         "fuzziness": "AUTO",
                         "type": "phrase",
+                        "lenient": True,
                     }
                 }
             )
@@ -338,6 +340,7 @@ def build_should_clauses(search_fields, quoted_phrases, single_terms):
                         "query": term,
                         "fields": non_fuzzy_fields,
                         "fuzziness": 0,
+                        "lenient": True,
                     }
                 }
             )
@@ -348,7 +351,7 @@ def build_should_clauses(search_fields, quoted_phrases, single_terms):
                         "query": term,
                         "fields": fuzzy_fields,
                         "fuzziness": "AUTO",
-                        
+                        "lenient": True,
                     }
                 }
             )

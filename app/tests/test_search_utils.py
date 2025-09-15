@@ -66,7 +66,7 @@ fields_without_file_name = [
 expected_base_dsl_search_query = {
     "query": {
         "bool": {
-            "must": [
+            "should": [
                 {
                     "multi_match": {
                         "query": "test_query",
@@ -357,7 +357,7 @@ def test_build_dsl_search_query():
 
 
 def test_build_dsl_search_query_and_non_fuzzy_fuzzy_search():
-    query = '"non_fuzzy match"+fuzzy+search'
+    query = '"non_fuzzy"+fuzzy+search'
     search_fields = ["field_1"]
     filter_clauses = [{"clause_1": "test_2"}]
     quoted_phrases, single_terms = extract_search_terms(query)
@@ -365,12 +365,13 @@ def test_build_dsl_search_query_and_non_fuzzy_fuzzy_search():
     expected_dsl_query = {
         "query": {
             "bool": {
-                "must": [
+                "should": [
                     {
                         "multi_match": {
-                            "query": "non_fuzzy match",
+                            "query": "non_fuzzy",
                             "fields": search_fields,
                             "type": "phrase",
+                            "fuzziness": "AUTO",
                             "lenient": True,
                         }
                     },
@@ -421,7 +422,7 @@ def test_build_search_results_summary_query():
         **expected_base_dsl_search_query,
         "query": {
             "bool": {
-                "must": [
+                "should": [
                     {
                         "multi_match": {
                             "query": "test_query",
@@ -480,7 +481,7 @@ def test_build_search_transferring_body_query():
     fuzzy_fields = [f for f in search_fields if not is_non_fuzzy_field(f)]
 
 
-    expected_must_clauses = [
+    expected_should_clauses = [
         # phrase on non_fuzzy fields
         {
             "multi_match": {
@@ -488,6 +489,7 @@ def test_build_search_transferring_body_query():
                 "fields": non_fuzzy_fields,
                 "fuzziness": 0,
                 "type": "phrase",
+                "lenient": True,
             }
         },
         # phrase on fuzzy fields
@@ -497,6 +499,7 @@ def test_build_search_transferring_body_query():
                 "fields": fuzzy_fields,
                 "type": "phrase",
                 "fuzziness": "AUTO",
+                "lenient": True,
             }
         },
         # single term on non_fuzzy fields
@@ -505,6 +508,7 @@ def test_build_search_transferring_body_query():
                 "query": "fuzzy",
                 "fields": non_fuzzy_fields,
                 "fuzziness": 0,
+                "lenient": True,
             }
         },
         # single term on fuzzy fields
@@ -513,6 +517,7 @@ def test_build_search_transferring_body_query():
                 "query": "fuzzy",
                 "fields": fuzzy_fields,
                 "fuzziness": "AUTO",
+                "lenient": True,
             }
         },
     ]
@@ -527,7 +532,7 @@ def test_build_search_transferring_body_query():
     assert dsl_query == {
         "query": {
             "bool": {
-                "should": expected_must_clauses,
+                "should": expected_should_clauses,
                 "filter": [
                     {
                         "term": {
