@@ -258,36 +258,6 @@ def get_all_fields_excluding(open_search, index_name, exclude_fields=None):
 
     return filtered_fields
 
-def build_should_clauses(search_fields, quoted_phrases, single_terms):
-    """Helper function to build should_clauses for OpenSearch with OR logic"""
-    should_clauses = []
-
-    for phrase in quoted_phrases:
-        should_clauses.append(
-            {
-                "multi_match": {
-                    "query": phrase,
-                    "fields": search_fields,
-                    "type": "phrase",
-                    "lenient": True,
-                }
-            }
-        )
-
-    for term in single_terms:
-        should_clauses.append(
-            {
-                "multi_match": {
-                    "query": term,
-                    "fields": search_fields,
-                    "fuzziness": "AUTO",
-                    "lenient": True,
-                }
-            }
-        )
-
-    return should_clauses
-
 
 def build_should_clauses(search_fields, quoted_phrases, single_terms):
     """Build should_clauses for OpenSearch with OR logic, separating non_fuzzy and fuzzy fields."""
