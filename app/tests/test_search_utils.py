@@ -356,8 +356,8 @@ def test_build_dsl_search_query():
     assert dsl_query == expected_base_dsl_search_query
 
 
-def test_build_dsl_search_query_and_exact_fuzzy_search():
-    query = '"exact match"+fuzzy+search'
+def test_build_dsl_search_query_and_non_fuzzy_fuzzy_search():
+    query = '"non_fuzzy match"+fuzzy+search'
     search_fields = ["field_1"]
     filter_clauses = [{"clause_1": "test_2"}]
     quoted_phrases, single_terms = extract_search_terms(query)
@@ -368,7 +368,7 @@ def test_build_dsl_search_query_and_exact_fuzzy_search():
                 "must": [
                     {
                         "multi_match": {
-                            "query": "exact match",
+                            "query": "non_fuzzy match",
                             "fields": search_fields,
                             "type": "phrase",
                             "lenient": True,
@@ -452,10 +452,72 @@ def test_build_search_results_summary_query():
 
 def test_build_search_transferring_body_query():
     transferring_body_id = "test_transferring_body_id"
-    query = "test_query"
+    query = '"non_fuzzy"+fuzzy'
     quoted_phrases, single_terms = extract_search_terms(query)
+    search_fields = [
+       "file_name",
+        "description",
+        "foi_exemption_code",
+        "content",
+        "closure_start_date",
+        "end_date",
+        "date_last_modified",
+        "citeable_reference",
+        "series_name",
+        "consignment_reference",
+    ]
+
+    # Helper to determine if a field should be treated as non_fuzzy (no fuzziness)
+    def is_non_fuzzy_field(field):
+        return (
+            field.startswith("consignment_ref")
+            or field.startswith("series")
+            or "date" in field
+        )
+
+    # Split fields into non_fuzzy and fuzzy
+    non_fuzzy_fields = [f for f in search_fields if is_non_fuzzy_field(f)]
+    fuzzy_fields = [f for f in search_fields if not is_non_fuzzy_field(f)]
+
+
+    expected_must_clauses = [
+        # phrase on non_fuzzy fields
+        {
+            "multi_match": {
+                "query": "non_fuzzy",
+                "fields": non_fuzzy_fields,
+                "fuzziness": 0,
+                "type": "phrase",
+            }
+        },
+        # phrase on fuzzy fields
+        {
+            "multi_match": {
+                "query": "non_fuzzy",
+                "fields": fuzzy_fields,
+                "type": "phrase",
+                "fuzziness": "AUTO",
+            }
+        },
+        # single term on non_fuzzy fields
+        {
+            "multi_match": {
+                "query": "fuzzy",
+                "fields": non_fuzzy_fields,
+                "fuzziness": 0,
+            }
+        },
+        # single term on fuzzy fields
+        {
+            "multi_match": {
+                "query": "fuzzy",
+                "fields": fuzzy_fields,
+                "fuzziness": "AUTO",
+            }
+        },
+    ]
     dsl_query = build_search_transferring_body_query(
-        ["field_1"],
+        search_fields,
         transferring_body_id,
         "test_highlight_key",
         quoted_phrases,
@@ -463,19 +525,9 @@ def test_build_search_transferring_body_query():
         {"sort": "foobar"},
     )
     assert dsl_query == {
-        **expected_base_dsl_search_query,
         "query": {
             "bool": {
-                "must": [
-                    {
-                        "multi_match": {
-                            "query": "test_query",
-                            "fields": ["field_1"],
-                            "fuzziness": "AUTO",
-                            "lenient": True,
-                        }
-                    }
-                ],
+                "should": expected_must_clauses,
                 "filter": [
                     {
                         "term": {
@@ -485,6 +537,8 @@ def test_build_search_transferring_body_query():
                 ],
             }
         },
+        "sort": {"sort": "foobar"},
+        "_source": True,
         "highlight": {
             "pre_tags": ["<test_highlight_key>"],
             "post_tags": ["</test_highlight_key>"],

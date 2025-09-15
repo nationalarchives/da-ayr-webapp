@@ -214,10 +214,10 @@ def setup_opensearch():
     return OpenSearch(
         hosts=current_app.config.get("OPEN_SEARCH_HOST"),
         http_auth=current_app.config.get("OPEN_SEARCH_HTTP_AUTH"),
-        use_ssl=current_app.config.get("OPEN_SEARCH_USE_SSL", True),
-        verify_certs=verify_certs,
-        ca_certs=ca_certs,
         connection_class=RequestsHttpConnection,
+        use_ssl=False,
+        # verify_certs=True,
+        # ca_certs=current_app.config.get("OPEN_SEARCH_CA_CERTS"),
     )
 
 
@@ -258,68 +258,102 @@ def get_all_fields_excluding(open_search, index_name, exclude_fields=None):
 
     return filtered_fields
 
-
-def build_must_clauses(search_fields, quoted_phrases, single_terms):
-    """Helper function to build must_clauses for OpenSearch with AND"""
-    must_clauses = []
-
-    # Define fields that require exact match (no fuzziness)
-    def is_exact_field(field):
-        lowered = field.lower()
-        return (
-            lowered == "consignment_ref"
-            or lowered == "series"
-            or "date" in lowered
-        )
-
-    exact_fields = [f for f in search_fields if is_exact_field(f)]
-    fuzzy_fields = [f for f in search_fields if not is_exact_field(f)]
-
-    # Helper to add term queries for exact fields
-    def add_term_clauses(must_clauses, fields, value):
-        for field in fields:
-            must_clauses.append({"term": {f"{field}.keyword": value}})
-
-    # Helper to add fuzzy queries for fuzzy fields
-    def add_fuzzy_clauses(must_clauses, fields, value):
-        for field in fields:
-            must_clauses.append({
-                "fuzzy": {
-                    field: {
-                        "value": value,
-                        "fuzziness": "AUTO",
-                        "max_expansions": 50,
-                        "prefix_length": 0,
-                        "transpositions": True,
-                        "rewrite": "constant_score"
-                    }
-                }
-            })
+def build_should_clauses(search_fields, quoted_phrases, single_terms):
+    """Helper function to build should_clauses for OpenSearch with OR logic"""
+    should_clauses = []
 
     for phrase in quoted_phrases:
-        # Phrase search is always exact (no fuzziness)
-        if exact_fields:
-            add_term_clauses(must_clauses, exact_fields, phrase)
-        if fuzzy_fields:
-            # For phrases, use match_phrase (no fuzziness in phrase search)
-            must_clauses.append({
+        should_clauses.append(
+            {
                 "multi_match": {
                     "query": phrase,
-                    "fields": fuzzy_fields,
+                    "fields": search_fields,
                     "type": "phrase",
                     "lenient": True,
                 }
-            })
+            }
+        )
 
     for term in single_terms:
-        # Exact match for exact fields (no fuzziness)
-        if exact_fields:
-            add_term_clauses(must_clauses, exact_fields, term)
-        # Fuzzy match for other fields
-        if fuzzy_fields:
-            add_fuzzy_clauses(must_clauses, fuzzy_fields, term)
+        should_clauses.append(
+            {
+                "multi_match": {
+                    "query": term,
+                    "fields": search_fields,
+                    "fuzziness": "AUTO",
+                    "lenient": True,
+                }
+            }
+        )
 
-    return must_clauses
+    return should_clauses
+
+
+def build_should_clauses(search_fields, quoted_phrases, single_terms):
+    """Build should_clauses for OpenSearch with OR logic, separating non_fuzzy and fuzzy fields."""
+    def is_non_fuzzy_field(field):
+        # Define which fields should not use fuzziness (e.g., IDs, dates)
+        return (
+            field.startswith("consignment_ref")
+            or field.startswith("series")
+            or "date" in field
+        )
+
+    # Split fields into non-fuzzy and fuzzy based on their names
+    non_fuzzy_fields = [f for f in search_fields if is_non_fuzzy_field(f)]
+    fuzzy_fields = [f for f in search_fields if not is_non_fuzzy_field(f)]
+
+    should_clauses = []
+
+    # For each quoted phrase, add a multi_match clause for both non-fuzzy and fuzzy fields
+    for phrase in quoted_phrases:
+        if non_fuzzy_fields:
+            should_clauses.append(
+                {
+                    "multi_match": {
+                        "query": phrase,
+                        "fields": non_fuzzy_fields,
+                        "fuzziness": 0,
+                        "type": "phrase",
+                    }
+                }
+            )
+        if fuzzy_fields:
+            should_clauses.append(
+                {
+                    "multi_match": {
+                        "query": phrase,
+                        "fields": fuzzy_fields,
+                        "fuzziness": "AUTO",
+                        "type": "phrase",
+                    }
+                }
+            )
+    # For each single term, add a multi_match clause for both non-fuzzy and fuzzy fields
+    for term in single_terms:
+        if non_fuzzy_fields:
+            should_clauses.append(
+                {
+                    "multi_match": {
+                        "query": term,
+                        "fields": non_fuzzy_fields,
+                        "fuzziness": 0,
+                    }
+                }
+            )
+        if fuzzy_fields:
+            should_clauses.append(
+                {
+                    "multi_match": {
+                        "query": term,
+                        "fields": fuzzy_fields,
+                        "fuzziness": "AUTO",
+                        
+                    }
+                }
+            )
+
+    return should_clauses
 
 
 def build_dsl_search_query(
@@ -330,14 +364,14 @@ def build_dsl_search_query(
     sorting,
 ):
     """Constructs the base DSL query for OpenSearch with AND"""
-    must_clauses = build_must_clauses(
+    should_clauses = build_should_clauses(
         search_fields, quoted_phrases, single_terms
     )
 
     return {
         "query": {
             "bool": {
-                "must": must_clauses,
+                "should": should_clauses,
                 "filter": filter_clauses,
             }
         },
