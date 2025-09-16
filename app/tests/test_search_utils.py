@@ -550,7 +550,7 @@ def test_build_search_transferring_body_query():
             "fragment_size": 200,
             "number_of_fragments": 5,
             "phrase_limit": 256,
-            "require_field_match": False,
+            "require_field_match": True,
             "boundary_scanner": "sentence",
             "boundary_scanner_locale": "en",
             "order": "score",
