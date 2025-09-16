@@ -412,7 +412,7 @@ def build_search_transferring_body_query(
             "fragment_size": 200,  # limit amount of text
             "number_of_fragments": 5,  # default
             "phrase_limit": 256,  # default
-            "require_field_match": False,  # default, highlights only in fields that were searched
+            "require_field_match": True,  # default, highlights only in fields that were searched
             "boundary_scanner": "sentence",
             "boundary_scanner_locale": "en",
             "order": "score",
