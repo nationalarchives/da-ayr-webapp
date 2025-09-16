@@ -270,56 +270,63 @@ def build_should_clauses(search_fields, quoted_phrases, single_terms):
             or "date" in field
         )
 
-    def multi_match_clause(query, fields, fuzzy=False, phrase=False):
-        clause = {
-            "multi_match": {
-                "query": query,
-                "fields": fields,
-            }
-        }
-        if phrase:
-            clause["multi_match"]["type"] = "phrase"
-        if fuzzy:
-            clause["multi_match"]["fuzziness"] = "AUTO"
-            clause["multi_match"]["lenient"] = True
-        if not fuzzy:
-            clause["multi_match"]["fuzziness"] = 0
-            clause["multi_match"]["lenient"] = True
-        return clause
-
+    # Split fields into non-fuzzy and fuzzy based on their names
     non_fuzzy_fields = [f for f in search_fields if is_non_fuzzy_field(f)]
     fuzzy_fields = [f for f in search_fields if not is_non_fuzzy_field(f)]
 
     should_clauses = []
 
-    # Add quoted phrases
+    # For each quoted phrase, add a multi_match clause for both non-fuzzy and fuzzy fields
     for phrase in quoted_phrases:
         if non_fuzzy_fields:
             should_clauses.append(
-                multi_match_clause(phrase, non_fuzzy_fields, phrase=True)
+                {
+                    "multi_match": {
+                        "query": phrase,
+                        "fields": non_fuzzy_fields,
+                        "fuzziness": 0,
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                }
             )
         if fuzzy_fields:
             should_clauses.append(
-                multi_match_clause(
-                    phrase, fuzzy_fields, fuzzy=True, phrase=True
-                )
+                {
+                    "multi_match": {
+                        "query": phrase,
+                        "fields": fuzzy_fields,
+                        "fuzziness": "AUTO",
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                }
             )
-
-    # Add single terms
+    # For each single term, add a multi_match clause for both non-fuzzy and fuzzy fields
     for term in single_terms:
         if non_fuzzy_fields:
             should_clauses.append(
-                multi_match_clause(
-                    term,
-                    non_fuzzy_fields,
-                )
+                {
+                    "multi_match": {
+                        "query": term,
+                        "fields": non_fuzzy_fields,
+                        "fuzziness": 0,
+                        "lenient": True,
+                    }
+                }
             )
         if fuzzy_fields:
             should_clauses.append(
-                multi_match_clause(term, fuzzy_fields, fuzzy=True)
+                {
+                    "multi_match": {
+                        "query": term,
+                        "fields": fuzzy_fields,
+                        "fuzziness": "AUTO",
+                        "lenient": True,
+                    }
+                }
             )
 
-    print("Should clauses:", should_clauses)  # Debugging line
     return should_clauses
 
 
