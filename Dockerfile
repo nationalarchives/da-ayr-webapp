@@ -20,9 +20,11 @@ RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
     openssl \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install poetry==2.2.0
+RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH="/root/.local/bin:$PATH"
 
 COPY pyproject.toml poetry.lock ./
 
