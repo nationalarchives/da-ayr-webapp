@@ -199,7 +199,7 @@ A specialized CI configuration has been added that:
 - Uses a simplified setup with security disabled
 - Automatically restores test data from snapshots
 - Includes a containerized webapp built from the new multi-stage Dockerfile
-- Provides proper networking between all services in CI environments
+- Sets up networking between all services in CI environments
 
 ```shell
 docker compose -f docker-compose.ci.yml up -d
