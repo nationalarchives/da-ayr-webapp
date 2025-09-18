@@ -152,7 +152,7 @@ You should now have the app running on <https://localhost:5000/>
 
 The webapp depends on keycloak, a postgres instance holding metadata, an s3 bucket storing associated records and then an opensearch instance that is populated from those 2 via `data_management/opensearch_indexer`. For ease of use, we provide a `docker-compose.yml` file inside the `local_services` which spins up all these dependencies, using minio as a local replacement for an actual AWS s3, and populates them with consistent test data. Feel free to expand this data but data consistency is left up to you.
 
-### Containerized webapp
+### Containerised webapp
 
 A new multi-stage Dockerfile has been added to the root directory that enables running the webapp itself in a container. This Docker setup includes:
 
@@ -192,10 +192,10 @@ flask run --debug
 ```
 
 #### For CI/CD environments:
-A specialized CI configuration has been added that:
+A specialised CI configuration has been added that:
 - Uses a simplified setup with security disabled
 - Automatically restores test data from snapshots
-- Includes a containerized webapp built from the new multi-stage Dockerfile
+- Includes a containerised webapp built from the new multi-stage Dockerfile
 - Provides proper networking between all services in CI environments
 
 ```shell
@@ -655,7 +655,7 @@ The following ENV Vars are required:
 
 ### Storybook
 
-Storybook is a powerful frontend tool that allows us to design, build and organize UI components or screens in isolation from the rest of the application. Because we make use of Jinja2 and its macro features, all of which are normally server-side rendered, we first pre-render each UI component (and its variations) using Jinja2 utilities into raw HTML, then configure Storybook to display them using its configuration and `*.stories.js` format.
+Storybook is a powerful frontend tool that allows us to design, build and organise UI components or screens in isolation from the rest of the application. Because we make use of Jinja2 and its macro features, all of which are normally server-side rendered, we first pre-render each UI component (and its variations) using Jinja2 utilities into raw HTML, then configure Storybook to display them using its configuration and `*.stories.js` format.
 
 To first get started, make sure all NPM packages are installed and application styles are built, then run
 
