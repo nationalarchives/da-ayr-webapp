@@ -22,7 +22,9 @@ RUN apt-get update && apt-get install -y \
     openssl \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install poetry
+RUN poetry cache clear pypi
+  --all && poetry install
+  --no-root
 
 COPY pyproject.toml poetry.lock ./
 
