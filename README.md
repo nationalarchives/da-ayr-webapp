@@ -204,7 +204,7 @@ A specialised CI configuration has been added that:
 docker compose -f docker-compose.ci.yml up -d
 ```
 
-### Running the CI stack:
+### Running the stack:
 
 It will take a minute or two to spin up the stack, in particular opensearch and keycloak take a little while. You can check their progress in each container's logs. The CI file will also create a test user and import indexed test data.
 
