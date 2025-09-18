@@ -164,26 +164,28 @@ A new multi-stage Dockerfile has been added to the root directory that enables r
 - **Automated SSL certificate generation**: The container automatically generates development SSL certificates
 - **Poetry integration**: Uses Poetry for Python dependency management within the container
 
-You can build and run the containers using:
+You can build and run all the containers using:
 ```shell
 docker compose -f docker-compose.ci.yml up
 ```
 
 as part of the full stack via `docker-compose.ci.yml` which includes the webapp container alongside all dependencies.
 
+or
+
+```shell
+docker compose up
+```
+
+Which will require certificates to be made using the scripts inside /local_services.
+
 ### Prerequisites for running this docker compose stack:
 
 1. Have `docker` installed
-2. SSL certificate setup is now automated - certificates for all services are generated automatically when running the docker compose stack
-3. Create a `.env` file inside of `local_services` using `local_services/.env.template`
+2. Create certs for the webapp postgres instance in `local_services/webapp_postgres_certs` by running `generate_webapp_postgres_certs.sh` inside it
+3. Create certs for the opensearch nodes in `local_services/opensearch_certs` by running `generate_opensearch_certs.sh` inside it
+4. Create a `.env` file inside of `local_services` using `local_services/.env.template`
 
-### Running the stack:
-
-The SSL certificate generation and setup has been significantly improved to resolve previous networking and certificate issues:
-
-- **Automated SSL Certificate Generation**: All SSL certificates (PostgreSQL, OpenSearch, MinIO) can now be generated automatically using dedicated setup scripts
-- **CI Environment Support**: Added `docker-compose.ci.yml` which allows us to run the E2E suite as part of CI
-- **Certificate Management**: Centralised certificate generation
 
 #### For local development:
 ```shell
@@ -202,13 +204,21 @@ A specialised CI configuration has been added that:
 docker compose -f docker-compose.ci.yml up -d
 ```
 
+### Running the CI stack:
+
+The SSL certificate generation and setup has been updated to simplify networking and certificate generation:
+
+- **Automated SSL Certificate Generation**: All SSL certificates (PostgreSQL, OpenSearch, MinIO) can now be generated automatically using dedicated setup scripts
+- **CI Environment Support**: Added `docker-compose.ci.yml` which allows us to run the E2E suite as part of CI
+
+
 The CI compose file includes:
 - **Single-node OpenSearch**: This should reduce the amount of memory needed and security has been disabled due to GitHub allowed permissions
 - **Automated Data Restoration**: Automatically restores OpenSearch indices from snapshots
 - **Integrated Webapp Container**: Builds and runs the webapp alongside dependencies
 - **Simplified Authentication**: Uses HTTP-only connections
 
-It will take a minute or two to spin up the stack, in particular opensearch and keycloak take a little while. You can check their progress in each container's logs.
+It will take a minute or two to spin up the stack, in particular opensearch and keycloak take a little while. You can check their progress in each container's logs. The CI file will also create a test user and import indexed test data.
 
 Once the stack is running:
 
