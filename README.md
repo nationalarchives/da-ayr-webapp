@@ -152,14 +152,64 @@ You should now have the app running on <https://localhost:5000/>
 
 The webapp depends on keycloak, a postgres instance holding metadata, an s3 bucket storing associated records and then an opensearch instance that is populated from those 2 via `data_management/opensearch_indexer`. For ease of use, we provide a `docker-compose.yml` file inside the `local_services` which spins up all these dependencies, using minio as a local replacement for an actual AWS s3, and populates them with consistent test data. Feel free to expand this data but data consistency is left up to you.
 
-There are some dependencies for running this docker compose stack.
+### Containerized webapp
+
+A new multi-stage Dockerfile has been added to the root directory that enables running the webapp itself in a container. This Docker setup includes:
+
+**Multi-stage build process:**
+- **Node.js build stage**: Compiles SCSS to CSS and builds frontend assets
+- **Python runtime stage**: Sets up Python dependencies and application runtime
+
+**Key improvements:**
+- **Automated SSL certificate generation**: The container automatically generates development SSL certificates
+
+- **Production-ready setup**: Uses Python 3.11 slim base image with minimal dependencies
+- **Poetry integration**: Uses Poetry for Python dependency management within the container
+
+You can build and run the webapp container individually:
+```shell
+docker build -t ayr-webapp .
+docker run -p 5000:5000 ayr-webapp
+```
+
+Or use it as part of the full stack via `docker-compose.ci.yml` which includes the webapp container alongside all dependencies.
+
+### Prerequisites for running this docker compose stack:
 
 1. Have `docker` installed
-2. Create certs for the webapp postgres instance in `local_services/webapp_postgres_certs` by running `generate_webapp_postgres_certs.sh` inside it
-3. Create certs for the opensearch nodes in `local_services/opensearch_certs` by running `generate_opensearch_certs.sh` inside it
-4. Create a `.env` file inside of `local_services` using `local_services/.env.template`
+2. SSL certificate setup is now automated - certificates for all services are generated automatically when running the docker compose stack
+3. Create a `.env` file inside of `local_services` using `local_services/.env.template`
 
-Then you can run: `docker compose up -d`
+### Running the stack:
+
+The SSL certificate generation and setup has been significantly improved to resolve previous networking and certificate issues:
+
+- **Automated SSL Certificate Generation**: All SSL certificates (PostgreSQL, OpenSearch, MinIO) can now be generated automatically using dedicated setup scripts
+- **CI Environment Support**: Added `docker-compose.ci.yml` which allows us to run the E2E suite as part of CI
+- **Certificate Management**: Centralized certificate generation
+
+#### For local development:
+```shell
+docker compose up -d
+flask run --debug
+```
+
+#### For CI/CD environments:
+A specialized CI configuration has been added that:
+- Uses a simplified setup with security disabled
+- Automatically restores test data from snapshots
+- Includes a containerized webapp built from the new multi-stage Dockerfile
+- Provides proper networking between all services in CI environments
+
+```shell
+docker compose -f docker-compose.ci.yml up -d
+```
+
+The CI compose file includes:
+- **Single-node OpenSearch**: This should reduce the amount of memory needed and security has been disabled due to GitHub allowed permissions
+- **Automated Data Restoration**: Automatically restores OpenSearch indices from snapshots
+- **Integrated Webapp Container**: Builds and runs the webapp alongside dependencies
+- **Simplified Authentication**: Uses HTTP-only connections
 
 It will take a minute or two to spin up the stack, in particular opensearch and keycloak take a little while. You can check their progress in each container's logs.
 
@@ -462,6 +512,10 @@ We have a separate End To End suite of [Playwright](https://playwright.dev/pytho
 
 In addition to installing the package, before you run the tests for the first time on your machine, you will need to run `playwright install` to install the required browsers for the end-to-end tests.
 
+**Recent improvements to E2E testing infrastructure:**
+- **Enhanced Visual Regression Testing**: Updated visual regression test suite to use PNG files
+- **CI/CD Integration**: Added automated E2E test execution in GitHub Actions on push to PRs
+
 Before running our Playwright tests,
 
 - `AYR_AAU_USER_USERNAME`
@@ -486,6 +540,10 @@ To enable this flexibility we suggest any Playwright tests added to the repo use
 In addition, we recommend that any tests that have dependencies on data, do not make assumptions about any particular database or instance involved, and instead do the test data set up and teardown as part of the test suite.
 
 ### Visual regression E2E tests
+
+**Updated Visual Regression Testing Setup:**
+
+Visual regression testing has been updated with improved containerisation and automation. The tests now use PNG format for better consistency and performance across different environments.
 
 In order to ensure a consistent and stable testing environment, we make use of a [Docker](https://www.docker.com/products/docker-desktop/) image (and subsequently container) that is defined in structure inside of `e2e_tests/dockerfile`. If an example of this image is stored inside of AWS ERC (or any other Docker container registry), it can be run from the root directory using:
 
@@ -513,7 +571,11 @@ To just run the E2E tests once the container has already been built
 bash e2e_tests.reg_run.sh
 ```
 
-Whilst the Docker container is running, snapshots of visual regression for pages that have been modified will be automatically saved inside of `e2e_tests/snapshots/test_css_no_visual_regression` and `e2e_tests/snapshots/test_css_no_visual_regression_mobile`.
+**Visual Regression Testing Improvements:**
+- **PNG Format**: Switched from JPEG to PNG format for visual regression snapshots
+- **Viewport Coverage**: Visual regression tests now cover both desktop and mobile viewports across multiple browsers
+
+Whilst the Docker container is running, snapshots of visual regression for pages that have been modified will be automatically saved inside of `e2e_tests/snapshots/desktop` and `e2e_tests/snapshots/mobile`.
 
 ### Useful playwright pytest run modes
 
