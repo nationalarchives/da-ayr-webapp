@@ -206,18 +206,6 @@ docker compose -f docker-compose.ci.yml up -d
 
 ### Running the CI stack:
 
-The SSL certificate generation and setup has been updated to simplify networking and certificate generation:
-
-- **Automated SSL Certificate Generation**: All SSL certificates (PostgreSQL, OpenSearch, MinIO) can now be generated automatically using dedicated setup scripts
-- **CI Environment Support**: Added `docker-compose.ci.yml` which allows us to run the E2E suite as part of CI
-
-
-The CI compose file includes:
-- **Single-node OpenSearch**: This should reduce the amount of memory needed and security has been disabled due to GitHub allowed permissions
-- **Automated Data Restoration**: Automatically restores OpenSearch indices from snapshots
-- **Integrated Webapp Container**: Builds and runs the webapp alongside dependencies
-- **Simplified Authentication**: Uses HTTP-only connections
-
 It will take a minute or two to spin up the stack, in particular opensearch and keycloak take a little while. You can check their progress in each container's logs. The CI file will also create a test user and import indexed test data.
 
 Once the stack is running:
