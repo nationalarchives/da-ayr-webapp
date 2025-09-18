@@ -160,19 +160,16 @@ A new multi-stage Dockerfile has been added to the root directory that enables r
 - **Node.js build stage**: Compiles SCSS to CSS and builds frontend assets
 - **Python runtime stage**: Sets up Python dependencies and application runtime
 
-**Key improvements:**
+**Changes**
 - **Automated SSL certificate generation**: The container automatically generates development SSL certificates
-
-- **Production-ready setup**: Uses Python 3.11 slim base image with minimal dependencies
 - **Poetry integration**: Uses Poetry for Python dependency management within the container
 
-You can build and run the webapp container individually:
+You can build and run the containers using:
 ```shell
-docker build -t ayr-webapp .
-docker run -p 5000:5000 ayr-webapp
+docker compose -f docker-compose.ci.yml up
 ```
 
-Or use it as part of the full stack via `docker-compose.ci.yml` which includes the webapp container alongside all dependencies.
+as part of the full stack via `docker-compose.ci.yml` which includes the webapp container alongside all dependencies.
 
 ### Prerequisites for running this docker compose stack:
 
@@ -186,7 +183,7 @@ The SSL certificate generation and setup has been significantly improved to reso
 
 - **Automated SSL Certificate Generation**: All SSL certificates (PostgreSQL, OpenSearch, MinIO) can now be generated automatically using dedicated setup scripts
 - **CI Environment Support**: Added `docker-compose.ci.yml` which allows us to run the E2E suite as part of CI
-- **Certificate Management**: Centralized certificate generation
+- **Certificate Management**: Centralised certificate generation
 
 #### For local development:
 ```shell
@@ -199,7 +196,7 @@ A specialized CI configuration has been added that:
 - Uses a simplified setup with security disabled
 - Automatically restores test data from snapshots
 - Includes a containerized webapp built from the new multi-stage Dockerfile
-- Sets up networking between all services in CI environments
+- Provides proper networking between all services in CI environments
 
 ```shell
 docker compose -f docker-compose.ci.yml up -d
