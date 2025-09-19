@@ -176,7 +176,11 @@ or
 docker compose up
 ```
 
-Which will require certificates to be made using the scripts inside /local_services.
+Which will require certificates to be made using the scripts inside /local_services and the flask app to be run using:
+
+```shell
+flask run --debug
+```
 
 ### Prerequisites for running this docker compose stack:
 
