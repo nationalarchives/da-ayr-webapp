@@ -199,9 +199,6 @@ A specialised CI configuration has been added that:
 - Includes a containerised webapp built from the new multi-stage Dockerfile
 - Provides proper networking between all services in CI environments
 
-```shell
-docker compose -f docker-compose.ci.yml up -d
-```
 
 ### Running the stack:
 
