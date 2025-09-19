@@ -161,7 +161,6 @@ A new multi-stage Dockerfile has been added to the root directory that enables r
 - **Python runtime stage**: Sets up Python dependencies and application runtime
 
 **Changes**
-- **Automated SSL certificate generation**: The container automatically generates development SSL certificates
 - **Poetry integration**: Uses Poetry for Python dependency management within the container
 
 You can build and run all the containers using:
