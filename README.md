@@ -566,10 +566,6 @@ To just run the E2E tests once the container has already been built
 bash e2e_tests.reg_run.sh
 ```
 
-**Visual Regression Testing Improvements:**
-- **PNG Format**: Switched from JPEG to PNG format for visual regression snapshots
-- **Viewport Coverage**: Visual regression tests now cover both desktop and mobile viewports across multiple browsers
-
 Whilst the Docker container is running, snapshots of visual regression for pages that have been modified will be automatically saved inside of `e2e_tests/snapshots/desktop` and `e2e_tests/snapshots/mobile`.
 
 ### Useful playwright pytest run modes
