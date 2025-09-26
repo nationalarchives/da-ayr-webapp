@@ -1,9 +1,12 @@
+import logging
 import os
 import uuid
 
 import keycloak
 import pytest
 from playwright.sync_api import Page
+
+logging.getLogger("PIL").setLevel(logging.WARNING)
 
 
 class Utils:
