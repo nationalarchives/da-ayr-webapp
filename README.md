@@ -540,30 +540,31 @@ In addition, we recommend that any tests that have dependencies on data, do not 
 
 Visual regression testing has been updated with improved containerisation and automation. The tests now use PNG format for better consistency and performance across different environments.
 
-In order to ensure a consistent and stable testing environment, we make use of a [Docker](https://www.docker.com/products/docker-desktop/) image (and subsequently container) that is defined in structure inside of `e2e_tests/dockerfile`. If an example of this image is stored inside of AWS ERC (or any other Docker container registry), it can be run from the root directory using:
+In order to ensure a consistent and stable testing environment, we make use of a [Docker](https://www.docker.com/products/docker-desktop/) image (and subsequently container) that is defined in structure inside of `e2e_tests/dockerfile`.
+
+Ensure there is an .env.e2e_tests with the following values:
 
 ```shell
-docker run --platform linux/arm64/v8 --rm --env-file .env.e2e_tests --network=host -v $PWD/e2e_tests:/e2e_tests <URL-TO-IMAGE>
+AYR_AAU_USER_USERNAME=testuser
+AYR_AAU_USER_PASSWORD=password123
+AYR_STANDARD_USER_USERNAME=testuser
+AYR_STANDARD_USER_PASSWORD=password123
+KEYCLOAK_BASE_URI=http://127.0.0.1:8080
+KEYCLOAK_CLIENT_ID=ayr-beta
+KEYCLOAK_REALM_NAME=tdr
+KEYCLOAK_CLIENT_SECRET=test-client-secret
 ```
 
-Otherwise, to build the image locally you should:
-
-First, switch current working directory to `e2e_tests`
+Then build the image using:
 
 ```shell
-cd e2e_tests/
+cd e2e_tests && docker build -t e2e_tests .
 ```
 
-Then, to build and run the E2E visual regression suite
+The tests can then be run from the root directory using:
 
 ```shell
-bash e2e_tests.reg_build_and_run.sh
-```
-
-To just run the E2E tests once the container has already been built
-
-```shell
-bash e2e_tests.reg_run.sh
+docker run --rm --env-file ../.env.e2e_tests --network=host -v "$(pwd)":/e2e_tests e2e_tests
 ```
 
 Whilst the Docker container is running, snapshots of visual regression for pages that have been modified will be automatically saved inside of `e2e_tests/snapshots/desktop` and `e2e_tests/snapshots/mobile`.

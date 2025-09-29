@@ -216,8 +216,9 @@ class TestSearchResults:
         standard_user_page.locator("#search-input").click()
         standard_user_page.locator("#search-input").fill("fil")
         standard_user_page.get_by_role("button", name="Search").click()
-        rows = standard_user_page.locator("tbody .govuk-table__row")
-        assert rows.count() == 36
+        standard_user_page.wait_for_selector("tbody .govuk-table__row--primary")
+        rows = standard_user_page.locator("tbody .govuk-table__row--primary")
+        assert rows.count() == 9
 
         tbody_locator = standard_user_page.locator("tbody.govuk-table__body")
         inner_html = tbody_locator.inner_html()

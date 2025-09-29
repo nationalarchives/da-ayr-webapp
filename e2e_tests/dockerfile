@@ -1,7 +1,7 @@
-FROM mcr.microsoft.com/playwright/python:v1.53.0-noble
+FROM mcr.microsoft.com/playwright/python@sha256:640d578aae63cfb632461d1b0aecb01414e4e020864ac3dd45a868dc0eff3078
 
 WORKDIR /e2e_tests
 
-RUN pip install --upgrade pip wheel setuptools numpy scikit-image pillow playwright python-keycloak pytest-playwright-visual pytest-playwright pytest-html
+RUN pip install --upgrade pip wheel setuptools numpy scikit-image pillow playwright python-keycloak pytest-playwright-visual pytest-playwright pytest-html PyJWT itsdangerous cryptography
 
-CMD ["pytest", "-vvv", "-s", "test_visual_regression.py", "--log-cli-level=DEBUG", "--base-url=https://host.docker.internal:8000/", "--browser", "chromium", "--browser", "webkit", "--browser", "firefox", "--update-snapshots"]
+CMD ["pytest", "-vvv", "-s", ".", "--base-url=https://127.0.0.1:5000", "--browser", "chromium", "--browser", "webkit", "--browser", "firefox", "--update-snapshots", "--html=playwright-report/report.html", "--self-contained-html"]
