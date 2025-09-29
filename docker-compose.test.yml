@@ -26,7 +26,7 @@ services:
           -vvs data_management/opensearch_indexer/tests
 
   postgres:
-    image: postgres:17
+    image: postgres:18
     environment:
       POSTGRES_USER: testuser
       POSTGRES_PASSWORD: testPass123 # pragma: allowlist secret
