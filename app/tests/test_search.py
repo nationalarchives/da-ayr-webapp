@@ -2221,3 +2221,128 @@ class TestSearchTransferringBody:
             == f"{self.browse_transferring_body_route_url}/{transferring_body_id}"
         )
         assert span_query
+
+    @patch("app.main.util.search_utils.OpenSearch")
+    def test_search_transferring_body_no_highlights_renders_file_name_and_search_results(
+        self,
+        mock_search_client,
+        client,
+        mock_standard_user,
+        browse_consignment_files,
+        ):
+        """
+        Given a standard user accessing the search transferring body page
+        When a record has no highlights
+        Then the table should render only the file name and link in both columns
+        """
+        file_name = "plain_file.txt"
+        file_id = "abc123"
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value={
+                "hits": {
+                    "total": {"value": 1},
+                    "hits": [
+                        {
+                            "_source": {
+                                "file_name": file_name,
+                                "file_id": file_id,
+                                "series_name": "series_x",
+                                "series_id": "sid",
+                                "status": "Open",
+                                "closure_date": None,
+                                "consignment_reference": "cref",
+                                "consignment_id": "cid",
+                                "closure_type": "Open",
+                                "opening_date": "2025-01-01",
+                            },
+                            # No highlight key at all
+                        }
+                    ],
+                }
+            }
+        )
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        transferring_body_id = browse_consignment_files[0].consignment.series.body.BodyId
+
+        response = client.get(
+            f"/search/transferring_body/{transferring_body_id}?query=plain"
+        )
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        table_body = soup.find("tbody")
+        rows = table_body.find_all("tr")
+        # Find the row with file name
+        found = False
+        for row in rows:
+            cells = row.find_all("td")
+            if len(cells) == 2 and "File name" in cells[0].get_text():
+                link = cells[1].find("a")
+                assert link
+                assert file_name in link.get_text()
+                assert url_for("main.record", record_id=file_id) in link["href"]
+                found = True
+        assert found
+
+    @patch("app.main.util.search_utils.OpenSearch")
+    def test_search_transferring_body_empty_highlights_renders_file_name_and_search_results(
+        self,
+        mock_search_client,
+        client,
+        mock_standard_user,
+        browse_consignment_files,
+        ):
+        """
+        Given a standard user accessing the search transferring body page
+        When a record has an empty highlights dict
+        Then the table should render only the file name and link in both columns
+        """
+        file_name = "plain_file2.txt"
+        file_id = "def456"
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value={
+                "hits": {
+                    "total": {"value": 1},
+                    "hits": [
+                        {
+                            "_source": {
+                                "file_name": file_name,
+                                "file_id": file_id,
+                                "series_name": "series_y",
+                                "series_id": "sid2",
+                                "status": "Open",
+                                "closure_date": None,
+                                "consignment_reference": "cref2",
+                                "consignment_id": "cid2",
+                                "closure_type": "Open",
+                                "opening_date": "2025-01-02",
+                            },
+                            "highlight": {},
+                        }
+                    ],
+                }
+            }
+        )
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        transferring_body_id = browse_consignment_files[0].consignment.series.body.BodyId
+
+        response = client.get(
+            f"/search/transferring_body/{transferring_body_id}?query=plain"
+        )
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        table_body = soup.find("tbody")
+        rows = table_body.find_all("tr")
+        found = False
+        for row in rows:
+            cells = row.find_all("td")
+            if len(cells) == 2 and "File name" in cells[0].get_text():
+                link = cells[1].find("a")
+                assert link
+                assert file_name in link.get_text()
+                assert url_for("main.record", record_id=file_id) in link["href"]
+                found = True
+        assert found
