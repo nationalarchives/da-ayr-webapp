@@ -2229,7 +2229,7 @@ class TestSearchTransferringBody:
         client,
         mock_standard_user,
         browse_consignment_files,
-        ):
+    ):
         """
         Given a standard user accessing the search transferring body page
         When a record has no highlights
@@ -2264,7 +2264,9 @@ class TestSearchTransferringBody:
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
         )
-        transferring_body_id = browse_consignment_files[0].consignment.series.body.BodyId
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
 
         response = client.get(
             f"/search/transferring_body/{transferring_body_id}?query=plain"
@@ -2292,7 +2294,7 @@ class TestSearchTransferringBody:
         client,
         mock_standard_user,
         browse_consignment_files,
-        ):
+    ):
         """
         Given a standard user accessing the search transferring body page
         When a record has an empty highlights dict
@@ -2327,7 +2329,9 @@ class TestSearchTransferringBody:
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
         )
-        transferring_body_id = browse_consignment_files[0].consignment.series.body.BodyId
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
 
         response = client.get(
             f"/search/transferring_body/{transferring_body_id}?query=plain"
