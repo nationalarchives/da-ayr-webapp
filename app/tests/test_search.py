@@ -2274,18 +2274,11 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
         table_body = soup.find("tbody")
-        rows = table_body.find_all("tr")
-        # Find the row with file name
-        found = False
-        for row in rows:
-            cells = row.find_all("td")
-            if len(cells) == 2 and "File name" in cells[0].get_text():
-                link = cells[1].find("a")
-                assert link
-                assert file_name in link.get_text()
-                assert url_for("main.record", record_id=file_id) in link["href"]
-                found = True
-        assert found
+        table_rows_cell_values = get_table_rows_cell_values(table_body)
+        assert ["File name", file_name] in table_rows_cell_values
+
+        assert ["series_name", "series_y"] not in table_rows_cell_values
+        assert ["consignment_reference", "cref2"] not in table_rows_cell_values
 
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_empty_highlights_renders_file_name_and_search_results(
@@ -2339,14 +2332,8 @@ class TestSearchTransferringBody:
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
         table_body = soup.find("tbody")
-        rows = table_body.find_all("tr")
-        found = False
-        for row in rows:
-            cells = row.find_all("td")
-            if len(cells) == 2 and "File name" in cells[0].get_text():
-                link = cells[1].find("a")
-                assert link
-                assert file_name in link.get_text()
-                assert url_for("main.record", record_id=file_id) in link["href"]
-                found = True
-        assert found
+        table_rows_cell_values = get_table_rows_cell_values(table_body)
+        assert ["File name", file_name] in table_rows_cell_values
+
+        assert ["series_name", "series_y"] not in table_rows_cell_values
+        assert ["consignment_reference", "cref2"] not in table_rows_cell_values
