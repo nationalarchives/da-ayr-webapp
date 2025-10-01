@@ -2335,5 +2335,5 @@ class TestSearchTransferringBody:
         table_rows_cell_values = get_table_rows_cell_values(table_body)
         assert ["File name", file_name] in table_rows_cell_values
 
-        assert ["series_name", "series_x"] not in table_rows_cell_values
-        assert ["consignment_reference", "cref"] not in table_rows_cell_values
+        assert ["series_name", "series_y"] not in table_rows_cell_values
+        assert ["consignment_reference", "cref2"] not in table_rows_cell_values
