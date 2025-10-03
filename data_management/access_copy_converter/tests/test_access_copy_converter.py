@@ -1,6 +1,7 @@
 import subprocess
 from unittest import mock
 
+import access_copy_converter.main as main_module
 import boto3
 import pytest
 from access_copy_converter.main import (
@@ -63,8 +64,6 @@ class TestConvertedFiles:
         )
         s3_client.put_object(Bucket="bucket", Key="key", Body=b"test")
 
-        import access_copy_converter.main as main_module
-
         monkeypatch.setattr(main_module, "s3", s3_client)
 
         assert already_converted("bucket", "key") is True
@@ -77,8 +76,6 @@ class TestConvertedFiles:
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
 
-        import access_copy_converter.main as main_module
-
         monkeypatch.setattr(main_module, "s3", s3_client)
 
         assert already_converted("bucket", "key") is False
@@ -86,8 +83,6 @@ class TestConvertedFiles:
     @mock_aws
     def test_already_converted_other_error_raises(self, monkeypatch):
         s3_client = boto3.client("s3", region_name="eu-west-2")
-
-        import access_copy_converter.main as main_module
 
         monkeypatch.setattr(main_module, "s3", s3_client)
 
@@ -185,8 +180,6 @@ class TestConvertWithLibreoffice:
 
             Path(output_path).write_bytes(b"%PDF-1.4")
 
-        import access_copy_converter.main as main_module
-
         monkeypatch.setattr(
             main_module, "convert_with_libreoffice", fake_convert
         )
@@ -226,16 +219,7 @@ class TestProcessConsignment:
         conn.execute(insert(ffid).values(FileId="file123", Extension="docx"))
         conn.commit()
 
-        class DummyEngine:
-            def connect(self):
-                return mock.MagicMock(
-                    __enter__=lambda self: conn, __exit__=lambda *a: None
-                )
-
-        import access_copy_converter.main as main_module
-
         monkeypatch.setattr(main_module, "s3", s3_client)
-        monkeypatch.setattr(main_module, "get_engine", lambda: DummyEngine())
 
         def fake_convert(input_path, output_path, convert_to="pdf"):
             with open(output_path, "wb") as fh:
@@ -246,7 +230,11 @@ class TestProcessConsignment:
         )
 
         process_consignment(
-            "cons1", "source-bucket", "dest-bucket", {"docx", "xls", "xlsx"}
+            "cons1",
+            "source-bucket",
+            "dest-bucket",
+            {"docx", "xls", "xlsx"},
+            conn,
         )
 
         # Verify the file was uploaded
@@ -278,22 +266,10 @@ class TestProcessConsignment:
         conn.execute(insert(ffid).values(FileId="file123", Extension="txt"))
         conn.commit()
 
-        class DummyEngine:
-            def connect(self):
-                return mock.MagicMock(
-                    __enter__=lambda self: conn, __exit__=lambda *a: None
-                )
-
-        import access_copy_converter.main as main_module
-
         monkeypatch.setattr(main_module, "s3", s3_client)
-        monkeypatch.setattr(main_module, "get_engine", lambda: DummyEngine())
 
         process_consignment(
-            "cons1",
-            "src",
-            "dst",
-            convertible_extensions={"docx", "xls", "xlsx"},
+            "cons1", "src", "dst", {"docx", "xls", "xlsx"}, conn
         )
 
         # Verify no files were uploaded to destination

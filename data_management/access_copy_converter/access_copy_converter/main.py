@@ -111,13 +111,9 @@ def convert_xls_xlsx_to_pdf(tmpdir, input_path, output_path):
 
 
 def process_consignment(
-    consignment_ref,
-    source_bucket,
-    dest_bucket,
-    convertible_extensions,
+    consignment_ref, source_bucket, dest_bucket, convertible_extensions, conn
 ):
     prefix = f"{consignment_ref}/"
-    engine = get_engine()
     metadata = MetaData()
 
     response = s3.list_objects_v2(Bucket=source_bucket, Prefix=prefix)
@@ -129,7 +125,7 @@ def process_consignment(
         f"{len(response['Contents'])} files in consignment {consignment_ref}"
     )
 
-    with engine.connect() as conn:
+    with conn:
         for obj in response["Contents"]:
             key = obj["Key"]
             file_id = key.split("/")[-1]
@@ -176,7 +172,7 @@ def process_consignment(
 
 
 def create_access_copies_for_all_consignments(
-    source_bucket, dest_bucket, convertible_extensions
+    source_bucket, dest_bucket, convertible_extensions, conn
 ):
     paginator = s3.get_paginator("list_objects_v2")
     response = paginator.paginate(Bucket=source_bucket)
@@ -189,12 +185,16 @@ def create_access_copies_for_all_consignments(
     for consignment_ref in consignments:
         logger.info(f"Processing consignment: {consignment_ref}")
         process_consignment(
-            consignment_ref, source_bucket, dest_bucket, convertible_extensions
+            consignment_ref,
+            source_bucket,
+            dest_bucket,
+            convertible_extensions,
+            conn,
         )
 
 
 def create_access_copy_from_sns(
-    source_bucket, dest_bucket, convertible_extensions
+    source_bucket, dest_bucket, convertible_extensions, conn
 ):
     raw_sns_message = os.getenv("SNS_MESSAGE")
     if not raw_sns_message:
@@ -213,7 +213,11 @@ def create_access_copy_from_sns(
         raise Exception("Missing consignment_reference in SNS Message")
     logger.info(f"Processing consignment: {consignment_ref}")
     process_consignment(
-        consignment_ref, source_bucket, dest_bucket, convertible_extensions
+        consignment_ref,
+        source_bucket,
+        dest_bucket,
+        convertible_extensions,
+        conn,
     )
 
 
@@ -229,15 +233,16 @@ def main():
     conversion_type = os.getenv("CONVERSION_TYPE")
     if not conversion_type:
         raise Exception("CONVERSION_TYPE environment variable not found")
-
+    engine = get_engine()
+    conn = engine.connect()
     if conversion_type == "ALL":
         create_access_copies_for_all_consignments(
-            source_bucket, dest_bucket, convertible_extensions
+            source_bucket, dest_bucket, convertible_extensions, conn
         )
 
     elif conversion_type == "SINGLE":
         create_access_copy_from_sns(
-            source_bucket, dest_bucket, convertible_extensions
+            source_bucket, dest_bucket, convertible_extensions, conn
         )
 
     else:
