@@ -2234,6 +2234,7 @@ class TestSearchTransferringBody:
         Given a standard user accessing the search transferring body page
         When a record has no highlights
         Then the table should render only the file name and link in both columns
+        And all accordions should be open if open_all param is present
         """
         file_name = "plain_file.txt"
         file_id = "abc123"
@@ -2269,16 +2270,19 @@ class TestSearchTransferringBody:
         ].consignment.series.body.BodyId
 
         response = client.get(
-            f"/search/transferring_body/{transferring_body_id}?query=plain"
+            f"/search/transferring_body/{transferring_body_id}?query=plain&open_all=open_all"
         )
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
         table_body = soup.find("tbody")
         table_rows_cell_values = get_table_rows_cell_values(table_body)
         assert ["File name", file_name] in table_rows_cell_values
-
         assert ["series_name", "series_x"] not in table_rows_cell_values
         assert ["consignment_reference", "cref"] not in table_rows_cell_values
+
+        # Check all accordions are open
+        details_elements = soup.find_all("details")
+        assert all("open" in details.attrs for details in details_elements)
 
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_empty_highlights_renders_file_name_and_search_results(
@@ -2292,6 +2296,7 @@ class TestSearchTransferringBody:
         Given a standard user accessing the search transferring body page
         When a record has an empty highlights dict
         Then the table should render only the file name and link in both columns
+        And all accordions should be open if open_all param is present
         """
         file_name = "plain_file2.txt"
         file_id = "def456"
@@ -2327,13 +2332,16 @@ class TestSearchTransferringBody:
         ].consignment.series.body.BodyId
 
         response = client.get(
-            f"/search/transferring_body/{transferring_body_id}?query=plain"
+            f"/search/transferring_body/{transferring_body_id}?query=plain&open_all=open_all"
         )
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
         table_body = soup.find("tbody")
         table_rows_cell_values = get_table_rows_cell_values(table_body)
         assert ["File name", file_name] in table_rows_cell_values
-
         assert ["series_name", "series_y"] not in table_rows_cell_values
         assert ["consignment_reference", "cref2"] not in table_rows_cell_values
+
+        # Check all accordions are open
+        details_elements = soup.find_all("details")
+        assert all("open" in details.attrs for details in details_elements)

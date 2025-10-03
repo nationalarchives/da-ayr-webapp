@@ -132,7 +132,19 @@
                                                             </td>
                                                         {% else %}
                                                             {% set file_name = record['_source']['file_name'] %}
-                                                            <td class="govuk-table__cell">File name</td>
+                                                            <td class="govuk-table__cell">
+                                                                <div class="govuk-table__cell__data">
+                                                                    <button disabled
+                                                                            data-main-row="{{ main_loop_index }}"
+                                                                            data-file-name="{{ file_name }}"
+                                                                            class="govuk-table__toggle-button"
+                                                                            aria-label="Expand rows for file {{ file_name }}"
+                                                                            aria-controls="hidden-row-{{ main_loop_index }}-0"
+                                                                            aria-expanded="false"
+                                                                            type="button"></button>
+                                                                    <span>File name</span>
+                                                                </div>
+                                                            </td>
                                                             <td class="govuk-table__cell">
                                                                 <a href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ file_name }}</a>
                                                             </td>
