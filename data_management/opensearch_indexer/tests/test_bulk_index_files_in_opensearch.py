@@ -20,7 +20,13 @@ from opensearchpy import RequestsHttpConnection
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
-from .conftest import Body, Consignment, FFIDMetadata, File, Series
+from data_management.conftest import (
+    Body,
+    Consignment,
+    FFIDMetadata,
+    File,
+    Series,
+)
 
 
 @mock.patch(
@@ -588,7 +594,7 @@ def test_bulk_index_consignment_error_handling(
 
     # Insert mock data into PostgreSQL
     engine = create_engine(database_url)
-    from data_management.opensearch_indexer.tests.conftest import Base
+    from data_management.conftest import Base
 
     Base.metadata.create_all(engine)  # Create tables for the test
     Session = sessionmaker(bind=engine)
