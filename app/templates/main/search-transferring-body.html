@@ -131,7 +131,8 @@
                                                                 {% endif %}
                                                             </td>
                                                         {% else %}
-                                                            {% set file_name = record['_source']['file_name'] %}
+                                                        {% set file_name = record['_source']['file_name'] %}
+                                                        <td class="govuk-table__cell">
                                                             <div class="govuk-table__cell__data">
                                                                 <button disabled
                                                                         data-main-row="{{ main_loop_index }}"
@@ -141,13 +142,12 @@
                                                                         aria-controls="{% for i in range(total_fields) %}hidden-row-{{ main_loop_index }}-{{ i }}{% if not loop.last %} {% endif %}{% endfor %}"
                                                                         aria-expanded="false"
                                                                         type="button"></button>
-                                                                <a href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ file_name }}</a>
+                                                                <span>File name</span>
                                                             </div>
                                                         </td>
-                                                        <!-- <td class="govuk-table__cell">File name</td>
-                                                            <td class="govuk-table__cell">
-                                                                <a href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ file_name }}</a>
-                                                            </td> -->
+                                                        <td class="govuk-table__cell">
+                                                            <a href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ record['_source']['file_name'] }}</a> 
+                                                        </td>
                                                     {% endif %}
                                                 </tr>
                                                 {% if record['highlight'] %}
