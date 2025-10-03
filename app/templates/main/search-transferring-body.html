@@ -146,7 +146,7 @@
                                                                 </div>
                                                             </td>
                                                             <td class="govuk-table__cell">
-                                                                <a href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ record['_source']['file_name'] }}</a>
+                                                                <a href="{{ url_for('main.record', record_id=record['_source']['file_id']) }}">{{ file_name }}</a>
                                                             </td>
                                                         {% endif %}
                                                     </tr>
