@@ -741,6 +741,7 @@ def record(record_id: uuid.UUID):
             presigned_url = create_presigned_url_for_access_copy(file)
             can_render_file = True
         except Exception as e:
+            can_render_file = False
             current_app.app_logger.error(
                 f"Failed to create presigned URL for access copy: {e}"
             )
