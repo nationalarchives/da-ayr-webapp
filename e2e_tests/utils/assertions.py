@@ -32,7 +32,7 @@ def compare_snapshot(baseline_path, actual_image):
     score, _diff = ssim(
         actual_np, expected_np, full=True, win_size=win_size, channel_axis=-1
     )
-    return score >= 0.95, score
+    return score >= 0.98, score
 
 
 def assert_matches_snapshot(snapshot, device, page_name):

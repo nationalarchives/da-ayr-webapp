@@ -21,6 +21,9 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     openssl \
     curl \
+    tesseract-ocr \
+    antiword \
+    libreoffice \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -sSL https://install.python-poetry.org | python3 -

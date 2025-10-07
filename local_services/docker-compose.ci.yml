@@ -235,7 +235,7 @@ services:
       - DB_NAME=${POSTGRES_DB}
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
-      - DB_SSL_ROOT_CERTIFICATE=/app/local_services/webapp_postgres_certs/root-ca.pem
+      # - DB_SSL_ROOT_CERTIFICATE=/app/local_services/webapp_postgres_certs/root-ca.pem
       - SQLALCHEMY_SSL_MODE=disable
       - KEYCLOAK_BASE_URI=http://keycloak:8080
       - KEYCLOAK_CLIENT_ID=ayr-beta

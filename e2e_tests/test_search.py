@@ -56,7 +56,7 @@ class TestSearch:
         header_rows = utils.get_desktop_page_table_headers(aau_user_page)
         rows = utils.get_desktop_page_table_rows(aau_user_page)
 
-        expected_rows = [["Testing A", "14"]]
+        expected_rows = [["Testing A", "16"], ["AYR Test Data Department", "2"]]
         verify_search_results_summary_header_row(header_rows)
         assert rows == expected_rows
 
@@ -97,16 +97,16 @@ class TestSearchResultsSummary:
         )
 
         expected_row_metadata = [
-            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Closed", "18/10/2048"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
         ]
 
         assert table_row_metadata == expected_row_metadata
