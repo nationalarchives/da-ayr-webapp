@@ -741,7 +741,6 @@ def record(record_id: uuid.UUID):
             presigned_url = create_presigned_url_for_access_copy(file)
             can_render_file = True
         except Exception as e:
-            # can_render_file = False
             current_app.app_logger.error(
                 f"Failed to create presigned URL for access copy: {e}"
             )
@@ -752,8 +751,7 @@ def record(record_id: uuid.UUID):
             current_app.app_logger.info(
                 f"Failed to create presigned url for document render non-javascript fallback {e}"
             )
-    if not presigned_url:
-        can_render_file = False
+
     return render_template(
         "record.html",
         form=form,
