@@ -736,6 +736,7 @@ def record(record_id: uuid.UUID):
     manifest_url = url_for(
         "main.generate_manifest", record_id=record_id, _external=True
     )
+    access_copy_failed = False
     if not can_render_file and file_extension in convertible_extensions:
         try:
             presigned_url = create_presigned_url_for_access_copy(file)
@@ -743,6 +744,7 @@ def record(record_id: uuid.UUID):
             can_render_file = True
         except Exception as e:
             print(f"NO presigned_url: {presigned_url}")
+            access_copy_failed = True
             current_app.app_logger.error(
                 f"Failed to create presigned URL for access copy: {e}"
             )
@@ -763,6 +765,7 @@ def record(record_id: uuid.UUID):
         can_download_records=can_download_records,
         filters={},
         can_render_file=can_render_file,
+        access_copy_failed=access_copy_failed,
         manifest_url=manifest_url,
         file_extension=file_extension,
         presigned_url=presigned_url,
