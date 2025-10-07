@@ -153,10 +153,10 @@ def main():
 
     # Summary
     logger.info(
-        f"\n{'='*60}\nIndexing complete\n"
+        f"\n{'=' * 60}\nIndexing complete\n"
         f"Total consignments: {len(consignment_references)}\n"
         f"Successfully indexed: {len(consignment_references) - len(failed_consignments)}\n"
-        f"Failed: {len(failed_consignments)}\n{'='*60}"
+        f"Failed: {len(failed_consignments)}\n{'=' * 60}"
     )
 
     if failed_consignments:
