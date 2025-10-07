@@ -249,6 +249,11 @@ class TestGetFileMetadata:
                 "file_reference": file.FileReference,
                 "former_reference": record_files[1]["former_reference"].Value,
                 "translated_title": record_files[1]["translated_title"].Value,
+                "related_material": record_files[1]["related_material"].Value,
+                "restrictions_on_use": record_files[1][
+                    "restrictions_on_use"
+                ].Value,
+                "note": record_files[1]["note"].Value,
                 "held_by": record_files[1]["held_by"].Value,
                 "legal_status": record_files[1]["legal_status"].Value,
                 "rights_copyright": record_files[1]["rights_copyright"].Value,
@@ -294,6 +299,11 @@ class TestGetFileMetadata:
                 "file_reference": file.FileReference,
                 "former_reference": record_files[3]["former_reference"].Value,
                 "translated_title": record_files[3]["translated_title"].Value,
+                "related_material": record_files[3]["related_material"].Value,
+                "restrictions_on_use": record_files[3][
+                    "restrictions_on_use"
+                ].Value,
+                "note": record_files[3]["note"].Value,
                 "held_by": record_files[3]["held_by"].Value,
                 "legal_status": record_files[3]["legal_status"].Value,
                 "rights_copyright": record_files[3]["rights_copyright"].Value,
