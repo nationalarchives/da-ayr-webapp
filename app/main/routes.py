@@ -739,8 +739,10 @@ def record(record_id: uuid.UUID):
     if not can_render_file and file_extension in convertible_extensions:
         try:
             presigned_url = create_presigned_url_for_access_copy(file)
+            print(f"presigned URL:----{presigned_url}")
             can_render_file = True
         except Exception as e:
+            print(f"NO presigned_url: {presigned_url}")
             current_app.app_logger.error(
                 f"Failed to create presigned URL for access copy: {e}"
             )
