@@ -67,7 +67,7 @@ def create_presigned_url_for_access_copy(file: File) -> str:
         print("File Not Found ---------------+++++++++++=")
         if e.response["Error"]["Code"] == "404":
             current_app.logger.error("No Files in Access Copy Bucket")
-        return None
+        raise Exception
     presigned_url = s3.generate_presigned_url(
         "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=10
     )
