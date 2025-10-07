@@ -2,6 +2,7 @@ import io
 from typing import Any
 
 import boto3
+from botocore.exceptions import ClientError
 from flask import Response, current_app, jsonify
 from PIL import Image
 
@@ -59,6 +60,14 @@ def create_presigned_url_for_access_copy(file: File) -> str:
     s3 = boto3.client("s3")
     bucket = current_app.config["ACCESS_COPY_BUCKET"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+    try:
+        res = s3.head_object(Bucket=bucket, Key=key)
+        print(f"Found File------------------{res}")
+    except ClientError as e:
+        print("File Not Found ---------------+++++++++++=")
+        if e.response["Error"]["Code"] == "404":
+            current_app.logger.error("No Files in Access Copy Bucket")
+        return None
     presigned_url = s3.generate_presigned_url(
         "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=10
     )
