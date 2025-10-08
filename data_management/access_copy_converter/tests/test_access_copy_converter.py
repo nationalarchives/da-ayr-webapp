@@ -309,16 +309,14 @@ class TestProcessConsignment:
             main_module, "convert_with_libreoffice", fake_convert
         )
 
-        # --- Run both consignments sequentially using the same DB connection ---
         process_consignment(
             "cons1", "source-bucket", "dest-bucket", {"docx"}, conn
         )
-        # This second call would fail with "This Connection is closed" in the buggy version
+
         process_consignment(
             "cons2", "source-bucket", "dest-bucket", {"docx"}, conn
         )
 
-        # --- Verify both files were uploaded successfully ---
         resp = s3_client.list_objects_v2(Bucket="dest-bucket")
         uploaded_keys = [obj["Key"] for obj in resp.get("Contents", [])]
         assert "cons1/fileA" in uploaded_keys
