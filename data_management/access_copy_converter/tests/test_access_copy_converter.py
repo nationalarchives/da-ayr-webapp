@@ -275,3 +275,51 @@ class TestProcessConsignment:
         # Verify no files were uploaded to destination
         response = s3_client.list_objects_v2(Bucket="dst", Prefix="cons1/")
         assert "Contents" not in response
+
+    @mock_aws
+    def test_multiple_consignments_reuse_connection(
+        self, monkeypatch, sqlite_conn
+    ):
+        s3_client = boto3.client("s3", region_name="eu-west-2")
+        for bucket in ["source-bucket", "dest-bucket"]:
+            s3_client.create_bucket(
+                Bucket=bucket,
+                CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+            )
+        s3_client.put_object(
+            Bucket="source-bucket", Key="cons1/fileA", Body=b"A"
+        )
+        s3_client.put_object(
+            Bucket="source-bucket", Key="cons2/fileB", Body=b"B"
+        )
+
+        monkeypatch.setattr(main_module, "s3", s3_client)
+
+        conn, metadata, ffid, file_table = sqlite_conn
+        conn.execute(insert(ffid).values(FileId="fileA", Extension="docx"))
+        conn.execute(insert(ffid).values(FileId="fileB", Extension="docx"))
+        conn.commit()
+
+        def fake_convert(input_path, output_path, convert_to="pdf"):
+            from pathlib import Path
+
+            Path(output_path).write_bytes(b"%PDF-1.4")
+
+        monkeypatch.setattr(
+            main_module, "convert_with_libreoffice", fake_convert
+        )
+
+        # --- Run both consignments sequentially using the same DB connection ---
+        process_consignment(
+            "cons1", "source-bucket", "dest-bucket", {"docx"}, conn
+        )
+        # This second call would fail with "This Connection is closed" in the buggy version
+        process_consignment(
+            "cons2", "source-bucket", "dest-bucket", {"docx"}, conn
+        )
+
+        # --- Verify both files were uploaded successfully ---
+        resp = s3_client.list_objects_v2(Bucket="dest-bucket")
+        uploaded_keys = [obj["Key"] for obj in resp.get("Contents", [])]
+        assert "cons1/fileA" in uploaded_keys
+        assert "cons2/fileB" in uploaded_keys
