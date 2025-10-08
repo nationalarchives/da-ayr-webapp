@@ -125,50 +125,47 @@ def process_consignment(
         f"{len(response['Contents'])} files in consignment {consignment_ref}"
     )
 
-    with conn:
-        for obj in response["Contents"]:
-            key = obj["Key"]
-            file_id = key.split("/")[-1]
-            logger.info(f"Checking file_id: {file_id}")
+    for obj in response["Contents"]:
+        key = obj["Key"]
+        file_id = key.split("/")[-1]
+        logger.info(f"Checking file_id: {file_id}")
+
+        try:
+            extension = get_extension(file_id, conn, metadata)
+        except Exception as e:
+            logger.error(f"Failed to get file_extension for {file_id}: {e}")
+            continue
+        logger.info(f"File extension: {extension}")
+
+        if extension not in convertible_extensions:
+            logger.info(f"File {file_id} does not require conversion")
+            continue
+
+        dest_key = f"{consignment_ref}/{file_id}"
+        if already_converted(dest_bucket, dest_key):
+            logger.info(f"Skipping {file_id}, already converted")
+            continue
+
+        logger.info(f"File {file_id} requires conversion to PDF")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            input_path = os.path.join(tmpdir, f"input.{extension}")
+            output_path = os.path.join(tmpdir, "input.pdf")
+
+            s3.download_file(source_bucket, key, input_path)
+            logger.info(f"Downloaded {key} to {input_path}")
 
             try:
-                extension = get_extension(file_id, conn, metadata)
+                if extension in ("xls", "xlsx"):
+                    convert_xls_xlsx_to_pdf(tmpdir, input_path, output_path)
+                else:
+                    convert_with_libreoffice(input_path, output_path)
+                logger.info(f"Converted {file_id} to PDF")
             except Exception as e:
-                logger.error(f"Failed to get file_extension for {file_id}: {e}")
-                continue
-            logger.info(f"File extension: {extension}")
-
-            if extension not in convertible_extensions:
-                logger.info(f"File {file_id} does not require conversion")
+                logger.error(f"Conversion failed for {file_id}: {e}")
                 continue
 
-            dest_key = f"{consignment_ref}/{file_id}"
-            if already_converted(dest_bucket, dest_key):
-                logger.info(f"Skipping {file_id}, already converted")
-                continue
-
-            logger.info(f"File {file_id} requires conversion to PDF")
-            with tempfile.TemporaryDirectory() as tmpdir:
-                input_path = os.path.join(tmpdir, f"input.{extension}")
-                output_path = os.path.join(tmpdir, "input.pdf")
-
-                s3.download_file(source_bucket, key, input_path)
-                logger.info(f"Downloaded {key} to {input_path}")
-
-                try:
-                    if extension in ("xls", "xlsx"):
-                        convert_xls_xlsx_to_pdf(tmpdir, input_path, output_path)
-                    else:
-                        convert_with_libreoffice(input_path, output_path)
-                    logger.info(f"Converted {file_id} to PDF")
-                except Exception as e:
-                    logger.error(f"Conversion failed for {file_id}: {e}")
-                    continue
-
-                s3.upload_file(output_path, dest_bucket, dest_key)
-                logger.info(
-                    f"Uploaded converted file {file_id} to Access Copy Bucket"
-                )
+            s3.upload_file(output_path, dest_bucket, dest_key)
+            logger.info(f"Uploaded converted file {file_id} to {dest_bucket}")
 
 
 def create_access_copies_for_all_consignments(
