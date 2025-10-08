@@ -64,7 +64,7 @@ def create_presigned_url_for_access_copy(file: File) -> str:
         s3.head_object(Bucket=bucket, Key=key)
     except ClientError as e:
         if e.response["Error"]["Code"] == "404":
-            raise Exception("No Converted file in Access Copy Bucket")
+            raise Exception("No converted file in Access Copy bucket")
 
     presigned_url = s3.generate_presigned_url(
         "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=10
