@@ -165,7 +165,7 @@ def process_consignment(
                 continue
 
             s3.upload_file(output_path, dest_bucket, dest_key)
-            logger.info(f"Uploaded converted file {file_id} to {dest_bucket}")
+            logger.info(f"Uploaded converted file {file_id} Access Copy bucket")
 
 
 def create_access_copies_for_all_consignments(
