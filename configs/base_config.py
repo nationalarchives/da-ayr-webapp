@@ -79,11 +79,18 @@ class BaseConfig(object):
 
     @property
     def SQLALCHEMY_DATABASE_URI(self):
-        return (
+        try:
+            ssl_mode = self._get_config_value("SQLALCHEMY_SSL_MODE")
+        except KeyError:
+            ssl_mode = "verify-full"
+        base_uri = (
             f"postgresql+psycopg2://{self.DB_USER}:{quote_plus(self.DB_PASSWORD)}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-            f"?sslmode=verify-full&sslrootcert={self.DB_SSL_ROOT_CERTIFICATE}"
         )
+        if ssl_mode == "disable":
+            return f"{base_uri}?sslmode=disable"
+        else:
+            return f"{base_uri}?sslmode={ssl_mode}&sslrootcert={self.DB_SSL_ROOT_CERTIFICATE}"
 
     @property
     def KEYCLOAK_BASE_URI(self):
@@ -118,8 +125,20 @@ class BaseConfig(object):
         return self._get_config_value("RECORD_BUCKET_NAME")
 
     @property
+    def ACCESS_COPY_BUCKET(self):
+        return self._get_config_value("ACCESS_COPY_BUCKET")
+
+    @property
     def S3_BUCKET_URL(self):
         return f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"
+
+    @property
+    def ACCESS_COPY_BUCKET_URL(self):
+        return f"https://{self.ACCESS_COPY_BUCKET}.s3.amazonaws.com"
+
+    @property
+    def CONVERTIBLE_EXTENSIONS(self):
+        return self._get_config_value("CONVERTIBLE_EXTENSIONS")
 
     @property
     def FLASKS3_ACTIVE(self):
@@ -153,6 +172,14 @@ class BaseConfig(object):
         return int(self._get_config_value("OPEN_SEARCH_TIMEOUT"))
 
     @property
+    def OPEN_SEARCH_USE_SSL(self) -> bool:
+        return self._get_config_value("OPEN_SEARCH_USE_SSL") == "true"
+
+    @property
+    def OPEN_SEARCH_VERIFY_CERTS(self) -> bool:
+        return self._get_config_value("OPEN_SEARCH_VERIFY_CERTS") == "true"
+
+    @property
     def PERF_TEST(self):
         return self._get_config_value("PERF_TEST") == "True"
 
@@ -166,6 +193,7 @@ class BaseConfig(object):
             SELF,
             self.FLASKS3_CDN_DOMAIN,
             self.S3_BUCKET_URL,
+            self.ACCESS_COPY_BUCKET_URL,
         ]
 
     @property
@@ -174,6 +202,7 @@ class BaseConfig(object):
             SELF,
             self.FLASKS3_CDN_DOMAIN,
             self.S3_BUCKET_URL,
+            self.ACCESS_COPY_BUCKET_URL,
         ]
 
     @property
@@ -208,15 +237,29 @@ class BaseConfig(object):
 
     @property
     def CSP_IMG_SRC(self):
-        return [SELF, self.FLASKS3_CDN_DOMAIN, self.S3_BUCKET_URL, "data:"]
+        return [
+            SELF,
+            self.FLASKS3_CDN_DOMAIN,
+            self.S3_BUCKET_URL,
+            self.ACCESS_COPY_BUCKET_URL,
+            "data:",
+        ]
 
     @property
     def CSP_FRAME_SRC(self):
-        return [SELF, self.S3_BUCKET_URL]
+        return [
+            SELF,
+            self.S3_BUCKET_URL,
+            self.ACCESS_COPY_BUCKET_URL,
+        ]
 
     @property
     def CSP_OBJECT_SRC(self):
-        return [SELF, self.S3_BUCKET_URL]
+        return [
+            SELF,
+            self.S3_BUCKET_URL,
+            self.ACCESS_COPY_BUCKET_URL,
+        ]
 
     @property
     def CSP_WORKER_SRC(self):

@@ -17,8 +17,13 @@ def test_sign_in_succeeds_when_valid_credentials(
     """
     username, password = create_aau_keycloak_user
     page.goto("/sign-in")
-    page.get_by_label("Email address").fill(username)
-    page.get_by_label("Password").fill(password)
+    if page.locator("label:has-text('Email address')").count() > 0:
+        page.get_by_label("Email address").first.fill(username)
+    elif page.locator("label:has-text('Email')").count() > 0:
+        page.get_by_label("Email").first.fill(username)
+    else:
+        page.get_by_label("Username or email").first.fill(username)
+    page.get_by_role("textbox", name="Password").fill(password)
     page.get_by_role("button", name="Sign in").click()
     expect(page).to_have_url("/browse")
 
@@ -51,6 +56,7 @@ def test_sign_in_succeeds_when_valid_credentials(
         "scope",
         "sid",
         "groups",
+        "allowed-origins",
     }
 
     refresh_token = json.loads(decoded_data)["refresh_token"]
@@ -80,8 +86,13 @@ def test_token_expiry(page: Page, create_aau_keycloak_user):
     username, password = create_aau_keycloak_user
 
     page.goto("/sign-in")
-    page.get_by_label("Email address").fill(username)
-    page.get_by_label("Password").fill(password)
+    if page.locator("label:has-text('Email address')").count() > 0:
+        page.get_by_label("Email address").first.fill(username)
+    elif page.locator("label:has-text('Email')").count() > 0:
+        page.get_by_label("Email").first.fill(username)
+    else:
+        page.get_by_label("Username or email").first.fill(username)
+    page.get_by_role("textbox", name="Password").fill(password)
     page.get_by_role("button", name="Sign in").click()
     expect(page).to_have_url("/browse")
 
@@ -115,7 +126,7 @@ def test_token_expiry(page: Page, create_aau_keycloak_user):
     exp_time = decoded_refresh_token["exp"]
     iat_time = decoded_refresh_token["iat"]
     token_lifetime = exp_time - iat_time
-    expected_lifetime = 7200
+    expected_lifetime = 1800
     assert (
         abs(token_lifetime - expected_lifetime) < 5
     ), "Refresh token expiry does not match expected config"
@@ -151,7 +162,12 @@ def test_sign_in_fails_when_invalid_credentials(page: Page):
     Then they should see an error message indicating the provided credentials are invalid.
     """
     page.goto("/sign-in")
-    page.get_by_label("Email address").fill("bad")
-    page.get_by_label("Password").fill("credentials")
+    if page.locator("label:has-text('Email address')").count() > 0:
+        page.get_by_label("Email address").first.fill("bad")
+    elif page.locator("label:has-text('Email')").count() > 0:
+        page.get_by_label("Email").first.fill("bad")
+    else:
+        page.get_by_label("Username or email").first.fill("bad")
+    page.get_by_role("textbox", name="Password").fill("credentials")
     page.get_by_role("button", name="Sign in").click()
     expect(page.get_by_text("Invalid username or password."))

@@ -569,6 +569,33 @@ def _get_file_metadata_query(file_id: uuid.UUID):
         func.max(
             db.case(
                 (
+                    FileMetadata.PropertyName == "related_material",
+                    FileMetadata.Value,
+                ),
+                else_=None,
+            ),
+        ).label("related_material"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "restrictions_on_use",
+                    FileMetadata.Value,
+                ),
+                else_=None,
+            ),
+        ).label("restrictions_on_use"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "note",
+                    FileMetadata.Value,
+                ),
+                else_=None,
+            ),
+        ).label("note"),
+        func.max(
+            db.case(
+                (
                     FileMetadata.PropertyName == "held_by",
                     FileMetadata.Value,
                 ),
@@ -650,6 +677,9 @@ def _get_file_metadata_query(file_id: uuid.UUID):
             sub_query.c.file_reference,
             sub_query.c.former_reference,
             sub_query.c.translated_title,
+            sub_query.c.related_material,
+            sub_query.c.restrictions_on_use,
+            sub_query.c.note,
             sub_query.c.held_by,
             sub_query.c.legal_status,
             sub_query.c.rights_copyright,

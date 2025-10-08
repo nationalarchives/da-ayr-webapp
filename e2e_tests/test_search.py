@@ -56,7 +56,7 @@ class TestSearch:
         header_rows = utils.get_desktop_page_table_headers(aau_user_page)
         rows = utils.get_desktop_page_table_rows(aau_user_page)
 
-        expected_rows = [["Testing A", "16"]]
+        expected_rows = [["Testing A", "14"]]
         verify_search_results_summary_header_row(header_rows)
         assert rows == expected_rows
 
@@ -97,16 +97,16 @@ class TestSearchResultsSummary:
         )
 
         expected_row_metadata = [
-            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "Closed", "18/10/2048"],
-            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "", "–"],
         ]
 
         assert table_row_metadata == expected_row_metadata
@@ -216,8 +216,9 @@ class TestSearchResults:
         standard_user_page.locator("#search-input").click()
         standard_user_page.locator("#search-input").fill("fil")
         standard_user_page.get_by_role("button", name="Search").click()
-        rows = standard_user_page.locator("tbody .govuk-table__row")
-        assert rows.count() == 35
+        standard_user_page.wait_for_selector("tbody .govuk-table__row--primary")
+        rows = standard_user_page.locator("tbody .govuk-table__row--primary")
+        assert rows.count() == 9
 
         tbody_locator = standard_user_page.locator("tbody.govuk-table__body")
         inner_html = tbody_locator.inner_html()

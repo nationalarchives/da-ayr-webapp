@@ -40,6 +40,8 @@ def test_local_env_vars_config_initialized(monkeypatch):
     monkeypatch.setenv("DEFAULT_PAGE_SIZE", 10)
     monkeypatch.setenv("DEFAULT_DATE_FORMAT", "test_default_date_format")
     monkeypatch.setenv("RECORD_BUCKET_NAME", "test_record_bucket_name")
+    monkeypatch.setenv("ACCESS_COPY_BUCKET", "test_access_copy_bucket")
+    monkeypatch.setenv("CONVERTIBLE_EXTENSIONS", '["doc"]')
     monkeypatch.setenv("FLASKS3_ACTIVE", "False")
     monkeypatch.setenv("FLASKS3_CDN_DOMAIN", "test_flasks3_cdn_domain")
     monkeypatch.setenv("FLASKS3_BUCKET_NAME", "test_flasks3_bucket_name")
@@ -66,6 +68,8 @@ def test_local_env_vars_config_initialized(monkeypatch):
     assert config.DEFAULT_PAGE_SIZE == 10
     assert config.DEFAULT_DATE_FORMAT == "test_default_date_format"
     assert config.RECORD_BUCKET_NAME == "test_record_bucket_name"
+    assert config.ACCESS_COPY_BUCKET == "test_access_copy_bucket"
+    assert config.CONVERTIBLE_EXTENSIONS == '["doc"]'
     assert config.FLASKS3_ACTIVE is False
     assert config.FLASKS3_CDN_DOMAIN == "test_flasks3_cdn_domain"
     assert config.FLASKS3_BUCKET_NAME == "test_flasks3_bucket_name"
@@ -81,11 +85,13 @@ def test_local_env_vars_config_initialized(monkeypatch):
         "'self'",
         "test_flasks3_cdn_domain",
         "https://test_record_bucket_name.s3.amazonaws.com",
+        "https://test_access_copy_bucket.s3.amazonaws.com",
     ]
     assert config.CSP_SCRIPT_SRC == [
         "'self'",
         "test_flasks3_cdn_domain",
         "https://test_record_bucket_name.s3.amazonaws.com",
+        "https://test_access_copy_bucket.s3.amazonaws.com",
     ]
     assert config.CSP_SCRIPT_SRC_ELEM == [
         "'self'",
@@ -108,15 +114,18 @@ def test_local_env_vars_config_initialized(monkeypatch):
         "'self'",
         "test_flasks3_cdn_domain",
         "https://test_record_bucket_name.s3.amazonaws.com",
+        "https://test_access_copy_bucket.s3.amazonaws.com",
         "data:",
     ]
     assert config.CSP_FRAME_SRC == [
         "'self'",
         "https://test_record_bucket_name.s3.amazonaws.com",
+        "https://test_access_copy_bucket.s3.amazonaws.com",
     ]
     assert config.CSP_OBJECT_SRC == [
         "'self'",
         "https://test_record_bucket_name.s3.amazonaws.com",
+        "https://test_access_copy_bucket.s3.amazonaws.com",
     ]
     assert config.CSP_WORKER_SRC == [
         "blob:",
@@ -154,6 +163,8 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
     )
     monkeypatch.setenv("DEFAULT_PAGE_SIZE", 10)
     monkeypatch.setenv("RECORD_BUCKET_NAME", "test_record_bucket_name")
+    monkeypatch.setenv("ACCESS_COPY_BUCKET", "test_access_copy_bucket")
+    monkeypatch.setenv("CONVERTIBLE_EXTENSIONS", '["doc"]')
     monkeypatch.setenv("AWS_REGION", "test_region")
     monkeypatch.setenv("FLASKS3_ACTIVE", "False")
     monkeypatch.setenv("FLASKS3_CDN_DOMAIN", "test_flasks3_cdn_domain")
@@ -205,6 +216,8 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
             "KEYCLOAK_CLIENT_ID": "test_keycloak_client_id",
             "KEYCLOAK_REALM_NAME": "test_keycloack_realm_name",
             "RECORD_BUCKET_NAME": "test_record_bucket_name",
+            "ACCESS_COPY_BUCKET": "test_access_copy_bucket",
+            "CONVERTIBLE_EXTENSIONS": '["doc"]',
             "FLASKS3_ACTIVE": "False",
             "FLASKS3_CDN_DOMAIN": "test_flasks3_cdn_domain",
             "PERF_TEST": "False",
@@ -293,6 +306,8 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
     assert config.DEFAULT_DATE_FORMAT == "test_default_date_format"
 
     assert config.RECORD_BUCKET_NAME == "test_record_bucket_name"
+    assert config.ACCESS_COPY_BUCKET == "test_access_copy_bucket"
+    assert config.CONVERTIBLE_EXTENSIONS == '["doc"]'
     assert config.FLASKS3_ACTIVE is False
     assert config.FLASKS3_CDN_DOMAIN == "test_flasks3_cdn_domain"
     assert config.FLASKS3_BUCKET_NAME == "test_flasks3_bucket_name"
@@ -315,11 +330,13 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         "'self'",
         "test_flasks3_cdn_domain",
         "https://test_record_bucket_name.s3.amazonaws.com",
+        "https://test_access_copy_bucket.s3.amazonaws.com",
     ]
     assert config.CSP_SCRIPT_SRC == [
         "'self'",
         "test_flasks3_cdn_domain",
         "https://test_record_bucket_name.s3.amazonaws.com",
+        "https://test_access_copy_bucket.s3.amazonaws.com",
     ]
     assert config.CSP_SCRIPT_SRC_ELEM == [
         "'self'",
@@ -342,15 +359,18 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         "'self'",
         "test_flasks3_cdn_domain",
         "https://test_record_bucket_name.s3.amazonaws.com",
+        "https://test_access_copy_bucket.s3.amazonaws.com",
         "data:",
     ]
     assert config.CSP_FRAME_SRC == [
         "'self'",
         "https://test_record_bucket_name.s3.amazonaws.com",
+        "https://test_access_copy_bucket.s3.amazonaws.com",
     ]
     assert config.CSP_OBJECT_SRC == [
         "'self'",
         "https://test_record_bucket_name.s3.amazonaws.com",
+        "https://test_access_copy_bucket.s3.amazonaws.com",
     ]
     assert config.CSP_WORKER_SRC == [
         "blob:",
@@ -377,6 +397,8 @@ def test_aws_secrets_manager_config_variable_not_set_error(monkeypatch):
             "KEYCLOAK_REALM_NAME": "test_keycloack_realm_name",
             "KEYCLOAK_CLIENT_SECRET": "test_keycloak_client_secret",  # pragma: allowlist secret
             "RECORD_BUCKET_NAME": "test_record_bucket_name",
+            "ACCESS_COPY_BUCKET": "test_access_copy_bucket",
+            "CONVERTIBLE_EXTENSIONS": '["doc"]',
             "FLASKS3_ACTIVE": "False",
             "FLASKS3_CDN_DOMAIN": "test_flasks3_cdn_domain",
             "PERF_TEST": "False",

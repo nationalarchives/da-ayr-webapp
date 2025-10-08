@@ -97,6 +97,7 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         response = client.get(f"{self.route_url}/{file.FileId}#record-details")
@@ -132,6 +133,7 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -202,6 +204,7 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -249,6 +252,7 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -281,6 +285,68 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        soup = BeautifulSoup(html, "html.parser")
+        banner = soup.find("h2", string="Unable to display this record")
+        assert banner is not None
+
+    @mock_aws
+    def test_record_alert_banner_not_visible_for_convertible_extension(
+        self, app, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a File in the database
+        When a standard user with request to view the record details page
+        Then the response status code should be 200
+        If the extension of the File requested is compatible with IIIF but is convertible
+        Then the alert banner responsible with alerting the user should NOT be visible
+        """
+
+        file = FileFactory(ffid_metadata__Extension="doc")
+        bucket_name = "test_bucket"
+
+        app.config["ACCESS_COPY_BUCKET"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        soup = BeautifulSoup(html, "html.parser")
+        banner = soup.find("h2", string="Unable to display this record")
+        assert banner is None
+
+    @mock_aws
+    def test_record_record_alert_banner_is_visible_when_unsupported_file_extension_and_non_convertible(
+        self, app, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a File in the database
+        When a standard user with request to view the record details page
+        Then the response status code should be 200
+        If the extension of the File requested is not compatible with IIIF and not in convertible_extensions
+        Then the alert banner responsible with alerting the user should be visible
+        """
+
+        file = FileFactory(ffid_metadata__Extension="xls")
+
+        bucket_name = "test_bucket"
+
+        app.config["ACCESS_COPY_BUCKET"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -310,6 +376,7 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -341,6 +408,7 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -355,7 +423,7 @@ class TestRecord:
         assert banner is None
 
     def test_record_standard_user_with_perms_can_download_record_without_citeable_reference(
-        self, client: FlaskClient, mock_standard_user
+        self, app, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
@@ -364,6 +432,7 @@ class TestRecord:
         And the HTML content should see record download component
         on the page
         """
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         file = FileFactory(CiteableReference=None)
         mock_standard_user(
             client, file.consignment.series.body.Name, can_download=True
@@ -386,7 +455,7 @@ class TestRecord:
 
     @mock_aws
     def test_record_standard_user_with_perms_can_download_record_with_citeable_reference(
-        self, client: FlaskClient, mock_standard_user
+        self, app, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
@@ -395,6 +464,7 @@ class TestRecord:
         And the HTML content should see record download component
         on the page
         """
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         file = FileFactory(
             FileName="open_file.docx",
             CiteableReference="first_body/ABCDE",
@@ -422,7 +492,7 @@ class TestRecord:
         )
 
     def test_record_standard_user_without_perms_cant_see_download_button(
-        self, client: FlaskClient, mock_standard_user
+        self, app, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
@@ -431,6 +501,7 @@ class TestRecord:
         And the HTML content should NOT see record download component
         on the page
         """
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         file = FileFactory()
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -446,7 +517,7 @@ class TestRecord:
         assert button is None
 
     def test_record_aau_user_without_perms_cant_see_download_button(
-        self, client: FlaskClient, mock_all_access_user
+        self, app, client: FlaskClient, mock_all_access_user
     ):
         """
         Given a File in the database
@@ -455,6 +526,7 @@ class TestRecord:
         And the HTML content should NOT see record download component
         on the page
         """
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         file = FileFactory()
         mock_all_access_user(client)
 
@@ -489,6 +561,9 @@ class TestRecord:
             "date_last_modified": ("date_last_modified", "2023-01-15"),
             "former_reference": ("former_reference_department", "-"),
             "translated_title": ("file_name_translation", "-"),
+            "related_material": ("related_material", "-"),
+            "restrictions_on_use": ("restrictions_on_use", "-"),
+            "note": ("note", "-"),
             "held_by": ("held_by", "The National Archives, Kew"),
             "legal_status": ("legal_status", "Public record(s)"),
             "rights_copyright": ("rights_copyright", "Crown copyright"),
@@ -503,6 +578,7 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_standard_user(client, file.consignment.series.body.Name)
@@ -585,6 +661,24 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Related material</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                            {metadata_by_key["related_material"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Restrictions on use</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                            {metadata_by_key["restrictions_on_use"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Note</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                            {metadata_by_key["note"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {metadata_by_key["held_by"].Value}
@@ -646,6 +740,9 @@ class TestRecord:
                 "former reference",
             ),
             "translated_title": ("file_name_translation", "-"),
+            "related_material": ("related_material", "-"),
+            "restrictions_on_use": ("restrictions_on_use", "-"),
+            "note": ("note", "-"),
             "held_by": ("held_by", "The National Archives, Kew"),
             "legal_status": ("legal_status", "Public record(s)"),
             "rights_copyright": ("rights_copyright", "Crown copyright"),
@@ -659,6 +756,7 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_standard_user(client, file.consignment.series.body.Name)
@@ -778,6 +876,24 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Related material</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {metadata_by_key["related_material"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Restrictions on use</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {metadata_by_key["restrictions_on_use"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Note</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {metadata_by_key["note"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {metadata_by_key["held_by"].Value}
@@ -838,6 +954,9 @@ class TestRecord:
                 "former reference",
             ),
             "translated_title": ("file_name_translation", "-"),
+            "related_material": ("related_material", "-"),
+            "restrictions_on_use": ("restrictions_on_use", "-"),
+            "note": ("note", "-"),
             "held_by": ("held_by", "The National Archives, Kew"),
             "legal_status": ("legal_status", "Public record(s)"),
             "rights_copyright": ("rights_copyright", "Crown copyright"),
@@ -852,6 +971,7 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_standard_user(client, file.consignment.series.body.Name)
@@ -973,6 +1093,24 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Related material</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {metadata_by_key["related_material"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Restrictions on use</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {metadata_by_key["restrictions_on_use"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Note</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {metadata_by_key["note"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {metadata_by_key["held_by"].Value}
@@ -1022,6 +1160,7 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         response = client.get(f"{self.route_url}/{file.FileId}#record-view")

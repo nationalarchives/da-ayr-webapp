@@ -60,12 +60,13 @@ services:
         hard: 65536
     volumes:
       - opensearch-data2:/usr/share/opensearch/data
-      - ./opensearch_certs/opensearch-node1.crt:/usr/share/opensearch/config/opensearch-node1.crt
-      - ./opensearch_certs/opensearch-node1.key:/usr/share/opensearch/config/opensearch-node1.key
+      - ./opensearch_certs/opensearch-node2.crt:/usr/share/opensearch/config/opensearch-node2.crt
+      - ./opensearch_certs/opensearch-node2.key:/usr/share/opensearch/config/opensearch-node2.key
       - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
       - ./snapshots:/mnt/snapshots
     networks:
       - opensearch-net
+
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:latest
     container_name: opensearch-dashboards
@@ -77,8 +78,9 @@ services:
       OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
     networks:
       - opensearch-net
+
   postgres:
-    image: postgres:17.5
+    image: postgres:18.0
     volumes:
       - kc_postgres_data:/var/lib/postgresql/data
     environment:
@@ -91,7 +93,8 @@ services:
       - keycloak_network
 
   webapp_postgres:
-    image: postgres:17.5
+    image: postgres:18.0
+    user: postgres
     volumes:
       - webapp_postgres_data:/var/lib/postgresql/data
       - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
@@ -113,7 +116,7 @@ services:
     ]
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.3.2
+    image: quay.io/keycloak/keycloak:26.4.0
     command: start-dev --import-realm
     environment:
       KC_HOSTNAME: localhost
@@ -150,7 +153,6 @@ services:
     volumes:
       - ~/minio/data:/data
     command: server /data --console-address ":9001"
-
 
 volumes:
   opensearch-data1:

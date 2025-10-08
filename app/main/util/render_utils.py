@@ -122,6 +122,16 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
         return []
 
 
+def create_presigned_url_for_access_copy(file: File) -> str:
+    s3 = boto3.client("s3")
+    bucket = current_app.config["ACCESS_COPY_BUCKET"]
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+    presigned_url = s3.generate_presigned_url(
+        "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=10
+    )
+    return presigned_url
+
+
 def generate_pdf_manifest(
     file_name: str, file_url: str, manifest_url: str, file_obj: File = None
 ) -> Response:

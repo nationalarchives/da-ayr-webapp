@@ -85,11 +85,13 @@ def create_user_page(
     # so that multiple browser flags in cli are honoured
     def _create_user_page(username, password) -> Page:
         page.goto("/sign-in")
-        if page.locator("label:has-text('Email')").count() > 0:
+        if page.locator("label:has-text('Email address')").count() > 0:
+            page.get_by_label("Email address").first.fill(username)
+        elif page.locator("label:has-text('Email')").count() > 0:
             page.get_by_label("Email").first.fill(username)
         else:
             page.get_by_label("Username or email").first.fill(username)
-        page.get_by_label("Password").first.fill(password)
+        page.get_by_role("textbox", name="Password").fill(password)
         page.get_by_role("button", name="Sign in").click()
         return page
 
@@ -108,15 +110,16 @@ def keycloak_admin():
         client_id=client_id,
         realm_name=realm_name,
         client_secret_key=client_secret,
+        verify=False,
     )
 
     token = keycloak_openid.token(grant_type="client_credentials")
-    keycload_admin = keycloak.KeycloakAdmin(
+    keycloak_admin = keycloak.KeycloakAdmin(
         server_url=server_url,
         realm_name=realm_name,
         token=token,
     )
-    return keycload_admin
+    return keycloak_admin
 
 
 @pytest.fixture(scope="session")

@@ -10,7 +10,7 @@ from requests_aws4auth import AWS4Auth
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .conftest import (
+from data_management.conftest import (
     Body,
     Consignment,
     FFIDMetadata,
@@ -30,7 +30,7 @@ def patch_environment():
 @mock_aws
 def test_main_invokes_bulk_index_with_correct_file_data(monkeypatch, database):
     engine = create_engine(database.url())
-    from data_management.opensearch_indexer.tests.conftest import Base
+    from data_management.conftest import Base
 
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
