@@ -561,6 +561,9 @@ class TestRecord:
             "date_last_modified": ("date_last_modified", "2023-01-15"),
             "former_reference": ("former_reference_department", "-"),
             "translated_title": ("file_name_translation", "-"),
+            "related_material": ("related_material", "-"),
+            "restrictions_on_use": ("restrictions_on_use", "-"),
+            "note": ("note", "-"),
             "held_by": ("held_by", "The National Archives, Kew"),
             "legal_status": ("legal_status", "Public record(s)"),
             "rights_copyright": ("rights_copyright", "Crown copyright"),
@@ -658,6 +661,24 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Related material</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                            {metadata_by_key["related_material"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Restrictions on use</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                            {metadata_by_key["restrictions_on_use"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Note</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                            {metadata_by_key["note"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {metadata_by_key["held_by"].Value}
@@ -719,6 +740,9 @@ class TestRecord:
                 "former reference",
             ),
             "translated_title": ("file_name_translation", "-"),
+            "related_material": ("related_material", "-"),
+            "restrictions_on_use": ("restrictions_on_use", "-"),
+            "note": ("note", "-"),
             "held_by": ("held_by", "The National Archives, Kew"),
             "legal_status": ("legal_status", "Public record(s)"),
             "rights_copyright": ("rights_copyright", "Crown copyright"),
@@ -852,6 +876,24 @@ class TestRecord:
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Related material</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {metadata_by_key["related_material"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Restrictions on use</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {metadata_by_key["restrictions_on_use"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Note</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {metadata_by_key["note"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                             {metadata_by_key["held_by"].Value}
@@ -912,6 +954,9 @@ class TestRecord:
                 "former reference",
             ),
             "translated_title": ("file_name_translation", "-"),
+            "related_material": ("related_material", "-"),
+            "restrictions_on_use": ("restrictions_on_use", "-"),
+            "note": ("note", "-"),
             "held_by": ("held_by", "The National Archives, Kew"),
             "legal_status": ("legal_status", "Public record(s)"),
             "rights_copyright": ("rights_copyright", "Crown copyright"),
@@ -1045,6 +1090,24 @@ class TestRecord:
                 <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Translated file name</dt>
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                         {metadata_by_key["translated_title"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Related material</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {metadata_by_key["related_material"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Restrictions on use</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {metadata_by_key["restrictions_on_use"].Value}
+                </dd>
+            </div>
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Note</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                        {metadata_by_key["note"].Value}
                 </dd>
             </div>
             <div class="govuk-summary-list__row govuk-summary-list__row--record">

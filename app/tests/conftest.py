@@ -785,6 +785,15 @@ def record_files():
         "translated_title": FileMetadataFactory(
             file=file_1, PropertyName="file_name_translation", Value="-"
         ),
+        "related_material": FileMetadataFactory(
+            file=file_1, PropertyName="related_material", Value="-"
+        ),
+        "restrictions_on_use": FileMetadataFactory(
+            file=file_1, PropertyName="restrictions_on_use", Value="-"
+        ),
+        "note": FileMetadataFactory(
+            file=file_1, PropertyName="note", Value="-"
+        ),
         "held_by": FileMetadataFactory(
             file=file_1,
             PropertyName="held_by",
@@ -858,6 +867,15 @@ def record_files():
         "translated_title": FileMetadataFactory(
             file=file_2, PropertyName="file_name_translation", Value="-"
         ),
+        "related_material": FileMetadataFactory(
+            file=file_2, PropertyName="related_material", Value="-"
+        ),
+        "restrictions_on_use": FileMetadataFactory(
+            file=file_2, PropertyName="restrictions_on_use", Value="-"
+        ),
+        "note": FileMetadataFactory(
+            file=file_2, PropertyName="note", Value="-"
+        ),
         "held_by": FileMetadataFactory(
             file=file_2,
             PropertyName="held_by",
@@ -928,6 +946,15 @@ def record_files():
         "translated_title": FileMetadataFactory(
             file=file_3, PropertyName="file_name_translation", Value="-"
         ),
+        "related_material": FileMetadataFactory(
+            file=file_3, PropertyName="related_material", Value="-"
+        ),
+        "restrictions_on_use": FileMetadataFactory(
+            file=file_3, PropertyName="restrictions_on_use", Value="-"
+        ),
+        "note": FileMetadataFactory(
+            file=file_3, PropertyName="note", Value="-"
+        ),
         "held_by": FileMetadataFactory(
             file=file_3,
             PropertyName="held_by",
@@ -997,6 +1024,15 @@ def record_files():
         "translated_title": FileMetadataFactory(
             file=file_4, PropertyName="file_name_translation", Value=None
         ),
+        "related_material": FileMetadataFactory(
+            file=file_4, PropertyName="related_material", Value=None
+        ),
+        "restrictions_on_use": FileMetadataFactory(
+            file=file_4, PropertyName="restrictions_on_use", Value=None
+        ),
+        "note": FileMetadataFactory(
+            file=file_4, PropertyName="note", Value=None
+        ),
         "held_by": FileMetadataFactory(
             file=file_4, PropertyName="held_by", Value=None
         ),
@@ -1042,6 +1078,15 @@ def record_files():
         ),
         "translated_title": FileMetadataFactory(
             file=file_5, PropertyName="file_name_translation", Value="-"
+        ),
+        "related_material": FileMetadataFactory(
+            file=file_5, PropertyName="related_material", Value="-"
+        ),
+        "restrictions_on_use": FileMetadataFactory(
+            file=file_5, PropertyName="restrictions_on_use", Value="-"
+        ),
+        "note": FileMetadataFactory(
+            file=file_5, PropertyName="note", Value="-"
         ),
         "held_by": FileMetadataFactory(
             file=file_5,
@@ -1112,6 +1157,15 @@ def record_files():
         ),
         "translated_title": FileMetadataFactory(
             file=file_6, PropertyName="file_name_translation", Value="-"
+        ),
+        "related_material": FileMetadataFactory(
+            file=file_6, PropertyName="related_material", Value="-"
+        ),
+        "restrictions_on_use": FileMetadataFactory(
+            file=file_6, PropertyName="restrictions_on_use", Value="-"
+        ),
+        "note": FileMetadataFactory(
+            file=file_6, PropertyName="note", Value="-"
         ),
         "held_by": FileMetadataFactory(
             file=file_6,
