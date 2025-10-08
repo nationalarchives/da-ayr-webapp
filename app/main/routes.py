@@ -755,7 +755,12 @@ def record(record_id: uuid.UUID):
             current_app.app_logger.info(
                 f"Failed to create presigned url for document render non-javascript fallback {e}"
             )
-    print(access_copy_failed)
+    print(
+        "TEMPLATE DEBUG:",
+        can_render_file,
+        access_copy_failed,
+        type(access_copy_failed),
+    )
     return render_template(
         "record.html",
         form=form,
