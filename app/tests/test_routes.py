@@ -241,8 +241,6 @@ class TestRoutes:
         assert response.status_code == 200
         assert actual_manifest == expected_image_manifest
 
-    # ...existing code...
-
     @pytest.mark.parametrize(
         "form_data, args_data, expected_redirect_route, expected_params",
         [
