@@ -5,8 +5,37 @@ def assert_contains_html(
     expected_html_subset, html, sub_element_type, sub_element_filter={}
 ):
     soup = BeautifulSoup(html, "html.parser")
-    subset_soup = soup.find(sub_element_type, sub_element_filter)
+    actual_element = soup.find(sub_element_type, sub_element_filter)
 
-    expected_subset_soup = BeautifulSoup(expected_html_subset, "html.parser")
+    expected_element = BeautifulSoup(expected_html_subset, "html.parser").find(
+        sub_element_type
+    )
 
-    assert expected_subset_soup.prettify() == subset_soup.prettify()  # nosec
+    assert (
+        actual_element is not None
+    ), f"Element not found: {sub_element_type}"  # nosec
+    assert (
+        expected_element is not None
+    ), "Could not parse expected HTML"  # nosec
+
+    # normalise both elements by converting to a string representation
+    # This handles attribute ordering differences
+    def normalise_element(element):
+        """Convert element to a normalised dictionary for comparison"""
+        return {
+            "tag": element.name,
+            "attrs": sorted(element.attrs.items()),
+            "text": element.get_text(strip=True),
+            "children": [
+                normalise_element(child)
+                for child in element.children
+                if child.name
+            ],
+        }
+
+    expected_normalised = normalise_element(expected_element)
+    actual_normalised = normalise_element(actual_element)
+
+    assert (
+        expected_normalised == actual_normalised
+    ), f"Elements don't match:\nExpected: {expected_normalised}\nActual: {actual_normalised}"  # nosec

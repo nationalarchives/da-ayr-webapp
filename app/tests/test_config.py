@@ -37,7 +37,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
     monkeypatch.setenv(
         "SECRET_KEY", "test_secret_key"  # pragma: allowlist secret
     )
-    monkeypatch.setenv("DEFAULT_PAGE_SIZE", 10)
+    monkeypatch.setenv("DEFAULT_PAGE_SIZE", "10")
     monkeypatch.setenv("DEFAULT_DATE_FORMAT", "test_default_date_format")
     monkeypatch.setenv("RECORD_BUCKET_NAME", "test_record_bucket_name")
     monkeypatch.setenv("ACCESS_COPY_BUCKET", "test_access_copy_bucket")
@@ -48,7 +48,7 @@ def test_local_env_vars_config_initialized(monkeypatch):
     monkeypatch.setenv("OPEN_SEARCH_HOST", "test_os_host")
     monkeypatch.setenv("OPEN_SEARCH_USERNAME", "test_os_username")
     monkeypatch.setenv("OPEN_SEARCH_PASSWORD", "test_os_password")
-    monkeypatch.setenv("OPEN_SEARCH_TIMEOUT", 10)
+    monkeypatch.setenv("OPEN_SEARCH_TIMEOUT", "10")
 
     config = EnvConfig()
 
@@ -159,7 +159,7 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
     monkeypatch.setenv(
         "SECRET_KEY", "test_secret_key"  # pragma: allowlist secret
     )
-    monkeypatch.setenv("DEFAULT_PAGE_SIZE", 10)
+    monkeypatch.setenv("DEFAULT_PAGE_SIZE", "10")
     monkeypatch.setenv("RECORD_BUCKET_NAME", "test_record_bucket_name")
     monkeypatch.setenv("ACCESS_COPY_BUCKET", "test_access_copy_bucket")
     monkeypatch.setenv("AWS_REGION", "test_region")
@@ -170,7 +170,7 @@ def test_local_env_config_variable_not_set_error(monkeypatch):
     monkeypatch.setenv("OPEN_SEARCH_HOST", "test_os_host")
     monkeypatch.setenv("OPEN_SEARCH_USERNAME", "test_os_username")
     monkeypatch.setenv("OPEN_SEARCH_PASSWORD", "test_os_password")
-    monkeypatch.setenv("OPEN_SEARCH_TIMEOUT", 10)
+    monkeypatch.setenv("OPEN_SEARCH_TIMEOUT", "10")
 
     config = EnvConfig()
 
