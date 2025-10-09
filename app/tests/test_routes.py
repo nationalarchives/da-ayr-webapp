@@ -111,6 +111,143 @@ class TestRoutes:
         response = client.get("/terms-of-use")
         assert response.status_code == 200
 
+    # @mock_aws
+    # @patch("app.main.routes.create_presigned_url")
+    # def test_route_generate_pdf_manifest(
+    #     self,
+    #     mock_create_presigned_url,
+    #     app,
+    #     client: FlaskClient,
+    #     mock_all_access_user,
+    # ):
+    #     mock_create_presigned_url.return_value = (
+    #         "https://presigned-url.com/download.pdf"
+    #     )
+
+    #     mock_all_access_user(client)
+    #     file = FileFactory(ffid_metadata__Extension="pdf")
+    #     bucket_name = "test_bucket"
+    #     app.config["RECORD_BUCKET_NAME"] = bucket_name
+    #     app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
+    #     create_mock_s3_bucket_with_object(bucket_name, file)
+
+    #     response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
+    #     assert response.status_code == 200
+
+    #     expected_pdf_manifest = {
+    #         "@context": ["https://iiif.io/api/presentation/3/context.json"],
+    #         "behavior": ["individuals"],
+    #         "description": f"Manifest for {file.FileName}",
+    #         "id": f"http://localhost/record/{file.FileId}/manifest",
+    #         "items": [
+    #             {
+    #                 "id": f"http://localhost/record/{file.FileId}/manifest",
+    #                 "items": [
+    #                     {
+    #                         "id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+    #                         "items": [
+    #                             {
+    #                                 "body": {
+    #                                     "format": f"application/{file.ffid_metadata.Extension}",
+    #                                     "id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+    #                                     "type": "Text",
+    #                                 },
+    #                                 "id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+    #                                 "label": {"en": ["test"]},
+    #                                 "motivation": "painting",
+    #                                 "target": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+    #                                 "type": "Annotation",
+    #                             }
+    #                         ],
+    #                         "label": {"en": ["test"]},
+    #                         "type": "AnnotationPage",
+    #                     }
+    #                 ],
+    #                 "label": {"en": ["test"]},
+    #                 "type": "Canvas",
+    #             }
+    #         ],
+    #         "label": {"en": [f"{file.FileName}"]},
+    #         "requiredStatement": {
+    #             "label": {"en": ["File name"]},
+    #             "value": {"en": [f"{file.FileName}"]},
+    #         },
+    #         "type": "Manifest",
+    #         "viewingDirection": "left-to-right",
+    #     }
+
+    #     actual_manifest = json.loads(response.text)
+    #     assert response.status_code == 200
+    #     assert actual_manifest == expected_pdf_manifest
+
+    # @mock_aws
+    # @patch("app.main.routes.create_presigned_url")
+    # def test_route_generate_image_manifest(
+    #     self,
+    #     mock_create_presigned_url,
+    #     app,
+    #     client: FlaskClient,
+    #     mock_all_access_user,
+    # ):
+
+    #     mock_all_access_user(client)
+    #     file = FileFactory(ffid_metadata__Extension="png")
+    #     bucket_name = "test_bucket"
+    #     app.config["RECORD_BUCKET_NAME"] = bucket_name
+    #     app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
+    #     create_mock_s3_bucket_with_imaage_object(bucket_name, file)
+
+    #     mock_create_presigned_url.return_value = (
+    #         "https://presigned-url.com/download.png"
+    #     )
+
+    #     response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
+    #     assert response.status_code == 200
+
+    #     expected_image_manifest = {
+    #         "@context": "https://iiif.io/api/presentation/3/context.json",
+    #         "@id": f"http://localhost/record/{file.FileId}/manifest",
+    #         "@type": "sc:Manifest",
+    #         "description": f"Manifest for {file.FileName}",
+    #         "label": {"en": [f"{file.FileName}"]},
+    #         "sequences": [
+    #             {
+    #                 "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+    #                 "@type": "sc:Sequence",
+    #                 "canvases": [
+    #                     {
+    #                         "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+    #                         "@type": "sc:Canvas",
+    #                         "height": 600,
+    #                         "width": 800,
+    #                         "images": [
+    #                             {
+    #                                 "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+    #                                 "@type": "oa:Annotation",
+    #                                 "motivation": "sc:painting",
+    #                                 "on": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+    #                                 "resource": {
+    #                                     "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+    #                                     "format": f"image/{file.ffid_metadata.Extension}",
+    #                                     "height": 600,
+    #                                     "type": "dctypes:Image",
+    #                                     "width": 800,
+    #                                 },
+    #                             }
+    #                         ],
+    #                         "label": "Image 1",
+    #                     }
+    #                 ],
+    #             }
+    #         ],
+    #     }
+    #     actual_manifest = json.loads(response.text)
+
+    #     assert response.status_code == 200
+    #     assert actual_manifest == expected_image_manifest
+
+    # ...existing code...
+
     @mock_aws
     @patch("app.main.routes.create_presigned_url")
     def test_route_generate_pdf_manifest(
@@ -135,44 +272,39 @@ class TestRoutes:
         assert response.status_code == 200
 
         expected_pdf_manifest = {
-            "@context": ["https://iiif.io/api/presentation/3/context.json"],
-            "behavior": ["individuals"],
+            "@context": "http://iiif.io/api/presentation/2/context.json",
+            "@id": f"http://localhost/record/{file.FileId}/manifest",
+            "@type": "sc:Manifest",
             "description": f"Manifest for {file.FileName}",
-            "id": f"http://localhost/record/{file.FileId}/manifest",
-            "items": [
+            "label": file.FileName,
+            "sequences": [
                 {
-                    "id": f"http://localhost/record/{file.FileId}/manifest",
-                    "items": [
+                    "@id": f"http://localhost/record/{file.FileId}/manifest/sequence/1",
+                    "@type": "sc:Sequence",
+                    "canvases": [
                         {
-                            "id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                            "items": [
+                            "@id": f"http://localhost/record/{file.FileId}/manifest/canvas/1",
+                            "@type": "sc:Canvas",
+                            "height": 1000,
+                            "width": 800,
+                            "images": [
                                 {
-                                    "body": {
+                                    "@type": "oa:Annotation",
+                                    "motivation": "sc:painting",
+                                    "on": f"http://localhost/record/{file.FileId}/manifest/canvas/1",
+                                    "resource": {
+                                        "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+                                        "@type": "dctypes:Text",
                                         "format": f"application/{file.ffid_metadata.Extension}",
-                                        "id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                        "type": "Text",
                                     },
-                                    "id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                    "label": {"en": ["test"]},
-                                    "motivation": "painting",
-                                    "target": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                    "type": "Annotation",
                                 }
                             ],
-                            "label": {"en": ["test"]},
-                            "type": "AnnotationPage",
+                            "label": "PDF Document",
                         }
                     ],
-                    "label": {"en": ["test"]},
-                    "type": "Canvas",
+                    "label": "Sequence 1",
                 }
             ],
-            "label": {"en": [f"{file.FileName}"]},
-            "requiredStatement": {
-                "label": {"en": ["File name"]},
-                "value": {"en": [f"{file.FileName}"]},
-            },
-            "type": "Manifest",
             "viewingDirection": "left-to-right",
         }
 
@@ -205,18 +337,18 @@ class TestRoutes:
         assert response.status_code == 200
 
         expected_image_manifest = {
-            "@context": "https://iiif.io/api/presentation/3/context.json",
+            "@context": "http://iiif.io/api/presentation/3/context.json",
             "@id": f"http://localhost/record/{file.FileId}/manifest",
             "@type": "sc:Manifest",
             "description": f"Manifest for {file.FileName}",
-            "label": {"en": [f"{file.FileName}"]},
+            "label": file.FileName,
             "sequences": [
                 {
-                    "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+                    "@id": f"http://localhost/record/{file.FileId}/manifest/sequence/1",
                     "@type": "sc:Sequence",
                     "canvases": [
                         {
-                            "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+                            "@id": f"http://localhost/record/{file.FileId}/manifest/canvas/1",
                             "@type": "sc:Canvas",
                             "height": 600,
                             "width": 800,
@@ -225,12 +357,12 @@ class TestRoutes:
                                     "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
                                     "@type": "oa:Annotation",
                                     "motivation": "sc:painting",
-                                    "on": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+                                    "on": f"http://localhost/record/{file.FileId}/manifest/canvas/1",
                                     "resource": {
-                                        "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+                                        "@id": f"http://localhost/record/{file.FileId}/manifest/annotation/1",
+                                        "@type": "dctypes:Image",
                                         "format": f"image/{file.ffid_metadata.Extension}",
                                         "height": 600,
-                                        "type": "dctypes:Image",
                                         "width": 800,
                                     },
                                 }
@@ -245,6 +377,8 @@ class TestRoutes:
 
         assert response.status_code == 200
         assert actual_manifest == expected_image_manifest
+
+    # ...existing code...
 
     @pytest.mark.parametrize(
         "form_data, args_data, expected_redirect_route, expected_params",

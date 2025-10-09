@@ -119,7 +119,7 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
                 pix = None
 
             return page_data
-    except pymupdf.fitz.FileDataError as e:
+    except pymupdf.FileDataError as e:
         current_app.logger.error(f"Invalid PDF file: {e}")
         return []
     except Exception as e:
