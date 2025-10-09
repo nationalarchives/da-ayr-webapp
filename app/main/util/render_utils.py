@@ -1,7 +1,9 @@
+import base64
 import io
-from typing import Any
+from typing import Any, List
 
 import boto3
+import pymupdf
 from flask import Response, current_app, jsonify
 from PIL import Image
 
@@ -44,7 +46,11 @@ def get_download_filename(file):
 
 
 def create_presigned_url(file: File) -> str:
-    s3 = boto3.client("s3")
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=current_app.config.get("AWS_ENDPOINT_URL"),
+        verify=False,  # Disable SSL verification for self-signed certificates
+    )
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
@@ -53,6 +59,74 @@ def create_presigned_url(file: File) -> str:
     )
 
     return presigned_url
+
+
+def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
+    """Extract PDF pages as images and return page info with base64 thumbnails."""
+    DPI = 150  # Output DPI for rendering
+    try:
+        with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
+            page_data = []
+
+            for page_num in range(pdf_document.page_count):
+                page = pdf_document.load_page(page_num)
+                mat = pymupdf.Matrix(DPI / 72, DPI / 72)
+                pix = page.get_pixmap(matrix=mat)
+                img_bytes = pix.tobytes("png")
+
+                # Convert to PIL Image for thumbnail processing
+                page_image = Image.open(io.BytesIO(img_bytes))
+
+                # Create thumbnail (150x200 pixels)
+                thumbnail = page_image.copy()
+                thumbnail.thumbnail((150, 200), Image.Resampling.LANCZOS)
+
+                # Convert thumbnail to base64 data URL
+                thumbnail_buffer = io.BytesIO()
+                thumbnail.save(thumbnail_buffer, format="JPEG", quality=70)
+                thumbnail_base64 = base64.b64encode(
+                    thumbnail_buffer.getvalue()
+                ).decode()
+                thumbnail_data_url = (
+                    f"data:image/jpeg;base64,{thumbnail_base64}"
+                )
+
+                # Convert full page to base64 data URL
+                page_buffer = io.BytesIO()
+                page_image.save(page_buffer, format="JPEG", quality=75)
+                page_base64 = base64.b64encode(page_buffer.getvalue()).decode()
+                page_data_url = f"data:image/jpeg;base64,{page_base64}"
+
+                current_app.logger.debug(
+                    f"Page {page_num + 1}: thumbnail={len(thumbnail_base64)} chars, full={len(page_base64)} chars"
+                )
+
+                page_data.append(
+                    {
+                        "page_number": page_num + 1,
+                        "width": page_image.width,
+                        "height": page_image.height,
+                        "thumbnail_url": thumbnail_data_url,
+                        "page_image_url": page_data_url,
+                        "thumbnail_base64_size": len(thumbnail_base64),
+                        "page_base64_size": len(page_base64),
+                    }
+                )
+
+                # Clean up resources
+                page_image.close()
+                thumbnail.close()
+                pix = None
+
+            return page_data
+    except pymupdf.fitz.FileDataError as e:
+        current_app.logger.error(f"Invalid PDF file: {e}")
+        return []
+    except Exception as e:
+        current_app.logger.error(
+            f"Error extracting PDF pages: {e}", exc_info=True
+        )
+        return []
 
 
 def create_presigned_url_for_access_copy(file: File) -> str:
@@ -66,52 +140,139 @@ def create_presigned_url_for_access_copy(file: File) -> str:
 
 
 def generate_pdf_manifest(
-    file_name: str, file_url: str, manifest_url: str
+    file_name: str, file_url: str, manifest_url: str, file_obj: Any = None
 ) -> Response:
-    manifest = {
-        "@context": [
-            "https://iiif.io/api/presentation/3/context.json",
-        ],
-        "id": manifest_url,
-        "type": "Manifest",
-        "label": {"en": [file_name]},
-        "requiredStatement": {
-            "label": {"en": ["File name"]},
-            "value": {"en": [file_name]},
-        },
-        "viewingDirection": "left-to-right",
-        "behavior": ["individuals"],
-        "description": f"Manifest for {file_name}",
-        "items": [
+    """
+    Generate an IIIF manifest for a PDF file, including page thumbnails and images if possible.
+
+    Args:
+        file_name (str): The display name of the file.
+        file_url (str): The URL to the file.
+        manifest_url (str): The manifest's own URL.
+        file_obj (Any, optional): The File object for S3 access.
+
+    Returns:
+        Response: Flask JSON response containing the IIIF manifest.
+    """
+    FALLBACK_WIDTH = 800
+    FALLBACK_HEIGHT = 1000
+    page_data = []
+    current_app.logger.info(
+        f"Generating PDF manifest for {file_name}, file_obj: {file_obj is not None}"
+    )
+
+    if file_obj:
+        try:
+            s3 = boto3.client(
+                "s3",
+                endpoint_url=current_app.config.get("AWS_ENDPOINT_URL"),
+                verify=False,
+            )
+            bucket = current_app.config["RECORD_BUCKET_NAME"]
+            key = (
+                f"{file_obj.consignment.ConsignmentReference}/{file_obj.FileId}"
+            )
+
+            current_app.logger.info(
+                f"Fetching PDF from S3: bucket={bucket}, key={key}"
+            )
+            response = s3.get_object(Bucket=bucket, Key=key)
+            pdf_bytes = response["Body"].read()
+            current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
+
+            page_data = extract_pdf_pages_as_images(pdf_bytes)
+            current_app.logger.info(
+                f"Extracted {len(page_data)} pages from PDF"
+            )
+        except Exception as e:
+            current_app.logger.error(
+                f"Error processing PDF for thumbnails: {e}", exc_info=True
+            )
+            return jsonify({"error": "Failed to process PDF"}), 500
+    else:
+        current_app.logger.warning(
+            "No file_obj provided, cannot extract PDF pages"
+        )
+
+    canvas_items = []
+
+    if page_data:
+        for page_info in page_data:
+            canvas_id = f"{manifest_url}/canvas/{page_info['page_number']}"
+            canvas_items.append(
+                {
+                    "@type": "sc:Canvas",
+                    "@id": canvas_id,
+                    "label": f"Page {page_info['page_number']}",
+                    "width": page_info["width"],
+                    "height": page_info["height"],
+                    "thumbnail": {
+                        "@id": page_info["thumbnail_url"],
+                        "@type": "dctypes:Image",
+                        "format": "image/jpeg",
+                        "width": 150,
+                        "height": 200,
+                    },
+                    "images": [
+                        {
+                            "@type": "oa:Annotation",
+                            "motivation": "sc:painting",
+                            "resource": {
+                                "@id": page_info["page_image_url"],
+                                "@type": "dctypes:Image",
+                                "format": "image/jpeg",
+                                "width": page_info["width"],
+                                "height": page_info["height"],
+                            },
+                            "on": canvas_id,
+                        }
+                    ],
+                }
+            )
+    else:
+        # Fallback to single canvas (original behavior)
+        canvas_items.append(
             {
-                "id": manifest_url,
-                "type": "Canvas",
-                "label": {"en": ["test"]},
-                "items": [
+                "@type": "sc:Canvas",
+                "@id": f"{manifest_url}/canvas/1",
+                "label": "PDF Document",
+                "width": FALLBACK_WIDTH,
+                "height": FALLBACK_HEIGHT,
+                "images": [
                     {
-                        "id": file_url,
-                        "type": "AnnotationPage",
-                        "label": {"en": ["test"]},
-                        "items": [
-                            {
-                                "id": file_url,
-                                "type": "Annotation",
-                                "motivation": "painting",
-                                "label": {"en": ["test"]},
-                                "body": {
-                                    "id": file_url,
-                                    "type": "Text",
-                                    "format": "application/pdf",
-                                },
-                                "target": file_url,
-                            }
-                        ],
+                        "@type": "oa:Annotation",
+                        "motivation": "sc:painting",
+                        "resource": {
+                            "@id": file_url,
+                            "@type": "dctypes:Text",
+                            "format": "application/pdf",
+                        },
+                        "on": f"{manifest_url}/canvas/1",
                     }
                 ],
+            }
+        )
+
+    manifest = {
+        "@context": "http://iiif.io/api/presentation/2/context.json",
+        "@type": "sc:Manifest",
+        "@id": manifest_url,
+        "label": file_name,
+        "description": f"Manifest for {file_name}",
+        "viewingDirection": "left-to-right",
+        "sequences": [
+            {
+                "@type": "sc:Sequence",
+                "@id": f"{manifest_url}/sequence/1",
+                "label": "Sequence 1",
+                "canvases": canvas_items,
             }
         ],
     }
 
+    current_app.logger.info(
+        f"Generated PDF manifest with {len(canvas_items)} canvases for {file_name}"
+    )
     return jsonify(manifest)
 
 
@@ -121,19 +282,34 @@ def generate_image_manifest(
     image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
     image_width, image_height = image.size
 
+    # Detect image format
+    image_format = image.format.lower() if image.format else "png"
+    if image_format == "jpeg":
+        mime_type = "image/jpeg"
+    elif image_format == "png":
+        mime_type = "image/png"
+    elif image_format in ["tiff", "tif"]:
+        mime_type = "image/tiff"
+    elif image_format == "gif":
+        mime_type = "image/gif"
+    elif image_format == "webp":
+        mime_type = "image/webp"
+    else:
+        mime_type = f"image/{image_format}"
+
     manifest = {
-        "@context": "https://iiif.io/api/presentation/3/context.json",
+        "@context": "http://iiif.io/api/presentation/3/context.json",
         "@id": manifest_url,
         "@type": "sc:Manifest",
-        "label": {"en": [file_name]},
+        "label": file_name,
         "description": f"Manifest for {file_name}",
         "sequences": [
             {
-                "@id": file_url,
+                "@id": f"{manifest_url}/sequence/1",
                 "@type": "sc:Sequence",
                 "canvases": [
                     {
-                        "@id": file_url,
+                        "@id": f"{manifest_url}/canvas/1",
                         "@type": "sc:Canvas",
                         "label": "Image 1",
                         "width": image_width,
@@ -144,13 +320,13 @@ def generate_image_manifest(
                                 "@type": "oa:Annotation",
                                 "motivation": "sc:painting",
                                 "resource": {
-                                    "@id": file_url,
-                                    "type": "dctypes:Image",
-                                    "format": "image/png",
+                                    "@id": f"{manifest_url}/annotation/1",
+                                    "@type": "dctypes:Image",
+                                    "format": mime_type,
                                     "width": image_width,
                                     "height": image_height,
                                 },
-                                "on": file_url,
+                                "on": f"{manifest_url}/canvas/1",
                             }
                         ],
                     }
