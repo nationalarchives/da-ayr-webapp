@@ -860,9 +860,7 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
     file_name = file.FileName
-    manifest_url = url_for(
-        "main.generate_manifest", record_id=record_id, _external=True
-    )
+    manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
     file_type = get_file_extension(file)
     convertible_extensions = set(
         json.loads(current_app.config["CONVERTIBLE_EXTENSIONS"])
