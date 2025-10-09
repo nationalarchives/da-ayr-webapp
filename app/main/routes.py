@@ -890,7 +890,9 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         )
     elif file_type in convertible_extensions:
         file_url = create_presigned_url_for_access_copy(file)
-        return generate_pdf_manifest(file.FileName, file_url, manifest_url)
+        return generate_pdf_manifest(
+            file.FileName, file_url, manifest_url, file_obj=file
+        )
 
     current_app.app_logger.error(
         f"Failed to create manifest for file with ID {file.FileId} as not a supported file type"
