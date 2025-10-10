@@ -163,11 +163,7 @@ def generate_pdf_manifest(
 
     if file_obj:
         try:
-            s3 = boto3.client(
-                "s3",
-                endpoint_url=current_app.config.get("AWS_ENDPOINT_URL"),
-                verify=False,
-            )
+            s3 = boto3.client("s3")
             bucket = current_app.config["RECORD_BUCKET_NAME"]
             key = (
                 f"{file_obj.consignment.ConsignmentReference}/{file_obj.FileId}"
