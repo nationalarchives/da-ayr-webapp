@@ -34,6 +34,28 @@ class TestBuildDatabaseUrl:
             == "postgresql+psycopg2://testuser:testpass@localhost:5432/testdb"  # pragma: allowlist secret
         )
 
+    def test_build_database_url_with_ssl_cert(self, monkeypatch, tmp_path):
+        """Test building database URL with SSL certificate."""
+        cert_file = tmp_path / "cert.pem"
+        cert_file.touch()
+
+        monkeypatch.setenv("DB_HOST", "localhost")
+        monkeypatch.setenv("DB_PORT", "5432")
+        monkeypatch.setenv("DB_NAME", "testdb")
+        monkeypatch.setenv("DB_USER", "testuser")
+        monkeypatch.setenv(
+            "DB_PASSWORD", "testpass"
+        )  # pragma: allowlist secret
+        monkeypatch.setenv("DB_SSL_ROOT_CERTIFICATE", str(cert_file))
+
+        result = build_database_url()
+
+        assert (
+            "postgresql+psycopg2://testuser:testpass@localhost:5432/testdb"  # pragma: allowlist secret
+            in result
+        )
+        assert f"sslmode=verify-full&sslrootcert={cert_file}" in result
+
     def test_build_database_url_missing_required_vars(self, monkeypatch):
         """Test that missing required variables raises ValueError."""
         monkeypatch.setenv("DB_HOST", "localhost")
@@ -121,6 +143,22 @@ class TestMain:
         main()
 
         assert mock_bulk_index.call_count == 3
+
+    @patch(
+        "data_management.opensearch_indexer.opensearch_indexer.index_all_consignments.bulk_index_consignment"
+    )
+    @patch(
+        "data_management.opensearch_indexer.opensearch_indexer.index_all_consignments.get_all_consignment_references"
+    )
+    def test_main_no_consignments_found(
+        self, mock_get_refs, mock_bulk_index, mock_env_vars
+    ):
+        """Test behavior when no consignments are found in database."""
+        mock_get_refs.return_value = []
+
+        main()
+
+        mock_bulk_index.assert_not_called()
 
     @patch(
         "data_management.opensearch_indexer.opensearch_indexer.index_all_consignments.bulk_index_consignment"
