@@ -450,6 +450,116 @@ Depending on environment we have different levels of function to do this:
 
 We also have a way to do this for all files in a postgres database with `data_management/opensearch_indexer/opensearch_indexer/index_all_in_db.py`.
 
+## Updating the Opensearch Index & Generating a new Snapshot
+
+# How to Update the OpenSearch Snapshot
+
+## When to Update the Snapshot
+
+Update the snapshot when:
+
+- Test data changes in `dev-data.sql`
+- New test files are added to `local_services/files/`
+- Indexing logic changes
+
+## Prerequisites
+
+- All services running: `docker compose -f local_services/docker-compose.ci.yml up -d`
+
+## Steps
+
+### 1. Ensure MinIO Has All Test Files
+
+```bash
+# Check if minio-init service ran successfully
+docker logs local_services-minio-init-1
+
+# If needed, manually trigger file upload
+docker compose -f local_services/docker-compose.ci.yml up -d --force-recreate minio-init
+```
+
+### 2. Run the Indexer
+
+```bash
+# Index all consignments from the database
+docker exec webapp poetry run python -m data_management.opensearch_indexer.opensearch_indexer.index_all_consignments
+```
+
+### 3. Verify Indexing
+
+```bash
+# Check document count
+curl "http://localhost:9200/documents/_count"
+
+# List all consignments
+curl -s "http://localhost:9200/documents/_search?size=0" \
+  -H 'Content-Type: application/json' \
+  -d '{"aggs": {"consignments": {"terms": {"field": "consignment_reference.keyword", "size": 100}}}}'
+```
+
+### 4. Create the Snapshot
+
+```bash
+cd local_services
+
+# Make script executable (first time only)
+chmod +x create_opensearch_snapshot.sh
+
+# Create snapshot
+./create_opensearch_snapshot.sh
+
+### 5. Verify Snapshot
+
+```bash
+# List snapshot contents
+curl "http://localhost:9200/_snapshot/my-fs-repository/1"
+
+# Check snapshot files exist
+ls -l local_services/snapshots/
+```
+
+### 6. Commit the Snapshot
+
+```bash
+# Stage all snapshot changes
+git add local_services/snapshots/
+
+# Commit
+git commit -m "Updated OpenSearch snapshot with latest indexed data"
+```
+
+## Quick Reference
+
+### Full Rebuild and Re-index
+
+```bash
+# 1. Rebuild webapp with tools
+docker compose -f local_services/docker-compose.ci.yml build --no-cache webapp
+
+# 2. Start all services
+docker compose -f local_services/docker-compose.ci.yml up -d
+
+# 3. Run indexer
+docker exec webapp poetry run python -m data_management.opensearch_indexer.opensearch_indexer.index_all_consignments
+
+# 4. Create snapshot
+cd local_services && ./create_opensearch_snapshot.sh
+
+# 5. Verify
+curl "http://localhost:9200/documents/_count"
+```
+
+### Just Reindex (no rebuild)
+
+```bash
+# Run indexer
+docker exec webapp poetry run python -m data_management.opensearch_indexer.opensearch_indexer.index_all_consignments
+
+# Create snapshot
+cd local_services && ./create_opensearch_snapshot.sh
+```
+
+
 ## Testing
 
 ### Unit and Integration tests
