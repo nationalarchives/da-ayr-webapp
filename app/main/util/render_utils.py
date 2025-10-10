@@ -64,6 +64,8 @@ def create_presigned_url(file: File) -> str:
 def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
     """Extract PDF pages as images and return page info with base64 thumbnails."""
     DPI = 150  # Output DPI for rendering
+
+    print(f"PDF bytes length: {pdf_bytes}")
     try:
         with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
             page_data = []
@@ -161,117 +163,124 @@ def generate_pdf_manifest(
         f"Generating PDF manifest for {file_name}, file_obj: {file_obj is not None}"
     )
 
-    if file_obj:
-        try:
-            s3 = boto3.client(
-                "s3",
-                endpoint_url=current_app.config.get("AWS_ENDPOINT_URL"),
-                verify=False,
-            )
-            bucket = current_app.config["RECORD_BUCKET_NAME"]
-            key = (
-                f"{file_obj.consignment.ConsignmentReference}/{file_obj.FileId}"
-            )
+    try:
+        s3 = boto3.client("s3")
+        bucket = current_app.config["RECORD_BUCKET_NAME"]
+        key = f"{file_obj.consignment.ConsignmentReference}/{file_obj.FileId}"
 
-            current_app.logger.info(
-                f"Fetching PDF from S3: bucket={bucket}, key={key}"
-            )
-            response = s3.get_object(Bucket=bucket, Key=key)
-            pdf_bytes = response["Body"].read()
-            current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
-
-            page_data = extract_pdf_pages_as_images(pdf_bytes)
-            current_app.logger.info(
-                f"Extracted {len(page_data)} pages from PDF"
-            )
-        except Exception as e:
-            current_app.logger.error(
-                f"Error processing PDF for thumbnails: {e}", exc_info=True
-            )
-            return jsonify({"error": "Failed to process PDF"}), 500
-    else:
-        current_app.logger.warning(
-            "No file_obj provided, cannot extract PDF pages"
+        current_app.logger.info(
+            f"Fetching PDF from S3: bucket={bucket}, key={key}"
         )
+        response = s3.get_object(Bucket=bucket, Key=key)
+        pdf_bytes = response["Body"].read()
+        current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
 
-    canvas_items = []
+        page_data = extract_pdf_pages_as_images(pdf_bytes)
+        current_app.logger.info(f"Extracted {len(page_data)} pages from PDF")
+    except Exception as e:
+        current_app.logger.error(
+            f"Error processing PDF for thumbnails: {e}", exc_info=True
+        )
+        return jsonify({"error": "Failed to process PDF"}), 500
 
+    # Manifest-level thumbnail (use first page if available)
+    manifest_thumbnail = []
+    if page_data:
+        first_page = page_data[0]
+        manifest_thumbnail = [
+            {
+                "id": first_page["thumbnail_url"],
+                "type": "Image",
+                "format": "image/jpeg",
+                "height": 200,
+                "width": 150,
+            }
+        ]
+
+    items = []
     if page_data:
         for page_info in page_data:
-            canvas_id = f"{manifest_url}/canvas/{page_info['page_number']}"
-            canvas_items.append(
+            canvas_id = f"{manifest_url}/canvas/p{page_info['page_number']}"
+            annotation_page_id = (
+                f"{manifest_url}/page/p{page_info['page_number']}/1"
+            )
+            annotation_id = f"{manifest_url}/annotation/p{str(page_info['page_number']).zfill(4)}-image"
+            items.append(
                 {
-                    "@type": "sc:Canvas",
-                    "@id": canvas_id,
-                    "label": f"Page {page_info['page_number']}",
+                    "id": canvas_id,
+                    "type": "Canvas",
+                    "label": {"en": [f"Page {page_info['page_number']}"]},
                     "width": page_info["width"],
                     "height": page_info["height"],
-                    "thumbnail": {
-                        "@id": page_info["thumbnail_url"],
-                        "@type": "dctypes:Image",
-                        "format": "image/jpeg",
-                        "width": 150,
-                        "height": 200,
-                    },
-                    "images": [
+                    "items": [
                         {
-                            "@type": "oa:Annotation",
-                            "motivation": "sc:painting",
-                            "resource": {
-                                "@id": page_info["page_image_url"],
-                                "@type": "dctypes:Image",
-                                "format": "image/jpeg",
-                                "width": page_info["width"],
-                                "height": page_info["height"],
-                            },
-                            "on": canvas_id,
+                            "id": annotation_page_id,
+                            "type": "AnnotationPage",
+                            "items": [
+                                {
+                                    "id": annotation_id,
+                                    "type": "Annotation",
+                                    "motivation": "painting",
+                                    "body": {
+                                        "id": page_info["page_image_url"],
+                                        "type": "Image",
+                                        "format": "image/jpeg",
+                                        "height": page_info["height"],
+                                        "width": page_info["width"],
+                                    },
+                                    "target": canvas_id,
+                                }
+                            ],
                         }
                     ],
                 }
             )
     else:
         # Fallback to single canvas (original behavior)
-        canvas_items.append(
+        canvas_id = f"{manifest_url}/canvas/p0"
+        annotation_page_id = f"{manifest_url}/page/p0/1"
+        annotation_id = f"{manifest_url}/annotation/p0000-image"
+        items.append(
             {
-                "@type": "sc:Canvas",
-                "@id": f"{manifest_url}/canvas/1",
-                "label": "PDF Document",
+                "id": canvas_id,
+                "type": "Canvas",
+                "label": {"en": ["PDF Document"]},
                 "width": FALLBACK_WIDTH,
                 "height": FALLBACK_HEIGHT,
-                "images": [
+                "items": [
                     {
-                        "@type": "oa:Annotation",
-                        "motivation": "sc:painting",
-                        "resource": {
-                            "@id": file_url,
-                            "@type": "dctypes:Text",
-                            "format": "application/pdf",
-                        },
-                        "on": f"{manifest_url}/canvas/1",
+                        "id": annotation_page_id,
+                        "type": "AnnotationPage",
+                        "items": [
+                            {
+                                "id": annotation_id,
+                                "type": "Annotation",
+                                "motivation": "painting",
+                                "body": {
+                                    "id": file_url,
+                                    "type": "Text",
+                                    "format": "application/pdf",
+                                },
+                                "target": canvas_id,
+                            }
+                        ],
                     }
                 ],
             }
         )
 
     manifest = {
-        "@context": "http://iiif.io/api/presentation/2/context.json",
-        "@type": "sc:Manifest",
-        "@id": manifest_url,
-        "label": file_name,
-        "description": f"Manifest for {file_name}",
-        "viewingDirection": "left-to-right",
-        "sequences": [
-            {
-                "@type": "sc:Sequence",
-                "@id": f"{manifest_url}/sequence/1",
-                "label": "Sequence 1",
-                "canvases": canvas_items,
-            }
-        ],
+        "@context": "http://iiif.io/api/presentation/3/context.json",
+        "id": manifest_url,
+        "type": "Manifest",
+        "label": {"en": [file_name]},
+        "summary": {"en": [f"Manifest for {file_name}"]},
+        "thumbnail": manifest_thumbnail,
+        "items": items,
     }
 
     current_app.logger.info(
-        f"Generated PDF manifest with {len(canvas_items)} canvases for {file_name}"
+        f"Generated PDF manifest with {len(items)} canvases for {file_name}"
     )
     return jsonify(manifest)
 
