@@ -7,59 +7,6 @@ import pymupdf
 from flask import Response, current_app, jsonify
 from PIL import Image
 
-from app.main.db.models import File
-
-
-def generate_breadcrumb_values(file):
-    """Generate breadcrumb values for the record template."""
-    consignment = file.consignment
-    body = consignment.series.body
-    series = consignment.series
-    return {
-        0: {"transferring_body_id": body.BodyId},
-        1: {"transferring_body": body.Name},
-        2: {"series_id": series.SeriesId},
-        3: {"series": series.Name},
-        4: {"consignment_id": consignment.ConsignmentId},
-        5: {"consignment_reference": consignment.ConsignmentReference},
-        6: {"file_name": file.FileName},
-    }
-
-
-def get_file_extension(file):
-    """Extarct file_extension"""
-    if file.ffid_metadata and file.ffid_metadata.Extension is not None:
-        file_extension = file.ffid_metadata.Extension.lower()
-    else:
-        file_extension = file.FileName.split(".")[-1].lower()
-    return file_extension
-
-
-def get_download_filename(file):
-    """Generate download filename for a file."""
-    if file.CiteableReference:
-        if len(file.FileName.rsplit(".", 1)) > 1:
-            return (
-                file.CiteableReference + "." + file.FileName.rsplit(".", 1)[1]
-            )
-    return None
-
-
-def create_presigned_url(file: File) -> str:
-    s3 = boto3.client(
-        "s3",
-        endpoint_url=current_app.config.get("AWS_ENDPOINT_URL"),
-        verify=False,  # Disable SSL verification for self-signed certificates
-    )
-    bucket = current_app.config["RECORD_BUCKET_NAME"]
-    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-
-    presigned_url = s3.generate_presigned_url(
-        "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=10
-    )
-
-    return presigned_url
-
 
 def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
     """Extract PDF pages as images and return page info with base64 thumbnails."""
@@ -72,7 +19,8 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
 
             for page_num in range(pdf_document.page_count):
                 page = pdf_document.load_page(page_num)
-                pix = page.get_pixmap()
+                mat = pymupdf.Matrix(DPI / 72, DPI / 72)
+                pix = page.get_pixmap(matrix=mat)
                 img_bytes = pix.tobytes("png")
 
                 # Convert to PIL Image for thumbnail processing
@@ -128,17 +76,6 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
             f"Error extracting PDF pages: {e}", exc_info=True
         )
         return []
-
-
-def create_presigned_url_for_access_copy(file: File) -> str:
-    s3 = boto3.client("s3")
-    bucket = current_app.config["ACCESS_COPY_BUCKET"]
-    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-    presigned_url = s3.generate_presigned_url(
-        "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=10
-    )
-    return presigned_url
-
 
 def generate_pdf_manifest(
     file_name: str, file_url: str, manifest_url: str, file_obj: Any = None
@@ -281,66 +218,4 @@ def generate_pdf_manifest(
     current_app.logger.info(
         f"Generated PDF manifest with {len(items)} canvases for {file_name}"
     )
-    return jsonify(manifest)
-
-
-def generate_image_manifest(
-    file_name: str, file_url: str, manifest_url: str, s3_file_object: Any
-) -> Response:
-    image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
-    image_width, image_height = image.size
-
-    # Detect image format
-    image_format = image.format.lower() if image.format else "png"
-    if image_format == "jpeg":
-        mime_type = "image/jpeg"
-    elif image_format == "png":
-        mime_type = "image/png"
-    elif image_format in ["tiff", "tif"]:
-        mime_type = "image/tiff"
-    elif image_format == "gif":
-        mime_type = "image/gif"
-    elif image_format == "webp":
-        mime_type = "image/webp"
-    else:
-        mime_type = f"image/{image_format}"
-
-    manifest = {
-        "@context": "http://iiif.io/api/presentation/3/context.json",
-        "@id": manifest_url,
-        "@type": "sc:Manifest",
-        "label": file_name,
-        "description": f"Manifest for {file_name}",
-        "sequences": [
-            {
-                "@id": f"{manifest_url}/sequence/1",
-                "@type": "sc:Sequence",
-                "canvases": [
-                    {
-                        "@id": f"{manifest_url}/canvas/1",
-                        "@type": "sc:Canvas",
-                        "label": "Image 1",
-                        "width": image_width,
-                        "height": image_height,
-                        "images": [
-                            {
-                                "@id": file_url,
-                                "@type": "oa:Annotation",
-                                "motivation": "sc:painting",
-                                "resource": {
-                                    "@id": f"{manifest_url}/annotation/1",
-                                    "@type": "dctypes:Image",
-                                    "format": mime_type,
-                                    "width": image_width,
-                                    "height": image_height,
-                                },
-                                "on": f"{manifest_url}/canvas/1",
-                            }
-                        ],
-                    }
-                ],
-            }
-        ],
-    }
-
     return jsonify(manifest)
