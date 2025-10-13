@@ -309,11 +309,11 @@ def generate_image_manifest(
         "description": f"Manifest for {file_name}",
         "sequences": [
             {
-                "@id": f"{manifest_url}/sequence/1",
+                "@id": file_url,
                 "@type": "sc:Sequence",
                 "canvases": [
                     {
-                        "@id": f"{manifest_url}/canvas/1",
+                        "@id": file_url,
                         "@type": "sc:Canvas",
                         "label": "Image 1",
                         "width": image_width,
@@ -324,13 +324,13 @@ def generate_image_manifest(
                                 "@type": "oa:Annotation",
                                 "motivation": "sc:painting",
                                 "resource": {
-                                    "@id": f"{manifest_url}/annotation/1",
+                                    "@id": file_url,
                                     "@type": "dctypes:Image",
                                     "format": mime_type,
                                     "width": image_width,
                                     "height": image_height,
                                 },
-                                "on": f"{manifest_url}/canvas/1",
+                                "on": file_url,
                             }
                         ],
                     }
