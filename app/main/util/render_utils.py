@@ -72,7 +72,8 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
 
             for page_num in range(pdf_document.page_count):
                 page = pdf_document.load_page(page_num)
-                pix = page.get_pixmap()
+                mat = pymupdf.Matrix(DPI / 72, DPI / 72)
+                pix = page.get_pixmap(matrix=mat)
                 img_bytes = pix.tobytes("png")
 
                 # Convert to PIL Image for thumbnail processing
