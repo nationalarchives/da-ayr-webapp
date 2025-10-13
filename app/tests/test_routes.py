@@ -473,3 +473,29 @@ class TestRoutes:
         response = client.get(f"/record/{file.FileId}/manifest")
         assert response.status_code == 400
         assert "Failed to create manifest for file with ID" in caplog.text
+
+    @mock_aws
+    @patch("app.main.routes.create_presigned_url_for_access_copy")
+    def test_record_route_with_convertible_file_failed_access_copy(
+        self,
+        mock_create_presigned_url,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        mock_all_access_user(client)
+        file = FileFactory(ffid_metadata__Extension="doc")
+        bucket_name = "test_bucket"
+        app.config["ACCESS_COPY_BUCKET"] = bucket_name
+        app.config["SUPPORTED_RENDER_EXTENSIONS"] = ["pdf", "png"]
+        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        mock_create_presigned_url.side_effect = Exception(
+            "failed to create access copy"
+        )
+
+        response = client.get(f"/record/{file.FileId}")
+
+        assert response.status_code == 200
+        assert b"Converted access copy not available." in response.data
