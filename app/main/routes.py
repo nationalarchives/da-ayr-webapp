@@ -871,9 +871,7 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES"]
     ):
         file_url = create_presigned_url(file)
-        return generate_pdf_manifest(
-            file_name, file_url, manifest_url, file_obj=file
-        )
+        return generate_pdf_manifest(file_name, manifest_url, file_obj=file)
     elif (
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]
@@ -888,9 +886,7 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         )
     elif file_type in convertible_extensions:
         file_url = create_presigned_url_for_access_copy(file)
-        return generate_pdf_manifest(
-            file.FileName, file_url, manifest_url, file_obj=file
-        )
+        return generate_pdf_manifest(file.FileName, manifest_url, file_obj=file)
 
     current_app.app_logger.error(
         f"Failed to create manifest for file with ID {file.FileId} as not a supported file type"

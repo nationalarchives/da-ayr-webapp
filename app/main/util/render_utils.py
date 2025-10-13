@@ -46,11 +46,7 @@ def get_download_filename(file):
 
 
 def create_presigned_url(file: File) -> str:
-    s3 = boto3.client(
-        "s3",
-        endpoint_url=current_app.config.get("AWS_ENDPOINT_URL"),
-        verify=False,  # Disable SSL verification for self-signed certificates
-    )
+    s3 = boto3.client("s3")
     bucket = current_app.config["RECORD_BUCKET_NAME"]
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
@@ -139,129 +135,105 @@ def create_presigned_url_for_access_copy(file: File) -> str:
     return presigned_url
 
 
+def get_pdf_pages_from_s3(file_obj):
+    """
+    Fetch PDF file from S3, extract pages as images, and return page data.
+    Returns (page_data, error_response) where error_response is a Flask response or None.
+    """
+    try:
+        s3 = boto3.client("s3")
+        file_extension = get_file_extension(file_obj)
+        if file_extension != "pdf":
+            bucket = current_app.config["ACCESS_COPY_BUCKET"]
+        else:
+            bucket = current_app.config["RECORD_BUCKET_NAME"]
+
+        key = (
+            f"{file_obj.consignment.ConsignmentReference}/{file_obj.FileId}"
+        )
+
+        current_app.logger.info(
+            f"Fetching PDF from S3: bucket={bucket}, key={key}"
+        )
+        response = s3.get_object(Bucket=bucket, Key=key)
+        pdf_bytes = response["Body"].read()
+        current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
+
+        page_data = extract_pdf_pages_as_images(pdf_bytes)
+        current_app.logger.info(
+            f"Extracted {len(page_data)} pages from PDF"
+        )
+        return page_data, None
+    except Exception as e:
+        current_app.logger.error(
+            f"Error processing PDF for thumbnails: {e}", exc_info=True
+        )
+        return None, jsonify({"error": "Failed to process PDF"}), 500
+
+
 def generate_pdf_manifest(
-    file_name: str, file_url: str, manifest_url: str, file_obj: Any = None
+    file_name: str, manifest_url: str, file_obj: Any = None
 ) -> Response:
     """
     Generate an IIIF manifest for a PDF file, including page thumbnails and images if possible.
 
     Args:
         file_name (str): The display name of the file.
-        file_url (str): The URL to the file.
         manifest_url (str): The manifest's own URL.
         file_obj (Any, optional): The File object for S3 access.
 
     Returns:
         Response: Flask JSON response containing the IIIF manifest.
     """
-    FALLBACK_WIDTH = 800
-    FALLBACK_HEIGHT = 1000
     page_data = []
     current_app.logger.info(
         f"Generating PDF manifest for {file_name}, file_obj: {file_obj is not None}"
     )
 
-    if file_obj:
-        try:
-            s3 = boto3.client(
-                "s3",
-                endpoint_url=current_app.config.get("AWS_ENDPOINT_URL"),
-                verify=False,
-            )
-            bucket = None
-            if file_name.split(".")[-1].lower() == "pdf":
-                bucket = current_app.config["RECORD_BUCKET_NAME"]
-            else:
-                bucket = current_app.config["ACCESS_COPY_BUCKET"]
-            key = (
-                f"{file_obj.consignment.ConsignmentReference}/{file_obj.FileId}"
-            )
-
-            current_app.logger.info(
-                f"Fetching PDF from S3: bucket={bucket}, key={key}"
-            )
-            response = s3.get_object(Bucket=bucket, Key=key)
-            pdf_bytes = response["Body"].read()
-            current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
-
-            page_data = extract_pdf_pages_as_images(pdf_bytes)
-            current_app.logger.info(
-                f"Extracted {len(page_data)} pages from PDF"
-            )
-        except Exception as e:
-            current_app.logger.error(
-                f"Error processing PDF for thumbnails: {e}", exc_info=True
-            )
-            return jsonify({"error": "Failed to process PDF"}), 500
-    else:
-        current_app.logger.warning(
-            "No file_obj provided, cannot extract PDF pages"
-        )
+    page_data, error_response = get_pdf_pages_from_s3(file_obj)
+    if error_response:
+        return error_response
 
     canvas_items = []
 
-    if page_data:
-        for page_info in page_data:
-            canvas_id = f"{manifest_url}/canvas/{page_info['page_number']}"
-            canvas_items.append(
-                {
-                    "@type": "sc:Canvas",
-                    "@id": canvas_id,
-                    "label": f"Page {page_info['page_number']}",
-                    "width": page_info["width"],
-                    "height": page_info["height"],
-                    "thumbnail": {
-                        "@id": page_info["thumbnail_url"],
-                        "@type": "dctypes:Image",
-                        "format": "image/jpeg",
-                        "width": 150,
-                        "height": 200,
-                    },
-                    "images": [
-                        {
-                            "@type": "oa:Annotation",
-                            "motivation": "sc:painting",
-                            "resource": {
-                                "@id": page_info["page_image_url"],
-                                "@type": "dctypes:Image",
-                                "format": "image/jpeg",
-                                "width": page_info["width"],
-                                "height": page_info["height"],
-                            },
-                            "on": canvas_id,
-                        }
-                    ],
-                }
-            )
-    else:
-        # Fallback to single canvas (original behavior)
+    for page_info in page_data:
+        canvas_id = f"{manifest_url}/canvas/{page_info['page_number']}"
         canvas_items.append(
             {
                 "@type": "sc:Canvas",
-                "@id": f"{manifest_url}/canvas/1",
-                "label": "PDF Document",
-                "width": FALLBACK_WIDTH,
-                "height": FALLBACK_HEIGHT,
+                "@id": canvas_id,
+                "label": f"Page {page_info['page_number']}",
+                "width": page_info["width"],
+                "height": page_info["height"],
+                "thumbnail": {
+                    "@id": page_info["thumbnail_url"],
+                    "@type": "dctypes:Image",
+                    "format": "image/jpeg",
+                    "width": 150,
+                    "height": 200,
+                },
                 "images": [
                     {
                         "@type": "oa:Annotation",
                         "motivation": "sc:painting",
                         "resource": {
-                            "@id": file_url,
-                            "@type": "dctypes:Text",
-                            "format": "application/pdf",
+                            "@id": page_info["page_image_url"],
+                            "@type": "dctypes:Image",
+                            "format": "image/jpeg",
+                            "width": page_info["width"],
+                            "height": page_info["height"],
                         },
-                        "on": f"{manifest_url}/canvas/1",
+                        "on": canvas_id,
                     }
                 ],
             }
         )
 
     manifest = {
-        "@context": "http://iiif.io/api/presentation/3/context.json",
+        "@context": "https://iiif.io/api/presentation/3/context.json",
         "@type": "sc:Manifest",
         "@id": manifest_url,
-        "label": file_name,
+        "label": {"en": [file_name]},
         "description": f"Manifest for {file_name}",
         "viewingDirection": "left-to-right",
         "sequences": [
@@ -302,10 +274,10 @@ def generate_image_manifest(
         mime_type = f"image/{image_format}"
 
     manifest = {
-        "@context": "http://iiif.io/api/presentation/3/context.json",
+        "@context": "https://iiif.io/api/presentation/3/context.json",
         "@id": manifest_url,
         "@type": "sc:Manifest",
-        "label": file_name,
+        "label": {"en": [file_name]},
         "description": f"Manifest for {file_name}",
         "sequences": [
             {
