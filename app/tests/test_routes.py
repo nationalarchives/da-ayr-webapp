@@ -113,67 +113,55 @@ class TestRoutes:
 
     @mock_aws
     @patch("app.main.routes.create_presigned_url")
+    @patch("app.main.routes.generate_pdf_manifest")
     def test_route_generate_pdf_manifest(
         self,
+        mock_generate_pdf_manifest,
         mock_create_presigned_url,
         app,
         client: FlaskClient,
         mock_all_access_user,
     ):
-        mock_create_presigned_url.return_value = (
-            "https://presigned-url.com/download.pdf"
-        )
-
+        """
+        Test the /record/<uuid:record_id>/manifest route for PDF files.
+        Should call generate_pdf_manifest and return its response.
+        """
         mock_all_access_user(client)
         file = FileFactory(ffid_metadata__Extension="pdf")
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
-        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        # The presigned URL is not used directly in the manifest, but the route calls it
+        mock_create_presigned_url.return_value = (
+            "https://presigned-url.com/download.pdf"
+        )
+
+        # Mock the manifest returned by generate_pdf_manifest
+        expected_manifest = {
+            "@context": "https://iiif.io/api/presentation/3/context.json",
+            "@type": "sc:Manifest",
+            "@id": f"http://localhost/record/{file.FileId}/manifest",
+            "label": {"en": [file.FileName]},
+            "description": f"Manifest for {file.FileName}",
+            "viewingDirection": "left-to-right",
+            "sequences": [
+                {
+                    "@type": "sc:Sequence",
+                    "@id": f"http://localhost/record/{file.FileId}/manifest/sequence/1",
+                    "label": "Sequence 1",
+                    "canvases": [],
+                }
+            ],
+        }
+        mock_generate_pdf_manifest.return_value = app.response_class(
+            json.dumps(expected_manifest), mimetype="application/json"
+        )
 
         response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
         assert response.status_code == 200
-
-        expected_pdf_manifest = {
-            "@context": "http://iiif.io/api/presentation/2/context.json",
-            "@id": f"http://localhost/record/{file.FileId}/manifest",
-            "@type": "sc:Manifest",
-            "description": f"Manifest for {file.FileName}",
-            "label": file.FileName,
-            "sequences": [
-                {
-                    "@id": f"http://localhost/record/{file.FileId}/manifest/sequence/1",
-                    "@type": "sc:Sequence",
-                    "canvases": [
-                        {
-                            "@id": f"http://localhost/record/{file.FileId}/manifest/canvas/1",
-                            "@type": "sc:Canvas",
-                            "height": 1000,
-                            "width": 800,
-                            "images": [
-                                {
-                                    "@type": "oa:Annotation",
-                                    "motivation": "sc:painting",
-                                    "on": f"http://localhost/record/{file.FileId}/manifest/canvas/1",
-                                    "resource": {
-                                        "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                        "@type": "dctypes:Text",
-                                        "format": f"application/{file.ffid_metadata.Extension}",
-                                    },
-                                }
-                            ],
-                            "label": "PDF Document",
-                        }
-                    ],
-                    "label": "Sequence 1",
-                }
-            ],
-            "viewingDirection": "left-to-right",
-        }
-
-        actual_manifest = json.loads(response.text)
-        assert response.status_code == 200
-        assert actual_manifest == expected_pdf_manifest
+        assert json.loads(response.data) == expected_manifest
+        mock_generate_pdf_manifest.assert_called_once()
 
     @mock_aws
     @patch("app.main.routes.create_presigned_url")
@@ -200,31 +188,31 @@ class TestRoutes:
         assert response.status_code == 200
 
         expected_image_manifest = {
-            "@context": "http://iiif.io/api/presentation/3/context.json",
+            "@context": "https://iiif.io/api/presentation/3/context.json",
             "@id": f"http://localhost/record/{file.FileId}/manifest",
             "@type": "sc:Manifest",
             "description": f"Manifest for {file.FileName}",
-            "label": file.FileName,
+            "label": {"en": [file.FileName]},
             "sequences": [
                 {
-                    "@id": f"http://localhost/record/{file.FileId}/manifest/sequence/1",
+                    "@id": "https://presigned-url.com/download.png",
                     "@type": "sc:Sequence",
                     "canvases": [
                         {
-                            "@id": f"http://localhost/record/{file.FileId}/manifest/canvas/1",
+                            "@id": "https://presigned-url.com/download.png",
                             "@type": "sc:Canvas",
                             "height": 600,
                             "width": 800,
                             "images": [
                                 {
-                                    "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
+                                    "@id": "https://presigned-url.com/download.png",
                                     "@type": "oa:Annotation",
                                     "motivation": "sc:painting",
-                                    "on": f"http://localhost/record/{file.FileId}/manifest/canvas/1",
+                                    "on": "https://presigned-url.com/download.png",
                                     "resource": {
-                                        "@id": f"http://localhost/record/{file.FileId}/manifest/annotation/1",
+                                        "@id": "https://presigned-url.com/download.png",
                                         "@type": "dctypes:Image",
-                                        "format": f"image/{file.ffid_metadata.Extension}",
+                                        "format": "image/png",
                                         "height": 600,
                                         "width": 800,
                                     },

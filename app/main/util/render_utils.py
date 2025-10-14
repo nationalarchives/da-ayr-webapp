@@ -155,9 +155,7 @@ def get_pdf_pages_from_s3(file_obj):
         else:
             bucket = current_app.config["RECORD_BUCKET_NAME"]
 
-        key = (
-            f"{file_obj.consignment.ConsignmentReference}/{file_obj.FileId}"
-        )
+        key = f"{file_obj.consignment.ConsignmentReference}/{file_obj.FileId}"
 
         current_app.logger.info(
             f"Fetching PDF from S3: bucket={bucket}, key={key}"
@@ -167,9 +165,7 @@ def get_pdf_pages_from_s3(file_obj):
         current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
 
         page_data = extract_pdf_pages_as_images(pdf_bytes)
-        current_app.logger.info(
-            f"Extracted {len(page_data)} pages from PDF"
-        )
+        current_app.logger.info(f"Extracted {len(page_data)} pages from PDF")
         return page_data, None
     except Exception as e:
         current_app.logger.error(
