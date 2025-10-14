@@ -869,27 +869,42 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         json.loads(current_app.config["CONVERTIBLE_EXTENSIONS"])
     )
 
+    def get_s3_file_obj(file, bucket_name=None):
+        """
+        Helper to get S3 file object and presigned URL for a given file.
+        """
+        s3 = boto3.client("s3")
+        bucket = bucket_name or current_app.config["RECORD_BUCKET_NAME"]
+        key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+        return s3_file_object
+
     if (
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES"]
     ):
-        file_url = create_presigned_url(file)
-        return generate_pdf_manifest(file_name, manifest_url, file_obj=file)
+        file_obj = get_s3_file_obj(
+            file, bucket_name=current_app.config["RECORD_BUCKET_NAME"]
+        )
+        return generate_pdf_manifest(file_name, manifest_url, file_obj=file_obj)
     elif (
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]
     ):
-        s3 = boto3.client("s3")
-        bucket = current_app.config["RECORD_BUCKET_NAME"]
-        key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+        s3_file_object = get_s3_file_obj(
+            file, bucket_name=current_app.config["RECORD_BUCKET_NAME"]
+        )
         file_url = create_presigned_url(file)
         return generate_image_manifest(
             file_name, file_url, manifest_url, s3_file_object
         )
     elif file_type in convertible_extensions:
-        file_url = create_presigned_url_for_access_copy(file)
-        return generate_pdf_manifest(file.FileName, manifest_url, file_obj=file)
+        file_obj = get_s3_file_obj(
+            file, bucket_name=current_app.config["ACCESS_COPY_BUCKET"]
+        )
+        return generate_pdf_manifest(
+            file.FileName, manifest_url, file_obj=file_obj
+        )
 
     current_app.app_logger.error(
         f"Failed to create manifest for file with ID {file.FileId} as not a supported file type"

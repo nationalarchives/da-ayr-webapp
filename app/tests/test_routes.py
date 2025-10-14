@@ -132,12 +132,13 @@ class TestRoutes:
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
 
-        # The presigned URL is not used directly in the manifest, but the route calls it
+        # Add this line to create the S3 object
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
         mock_create_presigned_url.return_value = (
             "https://presigned-url.com/download.pdf"
         )
 
-        # Mock the manifest returned by generate_pdf_manifest
         expected_manifest = {
             "@context": "https://iiif.io/api/presentation/3/context.json",
             "@type": "sc:Manifest",

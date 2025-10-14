@@ -148,20 +148,7 @@ def get_pdf_pages_from_s3(file_obj):
     Returns (page_data, error_response) where error_response is a Flask response or None.
     """
     try:
-        s3 = boto3.client("s3")
-        file_extension = get_file_extension(file_obj)
-        if file_extension != "pdf":
-            bucket = current_app.config["ACCESS_COPY_BUCKET"]
-        else:
-            bucket = current_app.config["RECORD_BUCKET_NAME"]
-
-        key = f"{file_obj.consignment.ConsignmentReference}/{file_obj.FileId}"
-
-        current_app.logger.info(
-            f"Fetching PDF from S3: bucket={bucket}, key={key}"
-        )
-        response = s3.get_object(Bucket=bucket, Key=key)
-        pdf_bytes = response["Body"].read()
+        pdf_bytes = file_obj["Body"].read()
         current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
 
         page_data = extract_pdf_pages_as_images(pdf_bytes)
