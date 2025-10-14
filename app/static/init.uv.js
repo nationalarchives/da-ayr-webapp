@@ -35,7 +35,19 @@ function initUniversalViewer() {
   });
 }
 
-// Remove .attribution element if present
+document.addEventListener("DOMContentLoaded", function () {
+  initUniversalViewer();
+});
+
+document.querySelectorAll(".govuk-tabs__tab").forEach((tab) => {
+  tab.addEventListener("click", function (event) {
+    if (this.getAttribute("href") === "#record-view") {
+      setTimeout(initUniversalViewer, 0);
+    }
+  });
+});
+
+// Function to remove the .attribution element
 function removeAttribution() {
   const attribution = document.querySelector(".attribution");
   if (attribution) {
@@ -43,64 +55,46 @@ function removeAttribution() {
   }
 }
 
-// Responsive resizing for #uv element
-function resizeUvElement() {
-  const uvElement = document.getElementById("uv");
-  if (!uvElement) return;
+const observer = new MutationObserver(function (mutationsList, observer) {
+  for (const mutation of mutationsList) {
+    if (mutation.type === "childList") {
+      removeAttribution();
+    }
+  }
+});
 
-  uvElement.style.width = "100%";
-  uvElement.style.height = "80vh";
-  uvElement.style.padding = "";
+const observerConfig = { childList: true, subtree: true };
 
-  if (window.matchMedia("(max-width: 810px)").matches) {
+observer.observe(document.body, observerConfig);
+
+document.addEventListener("DOMContentLoaded", function () {
+  removeAttribution();
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  let uvElement = document.getElementById("uv");
+  if (uvElement) {
+    uvElement.style.width = "100%";
     uvElement.style.height = "80vh";
-    uvElement.style.width = "85vw";
-    uvElement.style.padding = "1rem";
-  }
-  if (window.matchMedia("(max-width: 640px)").matches) {
-    uvElement.style.height = "50vh";
-    uvElement.style.width = "90vw";
-    uvElement.style.padding = "0.25rem";
-  }
-}
 
-// Accessibility for .btn elements
-function enhanceButtons() {
+    // Apply media query for small devices
+    if (window.matchMedia("(max-width: 810px)").matches) {
+      uvElement.style.height = "80vh";
+      uvElement.style.width = "85vw";
+      uvElement.style.padding = "1rem";
+    }
+
+    // Apply media query for small devices
+    if (window.matchMedia("(max-width: 640px)").matches) {
+      uvElement.style.height = "50vh";
+      uvElement.style.width = "90vw";
+      uvElement.style.padding = "0.25rem";
+    }
+  }
+
   document.querySelectorAll(".btn").forEach((button) => {
     if (button.tagName.toLowerCase() === "div") {
       button.setAttribute("role", "button");
-      button.setAttribute("tabindex", "0");
     }
-  });
-}
-
-// MutationObserver to remove attribution if it appears
-const observer = new MutationObserver(() => removeAttribution());
-const observerConfig = { childList: true, subtree: true };
-
-document.addEventListener("DOMContentLoaded", function () {
-  // Init Universal Viewer
-  initUniversalViewer();
-
-  // Remove attribution and observe for future additions
-  removeAttribution();
-  observer.observe(document.body, observerConfig);
-
-  // Responsive UV element
-  resizeUvElement();
-  window.addEventListener("resize", resizeUvElement);
-
-  // Enhance button accessibility
-  enhanceButtons();
-
-  // Tab click handler (debounced)
-  let uvInitTimeout = null;
-  document.querySelectorAll(".govuk-tabs__tab").forEach((tab) => {
-    tab.addEventListener("click", function () {
-      if (this.getAttribute("href") === "#record-view") {
-        clearTimeout(uvInitTimeout);
-        uvInitTimeout = setTimeout(initUniversalViewer, 0);
-      }
-    });
   });
 });
