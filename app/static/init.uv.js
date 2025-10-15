@@ -1,6 +1,8 @@
 const script = document.getElementById("init-uv");
 const manifest_url = script.getAttribute("manifest_url");
 
+let leftPanelEnabled = true;
+
 function initUniversalViewer() {
   const data = {
     manifest: manifest_url,
@@ -26,7 +28,7 @@ function initUniversalViewer() {
     cb({
       options: {
         footerPanelEnabled: false,
-        leftPanelEnabled: leftPanelEnabled,
+        leftPanelEnabled,
         rightPanelEnabled: false,
         headerPanelEnabled: true,
       },
@@ -77,15 +79,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.addEventListener("DOMContentLoaded", function () {
   let uvElement = document.getElementById("uv");
+  let shouldEnableLeftPanel = true;
   if (uvElement) {
     uvElement.style.width = "100%";
     uvElement.style.height = "80vh";
+
+    le;
 
     // Apply media query for small devices
     if (window.matchMedia("(max-width: 810px)").matches) {
       uvElement.style.height = "80vh";
       uvElement.style.width = "85vw";
       uvElement.style.padding = "1rem";
+      shouldEnableLeftPanel = false;
     }
 
     // Apply media query for small devices
@@ -94,6 +100,12 @@ document.addEventListener("DOMContentLoaded", function () {
       uvElement.style.width = "90vw";
       uvElement.style.padding = "0.25rem";
     }
+  }
+
+  // Only re-init if the state changes
+  if (shouldEnableLeftPanel !== leftPanelEnabled) {
+    leftPanelEnabled = shouldEnableLeftPanel;
+    initUniversalViewer();
   }
 
   document.querySelectorAll(".btn").forEach((button) => {
