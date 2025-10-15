@@ -36,6 +36,4 @@ def assert_contains_html(
     expected_normalised = normalise_element(expected_element)
     actual_normalised = normalise_element(actual_element)
 
-    assert (
-        expected_normalised == actual_normalised
-    ), f"Elements don't match:\nExpected: {expected_normalised}\nActual: {actual_normalised}"  # nosec
+    assert expected_normalised == actual_normalised  # nosec
