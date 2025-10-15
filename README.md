@@ -502,9 +502,6 @@ curl -s "http://localhost:9200/documents/_search?size=0" \
 ```bash
 cd local_services
 
-# Make script executable (first time only)
-chmod +x create_opensearch_snapshot.sh
-
 # Create snapshot
 ./create_opensearch_snapshot.sh
 
