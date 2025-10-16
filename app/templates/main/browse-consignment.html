@@ -63,15 +63,42 @@
                 <tbody class="govuk-table__body">
                     <div class="main-content" id="main-content" role="main">
                         {% for record in results %}
+                            {% set desktop_long_word = namespace(dlw=false) %}
+                            {% set mobile_long_word = namespace(mlw=false) %}
+                            {% set desktop_word_length = 40 %}
+                            {% set mobile_word_length = 20 %}
+                            {% set words = record["file_name"].replace("-", " ").replace(",", " ").replace(".", " ").replace("  ", " ").split() %}
+                            {% for word in words %}
+                                {% if word|length > desktop_word_length %}
+                                    {% set desktop_long_word.dlw = true %}
+                                {% endif %}
+                                {% if word|length > mobile_word_length %}
+                                    {% set mobile_long_word.mlw = true %}
+                                {% endif %}
+                            {% endfor %}
                             <tr class="govuk-table__row govuk-table__row-ref">
-                                <td class="govuk-table__cell govuk-table__cell--word-break-all govuk-table__cell--on-mobile--flex-layout-col">
-                                    <time datetime="{{ record["date_of_record"] | format_date_iso }}">{{ record["date_of_record"] }}</time>
-                                    <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-2"
-                                       href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
-                                </td>
-                                <td class="govuk-table__cell govuk-table__cell--word-break-all govuk-table--invisible-on-mobile">
-                                    <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
-                                </td>
+                                {% if mobile_long_word.mlw %}
+                                    <td class="govuk-table__cell govuk-table__cell--word-break-all govuk-table__cell--on-mobile--flex-layout-col">
+                                        <time datetime="{{ record["date_of_record"] | format_date_iso }}">{{ record["date_of_record"] }}</time>
+                                        <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-2"
+                                           href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                    </td>
+                                {% else %}
+                                    <td class="govuk-table__cell govuk-table__cell govuk-table__cell--on-mobile--flex-layout-col">
+                                        <time datetime="{{ record["date_of_record"] | format_date_iso }}">{{ record["date_of_record"] }}</time>
+                                        <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-2"
+                                           href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                    </td>
+                                {% endif %}
+                                {% if desktop_long_word.dlw %}
+                                    <td class="govuk-table__cell govuk-table__cell--word-break-all govuk-table--invisible-on-mobile">
+                                        <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                    </td>
+                                {% else %}
+                                    <td class="govuk-table__cell govuk-table__cell govuk-table--invisible-on-mobile">
+                                        <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                    </td>
+                                {% endif %}
                                 <td class="govuk-table__cell">
                                     <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
                                         {{ record['closure_type'] }}
