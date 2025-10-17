@@ -42,6 +42,7 @@ from app.main.util.filter_sort_builder import (
     build_filters,
     build_sorting_orders,
 )
+from app.main.util.page_validator import validate_page_parameter
 from app.main.util.pagination import (
     calculate_total_pages,
     get_pagination,
@@ -69,8 +70,6 @@ from app.main.util.search_utils import (
     post_process_opensearch_results,
     setup_opensearch,
 )
-
-from app.main.util.page_validator import validate_page_parameter
 
 from .forms import SearchForm
 
@@ -158,7 +157,9 @@ def accessibility():
 @log_page_view
 def browse():
     form = SearchForm()
-    page = validate_page_parameter(request.args.get("page"), default=1, max_value=1000)
+    page = validate_page_parameter(
+        request.args.get("page"), default=1, max_value=1000
+    )
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     transferring_bodies = []
 
@@ -253,7 +254,9 @@ def browse_transferring_body(_id: uuid.UUID):
     breadcrumb_values = {0: {"transferring_body": body.Name}}
 
     form = SearchForm()
-    page = validate_page_parameter(request.args.get("page"), default=1, max_value=1000)
+    page = validate_page_parameter(
+        request.args.get("page"), default=1, max_value=1000
+    )
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
 
     date_validation_errors = []
@@ -342,7 +345,9 @@ def browse_series(_id: uuid.UUID):
     }
 
     form = SearchForm()
-    page = validate_page_parameter(request.args.get("page"), default=1, max_value=1000)
+    page = validate_page_parameter(
+        request.args.get("page"), default=1, max_value=1000
+    )
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
 
     date_validation_errors = []
@@ -434,7 +439,9 @@ def browse_consignment(_id: uuid.UUID):
     }
 
     form = SearchForm()
-    page = validate_page_parameter(request.args.get("page"), default=1, max_value=1000)
+    page = validate_page_parameter(
+        request.args.get("page"), default=1, max_value=1000
+    )
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
 
     date_validation_errors = []
@@ -537,7 +544,9 @@ def search_results_summary():
 
     form = SearchForm()
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
-    page = validate_page_parameter(request.args.get("page"), default=1, max_value=1000)
+    page = validate_page_parameter(
+        request.args.get("page"), default=1, max_value=1000
+    )
 
     query, search_area = get_query_and_search_area(request)
     filters = {"query": query}
@@ -593,7 +602,9 @@ def search_transferring_body(_id: uuid.UUID):
 
     form = SearchForm()
     per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
-    page = validate_page_parameter(request.args.get("page"), default=1, max_value=1000)
+    page = validate_page_parameter(
+        request.args.get("page"), default=1, max_value=1000
+    )
     open_all = get_param("open_all", request)
     sort = get_param("sort", request) or "file_name"
     highlight_tag = f"uuid_prefix_{uuid.uuid4().hex}"
