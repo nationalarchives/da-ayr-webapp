@@ -116,14 +116,8 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
                 pix = None
 
             return page_data
-    except pymupdf.fitz.FileDataError as e:
-        current_app.logger.error(f"Invalid PDF file: {e}")
-        return []
     except Exception as e:
-        current_app.logger.error(
-            f"Error extracting PDF pages: {e}", exc_info=True
-        )
-        return []
+        raise KeyError(f"Error extracting PDF pages: {e}")
 
 
 def create_presigned_url_for_access_copy(file: File) -> str:
