@@ -5160,4 +5160,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "abee6e87e223d6fda7d3d6ae68aed6bcee4f52ba3a15d5743dfd94cf2bc2d4a6"
+content-hash = "d10ba44dec28c9d08aa41307a0c31ca81fd48398923dd9a640663279255042c5"
