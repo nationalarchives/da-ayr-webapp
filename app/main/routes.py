@@ -879,20 +879,22 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         s3_file_object = s3.get_object(Bucket=bucket, Key=key)
         return s3_file_object
 
+    s3_file_obj = get_s3_file_obj(file)
+
     if (
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES"]
     ):
-        file_obj = get_s3_file_obj(file)
-        return generate_pdf_manifest(file_name, manifest_url, file_obj=file_obj)
+        return generate_pdf_manifest(
+            file_name, manifest_url, file_obj=s3_file_obj
+        )
     elif (
         file_type
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]
     ):
-        s3_file_object = get_s3_file_obj(file)
         file_url = create_presigned_url(file)
         return generate_image_manifest(
-            file_name, file_url, manifest_url, s3_file_object
+            file_name, file_url, manifest_url, s3_file_object=s3_file_obj
         )
     elif file_type in convertible_extensions:
         file_obj = get_s3_file_obj(
