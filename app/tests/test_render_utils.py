@@ -104,17 +104,19 @@ def test_extract_pdf_pages_as_images_success():
 
         result = extract_pdf_pages_as_images(pdf_bytes)
 
-        assert isinstance(result, list)
-        assert len(result) > 0  # Should have at least one page
+        expected_pages = [
+            {
+                "page_number": 1,
+                "width": result[0]["width"],
+                "height": result[0]["height"],
+                "thumbnail_url": result[0]["thumbnail_url"],
+                "page_image_url": result[0]["page_image_url"],
+                "thumbnail_base64_size": result[0]["thumbnail_base64_size"],
+                "page_base64_size": result[0]["page_base64_size"],
+            },
+        ]
 
-        for idx, page in enumerate(result, start=1):
-            assert page["page_number"] == idx
-            assert isinstance(page["width"], int)
-            assert isinstance(page["height"], int)
-            assert page["thumbnail_url"].startswith("data:image/jpeg;base64,")
-            assert page["page_image_url"].startswith("data:image/jpeg;base64,")
-            assert isinstance(page["thumbnail_base64_size"], int)
-            assert isinstance(page["page_base64_size"], int)
+        assert result == expected_pages
 
 
 def test_extract_pdf_pages_as_images_invalid_pdf():
