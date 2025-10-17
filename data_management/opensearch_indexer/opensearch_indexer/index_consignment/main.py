@@ -11,10 +11,10 @@ from .bulk_index_consignment import bulk_index_consignment_from_aws
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger()
-s3 = boto3.client("s3")
 
 
 def all_consignments_index(secret_string, db_secret_string):
+    s3 = boto3.client("s3", region_name="eu-west-2")
     bucket_name = secret_string["RECORD_BUCKET_NAME"]
     paginator = s3.get_paginator("list_objects_v2")
     response = paginator.paginate(Bucket=bucket_name)
@@ -68,7 +68,7 @@ def consignment_indexer():
     secret_string = get_secret_data(secret_id)
     db_secret_string = get_secret_data(db_secret_id)
 
-    indexer_type = os.getenv("INDEXER_TYPE")
+    indexer_type = os.getenv("INDEXER_TYPE", "SINGLE")
 
     if indexer_type == "ALL":
         all_consignments_index(secret_string, db_secret_string)

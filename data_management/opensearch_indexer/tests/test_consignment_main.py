@@ -5,7 +5,10 @@ from uuid import uuid4
 import boto3
 import pytest
 from moto import mock_aws
-from opensearch_indexer.index_consignment.main import consignment_indexer
+from opensearch_indexer.index_consignment.main import (
+    consignment_indexer,
+    single_consignment_index,
+)
 from requests_aws4auth import AWS4Auth
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -245,7 +248,9 @@ def test_main_invokes_bulk_index_with_correct_file_data(monkeypatch, database):
 
 
 @mock_aws
-def test_main_raises_exception_when_no_reference(monkeypatch):
+def test_single_consignment_index_raises_exception_when_no_reference(
+    monkeypatch,
+):
     monkeypatch.setenv(
         "SNS_MESSAGE",
         json.dumps(
@@ -258,26 +263,35 @@ def test_main_raises_exception_when_no_reference(monkeypatch):
             }
         ),
     )
-    monkeypatch.setenv("SECRET_ID", "any")
-    monkeypatch.setenv("DB_SECRET_ID", "any")
+    secret_string = {
+        "RECORD_BUCKET_NAME": "test-bucket",
+        "AWS_REGION": "eu-west-2",
+    }
+    db_secret_string = {"username": "u", "password": "p"}
 
     with pytest.raises(
         Exception,
         match="Missing reference in SNS Message required for indexing",
     ):
-        consignment_indexer()
+        single_consignment_index(secret_string, db_secret_string)
 
 
 @mock_aws
-def test_main_raises_exception_when_no_sns_message(monkeypatch):
+def test_single_consignment_index_raises_exception_when_no_sns_message(
+    monkeypatch,
+):
     monkeypatch.delenv("SNS_MESSAGE", raising=False)
-    monkeypatch.setenv("SECRET_ID", "any")
-    monkeypatch.setenv("DB_SECRET_ID", "any")
+
+    secret_string = {
+        "RECORD_BUCKET_NAME": "test-bucket",
+        "AWS_REGION": "eu-west-2",
+    }
+    db_secret_string = {"username": "u", "password": "p"}
 
     with pytest.raises(
         Exception, match="SNS_MESSAGE environment variable not found"
     ):
-        consignment_indexer()
+        single_consignment_index(secret_string, db_secret_string)
 
 
 @mock_aws
