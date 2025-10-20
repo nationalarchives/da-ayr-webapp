@@ -114,8 +114,8 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
                 pix = None
 
             return page_data
-    except:
-        raise Exception("Error extracting PDF pages")
+    except Exception as e:
+        current_app.logger.error(f"Error extracting PDF pages: {e}")
 
 
 def create_presigned_url_for_access_copy(file: File) -> str:
