@@ -566,7 +566,7 @@ For running flask app tests, we have the `client` fixture which uses the `app` f
 To run the unit and integration tests you can run:
 
 ```shell
-python -m pytest --cov=app --cov-report=term-missing --cov-branch -vvv
+python -m pytest app/tests --cov=app --cov-report=term-missing --cov-branch -vvv
 ```
 
 This also will generate a test coverage report.

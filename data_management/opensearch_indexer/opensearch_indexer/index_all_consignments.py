@@ -21,6 +21,8 @@ import sys
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
+from configs.db_utils import build_database_url
+
 from .index_consignment.bulk_index_consignment import bulk_index_consignment
 
 logging.basicConfig(
@@ -59,30 +61,6 @@ def get_all_consignment_references(database_url: str) -> list[str]:
         return consignment_references
     finally:
         session.close()
-
-
-def build_database_url() -> str:
-    """Build database URL from environment variables."""
-    db_host = os.getenv("DB_HOST")
-    db_port = os.getenv("DB_PORT")
-    db_name = os.getenv("DB_NAME")
-    db_user = os.getenv("DB_USER")
-    db_password = os.getenv("DB_PASSWORD")
-    db_ssl_cert = os.getenv("DB_SSL_ROOT_CERTIFICATE")
-
-    if not all([db_host, db_port, db_name, db_user, db_password]):
-        raise ValueError(
-            "Missing required database environment variables: "
-            "DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD"
-        )
-
-    database_url = f"postgresql+psycopg2://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-
-    # Only use SSL if cert file exists
-    if db_ssl_cert and os.path.exists(db_ssl_cert):
-        database_url += f"?sslmode=verify-full&sslrootcert={db_ssl_cert}"
-
-    return database_url
 
 
 def main():
