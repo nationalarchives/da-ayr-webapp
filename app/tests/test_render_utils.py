@@ -1,14 +1,12 @@
-import json
-from unittest.mock import Mock, patch
+import base64
+from unittest.mock import MagicMock, Mock, patch
 
-import pytest
 from flask import Flask
 
 from app.main.util.render_utils import (
     create_presigned_url,
     extract_pdf_pages_as_images,
     generate_breadcrumb_values,
-    generate_pdf_manifest,
     get_download_filename,
     get_file_extension,
 )
@@ -89,114 +87,84 @@ def test_create_presigned_url(mock_boto_client):
     assert url == "http://presigned.url"
 
 
-@pytest.fixture
-def app_context():
+@patch("app.main.util.render_utils.Image")
+@patch("app.main.util.render_utils.pymupdf")
+def test_extract_pdf_pages_as_images_success(mock_pymupdf, mock_Image):
     app = Flask(__name__)
     with app.app_context():
-        yield
+        with patch(
+            "app.main.util.render_utils.current_app.logger"
+        ) as mock_logger:
+            # Mock data structure (like JSON)
+            mock_data = {
+                "pdf_document": {
+                    "page_count": 2,
+                    "pages": [
+                        {"pixmap": {"tobytes": b"fakepngbytes"}},
+                        {"pixmap": {"tobytes": b"fakepngbytes"}},
+                    ],
+                },
+                "pymupdf": {"Matrix": "matrix"},
+                "image": {
+                    "width": 1000,
+                    "height": 2000,
+                    "save_bytes": b"jpegbytes",
+                },
+            }
 
+            # Setup mocks using the structure above
+            mock_pdf_document = MagicMock()
+            mock_pdf_document.page_count = mock_data["pdf_document"][
+                "page_count"
+            ]
 
-def test_extract_pdf_pages_as_images_success():
-    app = Flask(__name__)
-    with app.app_context():
-        with open("local_services/mds_data_generator/example_files/file.pdf", "rb") as f:
-            pdf_bytes = f.read()
+            mock_pages = []
+            for page_info in mock_data["pdf_document"]["pages"]:
+                mock_pixmap = MagicMock()
+                mock_pixmap.tobytes.return_value = page_info["pixmap"][
+                    "tobytes"
+                ]
+                mock_page = MagicMock()
+                mock_page.get_pixmap.return_value = mock_pixmap
+                mock_pages.append(mock_page)
+            mock_pdf_document.load_page.side_effect = mock_pages
 
-        result = extract_pdf_pages_as_images(pdf_bytes)
-
-        expected_pages = [
-            {
-                "page_number": 1,
-                "width": result[0]["width"],
-                "height": result[0]["height"],
-                "thumbnail_url": result[0]["thumbnail_url"],
-                "page_image_url": result[0]["page_image_url"],
-                "thumbnail_base64_size": result[0]["thumbnail_base64_size"],
-                "page_base64_size": result[0]["page_base64_size"],
-            },
-        ]
-
-        assert result == expected_pages
-
-
-def test_extract_pdf_pages_as_images_invalid_pdf():
-    app = Flask(__name__)
-    with app.app_context():
-        with pytest.raises(KeyError) as excinfo:
-            extract_pdf_pages_as_images(b"not a pdf")
-        assert "Error extracting PDF pages: Failed to open stream" in str(excinfo.value)
-
-
-
-@pytest.fixture
-def flask_app():
-    app = Flask(__name__)
-    with app.app_context():
-        yield app
-
-
-@patch("app.main.util.render_utils.get_pdf_pages_from_s3")
-@patch("app.main.util.render_utils.current_app")
-def test_generate_pdf_manifest_success(
-    mock_current_app, mock_get_pdf_pages_from_s3, flask_app
-):
-    # Prepare mock page data
-    page_data = [
-        {
-            "page_number": 1,
-            "width": 800,
-            "height": 1000,
-            "thumbnail_url": "data:image/jpeg;base64,thumb1",
-            "page_image_url": "data:image/jpeg;base64,page1",
-            "thumbnail_base64_size": 123,
-            "page_base64_size": 456,
-        },
-        {
-            "page_number": 2,
-            "width": 800,
-            "height": 1000,
-            "thumbnail_url": "data:image/jpeg;base64,thumb2",
-            "page_image_url": "data:image/jpeg;base64,page2",
-            "thumbnail_base64_size": 124,
-            "page_base64_size": 457,
-        },
-    ]
-    mock_get_pdf_pages_from_s3.return_value = (page_data, None)
-    mock_logger = Mock()
-    mock_current_app.logger = mock_logger
-
-    with flask_app.app_context():
-        resp = generate_pdf_manifest(
-            "test.pdf", "http://manifest.url", file_obj=Mock()
-        )
-        assert resp.status_code == 200
-        manifest = json.loads(resp.get_data(as_text=True))
-        assert manifest["@type"] == "sc:Manifest"
-        assert manifest["@id"] == "http://manifest.url"
-        assert manifest["label"]["en"] == ["test.pdf"]
-        assert "sequences" in manifest
-        assert len(manifest["sequences"][0]["canvases"]) == 2
-        for idx, canvas in enumerate(manifest["sequences"][0]["canvases"]):
-            assert canvas["@type"] == "sc:Canvas"
-            assert canvas["thumbnail"]["@id"] == page_data[idx]["thumbnail_url"]
-            assert (
-                canvas["images"][0]["resource"]["@id"]
-                == page_data[idx]["page_image_url"]
+            mock_pymupdf.open.return_value.__enter__.return_value = (
+                mock_pdf_document
             )
+            mock_pymupdf.Matrix.return_value = mock_data["pymupdf"]["Matrix"]
 
+            # Mock PIL Image
+            mock_image = MagicMock()
+            mock_image.width = mock_data["image"]["width"]
+            mock_image.height = mock_data["image"]["height"]
+            mock_image.copy.return_value = mock_image
+            mock_image.save.side_effect = (
+                lambda buf, format, quality: buf.write(
+                    mock_data["image"]["save_bytes"]
+                )
+            )
+            mock_image.thumbnail = MagicMock()
+            mock_Image.open.return_value = mock_image
 
-@patch("app.main.util.render_utils.get_pdf_pages_from_s3")
-@patch("app.main.util.render_utils.current_app")
-def test_generate_pdf_manifest_error_response(
-    mock_current_app, mock_get_pdf_pages_from_s3, flask_app
-):
-    error_response = Mock()
-    mock_get_pdf_pages_from_s3.return_value = (None, error_response)
-    mock_logger = Mock()
-    mock_current_app.logger = mock_logger
+            # Call function
+            result = extract_pdf_pages_as_images(b"dummy_pdf_bytes")
 
-    with flask_app.app_context():
-        resp = generate_pdf_manifest(
-            "bad.pdf", "http://manifest.url", file_obj=Mock()
-        )
-        assert resp == error_response
+            # Assertions
+            assert isinstance(result, list)
+            assert len(result) == 2
+            for i, page in enumerate(result):
+                assert page["page_number"] == i + 1
+                assert page["width"] == mock_data["image"]["width"]
+                assert page["height"] == mock_data["image"]["height"]
+                assert page["thumbnail_url"].startswith(
+                    "data:image/jpeg;base64,"
+                )
+                assert page["page_image_url"].startswith(
+                    "data:image/jpeg;base64,"
+                )
+                # Check base64 decodes
+                base64.b64decode(page["thumbnail_url"].split(",")[1])
+                base64.b64decode(page["page_image_url"].split(",")[1])
+
+            assert mock_logger.debug.call_count == 2

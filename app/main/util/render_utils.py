@@ -105,8 +105,6 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
                         "height": page_image.height,
                         "thumbnail_url": thumbnail_data_url,
                         "page_image_url": page_data_url,
-                        "thumbnail_base64_size": len(thumbnail_base64),
-                        "page_base64_size": len(page_base64),
                     }
                 )
 
@@ -116,8 +114,8 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
                 pix = None
 
             return page_data
-    except Exception as e:
-        raise KeyError(f"Error extracting PDF pages: {e}")
+    except:
+        raise Exception("Error extracting PDF pages")
 
 
 def create_presigned_url_for_access_copy(file: File) -> str:
@@ -134,25 +132,6 @@ def create_presigned_url_for_access_copy(file: File) -> str:
         "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=10
     )
     return presigned_url
-
-
-def get_pdf_pages_from_s3(file_obj):
-    """
-    Fetch PDF file from S3, extract pages as images, and return page data.
-    Returns (page_data, error_response) where error_response is a Flask response or None.
-    """
-    try:
-        pdf_bytes = file_obj["Body"].read()
-        current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
-
-        page_data = extract_pdf_pages_as_images(pdf_bytes)
-        current_app.logger.info(f"Extracted {len(page_data)} pages from PDF")
-        return page_data, None
-    except Exception as e:
-        current_app.logger.error(
-            f"Error processing PDF for thumbnails: {e}", exc_info=True
-        )
-        return None, jsonify({"error": "Failed to process PDF"}), 500
 
 
 def generate_pdf_manifest(
@@ -174,9 +153,11 @@ def generate_pdf_manifest(
         f"Generating PDF manifest for {file_name}, file_obj: {file_obj is not None}"
     )
 
-    page_data, error_response = get_pdf_pages_from_s3(file_obj)
-    if error_response:
-        return error_response
+    pdf_bytes = file_obj["Body"].read()
+    current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
+
+    page_data = extract_pdf_pages_as_images(pdf_bytes)
+    current_app.logger.info(f"Extracted {len(page_data)} pages from PDF")
 
     canvas_items = []
 
