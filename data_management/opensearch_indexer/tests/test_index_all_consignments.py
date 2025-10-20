@@ -62,7 +62,7 @@ class TestBuildDatabaseUrl:
         monkeypatch.setenv("DB_PORT", "5432")
 
         with pytest.raises(
-            ValueError, match="Missing required database environment variables"
+            ValueError, match="Missing required database parameters"
         ):
             build_database_url()
 

@@ -37,17 +37,25 @@ def build_database_url(
         ValueError: If required parameters are missing
     """
     db_host = host or os.getenv("DB_HOST")
-    db_port = port or os.getenv("DB_PORT")
-    db_name = name or os.getenv("DB_NAME")
-    db_user = user or os.getenv("DB_USER")
-    db_password = password or os.getenv("DB_PASSWORD")
-    db_ssl_cert = ssl_cert or os.getenv("DB_SSL_ROOT_CERTIFICATE")
+    if not db_host:
+        raise ValueError("Missing required database parameters: db_host")
 
-    if not all([db_host, db_port, db_name, db_user, db_password]):
-        raise ValueError(
-            "Missing required database parameters: "
-            "host, port, name, user, password (or corresponding environment variables)"
-        )
+    db_port = port or os.getenv("DB_PORT")
+    if not db_port:
+        raise ValueError("Missing required database parameters: db_port")
+
+    db_name = name or os.getenv("DB_NAME")
+    if not db_name:
+        raise ValueError("Missing required database parameters: db_name")
+
+    db_user = user or os.getenv("DB_USER")
+    if not db_user:
+        raise ValueError("Missing required database parameters: db_user")
+    db_password = password or os.getenv("DB_PASSWORD")
+    if not db_password:
+        raise ValueError("Missing required database parameters: db_password")
+
+    db_ssl_cert = ssl_cert or os.getenv("DB_SSL_ROOT_CERTIFICATE")
 
     encoded_password = quote_plus(db_password)
     base_url = (
