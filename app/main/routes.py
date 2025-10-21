@@ -42,15 +42,6 @@ from app.main.util.filter_sort_builder import (
     build_filters,
     build_sorting_orders,
 )
-from app.main.util.page_validator import (
-    BrowseConsignmentSchema,
-    BrowseRequestSchema,
-    BrowseSeriesSchema,
-    BrowseTransferringBodySchema,
-    SearchResultsSummarySchema,
-    SearchTransferringBodySchema,
-    validate_request,
-)
 from app.main.util.pagination import (
     calculate_total_pages,
     get_pagination,
@@ -64,6 +55,18 @@ from app.main.util.render_utils import (
     generate_pdf_manifest,
     get_download_filename,
     get_file_extension,
+)
+from app.main.util.request_validator import (
+    BrowseConsignmentSchema,
+    BrowseRequestSchema,
+    BrowseSeriesSchema,
+    BrowseTransferringBodySchema,
+    DownloadRequestSchema,
+    RecordRequestSchema,
+    SearchRequestSchema,
+    SearchResultsSummarySchema,
+    SearchTransferringBodySchema,
+    validate_request,
 )
 from app.main.util.search_utils import (
     build_search_results_summary_query,
@@ -514,6 +517,7 @@ def browse_consignment(_id: uuid.UUID):
 @bp.route("/search", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
+@validate_request(SearchRequestSchema, location="combined")
 def search():
     form_data = request.form.to_dict()
     args_data = request.args.to_dict()
@@ -719,6 +723,7 @@ def search_transferring_body(_id: uuid.UUID):
 @bp.route("/record/<uuid:record_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
+@validate_request(RecordRequestSchema, location="path")
 def record(record_id: uuid.UUID):
     """
     Render the record details page.
@@ -798,6 +803,7 @@ def record(record_id: uuid.UUID):
 @bp.route("/download/<uuid:record_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
+@validate_request(DownloadRequestSchema, location="path")
 def download_record(record_id: uuid.UUID):
     s3 = boto3.client("s3")
     file = db.session.get(File, record_id)
@@ -878,6 +884,7 @@ def http_exception(error):
 @bp.route("/record/<uuid:record_id>/manifest")
 @access_token_sign_in_required
 @log_page_view
+@validate_request(RecordRequestSchema, location="path")
 def generate_manifest(record_id: uuid.UUID) -> Response:
     file = db.session.get(File, record_id)
 

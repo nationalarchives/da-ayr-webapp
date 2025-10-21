@@ -185,9 +185,7 @@ class BrowseRequestSchema(PaginationSchema, BrowseFilterSchema):
 class SearchTransferringBodySchema(PaginationSchema, SearchQuerySchema):
     """Search transferring body request validation schema."""
 
-    _id = UUIDField(
-        required=False, data_key="_id", load_default=None
-    )
+    _id = UUIDField(required=False, data_key="_id", load_default=None)
 
 
 class SearchRequestSchema(SearchQuerySchema):
@@ -275,8 +273,10 @@ def validate_request(schema_class, location="args"):
     Returns:
         Decorated function with validated data available in request.validated_data
     """
+
     def decorator(f):
         import functools
+
         def wrapper(*args, **kwargs):
             from flask import abort, request
 
