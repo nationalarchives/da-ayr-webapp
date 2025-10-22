@@ -14,6 +14,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from data_management.conftest import (
+    Base,
     Body,
     Consignment,
     FFIDMetadata,
@@ -250,7 +251,6 @@ def test_main_invokes_bulk_index_with_correct_file_data(monkeypatch, database):
 @mock_aws
 def test_all_consignments_index_invoked(monkeypatch, database):
     engine = create_engine(database.url())
-    from data_management.conftest import Base
 
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
