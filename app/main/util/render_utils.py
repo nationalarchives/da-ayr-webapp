@@ -61,61 +61,57 @@ def create_presigned_url(file: File) -> str:
 def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
     """Extract PDF pages as images and return page info with base64 thumbnails."""
     DPI = 150  # Output DPI for rendering
-    try:
-        with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
-            page_data = []
 
-            for page_num in range(pdf_document.page_count):
-                page = pdf_document.load_page(page_num)
-                mat = pymupdf.Matrix(DPI / 72, DPI / 72)
-                pix = page.get_pixmap(matrix=mat)
-                img_bytes = pix.tobytes("png")
+    with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
+        page_data = []
 
-                # Convert to PIL Image for thumbnail processing
-                page_image = Image.open(io.BytesIO(img_bytes))
+        for page_num in range(pdf_document.page_count):
+            page = pdf_document.load_page(page_num)
+            mat = pymupdf.Matrix(DPI / 72, DPI / 72)
+            pix = page.get_pixmap(matrix=mat)
+            img_bytes = pix.tobytes("png")
 
-                # Create thumbnail (150x200 pixels)
-                thumbnail = page_image.copy()
-                thumbnail.thumbnail((150, 200), Image.Resampling.LANCZOS)
+            # Convert to PIL Image for thumbnail processing
+            page_image = Image.open(io.BytesIO(img_bytes))
 
-                # Convert thumbnail to base64 data URL
-                thumbnail_buffer = io.BytesIO()
-                thumbnail.save(thumbnail_buffer, format="JPEG", quality=70)
-                thumbnail_base64 = base64.b64encode(
-                    thumbnail_buffer.getvalue()
-                ).decode()
-                thumbnail_data_url = (
-                    f"data:image/jpeg;base64,{thumbnail_base64}"
-                )
+            # Create thumbnail (150x200 pixels)
+            thumbnail = page_image.copy()
+            thumbnail.thumbnail((150, 200), Image.Resampling.LANCZOS)
 
-                # Convert full page to base64 data URL
-                page_buffer = io.BytesIO()
-                page_image.save(page_buffer, format="JPEG", quality=75)
-                page_base64 = base64.b64encode(page_buffer.getvalue()).decode()
-                page_data_url = f"data:image/jpeg;base64,{page_base64}"
+            # Convert thumbnail to base64 data URL
+            thumbnail_buffer = io.BytesIO()
+            thumbnail.save(thumbnail_buffer, format="JPEG", quality=70)
+            thumbnail_base64 = base64.b64encode(
+                thumbnail_buffer.getvalue()
+            ).decode()
+            thumbnail_data_url = f"data:image/jpeg;base64,{thumbnail_base64}"
 
-                current_app.logger.debug(
-                    f"Page {page_num + 1}: thumbnail={len(thumbnail_base64)} chars, full={len(page_base64)} chars"
-                )
+            # Convert full page to base64 data URL
+            page_buffer = io.BytesIO()
+            page_image.save(page_buffer, format="JPEG", quality=75)
+            page_base64 = base64.b64encode(page_buffer.getvalue()).decode()
+            page_data_url = f"data:image/jpeg;base64,{page_base64}"
 
-                page_data.append(
-                    {
-                        "page_number": page_num + 1,
-                        "width": page_image.width,
-                        "height": page_image.height,
-                        "thumbnail_url": thumbnail_data_url,
-                        "page_image_url": page_data_url,
-                    }
-                )
+            current_app.logger.debug(
+                f"Page {page_num + 1}: thumbnail={len(thumbnail_base64)} chars, full={len(page_base64)} chars"
+            )
 
-                # Clean up resources
-                page_image.close()
-                thumbnail.close()
-                pix = None
+            page_data.append(
+                {
+                    "page_number": page_num + 1,
+                    "width": page_image.width,
+                    "height": page_image.height,
+                    "thumbnail_url": thumbnail_data_url,
+                    "page_image_url": page_data_url,
+                }
+            )
 
-            return page_data
-    except Exception as e:
-        current_app.logger.error(f"Error extracting PDF pages: {e}")
+            # Clean up resources
+            page_image.close()
+            thumbnail.close()
+            pix = None
+
+        return page_data
 
 
 def create_presigned_url_for_access_copy(file: File) -> str:

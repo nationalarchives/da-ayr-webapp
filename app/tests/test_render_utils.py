@@ -1,5 +1,5 @@
 import base64
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 from flask import Flask
 
@@ -87,84 +87,21 @@ def test_create_presigned_url(mock_boto_client):
     assert url == "http://presigned.url"
 
 
-@patch("app.main.util.render_utils.Image")
-@patch("app.main.util.render_utils.pymupdf")
-def test_extract_pdf_pages_as_images_success(mock_pymupdf, mock_Image):
+def test_extract_pdf_pages_as_images_with_actual_pdf_file():
     app = Flask(__name__)
+    pdf_path = "local_services/mds_data_generator/example_files/file.pdf"
+    with open(pdf_path, "rb") as f:
+        pdf_bytes = f.read()
     with app.app_context():
-        with patch(
-            "app.main.util.render_utils.current_app.logger"
-        ) as mock_logger:
-            # Mock data structure (like JSON)
-            mock_data = {
-                "pdf_document": {
-                    "page_count": 2,
-                    "pages": [
-                        {"pixmap": {"tobytes": b"fakepngbytes"}},
-                        {"pixmap": {"tobytes": b"fakepngbytes"}},
-                    ],
-                },
-                "pymupdf": {"Matrix": "matrix"},
-                "image": {
-                    "width": 1000,
-                    "height": 2000,
-                    "save_bytes": b"jpegbytes",
-                },
-            }
-
-            # Setup mocks using the structure above
-            mock_pdf_document = MagicMock()
-            mock_pdf_document.page_count = mock_data["pdf_document"][
-                "page_count"
-            ]
-
-            mock_pages = []
-            for page_info in mock_data["pdf_document"]["pages"]:
-                mock_pixmap = MagicMock()
-                mock_pixmap.tobytes.return_value = page_info["pixmap"][
-                    "tobytes"
-                ]
-                mock_page = MagicMock()
-                mock_page.get_pixmap.return_value = mock_pixmap
-                mock_pages.append(mock_page)
-            mock_pdf_document.load_page.side_effect = mock_pages
-
-            mock_pymupdf.open.return_value.__enter__.return_value = (
-                mock_pdf_document
-            )
-            mock_pymupdf.Matrix.return_value = mock_data["pymupdf"]["Matrix"]
-
-            # Mock PIL Image
-            mock_image = MagicMock()
-            mock_image.width = mock_data["image"]["width"]
-            mock_image.height = mock_data["image"]["height"]
-            mock_image.copy.return_value = mock_image
-            mock_image.save.side_effect = (
-                lambda buf, format, quality: buf.write(
-                    mock_data["image"]["save_bytes"]
-                )
-            )
-            mock_image.thumbnail = MagicMock()
-            mock_Image.open.return_value = mock_image
-
-            # Call function
-            result = extract_pdf_pages_as_images(b"dummy_pdf_bytes")
-
-            # Assertions
-            assert isinstance(result, list)
-            assert len(result) == 2
-            for i, page in enumerate(result):
-                assert page["page_number"] == i + 1
-                assert page["width"] == mock_data["image"]["width"]
-                assert page["height"] == mock_data["image"]["height"]
-                assert page["thumbnail_url"].startswith(
-                    "data:image/jpeg;base64,"
-                )
-                assert page["page_image_url"].startswith(
-                    "data:image/jpeg;base64,"
-                )
-                # Check base64 decodes
-                base64.b64decode(page["thumbnail_url"].split(",")[1])
-                base64.b64decode(page["page_image_url"].split(",")[1])
-
-            assert mock_logger.debug.call_count == 2
+        result = extract_pdf_pages_as_images(pdf_bytes)
+    assert isinstance(result, list)
+    assert len(result) > 0
+    for i, page in enumerate(result):
+        assert page["page_number"] == i + 1
+        assert page["width"] > 1200
+        assert page["height"] > 1700
+        assert page["thumbnail_url"].startswith("data:image/jpeg;base64,")
+        assert page["page_image_url"].startswith("data:image/jpeg;base64,")
+        # Check base64 decodes
+        base64.b64decode(page["thumbnail_url"].split(",")[1])
+        base64.b64decode(page["page_image_url"].split(",")[1])
