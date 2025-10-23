@@ -1,11 +1,13 @@
 """
 Request validation schemas using Marshmallow.
 
-This module defines validation schemas for all route parameters and query strings
-to prevent security vulnerabilities from invalid input data.
+Defines validation schemas for route parameters and query strings
+to prevent vulnerabilities from invalid input data.
 """
 
+import functools
 import uuid
+from typing import Callable, Type
 
 from marshmallow import (
     EXCLUDE,
@@ -19,22 +21,18 @@ from marshmallow import (
 )
 
 
+# Custom UUID field
 class UUIDField(fields.Field):
     """Custom UUID field for Marshmallow validation."""
 
     def _serialize(self, value, attr, obj, **kwargs):
-        if value is None:
-            return None
-        return str(value)
+        return str(value) if value is not None else None
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not value:
             return None
         try:
-            # Handle both string and UUID object inputs
-            if isinstance(value, uuid.UUID):
-                return value
-            return uuid.UUID(value)
+            return value if isinstance(value, uuid.UUID) else uuid.UUID(value)
         except (ValueError, TypeError):
             raise MarshmallowValidationError("Invalid UUID format")
 
@@ -49,7 +47,6 @@ class PaginationSchema(Schema):
 
     @post_load
     def set_per_page_default(self, data, **kwargs):
-        """Set per_page default from application config if not provided."""
         if "per_page" not in data:
             from flask import current_app
 
@@ -62,18 +59,22 @@ class PaginationSchema(Schema):
 class SearchQuerySchema(Schema):
     """Search query validation schema."""
 
-    query = fields.String(load_default="", validate=validate.Length(max=1000))
+    query = fields.String(
+        allow_none=True, load_default="", validate=validate.Length(max=1000)
+    )
     search_area = fields.String(
+        allow_none=True,
         load_default="everywhere",
         validate=validate.OneOf(["everywhere", "metadata", "record"]),
     )
-    sort = fields.String(load_default="file_name")
+    sort = fields.String(allow_none=True, load_default="file_name")
     open_all = fields.String(
+        allow_none=True,
         load_default="",
         validate=validate.OneOf(["true", "false", "", "open_all"]),
     )
     search_filter = fields.String(
-        load_default="", validate=validate.Length(max=500)
+        allow_none=True, load_default="", validate=validate.Length(max=500)
     )
 
     class Meta:
@@ -83,31 +84,40 @@ class SearchQuerySchema(Schema):
 class DateFilterSchema(Schema):
     """Date filter validation schema."""
 
-    # Individual date components (used by browse forms)
     date_from_day = fields.Integer(
-        load_default=None, validate=validate.Range(min=1, max=31)
+        allow_none=True,
+        load_default=None,
+        validate=validate.Range(min=1, max=31),
     )
     date_from_month = fields.Integer(
-        load_default=None, validate=validate.Range(min=1, max=12)
+        allow_none=True,
+        load_default=None,
+        validate=validate.Range(min=1, max=12),
     )
     date_from_year = fields.Integer(
-        load_default=None, validate=validate.Range(min=1900, max=2100)
+        allow_none=True,
+        load_default=None,
+        validate=validate.Range(min=1900, max=2100),
     )
     date_to_day = fields.Integer(
-        load_default=None, validate=validate.Range(min=1, max=31)
+        allow_none=True,
+        load_default=None,
+        validate=validate.Range(min=1, max=31),
     )
     date_to_month = fields.Integer(
-        load_default=None, validate=validate.Range(min=1, max=12)
+        allow_none=True,
+        load_default=None,
+        validate=validate.Range(min=1, max=12),
     )
     date_to_year = fields.Integer(
-        load_default=None, validate=validate.Range(min=1900, max=2100)
+        allow_none=True,
+        load_default=None,
+        validate=validate.Range(min=1900, max=2100),
     )
 
     def validate_date_range(self, data, **kwargs):
-        """Validate that from_date is before to_date."""
         from_date = data.get("from_date")
         to_date = data.get("to_date")
-
         if from_date and to_date and from_date > to_date:
             raise MarshmallowValidationError("from_date must be before to_date")
 
@@ -116,31 +126,32 @@ class BrowseFilterSchema(DateFilterSchema):
     """Browse filter validation schema."""
 
     transferring_body_filter = fields.String(
-        load_default="", validate=validate.Length(max=200)
+        allow_none=True, load_default="", validate=validate.Length(max=200)
     )
     series_filter = fields.String(
-        load_default="", validate=validate.Length(max=200)
+        allow_none=True, load_default="", validate=validate.Length(max=200)
     )
     consignment_reference = fields.String(
-        load_default="", validate=validate.Length(max=100)
+        allow_none=True, load_default="", validate=validate.Length(max=100)
     )
     file_name = fields.String(
-        load_default="", validate=validate.Length(max=500)
+        allow_none=True, load_default="", validate=validate.Length(max=500)
     )
     description = fields.String(
-        load_default="", validate=validate.Length(max=1000)
+        allow_none=True, load_default="", validate=validate.Length(max=1000)
     )
-
-    # Consignment-specific fields
     date_filter_field = fields.String(
+        allow_none=True,
         load_default="",
         validate=validate.OneOf(["date_last_modified", "opening_date", ""]),
     )
     record_status = fields.String(
-        load_default="all", validate=validate.OneOf(["all", "open", "closed"])
+        allow_none=True,
+        load_default="all",
+        validate=validate.OneOf(["all", "open", "closed"]),
     )
-
     sort = fields.String(
+        allow_none=True,
         load_default="transferring_body",
         validate=validate.OneOf(
             [
@@ -192,7 +203,7 @@ class SearchRequestSchema(SearchQuerySchema):
     """General search request validation schema."""
 
     transferring_body_id = fields.String(
-        load_default=None, validate=validate.Length(max=200)
+        allow_none=True, load_default=None, validate=validate.Length(max=200)
     )
 
     class Meta:
@@ -244,7 +255,7 @@ class ManifestRequestSchema(Schema):
 class ValidationError(Exception):
     """Custom validation error for the application."""
 
-    def __init__(self, message, field=None):
+    def __init__(self, message: str, field: str = None):
         self.message = message
         self.field = field
         super().__init__(message)
@@ -261,53 +272,44 @@ class ManifestSchema(Schema):
         unknown = EXCLUDE
 
 
-# Schema validation decorator
-def validate_request(schema_class, location="args"):
+def clean_empty_strings(data: dict) -> dict:
     """
-    Decorator to validate request data using Marshmallow schemas.
-
-    Args:
-        schema_class: The Marshmallow schema class to use for validation
-        location: Where to get data from ('args', 'form', 'json', 'path')
-
-    Returns:
-        Decorated function with validated data available in request.validated_data
+    Converts empty string values in a dict to None.
+    Useful for query/form data before Marshmallow validation.
     """
+    return {k: (None if v == "" else v) for k, v in data.items()}
 
-    def decorator(f):
-        import functools
 
+def validate_request(
+    schema_class: Type[Schema], location: str = "args"
+) -> Callable:
+    def decorator(f: Callable) -> Callable:
+        @functools.wraps(f)
         def wrapper(*args, **kwargs):
-            from flask import abort, request
+            from flask import abort, current_app, request
 
-            # Get data based on location
             if location == "args":
-                data = request.args.to_dict()
+                data = clean_empty_strings(request.args.to_dict())
             elif location == "form":
-                data = request.form.to_dict()
+                data = clean_empty_strings(request.form.to_dict())
             elif location == "json":
                 data = request.get_json() or {}
             elif location == "path":
                 data = kwargs
             elif location == "combined":
-                # Combine form and args data (args take precedence)
-                data = {
+                combined = {
                     **kwargs,
                     **request.form.to_dict(),
                     **request.args.to_dict(),
                 }
+                data = clean_empty_strings(combined)
             else:
                 data = {}
 
-            # Validate data
             schema = schema_class()
             try:
-                validated_data = schema.load(data)
-                request.validated_data = validated_data
+                request.validated_data = schema.load(data)
             except MarshmallowValidationError as e:
-                # Log validation error for security monitoring
-                from flask import current_app
-
                 current_app.logger.warning(
                     f"Validation error in {f.__name__}: {e.messages}"
                 )
@@ -317,6 +319,6 @@ def validate_request(schema_class, location="args"):
 
             return f(*args, **kwargs)
 
-        return functools.wraps(f)(wrapper)
+        return wrapper
 
     return decorator
