@@ -26,7 +26,7 @@ services:
           -vvs data_management/opensearch_indexer/tests
 
   postgres:
-    image: postgres:18
+    image: postgres@sha256:7499fa0ed6b106d3b513fe792d673f1b496a539a541674fdcd9539c13c6427f3 # postgres:18.0 with digest for immutability
     environment:
       POSTGRES_USER: testuser
       POSTGRES_PASSWORD: testPass123 # pragma: allowlist secret
@@ -34,7 +34,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
 
 volumes:
   pgdata:
