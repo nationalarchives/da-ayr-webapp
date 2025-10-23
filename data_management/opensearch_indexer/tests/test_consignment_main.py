@@ -454,3 +454,34 @@ def test_main_raises_exception_when_missing_env_vars(monkeypatch):
         match="Missing required environment variables: SECRET_ID or DB_SECRET_ID",
     ):
         consignment_indexer()
+
+
+@mock_aws
+def test_invalid_indexer_type_raises_value_error(monkeypatch):
+
+    secret_name = "test_vars"  # pragma: allowlist secret
+    db_secret_name = "test_db_vars"  # pragma: allowlist secret
+
+    monkeypatch.setenv("INDEXER_TYPE", "INVALID")
+    monkeypatch.setenv("SECRET_ID", secret_name)
+    monkeypatch.setenv("DB_SECRET_ID", db_secret_name)
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "test_access_key")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "test_secret_key")
+    monkeypatch.setenv("AWS_SESSION_TOKEN", "test_token")
+    monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-west-2")
+
+    sm = boto3.client("secretsmanager", region_name="eu-west-2")
+    sm.create_secret(
+        Name=secret_name,
+        SecretString=json.dumps(
+            {"RECORD_BUCKET_NAME": "bucket", "AWS_REGION": "eu-west-2"}
+        ),
+    )
+    sm.create_secret(
+        Name=db_secret_name, SecretString=json.dumps({"db": "test"})
+    )
+
+    with pytest.raises(
+        ValueError, match="Invalid INDEXER_TYPE. Expected 'ALL' or 'SINGLE'"
+    ):
+        consignment_indexer()
