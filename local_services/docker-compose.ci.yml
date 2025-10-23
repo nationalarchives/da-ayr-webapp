@@ -43,7 +43,7 @@ services:
       - opensearch-node1
 
   opensearch-restore:
-    image: python@sha256:4ed33101ee7ec299041cc41dd268dae17031184be94384b1ce7936dc4e5dead3 # python:3.14-slim-trixie with digest for immutability
+    image: python
     environment:
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
     depends_on:
@@ -139,7 +139,7 @@ services:
       - keycloak_network
 
   keycloak-config:
-    image: alpine/curl@sha256:d9d451635fea7317186adda62cebe3f7e46810a3de6ddfcae662339e456b6c55 # alpine/curl:latest with digest for immutability
+    image: alpine/curl
     depends_on:
       - keycloak
     networks:
@@ -184,7 +184,7 @@ services:
           - 127.0.0.1
 
   minio-init:
-    image: minio/mc@sha256:95b5f3f7969a5c5a9f3a700ba72d5c84172819e13385aaf916e237cf111ab868 # minio/mc:latest with digest for immutability
+    image: minio/mc:latest
     depends_on:
       - minio
     volumes:
@@ -200,7 +200,7 @@ services:
       "
 
   socat-localhost:
-    image: alpine/socat@sha256:4c5f173141228e8f823824afa3fb40f2490ee06bcba4950a0cfe2f83e203327c
+    image: alpine/socat
     command: tcp-listen:9000,fork,reuseaddr tcp-connect:minio:9000
     network_mode: service:webapp
     depends_on:
