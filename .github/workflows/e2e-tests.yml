@@ -162,7 +162,7 @@ jobs:
           -v "$(pwd)/e2e_tests":/e2e_tests e2e_tests
 
     - name: Upload test results
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
       if: always()
       with:
         name: playwright-report
@@ -170,7 +170,7 @@ jobs:
         retention-days: 7
 
     - name: Upload visual snapshots
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
       if: always()
       with:
         name: visual-regression-snapshots
@@ -178,7 +178,7 @@ jobs:
         retention-days: 7
 
     - name: Upload test results
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
       if: always()
       with:
         name: e2e-test-results
