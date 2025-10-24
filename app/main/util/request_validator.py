@@ -41,9 +41,13 @@ class PaginationSchema(Schema):
     """Base pagination validation schema."""
 
     page = fields.Integer(
-        load_default=1, validate=validate.Range(min=1, max=10000)
+        allow_none=True,
+        load_default=1,
+        validate=validate.Range(min=1, max=10000),
     )
-    per_page = fields.Integer(validate=validate.Range(min=1, max=100))
+    per_page = fields.Integer(
+        allow_none=True, validate=validate.Range(min=1, max=100)
+    )
 
     @post_load
     def set_per_page_default(self, data, **kwargs):
