@@ -1,7 +1,7 @@
 services:
   # Single OpenSearch node for CI
   opensearch-node1:
-    image: opensearchproject/opensearch:latest
+    image: opensearchproject/opensearch@sha256:773b05b026c01e7d520f6b857f486b7312d9290e14f2aebe4630eb80787e9eb3 # opensearch:latest with digest for immutability
     container_name: opensearch-node1
     environment:
       - discovery.type=single-node
@@ -29,7 +29,7 @@ services:
       - opensearch-net
 
   opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards:latest
+    image: opensearchproject/opensearch-dashboards@sha256:d82c6cd0306cba75735e99f940abb98dbbd6621b6b704db6bd4cf9313054e20e # opensearch-dashboards:latest with digest for immutability
     container_name: opensearch-dashboards
     ports:
       - 5601:5601
@@ -80,7 +80,7 @@ services:
       "
 
   postgres:
-    image: postgres:18.0
+    image: postgres@sha256:1ffc019dae94eca6b09a49ca67d37398951346de3c3d0cfe23d8d4ca33da83fb # postgres:18.0 with digest for immutability
     volumes:
       - kc_postgres_data:/var/lib/postgresql
     environment:
@@ -93,7 +93,7 @@ services:
       - keycloak_network
 
   webapp_postgres:
-    image: postgres:18.0
+    image: postgres@sha256:1ffc019dae94eca6b09a49ca67d37398951346de3c3d0cfe23d8d4ca33da83fb # postgres:18.0 with digest for immutability
     user: postgres
     volumes:
       - webapp_postgres_data:/var/lib/postgresql
@@ -111,7 +111,7 @@ services:
     command: ["postgres"]
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.4.1
+    image: quay.io/keycloak/keycloak:26.4.2
     command: start-dev --import-realm --spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true
     environment:
       KC_HOSTNAME: localhost
