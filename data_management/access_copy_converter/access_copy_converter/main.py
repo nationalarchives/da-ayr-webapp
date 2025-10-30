@@ -115,7 +115,51 @@ def convert_xls_xlsx_to_pdf(tmpdir, input_path, output_path):
     )
 
 
-def process_file(  # noqa
+def _get_extension(file_id, conn, metadata):
+    try:
+        return get_extension(file_id, conn, metadata)
+    except Exception as e:
+        logger.error(f"Failed to get file_extension for {file_id}: {e}")
+        raise Exception(f"Failed to get file_extension for {file_id}: {e}")
+
+
+def _download_input(source_bucket, key, input_path):
+    try:
+        s3.download_file(source_bucket, key, input_path)
+        logger.info(f"Downloaded {key} to {input_path}")
+    except Exception as e:
+        logger.error(f"Failed to download {key}: {e}")
+        raise Exception(f"Failed to download {key}: {e}")
+
+
+def _convert_file(extension, tmpdir, input_path, output_path, file_id):
+    try:
+        if extension in ("xls", "xlsx"):
+            convert_xls_xlsx_to_pdf(tmpdir, input_path, output_path)
+        else:
+            convert_with_libreoffice(input_path, output_path)
+        logger.info(f"Converted {file_id} to PDF")
+    except Exception as e:
+        logger.error(f"Conversion failed for {file_id}: {e}")
+        raise Exception(f"Conversion failed for {file_id}: {e}")
+
+
+def _verify_output_exists(output_path, file_id):
+    if not os.path.exists(output_path):
+        logger.error(f"Converted file missing for {file_id}, skipping upload")
+        raise Exception(f"Converted file missing for {file_id}")
+
+
+def _upload_output(output_path, dest_bucket, key, file_id):
+    try:
+        s3.upload_file(output_path, dest_bucket, key)
+        logger.info(f"Uploaded converted file {file_id} to Access Copy Bucket")
+    except Exception as e:
+        logger.error(f"Failed to upload {key} to Access Copy bucket: {e}")
+        raise Exception(f"Failed to upload {key} to Access Copy bucket: {e}")
+
+
+def process_file(
     file_id,
     consignment_ref,
     source_bucket,
@@ -123,15 +167,12 @@ def process_file(  # noqa
     convertible_extensions,
     conn,
 ):
-
     metadata = MetaData()
     key = f"{consignment_ref}/{file_id}"
-    try:
-        extension = get_extension(file_id, conn, metadata)
-    except Exception as e:
-        logger.error(f"Failed to get file_extension for {file_id}: {e}")
-        raise Exception(f"Failed to get file_extension for {file_id}: {e}")
+
+    extension = _get_extension(file_id, conn, metadata)
     logger.info(f"File extension: {extension}")
+
     if extension not in convertible_extensions:
         logger.info(f"File {file_id} does not require conversion")
         return
@@ -145,42 +186,14 @@ def process_file(  # noqa
         input_path = os.path.join(tmpdir, f"input.{extension}")
         output_path = os.path.join(tmpdir, "input.pdf")
 
-        try:
-            s3.download_file(source_bucket, key, input_path)
-            logger.info(f"Downloaded {key} to {input_path}")
-        except Exception as e:
-            logger.error(f"Failed to download {key}: {e}")
-            raise Exception(f"Failed to download {key}: {e}")
-
-        try:
-            if extension in ("xls", "xlsx"):
-                convert_xls_xlsx_to_pdf(tmpdir, input_path, output_path)
-            else:
-                convert_with_libreoffice(input_path, output_path)
-            logger.info(f"Converted {file_id} to PDF")
-        except Exception as e:
-            logger.error(f"Conversion failed for {file_id}: {e}")
-            raise Exception(f"Conversion failed for {file_id}: {e}")
-
-        if not os.path.exists(output_path):
-            logger.error(
-                f"Converted file missing for {file_id}, skipping upload"
-            )
-            raise Exception(f"Converted file missing for {file_id}")
+        _download_input(source_bucket, key, input_path)
+        _convert_file(extension, tmpdir, input_path, output_path, file_id)
+        _verify_output_exists(output_path, file_id)
 
         logger.info(
             f"Files in {tmpdir} after converting {file_id}: {os.listdir(tmpdir)}"
         )
-        try:
-            s3.upload_file(output_path, dest_bucket, key)
-            logger.info(
-                f"Uploaded converted file {file_id} to Access Copy Bucket"
-            )
-        except Exception as e:
-            logger.error(f"Failed to upload {key} to Access Copy bucket: {e}")
-            raise Exception(
-                f"Failed to upload {key} to Access Copy bucket: {e}"
-            )
+        _upload_output(output_path, dest_bucket, key, file_id)
 
 
 def process_consignment(
