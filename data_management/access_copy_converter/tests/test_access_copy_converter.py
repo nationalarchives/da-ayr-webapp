@@ -11,7 +11,6 @@ from access_copy_converter.main import (
     get_extension,
     process_consignment,
 )
-from botocore.exceptions import ClientError
 from moto import mock_aws
 from sqlalchemy import (
     Column,
@@ -81,14 +80,13 @@ class TestConvertedFiles:
         assert already_converted("bucket", "key") is False
 
     @mock_aws
-    def test_already_converted_other_error_raises(self, monkeypatch):
+    def test_already_converted_other_error_logged(self, monkeypatch, caplog):
         s3_client = boto3.client("s3", region_name="eu-west-2")
-
         monkeypatch.setattr(main_module, "s3", s3_client)
 
-        # Test with invalid bucket to trigger error
-        with pytest.raises(ClientError):
-            already_converted("nonexistent-bucket", "key")
+        result = already_converted("nonexistent-bucket", "key")
+        assert result is False
+        assert "Error checking if key already converted" in caplog.text
 
 
 class TestGetExtension:
@@ -229,7 +227,7 @@ class TestProcessConsignment:
             main_module, "convert_with_libreoffice", fake_convert
         )
 
-        process_consignment(
+        failed = process_consignment(
             "cons1",
             "source-bucket",
             "dest-bucket",
@@ -237,7 +235,8 @@ class TestProcessConsignment:
             conn,
         )
 
-        # Verify the file was uploaded
+        # Verify the file was uploaded and no failures
+        assert failed == []
         response = s3_client.list_objects_v2(
             Bucket="dest-bucket", Prefix="cons1/"
         )
@@ -268,10 +267,11 @@ class TestProcessConsignment:
 
         monkeypatch.setattr(main_module, "s3", s3_client)
 
-        process_consignment(
+        failed = process_consignment(
             "cons1", "src", "dst", {"docx", "xls", "xlsx"}, conn
         )
 
+        assert failed == []
         # Verify no files were uploaded to destination
         response = s3_client.list_objects_v2(Bucket="dst", Prefix="cons1/")
         assert "Contents" not in response
@@ -309,15 +309,66 @@ class TestProcessConsignment:
             main_module, "convert_with_libreoffice", fake_convert
         )
 
-        process_consignment(
+        failed1 = process_consignment(
             "cons1", "source-bucket", "dest-bucket", {"docx"}, conn
         )
-
-        process_consignment(
+        failed2 = process_consignment(
             "cons2", "source-bucket", "dest-bucket", {"docx"}, conn
         )
+
+        assert failed1 == []
+        assert failed2 == []
 
         resp = s3_client.list_objects_v2(Bucket="dest-bucket")
         uploaded_keys = [obj["Key"] for obj in resp.get("Contents", [])]
         assert "cons1/fileA" in uploaded_keys
         assert "cons2/fileB" in uploaded_keys
+
+    @mock_aws
+    def test_process_consignment_continues_on_conversion_failure(
+        self, monkeypatch, sqlite_conn
+    ):
+
+        s3_client = boto3.client("s3", region_name="eu-west-2")
+        for bucket in ["source-bucket", "dest-bucket"]:
+            s3_client.create_bucket(
+                Bucket=bucket,
+                CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+            )
+
+        for fname in ["file1", "file2", "file3"]:
+            s3_client.put_object(
+                Bucket="source-bucket", Key=f"cons1/{fname}", Body=b"data"
+            )
+
+        conn, metadata, ffid, file_table = sqlite_conn
+        for fname in ["file1", "file2", "file3"]:
+            conn.execute(insert(ffid).values(FileId=fname, Extension="docx"))
+        conn.commit()
+
+        monkeypatch.setattr(main_module, "s3", s3_client)
+
+        original_process_file = main_module.process_file
+
+        def patched_process_file(file_id, *args, **kwargs):
+            if file_id == "file2":
+                raise RuntimeError("conversion fail")
+            return original_process_file(file_id, *args, **kwargs)
+
+        monkeypatch.setattr(main_module, "process_file", patched_process_file)
+
+        failed = main_module.process_consignment(
+            "cons1", "source-bucket", "dest-bucket", {"docx"}, conn
+        )
+
+        assert "cons1/file2" in failed
+        assert "cons1/file1" not in failed
+        assert "cons1/file3" not in failed
+
+        response = s3_client.list_objects_v2(
+            Bucket="dest-bucket", Prefix="cons1/"
+        )
+        uploaded_keys = [obj["Key"] for obj in response.get("Contents", [])]
+        assert "cons1/file1" in uploaded_keys
+        assert "cons1/file3" in uploaded_keys
+        assert "cons1/file2" not in uploaded_keys
