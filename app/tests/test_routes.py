@@ -96,7 +96,20 @@ def create_mock_s3_bucket_with_image_object(bucket_name, file):
 
     image_file = BytesIO()
     image = Image.new("RGB", (800, 600), color=(73, 109, 137))
-    image.save(image_file, format="PNG")
+    # Determine format from file extension
+    extension = getattr(file.ffid_metadata, "Extension", None)
+    format_map = {
+        "jpeg": "JPEG",
+        "png": "PNG",
+        "tiff": "TIFF",
+        "tif": "TIFF",
+        "gif": "GIF",
+        "webp": "WEBP",
+    }
+    img_format = (
+        format_map.get(extension.lower(), "PNG") if extension else "PNG"
+    )
+    image.save(image_file, format=img_format)
     image_file.seek(0)
 
     file_object.put(Body=image_file.getvalue())
@@ -223,60 +236,63 @@ class TestRoutes:
     ):
 
         mock_all_access_user(client)
-        file = FileFactory(ffid_metadata__Extension="png")
-        bucket_name = "test-bucket"
-        app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
-        create_mock_s3_bucket_with_image_object(bucket_name, file)
+        for ext in ["png", "jpeg", "gif", "webp"]:
+            file = FileFactory(
+                ffid_metadata__Extension=ext, FileName=f"test.{ext}"
+            )
+            bucket_name = "test-bucket"
+            app.config["RECORD_BUCKET_NAME"] = bucket_name
+            app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
+            create_mock_s3_bucket_with_image_object(bucket_name, file)
 
-        mock_create_presigned_url.return_value = (
-            "https://presigned-url.com/download.png"
-        )
+            mock_create_presigned_url.return_value = (
+                f"https://presigned-url.com/download.{ext}"
+            )
 
-        response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
-        assert response.status_code == 200
+            response = client.get(
+                f"{self.record_route_url}/{file.FileId}/manifest"
+            )
+            assert response.status_code == 200
 
-        expected_image_manifest = {
-            "@context": "https://iiif.io/api/presentation/3/context.json",
-            "@id": f"http://localhost/record/{file.FileId}/manifest",
-            "@type": "sc:Manifest",
-            "description": f"Manifest for {file.FileName}",
-            "label": {"en": [f"{file.FileName}"]},
-            "sequences": [
-                {
-                    "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                    "@type": "sc:Sequence",
-                    "canvases": [
-                        {
-                            "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                            "@type": "sc:Canvas",
-                            "height": 600,
-                            "width": 800,
-                            "images": [
-                                {
-                                    "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                    "@type": "oa:Annotation",
-                                    "motivation": "sc:painting",
-                                    "on": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                    "resource": {
-                                        "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                        "format": f"image/{file.ffid_metadata.Extension}",
-                                        "height": 600,
-                                        "@type": "dctypes:Image",
-                                        "width": 800,
-                                    },
-                                }
-                            ],
-                            "label": "Image 1",
-                        }
-                    ],
-                }
-            ],
-        }
-        actual_manifest = json.loads(response.text)
-
-        assert response.status_code == 200
-        assert actual_manifest == expected_image_manifest
+            expected_image_manifest = {
+                "@context": "https://iiif.io/api/presentation/3/context.json",
+                "@id": f"http://localhost/record/{file.FileId}/manifest",
+                "@type": "sc:Manifest",
+                "label": {"en": [file.FileName]},
+                "description": f"Manifest for {file.FileName}",
+                "sequences": [
+                    {
+                        "@id": f"https://presigned-url.com/download.{ext}",
+                        "@type": "sc:Sequence",
+                        "canvases": [
+                            {
+                                "@id": f"https://presigned-url.com/download.{ext}",
+                                "@type": "sc:Canvas",
+                                "label": "Image 1",
+                                "width": 800,
+                                "height": 600,
+                                "images": [
+                                    {
+                                        "@id": f"https://presigned-url.com/download.{ext}",
+                                        "@type": "oa:Annotation",
+                                        "motivation": "sc:painting",
+                                        "resource": {
+                                            "@id": f"https://presigned-url.com/download.{ext}",
+                                            "@type": "dctypes:Image",
+                                            "format": f"image/{ext}",
+                                            "width": 800,
+                                            "height": 600,
+                                        },
+                                        "on": f"https://presigned-url.com/download.{ext}",
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            }
+            actual_manifest = json.loads(response.text)
+            assert actual_manifest == expected_image_manifest
 
     @pytest.mark.parametrize(
         "form_data, args_data, expected_redirect_route, expected_params",
