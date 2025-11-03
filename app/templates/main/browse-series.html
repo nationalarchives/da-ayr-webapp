@@ -52,10 +52,22 @@
                 <tbody class="govuk-table__body">
                     <div class="main-content" id="main-content" role="main">
                         {% for record in results %}
+                            {% set long_word = namespace(lw=false) %}
+                            {% set word_length = 20 %}
+                            {% set words = record["transferring_body"].replace("-", " ").replace(",", " ").replace(".", " ").replace("  ", " ").split() %}
+                            {% for word in words %}
+                                {% if word|length > word_length %}
+                                    {% set long_word.lw = true %}
+                                {% endif %}
+                            {% endfor %}
                             <tr class="govuk-table__row govuk-table__row-ref">
-                                <td class="govuk-table__cell govuk-table__cell--word-break-all govuk-table--invisible-on-mobile">
-                                    {{ record["transferring_body"] }}
-                                </td>
+                                {% if long_word.lw %}
+                                    <td class="govuk-table__cell govuk-table__cell--word-break-all govuk-table--invisible-on-mobile">
+                                        {{ record["transferring_body"] }}
+                                    </td>
+                                {% else %}
+                                    <td class="govuk-table__cell govuk-table__cell govuk-table--invisible-on-mobile">{{ record["transferring_body"] }}</td>
+                                {% endif %}
                                 <td class="govuk-table__cell govuk-table--invisible-on-mobile">{{ record["series"] }}</td>
                                 <td class="govuk-table__cell govuk-table--on-desktop--right-align">
                                     <time datetime="{{ record["last_record_transferred"] | format_date_iso }}">{{ record["last_record_transferred"] }}</time>
