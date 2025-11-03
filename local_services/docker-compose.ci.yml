@@ -1,7 +1,7 @@
 services:
   # Single OpenSearch node for CI
   opensearch-node1:
-    image: opensearchproject/opensearch@sha256:773b05b026c01e7d520f6b857f486b7312d9290e14f2aebe4630eb80787e9eb3 # opensearch:latest with digest for immutability
+    image: opensearchproject/opensearch@sha256:6ab2d7f30f6b30f97ceab4fe2a4d371f734e18c6b7639468af30db93c33316ca # opensearch:latest with digest for immutability
     container_name: opensearch-node1
     environment:
       - discovery.type=single-node
