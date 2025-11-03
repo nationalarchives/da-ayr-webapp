@@ -13,6 +13,10 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger()
 
 
+class BulkIndexMultipleConsignmentsError(Exception):
+    pass
+
+
 def all_consignments_index(secret_string, db_secret_string):
     s3 = boto3.client("s3", region_name="eu-west-2")
     bucket_name = secret_string["RECORD_BUCKET_NAME"]
@@ -24,11 +28,31 @@ def all_consignments_index(secret_string, db_secret_string):
             consignments.add(obj["Key"].split("/")[0])
 
     logger.info(f"Found {len(consignments)} consignments")
+
+    errors = {}
+
     for consignment_reference in consignments:
         logger.info(f"Processing consignment: {consignment_reference}")
-        bulk_index_consignment_from_aws(
-            consignment_reference, secret_string, db_secret_string
+        try:
+            bulk_index_consignment_from_aws(
+                consignment_reference, secret_string, db_secret_string
+            )
+        except Exception as e:
+            logger.error(f"{consignment_reference} had error(s):\n{e}")
+            errors[consignment_reference] = str(e)
+
+    if errors:
+        error_summary_lines = [
+            f"{consignment}: {msg}" for consignment, msg in errors.items()
+        ]
+        error_summary = (
+            f"{len(errors)} consignments had error(s):\n"
+            + "\n".join(error_summary_lines)
         )
+
+        raise BulkIndexMultipleConsignmentsError(error_summary)
+
+    logger.info("All consignments indexed without errors")
 
 
 def single_consignment_index(secret_string, db_secret_string):
