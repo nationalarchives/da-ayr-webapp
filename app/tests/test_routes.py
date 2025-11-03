@@ -50,6 +50,16 @@ def verify_cookies_data_rows(data, expected_rows):
     assert [row_data] == expected_rows[0]
 
 
+MINIMAL_VALID_PDF = (
+    b"%PDF-1.4\n"
+    b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+    b"2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
+    b"3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >>\nendobj\n"
+    b"xref\n0 4\n0000000000 65535 f \n0000000010 00000 n \n0000000061 00000 n \n0000000116 00000 n \n"
+    b"trailer\n<< /Root 1 0 R /Size 4 >>\nstartxref\n178\n%%EOF"
+)
+
+
 def create_mock_s3_bucket_with_object(bucket_name, file):
     """
     Creates a dummy bucket to be used by tests
@@ -61,11 +71,18 @@ def create_mock_s3_bucket_with_object(bucket_name, file):
     file_object = s3.Object(
         bucket_name, f"{file.consignment.ConsignmentReference}/{file.FileId}"
     )
-    file_object.put(Body="record")
+    # Use a minimal valid PDF if the extension is pdf
+    if (
+        getattr(file, "ffid_metadata", None)
+        and getattr(file.ffid_metadata, "Extension", "").lower() == "pdf"
+    ):
+        file_object.put(Body=MINIMAL_VALID_PDF)
+    else:
+        file_object.put(Body="record")
     return bucket
 
 
-def create_mock_s3_bucket_with_imaage_object(bucket_name, file):
+def create_mock_s3_bucket_with_image_object(bucket_name, file):
     """
     Creates a dummy bucket and uploads an image file for tests
     """
@@ -79,7 +96,20 @@ def create_mock_s3_bucket_with_imaage_object(bucket_name, file):
 
     image_file = BytesIO()
     image = Image.new("RGB", (800, 600), color=(73, 109, 137))
-    image.save(image_file, format="PNG")
+    # Determine format from file extension
+    extension = getattr(file.ffid_metadata, "Extension", None)
+    format_map = {
+        "jpeg": "JPEG",
+        "png": "PNG",
+        "tiff": "TIFF",
+        "tif": "TIFF",
+        "gif": "GIF",
+        "webp": "WEBP",
+    }
+    img_format = (
+        format_map.get(extension.lower(), "PNG") if extension else "PNG"
+    )
+    image.save(image_file, format=img_format)
     image_file.seek(0)
 
     file_object.put(Body=image_file.getvalue())
@@ -113,8 +143,10 @@ class TestRoutes:
 
     @mock_aws
     @patch("app.main.routes.create_presigned_url")
+    @patch("app.main.routes.boto3.client")
     def test_route_generate_pdf_manifest(
         self,
+        mock_boto_client,
         mock_create_presigned_url,
         app,
         client: FlaskClient,
@@ -124,9 +156,13 @@ class TestRoutes:
             "https://presigned-url.com/download.pdf"
         )
 
+        # Mock S3 get_object to return valid PDF bytes
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {"Body": BytesIO(MINIMAL_VALID_PDF)}
+
         mock_all_access_user(client)
-        file = FileFactory(ffid_metadata__Extension="pdf")
-        bucket_name = "test_bucket"
+        file = FileFactory(ffid_metadata__Extension="pdf", FileName="test.pdf")
+        bucket_name = "test-bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
@@ -134,45 +170,54 @@ class TestRoutes:
         response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
         assert response.status_code == 200
 
+        # Update this structure to match the latest render_utils.py output
         expected_pdf_manifest = {
-            "@context": ["https://iiif.io/api/presentation/3/context.json"],
-            "behavior": ["individuals"],
-            "description": f"Manifest for {file.FileName}",
-            "id": f"http://localhost/record/{file.FileId}/manifest",
-            "items": [
-                {
-                    "id": f"http://localhost/record/{file.FileId}/manifest",
-                    "items": [
-                        {
-                            "id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                            "items": [
-                                {
-                                    "body": {
-                                        "format": f"application/{file.ffid_metadata.Extension}",
-                                        "id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                        "type": "Text",
-                                    },
-                                    "id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                    "label": {"en": ["test"]},
-                                    "motivation": "painting",
-                                    "target": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                    "type": "Annotation",
-                                }
-                            ],
-                            "label": {"en": ["test"]},
-                            "type": "AnnotationPage",
-                        }
-                    ],
-                    "label": {"en": ["test"]},
-                    "type": "Canvas",
-                }
-            ],
-            "label": {"en": [f"{file.FileName}"]},
-            "requiredStatement": {
-                "label": {"en": ["File name"]},
-                "value": {"en": [f"{file.FileName}"]},
+            "@context": "https://iiif.io/api/presentation/3/context.json",
+            "@id": f"http://localhost/record/{file.FileId}/manifest",
+            "@type": "sc:Manifest",
+            "description": "Manifest for test.pdf",
+            "label": {
+                "en": [
+                    "test.pdf",
+                ],
             },
-            "type": "Manifest",
+            "sequences": [
+                {
+                    "@id": f"http://localhost/record/{file.FileId}/manifest/sequence/1",
+                    "@type": "sc:Sequence",
+                    "canvases": [
+                        {
+                            "@id": f"http://localhost/record/{file.FileId}/manifest/canvas/1",
+                            "@type": "sc:Canvas",
+                            "height": 417,
+                            "images": [
+                                {
+                                    "@type": "oa:Annotation",
+                                    "motivation": "sc:painting",
+                                    "on": f"http://localhost/record/{file.FileId}/manifest/canvas/1",  # noqa
+                                    "resource": {
+                                        "@id": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAGhAaEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//Z",  # noqa
+                                        "@type": "dctypes:Image",
+                                        "format": "image/jpeg",
+                                        "height": 417,
+                                        "width": 417,
+                                    },
+                                },
+                            ],
+                            "label": "Page 1",
+                            "thumbnail": {
+                                "@id": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wAARCACWAJYDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD2aiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//2Q==",  # noqa
+                                "@type": "dctypes:Image",
+                                "format": "image/jpeg",
+                                "height": 200,
+                                "width": 150,
+                            },
+                            "width": 417,
+                        },
+                    ],
+                    "label": "Sequence 1",
+                },
+            ],
             "viewingDirection": "left-to-right",
         }
 
@@ -191,60 +236,63 @@ class TestRoutes:
     ):
 
         mock_all_access_user(client)
-        file = FileFactory(ffid_metadata__Extension="png")
-        bucket_name = "test_bucket"
-        app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
-        create_mock_s3_bucket_with_imaage_object(bucket_name, file)
+        for ext in ["png", "jpeg", "gif", "webp"]:
+            file = FileFactory(
+                ffid_metadata__Extension=ext, FileName=f"test.{ext}"
+            )
+            bucket_name = "test-bucket"
+            app.config["RECORD_BUCKET_NAME"] = bucket_name
+            app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
+            create_mock_s3_bucket_with_image_object(bucket_name, file)
 
-        mock_create_presigned_url.return_value = (
-            "https://presigned-url.com/download.png"
-        )
+            mock_create_presigned_url.return_value = (
+                f"https://presigned-url.com/download.{ext}"
+            )
 
-        response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
-        assert response.status_code == 200
+            response = client.get(
+                f"{self.record_route_url}/{file.FileId}/manifest"
+            )
+            assert response.status_code == 200
 
-        expected_image_manifest = {
-            "@context": "https://iiif.io/api/presentation/3/context.json",
-            "@id": f"http://localhost/record/{file.FileId}/manifest",
-            "@type": "sc:Manifest",
-            "description": f"Manifest for {file.FileName}",
-            "label": {"en": [f"{file.FileName}"]},
-            "sequences": [
-                {
-                    "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                    "@type": "sc:Sequence",
-                    "canvases": [
-                        {
-                            "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                            "@type": "sc:Canvas",
-                            "height": 600,
-                            "width": 800,
-                            "images": [
-                                {
-                                    "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                    "@type": "oa:Annotation",
-                                    "motivation": "sc:painting",
-                                    "on": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                    "resource": {
-                                        "@id": f"https://presigned-url.com/download.{file.ffid_metadata.Extension}",
-                                        "format": f"image/{file.ffid_metadata.Extension}",
-                                        "height": 600,
-                                        "type": "dctypes:Image",
-                                        "width": 800,
-                                    },
-                                }
-                            ],
-                            "label": "Image 1",
-                        }
-                    ],
-                }
-            ],
-        }
-        actual_manifest = json.loads(response.text)
-
-        assert response.status_code == 200
-        assert actual_manifest == expected_image_manifest
+            expected_image_manifest = {
+                "@context": "https://iiif.io/api/presentation/3/context.json",
+                "@id": f"http://localhost/record/{file.FileId}/manifest",
+                "@type": "sc:Manifest",
+                "label": {"en": [file.FileName]},
+                "description": f"Manifest for {file.FileName}",
+                "sequences": [
+                    {
+                        "@id": f"https://presigned-url.com/download.{ext}",
+                        "@type": "sc:Sequence",
+                        "canvases": [
+                            {
+                                "@id": f"https://presigned-url.com/download.{ext}",
+                                "@type": "sc:Canvas",
+                                "label": "Image 1",
+                                "width": 800,
+                                "height": 600,
+                                "images": [
+                                    {
+                                        "@id": f"https://presigned-url.com/download.{ext}",
+                                        "@type": "oa:Annotation",
+                                        "motivation": "sc:painting",
+                                        "resource": {
+                                            "@id": f"https://presigned-url.com/download.{ext}",
+                                            "@type": "dctypes:Image",
+                                            "format": f"image/{ext}",
+                                            "width": 800,
+                                            "height": 600,
+                                        },
+                                        "on": f"https://presigned-url.com/download.{ext}",
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            }
+            actual_manifest = json.loads(response.text)
+            assert actual_manifest == expected_image_manifest
 
     @pytest.mark.parametrize(
         "form_data, args_data, expected_redirect_route, expected_params",
@@ -490,7 +538,7 @@ class TestRoutes:
     ):
         mock_all_access_user(client)
         file = FileFactory(ffid_metadata__Extension="doc")
-        bucket_name = "test_bucket"
+        bucket_name = "test-bucket"
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
         app.config["SUPPORTED_RENDER_EXTENSIONS"] = ["pdf", "png"]
         app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
