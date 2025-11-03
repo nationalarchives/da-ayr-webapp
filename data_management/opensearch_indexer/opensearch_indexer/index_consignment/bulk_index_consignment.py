@@ -2,7 +2,7 @@ import json
 import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import sqlalchemy
 from opensearchpy import OpenSearch, RequestsHttpConnection
@@ -14,7 +14,6 @@ from ..aws_helpers import (
     _build_db_url,
     _get_opensearch_auth,
     get_s3_file,
-    get_secret_data,
 )
 from ..text_extraction import TextExtractionStatus, add_text_content
 
@@ -32,7 +31,9 @@ class ConsignmentBulkIndexError(Exception):
 
 
 def bulk_index_consignment_from_aws(
-    consignment_reference: str, secret_id: str, db_secret_id: str
+    consignment_reference: str,
+    secret_string: Dict[str, Any],
+    db_secret_string: Dict[str, Any],
 ) -> None:
     """
     Retrieve credentials and host information from AWS Secrets Manager, fetch consignment data,
@@ -40,15 +41,13 @@ def bulk_index_consignment_from_aws(
 
     Args:
         consignment_reference (str): The reference identifier for the consignment.
-        secret_id (str): The ID of the AWS secret storing s3 record bucket name,
+        secret_string (str):  AWS secret storing s3 record bucket name,
             and database and OpenSearch credentials.
-        db_secret_id (str): The ID of the AWS secret storing database credentials.
+        db_secret_string (str): AWS secret storing database credentials.
 
     Returns:
         None
     """
-    secret_string = get_secret_data(secret_id)
-    db_secret_string = get_secret_data(db_secret_id)
     bucket_name = secret_string["RECORD_BUCKET_NAME"]
     database_url = _build_db_url(db_secret_string)
     open_search_host_url = secret_string["OPEN_SEARCH_HOST"]
