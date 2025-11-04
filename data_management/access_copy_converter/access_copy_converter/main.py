@@ -85,10 +85,12 @@ def get_extension(file_id, conn, metadata):
 
 def convert_with_libreoffice(input_path, output_path, convert_to="pdf"):
     try:
-        subprocess.run(  # nosec
+        result = subprocess.run(  # nosec
             [
                 "soffice",
                 "--headless",
+                "--nologo",
+                "--nofirststartwizard",
                 "--convert-to",
                 convert_to,
                 "--outdir",
@@ -97,11 +99,29 @@ def convert_with_libreoffice(input_path, output_path, convert_to="pdf"):
             ],
             check=True,
             stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            timeout=300,
         )
         logger.info(f"Converted {input_path} to {output_path}")
+
+        if result.stderr:
+            raise RuntimeError(
+                f"LibreOffice conversion failed ({input_path}): {result.stderr.decode()}"
+            )
+
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(
+            f"LibreOffice timed out after 300s converting {input_path}"
+        )
+
     except subprocess.CalledProcessError as e:
         raise RuntimeError(
-            f"LibreOffice conversion failed: {e.stderr.decode()}"
+            f"LibreOffice conversion failed ({input_path}): {e.stderr.decode()}"
+        )
+
+    except Exception as e:
+        raise RuntimeError(
+            f"Unexpected error running LibreOffice for {input_path}: {e}"
         )
 
 
