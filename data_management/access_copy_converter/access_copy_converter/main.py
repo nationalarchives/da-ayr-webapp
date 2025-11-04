@@ -105,7 +105,7 @@ def convert_with_libreoffice(input_path, output_path, convert_to="pdf"):
         logger.info(f"Converted {input_path} to {output_path}")
 
         if result.stderr:
-            logger.error(f"LibreOffice stderr: {result.stderr.decode()}")
+            raise RuntimeError(f"LibreOffice stderr: {result.stderr.decode()}")
 
     except subprocess.TimeoutExpired:
         raise RuntimeError(
