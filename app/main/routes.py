@@ -191,14 +191,14 @@ def browse():
         date_filters = {}
         date_error_fields = []
 
-        if len(request.args) > 0:
+        if len(validated_data) > 0:
             (
                 date_validation_errors,
                 from_date,
                 to_date,
                 date_filters,
                 date_error_fields,
-            ) = validate_date_filters(request.args)
+            ) = validate_date_filters(validated_data)
 
         filters = build_filters(
             validated_data,
@@ -280,14 +280,14 @@ def browse_transferring_body(_id: uuid.UUID):
     date_filters = {}
     date_error_fields = []
 
-    if len(request.args) > 0:
+    if len(validated_data) > 0:
         (
             date_validation_errors,
             from_date,
             to_date,
             date_filters,
             date_error_fields,
-        ) = validate_date_filters(request.args)
+        ) = validate_date_filters(validated_data)
 
     filters = build_filters(
         validated_data,
@@ -375,7 +375,7 @@ def browse_series(_id: uuid.UUID):
     date_filters = {}
     date_error_fields = []
 
-    if len(request.args) > 0:
+    if len(validated_data) > 0:
         (
             date_validation_errors,
             from_date,
@@ -473,14 +473,14 @@ def browse_consignment(_id: uuid.UUID):
     date_filters = {}
     date_error_fields = []
 
-    if len(request.args) > 0:
+    if len(validated_data) > 0:
         (
             date_validation_errors,
             from_date,
             to_date,
             date_filters,
             date_error_fields,
-        ) = validate_date_filters(request.args, browse_consignment=True)
+        ) = validate_date_filters(validated_data, browse_consignment=True)
 
     filters = build_browse_consignment_filters(
         validated_data,
@@ -635,7 +635,7 @@ def search_transferring_body(_id: uuid.UUID):
 
     additional_term = validated_data.get("search_filter", "").strip()
 
-    check_additional_term(additional_term, query, request.args.copy(), _id)
+    check_additional_term(additional_term, query, validated_data.copy(), _id)
 
     if additional_term:
         if " " in additional_term and not (
@@ -645,7 +645,7 @@ def search_transferring_body(_id: uuid.UUID):
 
         query = f"{query}+{additional_term}" if query else additional_term
 
-        args = request.args.copy()
+        args = validated_data.copy()
         args.pop("search_filter", None)
         args["query"] = query
         return redirect(
