@@ -61,6 +61,7 @@ from app.main.util.schemas import (
     BrowseRequestSchema,
     BrowseSeriesRequestSchema,
     BrowseTransferringBodyRequestSchema,
+    CallbackRequestSchema,
     DownloadRequestSchema,
     GenerateManifestRequestSchema,
     RecordRequestSchema,
@@ -116,15 +117,11 @@ def sign_in():
 
 @bp.route("/callback", methods=["GET"])
 @log_page_view
+@validate_request(CallbackRequestSchema, location="args")
 def callback():
     keycloak_openid = get_keycloak_instance_from_flask_config()
-    code = request.args.get("code")
-
-    if not code:
-        current_app.app_logger.warning(
-            "Missing 'code' parameter in OIDC callback"
-        )
-        return redirect(url_for("main.sign_in"))
+    validated_data = request.validated_data
+    code = validated_data["code"]
 
     try:
         access_token_response = keycloak_openid.token(

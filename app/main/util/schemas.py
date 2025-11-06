@@ -20,6 +20,17 @@ from app.main.util.base_schemas import (
 )
 
 
+class CallbackRequestSchema(Schema):
+    """OIDC callback request validation schema."""
+
+    code = fields.String(
+        required=True, validate=validate.Length(min=1, max=500)
+    )
+
+    class Meta:
+        unknown = EXCLUDE
+
+
 class BrowseRequestSchema(PaginationSchema, BrowseFilterSchema):
     """Browse request validation schema."""
 
