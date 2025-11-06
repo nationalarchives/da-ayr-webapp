@@ -56,6 +56,19 @@ from app.main.util.render_utils import (
     get_download_filename,
     get_file_extension,
 )
+from app.main.util.request_validation_utils import validate_request
+from app.main.util.schemas import (
+    BrowseConsignmentRequestSchema,
+    BrowseRequestSchema,
+    BrowseSeriesRequestSchema,
+    BrowseTransferringBodyRequestSchema,
+    DownloadRequestSchema,
+    GenerateManifestRequestSchema,
+    RecordRequestSchema,
+    SearchRequestSchema,
+    SearchResultsSummaryRequestSchema,
+    SearchTransferringBodyRequestSchema,
+)
 from app.main.util.search_utils import (
     build_search_results_summary_query,
     build_search_transferring_body_query,
@@ -154,10 +167,9 @@ def accessibility():
 @bp.route("/browse", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
+@validate_request(BrowseRequestSchema, location="combined")
 def browse():
     form = SearchForm()
-    page = int(request.args.get("page", 1))
-    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
     transferring_bodies = []
 
     ayr_user = AYRUser(session.get("user_groups"))
@@ -169,6 +181,12 @@ def browse():
         # all access user (all_access_user)
         for body in Body.query.all():
             transferring_bodies.append(body.Name)
+
+        validated_data = request.validated_data
+        page = validated_data["page"]
+        per_page = validated_data.get("per_page") or int(
+            current_app.config["DEFAULT_PAGE_SIZE"]
+        )
 
         date_validation_errors = []
         from_date = None
@@ -234,6 +252,7 @@ def browse():
 @bp.route("/browse/transferring_body/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
+@validate_request(BrowseTransferringBodyRequestSchema, location="combined")
 def browse_transferring_body(_id: uuid.UUID):
     """
     Render the browse transferring body view page.
@@ -251,8 +270,11 @@ def browse_transferring_body(_id: uuid.UUID):
     breadcrumb_values = {0: {"transferring_body": body.Name}}
 
     form = SearchForm()
-    page = int(request.args.get("page", 1))
-    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
+    validated_data = request.validated_data
+    page = validated_data["page"]
+    per_page = validated_data.get("per_page") or int(
+        current_app.config["DEFAULT_PAGE_SIZE"]
+    )
 
     date_validation_errors = []
     from_date = None
@@ -318,6 +340,7 @@ def browse_transferring_body(_id: uuid.UUID):
 @bp.route("/browse/series/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
+@validate_request(BrowseSeriesRequestSchema, location="combined")
 def browse_series(_id: uuid.UUID):
     """
     Render the browse series view page.
@@ -340,8 +363,11 @@ def browse_series(_id: uuid.UUID):
     }
 
     form = SearchForm()
-    page = int(request.args.get("page", 1))
-    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
+    validated_data = request.validated_data
+    page = validated_data["page"]
+    per_page = validated_data.get("per_page") or int(
+        current_app.config["DEFAULT_PAGE_SIZE"]
+    )
 
     date_validation_errors = []
     from_date = None
@@ -407,6 +433,7 @@ def browse_series(_id: uuid.UUID):
 @bp.route("/browse/consignment/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
+@validate_request(BrowseConsignmentRequestSchema, location="combined")
 def browse_consignment(_id: uuid.UUID):
     """
     Render the browse consignment view page.
@@ -432,8 +459,11 @@ def browse_consignment(_id: uuid.UUID):
     }
 
     form = SearchForm()
-    page = int(request.args.get("page", 1))
-    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
+    validated_data = request.validated_data
+    page = validated_data["page"]
+    per_page = validated_data.get("per_page") or int(
+        current_app.config["DEFAULT_PAGE_SIZE"]
+    )
 
     date_validation_errors = []
     from_date = None
@@ -496,6 +526,7 @@ def browse_consignment(_id: uuid.UUID):
 @bp.route("/search", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
+@validate_request(SearchRequestSchema, location="combined")
 def search():
     form_data = request.form.to_dict()
     args_data = request.args.to_dict()
@@ -528,14 +559,18 @@ def search():
 @bp.route("/search_results_summary", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
+@validate_request(SearchResultsSummaryRequestSchema, location="combined")
 def search_results_summary():
     ayr_user = AYRUser(session.get("user_groups"))
     if ayr_user.is_standard_user:
         abort(403)
 
     form = SearchForm()
-    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
-    page = int(request.args.get("page", 1))
+    validated_data = request.validated_data
+    page = validated_data["page"]
+    per_page = validated_data.get("per_page") or int(
+        current_app.config["DEFAULT_PAGE_SIZE"]
+    )
 
     query, search_area = get_query_and_search_area(request)
     filters = {"query": query}
@@ -585,13 +620,17 @@ def search_results_summary():
 @bp.route("/search/transferring_body/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
+@validate_request(SearchTransferringBodyRequestSchema, location="combined")
 def search_transferring_body(_id: uuid.UUID):
     body = db.session.get(Body, _id)
     validate_body_user_groups_or_404(body.Name)
 
     form = SearchForm()
-    per_page = int(current_app.config["DEFAULT_PAGE_SIZE"])
-    page = int(request.args.get("page", 1))
+    validated_data = request.validated_data
+    page = validated_data["page"]
+    per_page = validated_data.get("per_page") or int(
+        current_app.config["DEFAULT_PAGE_SIZE"]
+    )
     open_all = get_param("open_all", request)
     sort = get_param("sort", request) or "file_name"
     highlight_tag = f"uuid_prefix_{uuid.uuid4().hex}"
@@ -697,6 +736,7 @@ def search_transferring_body(_id: uuid.UUID):
 @bp.route("/record/<uuid:record_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
+@validate_request(RecordRequestSchema, location="path")
 def record(record_id: uuid.UUID):
     """
     Render the record details page.
@@ -776,6 +816,7 @@ def record(record_id: uuid.UUID):
 @bp.route("/download/<uuid:record_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
+@validate_request(DownloadRequestSchema, location="path")
 def download_record(record_id: uuid.UUID):
     s3 = boto3.client("s3")
     file = db.session.get(File, record_id)
@@ -823,39 +864,10 @@ def download_record(record_id: uuid.UUID):
     return redirect(presigned_url)
 
 
-@bp.route("/signed-out", methods=["GET"])
-def signed_out():
-    return render_template("signed-out.html")
-
-
-@bp.route("/cookies", methods=["GET"])
-def cookies():
-    return render_template("cookies.html")
-
-
-@bp.route("/privacy", methods=["GET"])
-def privacy():
-    return render_template("privacy.html")
-
-
-@bp.route("/how-to-use-this-service", methods=["GET"])
-def how_to_use():
-    return render_template("how-to-use-this-service.html")
-
-
-@bp.route("/terms-of-use", methods=["GET"])
-def terms_of_use():
-    return render_template("terms-of-use.html")
-
-
-@bp.app_errorhandler(HTTPException)
-def http_exception(error):
-    return render_template(f"{error.code}.html"), error.code
-
-
 @bp.route("/record/<uuid:record_id>/manifest")
 @access_token_sign_in_required
 @log_page_view
+@validate_request(GenerateManifestRequestSchema, location="path")
 def generate_manifest(record_id: uuid.UUID) -> Response:
     file = db.session.get(File, record_id)
     if file is None:
@@ -908,3 +920,33 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         f"Failed to create manifest for file with ID {file.FileId} as not a supported file type"
     )
     abort(400)
+
+
+@bp.route("/signed-out", methods=["GET"])
+def signed_out():
+    return render_template("signed-out.html")
+
+
+@bp.route("/cookies", methods=["GET"])
+def cookies():
+    return render_template("cookies.html")
+
+
+@bp.route("/privacy", methods=["GET"])
+def privacy():
+    return render_template("privacy.html")
+
+
+@bp.route("/how-to-use-this-service", methods=["GET"])
+def how_to_use():
+    return render_template("how-to-use-this-service.html")
+
+
+@bp.route("/terms-of-use", methods=["GET"])
+def terms_of_use():
+    return render_template("terms-of-use.html")
+
+
+@bp.app_errorhandler(HTTPException)
+def http_exception(error):
+    return render_template(f"{error.code}.html"), error.code
