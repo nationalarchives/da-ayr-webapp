@@ -245,9 +245,7 @@ def browse():
             date_filters=date_filters,
             sorting_orders=sorting_orders,
             num_records_found=num_records_found,
-            query_string_parameters={
-                k: v for k, v in request.args.items() if k not in "page"
-            },
+            query_string_parameters={k: v for k, v in validated_data.items()},
             id=None,
         )
 
@@ -338,9 +336,7 @@ def browse_transferring_body(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters={
-            k: v for k, v in request.args.items() if k not in "page"
-        },
+        query_string_parameters={k: v for k, v in validated_data.items()},
     )
 
 
@@ -435,9 +431,7 @@ def browse_series(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters={
-            k: v for k, v in request.args.items() if k not in "page"
-        },
+        query_string_parameters={k: v for k, v in validated_data.items()},
     )
 
 
@@ -532,9 +526,7 @@ def browse_consignment(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters={
-            k: v for k, v in request.args.items() if k not in "page"
-        },
+        query_string_parameters={k: v for k, v in validated_data.items()},
     )
 
 
@@ -543,13 +535,8 @@ def browse_consignment(_id: uuid.UUID):
 @log_page_view
 @validate_request(SearchRequestSchema, location="combined")
 def search():
-    form_data = request.form.to_dict()
-    args_data = request.args.to_dict()
-
-    # merge both dictionaries (args takes precedence over form if there are overlapping keys)
-    params = {**form_data, **args_data}
-
-    transferring_body_id = params.get("transferring_body_id", "")
+    validated_data = request.validated_data
+    transferring_body_id = validated_data.get("transferring_body_id", "")
 
     ayr_user = AYRUser(session.get("user_groups"))
 
@@ -564,11 +551,10 @@ def search():
             url_for(
                 "main.search_transferring_body",
                 _id=transferring_body_id,
-                **params,
+                **validated_data,
             )
         )
-    else:
-        return redirect(url_for("main.search_results_summary", **params))
+    return redirect(url_for("main.search_results_summary", **validated_data))
 
 
 @bp.route("/search_results_summary", methods=["GET"])
@@ -625,9 +611,7 @@ def search_results_summary():
         results=paginated_results,
         pagination=pagination,
         num_records_found=num_records_found,
-        query_string_parameters={
-            k: v for k, v in request.args.items() if k not in "page"
-        },
+        query_string_parameters={k: v for k, v in validated_data.items()},
         id=None,
     )
 
@@ -652,7 +636,7 @@ def search_transferring_body(_id: uuid.UUID):
 
     query, search_area = get_query_and_search_area(request)
 
-    additional_term = request.args.get("search_filter", "").strip()
+    additional_term = validated_data.get("search_filter", "").strip()
 
     check_additional_term(additional_term, query, request.args.copy(), _id)
 
@@ -743,7 +727,7 @@ def search_transferring_body(_id: uuid.UUID):
         open_all=open_all,
         highlight_tag=highlight_tag,
         query_string_parameters={
-            k: v for k, v in request.args.items() if k != "page"
+            k: v for k, v in validated_data.items() if k != "page"
         },
     )
 
