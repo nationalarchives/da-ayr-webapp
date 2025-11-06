@@ -203,9 +203,12 @@ def browse():
                 date_error_fields,
             ) = validate_date_filters(request.args)
 
-        filters = build_filters(request.args, from_date, to_date)
-        sorting_orders = build_sorting_orders(request.args)
-
+        filters = build_filters(
+            validated_data,
+            date_from=from_date,
+            date_to=to_date,
+        )
+        sorting_orders = build_sorting_orders(validated_data)
         # set default sort
         if len(sorting_orders) == 0:
             sorting_orders["transferring_body"] = "asc"
@@ -291,8 +294,12 @@ def browse_transferring_body(_id: uuid.UUID):
             date_error_fields,
         ) = validate_date_filters(request.args)
 
-    filters = build_filters(request.args, from_date, to_date)
-    sorting_orders = build_sorting_orders(request.args)
+    filters = build_filters(
+        validated_data,
+        date_from=from_date,
+        date_to=to_date,
+    )
+    sorting_orders = build_sorting_orders(validated_data)
 
     # set default sort
     if len(sorting_orders) == 0:
@@ -382,10 +389,14 @@ def browse_series(_id: uuid.UUID):
             to_date,
             date_filters,
             date_error_fields,
-        ) = validate_date_filters(request.args)
+        ) = validate_date_filters(validated_data)
 
-    filters = build_filters(request.args, from_date, to_date)
-    sorting_orders = build_sorting_orders(request.args)
+    filters = build_filters(
+        validated_data,
+        date_from=from_date,
+        date_to=to_date,
+    )
+    sorting_orders = build_sorting_orders(validated_data)
 
     # set default sort
     if len(sorting_orders) == 0:
@@ -480,8 +491,12 @@ def browse_consignment(_id: uuid.UUID):
             date_error_fields,
         ) = validate_date_filters(request.args, browse_consignment=True)
 
-    filters = build_browse_consignment_filters(request.args, from_date, to_date)
-    sorting_orders = build_sorting_orders(request.args)
+    filters = build_browse_consignment_filters(
+        validated_data,
+        date_from=from_date,
+        date_to=to_date,
+    )
+    sorting_orders = build_sorting_orders(validated_data)
 
     # set default sort
     if len(sorting_orders) == 0:
