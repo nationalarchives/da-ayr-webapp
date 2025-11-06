@@ -190,6 +190,9 @@ class BrowseFilterSchema(DateFilterSchema):
     )
 
 
+# Endpoint schemas
+
+
 class BrowseRequestSchema(PaginationSchema, BrowseFilterSchema):
     """Complete browse request validation schema."""
 
@@ -197,10 +200,31 @@ class BrowseRequestSchema(PaginationSchema, BrowseFilterSchema):
         unknown = EXCLUDE
 
 
-class SearchTransferringBodySchema(PaginationSchema, SearchQuerySchema):
-    """Search transferring body request validation schema."""
+class BrowseTransferringBodyRequestSchema(PaginationSchema, BrowseFilterSchema):
+    """Browse transferring body request validation schema."""
 
-    _id = UUIDField(required=False, data_key="_id", load_default=None)
+    _id = UUIDField(required=True, data_key="_id")
+
+    class Meta:
+        unknown = EXCLUDE
+
+
+class BrowseSeriesRequestSchema(PaginationSchema, BrowseFilterSchema):
+    """Browse series request validation schema."""
+
+    _id = UUIDField(required=True, data_key="_id")
+
+    class Meta:
+        unknown = EXCLUDE
+
+
+class BrowseConsignmentRequestSchema(PaginationSchema, BrowseFilterSchema):
+    """Browse consignment request validation schema."""
+
+    _id = UUIDField(required=True, data_key="_id")
+
+    class Meta:
+        unknown = EXCLUDE
 
 
 class SearchRequestSchema(SearchQuerySchema):
@@ -214,28 +238,20 @@ class SearchRequestSchema(SearchQuerySchema):
         unknown = EXCLUDE
 
 
-class SearchResultsSummarySchema(PaginationSchema, SearchQuerySchema):
+class SearchResultsSummaryRequestSchema(PaginationSchema, SearchQuerySchema):
     """Search results summary request validation schema."""
 
-    pass
+    class Meta:
+        unknown = EXCLUDE
 
 
-class BrowseTransferringBodySchema(PaginationSchema, BrowseFilterSchema):
-    """Browse transferring body request validation schema."""
+class SearchTransferringBodyRequestSchema(PaginationSchema, SearchQuerySchema):
+    """Search transferring body request validation schema."""
 
-    _id = UUIDField(required=True, data_key="_id")
+    _id = UUIDField(required=False, data_key="_id", load_default=None)
 
-
-class BrowseSeriesSchema(PaginationSchema, BrowseFilterSchema):
-    """Browse series request validation schema."""
-
-    _id = UUIDField(required=True, data_key="_id")
-
-
-class BrowseConsignmentSchema(PaginationSchema, BrowseFilterSchema):
-    """Browse consignment request validation schema."""
-
-    _id = UUIDField(required=True, data_key="_id")
+    class Meta:
+        unknown = EXCLUDE
 
 
 class RecordRequestSchema(Schema):
@@ -250,10 +266,15 @@ class DownloadRequestSchema(Schema):
     record_id = UUIDField(required=True)
 
 
-class ManifestRequestSchema(Schema):
-    """Manifest request validation schema."""
+class GenerateManifestRequestSchema(Schema):
+    """Schema for manifest generation parameters."""
 
-    record_id = UUIDField(required=True)
+    record_id = UUIDField(
+        required=True, error_messages={"required": "Record ID is required"}
+    )
+
+    class Meta:
+        unknown = EXCLUDE
 
 
 class ValidationError(Exception):
@@ -265,18 +286,7 @@ class ValidationError(Exception):
         super().__init__(message)
 
 
-class ManifestSchema(Schema):
-    """Schema for manifest generation parameters."""
-
-    record_id = UUIDField(
-        required=True, error_messages={"required": "Record ID is required"}
-    )
-
-    class Meta:
-        unknown = EXCLUDE
-
-
-def clean_empty_strings(data: dict) -> dict:
+def _clean_empty_strings(data: dict) -> dict:
     """
     Converts empty string values in a dict to None.
     Useful for query/form data before Marshmallow validation.
@@ -293,9 +303,9 @@ def validate_request(
             from flask import abort, current_app, request
 
             if location == "args":
-                data = clean_empty_strings(request.args.to_dict())
+                data = _clean_empty_strings(request.args.to_dict())
             elif location == "form":
-                data = clean_empty_strings(request.form.to_dict())
+                data = _clean_empty_strings(request.form.to_dict())
             elif location == "json":
                 data = request.get_json() or {}
             elif location == "path":
@@ -306,7 +316,7 @@ def validate_request(
                     **request.form.to_dict(),
                     **request.args.to_dict(),
                 }
-                data = clean_empty_strings(combined)
+                data = _clean_empty_strings(combined)
             else:
                 data = {}
 

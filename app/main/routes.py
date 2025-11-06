@@ -57,15 +57,16 @@ from app.main.util.render_utils import (
     get_file_extension,
 )
 from app.main.util.request_validator import (
-    BrowseConsignmentSchema,
+    BrowseConsignmentRequestSchema,
     BrowseRequestSchema,
-    BrowseSeriesSchema,
-    BrowseTransferringBodySchema,
+    BrowseSeriesRequestSchema,
+    BrowseTransferringBodyRequestSchema,
     DownloadRequestSchema,
+    GenerateManifestRequestSchema,
     RecordRequestSchema,
     SearchRequestSchema,
-    SearchResultsSummarySchema,
-    SearchTransferringBodySchema,
+    SearchResultsSummaryRequestSchema,
+    SearchTransferringBodyRequestSchema,
     validate_request,
 )
 from app.main.util.search_utils import (
@@ -249,7 +250,7 @@ def browse():
 @bp.route("/browse/transferring_body/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
-@validate_request(BrowseTransferringBodySchema, location="combined")
+@validate_request(BrowseTransferringBodyRequestSchema, location="combined")
 def browse_transferring_body(_id: uuid.UUID):
     """
     Render the browse transferring body view page.
@@ -335,7 +336,7 @@ def browse_transferring_body(_id: uuid.UUID):
 @bp.route("/browse/series/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
-@validate_request(BrowseSeriesSchema, location="combined")
+@validate_request(BrowseSeriesRequestSchema, location="combined")
 def browse_series(_id: uuid.UUID):
     """
     Render the browse series view page.
@@ -426,7 +427,7 @@ def browse_series(_id: uuid.UUID):
 @bp.route("/browse/consignment/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
-@validate_request(BrowseConsignmentSchema, location="combined")
+@validate_request(BrowseConsignmentRequestSchema, location="combined")
 def browse_consignment(_id: uuid.UUID):
     """
     Render the browse consignment view page.
@@ -550,7 +551,7 @@ def search():
 @bp.route("/search_results_summary", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
-@validate_request(SearchResultsSummarySchema, location="combined")
+@validate_request(SearchResultsSummaryRequestSchema, location="combined")
 def search_results_summary():
     ayr_user = AYRUser(session.get("user_groups"))
     if ayr_user.is_standard_user:
@@ -609,7 +610,7 @@ def search_results_summary():
 @bp.route("/search/transferring_body/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
-@validate_request(SearchTransferringBodySchema, location="combined")
+@validate_request(SearchTransferringBodyRequestSchema, location="combined")
 def search_transferring_body(_id: uuid.UUID):
     body = db.session.get(Body, _id)
     validate_body_user_groups_or_404(body.Name)
@@ -851,40 +852,10 @@ def download_record(record_id: uuid.UUID):
     return redirect(presigned_url)
 
 
-@bp.route("/signed-out", methods=["GET"])
-def signed_out():
-    return render_template("signed-out.html")
-
-
-@bp.route("/cookies", methods=["GET"])
-def cookies():
-    return render_template("cookies.html")
-
-
-@bp.route("/privacy", methods=["GET"])
-def privacy():
-    return render_template("privacy.html")
-
-
-@bp.route("/how-to-use-this-service", methods=["GET"])
-def how_to_use():
-    return render_template("how-to-use-this-service.html")
-
-
-@bp.route("/terms-of-use", methods=["GET"])
-def terms_of_use():
-    return render_template("terms-of-use.html")
-
-
-@bp.app_errorhandler(HTTPException)
-def http_exception(error):
-    return render_template(f"{error.code}.html"), error.code
-
-
 @bp.route("/record/<uuid:record_id>/manifest")
 @access_token_sign_in_required
 @log_page_view
-@validate_request(RecordRequestSchema, location="path")
+@validate_request(GenerateManifestRequestSchema, location="path")
 def generate_manifest(record_id: uuid.UUID) -> Response:
     file = db.session.get(File, record_id)
 
@@ -927,3 +898,33 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         f"Failed to create manifest for file with ID {file.FileId} as not a supported file type"
     )
     abort(400)
+
+
+@bp.route("/signed-out", methods=["GET"])
+def signed_out():
+    return render_template("signed-out.html")
+
+
+@bp.route("/cookies", methods=["GET"])
+def cookies():
+    return render_template("cookies.html")
+
+
+@bp.route("/privacy", methods=["GET"])
+def privacy():
+    return render_template("privacy.html")
+
+
+@bp.route("/how-to-use-this-service", methods=["GET"])
+def how_to_use():
+    return render_template("how-to-use-this-service.html")
+
+
+@bp.route("/terms-of-use", methods=["GET"])
+def terms_of_use():
+    return render_template("terms-of-use.html")
+
+
+@bp.app_errorhandler(HTTPException)
+def http_exception(error):
+    return render_template(f"{error.code}.html"), error.code
