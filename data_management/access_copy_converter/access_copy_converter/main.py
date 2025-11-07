@@ -10,6 +10,8 @@ from botocore.exceptions import ClientError
 from sqlalchemy import MetaData, Table, create_engine, select
 from sqlalchemy.exc import SQLAlchemyError
 
+from configs.base_config import CONVERTIBLE_EXTENSIONS
+
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger()
 
@@ -347,9 +349,7 @@ def main():
     app_secret = get_secret_string(app_secret_id)
     source_bucket = app_secret["RECORD_BUCKET_NAME"]
     dest_bucket = app_secret["ACCESS_COPY_BUCKET"]
-    convertible_extensions = set(
-        json.loads(app_secret["CONVERTIBLE_EXTENSIONS"])
-    )
+    convertible_extensions = CONVERTIBLE_EXTENSIONS
 
     conversion_type = os.getenv("CONVERSION_TYPE")
     if not conversion_type:

@@ -164,7 +164,6 @@ class TestRoutes:
         file = FileFactory(ffid_metadata__Extension="pdf", FileName="test.pdf")
         bucket_name = "test-bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
@@ -242,7 +241,6 @@ class TestRoutes:
             )
             bucket_name = "test-bucket"
             app.config["RECORD_BUCKET_NAME"] = bucket_name
-            app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
             create_mock_s3_bucket_with_image_object(bucket_name, file)
 
             mock_create_presigned_url.return_value = (
@@ -421,7 +419,6 @@ class TestRoutes:
         file = FileFactory(ffid_metadata__Extension="pdf")
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
 
         s3_mock = mock_boto_client.return_value
         s3_mock.get_object.return_value = {"Body": b"file content"}
@@ -452,7 +449,6 @@ class TestRoutes:
         file = FileFactory(ffid_metadata__Extension="doc")
         bucket_name = "test_bucket"
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
 
         s3_mock = mock_boto_client.return_value
         s3_mock.get_object.return_value = {"Body": b"file content"}
@@ -489,7 +485,6 @@ class TestRoutes:
         )
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
 
         s3_mock = mock_boto_client.return_value
         s3_mock.get_object.return_value = {"Body": b"file content"}
@@ -515,10 +510,9 @@ class TestRoutes:
         Test that an unsupported format will return a bad request and log the error
         """
         mock_all_access_user(client)
-        file = FileFactory(ffid_metadata__Extension="xls")
+        file = FileFactory(ffid_metadata__Extension="xlsxx")
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
 
         s3_mock = mock_boto_client.return_value
         s3_mock.get_object.return_value = {"Body": b"file content"}
@@ -541,7 +535,6 @@ class TestRoutes:
         bucket_name = "test-bucket"
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
         app.config["SUPPORTED_RENDER_EXTENSIONS"] = ["pdf", "png"]
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_create_presigned_url.side_effect = Exception(

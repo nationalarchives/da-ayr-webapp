@@ -97,7 +97,6 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         response = client.get(f"{self.route_url}/{file.FileId}#record-details")
@@ -133,7 +132,6 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -204,7 +202,6 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -252,7 +249,6 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -285,7 +281,6 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -315,7 +310,6 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -341,12 +335,11 @@ class TestRecord:
         Then the alert banner responsible with alerting the user should be visible
         """
 
-        file = FileFactory(ffid_metadata__Extension="xls")
+        file = FileFactory(ffid_metadata__Extension="xlsxx")
 
         bucket_name = "test_bucket"
 
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -376,7 +369,6 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -408,7 +400,6 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -432,7 +423,6 @@ class TestRecord:
         And the HTML content should see record download component
         on the page
         """
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         file = FileFactory(CiteableReference=None)
         mock_standard_user(
             client, file.consignment.series.body.Name, can_download=True
@@ -464,7 +454,6 @@ class TestRecord:
         And the HTML content should see record download component
         on the page
         """
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         file = FileFactory(
             FileName="open_file.docx",
             CiteableReference="first_body/ABCDE",
@@ -501,7 +490,6 @@ class TestRecord:
         And the HTML content should NOT see record download component
         on the page
         """
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         file = FileFactory()
         mock_standard_user(client, file.consignment.series.body.Name)
 
@@ -526,7 +514,6 @@ class TestRecord:
         And the HTML content should NOT see record download component
         on the page
         """
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         file = FileFactory()
         mock_all_access_user(client)
 
@@ -578,7 +565,6 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_standard_user(client, file.consignment.series.body.Name)
@@ -756,7 +742,6 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_standard_user(client, file.consignment.series.body.Name)
@@ -971,7 +956,6 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_standard_user(client, file.consignment.series.body.Name)
@@ -1160,7 +1144,6 @@ class TestRecord:
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["CONVERTIBLE_EXTENSIONS"] = '["doc", "docx"]'
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         response = client.get(f"{self.route_url}/{file.FileId}#record-view")

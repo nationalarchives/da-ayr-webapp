@@ -1,4 +1,3 @@
-import json
 import uuid
 
 import boto3
@@ -82,6 +81,7 @@ from app.main.util.search_utils import (
     post_process_opensearch_results,
     setup_opensearch,
 )
+from configs.base_config import CONVERTIBLE_EXTENSIONS
 
 from .forms import SearchForm
 
@@ -770,9 +770,7 @@ def record(record_id: uuid.UUID):
     breadcrumb_values = generate_breadcrumb_values(file)
 
     download_filename = get_download_filename(file)
-    convertible_extensions = set(
-        json.loads(current_app.config["CONVERTIBLE_EXTENSIONS"])
-    )
+    convertible_extensions = CONVERTIBLE_EXTENSIONS
     manifest_url = url_for(
         "main.generate_manifest", record_id=record_id, _external=True
     )
@@ -877,9 +875,7 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
     file_name = file.FileName
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
     file_type = get_file_extension(file)
-    convertible_extensions = set(
-        json.loads(current_app.config["CONVERTIBLE_EXTENSIONS"])
-    )
+    convertible_extensions = CONVERTIBLE_EXTENSIONS
 
     def get_s3_file_obj(file, bucket_name=None):
         """

@@ -11,6 +11,23 @@ UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES = {
 }
 UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES = {"pdf": "application/pdf"}
 
+CONVERTIBLE_EXTENSIONS = {
+    "doc",
+    "docx",
+    "ppt",
+    "pptx",
+    "wk1",
+    "wpd",
+    "rtf",
+    "xls",
+    "xlsx",
+    "xml",
+    "odt",
+    "html",
+    "mpp",
+    "wk4",
+}
+
 
 class BaseConfig(object):
     SESSION_COOKIE_HTTPONLY = True
@@ -135,10 +152,6 @@ class BaseConfig(object):
     @property
     def ACCESS_COPY_BUCKET_URL(self):
         return f"https://{self.ACCESS_COPY_BUCKET}.s3.amazonaws.com"
-
-    @property
-    def CONVERTIBLE_EXTENSIONS(self):
-        return self._get_config_value("CONVERTIBLE_EXTENSIONS")
 
     @property
     def FLASKS3_ACTIVE(self):
