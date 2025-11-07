@@ -184,7 +184,7 @@ def browse():
 
         validated_data = request.validated_data
         page = validated_data["page"]
-        per_page = validated_data.get("per_page") or int(
+        per_page = validated_data["per_page"] or int(
             current_app.config["DEFAULT_PAGE_SIZE"]
         )
 
@@ -275,7 +275,7 @@ def browse_transferring_body(_id: uuid.UUID):
     form = SearchForm()
     validated_data = request.validated_data
     page = validated_data["page"]
-    per_page = validated_data.get("per_page") or int(
+    per_page = validated_data["per_page"] or int(
         current_app.config["DEFAULT_PAGE_SIZE"]
     )
 
@@ -372,7 +372,7 @@ def browse_series(_id: uuid.UUID):
     form = SearchForm()
     validated_data = request.validated_data
     page = validated_data["page"]
-    per_page = validated_data.get("per_page") or int(
+    per_page = validated_data["per_page"] or int(
         current_app.config["DEFAULT_PAGE_SIZE"]
     )
 
@@ -472,7 +472,7 @@ def browse_consignment(_id: uuid.UUID):
     form = SearchForm()
     validated_data = request.validated_data
     page = validated_data["page"]
-    per_page = validated_data.get("per_page") or int(
+    per_page = validated_data["per_page"] or int(
         current_app.config["DEFAULT_PAGE_SIZE"]
     )
 
@@ -544,7 +544,7 @@ def browse_consignment(_id: uuid.UUID):
 @validate_request(SearchRequestSchema, location="combined")
 def search():
     validated_data = request.validated_data
-    transferring_body_id = validated_data.get("transferring_body_id", "")
+    transferring_body_id = validated_data["transferring_body_id"]
 
     ayr_user = AYRUser(session.get("user_groups"))
 
@@ -579,7 +579,7 @@ def search_results_summary():
     form = SearchForm()
     validated_data = request.validated_data
     page = validated_data["page"]
-    per_page = validated_data.get("per_page") or int(
+    per_page = validated_data["per_page"] or int(
         current_app.config["DEFAULT_PAGE_SIZE"]
     )
 
@@ -640,7 +640,7 @@ def search_transferring_body(_id: uuid.UUID):
     form = SearchForm()
     validated_data = request.validated_data
     page = validated_data["page"]
-    per_page = validated_data.get("per_page") or int(
+    per_page = validated_data["per_page"] or int(
         current_app.config["DEFAULT_PAGE_SIZE"]
     )
     open_all = validated_data["open_all"]
@@ -650,7 +650,7 @@ def search_transferring_body(_id: uuid.UUID):
     query = validated_data["query"]
     search_area = validated_data["search_area"]
 
-    additional_term = validated_data.get("search_filter", "").strip()
+    additional_term = validated_data["search_filter"]
 
     check_additional_term(additional_term, query, validated_data.copy())
 
