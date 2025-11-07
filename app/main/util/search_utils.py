@@ -204,18 +204,6 @@ def apply_field_boosts(fields, boost_map):
     return [f"{field}^{boost_map.get(field, 1)}" for field in fields]
 
 
-def get_param(param, request):
-    """Get a specific param from either form or args"""
-    return request.form.get(param, "") or request.args.get(param, "")
-
-
-def get_query_and_search_area(request):
-    """Fetch query and search_area from form or request args"""
-    query = get_param("query", request)
-    search_area = get_param("search_area", request)
-    return query.strip(), search_area
-
-
 def setup_opensearch():
     """Setup and return an OpenSearch client"""
     verify_certs = current_app.config.get("OPEN_SEARCH_VERIFY_CERTS", True)

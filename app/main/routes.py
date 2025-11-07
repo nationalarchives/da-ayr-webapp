@@ -77,8 +77,6 @@ from app.main.util.search_utils import (
     extract_search_terms,
     get_open_search_fields_to_search_on_and_sorting,
     get_pagination_info,
-    get_param,
-    get_query_and_search_area,
     post_process_opensearch_results,
     setup_opensearch,
 )
@@ -585,7 +583,8 @@ def search_results_summary():
         current_app.config["DEFAULT_PAGE_SIZE"]
     )
 
-    query, search_area = get_query_and_search_area(request)
+    query = validated_data["query"]
+    search_area = validated_data["search_area"]
     filters = {"query": query}
     num_records_found, paginated_results, pagination = 0, [], None
 
@@ -644,11 +643,12 @@ def search_transferring_body(_id: uuid.UUID):
     per_page = validated_data.get("per_page") or int(
         current_app.config["DEFAULT_PAGE_SIZE"]
     )
-    open_all = get_param("open_all", request)
-    sort = get_param("sort", request) or "file_name"
+    open_all = validated_data["open_all"]
+    sort = validated_data["sort"] or "file_name"
     highlight_tag = f"uuid_prefix_{uuid.uuid4().hex}"
 
-    query, search_area = get_query_and_search_area(request)
+    query = validated_data["query"]
+    search_area = validated_data["search_area"]
 
     additional_term = validated_data.get("search_filter", "").strip()
 
