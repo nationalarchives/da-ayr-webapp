@@ -111,7 +111,7 @@ services:
     command: ["postgres"]
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.4.2
+    image: quay.io/keycloak/keycloak:26.4.4
     command: start-dev --import-realm --spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true
     environment:
       KC_HOSTNAME: localhost
