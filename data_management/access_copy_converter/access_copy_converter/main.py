@@ -5,6 +5,7 @@ import subprocess  # nosec
 import tempfile
 
 import boto3
+import psutil
 from botocore.exceptions import ClientError
 from sqlalchemy import MetaData, Table, create_engine, select
 from sqlalchemy.exc import SQLAlchemyError
@@ -152,6 +153,22 @@ def _download_input(source_bucket, key, input_path):
         raise Exception(f"Failed to download {key}: {e}")
 
 
+def _cleanup_soffice_processes():
+    for process in psutil.process_iter(["name"]):
+        name = process.info.get("name", "").lower()
+        if "soffice" in name or "soffice.bin" in name:
+            try:
+                process.kill()
+                logger.warning(
+                    f"Killed leftover process: {name} (pid={process.pid})"
+                )
+            except Exception:
+                logger.warning(
+                    f"Failed to kill leftover process: {name} (pid={process.pid})"
+                )
+                pass
+
+
 def _convert_file(extension, tmpdir, input_path, output_path, file_id):
     try:
         if extension in ("xls", "xlsx"):
@@ -207,6 +224,7 @@ def process_file(
         output_path = os.path.join(tmpdir, "input.pdf")
 
         _download_input(source_bucket, key, input_path)
+        _cleanup_soffice_processes()
         _convert_file(extension, tmpdir, input_path, output_path, file_id)
         _verify_output_exists(output_path, file_id)
 
