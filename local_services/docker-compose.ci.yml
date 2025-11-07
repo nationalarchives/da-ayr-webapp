@@ -253,8 +253,7 @@ services:
       - FLASKS3_ACTIVE=False
       - FLASKS3_CDN_DOMAIN=localhost
       - FLASKS3_BUCKET_NAME=test-record-download
-      - ACCESS_COPY_BUCKET="test-access-copy"
-      - CONVERTIBLE_EXTENSIONS=".doc,.docx"
+      - ACCESS_COPY_BUCKET=test-access-copy
       - PERF_TEST=False
       # Use service name for OpenSearch with HTTP
       - OPEN_SEARCH_HOST=http://opensearch-node1:9200

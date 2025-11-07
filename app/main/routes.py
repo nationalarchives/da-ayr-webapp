@@ -1,4 +1,3 @@
-import json
 import uuid
 
 import boto3
@@ -82,6 +81,7 @@ from app.main.util.search_utils import (
     post_process_opensearch_results,
     setup_opensearch,
 )
+from configs.base_config import CONVERTIBLE_EXTENSIONS
 
 from .forms import SearchForm
 
@@ -770,14 +770,11 @@ def record(record_id: uuid.UUID):
     breadcrumb_values = generate_breadcrumb_values(file)
 
     download_filename = get_download_filename(file)
-    convertible_extensions = set(
-        json.loads(current_app.config["CONVERTIBLE_EXTENSIONS"])
-    )
     manifest_url = url_for(
         "main.generate_manifest", record_id=record_id, _external=True
     )
     access_copy_failed = False
-    if not can_render_file and file_extension in convertible_extensions:
+    if not can_render_file and file_extension in CONVERTIBLE_EXTENSIONS:
         try:
             presigned_url = create_presigned_url_for_access_copy(file)
             can_render_file = True
@@ -877,9 +874,6 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
     file_name = file.FileName
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
     file_type = get_file_extension(file)
-    convertible_extensions = set(
-        json.loads(current_app.config["CONVERTIBLE_EXTENSIONS"])
-    )
 
     def get_s3_file_obj(file, bucket_name=None):
         """
@@ -908,7 +902,7 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         return generate_image_manifest(
             file_name, file_url, manifest_url, s3_file_object=s3_file_obj
         )
-    elif file_type in convertible_extensions:
+    elif file_type in CONVERTIBLE_EXTENSIONS:
         file_obj = get_s3_file_obj(
             file, bucket_name=current_app.config["ACCESS_COPY_BUCKET"]
         )
