@@ -130,7 +130,9 @@ def extract_text(file_stream: bytes, file_extension: str) -> str:
                 return text.decode("utf-8")
             except Exception as convert_err:
                 logger.error(f"LibreOffice fallback also failed: {convert_err}")
-                raise convert_err
+                raise (
+                    f"Textract failed on original file: {e}: LibreOffice fallback also failed: {convert_err}"
+                )
 
 
 def convert_file_with_libreoffice(
