@@ -300,14 +300,14 @@ class TestRoutes:
                 {},
                 {"some_param": "some_value"},
                 "main.search_results_summary",
-                {"some_param": "some_value"},
+                {},
             ),
             # all access user with form data and args data (args takes precedence)
             (
                 {"some_param": "form_value"},
                 {"some_param": "args_value"},
                 "main.search_results_summary",
-                {"some_param": "args_value"},
+                {},
             ),
         ],
     )

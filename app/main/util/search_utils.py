@@ -433,7 +433,7 @@ def extract_search_terms(query):
     return quoted_phrases, single_terms
 
 
-def check_additional_term(additional_term, query, args, _id):
+def check_additional_term(additional_term, query, args):
     if additional_term:
         if " " in additional_term and not (
             additional_term.startswith('"') and additional_term.endswith('"')
@@ -448,7 +448,6 @@ def check_additional_term(additional_term, query, args, _id):
         return redirect(
             url_for(
                 "main.search_transferring_body",
-                _id=_id,
                 **args,
                 _anchor="browse-records",
             )

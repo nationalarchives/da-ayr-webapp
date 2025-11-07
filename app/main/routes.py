@@ -122,6 +122,11 @@ def callback():
     keycloak_openid = get_keycloak_instance_from_flask_config()
     validated_data = request.validated_data
     code = validated_data["code"]
+    if not code:
+        current_app.app_logger.error(
+            "Error during Keycloak token exchange: Missing authorization code"
+        )
+        return redirect(url_for("main.sign_in"))
 
     try:
         access_token_response = keycloak_openid.token(
@@ -242,7 +247,9 @@ def browse():
             date_filters=date_filters,
             sorting_orders=sorting_orders,
             num_records_found=num_records_found,
-            query_string_parameters={k: v for k, v in validated_data.items()},
+            query_string_parameters={
+                k: v for k, v in validated_data.items() if k not in "page"
+            },
             id=None,
         )
 
@@ -333,7 +340,9 @@ def browse_transferring_body(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters={k: v for k, v in validated_data.items()},
+        query_string_parameters={
+            k: v for k, v in validated_data.items() if k not in "page"
+        },
     )
 
 
@@ -428,7 +437,9 @@ def browse_series(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters={k: v for k, v in validated_data.items()},
+        query_string_parameters={
+            k: v for k, v in validated_data.items() if k not in "page"
+        },
     )
 
 
@@ -523,7 +534,9 @@ def browse_consignment(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters={k: v for k, v in validated_data.items()},
+        query_string_parameters={
+            k: v for k, v in validated_data.items() if k not in "page"
+        },
     )
 
 
@@ -537,6 +550,8 @@ def search():
 
     ayr_user = AYRUser(session.get("user_groups"))
 
+    redirect_params = request.validated_data_non_defaults
+
     if ayr_user.is_standard_user or transferring_body_id:
         if not transferring_body_id:
             transferring_body_id = str(
@@ -548,10 +563,10 @@ def search():
             url_for(
                 "main.search_transferring_body",
                 _id=transferring_body_id,
-                **validated_data,
+                **redirect_params,
             )
         )
-    return redirect(url_for("main.search_results_summary", **validated_data))
+    return redirect(url_for("main.search_results_summary", **redirect_params))
 
 
 @bp.route("/search_results_summary", methods=["GET"])
@@ -608,7 +623,9 @@ def search_results_summary():
         results=paginated_results,
         pagination=pagination,
         num_records_found=num_records_found,
-        query_string_parameters={k: v for k, v in validated_data.items()},
+        query_string_parameters={
+            k: v for k, v in validated_data.items() if k not in "page"
+        },
         id=None,
     )
 
@@ -635,7 +652,7 @@ def search_transferring_body(_id: uuid.UUID):
 
     additional_term = validated_data.get("search_filter", "").strip()
 
-    check_additional_term(additional_term, query, validated_data.copy(), _id)
+    check_additional_term(additional_term, query, validated_data.copy())
 
     if additional_term:
         if " " in additional_term and not (
@@ -651,7 +668,6 @@ def search_transferring_body(_id: uuid.UUID):
         return redirect(
             url_for(
                 "main.search_transferring_body",
-                _id=_id,
                 **args,
                 _anchor="browse-records",
             )
@@ -708,7 +724,10 @@ def search_transferring_body(_id: uuid.UUID):
             search_results, page, per_page
         )
         num_records_found = total_records
-
+    # breakpoint()
+    query_string_parameters = validated_data.copy()
+    query_string_parameters.pop("page", None)
+    query_string_parameters.pop("_id", None)
     return render_template(
         "search-transferring-body.html",
         form=form,
@@ -723,9 +742,7 @@ def search_transferring_body(_id: uuid.UUID):
         pagination=pagination,
         open_all=open_all,
         highlight_tag=highlight_tag,
-        query_string_parameters={
-            k: v for k, v in validated_data.items() if k != "page"
-        },
+        query_string_parameters=query_string_parameters,
     )
 
 

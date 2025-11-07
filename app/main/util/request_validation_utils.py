@@ -40,6 +40,10 @@ def validate_request(
             schema = schema_class()
             try:
                 request.validated_data = schema.load(data)
+                # Store validated data without defaults for cleaner redirect URLs
+                request.validated_data_non_defaults = _filter_non_defaults(
+                    request.validated_data, schema
+                )
             except ValidationError as e:
                 current_app.logger.warning(
                     f"Validation error in {f.__name__}: {e.messages}"
@@ -61,3 +65,25 @@ def _clean_empty_strings(data: dict) -> dict:
     Useful for query/form data before Marshmallow validation.
     """
     return {k: (None if v == "" else v) for k, v in data.items()}
+
+
+def _filter_non_defaults(validated_data: dict, schema: Schema) -> dict:
+    """
+    Filter out fields that have default values to keep redirect URLs clean.
+    Only returns fields that were explicitly provided and differ from defaults.
+    """
+    filtered = {}
+
+    for field_name, value in validated_data.items():
+        field = schema.fields.get(field_name)
+        if field is None:
+            continue
+
+        # Get the default value for this field
+        default_value = getattr(field, "load_default", None)
+
+        # Only include if value differs from default and isn't None/empty
+        if value != default_value and value is not None and value != "":
+            filtered[field_name] = value
+
+    return filtered
