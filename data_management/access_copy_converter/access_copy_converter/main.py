@@ -349,7 +349,6 @@ def main():
     app_secret = get_secret_string(app_secret_id)
     source_bucket = app_secret["RECORD_BUCKET_NAME"]
     dest_bucket = app_secret["ACCESS_COPY_BUCKET"]
-    convertible_extensions = CONVERTIBLE_EXTENSIONS
 
     conversion_type = os.getenv("CONVERSION_TYPE")
     if not conversion_type:
@@ -358,12 +357,12 @@ def main():
     conn = engine.connect()
     if conversion_type == "ALL":
         create_access_copies_for_all_consignments(
-            source_bucket, dest_bucket, convertible_extensions, conn
+            source_bucket, dest_bucket, CONVERTIBLE_EXTENSIONS, conn
         )
 
     elif conversion_type == "SINGLE":
         create_access_copy_from_sns(
-            source_bucket, dest_bucket, convertible_extensions, conn
+            source_bucket, dest_bucket, CONVERTIBLE_EXTENSIONS, conn
         )
 
     else:
