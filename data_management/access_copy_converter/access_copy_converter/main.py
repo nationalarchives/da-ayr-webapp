@@ -10,7 +10,22 @@ from botocore.exceptions import ClientError
 from sqlalchemy import MetaData, Table, create_engine, select
 from sqlalchemy.exc import SQLAlchemyError
 
-CONVERTIBLE_EXTENSIONS = {"doc", "docx", "ppt", "pptx", "wk1", "wpd", "rtf", "xls", "xlsx", "xml","odt","html","mpp","wk4"}
+CONVERTIBLE_EXTENSIONS = {
+    "doc",
+    "docx",
+    "ppt",
+    "pptx",
+    "wk1",
+    "wpd",
+    "rtf",
+    "xls",
+    "xlsx",
+    "xml",
+    "odt",
+    "html",
+    "mpp",
+    "wk4",
+}
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger()
