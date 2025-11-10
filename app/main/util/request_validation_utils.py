@@ -42,7 +42,7 @@ def validate_request(
                 request.validated_data = schema.load(data)
                 # Store validated data without defaults for cleaner redirect URLs
                 request.validated_data_non_defaults = _filter_non_defaults(
-                    request.validated_data, schema
+                    request.validated_data, schema, data
                 )
             except ValidationError as e:
                 current_app.logger.warning(
@@ -67,10 +67,12 @@ def _clean_empty_strings(data: dict) -> dict:
     return {k: (None if v == "" else v) for k, v in data.items()}
 
 
-def _filter_non_defaults(validated_data: dict, schema: Schema) -> dict:
+def _filter_non_defaults(
+    validated_data: dict, schema: Schema, original_data: dict
+) -> dict:
     """
     Filter out fields that have default values to keep redirect URLs clean.
-    Only returns fields that were explicitly provided and differ from defaults.
+    Only returns fields that were explicitly provided in the original request.
     """
     filtered = {}
 
@@ -79,11 +81,9 @@ def _filter_non_defaults(validated_data: dict, schema: Schema) -> dict:
         if field is None:
             continue
 
-        # Get the default value for this field
-        default_value = getattr(field, "load_default", None)
-
-        # Only include if value differs from default and isn't None/empty
-        if value != default_value and value is not None and value != "":
+        # Only include if the field was explicitly provided in original data
+        # (regardless of whether it matches the default value)
+        if field_name in original_data and value is not None and value != "":
             filtered[field_name] = value
 
     return filtered
