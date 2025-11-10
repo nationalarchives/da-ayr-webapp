@@ -14,7 +14,7 @@ function initUniversalViewer() {
     };
     config.modules.openSeadragonCenterPanel.options = {
       defaultZoomLevel: 0.0006,
-    }
+    };
     config.modules.footerPanel.options = {
       downloadEnabled: false,
       embedEnabled: false,
