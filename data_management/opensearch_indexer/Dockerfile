@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     flac ffmpeg lame libmad0 libsox-fmt-mp3 sox \
     libjpeg-dev swig \
     libreoffice \
+    libreoffice-java-common \
+    default-jre \
     && apt-get clean
 
 # Set working directory
