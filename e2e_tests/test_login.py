@@ -130,7 +130,6 @@ def test_token_expiry(page: Page, create_aau_keycloak_user):
     expected_lifetime = 1800
     assert (
         abs(token_lifetime - expected_lifetime) < 5
-        or abs(token_lifetime - expected_lifetime) == 5400
     ), "Refresh token expiry does not match expected config"
 
 
