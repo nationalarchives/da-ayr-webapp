@@ -1,5 +1,4 @@
 services:
-  # Single OpenSearch node for CI
   opensearch-node1:
     image: opensearchproject/opensearch@sha256:6ab2d7f30f6b30f97ceab4fe2a4d371f734e18c6b7639468af30db93c33316ca # opensearch:latest with digest for immutability
     container_name: opensearch-node1
@@ -27,6 +26,12 @@ services:
       - 9600:9600
     networks:
       - opensearch-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
 
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards@sha256:d82c6cd0306cba75735e99f940abb98dbbd6621b6b704db6bd4cf9313054e20e # opensearch-dashboards:latest with digest for immutability
@@ -37,28 +42,36 @@ services:
       - "5601"
     environment:
       OPENSEARCH_HOSTS: '["http://opensearch-node1:9200"]'
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: 'true'
     networks:
       - opensearch-net
     depends_on:
       - opensearch-node1
 
   opensearch-restore:
-    image: python
+    env_file:
+      - .docker.env
+    image: curlimages/curl:latest
     environment:
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
     depends_on:
-      - opensearch-node1
+      opensearch-node1:
+        condition: service_healthy
     networks:
       - opensearch-net
+    volumes:
+      - ./snapshots:/mnt/snapshots
     command: |
-      bash -c "
-        # Wait until OpenSearch is available via HTTP (no auth needed)
-        until curl -s http://opensearch-node1:9200 -o /dev/null; do
-          echo 'Waiting for OpenSearch to be available...'
+      sh -c "
+        echo 'Waiting for OpenSearch to be ready...'
+
+        # Wait for OpenSearch to be fully ready
+        until curl -s http://opensearch-node1:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'; do
+          echo 'Waiting for OpenSearch cluster...'
           sleep 5
         done
 
-        echo 'OpenSearch is available!'
+        echo 'OpenSearch is ready. Starting restore process...'
 
         # Register the snapshot repository (no auth needed)
         curl -s -X PUT 'http://opensearch-node1:9200/_snapshot/my-fs-repository' -H 'Content-Type: application/json' -d '{\"type\": \"fs\", \"settings\": {\"location\": \"/mnt/snapshots\"}}'
@@ -71,16 +84,27 @@ services:
         echo 'Existing index cleared.'
 
         # Restore from snapshot (no auth needed)
-        curl -s -X POST 'http://opensearch-node1:9200/_snapshot/my-fs-repository/1/_restore' -H 'Content-Type: application/json' -d '{\"indices\": \"documents\", \"include_global_state\": false}'
+        restore_response=\$$(curl -s -X POST 'http://opensearch-node1:9200/_snapshot/my-fs-repository/1/_restore' -H 'Content-Type: application/json' -d '{\"indices\": \"documents\", \"include_global_state\": false}')
+        echo \"Restore response: \$$restore_response\"
 
-        echo 'Restore completed.'
+        # Wait for restore to complete
+        echo 'Waiting for restore to complete...'
+        until curl -s 'http://opensearch-node1:9200/documents/_search?size=0' | grep -q '\"total\"'; do
+          echo 'Waiting for documents to be available...'
+          sleep 2
+        done
 
-        # Keep container running briefly to see results
-        sleep 10
+        # Verify the restore was successful
+        doc_count=\$$(curl -s 'http://opensearch-node1:9200/documents/_count' | grep -o '\"count\":[0-9]*' | cut -d':' -f2)
+        echo \"Restore completed successfully. Document count: \$$doc_count\"
+
+        exit 0
       "
 
   postgres:
     image: postgres@sha256:41fc5342eefba6cc2ccda736aaf034bbbb7c3df0fdb81516eba1ba33f360162c # postgres:18.0 with digest for immutability
+    env_file:
+      - .docker.env
     volumes:
       - kc_postgres_data:/var/lib/postgresql
     environment:
@@ -94,6 +118,8 @@ services:
 
   webapp_postgres:
     image: postgres@sha256:41fc5342eefba6cc2ccda736aaf034bbbb7c3df0fdb81516eba1ba33f360162c # postgres:18.0 with digest for immutability
+    env_file:
+      - .docker.env
     user: postgres
     volumes:
       - webapp_postgres_data:/var/lib/postgresql
@@ -112,6 +138,8 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.4.4
+    env_file:
+      - .docker.env
     command: start-dev --import-realm --spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true
     environment:
       KC_HOSTNAME: localhost
@@ -137,36 +165,16 @@ services:
       - postgres
     networks:
       - keycloak_network
-
-  keycloak-config:
-    image: alpine/curl
-    depends_on:
-      - keycloak
-    networks:
-      - keycloak_network
-    entrypoint: |
-      sh -c "
-        # Wait for Keycloak to be ready
-        echo 'Waiting for Keycloak to be ready...'
-        until curl -f http://keycloak:8080/realms/master/.well-known/openid-configuration; do
-          echo 'Still waiting for Keycloak...'
-          sleep 5
-        done
-
-        echo 'Keycloak is ready!'
-        echo 'Note: You may need to manually run the following commands in the keycloak container:'
-        echo 'docker exec keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password password'
-        echo 'docker exec keycloak /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE'
-        echo 'docker exec keycloak /opt/keycloak/bin/kcadm.sh update realms/tdr -s sslRequired=NONE'
-
-        # Keep container running briefly
-        sleep 30
-      "
-    environment:
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8080/realms/master/.well-known/openid-configuration"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 30
+    #   start_period: 10s
 
   minio:
+    env_file:
+      - .docker.env
     image: quay.io/minio/minio
     container_name: minio
     ports:
@@ -178,15 +186,25 @@ services:
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
     networks:
       minio_network:
         aliases:
           - 127.0.0.1
 
   minio-init:
+    env_file:
+      - .docker.env
     image: minio/mc:latest
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
+    restart: "no"
     volumes:
       - ./files:/tmp/files:ro
     networks:
@@ -197,6 +215,7 @@ services:
       /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
       /usr/bin/mc mb myminio/test-record-download --ignore-existing;
       /usr/bin/mc cp --recursive /tmp/files/ myminio/test-record-download/ || echo 'No files to copy or copy failed';
+      exit 0;
       "
 
   socat-localhost:
@@ -209,16 +228,26 @@ services:
   webapp:
     env_file:
       - .docker.env
+    image: da-ayr-beta-webapp:latest
     build:
       context: ..
       dockerfile: Dockerfile
     container_name: webapp
+    command: >
+      sh -c "
+        echo 'Building CSS files...' &&
+        npm run build &&
+        poetry run flask run --host=0.0.0.0 --port=5000 --debug
+      "
     ports:
       - "5000:5000"
     volumes:
-      - ./minio_certs:/app/local_services/minio_certs
-      - ./opensearch_certs:/app/local_services/opensearch_certs
-      - ./webapp_postgres_certs:/app/local_services/webapp_postgres_certs
+      # Mount source code for hot reloading directly
+      - ../app:/docker_app/app
+      # Mount certificates
+      - ./minio_certs:/docker_app/local_services/minio_certs
+      - ./opensearch_certs:/docker_app/local_services/opensearch_certs
+      - ./webapp_postgres_certs:/docker_app/local_services/webapp_postgres_certs
     networks:
       - default
       - keycloak_network
@@ -226,50 +255,18 @@ services:
       - minio_network
     links:
       - opensearch-node1
-    environment:
-      - PYTHONUNBUFFERED=1
-      - FLASK_ENV=development
-      - CONFIG_SOURCE=ENVIRONMENT_VARIABLES
-      - DB_HOST=webapp_postgres
-      - DB_PORT=5432
-      - DB_NAME=${POSTGRES_DB}
-      - DB_USER=${POSTGRES_USER}
-      - DB_PASSWORD=${POSTGRES_PASSWORD}
-      - DB_SSL_ROOT_CERTIFICATE=/app/local_services/webapp_postgres_certs/root-ca.pem
-      - SQLALCHEMY_SSL_MODE=disable
-      - KEYCLOAK_BASE_URI=http://keycloak:8080
-      - KEYCLOAK_CLIENT_ID=ayr-beta
-      - KEYCLOAK_REALM_NAME=tdr
-      - KEYCLOAK_CLIENT_SECRET=test-client-secret
-      - AWS_ENDPOINT_URL=http://127.0.0.1:9000
-      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
-      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
-      - AWS_REGION=eu-west-2
-      - AWS_CA_BUNDLE=/app/local_services/minio_certs/root-ca.crt
-      - SECRET_KEY=test-secret-key
-      - DEFAULT_PAGE_SIZE=10
-      - DEFAULT_DATE_FORMAT=DD/MM/YYYY
-      - RECORD_BUCKET_NAME=test-record-download
-      - FLASKS3_ACTIVE=False
-      - FLASKS3_CDN_DOMAIN=localhost
-      - FLASKS3_BUCKET_NAME=test-record-download
-      - ACCESS_COPY_BUCKET=test-access-copy
-      - PERF_TEST=False
-      # Use service name for OpenSearch with HTTP
-      - OPEN_SEARCH_HOST=http://opensearch-node1:9200
-      # Remove auth since security is disabled
-      - OPEN_SEARCH_USERNAME=
-      - OPEN_SEARCH_PASSWORD=
-      - OPEN_SEARCH_TIMEOUT=30
-      # Disable SSL for CI
-      - OPEN_SEARCH_USE_SSL=false
-      - OPEN_SEARCH_VERIFY_CERTS=false
-      - OPEN_SEARCH_CA_CERTS=
     depends_on:
       - webapp_postgres
       - keycloak
       - minio
       - opensearch-node1
+      - opensearch-restore
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:5000"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
 
 volumes:
   opensearch-data1:
