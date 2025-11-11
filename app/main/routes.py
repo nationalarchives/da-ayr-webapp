@@ -650,28 +650,7 @@ def search_transferring_body(_id: uuid.UUID):
     query = validated_data["query"]
     search_area = validated_data["search_area"]
 
-    additional_term = validated_data["search_filter"]
-
-    check_additional_term(additional_term, query, validated_data.copy())
-
-    if additional_term:
-        if " " in additional_term and not (
-            additional_term.startswith('"') and additional_term.endswith('"')
-        ):
-            additional_term = f'"{additional_term}"'
-
-        query = f"{query}+{additional_term}" if query else additional_term
-
-        args = validated_data.copy()
-        args.pop("search_filter", None)
-        args["query"] = query
-        return redirect(
-            url_for(
-                "main.search_transferring_body",
-                **args,
-                _anchor="browse-records",
-            )
-        )
+    check_additional_term(query, validated_data.copy())
 
     filters = {"query": query}
 
