@@ -76,6 +76,7 @@ expected_base_dsl_search_query = {
                     }
                 }
             ],
+            "minimum_should_match": 1,
             "filter": [{"clause_1": "test_2"}],
         }
     },
@@ -368,17 +369,8 @@ def test_build_dsl_search_query_and_non_fuzzy_fuzzy_search():
                 "should": [
                     {
                         "multi_match": {
-                            "query": "non_fuzzy",
-                            "fields": search_fields,
-                            "type": "phrase",
-                            "fuzziness": "AUTO",
-                            "lenient": True,
-                        }
-                    },
-                    {
-                        "multi_match": {
                             "query": "fuzzy",
-                            "fields": search_fields,
+                            "fields": ["field_1"],
                             "fuzziness": "AUTO",
                             "lenient": True,
                         }
@@ -386,13 +378,14 @@ def test_build_dsl_search_query_and_non_fuzzy_fuzzy_search():
                     {
                         "multi_match": {
                             "query": "search",
-                            "fields": search_fields,
+                            "fields": ["field_1"],
                             "fuzziness": "AUTO",
                             "lenient": True,
                         }
                     },
                 ],
-                "filter": filter_clauses,
+                "minimum_should_match": 1,
+                "filter": [{"clause_1": "test_2"}],
             }
         },
         "sort": {"sort": "foobar"},
@@ -419,7 +412,6 @@ def test_build_search_results_summary_query():
         {"sort": "foobar"},
     )
     assert dsl_query == {
-        **expected_base_dsl_search_query,
         "query": {
             "bool": {
                 "should": [
@@ -432,9 +424,12 @@ def test_build_search_results_summary_query():
                         }
                     }
                 ],
+                "minimum_should_match": 1,
                 "filter": [],
             }
         },
+        "sort": {"sort": "foobar"},
+        "_source": True,
         "aggs": {
             "aggregate_by_transferring_body": {
                 "terms": {"field": "transferring_body_id.keyword"},
@@ -468,58 +463,6 @@ def test_build_search_transferring_body_query():
         "consignment_reference",
     ]
 
-    # Helper to determine if a field should be treated as non_fuzzy (no fuzziness)
-    def is_non_fuzzy_field(field):
-        return (
-            field.startswith("consignment_ref")
-            or field.startswith("series")
-            or "date" in field
-        )
-
-    # Split fields into non_fuzzy and fuzzy
-    non_fuzzy_fields = [f for f in search_fields if is_non_fuzzy_field(f)]
-    fuzzy_fields = [f for f in search_fields if not is_non_fuzzy_field(f)]
-
-    expected_should_clauses = [
-        # phrase on non_fuzzy fields
-        {
-            "multi_match": {
-                "query": "non_fuzzy",
-                "fields": non_fuzzy_fields,
-                "fuzziness": 0,
-                "type": "phrase",
-                "lenient": True,
-            }
-        },
-        # phrase on fuzzy fields
-        {
-            "multi_match": {
-                "query": "non_fuzzy",
-                "fields": fuzzy_fields,
-                "type": "phrase",
-                "fuzziness": "AUTO",
-                "lenient": True,
-            }
-        },
-        # single term on non_fuzzy fields
-        {
-            "multi_match": {
-                "query": "fuzzy",
-                "fields": non_fuzzy_fields,
-                "fuzziness": 0,
-                "lenient": True,
-            }
-        },
-        # single term on fuzzy fields
-        {
-            "multi_match": {
-                "query": "fuzzy",
-                "fields": fuzzy_fields,
-                "fuzziness": "AUTO",
-                "lenient": True,
-            }
-        },
-    ]
     dsl_query = build_search_transferring_body_query(
         search_fields,
         transferring_body_id,
@@ -531,11 +474,49 @@ def test_build_search_transferring_body_query():
     assert dsl_query == {
         "query": {
             "bool": {
-                "should": expected_should_clauses,
+                "should": [
+                    {
+                        "multi_match": {
+                            "query": "non_fuzzy",
+                            "fields": "*",
+                            "type": "phrase",
+                            "lenient": True,
+                        }
+                    },
+                    {
+                        "multi_match": {
+                            "query": "fuzzy",
+                            "fields": [
+                                "closure_start_date",
+                                "end_date",
+                                "date_last_modified",
+                                "series_name",
+                                "consignment_reference",
+                            ],
+                            "type": "phrase",
+                            "lenient": True,
+                        }
+                    },
+                    {
+                        "multi_match": {
+                            "query": "fuzzy",
+                            "fields": [
+                                "file_name",
+                                "description",
+                                "foi_exemption_code",
+                                "content",
+                                "citeable_reference",
+                            ],
+                            "fuzziness": "AUTO",
+                            "lenient": True,
+                        }
+                    },
+                ],
+                "minimum_should_match": 1,
                 "filter": [
                     {
                         "term": {
-                            "transferring_body_id.keyword": transferring_body_id
+                            "transferring_body_id.keyword": "test_transferring_body_id"
                         }
                     }
                 ],

@@ -276,46 +276,37 @@ def build_should_clauses(search_fields, quoted_phrases, single_terms):
 
     should_clauses = []
 
-    # For each quoted phrase, add a multi_match clause for both non-fuzzy and fuzzy fields
+    # For each quoted phrase, add a multi_match phrase clause for all fields
     for phrase in quoted_phrases:
         if non_fuzzy_fields:
             should_clauses.append(
                 {
                     "multi_match": {
                         "query": phrase,
-                        "fields": non_fuzzy_fields,
-                        "fuzziness": 0,
+                        "fields": "*",
                         "type": "phrase",
                         "lenient": True,
                     }
                 }
             )
-        if fuzzy_fields:
-            should_clauses.append(
-                {
-                    "multi_match": {
-                        "query": phrase,
-                        "fields": fuzzy_fields,
-                        "fuzziness": "AUTO",
-                        "type": "phrase",
-                        "lenient": True,
-                    }
-                }
-            )
-    # For each single term, add a multi_match clause for both non-fuzzy and fuzzy fields
+
+    # For each single term, add a multi_match clause for non-fuzzy and fuzzy fields
     for term in single_terms:
         if non_fuzzy_fields:
+            # if there are non-fuzzy fields, add a phrase match for them
             should_clauses.append(
                 {
                     "multi_match": {
                         "query": term,
                         "fields": non_fuzzy_fields,
-                        "fuzziness": 0,
+                        "type": "phrase",
                         "lenient": True,
                     }
                 }
             )
+
         if fuzzy_fields:
+            # if there are fuzzy fields, add a fuzzy match for them
             should_clauses.append(
                 {
                     "multi_match": {
@@ -342,16 +333,19 @@ def build_dsl_search_query(
         search_fields, quoted_phrases, single_terms
     )
 
-    return {
+    query_structure = {
         "query": {
             "bool": {
                 "should": should_clauses,
-                "filter": filter_clauses,
+                "minimum_should_match": 1,  # Require at least one should clause to match
+                "filter": filter_clauses,  # Keep transferring_body_id as non-scoring filter
             }
         },
         "sort": sorting,
         "_source": True,
     }
+
+    return query_structure
 
 
 def build_search_results_summary_query(
