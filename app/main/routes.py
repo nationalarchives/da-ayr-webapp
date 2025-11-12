@@ -703,7 +703,7 @@ def search_transferring_body(_id: uuid.UUID):
             search_results, page, per_page
         )
         num_records_found = total_records
-    # breakpoint()
+
     query_string_parameters = validated_data.copy()
     query_string_parameters.pop("page", None)
     query_string_parameters.pop("_id", None)
