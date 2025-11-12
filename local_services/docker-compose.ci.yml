@@ -137,7 +137,7 @@ services:
     command: ["postgres"]
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.4.4
+    image: quay.io/keycloak/keycloak:26.4.5
     env_file:
       - .docker.env
     command: start-dev --import-realm --spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true
