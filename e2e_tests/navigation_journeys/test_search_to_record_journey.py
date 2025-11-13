@@ -25,9 +25,7 @@ def test_search_to_record(aau_user_page: Page):
     aau_user_page.get_by_role("textbox").first.fill("a")
     aau_user_page.get_by_role("button", name="Search").click()
     expect(aau_user_page).to_have_url(
-        re.compile(
-            r"/search_results_summary\?(query=a&search_area=everywhere|search_area=everywhere&query=a)"
-        )
+        "/search_results_summary?search_area=everywhere&query=a"
     )
 
     # revert to original assertion to avoid flaky test
