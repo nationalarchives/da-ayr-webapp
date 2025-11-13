@@ -2,12 +2,12 @@ def build_filters(args, date_from, date_to):
     filters = {}
     filter_items = []
     if args:
-        transferring_body = args.get("transferring_body_filter", "").lower()
+        transferring_body = args["transferring_body_filter"]
 
         if transferring_body and transferring_body != "all":
             filter_items.append({"transferring_body": transferring_body})
 
-        series = args.get("series_filter", "").lower()
+        series = args["series_filter"]
         if series:
             filter_items.append({"series": series})
 

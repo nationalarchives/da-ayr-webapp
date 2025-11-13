@@ -2,7 +2,7 @@ import re
 import urllib.parse
 
 import opensearchpy
-from flask import abort, current_app, redirect, request, url_for
+from flask import abort, current_app, redirect, url_for
 from opensearchpy import OpenSearch, RequestsHttpConnection
 
 from app.main.util.date_validator import format_opensearch_date
@@ -202,18 +202,6 @@ def apply_field_boosts(fields, boost_map):
     Apply boost values to fields as per the boost map.
     """
     return [f"{field}^{boost_map.get(field, 1)}" for field in fields]
-
-
-def get_param(param, request):
-    """Get a specific param from either form or args"""
-    return request.form.get(param, "") or request.args.get(param, "")
-
-
-def get_query_and_search_area(request):
-    """Fetch query and search_area from form or request args"""
-    query = get_param("query", request)
-    search_area = get_param("search_area", request)
-    return query.strip(), search_area
 
 
 def setup_opensearch():
@@ -433,7 +421,8 @@ def extract_search_terms(query):
     return quoted_phrases, single_terms
 
 
-def check_additional_term(additional_term, query, args, _id):
+def check_additional_term(query, validated_data):
+    additional_term = validated_data["search_filter"]
     if additional_term:
         if " " in additional_term and not (
             additional_term.startswith('"') and additional_term.endswith('"')
@@ -442,14 +431,11 @@ def check_additional_term(additional_term, query, args, _id):
 
         query = f"{query}+{additional_term}" if query else additional_term
 
-        args = request.args.copy()
-        args.pop("search_filter", None)
-        args["query"] = query
+        validated_data["query"] = query
         return redirect(
             url_for(
                 "main.search_transferring_body",
-                _id=_id,
-                **args,
+                **validated_data,
                 _anchor="browse-records",
             )
         )

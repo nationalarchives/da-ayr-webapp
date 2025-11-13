@@ -1,0 +1,41 @@
+# Python
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.coverage
+*.egg-info
+
+# Node.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Development and testing
+.env*
+.git
+.gitignore
+README.md
+*.log
+pytestdebug.log
+
+# IDEs and editors
+.vscode
+.idea
+*.swp
+*.swo
+
+# Build artifacts
+.DS_Store
+Thumbs.db
+
+# Local services and development files
+local_services
+e2e_tests
+performance_tests
+snapshots
+
+# CI/CD
+.github
