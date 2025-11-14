@@ -37,21 +37,10 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Set up environment variables for services
-      run: | # pragma: allowlist secret
-        cd local_services
-        cat > .env << EOF
-        OPENSEARCH_INITIAL_ADMIN_PASSWORD=FOOBARCARabc123!
-        POSTGRES_DB=local_db
-        POSTGRES_USER=local_db_user
-        POSTGRES_PASSWORD=local_db_user_password
-        KEYCLOAK_ADMIN=admin
-        KEYCLOAK_ADMIN_PASSWORD=password
-        KC_POSTGRES_PORT=5432
-        WEBAPP_POSTGRES_PORT=5433
-        MINIO_ROOT_USER=ROOTNAME
-        MINIO_ROOT_PASSWORD=CHANGEME123
-        EOF
+    - name: Verify .docker.env exists
+      run: |
+        ls -la local_services/.docker.env
+        echo "Using existing .docker.env file for CI"
 
     - name: Start Docker Compose with CI-specific configuration
       run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
