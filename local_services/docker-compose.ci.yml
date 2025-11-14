@@ -273,7 +273,7 @@ services:
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
       - AWS_REGION=eu-west-2
-      - AWS_CA_BUNDLE=/app/local_services/minio_certs/root-ca.crt
+      - AWS_CA_BUNDLE=/docker_app/local_services/minio_certs/root-ca.crt
       - SECRET_KEY=test-secret-key
       - DEFAULT_PAGE_SIZE=10
       - DEFAULT_DATE_FORMAT=DD/MM/YYYY
