@@ -38,8 +38,8 @@ jobs:
         push: false
         load: true
         tags: "da-ayr-beta-webapp:latest"
-        # cache-from: type=gha
-        # cache-to: type=gha,mode=max
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
     - name: Verify .docker.env exists
       run: |
