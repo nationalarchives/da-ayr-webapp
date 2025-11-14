@@ -21,6 +21,10 @@ jobs:
         sudo rm -rf /usr/share/dotnet
         sudo rm -rf /opt/ghc
         sudo rm -rf /usr/local/share/boost
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/hostedtoolcache/CodeQL
+        sudo rm -rf /usr/local/share/powershell
+        sudo rm -rf /usr/share/swift
         df -h
 
     - name: Set up Docker Compose
@@ -34,8 +38,8 @@ jobs:
         push: false
         load: true
         tags: "da-ayr-beta-webapp:latest"
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        # cache-from: type=gha
+        # cache-to: type=gha,mode=max
 
     - name: Verify .docker.env exists
       run: |
