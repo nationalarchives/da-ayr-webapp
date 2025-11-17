@@ -34,7 +34,7 @@ services:
       start_period: 60s
 
   opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards@sha256:d82c6cd0306cba75735e99f940abb98dbbd6621b6b704db6bd4cf9313054e20e # opensearch-dashboards:latest with digest for immutability
+    image: opensearchproject/opensearch-dashboards@sha256:ea1860a2c5ab893c025794b9dfa657445daa0b7ffb76a50bdb871983987286fe # opensearch-dashboards:latest with digest for immutability
     container_name: opensearch-dashboards
     ports:
       - 5601:5601
