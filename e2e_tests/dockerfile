@@ -2,6 +2,6 @@ FROM mcr.microsoft.com/playwright/python@sha256:640d578aae63cfb632461d1b0aecb014
 
 WORKDIR /e2e_tests
 
-RUN pip install --upgrade pip wheel setuptools numpy scikit-image pillow playwright==1.55.0 python-keycloak pytest-playwright-visual==2.1.2 pytest-playwright==0.7.1 pytest-html PyJWT itsdangerous cryptography
+RUN pip install --no-cache-dir --upgrade pip wheel setuptools numpy scikit-image pillow playwright==1.55.0 python-keycloak pytest-playwright-visual==2.1.2 pytest-playwright==0.7.1 pytest-html PyJWT itsdangerous cryptography
 
 CMD ["pytest", "-vvv", "-s", ".", "--base-url=https://127.0.0.1:5000", "--browser", "chromium", "--browser", "webkit", "--browser", "firefox", "--update-snapshots", "--html=playwright-report/report.html", "--self-contained-html"]
