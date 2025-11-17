@@ -19,7 +19,7 @@ ENV PATH="/root/.local/bin:$PATH"
 # Copy Python dependency files first for better caching
 COPY pyproject.toml poetry.lock /docker_app/
 RUN poetry config virtualenvs.create false && \
-    poetry install --no-root
+    poetry install --no-root --no-cache
 
 # Copy Node.js dependency files and install
 COPY package*.json /docker_app/
