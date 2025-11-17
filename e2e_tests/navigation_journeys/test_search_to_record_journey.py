@@ -28,11 +28,6 @@ def test_search_to_record(aau_user_page: Page):
         "/search_results_summary?query=a&search_area=everywhere"
     )
 
-    # revert to original assertion to avoid flaky test
-    # expect(aau_user_page).to_have_url(re.compile(
-    #     r"/search_results_summary\?.*query=a.*"
-    # ))
-
     aau_user_page.wait_for_selector("#tbl_result")
     aau_user_page.get_by_role("cell").first.get_by_role("link").first.click()
     expect(aau_user_page).to_have_url(
