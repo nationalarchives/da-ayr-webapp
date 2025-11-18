@@ -12,9 +12,6 @@ function initUniversalViewer() {
     config.modules.centerPanel.options = {
       usePdfJs: true,
     };
-    config.modules.openSeadragonCenterPanel.options = {
-      defaultZoomLevel: 0.0006,
-    };
     config.modules.footerPanel.options = {
       downloadEnabled: false,
       embedEnabled: false,
@@ -42,8 +39,20 @@ document.addEventListener("DOMContentLoaded", function () {
   initUniversalViewer();
 });
 
+// Automatically zooms into the first page thumbnail after a sec delay
+const defaultZoom = function () {
+  setTimeout(function () {
+    let firstPage = document.getElementById("thumb-0");
+    if (firstPage) {
+      let thumbDiv = firstPage.querySelector("div.thumb");
+      thumbDiv.click();
+    }
+  }, 1000);
+};
+
 document.querySelectorAll(".govuk-tabs__tab").forEach((tab) => {
   tab.addEventListener("click", function (event) {
+    defaultZoom();
     if (this.getAttribute("href") === "#record-view") {
       setTimeout(initUniversalViewer, 0);
     }
@@ -100,4 +109,5 @@ document.addEventListener("DOMContentLoaded", function () {
       button.setAttribute("role", "button");
     }
   });
+  defaultZoom();
 });
