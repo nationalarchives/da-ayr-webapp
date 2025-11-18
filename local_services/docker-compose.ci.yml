@@ -1,6 +1,6 @@
 services:
   opensearch-node1:
-    image: opensearchproject/opensearch@sha256:6ab2d7f30f6b30f97ceab4fe2a4d371f734e18c6b7639468af30db93c33316ca # opensearch:latest with digest for immutability
+    image: opensearchproject/opensearch@sha256:22fdee0d6db3f500a64cd27ddff3633f32244d0ea58b68ffb151cd2217f0bb0d # opensearch:latest with digest for immutability
     container_name: opensearch-node1
     environment:
       - discovery.type=single-node
