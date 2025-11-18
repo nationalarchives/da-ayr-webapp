@@ -8,6 +8,7 @@ from app.main.util.render_utils import (
     generate_breadcrumb_values,
     get_download_filename,
     get_file_extension,
+    get_file_puid,
 )
 
 
@@ -18,6 +19,13 @@ def test_get_file_extension_with_ffid_extension():
 
     ext = get_file_extension(mock_file)
     assert ext == "pdf"
+
+
+def test_get_file_puid_with_ffid_puid():
+    mock_file = Mock()
+    mock_file.ffid_metadata.PUID = "fmt/40"
+    puid = get_file_puid(mock_file)
+    assert puid == "fmt/40"
 
 
 def test_get_file_extension_with_ffid_extension_none_uses_filename():

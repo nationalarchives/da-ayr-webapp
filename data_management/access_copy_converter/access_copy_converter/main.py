@@ -10,21 +10,25 @@ from botocore.exceptions import ClientError
 from sqlalchemy import MetaData, Table, create_engine, select
 from sqlalchemy.exc import SQLAlchemyError
 
-CONVERTIBLE_EXTENSIONS = {
-    "doc",
-    "docx",
-    "ppt",
-    "pptx",
-    "wk1",
-    "wpd",
-    "rtf",
-    "xls",
-    "xlsx",
-    "xml",
-    "odt",
-    "html",
-    "wk4",
+CONVERTIBLE_PUIDS = {
+    "fmt/40",
+    "fmt/61",
+    "x-fmt/44",
+    "x-fmt/394",
+    "fmt/412",
+    "fmt/126",
+    "fmt/50",
+    "x-fmt/116",
+    "fmt/214",
+    "fmt/39",
+    "fmt/355",
+    "fmt/59",
+    "fmt/215",
+    "x-fmt/111" "x-fmt/45",
 }
+
+EXCEL_PUIDS = {"fmt/214", "fmt/59", "fmt/61"}
+
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger()
@@ -63,41 +67,23 @@ def already_converted(bucket, key):
         return False
 
 
-def get_extension(file_id, conn, metadata):
+def get_puid(file_id, conn, metadata):
     ffidmetadata = Table("FFIDMetadata", metadata, autoload_with=conn)
-    file_table = Table("File", metadata, autoload_with=conn)
-
     try:
         stmt = (
-            select(ffidmetadata.c.Extension)
+            select(ffidmetadata.c.PUID)
             .where(ffidmetadata.c.FileId == file_id)
             .limit(1)
         )
         result = conn.execute(stmt).first()
+
         if result and result[0]:
             return result[0].lower()
     except SQLAlchemyError as e:
         conn.rollback()
         raise Exception(f"Error querying FFIDMetadata table: {e}")
 
-    logger.info(
-        f"No extension found in FFIDMetadata for {file_id}. Trying to extract from file_name instead"
-    )
-    try:
-        stmt = (
-            select(file_table.c.FileName)
-            .where(file_table.c.FileId == file_id)
-            .limit(1)
-        )
-        result = conn.execute(stmt).first()
-        if result and result[0]:
-            filename = result[0]
-            if "." in filename:
-                return filename.rsplit(".", 1)[1].lower()
-            logger.warning("No extension in FileName")
-    except SQLAlchemyError as e:
-        conn.rollback()
-        raise Exception(f"Error querying File table: {e}")
+    return None
 
 
 def convert_with_libreoffice(input_path, output_path, convert_to="pdf"):
@@ -119,7 +105,6 @@ def convert_with_libreoffice(input_path, output_path, convert_to="pdf"):
             stdout=subprocess.PIPE,
             timeout=300,
         )
-        logger.info(f"Converted {input_path} to {output_path}")
 
         if result.stderr:
             raise RuntimeError(
@@ -141,8 +126,10 @@ def convert_with_libreoffice(input_path, output_path, convert_to="pdf"):
             f"Unexpected error running LibreOffice for {input_path}: {e}"
         )
 
+    logger.info(f"Converted {input_path} to {output_path}")
 
-def convert_xls_xlsx_to_pdf(tmpdir, input_path, output_path):
+
+def convert_excel_to_pdf(tmpdir, input_path, output_path):
     temp_ods = os.path.join(tmpdir, "input.ods")
     convert_with_libreoffice(input_path, temp_ods, convert_to="ods")
     convert_with_libreoffice(
@@ -152,12 +139,12 @@ def convert_xls_xlsx_to_pdf(tmpdir, input_path, output_path):
     )
 
 
-def _get_extension(file_id, conn, metadata):
+def _get_puid(file_id, conn, metadata):
     try:
-        return get_extension(file_id, conn, metadata)
+        return get_puid(file_id, conn, metadata)
     except Exception as e:
-        logger.error(f"Failed to get file_extension for {file_id}: {e}")
-        raise Exception(f"Failed to get file_extension for {file_id}: {e}")
+        logger.error(f"Failed to get PUID for {file_id}: {e}")
+        raise Exception(f"Failed to get PUID for {file_id}: {e}")
 
 
 def _download_input(source_bucket, key, input_path):
@@ -185,10 +172,10 @@ def _cleanup_soffice_processes():
                 pass
 
 
-def _convert_file(extension, tmpdir, input_path, output_path, file_id):
+def _convert_file(puid, tmpdir, input_path, output_path, file_id):
     try:
-        if extension in ("xls", "xlsx"):
-            convert_xls_xlsx_to_pdf(tmpdir, input_path, output_path)
+        if puid in EXCEL_PUIDS:
+            convert_excel_to_pdf(tmpdir, input_path, output_path)
         else:
             convert_with_libreoffice(input_path, output_path)
         logger.info(f"Converted {file_id} to PDF")
@@ -217,16 +204,15 @@ def process_file(
     consignment_ref,
     source_bucket,
     dest_bucket,
-    convertible_extensions,
     conn,
 ):
     metadata = MetaData()
     key = f"{consignment_ref}/{file_id}"
 
-    extension = _get_extension(file_id, conn, metadata)
-    logger.info(f"File extension: {extension}")
+    puid = _get_puid(file_id, conn, metadata)
+    logger.info(f"PUID: {puid}")
 
-    if extension not in convertible_extensions:
+    if puid not in CONVERTIBLE_PUIDS:
         logger.info(f"File {file_id} does not require conversion")
         return
 
@@ -236,12 +222,12 @@ def process_file(
 
     logger.info(f"File {file_id} requires conversion to PDF")
     with tempfile.TemporaryDirectory() as tmpdir:
-        input_path = os.path.join(tmpdir, f"input.{extension}")
+        input_path = os.path.join(tmpdir, "input")
         output_path = os.path.join(tmpdir, "input.pdf")
 
         _download_input(source_bucket, key, input_path)
         _cleanup_soffice_processes()
-        _convert_file(extension, tmpdir, input_path, output_path, file_id)
+        _convert_file(puid, tmpdir, input_path, output_path, file_id)
         _verify_output_exists(output_path, file_id)
 
         logger.info(
@@ -250,9 +236,7 @@ def process_file(
         _upload_output(output_path, dest_bucket, key, file_id)
 
 
-def process_consignment(
-    consignment_ref, source_bucket, dest_bucket, convertible_extensions, conn
-):
+def process_consignment(consignment_ref, source_bucket, dest_bucket, conn):
     prefix = f"{consignment_ref}/"
     failed_files = []
     paginator = s3.get_paginator("list_objects_v2")
@@ -276,7 +260,6 @@ def process_consignment(
                 consignment_ref,
                 source_bucket,
                 dest_bucket,
-                convertible_extensions,
                 conn,
             )
         except Exception as e:
@@ -286,9 +269,7 @@ def process_consignment(
     return failed_files
 
 
-def create_access_copies_for_all_consignments(
-    source_bucket, dest_bucket, convertible_extensions, conn
-):
+def create_access_copies_for_all_consignments(source_bucket, dest_bucket, conn):
     paginator = s3.get_paginator("list_objects_v2")
     response = paginator.paginate(Bucket=source_bucket)
     consignments = set()
@@ -306,7 +287,6 @@ def create_access_copies_for_all_consignments(
             consignment_ref,
             source_bucket,
             dest_bucket,
-            convertible_extensions,
             conn,
         )
         all_failures.extend(failures)
@@ -319,9 +299,7 @@ def create_access_copies_for_all_consignments(
     logger.info("All files requiring conversion converted successfully")
 
 
-def create_access_copy_from_sns(
-    source_bucket, dest_bucket, convertible_extensions, conn
-):
+def create_access_copy_from_sns(source_bucket, dest_bucket, conn):
     raw_sns_message = os.getenv("SNS_MESSAGE")
     if not raw_sns_message:
         raise Exception("SNS_MESSAGE environment variable not found")
@@ -342,7 +320,6 @@ def create_access_copy_from_sns(
         consignment_ref,
         source_bucket,
         dest_bucket,
-        convertible_extensions,
         conn,
     )
 
@@ -363,22 +340,19 @@ def main():
     app_secret = get_secret_string(app_secret_id)
     source_bucket = app_secret["RECORD_BUCKET_NAME"]
     dest_bucket = app_secret["ACCESS_COPY_BUCKET"]
-    convertible_extensions = CONVERTIBLE_EXTENSIONS
 
-    conversion_type = os.getenv("CONVERSION_TYPE")
+    conversion_type = os.getenv("CONVERSION_TYPE", "ALL")
     if not conversion_type:
         raise Exception("CONVERSION_TYPE environment variable not found")
     engine = get_engine()
     conn = engine.connect()
     if conversion_type == "ALL":
         create_access_copies_for_all_consignments(
-            source_bucket, dest_bucket, convertible_extensions, conn
+            source_bucket, dest_bucket, conn
         )
 
     elif conversion_type == "SINGLE":
-        create_access_copy_from_sns(
-            source_bucket, dest_bucket, convertible_extensions, conn
-        )
+        create_access_copy_from_sns(source_bucket, dest_bucket, conn)
 
     else:
         raise ValueError("Invalid CONVERSION_TYPE. Expected 'ALL' or 'SINGLE'")

@@ -11,20 +11,21 @@ UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES = {
 }
 UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES = {"pdf": "application/pdf"}
 
-CONVERTIBLE_EXTENSIONS = {
-    "doc",
-    "docx",
-    "ppt",
-    "pptx",
-    "wk1",
-    "wpd",
-    "rtf",
-    "xls",
-    "xlsx",
-    "xml",
-    "odt",
-    "html",
-    "wk4",
+CONVERTIBLE_PUIDS = {
+    "fmt/40",
+    "fmt/61",
+    "x-fmt/44",
+    "x-fmt/394",
+    "fmt/412",
+    "fmt/126",
+    "fmt/50",
+    "x-fmt/116",
+    "fmt/214",
+    "fmt/39",
+    "fmt/355",
+    "fmt/59",
+    "fmt/215",
+    "x-fmt/111" "x-fmt/45",
 }
 
 

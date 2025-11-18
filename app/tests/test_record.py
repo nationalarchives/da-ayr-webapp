@@ -306,7 +306,7 @@ class TestRecord:
         Then the alert banner responsible with alerting the user should NOT be visible
         """
 
-        file = FileFactory(ffid_metadata__Extension="doc")
+        file = FileFactory(ffid_metadata__PUID="fmt/40")
         bucket_name = "test_bucket"
 
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
