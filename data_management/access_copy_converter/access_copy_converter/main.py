@@ -24,7 +24,8 @@ CONVERTIBLE_PUIDS = {
     "fmt/355",
     "fmt/59",
     "fmt/215",
-    "x-fmt/111" "x-fmt/45",
+    "x-fmt/111",
+    "x-fmt/45",
 }
 
 EXCEL_PUIDS = {"fmt/214", "fmt/59", "fmt/61"}
