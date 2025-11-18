@@ -80,7 +80,7 @@ services:
       - opensearch-net
 
   postgres:
-    image: postgres:18.0
+    image: postgres:18.1
     volumes:
       - kc_postgres_data:/var/lib/postgresql/data
     environment:
@@ -93,7 +93,7 @@ services:
       - keycloak_network
 
   webapp_postgres:
-    image: postgres:18.0
+    image: postgres:18.1
     user: postgres
     volumes:
       - webapp_postgres_data:/var/lib/postgresql/data
