@@ -300,14 +300,14 @@ class TestRoutes:
                 {},
                 {"some_param": "some_value"},
                 "main.search_results_summary",
-                {"some_param": "some_value"},
+                {},
             ),
             # all access user with form data and args data (args takes precedence)
             (
                 {"some_param": "form_value"},
                 {"some_param": "args_value"},
                 "main.search_results_summary",
-                {"some_param": "args_value"},
+                {},
             ),
         ],
     )
@@ -342,20 +342,20 @@ class TestRoutes:
         "form_data, args_data, expected_redirect_route, expected_params",
         [
             # standard user with both form and args data, args has precedence for overlapping keys
+            # Note: only valid schema fields are passed through (unknown fields are filtered out)
             (
                 {
                     "transferring_body_id": "form_value",
-                    "other_param": "form_other_value",
+                    "query": "form_query_value",
                 },
                 {
                     "transferring_body_id": "args_value",
-                    "another_param": "args_another_value",
+                    "search_area": "metadata",
                 },
                 "main.search_transferring_body",
                 {
                     "_id": "args_value",
-                    "other_param": "form_other_value",
-                    "another_param": "args_another_value",
+                    "search_area": "metadata",
                 },
             ),
             # standard user with only form data, no transferring_body_id in args

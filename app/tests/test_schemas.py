@@ -350,11 +350,11 @@ class TestSearchTransferringBodyRequestSchema:
         assert isinstance(data["_id"], uuid.UUID)
         assert data["query"] == "search term"
 
-    def test_optional_id_field(self):
+    def test_missing_consignment_id(self):
         schema = SearchTransferringBodyRequestSchema()
-        data = schema.load({"query": "test"})
-        assert data["_id"] is None
-        assert data["query"] == "test"
+        with pytest.raises(ValidationError) as exc_info:
+            schema.load({})
+        assert "_id" in exc_info.value.messages
 
     def test_invalid_uuid_in_id(self):
         schema = SearchTransferringBodyRequestSchema()
@@ -364,6 +364,9 @@ class TestSearchTransferringBodyRequestSchema:
 
     def test_with_pagination(self):
         schema = SearchTransferringBodyRequestSchema()
-        data = schema.load({"query": "test", "page": 3, "per_page": 10})
+        test_id = str(uuid.uuid4())
+        data = schema.load(
+            {"_id": test_id, "query": "test", "page": 3, "per_page": 10}
+        )
         assert data["page"] == 3
         assert data["per_page"] == 10

@@ -20,6 +20,19 @@ from app.main.util.base_schemas import (
 )
 
 
+class CallbackRequestSchema(Schema):
+    """OIDC callback request validation schema."""
+
+    code = fields.String(
+        allow_none=True,
+        load_default=None,
+        validate=validate.Length(min=1, max=500),
+    )
+
+    class Meta:
+        unknown = EXCLUDE
+
+
 class BrowseRequestSchema(PaginationSchema, BrowseFilterSchema):
     """Browse request validation schema."""
 
@@ -75,7 +88,7 @@ class SearchResultsSummaryRequestSchema(PaginationSchema, SearchQuerySchema):
 class SearchTransferringBodyRequestSchema(PaginationSchema, SearchQuerySchema):
     """Search transferring body request validation schema."""
 
-    _id = UUIDField(required=False, data_key="_id", load_default=None)
+    _id = UUIDField(required=True, data_key="_id")
 
     class Meta:
         unknown = EXCLUDE

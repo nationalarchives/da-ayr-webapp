@@ -24,7 +24,6 @@ CONVERTIBLE_EXTENSIONS = {
     "xml",
     "odt",
     "html",
-    "mpp",
     "wk4",
 }
 

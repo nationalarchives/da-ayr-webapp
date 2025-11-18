@@ -1,44 +1,48 @@
-# Build stage for Node.js assets
-FROM node:24-slim AS node-builder
+FROM python:3.13-slim
 
-WORKDIR /app
+WORKDIR /docker_app
 
-COPY package*.json ./
-
-RUN npm ci
-
-COPY app/static/src app/static/src
-
-RUN npm run build
-
-# Production stage
-FROM python:3.11-slim
-
-WORKDIR /app
-
+# Install system dependencies including Node.js (cached layer)
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
     openssl \
     curl \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Poetry (cached layer)
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="/root/.local/bin:$PATH"
 
-COPY pyproject.toml poetry.lock ./
+# Copy Python dependency files first for better caching
+COPY pyproject.toml poetry.lock /docker_app/
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-root --no-cache
 
-RUN poetry config virtualenvs.create false
+# Copy Node.js dependency files and install
+COPY package*.json /docker_app/
+RUN npm ci
+COPY app/static/src/scss /docker_app/app/static/src/scss
+# Build CSS files before copying the rest of the app as
+# we won't update them as often as other source files
+RUN npm run build
 
-RUN poetry install --no-root
+# Preserve CSS files as copying app directory will overwrite them
+RUN cp -r /docker_app/app/static/src/css /tmp/css_backup
+COPY app/ /docker_app/app
+COPY configs/ /docker_app/configs
+COPY main_app.py .flaskenv /docker_app/
+# Restore the built CSS files
+RUN cp -r /tmp/css_backup /docker_app/app/static/src/css
 
-COPY . .
+ENV FLASK_ENV=development
+ENV FLASK_DEBUG=1
+ENV PYTHONUNBUFFERED=1
 
-COPY --from=node-builder /app/app/static/src/css app/static/src/css
-
-RUN openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365 \
-    -subj "/C=GB/ST=England/L=London/O=Test/CN=DNS:localhost,IP:127.0.0.1"
+RUN openssl req -x509 -newkey rsa:2048 -nodes -out /docker_app/cert.pem -keyout /docker_app/key.pem -days 365 -subj '/C=GB/ST=Test/L=Test/O=Test/CN=localhost'
 
 EXPOSE 5000
 
-CMD ["poetry", "run", "python", "-m", "flask", "--app", "main_app:app", "run", "--host=0.0.0.0", "--port=5000"]
+CMD ["poetry", "run", "flask", "run", "--host=0.0.0.0", "--port=5000", "--debug"]

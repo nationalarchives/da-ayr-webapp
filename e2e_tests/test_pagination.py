@@ -41,7 +41,10 @@ class TestPagination:
             == "Pagination"
         )
 
-        url = f"{self.route_url}/{self.transferring_body_id}?page=1&query=a&search_area=everywhere#tbl_result"
+        url = (
+            f"{self.route_url}/{self.transferring_body_id}"
+            "?page=1&query=a&search_area=everywhere&sort=file_name&open_all=&search_filter=#tbl_result"
+        )
         assert (
             aau_user_page.locator("data-testid=pagination-link")
             .first.get_attribute("href")
@@ -103,7 +106,10 @@ class TestPagination:
             )
             == "Pagination"
         )
-        expected_url = f"{self.route_url}/{self.transferring_body_id}?page=1&query=a&search_area=everywhere#tbl_result"
+        expected_url = (
+            f"{self.route_url}/{self.transferring_body_id}"
+            "?page=1&query=a&search_area=everywhere&sort=file_name&open_all=&search_filter=#tbl_result"
+        )
         actual_href = (
             aau_user_page.locator("data-testid=pagination-link")
             .first.get_attribute("href")
@@ -116,7 +122,7 @@ class TestPagination:
         actual_relative_url = aau_user_page.url.split("://", 1)[1].split(
             "/", 1
         )[1]
-        url_params = "page=2&query=a&search_area=everywhere#tbl_result"
+        url_params = "page=2&query=a&search_area=everywhere&sort=file_name&open_all=&search_filter=#tbl_result"
         expected_next_url = (
             f"""{self.route_url}/{self.transferring_body_id}?{url_params}"""
         )
@@ -194,7 +200,10 @@ class TestPagination:
 
         aau_user_page.get_by_label("Page 1", exact=True).click()
 
-        url = f"{self.route_url}/{self.transferring_body_id}?page=1&query=a&search_area=everywhere#tbl_result"
+        url = (
+            f"{self.route_url}/{self.transferring_body_id}"
+            "?page=1&query=a&search_area=everywhere&sort=file_name#tbl_result"
+        )
         expect(aau_user_page).to_have_url(url)
 
     def test_search_transferring_body_pagination_click_next_page_link(
@@ -225,14 +234,12 @@ class TestPagination:
 
         aau_user_page.wait_for_selector(".govuk-pagination")
 
-        # only 2 pages due to increase in table size
-        # links = aau_user_page.locator("data-testid=pagination-link-title").all()
-        # assert links[1].text_content() == "Nextpage"
-        # aau_user_page.get_by_label("Page 3", exact=True).click()
-
         aau_user_page.wait_for_selector(".govuk-pagination")
 
-        url = f"{self.route_url}/{self.transferring_body_id}?page=2&query=a&search_area=everywhere#tbl_result"
+        url = (
+            f"{self.route_url}/{self.transferring_body_id}"
+            "?page=2&query=a&search_area=everywhere&sort=file_name&open_all=&search_filter=#tbl_result"
+        )
         expect(aau_user_page).to_have_url(url)
 
     def test_search_transferring_body_pagination_get_last_page(

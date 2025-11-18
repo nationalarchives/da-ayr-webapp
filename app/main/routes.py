@@ -61,6 +61,7 @@ from app.main.util.schemas import (
     BrowseRequestSchema,
     BrowseSeriesRequestSchema,
     BrowseTransferringBodyRequestSchema,
+    CallbackRequestSchema,
     DownloadRequestSchema,
     GenerateManifestRequestSchema,
     RecordRequestSchema,
@@ -76,8 +77,6 @@ from app.main.util.search_utils import (
     extract_search_terms,
     get_open_search_fields_to_search_on_and_sorting,
     get_pagination_info,
-    get_param,
-    get_query_and_search_area,
     post_process_opensearch_results,
     setup_opensearch,
 )
@@ -116,13 +115,14 @@ def sign_in():
 
 @bp.route("/callback", methods=["GET"])
 @log_page_view
+@validate_request(CallbackRequestSchema, location="args")
 def callback():
     keycloak_openid = get_keycloak_instance_from_flask_config()
-    code = request.args.get("code")
-
+    validated_data = request.validated_data
+    code = validated_data["code"]
     if not code:
-        current_app.app_logger.warning(
-            "Missing 'code' parameter in OIDC callback"
+        current_app.app_logger.error(
+            "Error during Keycloak token exchange: Missing authorization code"
         )
         return redirect(url_for("main.sign_in"))
 
@@ -184,7 +184,7 @@ def browse():
 
         validated_data = request.validated_data
         page = validated_data["page"]
-        per_page = validated_data.get("per_page") or int(
+        per_page = validated_data["per_page"] or int(
             current_app.config["DEFAULT_PAGE_SIZE"]
         )
 
@@ -194,18 +194,21 @@ def browse():
         date_filters = {}
         date_error_fields = []
 
-        if len(request.args) > 0:
+        if len(validated_data) > 0:
             (
                 date_validation_errors,
                 from_date,
                 to_date,
                 date_filters,
                 date_error_fields,
-            ) = validate_date_filters(request.args)
+            ) = validate_date_filters(validated_data)
 
-        filters = build_filters(request.args, from_date, to_date)
-        sorting_orders = build_sorting_orders(request.args)
-
+        filters = build_filters(
+            validated_data,
+            date_from=from_date,
+            date_to=to_date,
+        )
+        sorting_orders = build_sorting_orders(validated_data)
         # set default sort
         if len(sorting_orders) == 0:
             sorting_orders["transferring_body"] = "asc"
@@ -243,7 +246,7 @@ def browse():
             sorting_orders=sorting_orders,
             num_records_found=num_records_found,
             query_string_parameters={
-                k: v for k, v in request.args.items() if k not in "page"
+                k: v for k, v in validated_data.items() if k not in "page"
             },
             id=None,
         )
@@ -272,7 +275,7 @@ def browse_transferring_body(_id: uuid.UUID):
     form = SearchForm()
     validated_data = request.validated_data
     page = validated_data["page"]
-    per_page = validated_data.get("per_page") or int(
+    per_page = validated_data["per_page"] or int(
         current_app.config["DEFAULT_PAGE_SIZE"]
     )
 
@@ -282,17 +285,21 @@ def browse_transferring_body(_id: uuid.UUID):
     date_filters = {}
     date_error_fields = []
 
-    if len(request.args) > 0:
+    if len(validated_data) > 0:
         (
             date_validation_errors,
             from_date,
             to_date,
             date_filters,
             date_error_fields,
-        ) = validate_date_filters(request.args)
+        ) = validate_date_filters(validated_data)
 
-    filters = build_filters(request.args, from_date, to_date)
-    sorting_orders = build_sorting_orders(request.args)
+    filters = build_filters(
+        validated_data,
+        date_from=from_date,
+        date_to=to_date,
+    )
+    sorting_orders = build_sorting_orders(validated_data)
 
     # set default sort
     if len(sorting_orders) == 0:
@@ -332,7 +339,7 @@ def browse_transferring_body(_id: uuid.UUID):
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
         query_string_parameters={
-            k: v for k, v in request.args.items() if k not in "page"
+            k: v for k, v in validated_data.items() if k not in "page"
         },
     )
 
@@ -365,7 +372,7 @@ def browse_series(_id: uuid.UUID):
     form = SearchForm()
     validated_data = request.validated_data
     page = validated_data["page"]
-    per_page = validated_data.get("per_page") or int(
+    per_page = validated_data["per_page"] or int(
         current_app.config["DEFAULT_PAGE_SIZE"]
     )
 
@@ -375,17 +382,21 @@ def browse_series(_id: uuid.UUID):
     date_filters = {}
     date_error_fields = []
 
-    if len(request.args) > 0:
+    if len(validated_data) > 0:
         (
             date_validation_errors,
             from_date,
             to_date,
             date_filters,
             date_error_fields,
-        ) = validate_date_filters(request.args)
+        ) = validate_date_filters(validated_data)
 
-    filters = build_filters(request.args, from_date, to_date)
-    sorting_orders = build_sorting_orders(request.args)
+    filters = build_filters(
+        validated_data,
+        date_from=from_date,
+        date_to=to_date,
+    )
+    sorting_orders = build_sorting_orders(validated_data)
 
     # set default sort
     if len(sorting_orders) == 0:
@@ -425,7 +436,7 @@ def browse_series(_id: uuid.UUID):
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
         query_string_parameters={
-            k: v for k, v in request.args.items() if k not in "page"
+            k: v for k, v in validated_data.items() if k not in "page"
         },
     )
 
@@ -461,7 +472,7 @@ def browse_consignment(_id: uuid.UUID):
     form = SearchForm()
     validated_data = request.validated_data
     page = validated_data["page"]
-    per_page = validated_data.get("per_page") or int(
+    per_page = validated_data["per_page"] or int(
         current_app.config["DEFAULT_PAGE_SIZE"]
     )
 
@@ -471,17 +482,21 @@ def browse_consignment(_id: uuid.UUID):
     date_filters = {}
     date_error_fields = []
 
-    if len(request.args) > 0:
+    if len(validated_data) > 0:
         (
             date_validation_errors,
             from_date,
             to_date,
             date_filters,
             date_error_fields,
-        ) = validate_date_filters(request.args, browse_consignment=True)
+        ) = validate_date_filters(validated_data, browse_consignment=True)
 
-    filters = build_browse_consignment_filters(request.args, from_date, to_date)
-    sorting_orders = build_sorting_orders(request.args)
+    filters = build_browse_consignment_filters(
+        validated_data,
+        date_from=from_date,
+        date_to=to_date,
+    )
+    sorting_orders = build_sorting_orders(validated_data)
 
     # set default sort
     if len(sorting_orders) == 0:
@@ -518,7 +533,7 @@ def browse_consignment(_id: uuid.UUID):
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
         query_string_parameters={
-            k: v for k, v in request.args.items() if k not in "page"
+            k: v for k, v in validated_data.items() if k not in "page"
         },
     )
 
@@ -528,15 +543,12 @@ def browse_consignment(_id: uuid.UUID):
 @log_page_view
 @validate_request(SearchRequestSchema, location="combined")
 def search():
-    form_data = request.form.to_dict()
-    args_data = request.args.to_dict()
-
-    # merge both dictionaries (args takes precedence over form if there are overlapping keys)
-    params = {**form_data, **args_data}
-
-    transferring_body_id = params.get("transferring_body_id", "")
+    validated_data = request.validated_data
+    transferring_body_id = validated_data["transferring_body_id"]
 
     ayr_user = AYRUser(session.get("user_groups"))
+
+    redirect_params = request.validated_data_non_defaults
 
     if ayr_user.is_standard_user or transferring_body_id:
         if not transferring_body_id:
@@ -549,11 +561,10 @@ def search():
             url_for(
                 "main.search_transferring_body",
                 _id=transferring_body_id,
-                **params,
+                **redirect_params,
             )
         )
-    else:
-        return redirect(url_for("main.search_results_summary", **params))
+    return redirect(url_for("main.search_results_summary", **redirect_params))
 
 
 @bp.route("/search_results_summary", methods=["GET"])
@@ -568,11 +579,12 @@ def search_results_summary():
     form = SearchForm()
     validated_data = request.validated_data
     page = validated_data["page"]
-    per_page = validated_data.get("per_page") or int(
+    per_page = validated_data["per_page"] or int(
         current_app.config["DEFAULT_PAGE_SIZE"]
     )
 
-    query, search_area = get_query_and_search_area(request)
+    query = validated_data["query"]
+    search_area = validated_data["search_area"]
     filters = {"query": query}
     num_records_found, paginated_results, pagination = 0, [], None
 
@@ -611,7 +623,7 @@ def search_results_summary():
         pagination=pagination,
         num_records_found=num_records_found,
         query_string_parameters={
-            k: v for k, v in request.args.items() if k not in "page"
+            k: v for k, v in validated_data.items() if k not in "page"
         },
         id=None,
     )
@@ -628,38 +640,17 @@ def search_transferring_body(_id: uuid.UUID):
     form = SearchForm()
     validated_data = request.validated_data
     page = validated_data["page"]
-    per_page = validated_data.get("per_page") or int(
+    per_page = validated_data["per_page"] or int(
         current_app.config["DEFAULT_PAGE_SIZE"]
     )
-    open_all = get_param("open_all", request)
-    sort = get_param("sort", request) or "file_name"
+    open_all = validated_data["open_all"]
+    sort = validated_data["sort"] or "file_name"
     highlight_tag = f"uuid_prefix_{uuid.uuid4().hex}"
 
-    query, search_area = get_query_and_search_area(request)
+    query = validated_data["query"]
+    search_area = validated_data["search_area"]
 
-    additional_term = request.args.get("search_filter", "").strip()
-
-    check_additional_term(additional_term, query, request.args.copy(), _id)
-
-    if additional_term:
-        if " " in additional_term and not (
-            additional_term.startswith('"') and additional_term.endswith('"')
-        ):
-            additional_term = f'"{additional_term}"'
-
-        query = f"{query}+{additional_term}" if query else additional_term
-
-        args = request.args.copy()
-        args.pop("search_filter", None)
-        args["query"] = query
-        return redirect(
-            url_for(
-                "main.search_transferring_body",
-                _id=_id,
-                **args,
-                _anchor="browse-records",
-            )
-        )
+    check_additional_term(query, validated_data.copy())
 
     filters = {"query": query}
 
@@ -713,6 +704,9 @@ def search_transferring_body(_id: uuid.UUID):
         )
         num_records_found = total_records
 
+    query_string_parameters = validated_data.copy()
+    query_string_parameters.pop("page", None)
+    query_string_parameters.pop("_id", None)
     return render_template(
         "search-transferring-body.html",
         form=form,
@@ -727,9 +721,7 @@ def search_transferring_body(_id: uuid.UUID):
         pagination=pagination,
         open_all=open_all,
         highlight_tag=highlight_tag,
-        query_string_parameters={
-            k: v for k, v in request.args.items() if k != "page"
-        },
+        query_string_parameters=query_string_parameters,
     )
 
 
