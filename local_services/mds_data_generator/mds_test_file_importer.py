@@ -1,13 +1,18 @@
 import argparse
 import json
 import os
+import secrets
+import string
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import boto3
 from botocore.client import Config
 from dotenv import load_dotenv
+from index_file_content_and_metadata_in_opensearch import (
+    index_file_content_and_metadata_in_opensearch,
+)
 from requests_aws4auth import AWS4Auth
 
 from app import create_app, db
@@ -20,9 +25,6 @@ from app.tests.factories import (
     SeriesFactory,
 )
 from configs.env_config import EnvConfig
-from data_management.opensearch_indexer.opensearch_indexer.index_file_content_and_metadata_in_opensearch import (
-    index_file_content_and_metadata_in_opensearch,
-)
 
 load_dotenv()
 
@@ -35,7 +37,7 @@ def get_s3_client():
         aws_access_key_id=os.getenv("MINIO_ROOT_USER"),
         aws_secret_access_key=os.getenv("MINIO_ROOT_PASSWORD"),
         config=Config(signature_version="s3v4"),
-        region_name="us-east-1",
+        region_name="eu-west-2",
     )
 
 
@@ -72,7 +74,7 @@ def upload_file_to_s3(file_path, s3_key):
 
     with open(file_path, "rb") as file_data:
         s3.put_object(
-            Bucket=bucket, Key=s3_key, Body=file_data, ACL="public-read"
+            Bucket=bucket, Key=s3_key, Body=file_data.read(), ACL="public-read"
         )
 
 
@@ -88,9 +90,11 @@ def create_test_filepaths(file_type_counts):
 
     example_file_paths = {
         "pdf": example_files / "file.pdf",
+        "docx": example_files / "file.docx",
+        "pptx": example_files / "file.pptx",
+        "xlsx": example_files / "file.xlsx",
         "png": example_files / "file.png",
         "jpg": example_files / "file.jpg",
-        "tiff": example_files / "file.tiff",
         "txt": example_files / "file.txt",
     }
 
@@ -130,18 +134,23 @@ def process_files(files):
 
             series = (
                 db.session.query(Series)
-                .filter_by(Name="Test Series", body=body)
+                .filter_by(Name="SCOT 13", body=body)
                 .first()
             )
             if not series:
                 series = SeriesFactory.create(
                     body=body,
-                    Name="Test Series",
+                    Name="SCOT 13",
                     Description="Test Series Description",
                 )
 
-            timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-            consignment_ref = f"TEST-{timestamp}"
+            timestamp = datetime.now(UTC).strftime("%Y")
+            random_string = "".join(
+                secrets.choice(string.ascii_uppercase + string.digits)
+                for _ in range(4)
+            )
+            consignment_ref = f"AYR-{timestamp}-{random_string}"
+
             consignment = ConsignmentFactory.create(
                 series=series,
                 ConsignmentReference=consignment_ref,
@@ -149,14 +158,29 @@ def process_files(files):
                 IncludeTopLevelFolder=True,
                 ContactName="Test User",
                 ContactEmail="test@example.com",
-                TransferStartDatetime=datetime.utcnow(),
-                CreatedDatetime=datetime.utcnow(),
+                TransferStartDatetime=datetime.now(UTC),
+                CreatedDatetime=datetime.now(UTC),
             )
+
+            mime_types = {
+                "pdf": "application/pdf",
+                "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "png": "image/png",
+                "jpg": "image/jpeg",
+                "txt": "text/plain",
+            }
 
             for i, (file_id, file_ext, source_path) in enumerate(files):
                 filename = source_path.name
-
-                upload_file_to_s3(source_path, f"{consignment_ref}/{file_id}")
+                try:
+                    upload_file_to_s3(
+                        source_path, f"{consignment_ref}/{file_id}"
+                    )
+                except Exception as e:
+                    print(f"Failed to upload {filename}: {e}")
+                    continue  # Skip DB entry if upload fails
 
                 file = FileFactory.create(
                     FileId=file_id,
@@ -165,18 +189,20 @@ def process_files(files):
                     FileName=filename,
                     FilePath=f"{consignment.ConsignmentId}/{file_id}/{filename}",
                     FileReference=file_id,
-                    CreatedDatetime=datetime.utcnow(),
+                    CreatedDatetime=datetime.now(UTC),
                 )
 
                 metadata_dict = {
                     "source": "test_file",
                     "file_type": file_ext,
-                    "created_at": datetime.utcnow().isoformat(),
-                    "last_transfer_date": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(UTC).isoformat(),
+                    "last_transfer_date": datetime.now(UTC).isoformat(),
                     "file_size": str(os.path.getsize(source_path)),
                     "file_format": file_ext.upper(),
                     "file_extension": file_ext,
-                    "mime_type": f"application/{file_ext}",
+                    "mime_type": mime_types.get(
+                        file_ext, f"application/{file_ext}"
+                    ),
                     "closure_status": "Open",
                     "closure_type": "Open",
                     "closure_period": "0",
@@ -195,11 +221,11 @@ def process_files(files):
                         file=file,
                         PropertyName=key,
                         Value=value,
-                        CreatedDatetime=datetime.utcnow(),
+                        CreatedDatetime=datetime.now(UTC),
                     )
 
                 print(f"Processed file: {filename} (ID: {file_id})")
-
+            print(f"Creating consignment with reference: {consignment_ref}")
             db.session.commit()
 
         except Exception as e:
@@ -222,11 +248,10 @@ def index_in_opensearch(files):
             aws_key = os.getenv("AWS_ACCESS_KEY_ID")
             aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
 
+            open_search_host_url = os.getenv("OPEN_SEARCH_HOST_URL")
             open_search_http_auth = AWS4Auth(
                 aws_key, aws_secret, aws_region, aws_service
             )
-
-            open_search_ca_certs = os.getenv("OPEN_SEARCH_CA_CERTS")
             database_url = app.config["SQLALCHEMY_DATABASE_URI"]
 
             for file_id, file_ext, file_path in files:
@@ -236,7 +261,6 @@ def index_in_opensearch(files):
                     continue
 
                 filename = os.path.basename(file_path)
-
                 file_id = file.FileId
                 consignment_ref = file.consignment.ConsignmentReference
 
@@ -249,8 +273,8 @@ def index_in_opensearch(files):
                         file_id,
                         file_stream,
                         database_url,
+                        open_search_host_url,
                         open_search_http_auth,
-                        open_search_ca_certs,
                     )
 
                     print(
@@ -281,26 +305,33 @@ def main():
         "--num-pdf", type=int, default=1, help="Number of PDF files to create"
     )
     parser.add_argument(
+        "--num-docx", type=int, default=1, help="Number of DOCX files to create"
+    )
+    parser.add_argument(
+        "--num-pptx", type=int, default=1, help="Number of PPTX files to create"
+    )
+    parser.add_argument(
+        "--num-xlsx", type=int, default=1, help="Number of XLSX files to create"
+    )
+    parser.add_argument(
         "--num-png", type=int, default=1, help="Number of PNG files to create"
     )
     parser.add_argument(
         "--num-jpg", type=int, default=1, help="Number of JPG files to create"
     )
     parser.add_argument(
-        "--num-tiff", type=int, default=1, help="Number of TIF files to create"
-    )
-
-    parser.add_argument(
-        "--num-txt", type=int, default=1, help="Number of txt files to create"
+        "--num-txt", type=int, default=1, help="Number of TXT files to create"
     )
 
     args = parser.parse_args()
 
     file_type_counts = {
         "pdf": args.num_pdf,
+        "docx": args.num_docx,
+        "pptx": args.num_pptx,
+        "xlsx": args.num_xlsx,
         "png": args.num_png,
         "jpg": args.num_jpg,
-        "tiff": args.num_tiff,
         "txt": args.num_txt,
     }
 
