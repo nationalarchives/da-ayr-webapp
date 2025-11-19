@@ -245,11 +245,7 @@ def browse():
             date_filters=date_filters,
             sorting_orders=sorting_orders,
             num_records_found=num_records_found,
-            query_string_parameters={
-                k: v
-                for k, v in validated_data.items()
-                if k not in "page" and k != "_id"
-            },
+            query_string_parameters=validated_data,
             id=None,
         )
 
@@ -340,11 +336,7 @@ def browse_transferring_body(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters={
-            k: v
-            for k, v in validated_data.items()
-            if k not in "page" and k != "_id"
-        },
+        query_string_parameters=validated_data,
     )
 
 
@@ -439,11 +431,7 @@ def browse_series(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters={
-            k: v
-            for k, v in validated_data.items()
-            if k not in "page" and k != "_id"
-        },
+        query_string_parameters=validated_data,
     )
 
 
@@ -538,11 +526,7 @@ def browse_consignment(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters={
-            k: v
-            for k, v in validated_data.items()
-            if k not in "page" and k != "_id"
-        },
+        query_string_parameters=validated_data,
     )
 
 
@@ -630,11 +614,7 @@ def search_results_summary():
         results=paginated_results,
         pagination=pagination,
         num_records_found=num_records_found,
-        query_string_parameters={
-            k: v
-            for k, v in validated_data.items()
-            if k not in "page" and k != "_id"
-        },
+        query_string_parameters=validated_data,
         id=None,
     )
 
@@ -714,9 +694,6 @@ def search_transferring_body(_id: uuid.UUID):
         )
         num_records_found = total_records
 
-    query_string_parameters = validated_data.copy()
-    query_string_parameters.pop("page", None)
-    query_string_parameters.pop("_id", None)
     return render_template(
         "search-transferring-body.html",
         form=form,
@@ -731,7 +708,7 @@ def search_transferring_body(_id: uuid.UUID):
         pagination=pagination,
         open_all=open_all,
         highlight_tag=highlight_tag,
-        query_string_parameters=query_string_parameters,
+        query_string_parameters=validated_data,
     )
 
 
