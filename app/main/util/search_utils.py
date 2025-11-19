@@ -274,23 +274,23 @@ def get_all_fields_excluding(open_search, index_name, exclude_fields=None):
     return filtered_fields
 
 
+def is_fuzzy_field(field):
+    """Determine if a field should not use fuzziness based on centralized configuration"""
+    base_field = field.split("^")[0]
+    return OPENSEARCH_FIELD_NAME_MAP.get(base_field, {}).get(
+        "allow_fuzzy", False
+    )
+
+
 def build_should_clauses(search_fields, quoted_phrases, single_terms):
     """Build should_clauses for OpenSearch with OR logic, separating non_fuzzy and fuzzy fields."""
-
-    def is_non_fuzzy_field(field):
-        # Check if field should not use fuzziness based on centralized configuration
-        # Handle field names that might have boost suffixes (e.g., "field_name^2")
-        base_field = field.split("^")[0]
-        field_config = OPENSEARCH_FIELD_NAME_MAP.get(base_field)
-        return field_config and not field_config.get("allow_fuzzy", True)
-
     # Split fields into non-fuzzy and fuzzy based on their names
-    non_fuzzy_fields = [f for f in search_fields if is_non_fuzzy_field(f)]
-    fuzzy_fields = [f for f in search_fields if not is_non_fuzzy_field(f)]
+    non_fuzzy_fields = [f for f in search_fields if not is_fuzzy_field(f)]
+    fuzzy_fields = [f for f in search_fields if is_fuzzy_field(f)]
 
     should_clauses = []
 
-    # For each quoted phrase, add a multi_match phrase clause for all fields
+    # For each quoted phrase, add a multi_match phrase clause for non-fuzzy fields
     for phrase in quoted_phrases:
         if non_fuzzy_fields:
             should_clauses.append(
@@ -304,7 +304,7 @@ def build_should_clauses(search_fields, quoted_phrases, single_terms):
                 }
             )
 
-    # For each single term, add a multi_match clause for non-fuzzy and fuzzy fields
+    # For each single term, add a multi_match clause
     for term in single_terms:
         if non_fuzzy_fields:
             # if there are non-fuzzy fields, add a phrase match for them
