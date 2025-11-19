@@ -1,4 +1,7 @@
 {% if pagination %}
+    {% set filtered_params = query_string_parameters.copy() %}
+    {% set _ = filtered_params.pop('page', None) %}
+    {% set _ = filtered_params.pop('_id', None) %}
     <nav class="govuk-pagination govuk-pagination--centred"
          role="navigation"
          aria-label="Pagination">
@@ -6,7 +9,7 @@
             <div class="govuk-pagination__prev">
                 <a data-testid="pagination-link"
                    class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
-                   href="{% if id != None -%} {{ url_for(view_name, _id=id, page=current_page-1, **query_string_parameters) }} {%- else -%} {{ url_for(view_name, page=current_page-1, **query_string_parameters) }} {%- endif %}#tbl_result"
+                   href="{% if id != None -%} {{ url_for(view_name, _id=id, page=current_page-1, **filtered_params) }} {%- else -%} {{ url_for(view_name, page=current_page-1, **filtered_params) }} {%- endif %}#tbl_result"
                    rel="prev">
                     <svg class="govuk-pagination__icon govuk-pagination__icon--prev"
                          xmlns="http://www.w3.org/2000/svg"
@@ -31,7 +34,7 @@
                     {% else %}
                         <a data-testid="pagination-link"
                            class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
-                           href="{% if id != None -%} {{ url_for(view_name, _id=id , page=page, **query_string_parameters) }} {%- else -%} {{ url_for(view_name, page=page, **query_string_parameters) }} {%- endif %}#tbl_result"
+                           href="{% if id != None -%} {{ url_for(view_name, _id=id , page=page, **filtered_params) }} {%- else -%} {{ url_for(view_name, page=page, **filtered_params) }} {%- endif %}#tbl_result"
                            aria-label="Page {{ page }}">{{ page }}</a>
                     {% endif %}
                 </li>
@@ -41,7 +44,7 @@
             <div class="govuk-pagination__next">
                 <a data-testid="pagination-link"
                    class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
-                   href="{% if id != None -%} {{ url_for(view_name, _id=id , page=current_page+1, **query_string_parameters) }} {%- else -%} {{ url_for(view_name, page=current_page+1, **query_string_parameters) }}{%- endif %}#tbl_result"
+                   href="{% if id != None -%} {{ url_for(view_name, _id=id , page=current_page+1, **filtered_params) }} {%- else -%} {{ url_for(view_name, page=current_page+1, **filtered_params) }}{%- endif %}#tbl_result"
                    rel="next">
                     <span data-testid="pagination-link-title"
                           class="govuk-pagination__link-title">Next<span class="govuk-visually-hidden">page</span></span>
