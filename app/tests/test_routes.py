@@ -433,7 +433,7 @@ class TestRoutes:
     @mock_aws
     @patch("app.main.routes.boto3.client")
     @patch("app.main.routes.generate_pdf_manifest")
-    def test_generate_manifest_pdf_for_convertible_file_extensions(
+    def test_generate_manifest_pdf_for_convertible_file_puids(
         self,
         mock_pdf,
         mock_boto_client,
@@ -446,7 +446,7 @@ class TestRoutes:
         When file_extension is in CONVERTIBLE_EXTENSIONS
         """
         mock_all_access_user(client)
-        file = FileFactory(ffid_metadata__Extension="doc")
+        file = FileFactory(ffid_metadata__PUID="fmt/40")
         bucket_name = "test_bucket"
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
 
@@ -531,11 +531,10 @@ class TestRoutes:
         mock_all_access_user,
     ):
         mock_all_access_user(client)
-        file = FileFactory(ffid_metadata__Extension="doc")
+        file = FileFactory(ffid_metadata__PUID="fmt/40")
         bucket_name = "test-bucket"
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
         app.config["SUPPORTED_RENDER_EXTENSIONS"] = ["pdf", "png"]
-        create_mock_s3_bucket_with_object(bucket_name, file)
 
         mock_create_presigned_url.side_effect = Exception(
             "failed to create access copy"
@@ -544,4 +543,5 @@ class TestRoutes:
         response = client.get(f"/record/{file.FileId}")
 
         assert response.status_code == 200
+
         assert b"Converted access copy not available." in response.data
