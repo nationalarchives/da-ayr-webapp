@@ -9,18 +9,33 @@ from app.main.util.date_validator import format_opensearch_date
 from app.main.util.pagination import calculate_total_pages, get_pagination
 
 OPENSEARCH_FIELD_NAME_MAP = {
-    "file_name": "File name",
-    "description": "Description",
-    "transferring_body": "Transferring body",
-    "foi_exemption_code": "FOI code",
-    "content": "Content",
-    "closure_start_date": "Closure start date",
-    "end_date": "Record date",
-    "date_last_modified": "Record date",
-    "citeable_reference": "Citeable reference",
-    "series_name": "Series name",
-    "transferring_body_description": "Transferring body description",
-    "consignment_reference": "Consignment ref",
+    "file_name": {"display_name": "File name", "allow_fuzzy": True},
+    "description": {"display_name": "Description", "allow_fuzzy": True},
+    "transferring_body": {
+        "display_name": "Transferring body",
+        "allow_fuzzy": True,
+    },
+    "foi_exemption_code": {"display_name": "FOI code", "allow_fuzzy": True},
+    "content": {"display_name": "Content", "allow_fuzzy": True},
+    "closure_start_date": {
+        "display_name": "Closure start date",
+        "allow_fuzzy": False,
+    },
+    "end_date": {"display_name": "Record date", "allow_fuzzy": False},
+    "date_last_modified": {"display_name": "Record date", "allow_fuzzy": False},
+    "citeable_reference": {
+        "display_name": "Citeable reference",
+        "allow_fuzzy": False,
+    },
+    "series_name": {"display_name": "Series name", "allow_fuzzy": False},
+    "transferring_body_description": {
+        "display_name": "Transferring body description",
+        "allow_fuzzy": True,
+    },
+    "consignment_reference": {
+        "display_name": "Consignment ref",
+        "allow_fuzzy": False,
+    },
 }
 
 
@@ -263,12 +278,11 @@ def build_should_clauses(search_fields, quoted_phrases, single_terms):
     """Build should_clauses for OpenSearch with OR logic, separating non_fuzzy and fuzzy fields."""
 
     def is_non_fuzzy_field(field):
-        # Define which fields should not use fuzziness (e.g., IDs, dates)
-        return (
-            field.startswith("consignment_ref")
-            or field.startswith("series")
-            or "date" in field
-        )
+        # Check if field should not use fuzziness based on centralized configuration
+        # Handle field names that might have boost suffixes (e.g., "field_name^2")
+        base_field = field.split("^")[0]
+        field_config = OPENSEARCH_FIELD_NAME_MAP.get(base_field)
+        return field_config and not field_config.get("allow_fuzzy", True)
 
     # Split fields into non-fuzzy and fuzzy based on their names
     non_fuzzy_fields = [f for f in search_fields if is_non_fuzzy_field(f)]

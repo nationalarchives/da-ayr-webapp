@@ -3,10 +3,14 @@ from playwright.sync_api import Page
 
 def _check_row_count(page: Page):
     # Check if there are any results
-    page.wait_for_selector("tbody .govuk-table__row--primary", timeout=3000)
-    rows = page.locator("tbody .govuk-table__row--primary")
-    row_count = rows.count()
-    return row_count
+    try:
+        page.wait_for_selector("tbody .govuk-table__row--primary", timeout=3000)
+        rows = page.locator("tbody .govuk-table__row--primary")
+        row_count = rows.count()
+        return row_count
+    except Exception:
+        # No results found (timeout or selector not found)
+        return 0
 
 
 class TestSearchNonFuzzyFields:
@@ -164,7 +168,8 @@ class TestSearchNonFuzzyFields:
         When the search is performed on transferring body search page
         Then results should match using phrase matching for each term
         """
-        url = f"{self.transferring_body_search_url}?query=TDR-2023-GXFH+TSTA 1&search_area=everywhere#browse-records"
+        # %2B is URL-encoded plus sign +
+        url = f"{self.transferring_body_search_url}?query=TDR-2023-GXFH%2BTSTA 1&search_area=everywhere#browse-records"
 
         standard_user_page.goto(url)
 
@@ -294,18 +299,18 @@ class TestSearchMinimumShouldMatch:
         When the search is performed on transferring body search page
         Then results should be returned based on the valid term matching
         """
+        # %2B is URL-encoded plus sign +
         url = (
             f"{self.transferring_body_search_url}?"
-            "query=TDR-2023-GXFH+nonexistentterm123&search_area=everywhere#browse-records"
+            "query=TDR-2023-GXFH%2Bnonexistentterm123&search_area=everywhere#browse-records"
         )
 
         standard_user_page.goto(url)
-        standard_user_page.wait_for_selector("tbody .govuk-table__row--primary")
 
-        rows = standard_user_page.locator("tbody .govuk-table__row--primary")
+        row_count = _check_row_count(standard_user_page)
         # Should find results because the valid consignment ref should match
         assert (
-            rows.count() > 0
+            row_count > 0
         ), "Expected results for mixed valid/invalid terms due to valid consignment reference"
 
         # Verify the valid term appears in the results
@@ -399,7 +404,8 @@ class TestSearchFieldSpecificBehavior:
         When the search is performed
         Then appropriate matching behavior should apply to each field type
         """
-        url = f"{self.transferring_body_search_url}?query=TDR-2023-GXFH+fil&search_area=everywhere#browse-records"
+        # %2B is URL-encoded plus sign +
+        url = f"{self.transferring_body_search_url}?query=TDR-2023-GXFH%2Bfil&search_area=everywhere#browse-records"
 
         standard_user_page.goto(url)
 

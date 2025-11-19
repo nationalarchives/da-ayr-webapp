@@ -36,7 +36,7 @@ def clean_tags_and_replace_highlight_tag(text, highlight_tag):
 
 def format_opensearch_field_name(field):
     """Format the name of an OpenSearch field using a map"""
-    return OPENSEARCH_FIELD_NAME_MAP[field]
+    return OPENSEARCH_FIELD_NAME_MAP[field]["display_name"]
 
 
 def format_number_with_commas(number):
