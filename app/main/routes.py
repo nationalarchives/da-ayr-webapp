@@ -246,7 +246,9 @@ def browse():
             sorting_orders=sorting_orders,
             num_records_found=num_records_found,
             query_string_parameters={
-                k: v for k, v in validated_data.items() if k not in "page"
+                k: v
+                for k, v in validated_data.items()
+                if k not in "page" and k != "_id"
             },
             id=None,
         )
@@ -339,7 +341,9 @@ def browse_transferring_body(_id: uuid.UUID):
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
         query_string_parameters={
-            k: v for k, v in validated_data.items() if k not in "page"
+            k: v
+            for k, v in validated_data.items()
+            if k not in "page" and k != "_id"
         },
     )
 
@@ -436,7 +440,9 @@ def browse_series(_id: uuid.UUID):
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
         query_string_parameters={
-            k: v for k, v in validated_data.items() if k not in "page"
+            k: v
+            for k, v in validated_data.items()
+            if k not in "page" and k != "_id"
         },
     )
 
@@ -533,7 +539,9 @@ def browse_consignment(_id: uuid.UUID):
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
         query_string_parameters={
-            k: v for k, v in validated_data.items() if k not in "page"
+            k: v
+            for k, v in validated_data.items()
+            if k not in "page" and k != "_id"
         },
     )
 
@@ -623,7 +631,9 @@ def search_results_summary():
         pagination=pagination,
         num_records_found=num_records_found,
         query_string_parameters={
-            k: v for k, v in validated_data.items() if k not in "page"
+            k: v
+            for k, v in validated_data.items()
+            if k not in "page" and k != "_id"
         },
         id=None,
     )
