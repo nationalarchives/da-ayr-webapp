@@ -37,7 +37,21 @@ def _add_text_content(
 ) -> Dict[str, Any]:
     file_type = file_data["file_name"].split(".")[-1].lower()
     new_file_data = file_data
-    if file_type in ["txt", "docx", "pdf", "pptx", "xlsx"]:
+    if file_type in [
+        "doc",
+        "docx",
+        "ppt",
+        "pptx",
+        "wk1",
+        "wpd",
+        "rtf",
+        "xls",
+        "xlsx",
+        "xml",
+        "odt",
+        "html",
+        "wk4",
+    ]:
         new_file_data["content"] = extract_text(file_stream)
     return new_file_data
 

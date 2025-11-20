@@ -20,6 +20,7 @@ from app.main.db.models import Body, File, Series
 from app.tests.factories import (
     BodyFactory,
     ConsignmentFactory,
+    FFIDMetadataFactory,
     FileFactory,
     FileMetadataFactory,
     SeriesFactory,
@@ -89,13 +90,9 @@ def create_test_filepaths(file_type_counts):
     example_files = Path("local_services/mds_data_generator/example_files")
 
     example_file_paths = {
-        "pdf": example_files / "file.pdf",
-        "docx": example_files / "file.docx",
-        "pptx": example_files / "file.pptx",
-        "xlsx": example_files / "file.xlsx",
-        "png": example_files / "file.png",
-        "jpg": example_files / "file.jpg",
-        "txt": example_files / "file.txt",
+        f.suffix.lstrip("."): example_files / f.name
+        for f in example_files.iterdir()
+        if f.is_file() and f.suffix.lstrip(".")
     }
 
     created_files = []
@@ -153,6 +150,7 @@ def process_files(files):
 
             consignment = ConsignmentFactory.create(
                 series=series,
+                BodyId=body.BodyId,
                 ConsignmentReference=consignment_ref,
                 ConsignmentType="Test",
                 IncludeTopLevelFolder=True,
@@ -163,13 +161,53 @@ def process_files(files):
             )
 
             mime_types = {
-                "pdf": "application/pdf",
-                "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "png": "image/png",
-                "jpg": "image/jpeg",
-                "txt": "text/plain",
+                # Assigning PUIDs to correct extensions as sets
+                "pdf": {"application/pdf", "fmt/276"},
+                "doc": {"application/msword", "fmt/40"},
+                "docx": {
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "fmt/412",
+                },
+                "ppt": {"application/vnd.ms-powerpoint", "fmt/214"},
+                "pptx": {
+                    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                    "fmt/126",
+                },
+                "wk1": {"application/vnd.lotus-1-2-3", "x-fmt/44"},
+                "wk4": {"application/vnd.lotus-1-2-3", "x-fmt/45"},
+                "wpd": {"application/wordperfect", "fmt/355"},
+                "rtf": {"application/rtf", "fmt/61"},
+                "xls": {"application/vnd.ms-excel", "fmt/59"},
+                "xlsx": {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "fmt/215",
+                },
+                "xml": {"application/xml", "fmt/50"},
+                "odt": {"application/vnd.oasis.opendocument.text", "fmt/39"},
+                "html": {"text/html", "x-fmt/394"},
+                "png": {"image/png", "x-fmt/116"},
+                "jpg": {"image/jpeg", "x-fmt/111"},
+                "txt": {"text/plain"},
+            }
+
+            format_names = {
+                "pdf": "PDF",
+                "doc": "Microsoft Word Document",
+                "docx": "Microsoft Word Open XML Document",
+                "ppt": "Microsoft PowerPoint Presentation",
+                "pptx": "Microsoft PowerPoint Open XML Presentation",
+                "wk1": "Lotus 1-2-3 Spreadsheet",
+                "wk4": "Lotus 1-2-3 Spreadsheet",
+                "wpd": "WordPerfect Document",
+                "rtf": "Rich Text Format",
+                "xls": "Microsoft Excel Spreadsheet",
+                "xlsx": "Microsoft Excel Open XML Spreadsheet",
+                "xml": "Extensible Markup Language",
+                "odt": "OpenDocument Text",
+                "html": "HyperText Markup Language",
+                "png": "Portable Network Graphics",
+                "jpg": "JPEG Image",
+                "txt": "Plain Text",
             }
 
             for i, (file_id, file_ext, source_path) in enumerate(files):
@@ -182,42 +220,54 @@ def process_files(files):
                     print(f"Failed to upload {filename}: {e}")
                     continue  # Skip DB entry if upload fails
 
+                ffid_metadata = FFIDMetadataFactory.create(
+                    FileId=file_id,
+                    Extension=file_ext,
+                    PUID=next(
+                        (
+                            m
+                            for m in mime_types.get(file_ext, set())
+                            if m.startswith("fmt/") or m.startswith("x-fmt/")
+                        ),
+                        None,
+                    ),
+                    FormatName=format_names.get(file_ext, "Unknown"),
+                )
+
                 file = FileFactory.create(
                     FileId=file_id,
                     consignment=consignment,
-                    FileType="File",
                     FileName=filename,
-                    FilePath=f"{consignment.ConsignmentId}/{file_id}/{filename}",
-                    FileReference=file_id,
+                    FileType="File",
+                    FilePath=f"data/content/{filename}",
+                    FileReference="".join(
+                        secrets.choice(string.ascii_uppercase + string.digits)
+                        for _ in range(4)
+                    ),
                     CreatedDatetime=datetime.now(UTC),
+                    CiteableReference=f"CITE-{i + 1:04d}",
+                    ffid_metadata=ffid_metadata,
                 )
 
                 metadata_dict = {
                     "source": "test_file",
-                    "file_type": file_ext,
-                    "created_at": datetime.now(UTC).isoformat(),
-                    "last_transfer_date": datetime.now(UTC).isoformat(),
+                    "file_name": filename,
+                    "file_type": "File",
                     "file_size": str(os.path.getsize(source_path)),
-                    "file_format": file_ext.upper(),
-                    "file_extension": file_ext,
-                    "mime_type": mime_types.get(
-                        file_ext, f"application/{file_ext}"
-                    ),
-                    "closure_status": "Open",
-                    "closure_type": "Open",
-                    "closure_period": "0",
-                    "foi_exemption_code": "None",
-                    "foi_exemption_code_description": "None",
-                    "title": f"Test File {i + 1}",
+                    "rights_copyright": "Crown Copyright",
+                    "legal_status": "Public Record(s)",
+                    "held_by": "The National Archives",
+                    "date_last_modified": datetime.now(UTC).isoformat(),
                     "description": "Test file for AYR development",
+                    "closure_type": "Open",
+                    "title_closed": "false",
+                    "description_closed": "false",
                     "language": "English",
-                    "security_classification": "Open",
-                    "copyright_status": "Crown Copyright",
-                    "legal_status": "Public Record",
                 }
 
                 for key, value in metadata_dict.items():
                     FileMetadataFactory.create(
+                        FileId=file_id,
                         file=file,
                         PropertyName=key,
                         Value=value,
@@ -301,39 +351,25 @@ def main():
     parser = argparse.ArgumentParser(
         description="Generate and process test files for AYR testing"
     )
-    parser.add_argument(
-        "--num-pdf", type=int, default=1, help="Number of PDF files to create"
+    example_files = Path("local_services/mds_data_generator/example_files")
+    file_types = sorted(
+        {
+            f.suffix.lstrip(".")
+            for f in example_files.iterdir()
+            if f.is_file() and f.suffix.lstrip(".")
+        }
     )
-    parser.add_argument(
-        "--num-docx", type=int, default=1, help="Number of DOCX files to create"
-    )
-    parser.add_argument(
-        "--num-pptx", type=int, default=1, help="Number of PPTX files to create"
-    )
-    parser.add_argument(
-        "--num-xlsx", type=int, default=1, help="Number of XLSX files to create"
-    )
-    parser.add_argument(
-        "--num-png", type=int, default=1, help="Number of PNG files to create"
-    )
-    parser.add_argument(
-        "--num-jpg", type=int, default=1, help="Number of JPG files to create"
-    )
-    parser.add_argument(
-        "--num-txt", type=int, default=1, help="Number of TXT files to create"
-    )
+    for ext in file_types:
+        parser.add_argument(
+            f"--num-{ext}",
+            type=int,
+            default=1,
+            help=f"Number of {ext.upper()} files to create",
+        )
 
     args = parser.parse_args()
 
-    file_type_counts = {
-        "pdf": args.num_pdf,
-        "docx": args.num_docx,
-        "pptx": args.num_pptx,
-        "xlsx": args.num_xlsx,
-        "png": args.num_png,
-        "jpg": args.num_jpg,
-        "txt": args.num_txt,
-    }
+    file_type_counts = {ext: getattr(args, f"num_{ext}") for ext in file_types}
 
     file_paths = create_test_filepaths(file_type_counts)
     process_files(file_paths)

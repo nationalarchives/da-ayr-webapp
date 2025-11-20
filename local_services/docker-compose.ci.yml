@@ -214,7 +214,9 @@ services:
       sleep 15;
       /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
       /usr/bin/mc mb myminio/test-record-download --ignore-existing;
-      /usr/bin/mc cp --recursive /tmp/files/ myminio/test-record-download/ || echo 'No files to copy or copy failed';
+      /usr/bin/mc mb myminio/test-access-copy --ignore-existing;
+      /usr/bin/mc cp --recursive /tmp/files/test-record-download/  myminio/test-record-download/ || echo 'No files to copy or copy failed';
+      /usr/bin/mc cp --recursive /tmp/files/test-access-copy/  myminio/test-access-copy/ || echo 'No files to copy or copy failed';
       exit 0;
       "
 

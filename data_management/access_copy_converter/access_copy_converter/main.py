@@ -24,24 +24,10 @@ CONVERTIBLE_EXTENSIONS = {
     "odt",
     "html",
     "wk4",
-    "txt",
 }
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger()
-
-
-# Local dummy secrets for development
-LOCAL_ENV = {
-    "RECORD_BUCKET_NAME": os.getenv("RECORD_BUCKET_NAME"),
-    "ACCESS_COPY_BUCKET": os.getenv("ACCESS_COPY_BUCKET"),
-    "username": os.getenv("DB_USERNAME"),
-    "password": os.getenv("DB_PASSWORD"),
-    "proxy": os.getenv("DB_HOST"),
-    "port": os.getenv("DB_PORT"),
-    "dbname": os.getenv("DB_NAME"),
-}
-
 
 s3 = boto3.client("s3")
 sm = boto3.client("secretsmanager")
@@ -49,21 +35,14 @@ sm = boto3.client("secretsmanager")
 
 def get_secret_string(secret_id):
     secret_value = sm.get_secret_value(SecretId=secret_id)
-    if secret_value:
-        return json.loads(
-            secret_value["SecretString"]
-        )  # pragma: allowlist secret
-    else:
-        return LOCAL_ENV
+    return json.loads(secret_value["SecretString"])  # pragma: allowlist secret
 
 
 def get_engine():
     db_secret_id = os.getenv("DB_SECRET_ID")
     if not db_secret_id:
-        creds = LOCAL_ENV
-        logger.error("DB_SECRET_ID environment variable not found")
-    else:
-        creds = get_secret_string(db_secret_id)
+        raise Exception("DB_SECRET_ID environment variable not found")
+    creds = get_secret_string(db_secret_id)
     url = (
         f"postgresql+psycopg2://{creds['username']}:{creds['password']}"
         f"@{creds['proxy']}:{creds['port']}/{creds['dbname']}"
@@ -225,50 +204,12 @@ def _verify_output_exists(output_path, file_id):
 
 
 def _upload_output(output_path, dest_bucket, key, file_id):
-
-    if not dest_bucket == "test-access-copy":
-        try:
-            s3.upload_file(output_path, dest_bucket, key)
-            logger.info(
-                f"Uploaded converted file {file_id} to Access Copy Bucket"
-            )
-        except Exception as e:
-            logger.error(f"Failed to upload {key} to Access Copy bucket: {e}")
-            raise Exception(
-                f"Failed to upload {key} to Access Copy bucket: {e}"
-            )
-    else:
-
-        def ensure_bucket_exists(bucket_name):
-            """Ensure the S3 bucket exists, create it if it doesn't."""
-            try:
-                s3.head_bucket(Bucket=bucket_name)
-            except Exception:
-                s3.create_bucket(Bucket=bucket_name)
-                bucket_policy = {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Sid": "PublicRead",
-                            "Effect": "Allow",
-                            "Principal": "*",
-                            "Action": ["s3:GetObject"],
-                            "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
-                        }
-                    ],
-                }
-                s3.put_bucket_policy(
-                    Bucket=bucket_name, Policy=json.dumps(bucket_policy)
-                )
-
-        ensure_bucket_exists(dest_bucket)
-        with open(output_path, "rb") as file_data:
-            s3.put_object(
-                Bucket=dest_bucket,
-                Key=key,
-                Body=file_data.read(),
-                ACL="public-read",
-            )
+    try:
+        s3.upload_file(output_path, dest_bucket, key)
+        logger.info(f"Uploaded converted file {file_id} to Access Copy Bucket")
+    except Exception as e:
+        logger.error(f"Failed to upload {key} to Access Copy bucket: {e}")
+        raise Exception(f"Failed to upload {key} to Access Copy bucket: {e}")
 
 
 def process_file(
@@ -418,18 +359,15 @@ def create_access_copy_from_sns(
 def main():
     app_secret_id = os.getenv("APP_SECRET_ID")
     if not app_secret_id:
-        app_secret = LOCAL_ENV
-        logger.error("APP_SECRET_ID environment variable not found")
-    else:
-        app_secret = get_secret_string(app_secret_id)
+        raise Exception("APP_SECRET_ID environment variable not found")
+    app_secret = get_secret_string(app_secret_id)
     source_bucket = app_secret["RECORD_BUCKET_NAME"]
     dest_bucket = app_secret["ACCESS_COPY_BUCKET"]
     convertible_extensions = CONVERTIBLE_EXTENSIONS
 
     conversion_type = os.getenv("CONVERSION_TYPE")
     if not conversion_type:
-        conversion_type = "ALL"
-        logger.error("CONVERSION_TYPE environment variable not found")
+        raise Exception("CONVERSION_TYPE environment variable not found")
     engine = get_engine()
     conn = engine.connect()
     if conversion_type == "ALL":
