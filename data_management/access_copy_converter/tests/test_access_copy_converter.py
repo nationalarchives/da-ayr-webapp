@@ -6,9 +6,9 @@ import boto3
 import pytest
 from access_copy_converter.main import (
     already_converted,
+    convert_excel_to_pdf,
     convert_with_libreoffice,
-    convert_xls_xlsx_to_pdf,
-    get_extension,
+    get_puid,
     process_consignment,
 )
 from moto import mock_aws
@@ -33,14 +33,13 @@ def sqlite_conn():
         metadata,
         Column("Id", Integer, primary_key=True),
         Column("FileId", String, index=True),
-        Column("Extension", String),
+        Column("PUID", String),
     )
     file_table = Table(
         "File",
         metadata,
         Column("Id", Integer, primary_key=True),
         Column("FileId", String, index=True),
-        Column("FileName", String),
     )
     metadata.create_all(engine)
     conn = engine.connect()
@@ -89,37 +88,17 @@ class TestConvertedFiles:
         assert "Error checking if key already converted" in caplog.text
 
 
-class TestGetExtension:
-    """File extension detection tests"""
+class TestGetPUID:
+    """File PUID detection tests"""
 
-    def test_get_extension_from_ffid(self, sqlite_conn):
+    def test_get_puid_from_ffid(self, sqlite_conn):
         conn, metadata, ffid, file_table = sqlite_conn
-        conn.execute(insert(ffid).values(FileId="file123", Extension="DOCX"))
+        conn.execute(insert(ffid).values(FileId="file123", PUID="fmt/40"))
         conn.commit()
-        ext = get_extension("file123", conn, metadata)
-        assert ext == "docx"
+        puid = get_puid("file123", conn, metadata)
+        assert puid == "fmt/40"
 
-    def test_get_extension_from_filename(self, sqlite_conn):
-        conn, metadata, ffid, file_table = sqlite_conn
-        conn.execute(
-            insert(file_table).values(FileId="file123", FileName="report.PDF")
-        )
-        conn.commit()
-        ext = get_extension("file123", conn, metadata)
-        assert ext == "pdf"
-
-    def test_get_extension_no_extension_and_warning(self, sqlite_conn, caplog):
-        conn, metadata, ffid, file_table = sqlite_conn
-        conn.execute(
-            insert(file_table).values(FileId="file123", FileName="noextfile")
-        )
-        conn.commit()
-        caplog.set_level("WARNING")
-        ext = get_extension("file123", conn, metadata)
-        assert ext is None
-        assert "No extension in FileName" in caplog.text
-
-    def test_get_extension_ffid_query_failure(self, monkeypatch, sqlite_conn):
+    def test_get_puid_ffid_query_failure(self, monkeypatch, sqlite_conn):
         conn, metadata, ffid, file_table = sqlite_conn
 
         def execute_raise(stmt, *args, **kwargs):
@@ -127,18 +106,7 @@ class TestGetExtension:
 
         monkeypatch.setattr(conn, "execute", execute_raise)
         with pytest.raises(Exception) as exc:
-            get_extension("file123", conn, metadata)
-        assert "Error querying FFIDMetadata table" in str(exc.value)
-
-    def test_get_extension_file_query_failure(self, monkeypatch, sqlite_conn):
-        conn, metadata, ffid, file_table = sqlite_conn
-
-        def execute_raise(stmt, *args, **kwargs):
-            raise SQLAlchemyError("file error")
-
-        monkeypatch.setattr(conn, "execute", execute_raise)
-        with pytest.raises(Exception) as exc:
-            get_extension("file123", conn, metadata)
+            get_puid("file123", conn, metadata)
         assert "Error querying FFIDMetadata table" in str(exc.value)
 
 
@@ -146,8 +114,10 @@ class TestConvertWithLibreoffice:
     """LibreOffice conversion tests"""
 
     def test_convert_with_libreoffice_success(self, monkeypatch, tmp_path):
-        def fake_run(args, check, stderr):
-            return mock.Mock()
+        def fake_run(*args, **kwargs):
+            mock_result = mock.Mock()
+            mock_result.stderr = b""
+            return mock_result
 
         monkeypatch.setattr(subprocess, "run", fake_run)
         in_path = str(tmp_path / "in.docx")
@@ -168,7 +138,7 @@ class TestConvertWithLibreoffice:
         with pytest.raises(RuntimeError):
             convert_with_libreoffice(in_path, out_path)
 
-    def test_convert_xls_xlsx_to_pdf(self, monkeypatch, tmp_path):
+    def test_convert_excel_to_pdf(self, monkeypatch, tmp_path):
         calls = []
 
         def fake_convert(input_path, output_path, convert_to="pdf"):
@@ -182,10 +152,10 @@ class TestConvertWithLibreoffice:
             main_module, "convert_with_libreoffice", fake_convert
         )
         tmpdir = str(tmp_path)
-        in_file = str(tmp_path / "input.xlsx")
+        in_file = str(tmp_path / "input")
         out_file = str(tmp_path / "output.pdf")
         (tmp_path / "input.xlsx").write_bytes(b"dummy")
-        convert_xls_xlsx_to_pdf(tmpdir, in_file, out_file)
+        convert_excel_to_pdf(tmpdir, in_file, out_file)
         assert len(calls) == 2
         assert calls[0][2] == "ods"
         assert calls[1][2].startswith("pdf")
@@ -214,7 +184,7 @@ class TestProcessConsignment:
         )
 
         conn, metadata, ffid, file_table = sqlite_conn
-        conn.execute(insert(ffid).values(FileId="file123", Extension="docx"))
+        conn.execute(insert(ffid).values(FileId="file123", PUID="fmt/40"))
         conn.commit()
 
         monkeypatch.setattr(main_module, "s3", s3_client)
@@ -231,7 +201,6 @@ class TestProcessConsignment:
             "cons1",
             "source-bucket",
             "dest-bucket",
-            {"docx", "xls", "xlsx"},
             conn,
         )
 
@@ -262,14 +231,12 @@ class TestProcessConsignment:
         )
 
         conn, metadata, ffid, file_table = sqlite_conn
-        conn.execute(insert(ffid).values(FileId="file123", Extension="txt"))
+        conn.execute(insert(ffid).values(FileId="file123", PUID="fmt/100000"))
         conn.commit()
 
         monkeypatch.setattr(main_module, "s3", s3_client)
 
-        failed = process_consignment(
-            "cons1", "src", "dst", {"docx", "xls", "xlsx"}, conn
-        )
+        failed = process_consignment("cons1", "src", "dst", conn)
 
         assert failed == []
         # Verify no files were uploaded to destination
@@ -296,8 +263,8 @@ class TestProcessConsignment:
         monkeypatch.setattr(main_module, "s3", s3_client)
 
         conn, metadata, ffid, file_table = sqlite_conn
-        conn.execute(insert(ffid).values(FileId="fileA", Extension="docx"))
-        conn.execute(insert(ffid).values(FileId="fileB", Extension="docx"))
+        conn.execute(insert(ffid).values(FileId="fileA", PUID="fmt/40"))
+        conn.execute(insert(ffid).values(FileId="fileB", PUID="fmt/40"))
         conn.commit()
 
         def fake_convert(input_path, output_path, convert_to="pdf"):
@@ -310,10 +277,10 @@ class TestProcessConsignment:
         )
 
         failed1 = process_consignment(
-            "cons1", "source-bucket", "dest-bucket", {"docx"}, conn
+            "cons1", "source-bucket", "dest-bucket", conn
         )
         failed2 = process_consignment(
-            "cons2", "source-bucket", "dest-bucket", {"docx"}, conn
+            "cons2", "source-bucket", "dest-bucket", conn
         )
 
         assert failed1 == []
@@ -343,7 +310,7 @@ class TestProcessConsignment:
 
         conn, metadata, ffid, file_table = sqlite_conn
         for fname in ["file1", "file2", "file3"]:
-            conn.execute(insert(ffid).values(FileId=fname, Extension="docx"))
+            conn.execute(insert(ffid).values(FileId=fname, PUID="fmt/40"))
         conn.commit()
 
         monkeypatch.setattr(main_module, "s3", s3_client)
@@ -358,7 +325,7 @@ class TestProcessConsignment:
         monkeypatch.setattr(main_module, "process_file", patched_process_file)
 
         failed = main_module.process_consignment(
-            "cons1", "source-bucket", "dest-bucket", {"docx"}, conn
+            "cons1", "source-bucket", "dest-bucket", conn
         )
 
         assert "cons1/file2" in failed

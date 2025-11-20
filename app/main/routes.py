@@ -54,6 +54,7 @@ from app.main.util.render_utils import (
     generate_pdf_manifest,
     get_download_filename,
     get_file_extension,
+    get_file_puid,
 )
 from app.main.util.request_validation_utils import validate_request
 from app.main.util.schemas import (
@@ -80,7 +81,7 @@ from app.main.util.search_utils import (
     post_process_opensearch_results,
     setup_opensearch,
 )
-from configs.base_config import CONVERTIBLE_EXTENSIONS
+from configs.base_config import CONVERTIBLE_PUIDS
 
 from .forms import SearchForm
 
@@ -245,9 +246,7 @@ def browse():
             date_filters=date_filters,
             sorting_orders=sorting_orders,
             num_records_found=num_records_found,
-            query_string_parameters={
-                k: v for k, v in validated_data.items() if k not in "page"
-            },
+            query_string_parameters=validated_data,
             id=None,
         )
 
@@ -338,9 +337,7 @@ def browse_transferring_body(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters={
-            k: v for k, v in validated_data.items() if k not in "page"
-        },
+        query_string_parameters=validated_data,
     )
 
 
@@ -435,9 +432,7 @@ def browse_series(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters={
-            k: v for k, v in validated_data.items() if k not in "page"
-        },
+        query_string_parameters=validated_data,
     )
 
 
@@ -532,9 +527,7 @@ def browse_consignment(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters={
-            k: v for k, v in validated_data.items() if k not in "page"
-        },
+        query_string_parameters=validated_data,
     )
 
 
@@ -622,9 +615,7 @@ def search_results_summary():
         results=paginated_results,
         pagination=pagination,
         num_records_found=num_records_found,
-        query_string_parameters={
-            k: v for k, v in validated_data.items() if k not in "page"
-        },
+        query_string_parameters=validated_data,
         id=None,
     )
 
@@ -704,9 +695,6 @@ def search_transferring_body(_id: uuid.UUID):
         )
         num_records_found = total_records
 
-    query_string_parameters = validated_data.copy()
-    query_string_parameters.pop("page", None)
-    query_string_parameters.pop("_id", None)
     return render_template(
         "search-transferring-body.html",
         form=form,
@@ -721,7 +709,7 @@ def search_transferring_body(_id: uuid.UUID):
         pagination=pagination,
         open_all=open_all,
         highlight_tag=highlight_tag,
-        query_string_parameters=query_string_parameters,
+        query_string_parameters=validated_data,
     )
 
 
@@ -754,6 +742,7 @@ def record(record_id: uuid.UUID):
     file_metadata = get_file_metadata(file.FileId)
 
     file_extension = get_file_extension(file)
+    puid = get_file_puid(file)
 
     can_render_file = (
         file_extension in current_app.config["SUPPORTED_RENDER_EXTENSIONS"]
@@ -766,7 +755,7 @@ def record(record_id: uuid.UUID):
         "main.generate_manifest", record_id=record_id, _external=True
     )
     access_copy_failed = False
-    if not can_render_file and file_extension in CONVERTIBLE_EXTENSIONS:
+    if not can_render_file and puid in CONVERTIBLE_PUIDS:
         try:
             presigned_url = create_presigned_url_for_access_copy(file)
             can_render_file = True
@@ -866,6 +855,7 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
     file_name = file.FileName
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
     file_type = get_file_extension(file)
+    puid = get_file_puid(file)
 
     def get_s3_file_obj(file, bucket_name=None):
         """
@@ -894,7 +884,7 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         return generate_image_manifest(
             file_name, file_url, manifest_url, s3_file_object=s3_file_obj
         )
-    elif file_type in CONVERTIBLE_EXTENSIONS:
+    elif puid in CONVERTIBLE_PUIDS:
         file_obj = get_s3_file_obj(
             file, bucket_name=current_app.config["ACCESS_COPY_BUCKET"]
         )
