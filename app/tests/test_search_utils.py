@@ -8,6 +8,7 @@ from app.main.util.search_utils import (
     build_dsl_search_query,
     build_search_results_summary_query,
     build_search_transferring_body_query,
+    build_should_clauses,
     execute_search,
     extract_search_terms,
     filter_opensearch_highlight_results,
@@ -16,6 +17,7 @@ from app.main.util.search_utils import (
     get_filtered_list,
     get_open_search_fields_to_search_on_and_sorting,
     get_pagination_info,
+    is_fuzzy_field,
     rearrange_opensearch_results_for_relevant_fields,
     reorder_fields,
     setup_opensearch,
@@ -62,26 +64,6 @@ fields_without_file_name = [
     "transferring_body_description^1",
     "consignment_reference^1",
 ]
-
-expected_base_dsl_search_query = {
-    "query": {
-        "bool": {
-            "must": [
-                {
-                    "multi_match": {
-                        "query": "test_query",
-                        "fields": ["field_1"],
-                        "fuzziness": "AUTO",
-                        "lenient": True,
-                    }
-                }
-            ],
-            "filter": [{"clause_1": "test_2"}],
-        }
-    },
-    "sort": {"sort": "foobar"},
-    "_source": True,
-}
 
 
 @pytest.mark.parametrize(
@@ -346,6 +328,28 @@ def test_get_all_fields_excluding(mock_open_search):
 def test_build_dsl_search_query():
     query = "test_query"
     quoted_phrases, single_terms = extract_search_terms(query)
+
+    expected_base_dsl_search_query = {
+        "query": {
+            "bool": {
+                "should": [
+                    {
+                        "multi_match": {
+                            "query": "test_query",
+                            "fields": ["field_1"],
+                            "type": "phrase",
+                            "lenient": True,
+                        }
+                    }
+                ],
+                "minimum_should_match": 1,
+                "filter": [{"clause_1": "test_2"}],
+            }
+        },
+        "sort": {"sort": "foobar"},
+        "_source": True,
+    }
+
     dsl_query = build_dsl_search_query(
         ["field_1"],
         [{"clause_1": "test_2"}],
@@ -356,8 +360,8 @@ def test_build_dsl_search_query():
     assert dsl_query == expected_base_dsl_search_query
 
 
-def test_build_dsl_search_query_and_exact_fuzzy_search():
-    query = '"exact match"+fuzzy+search'
+def test_build_dsl_search_query_and_non_fuzzy_fuzzy_search():
+    query = '"non_fuzzy"+fuzzy+search'
     search_fields = ["field_1"]
     filter_clauses = [{"clause_1": "test_2"}]
     quoted_phrases, single_terms = extract_search_terms(query)
@@ -365,11 +369,11 @@ def test_build_dsl_search_query_and_exact_fuzzy_search():
     expected_dsl_query = {
         "query": {
             "bool": {
-                "must": [
+                "should": [
                     {
                         "multi_match": {
-                            "query": "exact match",
-                            "fields": search_fields,
+                            "query": "non_fuzzy",
+                            "fields": "*",
                             "type": "phrase",
                             "lenient": True,
                         }
@@ -377,21 +381,22 @@ def test_build_dsl_search_query_and_exact_fuzzy_search():
                     {
                         "multi_match": {
                             "query": "fuzzy",
-                            "fields": search_fields,
-                            "fuzziness": "AUTO",
+                            "fields": ["field_1"],
+                            "type": "phrase",
                             "lenient": True,
                         }
                     },
                     {
                         "multi_match": {
                             "query": "search",
-                            "fields": search_fields,
-                            "fuzziness": "AUTO",
+                            "fields": ["field_1"],
+                            "type": "phrase",
                             "lenient": True,
                         }
                     },
                 ],
-                "filter": filter_clauses,
+                "minimum_should_match": 1,
+                "filter": [{"clause_1": "test_2"}],
             }
         },
         "sort": {"sort": "foobar"},
@@ -418,22 +423,24 @@ def test_build_search_results_summary_query():
         {"sort": "foobar"},
     )
     assert dsl_query == {
-        **expected_base_dsl_search_query,
         "query": {
             "bool": {
-                "must": [
+                "should": [
                     {
                         "multi_match": {
                             "query": "test_query",
                             "fields": ["field_1"],
-                            "fuzziness": "AUTO",
+                            "type": "phrase",
                             "lenient": True,
                         }
                     }
                 ],
+                "minimum_should_match": 1,
                 "filter": [],
             }
         },
+        "sort": {"sort": "foobar"},
+        "_source": True,
         "aggs": {
             "aggregate_by_transferring_body": {
                 "terms": {"field": "transferring_body_id.keyword"},
@@ -452,10 +459,23 @@ def test_build_search_results_summary_query():
 
 def test_build_search_transferring_body_query():
     transferring_body_id = "test_transferring_body_id"
-    query = "test_query"
+    query = '"non_fuzzy"+fuzzy'
     quoted_phrases, single_terms = extract_search_terms(query)
+    search_fields = [
+        "file_name",
+        "description",
+        "foi_exemption_code",
+        "content",
+        "closure_start_date",
+        "end_date",
+        "date_last_modified",
+        "citeable_reference",
+        "series_name",
+        "consignment_reference",
+    ]
+
     dsl_query = build_search_transferring_body_query(
-        ["field_1"],
+        search_fields,
         transferring_body_id,
         "test_highlight_key",
         quoted_phrases,
@@ -463,28 +483,58 @@ def test_build_search_transferring_body_query():
         {"sort": "foobar"},
     )
     assert dsl_query == {
-        **expected_base_dsl_search_query,
         "query": {
             "bool": {
-                "must": [
+                "should": [
                     {
                         "multi_match": {
-                            "query": "test_query",
-                            "fields": ["field_1"],
+                            "query": "non_fuzzy",
+                            "fields": "*",
+                            "type": "phrase",
+                            "lenient": True,
+                        }
+                    },
+                    {
+                        "multi_match": {
+                            "query": "fuzzy",
+                            "fields": [
+                                "closure_start_date",
+                                "end_date",
+                                "date_last_modified",
+                                "citeable_reference",
+                                "series_name",
+                                "consignment_reference",
+                            ],
+                            "type": "phrase",
+                            "lenient": True,
+                        }
+                    },
+                    {
+                        "multi_match": {
+                            "query": "fuzzy",
+                            "fields": [
+                                "file_name",
+                                "description",
+                                "foi_exemption_code",
+                                "content",
+                            ],
                             "fuzziness": "AUTO",
                             "lenient": True,
                         }
-                    }
+                    },
                 ],
+                "minimum_should_match": 1,
                 "filter": [
                     {
                         "term": {
-                            "transferring_body_id.keyword": transferring_body_id
+                            "transferring_body_id.keyword": "test_transferring_body_id"
                         }
                     }
                 ],
             }
         },
+        "sort": {"sort": "foobar"},
+        "_source": True,
         "highlight": {
             "pre_tags": ["<test_highlight_key>"],
             "post_tags": ["</test_highlight_key>"],
@@ -492,7 +542,7 @@ def test_build_search_transferring_body_query():
             "fragment_size": 200,
             "number_of_fragments": 5,
             "phrase_limit": 256,
-            "require_field_match": False,
+            "require_field_match": True,
             "boundary_scanner": "sentence",
             "boundary_scanner_locale": "en",
             "order": "score",
@@ -807,3 +857,298 @@ def test_rearrange_opensearch_results_for_relevant_fields(
         results, sort
     )
     assert rearranged_results == expected_results
+
+
+@pytest.mark.parametrize(
+    "field, expected",
+    [
+        # Test fuzzy fields (allow_fuzzy=True) - should return True since function returns allow_fuzzy
+        ("file_name", True),
+        ("description", True),
+        ("transferring_body", True),
+        ("foi_exemption_code", True),
+        ("content", True),
+        ("transferring_body_description", True),
+        # Test non-fuzzy fields (allow_fuzzy=False) - should return False since function returns allow_fuzzy
+        ("closure_start_date", False),
+        ("end_date", False),
+        ("date_last_modified", False),
+        ("citeable_reference", False),
+        ("series_name", False),
+        ("consignment_reference", False),
+        # Test fields with boost suffixes
+        ("file_name^2", True),
+        ("description^3", True),
+        ("closure_start_date^1", False),
+        ("end_date^5", False),
+        ("citeable_reference^10", False),
+    ],
+)
+def test_is_fuzzy_field(field, expected):
+    """
+    Test the is_fuzzy_field function to ensure it correctly returns
+    the allow_fuzzy value from OPENSEARCH_FIELD_NAME_MAP configuration.
+    """
+    assert is_fuzzy_field(field) == expected
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "unknown_field",
+        "random_field^2",
+        "",
+        "field_with_no_config",
+    ],
+)
+def test_is_fuzzy_field_unknown_fields(field):
+    """
+    Test that is_fuzzy_field returns False for fields not in OPENSEARCH_FIELD_NAME_MAP
+    since it uses .get() with default False.
+    """
+    assert is_fuzzy_field(field) is False
+
+
+@pytest.mark.parametrize(
+    "search_fields, quoted_phrases, single_terms, expected_should_clauses",
+    [
+        # Test case 1: Only fuzzy fields with single terms
+        (
+            ["file_name", "description", "content"],
+            [],
+            ["test", "search"],
+            [
+                {
+                    "multi_match": {
+                        "query": "test",
+                        "fields": ["file_name", "description", "content"],
+                        "fuzziness": "AUTO",
+                        "lenient": True,
+                    }
+                },
+                {
+                    "multi_match": {
+                        "query": "search",
+                        "fields": ["file_name", "description", "content"],
+                        "fuzziness": "AUTO",
+                        "lenient": True,
+                    }
+                },
+            ],
+        ),
+        # Test case 2: Only non-fuzzy fields with single terms
+        (
+            ["closure_start_date", "end_date", "citeable_reference"],
+            [],
+            ["2024", "reference"],
+            [
+                {
+                    "multi_match": {
+                        "query": "2024",
+                        "fields": [
+                            "closure_start_date",
+                            "end_date",
+                            "citeable_reference",
+                        ],
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                },
+                {
+                    "multi_match": {
+                        "query": "reference",
+                        "fields": [
+                            "closure_start_date",
+                            "end_date",
+                            "citeable_reference",
+                        ],
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                },
+            ],
+        ),
+        # Test case 3: Mixed fuzzy and non-fuzzy fields with single terms
+        (
+            [
+                "file_name",
+                "description",
+                "closure_start_date",
+                "citeable_reference",
+            ],
+            [],
+            ["test"],
+            [
+                {
+                    "multi_match": {
+                        "query": "test",
+                        "fields": ["closure_start_date", "citeable_reference"],
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                },
+                {
+                    "multi_match": {
+                        "query": "test",
+                        "fields": ["file_name", "description"],
+                        "fuzziness": "AUTO",
+                        "lenient": True,
+                    }
+                },
+            ],
+        ),
+        # Test case 4: Only quoted phrases (should use phrase match for all fields)
+        (
+            ["file_name", "description", "closure_start_date"],
+            ["exact phrase", "another phrase"],
+            [],
+            [
+                {
+                    "multi_match": {
+                        "query": "exact phrase",
+                        "fields": "*",
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                },
+                {
+                    "multi_match": {
+                        "query": "another phrase",
+                        "fields": "*",
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                },
+            ],
+        ),
+        # Test case 5: Mixed quoted phrases and single terms with mixed field types
+        (
+            ["file_name", "closure_start_date", "content"],
+            ["exact phrase"],
+            ["fuzzy", "term"],
+            [
+                {
+                    "multi_match": {
+                        "query": "exact phrase",
+                        "fields": "*",
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                },
+                {
+                    "multi_match": {
+                        "query": "fuzzy",
+                        "fields": ["closure_start_date"],
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                },
+                {
+                    "multi_match": {
+                        "query": "fuzzy",
+                        "fields": ["file_name", "content"],
+                        "fuzziness": "AUTO",
+                        "lenient": True,
+                    }
+                },
+                {
+                    "multi_match": {
+                        "query": "term",
+                        "fields": ["closure_start_date"],
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                },
+                {
+                    "multi_match": {
+                        "query": "term",
+                        "fields": ["file_name", "content"],
+                        "fuzziness": "AUTO",
+                        "lenient": True,
+                    }
+                },
+            ],
+        ),
+        # Test case 6: Fields with boost suffixes
+        (
+            ["file_name^2", "description^3", "closure_start_date^1"],
+            [],
+            ["test"],
+            [
+                {
+                    "multi_match": {
+                        "query": "test",
+                        "fields": ["closure_start_date^1"],
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                },
+                {
+                    "multi_match": {
+                        "query": "test",
+                        "fields": ["file_name^2", "description^3"],
+                        "fuzziness": "AUTO",
+                        "lenient": True,
+                    }
+                },
+            ],
+        ),
+        # Test case 7: Empty search terms
+        (
+            ["file_name", "description"],
+            [],
+            [],
+            [],
+        ),
+        # Test case 8: Empty search fields - no clauses generated since no fields to search
+        (
+            [],
+            ["phrase"],
+            ["term"],
+            [],
+        ),
+        # Test case 9: All non-fuzzy fields with no single terms
+        (
+            ["closure_start_date", "end_date"],
+            ["exact phrase"],
+            [],
+            [
+                {
+                    "multi_match": {
+                        "query": "exact phrase",
+                        "fields": "*",
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                },
+            ],
+        ),
+        # Test case 10: All fuzzy fields with no quoted phrases
+        (
+            ["file_name", "description", "content"],
+            [],
+            ["search"],
+            [
+                {
+                    "multi_match": {
+                        "query": "search",
+                        "fields": ["file_name", "description", "content"],
+                        "fuzziness": "AUTO",
+                        "lenient": True,
+                    }
+                },
+            ],
+        ),
+    ],
+)
+def test_build_should_clauses(
+    search_fields, quoted_phrases, single_terms, expected_should_clauses
+):
+    """
+    Test the build_should_clauses function to ensure it correctly builds
+    should clauses for OpenSearch queries with proper handling of fuzzy and non-fuzzy fields.
+    """
+    should_clauses = build_should_clauses(
+        search_fields, quoted_phrases, single_terms
+    )
+    assert should_clauses == expected_should_clauses
