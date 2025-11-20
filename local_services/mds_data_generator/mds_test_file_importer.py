@@ -263,6 +263,15 @@ def process_files(files):
                     "title_closed": "false",
                     "description_closed": "false",
                     "language": "English",
+                    "created_at": datetime.now(UTC).isoformat(),
+                    "last_transfer_date": datetime.now(UTC).isoformat(),
+                    "file_format": file_ext.upper(),
+                    "file_extension": file_ext,
+                    "closure_status": "Open",
+                    "closure_period": "0",
+                    "foi_exemption_code": "None",
+                    "foi_exemption_code_description": "None",
+                    "title": f"Test File {i + 1}",
                 }
 
                 for key, value in metadata_dict.items():
