@@ -7,13 +7,17 @@
     "build": "sass --style=compressed app/static/src/scss:app/static/src/css",
     "prestorybook": "python storybook/render_macros.py",
     "storybook": "concurrently \"npm run watch-macro-tasks\" \"storybook dev -p 6006\"",
-    "watch-macro-tasks": "chokidar 'storybook/render-macro-tasks.json' -c 'npm run prestorybook'"
+    "watch-macro-tasks": "chokidar 'storybook/render-macro-tasks.json' -c 'npm run prestorybook'",
+    "test": "jest app/static/init.uv.test.js"
   },
   "license": "MIT",
   "devDependencies": {
     "@storybook/html-vite": "10.0.8",
+    "@testing-library/jest-dom": "^6.9.1",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.2.1",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
     "prettier": "^3.6.2",
     "sass": "^1.94.1",
     "stylelint": "^16.25.0",
@@ -23,5 +27,8 @@
   "dependencies": {
     "govuk-frontend": "^5.13.0",
     "npm": "^11.6.2"
+  },
+  "jest": {
+    "testEnvironment": "jsdom"
   }
 }
