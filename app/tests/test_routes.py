@@ -9,6 +9,7 @@ from flask import url_for
 from flask.testing import FlaskClient
 from moto import mock_aws
 from PIL import Image
+from io import BytesIO
 
 from app.tests.factories import FileFactory
 from configs.base_config import UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES
@@ -540,8 +541,9 @@ class TestRoutes:
             "failed to create access copy"
         )
 
-        response = client.get(f"/record/{file.FileId}")
-
+        with patch("app.main.routes.boto3.client") as mock_boto_client:
+            s3_mock = mock_boto_client.return_value
+            s3_mock.get_object.return_value = {"Body": BytesIO(b"file content")}
+            response = client.get(f"/record/{file.FileId}")
         assert response.status_code == 200
-
         assert b"Converted access copy not available." in response.data
