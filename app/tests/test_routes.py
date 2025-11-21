@@ -9,7 +9,6 @@ from flask import url_for
 from flask.testing import FlaskClient
 from moto import mock_aws
 from PIL import Image
-from io import BytesIO
 
 from app.tests.factories import FileFactory
 from configs.base_config import UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES
