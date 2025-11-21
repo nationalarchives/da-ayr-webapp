@@ -446,7 +446,7 @@ class TestRoutes:
         When file_extension is in CONVERTIBLE_EXTENSIONS
         """
         mock_all_access_user(client)
-        file = FileFactory(ffid_metadata__PUID="fmt/40")
+        file = FileFactory(ffid_metadata__PUID="fmt/40", file_extension="xls")
         bucket_name = "test_bucket"
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
 
