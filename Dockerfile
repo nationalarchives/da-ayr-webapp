@@ -1,5 +1,5 @@
 # 3.1.3 slim
-FROM python:sha256:193fdd0bbcb3d2ae612bd6cc3548d2f7c78d65b549fcaa8af75624c47474444d
+FROM python@sha256:193fdd0bbcb3d2ae612bd6cc3548d2f7c78d65b549fcaa8af75624c47474444d
 
 WORKDIR /docker_app
 
