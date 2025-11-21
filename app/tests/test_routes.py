@@ -451,7 +451,7 @@ class TestRoutes:
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
 
         s3_mock = mock_boto_client.return_value
-        s3_mock.get_object.return_value = {"Body": b"file content"}
+        s3_mock.get_object.return_value = {"Body": BytesIO(b"file content")}
 
         mock_pdf.return_value = ({"mock": "pdf_manifest"}, 200)
         response = client.get(f"/record/{file.FileId}/manifest")
