@@ -451,7 +451,7 @@ class TestRoutes:
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
 
         s3_mock = mock_boto_client.return_value
-        s3_mock.get_object.return_value = {"Body": BytesIO(b"file content")}
+        s3_mock.get_object.return_value = {"Body": b"file content"}
 
         mock_pdf.return_value = ({"mock": "pdf_manifest"}, 200)
         response = client.get(f"/record/{file.FileId}/manifest")
@@ -540,9 +540,8 @@ class TestRoutes:
             "failed to create access copy"
         )
 
-        with patch("app.main.routes.boto3.client") as mock_boto_client:
-            s3_mock = mock_boto_client.return_value
-            s3_mock.get_object.return_value = {"Body": BytesIO(b"file content")}
-            response = client.get(f"/record/{file.FileId}")
+        response = client.get(f"/record/{file.FileId}")
+
         assert response.status_code == 200
+        
         assert b"Converted access copy not available." in response.data
