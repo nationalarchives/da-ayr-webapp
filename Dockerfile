@@ -39,6 +39,7 @@ COPY main_app.py .flaskenv /docker_app/
 # Restore the built CSS files
 RUN cp -r /tmp/css_backup /docker_app/app/static/src/css
 
+
 ENV FLASK_ENV=development
 ENV FLASK_DEBUG=1
 ENV PYTHONUNBUFFERED=1
