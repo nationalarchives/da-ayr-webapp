@@ -11,22 +11,45 @@ UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES = {
 }
 UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES = {"pdf": "application/pdf"}
 
+UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS = {
+    "fmt/3",
+    "fmt/4",
+    "fmt/43",
+    "fmt/44",
+    "fmt/134",
+    "fmt/386",
+    "fmt/353",
+    "fmt/11",
+    "x-fmt/11",
+    "x-fmt/3",
+    "fmt/278",
+}
+
+UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS = {
+    "fmt/16",
+    "fmt/17",
+    "fmt/18",
+    "fmt/19",
+    "fmt/20",
+    "fmt/276",
+}
+
 CONVERTIBLE_PUIDS = {
+    "fmt/39",
     "fmt/40",
-    "fmt/61",
     "x-fmt/44",
+    "x-fmt/45",
+    "fmt/50",
+    "fmt/59",
+    "fmt/61",
+    "x-fmt/111",
+    "x-fmt/116",
+    "fmt/126",
+    "fmt/214",
+    "fmt/215",
+    "fmt/355",
     "x-fmt/394",
     "fmt/412",
-    "fmt/126",
-    "fmt/50",
-    "x-fmt/116",
-    "fmt/214",
-    "fmt/39",
-    "fmt/355",
-    "fmt/59",
-    "fmt/215",
-    "x-fmt/111",
-    "x-fmt/45",
 }
 
 
@@ -45,6 +68,16 @@ class BaseConfig(object):
     SUPPORTED_RENDER_EXTENSIONS = [
         *UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES,
         *UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES,
+    ]
+    UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS = (
+        UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS
+    )
+    UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS = (
+        UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS
+    )
+    SUPPORTED_RENDER_PUIDS = [
+        *UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS,
+        *UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS,
     ]
 
     @staticmethod

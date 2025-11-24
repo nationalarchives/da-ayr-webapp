@@ -744,10 +744,7 @@ def record(record_id: uuid.UUID):
     file_extension = get_file_extension(file)
     puid = get_file_puid(file)
 
-    can_render_file = (
-        file_extension in current_app.config["SUPPORTED_RENDER_EXTENSIONS"]
-    )
-
+    can_render_file = puid in current_app.config["SUPPORTED_RENDER_PUIDS"]
     breadcrumb_values = generate_breadcrumb_values(file)
 
     download_filename = get_download_filename(file)
@@ -785,9 +782,7 @@ def record(record_id: uuid.UUID):
         manifest_url=manifest_url,
         file_extension=file_extension,
         presigned_url=presigned_url,
-        supported_render_extensions=current_app.config[
-            "SUPPORTED_RENDER_EXTENSIONS"
-        ],
+        supported_render_puids=current_app.config["SUPPORTED_RENDER_PUIDS"],
     )
 
 
@@ -854,7 +849,6 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
 
     file_name = file.FileName
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
-    file_type = get_file_extension(file)
     puid = get_file_puid(file)
 
     def get_s3_file_obj(file, bucket_name=None):
@@ -870,16 +864,13 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
     s3_file_obj = get_s3_file_obj(file)
 
     if (
-        file_type
-        in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES"]
+        puid
+        in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS"]
     ):
         return generate_pdf_manifest(
             file_name, manifest_url, file_obj=s3_file_obj
         )
-    elif (
-        file_type
-        in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES"]
-    ):
+    elif puid in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS"]:
         file_url = create_presigned_url(file)
         return generate_image_manifest(
             file_name, file_url, manifest_url, s3_file_object=s3_file_obj

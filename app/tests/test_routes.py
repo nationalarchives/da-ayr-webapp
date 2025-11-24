@@ -11,7 +11,7 @@ from moto import mock_aws
 from PIL import Image
 
 from app.tests.factories import FileFactory
-from configs.base_config import UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES
+from configs.base_config import UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS
 
 
 def verify_cookies_header_row(data):
@@ -97,14 +97,14 @@ def create_mock_s3_bucket_with_image_object(bucket_name, file):
     image_file = BytesIO()
     image = Image.new("RGB", (800, 600), color=(73, 109, 137))
     # Determine format from file extension
-    extension = getattr(file.ffid_metadata, "Extension", None)
+    extension = getattr(file.ffid_metadata, "PUID", None)
+    print(f"Determined extension: {extension}")
     format_map = {
-        "jpeg": "JPEG",
-        "png": "PNG",
-        "tiff": "TIFF",
-        "tif": "TIFF",
-        "gif": "GIF",
-        "webp": "WEBP",
+        "x-fmt/11": "PNG",
+        "fmt/43": "JPEG",
+        "fmt/353": "TIFF",
+        "x-fmt/3": "GIF",
+        "fmt/278": "WEBP",
     }
     img_format = (
         format_map.get(extension.lower(), "PNG") if extension else "PNG"
@@ -161,7 +161,7 @@ class TestRoutes:
         s3_mock.get_object.return_value = {"Body": BytesIO(MINIMAL_VALID_PDF)}
 
         mock_all_access_user(client)
-        file = FileFactory(ffid_metadata__Extension="pdf", FileName="test.pdf")
+        file = FileFactory(ffid_metadata__PUID="fmt/276", FileName="test.pdf")
         bucket_name = "test-bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_object(bucket_name, file)
@@ -233,12 +233,17 @@ class TestRoutes:
         client: FlaskClient,
         mock_all_access_user,
     ):
+        puid_vs_ext = {
+            "x-fmt/11": "png",
+            "fmt/43": "jpeg",
+            "fmt/353": "tiff",
+            "x-fmt/3": "gif",
+            "fmt/278": "webp",
+        }
 
         mock_all_access_user(client)
-        for ext in ["png", "jpeg", "gif", "webp"]:
-            file = FileFactory(
-                ffid_metadata__Extension=ext, FileName=f"test.{ext}"
-            )
+        for puid, ext in puid_vs_ext.items():
+            file = FileFactory(ffid_metadata__PUID=puid, FileName=f"test.{ext}")
             bucket_name = "test-bucket"
             app.config["RECORD_BUCKET_NAME"] = bucket_name
             create_mock_s3_bucket_with_image_object(bucket_name, file)
@@ -416,7 +421,7 @@ class TestRoutes:
         Test that a PDF manifest is successfully generated.
         """
         mock_all_access_user(client)
-        file = FileFactory(ffid_metadata__Extension="pdf")
+        file = FileFactory(ffid_metadata__PUID="fmt/276")
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
@@ -446,7 +451,7 @@ class TestRoutes:
         When file_extension is in CONVERTIBLE_EXTENSIONS
         """
         mock_all_access_user(client)
-        file = FileFactory(ffid_metadata__PUID="fmt/40")
+        file = FileFactory(ffid_metadata__PUID="fmt/276")
         bucket_name = "test_bucket"
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
 
@@ -461,7 +466,7 @@ class TestRoutes:
         assert json.loads(response.text) == {"mock": "pdf_manifest"}
 
     @pytest.mark.parametrize(
-        "image_format", UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES
+        "image_format", UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS
     )
     @mock_aws
     @patch("app.main.routes.boto3.client")
@@ -481,7 +486,7 @@ class TestRoutes:
         mock_all_access_user(client)
         file = FileFactory(
             FileName=f"image.{image_format}",
-            ffid_metadata__Extension=image_format,
+            ffid_metadata__PUID=image_format,
         )
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -534,7 +539,19 @@ class TestRoutes:
         file = FileFactory(ffid_metadata__PUID="fmt/40")
         bucket_name = "test-bucket"
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
-        app.config["SUPPORTED_RENDER_EXTENSIONS"] = ["pdf", "png"]
+        app.config["SUPPORTED_RENDER_PUIDS"] = [
+            "fmt/16",
+            "fmt/17",
+            "fmt/18",
+            "fmt/19",
+            "fmt/20",
+            "fmt/276",
+            "fmt/43",
+            "fmt/44",
+            "fmt/134",
+            "fmt/353",
+            "fmt/386",
+        ]
 
         mock_create_presigned_url.side_effect = Exception(
             "failed to create access copy"
@@ -543,5 +560,4 @@ class TestRoutes:
         response = client.get(f"/record/{file.FileId}")
 
         assert response.status_code == 200
-        
         assert b"Converted access copy not available." in response.data
