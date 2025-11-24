@@ -11,21 +11,21 @@ from sqlalchemy import MetaData, Table, create_engine, select
 from sqlalchemy.exc import SQLAlchemyError
 
 CONVERTIBLE_PUIDS = {
+    "fmt/39",
     "fmt/40",
-    "fmt/61",
     "x-fmt/44",
+    "x-fmt/45",
+    "fmt/50",
+    "fmt/59",
+    "fmt/61",
+    "x-fmt/111",
+    "x-fmt/116",
+    "fmt/126",
+    "fmt/214",
+    "fmt/215",
+    "fmt/355",
     "x-fmt/394",
     "fmt/412",
-    "fmt/126",
-    "fmt/50",
-    "x-fmt/116",
-    "fmt/214",
-    "fmt/39",
-    "fmt/355",
-    "fmt/59",
-    "fmt/215",
-    "x-fmt/111",
-    "x-fmt/45",
 }
 
 EXCEL_PUIDS = {"fmt/214", "fmt/59", "fmt/61"}

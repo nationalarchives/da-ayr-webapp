@@ -2,14 +2,6 @@ from urllib.parse import quote_plus
 
 SELF = "'self'"
 
-UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES = {
-    "jpeg": "image/jpeg",
-    "jpg": "image/jpeg",
-    "png": "image/png",
-    "gif": "image/gif",
-    "webp": "image/webp",
-}
-UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES = {"pdf": "application/pdf"}
 
 UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS = {
     "fmt/3",
@@ -59,16 +51,6 @@ class BaseConfig(object):
     DEPARTMENT_NAME = "The National Archives"
     DEPARTMENT_URL = "https://www.nationalarchives.gov.uk/"
     SERVICE_NAME = "AYR – Access Your Records"
-    UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES = (
-        UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES
-    )
-    UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES = (
-        UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES
-    )
-    SUPPORTED_RENDER_EXTENSIONS = [
-        *UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES,
-        *UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES,
-    ]
     UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS = (
         UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS
     )

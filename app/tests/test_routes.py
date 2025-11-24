@@ -98,7 +98,6 @@ def create_mock_s3_bucket_with_image_object(bucket_name, file):
     image = Image.new("RGB", (800, 600), color=(73, 109, 137))
     # Determine format from file extension
     extension = getattr(file.ffid_metadata, "PUID", None)
-    print(f"Determined extension: {extension}")
     format_map = {
         "x-fmt/11": "PNG",
         "fmt/43": "JPEG",
