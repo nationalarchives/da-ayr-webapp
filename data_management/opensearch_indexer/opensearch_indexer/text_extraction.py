@@ -16,7 +16,7 @@ logger.setLevel(logging.INFO)
 
 TEXTRACT_FILE_FORMAT_FALLBACK_CONVERSION_MAP = {"xls": "xlsx", "doc": "docx"}
 SLACK_CHANNEL = os.getenv("SLACK_CHANNEL")
-ENVIRONMENT = os.getenv("ENVIRONMENT")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 
 
 class TextExtractionStatus(Enum):
