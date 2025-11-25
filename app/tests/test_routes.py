@@ -96,8 +96,7 @@ def create_mock_s3_bucket_with_image_object(bucket_name, file):
 
     image_file = BytesIO()
     image = Image.new("RGB", (800, 600), color=(73, 109, 137))
-    # Determine format from file extension
-    extension = getattr(file.ffid_metadata, "PUID", None)
+    puid = getattr(file.ffid_metadata, "PUID", None)
     format_map = {
         "x-fmt/11": "PNG",
         "fmt/43": "JPEG",
@@ -105,9 +104,7 @@ def create_mock_s3_bucket_with_image_object(bucket_name, file):
         "x-fmt/3": "GIF",
         "fmt/278": "WEBP",
     }
-    img_format = (
-        format_map.get(extension.lower(), "PNG") if extension else "PNG"
-    )
+    img_format = format_map.get(puid.lower(), "PNG") if puid else "PNG"
     image.save(image_file, format=img_format)
     image_file.seek(0)
 
