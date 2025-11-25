@@ -25,8 +25,7 @@
     "stylelint-selector-bem-pattern": "^4.0.1"
   },
   "dependencies": {
-    "govuk-frontend": "^5.13.0",
-    "npm": "^11.6.2"
+    "govuk-frontend": "^5.13.0"
   },
   "jest": {
     "testEnvironment": "jsdom"
