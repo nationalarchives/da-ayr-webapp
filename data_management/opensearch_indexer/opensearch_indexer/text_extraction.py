@@ -14,7 +14,14 @@ import textract
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-TEXTRACT_FILE_FORMAT_FALLBACK_CONVERSION_MAP = {"xls": "xlsx", "doc": "docx"}
+TEXTRACT_FILE_PUIDS_FALLBACK_CONVERSION_MAP = {
+    "fmt/59": "fmt/214",
+    "fmt/61": "fmt/214",
+    "fmt/39": "fmt/412",
+    "fmt/40": "fmt/412",
+    "x-fmt/44": "fmt/412",
+    "x-fmt/45": "fmt/412",
+}
 SLACK_CHANNEL = os.getenv("SLACK_CHANNEL")
 ENVIRONMENT = os.getenv("ENVIRONMENT")
 
@@ -25,47 +32,54 @@ class TextExtractionStatus(Enum):
     SKIPPED = "SKIPPED"
 
 
-SUPPORTED_TEXTRACT_FORMATS = [
-    "csv",
-    "doc",
-    "docx",
-    "eml",
-    "epub",
-    "gif",
-    "jpg",
-    "jpeg",
-    "json",
-    "html",
-    "htm",
-    "mp3",
-    "msg",
-    "odt",
-    "ogg",
-    "pdf",
-    "png",
-    "pptx",
-    "ps",
-    "rtf",
-    "tiff",
-    "tif",
-    "txt",
-    "wav",
-    "xlsx",
-    "xls",
-]
+SUPPORTED_TEXTRACT_PUIDS = {
+    "fmt/1": "wav",
+    "fmt/2": "wav",
+    "fmt/6": "wav",
+    "fmt/141": "wav",
+    "fmt/142": "wav",
+    "fmt/143": "wav",
+    "fmt/134": "mp3",
+    "fmt/386": "mpg",
+    "fmt/278": "elm",
+    "fmt/39": "doc",
+    "fmt/40": "doc",
+    "x-fmt/44": "doc",
+    "x-fmt/45": "doc",
+    "fmt/50": "rtf",
+    "fmt/59": "xls",
+    "fmt/61": "xls",
+    "fmt/116": "bmp",
+    "x-fmt/111": "txt",
+    "x-fmt/116": "wk4",
+    "fmt/126": "ppt",
+    "fmt/214": "xlsx",
+    "fmt/215": "pptx",
+    "fmt/355": "rtf",
+    "x-fmt/394": "wp",
+    "fmt/412": "docx",
+    "x-fmt/245": "mpp",
+    "x-fmt/430": "msg",
+    "x-fmt/258": "vsd",
+    "fmt/443": "vsd",
+    "fmt/1510": "vsd",
+    "x-fmt/115": "wk3",
+    "x-fmt/255": "pub",
+    "x-fmt/332": "fm3",
+    "x-fmt/18": "csv",
+    "fmt/291": "odt",
+    "fmt/203": "ogg",
+}
 
 
 def add_text_content(file: Dict, file_stream: bytes) -> Dict:
 
-    if file["file_extension"] is None:
-        file_type = file["file_name"].split(".")[-1].lower()
-    else:
-        file_type = file["file_extension"].lower()
+    file_puid = file.ffid_metadata.PUID if file.ffid_metadata else None
     file_id = file["file_id"]
 
-    if file_type not in SUPPORTED_TEXTRACT_FORMATS:
+    if file_puid not in SUPPORTED_TEXTRACT_PUIDS:
         logger.info(
-            f"Text extraction skipped for file {file_id} due to unsupported file type: {file_type}"
+            f"Text extraction skipped for file {file_id} due to unsupported file type: {file_puid}"
         )
         file["content"] = ""
         file["text_extraction_status"] = TextExtractionStatus.SKIPPED.value
@@ -76,7 +90,7 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
         # )
     else:
         try:
-            file["content"] = extract_text(file_stream, file_type)
+            file["content"] = extract_text(file_stream, file_puid)
             logger.info(f"Text extraction succeeded for file {file_id}")
             file["text_extraction_status"] = (
                 TextExtractionStatus.SUCCEEDED.value
@@ -93,9 +107,9 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
     return file
 
 
-def extract_text(file_stream: bytes, file_extension: str) -> str:
+def extract_text(file_stream: bytes, file_puid: str) -> str:
     with tempfile.NamedTemporaryFile(
-        suffix=f".{file_extension}", delete=True
+        suffix=f".{SUPPORTED_TEXTRACT_PUIDS[file_puid]}", delete=True
     ) as temp:
         temp.write(file_stream)
         temp.flush()
@@ -108,14 +122,11 @@ def extract_text(file_stream: bytes, file_extension: str) -> str:
         except Exception as e:
             logger.warning(f"Textract failed on {file_path}: {e}")
 
-            if (
-                file_extension
-                not in TEXTRACT_FILE_FORMAT_FALLBACK_CONVERSION_MAP
-            ):
+            if file_puid not in TEXTRACT_FILE_PUIDS_FALLBACK_CONVERSION_MAP:
                 raise e
 
-            output_file_type = TEXTRACT_FILE_FORMAT_FALLBACK_CONVERSION_MAP[
-                file_extension
+            output_file_type = SUPPORTED_TEXTRACT_PUIDS[
+                TEXTRACT_FILE_PUIDS_FALLBACK_CONVERSION_MAP[file_puid]
             ]
             logger.info(
                 f"Attempting to convert to {output_file_type} before trying textract again..."

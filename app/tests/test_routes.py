@@ -98,13 +98,18 @@ def create_mock_s3_bucket_with_image_object(bucket_name, file):
     image = Image.new("RGB", (800, 600), color=(73, 109, 137))
     puid = getattr(file.ffid_metadata, "PUID", None)
     format_map = {
-        "x-fmt/11": "PNG",
+        "fmt/3": "GIF",
+        "fmt/4": "GIF",
         "fmt/43": "JPEG",
+        "fmt/44": "JPEG",
+        "x-fmt/391": "JPEG",
+        "fmt/11": "PNG",
+        "fmt/12": "PNG",
+        "fmt/13": "PNG",
         "fmt/353": "TIFF",
-        "x-fmt/3": "GIF",
-        "fmt/278": "WEBP",
     }
     img_format = format_map.get(puid.lower(), "PNG") if puid else "PNG"
+    print("IMG FORMAT:", img_format, "PUID:", puid)
     image.save(image_file, format=img_format)
     image_file.seek(0)
 
@@ -230,11 +235,15 @@ class TestRoutes:
         mock_all_access_user,
     ):
         puid_vs_ext = {
-            "x-fmt/11": "png",
+            "fmt/3": "gif",
+            "fmt/4": "gif",
             "fmt/43": "jpeg",
+            "fmt/44": "jpeg",
+            "x-fmt/391": "jpeg",
+            "fmt/11": "png",
+            "fmt/12": "png",
+            "fmt/13": "png",
             "fmt/353": "tiff",
-            "x-fmt/3": "gif",
-            "fmt/278": "webp",
         }
 
         mock_all_access_user(client)
@@ -535,19 +544,17 @@ class TestRoutes:
         file = FileFactory(ffid_metadata__PUID="fmt/40")
         bucket_name = "test-bucket"
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
-        app.config["SUPPORTED_RENDER_PUIDS"] = [
-            "fmt/16",
-            "fmt/17",
-            "fmt/18",
-            "fmt/19",
-            "fmt/20",
-            "fmt/276",
-            "fmt/43",
-            "fmt/44",
-            "fmt/134",
-            "fmt/353",
-            "fmt/386",
-        ]
+        app.config["SUPPORTED_RENDER_PUIDS"] = {
+            "fmt/3": "gif",
+            "fmt/4": "gif",
+            "fmt/43": "jpg",
+            "fmt/44": "jpeg",
+            "x-fmt/391": "jpg",
+            "fmt/11": "png",
+            "fmt/12": "png",
+            "fmt/13": "png",
+            "fmt/353": "tif",
+        }
 
         mock_create_presigned_url.side_effect = Exception(
             "failed to create access copy"
