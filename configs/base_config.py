@@ -1,4 +1,4 @@
-from urllib.parse import quote_plus
+from .db_utils import build_database_url
 
 SELF = "'self'"
 
@@ -135,14 +135,15 @@ class BaseConfig(object):
             ssl_mode = self._get_config_value("SQLALCHEMY_SSL_MODE")
         except KeyError:
             ssl_mode = "verify-full"
-        base_uri = (
-            f"postgresql+psycopg2://{self.DB_USER}:{quote_plus(self.DB_PASSWORD)}"
-            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        return build_database_url(
+            host=self.DB_HOST,
+            port=self.DB_PORT,
+            name=self.DB_NAME,
+            user=self.DB_USER,
+            password=self.DB_PASSWORD,
+            ssl_mode=ssl_mode,
+            ssl_cert=self.DB_SSL_ROOT_CERTIFICATE,
         )
-        if ssl_mode == "disable":
-            return f"{base_uri}?sslmode=disable"
-        else:
-            return f"{base_uri}?sslmode={ssl_mode}&sslrootcert={self.DB_SSL_ROOT_CERTIFICATE}"
 
     @property
     def KEYCLOAK_BASE_URI(self):

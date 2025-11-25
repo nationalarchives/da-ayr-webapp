@@ -74,6 +74,8 @@ def bulk_index_consignment(
     open_search_http_auth: Union[Tuple[str, str], AWS4Auth],
     open_search_bulk_index_timeout: int,
     open_search_ca_certs: Optional[str] = None,
+    open_search_use_ssl: bool = True,
+    open_search_verify_certs: bool = True,
 ) -> None:
     """
     Fetch files associated with a consignment and index them in OpenSearch.
@@ -103,6 +105,8 @@ def bulk_index_consignment(
             open_search_http_auth,
             open_search_bulk_index_timeout,
             open_search_ca_certs,
+            open_search_use_ssl,
+            open_search_verify_certs,
         )
     except Exception as bulk_indexing_exception:
         bulk_index_error = str(bulk_indexing_exception)
@@ -281,6 +285,8 @@ def bulk_index_files_in_opensearch(
     http_auth: Union[Tuple[str, str], AWS4Auth],
     timeout: int = 60,
     ca_certs: Optional[str] = None,
+    use_ssl: bool = True,
+    verify_certs: bool = True,
 ) -> None:
     """
     Perform bulk indexing of documents into OpenSearch using the OpenSearch library.
@@ -291,6 +297,8 @@ def bulk_index_files_in_opensearch(
         http_auth (Union[AWS4Auth, Tuple[str, str]]): The authentication credentials.
         timeout (int): Timeout in seconds for bulk indexing operations.
         ca_certs (Optional[str]): Path to CA certificates for SSL verification.
+        use_ssl (bool): Whether to use SSL. Defaults to True.
+        verify_certs (bool): Whether to verify SSL certificates. Defaults to True.
 
     Raises:
         Exception: If the bulk indexing operation fails.
@@ -300,8 +308,8 @@ def bulk_index_files_in_opensearch(
     client = OpenSearch(
         host_url,
         http_auth=http_auth,
-        use_ssl=True,
-        verify_certs=True,
+        use_ssl=use_ssl,
+        verify_certs=verify_certs,
         ca_certs=ca_certs,
         connection_class=RequestsHttpConnection,
     )

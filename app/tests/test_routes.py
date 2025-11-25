@@ -431,7 +431,7 @@ class TestRoutes:
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
         s3_mock = mock_boto_client.return_value
-        s3_mock.get_object.return_value = {"Body": b"file content"}
+        s3_mock.get_object.return_value = {"Body": BytesIO(b"file content")}
 
         mock_pdf.return_value = ({"mock": "pdf_manifest"}, 200)
         response = client.get(f"/record/{file.FileId}/manifest")
@@ -456,12 +456,14 @@ class TestRoutes:
         When file_extension is in CONVERTIBLE_EXTENSIONS
         """
         mock_all_access_user(client)
-        file = FileFactory(ffid_metadata__PUID="fmt/276")
+        file = FileFactory(
+            ffid_metadata__PUID="fmt/40", ffid_metadata__Extension="xls"
+        )
         bucket_name = "test_bucket"
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
 
         s3_mock = mock_boto_client.return_value
-        s3_mock.get_object.return_value = {"Body": b"file content"}
+        s3_mock.get_object.return_value = {"Body": BytesIO(b"file content")}
 
         mock_pdf.return_value = ({"mock": "pdf_manifest"}, 200)
         response = client.get(f"/record/{file.FileId}/manifest")
@@ -497,7 +499,7 @@ class TestRoutes:
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
         s3_mock = mock_boto_client.return_value
-        s3_mock.get_object.return_value = {"Body": b"file content"}
+        s3_mock.get_object.return_value = {"Body": BytesIO(b"file content")}
 
         mock_image.return_value = ({"mock": "image_manifest"}, 200)
         response = client.get(f"/record/{file.FileId}/manifest")
@@ -525,7 +527,7 @@ class TestRoutes:
         app.config["RECORD_BUCKET_NAME"] = bucket_name
 
         s3_mock = mock_boto_client.return_value
-        s3_mock.get_object.return_value = {"Body": b"file content"}
+        s3_mock.get_object.return_value = {"Body": BytesIO(b"file content")}
 
         response = client.get(f"/record/{file.FileId}/manifest")
         assert response.status_code == 400
@@ -541,7 +543,9 @@ class TestRoutes:
         mock_all_access_user,
     ):
         mock_all_access_user(client)
-        file = FileFactory(ffid_metadata__PUID="fmt/40")
+        file = FileFactory(
+            ffid_metadata__PUID="fmt/40", ffid_metadata__Extension="xls"
+        )
         bucket_name = "test-bucket"
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
         app.config["SUPPORTED_RENDER_PUIDS"] = {

@@ -9,6 +9,9 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     openssl \
     curl \
+    tesseract-ocr \
+    antiword \
+    libreoffice \
     nodejs \
     npm \
     && rm -rf /var/lib/apt/lists/*

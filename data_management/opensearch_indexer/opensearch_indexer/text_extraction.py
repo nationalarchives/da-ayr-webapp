@@ -23,7 +23,7 @@ TEXTRACT_FILE_PUIDS_FALLBACK_CONVERSION_MAP = {
     "x-fmt/45": "fmt/412",
 }
 SLACK_CHANNEL = os.getenv("SLACK_CHANNEL")
-ENVIRONMENT = os.getenv("ENVIRONMENT")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 
 
 class TextExtractionStatus(Enum):
