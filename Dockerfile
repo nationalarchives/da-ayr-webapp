@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     tesseract-ocr \
     antiword \
-    libreoffice \
+    libreoffice
 
 RUN curl -fsSL https://deb.nodesource.com/setup_25.x | bash - \
     && apt-get install -y nodejs \
