@@ -11,8 +11,9 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     antiword \
     libreoffice \
-    nodejs \
-    npm \
+
+RUN curl -fsSL https://deb.nodesource.com/setup_25.x | bash - \
+    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry (cached layer)
@@ -26,7 +27,7 @@ RUN poetry config virtualenvs.create false && \
 
 # Copy Node.js dependency files and install
 COPY package*.json /docker_app/
-RUN npm install
+RUN npm ci
 COPY app/static/src/scss /docker_app/app/static/src/scss
 # Build CSS files before copying the rest of the app as
 # we won't update them as often as other source files
