@@ -13,6 +13,7 @@ UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS = {
     "fmt/12": "png",
     "fmt/13": "png",
     "fmt/353": "tif",
+    "fmt/567": "webp",
 }
 
 UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS = {

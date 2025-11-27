@@ -107,6 +107,7 @@ def create_mock_s3_bucket_with_image_object(bucket_name, file):
         "fmt/12": "PNG",
         "fmt/13": "PNG",
         "fmt/353": "TIFF",
+        "fmt/567": "WEBP",
     }
     img_format = format_map.get(puid.lower(), "PNG") if puid else "PNG"
     print("IMG FORMAT:", img_format, "PUID:", puid)
@@ -244,6 +245,7 @@ class TestRoutes:
             "fmt/12": "png",
             "fmt/13": "png",
             "fmt/353": "tiff",
+            "fmt/567": "webp",
         }
 
         mock_all_access_user(client)
@@ -558,6 +560,7 @@ class TestRoutes:
             "fmt/12": "png",
             "fmt/13": "png",
             "fmt/353": "tif",
+            "fmt/567": "webp",
         }
 
         mock_create_presigned_url.side_effect = Exception(
