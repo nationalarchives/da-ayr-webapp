@@ -41,7 +41,7 @@ SUPPORTED_TEXTRACT_PUIDS = {
     "fmt/143": "wav",
     "fmt/134": "mp3",
     "fmt/386": "mpg",
-    "fmt/278": "elm",
+    "fmt/278": "eml",
     "fmt/39": "doc",
     "fmt/40": "doc",
     "x-fmt/44": "doc",
@@ -56,7 +56,6 @@ SUPPORTED_TEXTRACT_PUIDS = {
     "fmt/214": "xlsx",
     "fmt/215": "pptx",
     "fmt/355": "rtf",
-    "x-fmt/394": "wp",
     "fmt/412": "docx",
     "x-fmt/245": "mpp",
     "x-fmt/430": "msg",
@@ -69,12 +68,19 @@ SUPPORTED_TEXTRACT_PUIDS = {
     "x-fmt/18": "csv",
     "fmt/291": "odt",
     "fmt/203": "ogg",
+    "fmt/16": "pdf",
+    "fmt/17": "pdf",
+    "fmt/18": "pdf",
+    "fmt/19": "pdf",
+    "fmt/20": "pdf",
+    "fmt/276": "pdf",
+    "x-fmt/394": "html",
 }
 
 
 def add_text_content(file: Dict, file_stream: bytes) -> Dict:
 
-    file_puid = file.ffid_metadata.PUID if file.ffid_metadata else None
+    file_puid = file["file_puid"] if file["file_puid"] else None
     file_id = file["file_id"]
 
     if file_puid not in SUPPORTED_TEXTRACT_PUIDS:
