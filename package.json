@@ -12,7 +12,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@storybook/html-vite": "10.1.0",
+    "@storybook/html-vite": "10.1.2",
     "@testing-library/jest-dom": "^6.9.1",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.2.1",
