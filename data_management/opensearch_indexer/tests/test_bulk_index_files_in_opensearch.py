@@ -640,6 +640,7 @@ def test_bulk_index_consignment_error_handling(
                 FFID_SoftwareVersion="1.0",
                 FFID_BinarySignatureFileVersion="1",
                 FFID_ContainerSignatureFileVersion="1",
+                PUID="x-fmt/111",
             ),
         ]
     )

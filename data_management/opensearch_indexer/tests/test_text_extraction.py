@@ -15,12 +15,12 @@ class TestExtractText:
         [
             (
                 "multiline.txt",
-                "txt",
+                "x-fmt/111",
                 "This is line 1\nThis is line 2\nThis is line 3\nThis is line 4, the final line.\n",
             ),
             (
                 "multiline.docx",
-                "docx",
+                "fmt/412",
                 "This is line 1\n\n\t\t\t\t\t\t\t\t\t\t\t\t\t"
                 "This is line 2\n\n\t\t\t\t\t\t\t\t\t\t\t\t\t"
                 "This is line 3\n\n"
@@ -28,57 +28,47 @@ class TestExtractText:
             ),
             (
                 "multiline.doc",
-                "doc",
+                "fmt/40",
                 "\nExpected content\nSecond line\nThird line\n",
             ),
             (
                 "multiline.pdf",
-                "pdf",
+                "fmt/276",
                 "This is line 1\nThis is line 2\nThis is line 3\nThis is line 4, the final line.\n\n\x0c",
             ),
             (
                 "multiline.odt",
-                "odt",
+                "fmt/291",
                 "This is line 1\nThis is line 2\nThis is line 3\nThis is line 4, the final odt line.\n",
             ),
             (
                 "multiline.html",
-                "html",
+                "x-fmt/394",
                 "\nThis is line 1\n            This is line 2\n            This is line 3, the final html line.\n",
             ),
             (
                 "multiline.htm",
-                "html",
+                "x-fmt/394",
                 "\nThis is line 1\n            This is line 2\n            This is line 3, the final htm line.\n",
             ),
             (
-                "multiline.epub",
-                "epub",
-                "multiline\nThis is line 1\nThis is line 2\nThis is line 3\nThis is line 4, the final epub line.\n",
-            ),
-            (
-                "multiline.json",
-                "json",
-                "value1 value2 value3 ",
-            ),
-            (
                 "multiline.eml",
-                "eml",
+                "fmt/278",
                 "This is line 1\nThis is line 2\nThis is line 3\nThis is line 4, the final eml line.\n",
             ),
             (
                 "multiline.msg",
-                "msg",
+                "x-fmt/430",
                 "\n\nThis is line 1\r\nThis is line 2\r\nThis is line 3\r\nThis is line 4, the final msg line.\r\n",
             ),
             (
                 "multiline.csv",
-                "csv",
+                "x-fmt/18",
                 "\tHeader1\tHeader2\tHeader3\t\t\t\n\tValue1\tValue2\tValue3\t\t\t",
             ),
             (
                 "multiline.xlsx",
-                "xlsx",
+                "fmt/214",
                 "\nHeader1 Header2 Header3\nValue1 Value2 Value3\n",
             ),
         ],
@@ -118,6 +108,7 @@ def test_add_text_content_success(mock_extract_text, caplog):
         "file_id": 1,
         "file_name": "example.pdf",
         "file_extension": "pdf",
+        "file_puid": "fmt/276",
         "content": "",
         "text_extraction_status": "",
     }
@@ -132,7 +123,7 @@ def test_add_text_content_success(mock_extract_text, caplog):
     assert (
         result["text_extraction_status"] == TextExtractionStatus.SUCCEEDED.value
     )
-    mock_extract_text.assert_called_once_with(file_stream, "pdf")
+    mock_extract_text.assert_called_once_with(file_stream, "fmt/276")
 
     assert "Text extraction succeeded for file 1" in caplog.text
 
@@ -149,6 +140,7 @@ def test_add_text_content_no_ffid_metadata_success(mock_extract_text, caplog):
         "file_id": 1,
         "file_name": "example.pdf",
         "file_extension": None,
+        "file_puid": "fmt/276",
         "content": "",
         "text_extraction_status": "",
     }
@@ -163,7 +155,7 @@ def test_add_text_content_no_ffid_metadata_success(mock_extract_text, caplog):
     assert (
         result["text_extraction_status"] == TextExtractionStatus.SUCCEEDED.value
     )
-    mock_extract_text.assert_called_once_with(file_stream, "pdf")
+    mock_extract_text.assert_called_once_with(file_stream, "fmt/276")
 
     assert "Text extraction succeeded for file 1" in caplog.text
 
@@ -181,6 +173,7 @@ def test_add_text_content_unsupported_format(caplog):
         "file_id": 2,
         "file_name": "example.exe",  # Unsupported file type
         "file_extension": "exe",
+        "file_puid": "fmt/100",
         "content": "",
         "text_extraction_status": "",
     }
@@ -196,7 +189,7 @@ def test_add_text_content_unsupported_format(caplog):
     )
 
     assert (
-        "Text extraction skipped for file 2 due to unsupported file type: exe"
+        "Text extraction skipped for file 2 due to unsupported file type: fmt/100"
         in caplog.text
     )
 
@@ -214,6 +207,7 @@ def test_add_text_content_failure(mock_extract_text, caplog):
         "file_id": 3,
         "file_name": "example.txt",  # Supported file type
         "file_extension": "txt",
+        "file_puid": "x-fmt/111",
         "content": "",
         "text_extraction_status": "",
     }
@@ -229,7 +223,7 @@ def test_add_text_content_failure(mock_extract_text, caplog):
     # Then
     assert result["content"] == ""
     assert result["text_extraction_status"] == TextExtractionStatus.FAILED.value
-    mock_extract_text.assert_called_once_with(file_stream, "txt")
+    mock_extract_text.assert_called_once_with(file_stream, "x-fmt/111")
 
     assert (
         "Text extraction failed for file 3: Text extraction failed"
@@ -250,6 +244,7 @@ def test_add_text_content_no_extension():
         "file_id": 4,
         "file_name": "example",  # No file extension
         "file_extension": "",  # no extension
+        "file_puid": "",
         "content": "",
         "text_extraction_status": "",
     }
@@ -275,6 +270,7 @@ def test_add_text_content_fallback_success():
         "file_id": 5,
         "file_name": "example.xls",  # In fallback map
         "file_extension": "xls",
+        "file_puid": "fmt/59",
         "content": "",
         "text_extraction_status": "",
     }
@@ -321,7 +317,7 @@ def test_extract_text_libreoffice_conversion_failure():
         mock_convert.side_effect = Exception("libreoffice conversion failed")
 
         with pytest.raises(Exception, match="libreoffice conversion failed"):
-            extract_text(file_bytes, "xls")
+            extract_text(file_bytes, "fmt/59")
 
         mock_textract.assert_called_once()
         mock_convert.assert_called_once()
@@ -350,7 +346,7 @@ def test_extract_text_fallback_conversion_failure():
 
         # Then
         with pytest.raises(Exception, match="converted textract failed"):
-            extract_text(file_bytes, "xls")
+            extract_text(file_bytes, "fmt/59")
 
         assert mock_textract.call_count == 2
         mock_convert.assert_called_once()

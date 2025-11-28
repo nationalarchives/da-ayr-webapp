@@ -220,7 +220,8 @@ def fetch_files_in_consignment(
         c."ConsignmentReference" AS consignment_reference,
         fm."PropertyName",
         fm."Value",
-        ffid."Extension" AS file_extension
+        ffid."Extension" AS file_extension,
+        ffid."PUID" AS puid
     FROM
         "File" f
     JOIN
@@ -271,6 +272,7 @@ def fetch_files_in_consignment(
                 "consignment_id": str(row.consignment_id),
                 "consignment_reference": str(row.consignment_reference),
                 "file_extension": str(row.file_extension),
+                "file_puid": str(row.puid),
             }
 
         if row.PropertyName:
