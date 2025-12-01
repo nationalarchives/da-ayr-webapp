@@ -841,7 +841,6 @@ def download_record(record_id: uuid.UUID):
         headers={
             "Content-Disposition": f'attachment; filename="{download_filename}"',
             "Content-Type": obj.get("ContentType", "application/octet-stream"),
-            "Content-Length": str(obj.get("ContentLength", "")),
         },
         direct_passthrough=True,
     )
