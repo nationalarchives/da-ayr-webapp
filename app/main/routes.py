@@ -10,6 +10,7 @@ from flask import (
     render_template,
     request,
     session,
+    stream_with_context,
     url_for,
 )
 from sqlalchemy import func
@@ -826,20 +827,24 @@ def download_record(record_id: uuid.UUID):
     download_filename = get_download_endpoint_filename(file)
 
     try:
-        presigned_url = s3.generate_presigned_url(
-            "get_object",
-            Params={
-                "Bucket": bucket,
-                "Key": key,
-                "ResponseContentDisposition": f"attachment; filename={download_filename}",
-            },
-            ExpiresIn=3600,
-        )
-    except Exception as e:
-        current_app.app_logger.error(f"Failed to generate presigned URL: {e}")
+        obj = s3.get_object(Bucket=bucket, Key=key)
+    except ClientError as e:
+        current_app.app_logger.error(f"Failed to get S3 object: {e}")
         abort(500)
 
-    return redirect(presigned_url)
+    def generate():
+        for chunk in obj["Body"].iter_chunks(chunk_size=1024 * 1024):
+            yield chunk
+
+    return Response(
+        stream_with_context(generate()),
+        headers={
+            "Content-Disposition": f'attachment; filename="{download_filename}"',
+            "Content-Type": obj.get("ContentType", "application/octet-stream"),
+            "Content-Length": str(obj.get("ContentLength", "")),
+        },
+        direct_passthrough=True,
+    )
 
 
 @bp.route("/record/<uuid:record_id>/manifest")
