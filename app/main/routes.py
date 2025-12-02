@@ -828,7 +828,7 @@ def download_record(record_id: uuid.UUID):
                 "Key": key,
                 "ResponseContentDisposition": f"attachment; filename={download_filename}",
             },
-            ExpiresIn=3600,
+            ExpiresIn=1,
         )
     except Exception as e:
         current_app.app_logger.error(f"Failed to generate presigned URL: {e}")
