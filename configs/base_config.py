@@ -259,7 +259,6 @@ class BaseConfig(object):
     def CSP_SCRIPT_SRC_ELEM(self):
         return [
             SELF,
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.2.0/",
         ]
 

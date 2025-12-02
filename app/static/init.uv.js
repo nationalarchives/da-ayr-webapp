@@ -10,7 +10,7 @@ function initUniversalViewer() {
   const uv = UV.init("uv", data);
   uv.on("configure", function ({ config, cb }) {
     config.modules.centerPanel.options = {
-      usePdfJs: true,
+      usePdfJs: false,
     };
     config.modules.footerPanel.options = {
       downloadEnabled: false,
