@@ -2,6 +2,7 @@
 Feature: Browse functionality
 """
 
+import pytest
 from playwright.sync_api import Page
 
 
@@ -19,6 +20,21 @@ class TestBrowse:
     @property
     def route_url(self):
         return "/browse"
+
+    @pytest.mark.health_check
+    def test_browse_page_loads(self, aau_user_page: Page):
+        """
+        Health check: Verify browse page loads and displays data.
+        Simplified version for quick monitoring.
+        """
+        aau_user_page.goto(f"{self.route_url}")
+
+        aau_user_page.wait_for_selector("table", timeout=10000)
+
+        assert aau_user_page.get_by_label("Sort by").is_visible()
+        assert aau_user_page.get_by_role(
+            "button", name="Apply filters"
+        ).is_visible()
 
     def test_browse_with_filter_sort_and_choose_transferring_body(
         self, aau_user_page: Page, utils
