@@ -7,6 +7,7 @@ class TestingConfig(BaseConfig):
     DEFAULT_PAGE_SIZE = 5
     DEFAULT_DATE_FORMAT = "DD/MM/YYYY"
     OPEN_SEARCH_TIMEOUT = 10
+    SQLALCHEMY_DATABASE_URI = ""
 
     def _get_config_value(self, variable_name):
         return ""

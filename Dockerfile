@@ -1,4 +1,5 @@
-FROM python:3.13-slim
+# Python 3.13-slim
+FROM python@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
 
 WORKDIR /docker_app
 
@@ -8,6 +9,9 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     openssl \
     curl \
+    tesseract-ocr \
+    antiword \
+    libreoffice \
     nodejs \
     npm \
     && rm -rf /var/lib/apt/lists/*
@@ -36,6 +40,7 @@ COPY configs/ /docker_app/configs
 COPY main_app.py .flaskenv /docker_app/
 # Restore the built CSS files
 RUN cp -r /tmp/css_backup /docker_app/app/static/src/css
+
 
 ENV FLASK_ENV=development
 ENV FLASK_DEBUG=1

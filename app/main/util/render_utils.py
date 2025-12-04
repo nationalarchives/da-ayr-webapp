@@ -36,6 +36,12 @@ def get_file_extension(file):
     return file_extension
 
 
+def get_file_puid(file):
+    """Extract file PUID from FFIDMetadata"""
+    puid = file.ffid_metadata.PUID.lower()
+    return puid
+
+
 def get_download_filename(file):
     """Generate download filename for a file."""
     if file.CiteableReference:

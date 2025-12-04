@@ -306,7 +306,7 @@ class TestRecord:
         Then the alert banner responsible with alerting the user should NOT be visible
         """
 
-        file = FileFactory(ffid_metadata__Extension="doc")
+        file = FileFactory(ffid_metadata__PUID="fmt/40")
         bucket_name = "test_bucket"
 
         app.config["ACCESS_COPY_BUCKET"] = bucket_name
@@ -365,38 +365,7 @@ class TestRecord:
         Then the alert banner responsible with alerting the user should NOT be visible
         """
 
-        file = FileFactory(ffid_metadata__Extension="pdf")
-        bucket_name = "test_bucket"
-
-        app.config["RECORD_BUCKET_NAME"] = bucket_name
-        create_mock_s3_bucket_with_object(bucket_name, file)
-        mock_standard_user(client, file.consignment.series.body.Name)
-
-        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
-
-        assert response.status_code == 200
-
-        html = response.data.decode()
-
-        soup = BeautifulSoup(html, "html.parser")
-        banner = soup.find("h2", string="Unable to display this record")
-        assert banner is None
-
-    @mock_aws
-    def test_record_record_alert_banner_is_not_visible_when_supported_file_extension_no_ffid_metadata(
-        self, app, client: FlaskClient, mock_standard_user
-    ):
-        """
-        Given a File with no FFID metadata in the database
-        When a standard user with request to view the record details page
-        Then the response status code should be 200
-        If the extension of the File requested is compatible with IIIF
-        Then the alert banner responsible with alerting the user should NOT be visible
-        """
-
-        file = FileFactory(
-            FileName="open_file.pdf", ffid_metadata__Extension=None
-        )
+        file = FileFactory(ffid_metadata__PUID="fmt/276")
         bucket_name = "test_bucket"
 
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -1139,7 +1108,7 @@ class TestRecord:
         """
         mock_all_access_user(client)
 
-        file = FileFactory(ffid_metadata__Extension="pdf")
+        file = FileFactory(ffid_metadata__PUID="fmt/276")
 
         bucket_name = "test_bucket"
 

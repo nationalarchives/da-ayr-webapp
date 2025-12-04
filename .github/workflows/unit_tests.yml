@@ -10,10 +10,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
 
     - name: Set up Python
-      uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
+      uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548
       with:
         python-version: 3.11
 
@@ -32,6 +32,9 @@ jobs:
     - name: Build CSS
       run: npm run build
 
+    - name: Run init.uv.js tests
+      run: npm run test
+
     - name: Run App unit tests
       run: AWS_DEFAULT_REGION=eu-west-2 poetry run pytest --cov=app/main --cov-report term-missing -rsa -vvv app/tests
 
@@ -49,7 +52,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
 
     - name: Set up Docker Compose
       run: |

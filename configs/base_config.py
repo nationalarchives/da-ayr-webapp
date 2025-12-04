@@ -1,30 +1,67 @@
-from urllib.parse import quote_plus
+from .db_utils import build_database_url
 
 SELF = "'self'"
 
-UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES = {
-    "jpeg": "image/jpeg",
-    "jpg": "image/jpeg",
-    "png": "image/png",
-    "gif": "image/gif",
-    "webp": "image/webp",
-}
-UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES = {"pdf": "application/pdf"}
 
-CONVERTIBLE_EXTENSIONS = {
-    "doc",
-    "docx",
-    "ppt",
-    "pptx",
-    "wk1",
-    "wpd",
-    "rtf",
-    "xls",
-    "xlsx",
-    "xml",
-    "odt",
-    "html",
-    "wk4",
+UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS = {
+    "fmt/3": "gif",
+    "fmt/4": "gif",
+    "fmt/43": "jpg",
+    "fmt/44": "jpg",
+    "x-fmt/391": "jpg",
+    "fmt/11": "png",
+    "fmt/12": "png",
+    "fmt/13": "png",
+    "fmt/353": "tif",
+    "fmt/567": "webp",
+}
+
+UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS = {
+    "fmt/16": "pdf",
+    "fmt/17": "pdf",
+    "fmt/18": "pdf",
+    "fmt/19": "pdf",
+    "fmt/20": "pdf",
+    "fmt/276": "pdf",
+}
+
+CONVERTIBLE_PUIDS = {
+    "fmt/1": "wav",
+    "fmt/2": "wav",
+    "fmt/6": "wav",
+    "fmt/141": "wav",
+    "fmt/142": "wav",
+    "fmt/143": "wav",
+    "fmt/134": "mp3",
+    "fmt/386": "mpg",
+    "fmt/278": "elm",
+    "fmt/39": "doc",
+    "fmt/40": "doc",
+    "x-fmt/44": "doc",
+    "x-fmt/45": "doc",
+    "fmt/50": "rtf",
+    "fmt/59": "xls",
+    "fmt/61": "xls",
+    "fmt/116": "bmp",
+    "x-fmt/111": "txt",
+    "x-fmt/116": "wk4",
+    "fmt/126": "ppt",
+    "fmt/214": "xlsx",
+    "fmt/215": "pptx",
+    "fmt/355": "rtf",
+    "x-fmt/394": "wp",
+    "fmt/412": "docx",
+    "x-fmt/245": "mpp",
+    "x-fmt/430": "msg",
+    "x-fmt/258": "vsd",
+    "fmt/443": "vsd",
+    "fmt/1510": "vsd",
+    "x-fmt/115": "wk3",
+    "x-fmt/255": "pub",
+    "x-fmt/332": "fm3",
+    "x-fmt/18": "csv",
+    "fmt/291": "odt",
+    "fmt/203": "ogg",
 }
 
 
@@ -34,15 +71,15 @@ class BaseConfig(object):
     DEPARTMENT_NAME = "The National Archives"
     DEPARTMENT_URL = "https://www.nationalarchives.gov.uk/"
     SERVICE_NAME = "AYR – Access Your Records"
-    UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES = (
-        UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES
+    UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS = (
+        UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS
     )
-    UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES = (
-        UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES
+    UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS = (
+        UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS
     )
-    SUPPORTED_RENDER_EXTENSIONS = [
-        *UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_TYPES,
-        *UNIVERSAL_VIEWER_SUPPORTED_IMAGE_TYPES,
+    SUPPORTED_RENDER_PUIDS = [
+        *UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS,
+        *UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS,
     ]
 
     @staticmethod
@@ -99,14 +136,15 @@ class BaseConfig(object):
             ssl_mode = self._get_config_value("SQLALCHEMY_SSL_MODE")
         except KeyError:
             ssl_mode = "verify-full"
-        base_uri = (
-            f"postgresql+psycopg2://{self.DB_USER}:{quote_plus(self.DB_PASSWORD)}"
-            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        return build_database_url(
+            host=self.DB_HOST,
+            port=self.DB_PORT,
+            name=self.DB_NAME,
+            user=self.DB_USER,
+            password=self.DB_PASSWORD,
+            ssl_mode=ssl_mode,
+            ssl_cert=self.DB_SSL_ROOT_CERTIFICATE,
         )
-        if ssl_mode == "disable":
-            return f"{base_uri}?sslmode=disable"
-        else:
-            return f"{base_uri}?sslmode={ssl_mode}&sslrootcert={self.DB_SSL_ROOT_CERTIFICATE}"
 
     @property
     def KEYCLOAK_BASE_URI(self):
@@ -221,7 +259,6 @@ class BaseConfig(object):
     def CSP_SCRIPT_SRC_ELEM(self):
         return [
             SELF,
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
             "https://cdn.jsdelivr.net/npm/universalviewer@4.2.0/",
         ]
 

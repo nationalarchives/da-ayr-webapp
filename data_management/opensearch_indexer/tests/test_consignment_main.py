@@ -160,13 +160,13 @@ def test_main_invokes_bulk_index_with_correct_file_data(monkeypatch, database):
             FFIDMetadata(
                 FileId=file_ids[0],
                 Extension="txt",
-                PUID="fmt/115",
+                PUID="x-fmt/111",
                 FormatName="Plain Text",
             ),
             FFIDMetadata(
                 FileId=file_ids[1],
                 Extension="txt",
-                PUID="fmt/115",
+                PUID="x-fmt/111",
                 FormatName="Plain Text",
             ),
             FFIDMetadata(
@@ -178,7 +178,7 @@ def test_main_invokes_bulk_index_with_correct_file_data(monkeypatch, database):
             FFIDMetadata(
                 FileId=file_ids[3],
                 Extension="txt",
-                PUID="fmt/115",
+                PUID="x-fmt/111",
                 FormatName="Plain Text",
             ),
         ]

@@ -10,10 +10,22 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.1.1
+
+    - name: Free up disk space
+      run: |
+        docker system prune -af --volumes
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /usr/local/share/boost
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/hostedtoolcache/CodeQL
+        sudo rm -rf /usr/local/share/powershell
+        sudo rm -rf /usr/share/swift
+        df -h
 
     - name: Set up Docker Compose
       uses: docker/setup-compose-action@364cc21a5de5b1ee4a7f5f9d3fa374ce0ccde746 # v1.2.0
@@ -28,22 +40,6 @@ jobs:
         tags: "da-ayr-beta-webapp:latest"
         cache-from: type=gha
         cache-to: type=gha,mode=max
-
-    - name: Set up environment variables for services
-      run: | # pragma: allowlist secret
-        cd local_services
-        cat > .env << EOF
-        OPENSEARCH_INITIAL_ADMIN_PASSWORD=FOOBARCARabc123!
-        POSTGRES_DB=local_db
-        POSTGRES_USER=local_db_user
-        POSTGRES_PASSWORD=local_db_user_password
-        KEYCLOAK_ADMIN=admin
-        KEYCLOAK_ADMIN_PASSWORD=password
-        KC_POSTGRES_PORT=5432
-        WEBAPP_POSTGRES_PORT=5433
-        MINIO_ROOT_USER=ROOTNAME
-        MINIO_ROOT_PASSWORD=CHANGEME123
-        EOF
 
     - name: Start Docker Compose with CI-specific configuration
       run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)

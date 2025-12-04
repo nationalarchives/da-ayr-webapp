@@ -74,6 +74,20 @@
         "basic",
         "roles",
         "web-origins"
+      ],
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "ayr-beta",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false"
+          }
+        }
       ]
     }
   ],
@@ -527,7 +541,9 @@
             "access.token.claim": "true",
             "claim.name": "realm_access.roles",
             "jsonType.label": "String",
-            "multivalued": "true"
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
           }
         },
         {
@@ -536,7 +552,9 @@
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-resolve-mapper",
           "consentRequired": false,
-          "config": {}
+          "config": {
+            "introspection.token.claim": "true"
+          }
         },
         {
           "id": "8c425e75-4fe6-4c68-ba77-d83c1ebc291f",
@@ -549,7 +567,9 @@
             "access.token.claim": "true",
             "claim.name": "resource_access.${client_id}.roles",
             "jsonType.label": "String",
-            "multivalued": "true"
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
           }
         }
       ]
@@ -571,7 +591,10 @@
           "protocol": "openid-connect",
           "protocolMapper": "oidc-allowed-origins-mapper",
           "consentRequired": false,
-          "config": {}
+          "config": {
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
         }
       ]
     },
@@ -729,7 +752,11 @@
       "groups": [
         "/ayr_user_type/download",
         "/ayr_user_type/view_all"
-      ]
+      ],
+      "realmRoles": ["offline_access", "uma_authorization"],
+      "clientRoles": {
+        "ayr-beta": ["user"]
+      }
     },
     {
       "username": "service-account-ayr-beta",
