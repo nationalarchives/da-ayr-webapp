@@ -2,7 +2,6 @@
 Feature: Browse functionality
 """
 
-import pytest
 from playwright.sync_api import Page
 
 
@@ -21,7 +20,6 @@ class TestBrowse:
     def route_url(self):
         return "/browse"
 
-    @pytest.mark.health_check
     def test_browse_page_loads(self, aau_user_page: Page):
         """
         Health check: Verify browse page loads and displays data.
