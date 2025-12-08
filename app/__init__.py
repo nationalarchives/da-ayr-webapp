@@ -120,22 +120,22 @@ def create_app(config_class, database_uri=None):
     setup_logging(app)
     db.init_app(app)
 
-    secrets = AWSSecretsManagerConfig()
+    def init_extensions(app):
 
-    @event.listens_for(db.engine, "handle_error")
-    def handle_db_errors(exception_context):
-        error = exception_context.original_exception
+        secrets = AWSSecretsManagerConfig()
 
-        if (
-            isinstance(error, OperationalError)
-            and "password" in str(error).lower()
-        ):
+        @event.listens_for(db.engine, "handle_error")
+        def handle_db_errors(exception_context):
+            error = exception_context.original_exception
+            if (
+                isinstance(error, OperationalError)
+                and "password" in str(error).lower()
+            ):
+                secrets.refresh_db_secret()
+                db.engine.dispose()
+                return None
 
-            secrets.refresh_db_secret()
-
-            db.engine.dispose()
-
-            return None
+        return secrets
 
     s3.init_app(app)
     compress.init_app(app)
