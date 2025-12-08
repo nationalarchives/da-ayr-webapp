@@ -1,5 +1,3 @@
-import os
-
 from .db_utils import build_database_url
 
 SELF = "'self'"
@@ -317,19 +315,4 @@ class BaseConfig(object):
         return ["blob:", SELF, self.FLASKS3_CDN_DOMAIN]
 
     def _get_config_value(self, variable_name):
-        """
-        Fetches config values.
-
-        BaseConfig reads ONLY environment variables.
-        AWSSecretsManagerConfig overrides this method to read from AWS secrets.
-
-        This keeps local development working without AWS Secrets Manager.
-        """
-        value = os.getenv(variable_name)
-
-        if value is None:
-            raise KeyError(
-                f"{variable_name} is not set in environment variables"
-            )
-
-        return value
+        pass
