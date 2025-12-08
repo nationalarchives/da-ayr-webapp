@@ -19,6 +19,7 @@ class AWSSecretsManagerConfig(BaseConfig):
         self.secrets_dict = self._get_secrets_manager_config_dict(
             os.getenv("AWS_SM_CONFIG_SECRET_ID")
         )
+        self._db_config = None
 
     def _get_secrets_manager_config_dict(self, secret_id):
         """
@@ -45,6 +46,15 @@ class AWSSecretsManagerConfig(BaseConfig):
         """
         return self.secrets_dict[variable_name]
 
+    def refresh_db_secret(self):
+        """
+        Force refresh DB credentials from Secrets Manager.
+        Called when SQL fails with authentication error.
+        """
+        self._db_config = self._get_secrets_manager_config_dict(
+            os.getenv("AWS_SM_DB_CONFIG_SECRET_ID")
+        )
+
     @property
     def KEYCLOAK_CLIENT_SECRET(self):
         return self._get_secrets_manager_config_dict(
@@ -53,9 +63,13 @@ class AWSSecretsManagerConfig(BaseConfig):
 
     @property
     def _DB_CONFIG(self):
-        return self._get_secrets_manager_config_dict(
-            os.getenv("AWS_SM_DB_CONFIG_SECRET_ID")
-        )
+        """
+        Lazy-load the DB secret only once.
+        Rotated secrets are picked up via refresh_db_secret().
+        """
+        if self._db_config is None:
+            self.refresh_db_secret()
+        return self._db_config
 
     @property
     def DB_HOST(self):

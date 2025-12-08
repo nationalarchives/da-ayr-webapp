@@ -8,10 +8,13 @@ from flask_s3 import FlaskS3
 from flask_talisman import Talisman
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
+from sqlalchemy import event
+from sqlalchemy.exc import OperationalError
 
 from app.logger_config import setup_logging
 from app.main.db.models import db
 from app.main.util.search_utils import OPENSEARCH_FIELD_NAME_MAP
+from configs.aws_secrets_manager_config import AWSSecretsManagerConfig
 
 compress = Compress()
 talisman = Talisman()
@@ -116,6 +119,24 @@ def create_app(config_class, database_uri=None):
     # Initialise app extensions
     setup_logging(app)
     db.init_app(app)
+
+    secrets = AWSSecretsManagerConfig()
+
+    @event.listens_for(db.engine, "handle_error")
+    def handle_db_errors(exception_context):
+        error = exception_context.original_exception
+
+        if (
+            isinstance(error, OperationalError)
+            and "password" in str(error).lower()
+        ):
+
+            secrets.refresh_db_secret()
+
+            db.engine.dispose()
+
+            return None
+
     s3.init_app(app)
     compress.init_app(app)
     talisman.init_app(
