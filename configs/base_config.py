@@ -26,15 +26,6 @@ UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS = {
 }
 
 CONVERTIBLE_PUIDS = {
-    "fmt/1": "wav",
-    "fmt/2": "wav",
-    "fmt/6": "wav",
-    "fmt/141": "wav",
-    "fmt/142": "wav",
-    "fmt/143": "wav",
-    "fmt/134": "mp3",
-    "fmt/386": "mpg",
-    "fmt/278": "elm",
     "fmt/39": "doc",
     "fmt/40": "doc",
     "x-fmt/44": "doc",
@@ -59,9 +50,6 @@ CONVERTIBLE_PUIDS = {
     "x-fmt/115": "wk3",
     "x-fmt/255": "pub",
     "x-fmt/332": "fm3",
-    "x-fmt/18": "csv",
-    "fmt/291": "odt",
-    "fmt/203": "ogg",
 }
 
 
