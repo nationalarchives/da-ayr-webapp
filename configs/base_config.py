@@ -33,7 +33,6 @@ CONVERTIBLE_PUIDS = {
     "fmt/50": "rtf",
     "fmt/59": "xls",
     "fmt/61": "xls",
-    "fmt/116": "bmp",
     "x-fmt/111": "txt",
     "x-fmt/116": "wk4",
     "fmt/126": "ppt",
@@ -42,14 +41,7 @@ CONVERTIBLE_PUIDS = {
     "fmt/355": "rtf",
     "x-fmt/394": "wp",
     "fmt/412": "docx",
-    "x-fmt/245": "mpp",
-    "x-fmt/430": "msg",
-    "x-fmt/258": "vsd",
-    "fmt/443": "vsd",
-    "fmt/1510": "vsd",
     "x-fmt/115": "wk3",
-    "x-fmt/255": "pub",
-    "x-fmt/332": "fm3",
 }
 
 
