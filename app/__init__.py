@@ -131,6 +131,7 @@ def create_app(config_class, database_uri=None):
                 isinstance(error, OperationalError)
                 and "password" in str(error).lower()
             ):
+                print("Refreshing Password")
                 secrets.refresh_db_secret()
                 db.engine.dispose()
                 return None
