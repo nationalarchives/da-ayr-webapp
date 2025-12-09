@@ -51,6 +51,7 @@ class AWSSecretsManagerConfig(BaseConfig):
         Force refresh DB credentials from Secrets Manager.
         Called when SQL fails with authentication error.
         """
+        print("Refreshing Password")
         self._db_config = self._get_secrets_manager_config_dict(
             os.getenv("AWS_SM_DB_CONFIG_SECRET_ID")
         )
