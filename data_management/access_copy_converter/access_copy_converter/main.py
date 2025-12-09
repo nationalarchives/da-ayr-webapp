@@ -27,6 +27,13 @@ CONVERTIBLE_PUIDS = {
     "x-fmt/394": "wp",
     "fmt/412": "docx",
     "x-fmt/115": "wk3",
+    "fmt/116": "bmp",
+    "x-fmt/258": "vsd",
+    "fmt/443": "vsd",
+    "fmt/1510": "vsd",
+    "x-fmt/255": "pub",
+    "x-fmt/332": "fm3",
+    "x-fmt/18": "csv",
 }
 
 EXCEL_PUIDS = {"fmt/214": "xlsx", "fmt/59": "xls", "fmt/61": "xls"}
