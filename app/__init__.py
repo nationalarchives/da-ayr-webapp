@@ -9,7 +9,7 @@ from flask_talisman import Talisman
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 from sqlalchemy import event
-from sqlalchemy.exc import OperationalError
+
 
 from app.logger_config import setup_logging
 from app.main.db.models import db
@@ -119,25 +119,6 @@ def create_app(config_class, database_uri=None):
     # Initialise app extensions
     setup_logging(app)
     db.init_app(app)
-
-    def init_extensions(app):
-
-        secrets = AWSSecretsManagerConfig()
-
-        @event.listens_for(db.engine, "handle_error")
-        def handle_db_errors(exception_context):
-            error = exception_context.original_exception
-            if (
-                isinstance(error, OperationalError)
-                and "password" in str(error).lower()
-            ):
-                print("Refreshing Password in init")
-                secrets.refresh_db_secret()
-                db.engine.dispose()
-                return None
-
-        return secrets
-
     s3.init_app(app)
     compress.init_app(app)
     talisman.init_app(
@@ -151,12 +132,36 @@ def create_app(config_class, database_uri=None):
     WTFormsHelpers(app)
 
     # setup database components
+    db_secrets = AWSSecretsManagerConfig()
+
     with app.app_context():
         # create db objects for testing else use existing database objects
-        if database_uri:
-            db.create_all()
-        else:
+        if not database_uri:
             db.Model.metadata.reflect(bind=db.engine, schema="public")
+        else:
+            db.create_all()
+
+        #
+        # Now that db.engine EXISTS → attach listener
+        #
+        @event.listens_for(db.engine, "checkout")
+        def validate_connection(dbapi_con, con_record, con_proxy):
+            """
+            Prevent stale credentials from breaking requests.
+            If checkout fails due to bad password, refresh credentials
+            and rebuild engine, then retry on next request.
+            """
+            try:
+                cursor = dbapi_con.cursor()
+                cursor.execute("SELECT 1")
+            except Exception as e:
+                if "password" in str(e).lower():
+                    print(
+                        "Detected invalid DB password — refreshing from Secrets Manager"
+                    )
+                    db_secrets.refresh_db_secret()
+                    db.engine.dispose()
+                raise
 
     # Register blueprints
     from app.main import bp as main_bp
