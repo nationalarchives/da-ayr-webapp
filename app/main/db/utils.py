@@ -22,6 +22,6 @@ def execute_with_retry(fn, *args, **kwargs):
                 secrets.build_sqlalchemy_uri()
             )
             # rebuild engine with new URI
-            db.init_app(db.app)
+            db.init_app(db.current_app)
             return fn(*args, **kwargs)
         raise
