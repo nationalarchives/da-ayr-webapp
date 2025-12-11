@@ -1,3 +1,4 @@
+from flask import current_app
 from sqlalchemy.exc import OperationalError
 
 from app.main.db.models import db
@@ -17,7 +18,7 @@ def execute_with_retry(fn, *args, **kwargs):
             print("🔄 Detected invalid DB password — refreshing secret")
             secrets.refresh_db_secret()
             db.engine.dispose()
-            db.app.config["SQLALCHEMY_DATABASE_URI"] = (
+            current_app.config["SQLALCHEMY_DATABASE_URI"] = (
                 secrets.build_sqlalchemy_uri()
             )
             # rebuild engine with new URI
