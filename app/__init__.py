@@ -8,12 +8,10 @@ from flask_s3 import FlaskS3
 from flask_talisman import Talisman
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
-from sqlalchemy import event
 
 from app.logger_config import setup_logging
 from app.main.db.models import db
 from app.main.util.search_utils import OPENSEARCH_FIELD_NAME_MAP
-from configs.aws_secrets_manager_config import AWSSecretsManagerConfig
 
 compress = Compress()
 talisman = Talisman()
@@ -131,36 +129,12 @@ def create_app(config_class, database_uri=None):
     WTFormsHelpers(app)
 
     # setup database components
-    db_secrets = AWSSecretsManagerConfig()
-
     with app.app_context():
         # create db objects for testing else use existing database objects
-        if not database_uri:
-            db.Model.metadata.reflect(bind=db.engine, schema="public")
-        else:
+        if database_uri:
             db.create_all()
-
-        #
-        # Now that db.engine EXISTS → attach listener
-        #
-        @event.listens_for(db.engine, "checkout")
-        def validate_connection(dbapi_con, con_record, con_proxy):
-            """
-            Prevent stale credentials from breaking requests.
-            If checkout fails due to bad password, refresh credentials
-            and rebuild engine, then retry on next request.
-            """
-            try:
-                cursor = dbapi_con.cursor()
-                cursor.execute("SELECT 1")
-            except Exception as e:
-                if "password" in str(e).lower():
-                    print(
-                        "Detected invalid DB password — refreshing from Secrets Manager"
-                    )
-                    db_secrets.refresh_db_secret()
-                    db.engine.dispose()
-                raise
+        else:
+            db.Model.metadata.reflect(bind=db.engine, schema="public")
 
     # Register blueprints
     from app.main import bp as main_bp
