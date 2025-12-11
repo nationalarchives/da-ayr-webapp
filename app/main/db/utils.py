@@ -15,13 +15,17 @@ def execute_with_retry(fn, *args, **kwargs):
         return fn(*args, **kwargs)
     except OperationalError as e:
         if "password" in str(e).lower():
-            print("🔄 Detected invalid DB password — refreshing secret")
+            current_app.logger.warning(
+                "🔄 Detected invalid DB password — refreshing secret"
+            )
             secrets.refresh_db_secret()
+            # dispose of old connections
             db.engine.dispose()
+            # update URI with fresh secret
             current_app.config["SQLALCHEMY_DATABASE_URI"] = (
                 secrets.build_sqlalchemy_uri()
             )
-            # rebuild engine with new URI
-            db.init_app(db.current_app)
+            # re‑bind SQLAlchemy to the current app
+            db.init_app(current_app)
             return fn(*args, **kwargs)
         raise
