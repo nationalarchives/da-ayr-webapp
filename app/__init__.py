@@ -10,7 +10,6 @@ from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 from sqlalchemy import event
 
-
 from app.logger_config import setup_logging
 from app.main.db.models import db
 from app.main.util.search_utils import OPENSEARCH_FIELD_NAME_MAP
