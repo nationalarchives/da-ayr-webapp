@@ -92,6 +92,12 @@ class AWSSecretsManagerConfig(BaseConfig):
     def DB_NAME(self):
         return self._DB_CONFIG["dbname"]
 
+    def build_sqlalchemy_uri(self):
+        return (
+            f"postgresql+psycopg2://{self.DB_USER}:{self.DB_PASSWORD}"
+            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        )
+
     @property
     def OPEN_SEARCH_HTTP_AUTH(self):
         session = boto3.Session()
