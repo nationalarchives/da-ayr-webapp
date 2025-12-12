@@ -23,6 +23,7 @@ def execute_with_retry(fn, *args, **kwargs):
             current_app.logger.warning(f"NEW URI = {new_uri}")
             # dispose old engine and rebuild with new URI
             db.engine.dispose()
+            db.session.remove()
 
             return fn(*args, **kwargs)
         raise
