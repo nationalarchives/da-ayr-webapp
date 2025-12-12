@@ -1,4 +1,5 @@
 from flask import current_app
+from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 
 from app.main.db.models import db
@@ -22,7 +23,10 @@ def execute_with_retry(fn, *args, **kwargs):
             current_app.config["SQLALCHEMY_DATABASE_URI"] = new_uri
             current_app.logger.warning(f"NEW URI = {new_uri}")
             # dispose old engine and rebuild with new URI
+
             db.engine.dispose()
+            db._engine = create_engine(new_uri)  # private attribute, but works
+
             db.session.remove()
 
             return fn(*args, **kwargs)
