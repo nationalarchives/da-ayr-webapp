@@ -1,4 +1,5 @@
 from flask import current_app
+from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 
 from app.main.db.models import db
@@ -8,9 +9,6 @@ secrets = AWSSecretsManagerConfig()
 
 
 def execute_with_retry(fn, *args, **kwargs):
-    """
-    Execute a function that uses the DB, retrying once if password has rotated.
-    """
     try:
         return fn(*args, **kwargs)
     except OperationalError as e:
@@ -20,10 +18,13 @@ def execute_with_retry(fn, *args, **kwargs):
             )
             secrets.refresh_db_secret()
             # update URI with fresh secret
-            current_app.config["SQLALCHEMY_DATABASE_URI"] = (
-                secrets.build_sqlalchemy_uri()
-            )
-            # dispose of old connections so new ones use the updated URI
+            new_uri = secrets.build_sqlalchemy_uri()
+            current_app.logger.info(f"Old URI = {new_uri}")
+            current_app.config["SQLALCHEMY_DATABASE_URI"] = new_uri
+            current_app.logger.info(f"NEW URI = {new_uri}")
+            # dispose old engine and rebuild with new URI
             db.engine.dispose()
+            db.engine = create_engine(new_uri)
+
             return fn(*args, **kwargs)
         raise
