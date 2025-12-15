@@ -9,7 +9,6 @@ from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 def build_browse_query(
     transferring_body_id=None, filters=None, sorting_orders=None
 ):
-    db.engine.dispose()
     sub_query = (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
@@ -63,7 +62,6 @@ def build_browse_query(
 
 
 def build_browse_series_query(series_id, filters=None, sorting_orders=None):
-    db.engine.dispose()
     sub_query = (
         db.session.query(
             Body.Name.label("transferring_body"),
@@ -115,7 +113,6 @@ def build_browse_series_query(series_id, filters=None, sorting_orders=None):
 def build_browse_consignment_query(
     consignment_id: uuid.UUID, filters=None, sorting_orders=None
 ):
-    db.engine.dispose()
     select = db.session.query(
         File.FileId.label("file_id"),
         File.FileName.label("file_name"),
@@ -259,7 +256,6 @@ def build_browse_consignment_query(
 
 
 def _build_browse_filters(query, sub_query, filters):
-    db.engine.dispose()
     transferring_body = filters.get("transferring_body")
     if transferring_body:
         filter_value = str(f"%{transferring_body}%").lower()
@@ -303,7 +299,6 @@ def _build_sorting_orders(query, sub_query, sorting_orders):
 
 
 def get_file_metadata(file_id: uuid.UUID):
-    db.engine.dispose()
     query = _get_file_metadata_query(file_id)
     row = query.first_or_404()
     return dict(row._mapping)
