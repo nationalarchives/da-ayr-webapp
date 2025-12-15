@@ -30,7 +30,6 @@ from app.main.db.queries import (
     build_browse_series_query,
     get_file_metadata,
 )
-from app.main.db.utils import execute_with_retry
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
@@ -181,8 +180,7 @@ def browse():
         )
     else:
         # all access user (all_access_user)
-        bodies = execute_with_retry(Body.query.all)
-        for body in bodies:
+        for body in Body.query.all():
             transferring_bodies.append(body.Name)
 
         validated_data = request.validated_data
@@ -221,15 +219,11 @@ def browse():
             sorting_orders=sorting_orders,
         )
 
-        browse_results = execute_with_retry(
-            lambda: query.paginate(page=page, per_page=per_page)
-        )
+        browse_results = query.paginate(page=page, per_page=per_page)
 
-        total_records = execute_with_retry(
-            lambda: db.session.query(
-                func.sum(query.subquery().c.records_held)
-            ).scalar()
-        )
+        total_records = db.session.query(
+            func.sum(query.subquery().c.records_held)
+        ).scalar()
 
         if total_records:
             num_records_found = total_records
@@ -272,7 +266,7 @@ def browse_transferring_body(_id: uuid.UUID):
     Returns:
         A rendered HTML page with transferring body records.
     """
-    body = execute_with_retry(db.session.get, Body, _id)
+    body = db.session.get(Body, _id)
     validate_body_user_groups_or_404(body.Name)
 
     breadcrumb_values = {0: {"transferring_body": body.Name}}
@@ -316,15 +310,11 @@ def browse_transferring_body(_id: uuid.UUID):
         sorting_orders=sorting_orders,
     )
 
-    browse_results = execute_with_retry(
-        lambda: query.paginate(page=page, per_page=per_page)
-    )
+    browse_results = query.paginate(page=page, per_page=per_page)
 
-    total_records = execute_with_retry(
-        lambda: db.session.query(
-            func.sum(query.subquery().c.records_held)
-        ).scalar()
-    )
+    total_records = db.session.query(
+        func.sum(query.subquery().c.records_held)
+    ).scalar()
 
     if total_records:
         num_records_found = total_records
@@ -366,7 +356,7 @@ def browse_series(_id: uuid.UUID):
     Returns:
         A rendered HTML page with series records.
     """
-    series = execute_with_retry(db.session.get, Series, _id)
+    series = db.session.get(Series, _id)
     body = series.body
     validate_body_user_groups_or_404(body.Name)
 
@@ -415,15 +405,11 @@ def browse_series(_id: uuid.UUID):
         sorting_orders=sorting_orders,
     )
 
-    browse_results = execute_with_retry(
-        lambda: query.paginate(page=page, per_page=per_page)
-    )
+    browse_results = query.paginate(page=page, per_page=per_page)
 
-    total_records = execute_with_retry(
-        lambda: db.session.query(
-            func.sum(query.subquery().c.records_held)
-        ).scalar()
-    )
+    total_records = db.session.query(
+        func.sum(query.subquery().c.records_held)
+    ).scalar()
 
     if total_records:
         num_records_found = total_records
@@ -465,7 +451,7 @@ def browse_consignment(_id: uuid.UUID):
     Returns:
         A rendered HTML page with consignment records.
     """
-    consignment = execute_with_retry(db.session.get, Consignment, _id)
+    consignment = db.session.get(Consignment, _id)
     body = consignment.series.body
     validate_body_user_groups_or_404(body.Name)
 
@@ -517,11 +503,9 @@ def browse_consignment(_id: uuid.UUID):
         sorting_orders=sorting_orders,
     )
 
-    browse_results = execute_with_retry(
-        lambda: query.paginate(page=page, per_page=per_page)
-    )
+    browse_results = query.paginate(page=page, per_page=per_page)
 
-    total_records = execute_with_retry(lambda: query.count())
+    total_records = query.count()
     if total_records:
         num_records_found = total_records
     else:
@@ -561,12 +545,11 @@ def search():
 
     if ayr_user.is_standard_user or transferring_body_id:
         if not transferring_body_id:
-            tb = execute_with_retry(
-                lambda: Body.query.filter(
-                    Body.Name == ayr_user.transferring_body.Name
-                ).first()
+            transferring_body_id = str(
+                Body.query.filter(Body.Name == ayr_user.transferring_body.Name)
+                .first()
+                .BodyId
             )
-            transferring_body_id = str(tb.BodyId)
         return redirect(
             url_for(
                 "main.search_transferring_body",
@@ -642,7 +625,7 @@ def search_results_summary():
 @log_page_view
 @validate_request(SearchTransferringBodyRequestSchema, location="combined")
 def search_transferring_body(_id: uuid.UUID):
-    body = execute_with_retry(db.session.get, Body, _id)
+    body = db.session.get(Body, _id)
     validate_body_user_groups_or_404(body.Name)
 
     form = SearchForm()
@@ -746,7 +729,7 @@ def record(record_id: uuid.UUID):
         A rendered HTML page with record details.
     """
     form = SearchForm()
-    file = execute_with_retry(db.session.get, File, record_id)
+    file = db.session.get(File, record_id)
     ayr_user = AYRUser(session.get("user_groups"))
     can_download_records = ayr_user.can_download_records
     presigned_url = None
@@ -754,11 +737,9 @@ def record(record_id: uuid.UUID):
     if file is None:
         abort(404)
 
-    # Access related attributes (may lazy-load) through execute_with_retry to ensure retries on auth failure
-    body_name = execute_with_retry(lambda: file.consignment.series.body.Name)
-    validate_body_user_groups_or_404(body_name)
+    validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
-    file_metadata = execute_with_retry(get_file_metadata, file.FileId)
+    file_metadata = get_file_metadata(file.FileId)
 
     file_extension = get_file_extension(file)
     puid = get_file_puid(file)
@@ -811,7 +792,7 @@ def record(record_id: uuid.UUID):
 @validate_request(DownloadRequestSchema, location="path")
 def download_record(record_id: uuid.UUID):
     s3 = boto3.client("s3")
-    file = execute_with_retry(db.session.get, File, record_id)
+    file = db.session.get(File, record_id)
     ayr_user = AYRUser(session.get("user_groups"))
     can_download_records = ayr_user.can_download_records
 
@@ -821,15 +802,10 @@ def download_record(record_id: uuid.UUID):
     if file is None:
         abort(404)
 
-    # Validate body using a retry-safe access (lazy loads)
-    body_name = execute_with_retry(lambda: file.consignment.series.body.Name)
-    validate_body_user_groups_or_404(body_name)
+    validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
     bucket = current_app.config["RECORD_BUCKET_NAME"]
-    consignment_ref = execute_with_retry(
-        lambda: file.consignment.ConsignmentReference
-    )
-    key = f"{consignment_ref}/{file.FileId}"
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
     try:
         s3.head_object(Bucket=bucket, Key=key)
@@ -866,14 +842,12 @@ def download_record(record_id: uuid.UUID):
 @log_page_view
 @validate_request(GenerateManifestRequestSchema, location="path")
 def generate_manifest(record_id: uuid.UUID) -> Response:
-    file = execute_with_retry(db.session.get, File, record_id)
+    file = db.session.get(File, record_id)
     if file is None:
         abort(404)
+    validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
-    body_name = execute_with_retry(lambda: file.consignment.series.body.Name)
-    validate_body_user_groups_or_404(body_name)
-
-    file_name = execute_with_retry(lambda: file.FileName)
+    file_name = file.FileName
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
     puid = get_file_puid(file)
 
@@ -883,7 +857,7 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         """
         s3 = boto3.client("s3")
         bucket = bucket_name or current_app.config["RECORD_BUCKET_NAME"]
-        key = f"{execute_with_retry(lambda: file.consignment.ConsignmentReference)}/{file.FileId}"
+        key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
         s3_file_object = s3.get_object(Bucket=bucket, Key=key)
         return s3_file_object
 
