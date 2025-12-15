@@ -269,7 +269,7 @@
                                                name="search_filter"
                                                type="text">
                                     </div>
-                                    {% for key, value in request.args.items() %}
+                                    {% for key, value in query_string_parameters.items() %}
                                         {% if key != 'page' and key != 'search_filter' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}
                                     {% endfor %}
                                     <div class="search-form__buttons">
@@ -298,11 +298,11 @@
                                         {% endfor %}
                                         {% set new_query = terms_to_keep | join('+') %}
                                         {% if search_terms | length == 1 %}
-                                            {% set remove_url_args = request.args.copy() %}
+                                            {% set remove_url_args = query_string_parameters.copy() %}
                                             {% set _ = remove_url_args.pop('query', None) %}
                                             {% set search_term_url = url_for('main.browse_transferring_body', _id = request.view_args['_id'], **remove_url_args) %}
                                         {% else %}
-                                            {% set remove_url_args = request.args.copy() %}
+                                            {% set remove_url_args = query_string_parameters.copy() %}
                                             {% set _ = remove_url_args.pop('query', None) %}
                                             {% if new_query %}
                                                 {% set _ = remove_url_args.update({'query': new_query}) %}

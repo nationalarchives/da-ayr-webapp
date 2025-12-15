@@ -120,7 +120,7 @@
                     classes="govuk-button__browse-all-filters-form-apply-button"
                     ) }}
                     <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-all-filter"
-                       href="{{ url_for('main.browse_transferring_body', _id=request.view_args['_id'], sort=request.args.get('sort'), _anchor='browse-records') }}">Clear filters</a>
+                       href="{{ url_for('main.browse_transferring_body', _id=request.view_args['_id'], sort=query_string_parameters.get('sort'), _anchor='browse-records') }}">Clear filters</a>
                 </div>
             </div>
         </div>
