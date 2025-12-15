@@ -42,7 +42,7 @@
                 {% with dict = breadcrumbs %}
                     {% include "breadcrumb.html" %}
                 {% endwith %}
-                <form action="{{ url_for('main.search_transferring_body', _id = request.view_args['_id'], _anchor='browse-records') }}"
+                <form action="{{ url_for('main.search_transferring_body', _id = query_string_parameters['_id'], _anchor='browse-records') }}"
                       method="get">
                     <div class="browse-layout">
                         {% if num_records_found > 0 %}
@@ -242,7 +242,7 @@
                                     </tbody>
                                 </table>
                                 <!-- PAGINATION -->
-                                {% with view_name='main.search_transferring_body', id = request.view_args['_id'] %}
+                                {% with view_name='main.search_transferring_body', id = query_string_parameters['_id'] %}
                                     {% include "pagination.html" %}
                                 {% endwith %}
                                 <!-- END PAGINATION -->
@@ -261,7 +261,7 @@
                                                for="search_filter">Search within results</label>
                                     </h2>
                                 </div>
-                                <form action="{{ url_for('main.search_transferring_body', _id = request.view_args['_id'], _anchor='browse-records') }}"
+                                <form action="{{ url_for('main.search_transferring_body', _id = query_string_parameters['_id'], _anchor='browse-records') }}"
                                       method="get">
                                     <div class="govuk-form-group govuk-form-group--search-all-filter">
                                         <input class="govuk-input govuk-!-width-full govuk-input--browse-all-input"
@@ -278,7 +278,7 @@
                                         classes="govuk-button__search-filters-form-apply-button"
                                         ) }}
                                         <a class="govuk-link govuk-link--transferring-filter"
-                                           href="{% if session['user_type'] == 'all_access_user' %}{{ url_for('main.browse', _anchor='browse-records') }}{% else %}{{ url_for('main.browse_transferring_body', _id = request.view_args['_id'], _anchor='browse-records') }}{% endif %}">Clear all terms</a>
+                                           href="{% if session['user_type'] == 'all_access_user' %}{{ url_for('main.browse', _anchor='browse-records') }}{% else %}{{ url_for('main.browse_transferring_body', _id = query_string_parameters['_id'], _anchor='browse-records') }}{% endif %}">Clear all terms</a>
                                     </div>
                                 </form>
                                 <h3 class="govuk-heading-s govuk-heading-s--search-term">Search terms applied</h3>
@@ -300,14 +300,14 @@
                                         {% if search_terms | length == 1 %}
                                             {% set remove_url_args = query_string_parameters.copy() %}
                                             {% set _ = remove_url_args.pop('query', None) %}
-                                            {% set search_term_url = url_for('main.browse_transferring_body', _id = request.view_args['_id'], **remove_url_args) %}
+                                            {% set search_term_url = url_for('main.browse_transferring_body', _id = query_string_parameters['_id'], **remove_url_args) %}
                                         {% else %}
                                             {% set remove_url_args = query_string_parameters.copy() %}
                                             {% set _ = remove_url_args.pop('query', None) %}
                                             {% if new_query %}
                                                 {% set _ = remove_url_args.update({'query': new_query}) %}
                                             {% endif %}
-                                            {% set search_term_url = url_for('main.search_transferring_body', _id = request.view_args['_id'], **remove_url_args) %}
+                                            {% set search_term_url = url_for('main.search_transferring_body', _id = query_string_parameters['_id'], **remove_url_args) %}
                                         {% endif %}
                                         <a href="{{ search_term_url }}"
                                            class="search-term-link"

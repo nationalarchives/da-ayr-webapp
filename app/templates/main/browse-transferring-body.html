@@ -19,7 +19,7 @@
     {% if num_records_found > 0 %}
         <!-- SORT -->
         <div class="govuk-form-group sort-container__form">
-            <form action="{{ url_for('main.browse_transferring_body', _id=request.view_args['_id'], _anchor='browse-records') }}"
+            <form action="{{ url_for('main.browse_transferring_body', _id=query_string_parameters['_id'], _anchor='browse-records') }}"
                   method="get">
                 {% with dict = sorting_list %}
                     {% include "sorting-list.html" %}
@@ -78,7 +78,7 @@
                 </tbody>
             </table>
             <!-- PAGINATION -->
-            {% with view_name='main.browse_transferring_body', id = request.view_args['_id'] %}
+            {% with view_name='main.browse_transferring_body', id = query_string_parameters['_id'] %}
                 {% include "pagination.html" %}
             {% endwith %}
             <!-- END PAGINATION -->
@@ -89,7 +89,7 @@
         {% endwith %}
     {% endif %}
     <!-- FILTERS -->
-    <form action="{{ url_for('main.browse_transferring_body', _id=request.view_args['_id'], _anchor='browse-records') }}"
+    <form action="{{ url_for('main.browse_transferring_body', _id=query_string_parameters['_id'], _anchor='browse-records') }}"
           method="get">
         <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
             <div class="browse-all-filter-container">
@@ -120,7 +120,7 @@
                     classes="govuk-button__browse-all-filters-form-apply-button"
                     ) }}
                     <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-all-filter"
-                       href="{{ url_for('main.browse_transferring_body', _id=request.view_args['_id'], sort=query_string_parameters.get('sort'), _anchor='browse-records') }}">Clear filters</a>
+                       href="{{ url_for('main.browse_transferring_body', _id=query_string_parameters['_id'], sort=query_string_parameters.get('sort'), _anchor='browse-records') }}">Clear filters</a>
                 </div>
             </div>
         </div>
