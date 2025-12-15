@@ -300,10 +300,12 @@
                                         {% if search_terms | length == 1 %}
                                             {% set remove_url_args = query_string_parameters.copy() %}
                                             {% set _ = remove_url_args.pop('query', None) %}
+                                            {% set _ = remove_url_args.pop('_id', None) %}
                                             {% set search_term_url = url_for('main.browse_transferring_body', _id = query_string_parameters['_id'], **remove_url_args) %}
                                         {% else %}
                                             {% set remove_url_args = query_string_parameters.copy() %}
                                             {% set _ = remove_url_args.pop('query', None) %}
+                                            {% set _ = remove_url_args.pop('_id', None) %}
                                             {% if new_query %}
                                                 {% set _ = remove_url_args.update({'query': new_query}) %}
                                             {% endif %}
