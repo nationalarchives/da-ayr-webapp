@@ -131,7 +131,7 @@ def create_app(config_class, database_uri=None):
     WTFormsHelpers(app)
     secrets = AWSSecretsManagerConfig()
     # setup database components
-    
+
     with app.app_context():
         try:
             if database_uri:
