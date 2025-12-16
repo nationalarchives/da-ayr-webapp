@@ -142,7 +142,8 @@ def create_app(config_class, database_uri=None):
             if "password" in str(e).lower():
                 print("🔄 DB password invalid — refreshing secret")
                 secrets.refresh_db_secret()
-
+                print(database_uri)
+                db.engine.dispose()
                 # retry once
                 if database_uri:
                     db.create_all()
