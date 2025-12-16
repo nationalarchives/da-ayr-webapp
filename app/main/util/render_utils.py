@@ -1,5 +1,6 @@
 import base64
 import io
+import time
 from typing import Any, List
 
 import boto3
@@ -9,6 +10,9 @@ from flask import Response, current_app, jsonify
 from PIL import Image
 
 from app.main.db.models import File
+
+pdf_cache = {}
+pdf_cache_ttl = 300
 
 
 def generate_breadcrumb_values(file):
@@ -378,3 +382,24 @@ def generate_image_manifest(
     }
 
     return jsonify(manifest)
+
+
+def get_pdf_from_s3(bucket: str, key: str) -> bytes:
+    """Check if PDF has been cached
+    else fetch PDF file from S3 and return its bytes."""
+    cache_key = f"{bucket}:{key}"
+
+    if cache_key in pdf_cache:
+        cached_pdf, timestamp = pdf_cache[cache_key]
+        if time.time() - timestamp < pdf_cache_ttl:
+            return cached_pdf
+        else:
+            del pdf_cache[cache_key]  # Remove stale cache entry
+
+    s3 = boto3.client("s3")
+    s3_object = s3.get_object(Bucket=bucket, Key=key)
+    pdf_bytes = s3_object["Body"].read()
+
+    # save to cache
+    pdf_cache[cache_key] = (pdf_bytes, time.time())
+    return pdf_bytes

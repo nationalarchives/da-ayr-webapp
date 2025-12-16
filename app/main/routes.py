@@ -57,6 +57,7 @@ from app.main.util.render_utils import (
     get_download_filename,
     get_file_extension,
     get_file_puid,
+    get_pdf_from_s3,
 )
 from app.main.util.request_validation_utils import validate_request
 from app.main.util.schemas import (
@@ -928,12 +929,13 @@ def get_page_image(record_id: uuid.UUID, page_number: int):
         bucket = current_app.config["RECORD_BUCKET_NAME"]
 
     # Fetch PDF from S3
-    s3 = boto3.client("s3")
+    # s3 = boto3.client("s3")
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
     try:
-        s3_object = s3.get_object(Bucket=bucket, Key=key)
-        pdf_bytes = s3_object["Body"].read()
+        pdf_bytes = get_pdf_from_s3(bucket=bucket, key=key)
+        # s3_object = s3.get_object(Bucket=bucket, Key=key)
+        # pdf_bytes = s3_object["Body"].read()
     except ClientError as e:
         current_app.app_logger.error(
             f"Failed to fetch PDF from S3 for page image: {e}"
@@ -986,12 +988,13 @@ def get_page_thumbnail(record_id: uuid.UUID, page_number: int):
         bucket = current_app.config["RECORD_BUCKET_NAME"]
 
     # Fetch PDF from S3
-    s3 = boto3.client("s3")
+    # s3 = boto3.client("s3")
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
     try:
-        s3_object = s3.get_object(Bucket=bucket, Key=key)
-        pdf_bytes = s3_object["Body"].read()
+        pdf_bytes = get_pdf_from_s3(bucket=bucket, key=key)
+        # s3_object = s3.get_object(Bucket=bucket, Key=key)
+        # pdf_bytes = s3_object["Body"].read()
     except ClientError as e:
         current_app.app_logger.error(
             f"Failed to fetch PDF from S3 for thumbnail: {e}"
