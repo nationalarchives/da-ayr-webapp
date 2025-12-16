@@ -1,7 +1,7 @@
 import base64
 import io
 import time
-from typing import Any, List
+from typing import List
 
 import boto3
 import pymupdf
@@ -210,7 +210,9 @@ def create_presigned_url_for_access_copy(file: File) -> str:
 def generate_pdf_manifest(
     file_name: str,
     manifest_url: str,
-    file_obj: Any = None,
+    # file_obj: Any = None,
+    bucket: str = None,
+    key: str = None,
     record_id: str = None,
 ) -> Response:
     """
@@ -230,7 +232,8 @@ def generate_pdf_manifest(
     )
 
     # Read PDF to get page count and dimensions
-    pdf_bytes = file_obj["Body"].read()
+    pdf_bytes = get_pdf_from_s3(bucket, key)
+    # pdf_bytes = file_obj["Body"].read()
     current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
 
     canvas_items = []
@@ -323,9 +326,15 @@ def generate_pdf_manifest(
 
 
 def generate_image_manifest(
-    file_name: str, file_url: str, manifest_url: str, s3_file_object: Any
+    file_name: str,
+    file_url: str,
+    manifest_url: str,
+    # s3_file_object: Any,
+    bucket: str = None,
+    key: str = None,
 ) -> Response:
-    image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
+    pdf_bytes = get_pdf_from_s3(bucket, key)
+    image = Image.open(pdf_bytes)
     image_width, image_height = image.size
 
     # Detect image format

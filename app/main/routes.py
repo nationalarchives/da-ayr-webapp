@@ -855,17 +855,17 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
     puid = get_file_puid(file)
 
-    def get_s3_file_obj(file, bucket_name=None):
-        """
-        Helper to get S3 file object and presigned URL for a given file.
-        """
-        s3 = boto3.client("s3")
-        bucket = bucket_name or current_app.config["RECORD_BUCKET_NAME"]
-        key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
-        return s3_file_object
+    # def get_s3_file_obj(file, bucket_name=None):
+    #     """
+    #     Helper to get S3 file object and presigned URL for a given file.
+    #     """
+    #     s3 = boto3.client("s3")
+    #     bucket = bucket_name or current_app.config["RECORD_BUCKET_NAME"]
+    #     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+    #     s3_file_object = s3.get_object(Bucket=bucket, Key=key)
+    #     return s3_file_object
 
-    s3_file_obj = get_s3_file_obj(file)
+    # s3_file_obj = get_s3_file_obj(file)
 
     if (
         puid
@@ -874,22 +874,29 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         return generate_pdf_manifest(
             file_name,
             manifest_url,
-            file_obj=s3_file_obj,
+            bucket=current_app.config["RECORD_BUCKET_NAME"],
+            key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
             record_id=str(record_id),
         )
     elif puid in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS"]:
         file_url = create_presigned_url(file)
         return generate_image_manifest(
-            file_name, file_url, manifest_url, s3_file_object=s3_file_obj
+            file_name,
+            file_url,
+            manifest_url,
+            bucket=current_app.config["RECORD_BUCKET_NAME"],
+            key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
         )
     elif puid in CONVERTIBLE_PUIDS:
-        file_obj = get_s3_file_obj(
-            file, bucket_name=current_app.config["ACCESS_COPY_BUCKET"]
-        )
+        # file_obj = get_s3_file_obj(
+        #     file, bucket_name=current_app.config["ACCESS_COPY_BUCKET"]
+        # )
         return generate_pdf_manifest(
             file.FileName,
             manifest_url,
-            file_obj=file_obj,
+            # file_obj=file_obj,
+            bucket=current_app.config["ACCESS_COPY_BUCKET"],
+            key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
             record_id=str(record_id),
         )
 
