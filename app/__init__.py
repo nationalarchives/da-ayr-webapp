@@ -131,24 +131,25 @@ def create_app(config_class, database_uri=None):
     WTFormsHelpers(app)
     secrets = AWSSecretsManagerConfig()
     # setup database components
-    try:
-        with app.app_context():
+    
+    with app.app_context():
+        try:
             if database_uri:
                 db.create_all()
             else:
                 db.Model.metadata.reflect(bind=db.engine, schema="public")
-    except OperationalError as e:
-        if "password" in str(e).lower():
-            print("🔄 DB password invalid — refreshing secret")
-            secrets.refresh_db_secret()
+        except OperationalError as e:
+            if "password" in str(e).lower():
+                print("🔄 DB password invalid — refreshing secret")
+                secrets.refresh_db_secret()
 
-            # retry once
-            if database_uri:
-                db.create_all()
+                # retry once
+                if database_uri:
+                    db.create_all()
+                else:
+                    db.Model.metadata.reflect(bind=db.engine, schema="public")
             else:
-                db.Model.metadata.reflect(bind=db.engine, schema="public")
-        else:
-            raise
+                raise
 
     # Register blueprints
     from app.main import bp as main_bp
