@@ -24,6 +24,239 @@ from sqlalchemy import (
 from sqlalchemy.exc import SQLAlchemyError
 
 
+class TestMainModuleCoverage:
+    def test_main_invalid_conversion_type(self, monkeypatch):
+        monkeypatch.setenv("APP_SECRET_ID", "x")
+        monkeypatch.setenv("CONVERSION_TYPE", "INVALID")
+        monkeypatch.setattr(
+            main_module,
+            "get_secret_string",
+            lambda x: {
+                "RECORD_BUCKET_NAME": "src",
+                "ACCESS_COPY_BUCKET": "dst",
+            },
+        )
+        monkeypatch.setattr(
+            main_module,
+            "get_engine",
+            lambda: mock.Mock(connect=lambda: mock.Mock()),
+        )
+
+        class DummySM:
+            def get_secret_value(self, SecretId):
+                return {
+                    "SecretString": '{"RECORD_BUCKET_NAME": "src", "ACCESS_COPY_BUCKET": "dst"}'
+                }
+
+        class DummyS3:
+            def download_file(self, *a, **k):
+                pass
+
+            def upload_file(self, *a, **k):
+                pass
+
+            def get_paginator(self, *a, **k):
+                class DummyPaginator:
+                    def paginate(self, *a, **k):
+                        return []
+
+                return DummyPaginator()
+
+            def head_object(self, *a, **k):
+                raise Exception("not found")
+
+        monkeypatch.setattr(main_module, "sm", DummySM())
+        monkeypatch.setattr(main_module, "s3", DummyS3())
+        with pytest.raises(ValueError) as exc:
+            main_module.main()
+        assert "Invalid CONVERSION_TYPE" in str(exc.value)
+
+    def test_create_access_copy_from_sns_missing_env(self, monkeypatch):
+        monkeypatch.delenv("SNS_MESSAGE", raising=False)
+        with pytest.raises(Exception) as exc:
+            main_module.create_access_copy_from_sns("src", "dst", mock.Mock())
+        assert "SNS_MESSAGE environment variable not found" in str(exc.value)
+
+    def test_create_access_copy_from_sns_missing_reference(self, monkeypatch):
+        monkeypatch.setenv("SNS_MESSAGE", "{}")
+        with pytest.raises(Exception) as exc:
+            main_module.create_access_copy_from_sns("src", "dst", mock.Mock())
+        assert "Missing consignment_reference" in str(exc.value)
+
+    def test_create_access_copies_for_all_consignments_failure(
+        self, monkeypatch
+    ):
+        # Simulate a failed file conversion
+        class DummyPaginator:
+            def paginate(self, *a, **k):
+                return [{"Contents": [{"Key": "cons1/file1"}]}]
+
+        class DummyS3:
+            def get_paginator(self, *a, **k):
+                return DummyPaginator()
+
+        monkeypatch.setattr(main_module, "s3", DummyS3())
+
+        def process_consignment(*a, **k):
+            return ["cons1/file1"]
+
+        monkeypatch.setattr(
+            main_module, "process_consignment", process_consignment
+        )
+        with pytest.raises(RuntimeError) as exc:
+            main_module.create_access_copies_for_all_consignments(
+                "src", "dst", mock.Mock()
+            )
+        assert "Conversion failed for 1 file(s)" in str(exc.value)
+
+    def test_create_access_copy_from_sns_failure(self, monkeypatch):
+        # Simulate a failed file conversion in SNS path
+        monkeypatch.setenv(
+            "SNS_MESSAGE", '{"parameters": {"reference": "cons1"}}'
+        )
+
+        def process_consignment(*a, **k):
+            return ["cons1/file1"]
+
+        monkeypatch.setattr(
+            main_module, "process_consignment", process_consignment
+        )
+        with pytest.raises(RuntimeError) as exc:
+            main_module.create_access_copy_from_sns("src", "dst", mock.Mock())
+        assert "Conversion failed for 1 file(s)" in str(exc.value)
+
+    def test_get_secret_string_success(self, monkeypatch):
+        class FakeSM:
+            def get_secret_value(self, SecretId):
+                return {
+                    "SecretString": '{"username": "username", '  # pragma: allowlist secret
+                    '"password": "password", '  # pragma: allowlist secret
+                    '"proxy": "localhost", '  # pragma: allowlist secret
+                    '"port": 5433, "dbname": "db_name", '  # pragma: allowlist secret
+                    '"RECORD_BUCKET_NAME": "src", '  # pragma: allowlist secret
+                    '"ACCESS_COPY_BUCKET": "dst"}'  # pragma: allowlist secret
+                }
+
+        monkeypatch.setattr(main_module, "sm", FakeSM())
+        secret = main_module.get_secret_string("fakeid")
+        assert secret["username"] == "username"
+
+    def test_get_secret_string_failure(self, monkeypatch):
+        class FakeSM:
+            def get_secret_value(self, SecretId):
+                raise Exception("fail")
+
+        monkeypatch.setattr(main_module, "sm", FakeSM())
+        with pytest.raises(Exception):
+            main_module.get_secret_string("fakeid")
+
+    def test_get_engine_env_missing(self, monkeypatch):
+        monkeypatch.delenv("DB_SECRET_ID", raising=False)
+        with pytest.raises(Exception) as exc:
+            main_module.get_engine()
+        assert "DB_SECRET_ID environment variable not found" in str(exc.value)
+
+    def test_download_input_error(self, monkeypatch):
+        def fail_download(*a, **k):
+            raise Exception("fail download")
+
+        monkeypatch.setattr(
+            main_module, "s3", mock.Mock(download_file=fail_download)
+        )
+        with pytest.raises(Exception) as exc:
+            main_module._download_input("b", "k", "p")
+        assert "Failed to download" in str(exc.value)
+
+    def test_upload_output_error(self, monkeypatch, tmp_path):
+        def fail_upload(*a, **k):
+            raise Exception("fail upload")
+
+        monkeypatch.setattr(
+            main_module, "s3", mock.Mock(upload_file=fail_upload)
+        )
+        f = tmp_path / "f.pdf"
+        f.write_bytes(b"x")
+        with pytest.raises(Exception) as exc:
+            main_module._upload_output(str(f), "b", "k", "id")
+        assert "Failed to upload" in str(exc.value)
+
+    def test_cleanup_soffice_processes(self, monkeypatch):
+        class FakeProc:
+            def __init__(self, name, fail_kill=False):
+                self.info = {"name": name}
+                self.pid = 1
+                self._fail = fail_kill
+
+            def kill(self):
+                if self._fail:
+                    raise Exception("fail kill")
+
+        monkeypatch.setattr(
+            main_module.psutil,
+            "process_iter",
+            lambda attrs: [
+                FakeProc("soffice"),
+                FakeProc("soffice.bin", True),
+                FakeProc("other"),
+            ],
+        )
+        # Should not raise
+        main_module._cleanup_soffice_processes()
+
+    def test_main_env_errors(self, monkeypatch):
+        # Test missing APP_SECRET_ID
+        monkeypatch.delenv("APP_SECRET_ID", raising=False)
+        monkeypatch.setenv("CONVERSION_TYPE", "ALL")  # Prevent AWS call
+        with pytest.raises(Exception) as exc:
+            main_module.main()
+        assert "APP_SECRET_ID environment variable not found" in str(exc.value)
+
+        # Test missing CONVERSION_TYPE should NOT raise (defaults to 'ALL')
+        monkeypatch.setenv("APP_SECRET_ID", "x")
+        monkeypatch.setattr(
+            main_module,
+            "get_secret_string",
+            lambda x: {
+                "RECORD_BUCKET_NAME": "src",
+                "ACCESS_COPY_BUCKET": "dst",
+            },
+        )
+
+        class DummySM:
+            def get_secret_value(self, SecretId):
+                return {
+                    "SecretString": '{"RECORD_BUCKET_NAME": "src", "ACCESS_COPY_BUCKET": "dst"}'
+                }
+
+        class DummyS3:
+            def download_file(self, *a, **k):
+                pass
+
+            def upload_file(self, *a, **k):
+                pass
+
+            def get_paginator(self, *a, **k):
+                class DummyPaginator:
+                    def paginate(self, *a, **k):
+                        return []
+
+                return DummyPaginator()
+
+            def head_object(self, *a, **k):
+                raise Exception("not found")
+
+        monkeypatch.setattr(main_module, "sm", DummySM())
+        monkeypatch.setattr(main_module, "s3", DummyS3())
+        monkeypatch.delenv("CONVERSION_TYPE", raising=False)
+        monkeypatch.setattr(
+            main_module,
+            "get_engine",
+            lambda: mock.Mock(connect=lambda: mock.Mock()),
+        )
+        # Should NOT raise
+        main_module.main()
+
+
 @pytest.fixture
 def sqlite_conn():
     engine = create_engine("sqlite:///:memory:")
