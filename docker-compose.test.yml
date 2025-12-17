@@ -45,7 +45,7 @@ services:
         apt-get update
 
         echo 'Installing Python test dependencies...'
-        pip install -r data_management/opensearch_indexer/requirements-dev.txt
+        pip install -r data_management/access_copy_converter/requirements-dev.txt
 
         pytest \
           --cov=data_management/access_copy_converter/access_copy_converter \
