@@ -49,7 +49,7 @@ services:
 
         pytest \
           --cov=data_management/access_copy_converter/access_copy_converter \
-          --cov-report=xml:/test_results/coverage-access_copy_converter.xml \
+          --cov-report=xml:/test_results/coverage.xml \
           --cov-report=term-missing \
           -vvs data_management/access_copy_converter/tests
 
