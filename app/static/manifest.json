@@ -9,7 +9,7 @@
         "type": "image/ico"
       }
     ],
-    "start_url": "./",
+    "start_url": "/browse",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#ffffff"
