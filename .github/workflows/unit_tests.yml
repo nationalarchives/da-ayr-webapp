@@ -60,13 +60,13 @@ jobs:
         sudo apt-get install -y docker-compose
 
     - name: Run Docker Compose Tests
-      run:  docker compose -f docker-compose.test.yml up
+      run:  docker compose -f docker-compose.test.yml up --exit-code-from access_copy_converter_tests
 
     - name: Copy coverage files from shared volume
       run: |
         cp ./test_results/coverage.xml ./coverage.xml || echo "Coverage file not found"
 
-    - name: Upload opensearch_indexer coverage to Codecov
+    - name: Upload coverage to Codecov
       uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de
       with:
         file: ./coverage.xml
