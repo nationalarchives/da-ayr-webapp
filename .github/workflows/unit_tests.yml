@@ -60,8 +60,7 @@ jobs:
         sudo apt-get install -y docker-compose
 
     - name: Run Docker Compose Tests
-      run: |
-        docker compose -f docker-compose.test.yml up --exit-code-from access_copy_converter_tests
+      run:  docker compose -f docker-compose.test.yml up --exit-code-from access_copy_converter_tests
 
     - name: Copy coverage files from shared volume
       run: |
