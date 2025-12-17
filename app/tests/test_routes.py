@@ -197,7 +197,7 @@ class TestRoutes:
                                     "motivation": "sc:painting",
                                     "on": f"http://localhost/record/{file.FileId}/manifest/canvas/1",  # noqa
                                     "resource": {
-                                        "@id": "http://localhost/record/4ff561ea-e510-4bf7-ad9b-6c90283049be/page/1",
+                                        "@id": f"http://localhost/record/{file.FileId}/page/1",
                                         "@type": "dctypes:Image",
                                         "format": "image/jpeg",
                                         "height": 416,
@@ -207,7 +207,7 @@ class TestRoutes:
                             ],
                             "label": "Page 1",
                             "thumbnail": {
-                                "@id": "http://localhost/record/4ff561ea-e510-4bf7-ad9b-6c90283049be/page/1/thumbnail",
+                                "@id": f"http://localhost/record/{file.FileId}/page/1/thumbnail",
                                 "@type": "dctypes:Image",
                                 "format": "image/jpeg",
                                 "height": 200,

@@ -340,7 +340,7 @@ def generate_image_manifest(
     key: str = None,
 ) -> Response:
     pdf_bytes = get_pdf_from_s3(bucket, key)
-    image = Image.open(pdf_bytes)
+    image = Image.open(io.BytesIO(pdf_bytes))
     image_width, image_height = image.size
 
     # Detect image format
