@@ -12,7 +12,6 @@ from PIL import Image
 from app.main.db.models import File
 
 pdf_cache = {}
-pdf_cache_ttl = 300
 
 
 def generate_breadcrumb_values(file):
@@ -322,7 +321,14 @@ def generate_pdf_manifest(
     current_app.logger.info(
         f"Generated PDF manifest with {len(canvas_items)} canvases for {file_name}"
     )
-    return jsonify(manifest)
+
+    response = jsonify(manifest)
+    # Set cache headers using configured duration
+    max_age = current_app.config["UV_MANIFEST_CACHE_MAX_AGE"]
+    response.headers["Cache-Control"] = f"private, max-age={max_age}"
+    response.headers["ETag"] = f'"{record_id}-manifest"'
+
+    return response
 
 
 def generate_image_manifest(
@@ -390,17 +396,23 @@ def generate_image_manifest(
         ],
     }
 
-    return jsonify(manifest)
+    response = jsonify(manifest)
+    # Set cache headers using configured duration
+    max_age = current_app.config["UV_MANIFEST_CACHE_MAX_AGE"]
+    response.headers["Cache-Control"] = f"private, max-age={max_age}"
+
+    return response
 
 
 def get_pdf_from_s3(bucket: str, key: str) -> bytes:
     """Check if PDF has been cached
     else fetch PDF file from S3 and return its bytes."""
     cache_key = f"{bucket}:{key}"
+    cache_ttl = current_app.config["PDF_S3_CACHE_TTL"]
 
     if cache_key in pdf_cache:
         cached_pdf, timestamp = pdf_cache[cache_key]
-        if time.time() - timestamp < pdf_cache_ttl:
+        if time.time() - timestamp < cache_ttl:
             return cached_pdf
         else:
             del pdf_cache[cache_key]  # Remove stale cache entry

@@ -188,14 +188,17 @@ def create_app(config_class, database_uri=None):
     @app.after_request
     def add_no_caching_headers(r):
         """
-        Add headers to tell browsers not to cache the pages to protected routes
+        Add headers to tell browsers not to cache the pages to protected routes.
+        Allows selective client-side caching for endpoints that set g.allow_client_cache.
         """
         if g.get("access_token_sign_in_required"):
-            r.headers["Cache-Control"] = (
-                "public, max-age=0, no-cache, no-store, must-revalidate"
-            )
-            r.headers["Pragma"] = "no-cache"
-            r.headers["Expires"] = "0"
+            # Check if this endpoint allows client-side caching
+            if not g.get("allow_client_cache"):
+                r.headers["Cache-Control"] = (
+                    "public, max-age=0, no-cache, no-store, must-revalidate"
+                )
+                r.headers["Pragma"] = "no-cache"
+                r.headers["Expires"] = "0"
         return r
 
     return app
