@@ -1,8 +1,10 @@
+import subprocess
+import sys
 from pathlib import Path
 from unittest.mock import patch
 
+import opensearch_indexer.text_extraction as te
 import pytest
-import sys
 from opensearch_indexer.text_extraction import (
     TextExtractionStatus,
     add_text_content,
@@ -353,7 +355,6 @@ def test_extract_text_fallback_conversion_failure():
         mock_convert.assert_called_once()
 
 
-
 def test_add_text_content_skipped_alert():
     """
     Given an unsupported file type,
@@ -370,13 +371,16 @@ def test_add_text_content_skipped_alert():
     }
     file_stream = b"some content"
 
-    # Patch only if send_slack_alert exists, otherwise skip test
-    import opensearch_indexer.text_extraction as te
     if hasattr(te, "send_slack_alert"):
-        with patch("opensearch_indexer.text_extraction.send_slack_alert") as mock_alert:
+        with patch(
+            "opensearch_indexer.text_extraction.send_slack_alert"
+        ) as mock_alert:
             result = add_text_content(file, file_stream)
             assert result["content"] == ""
-            assert result["text_extraction_status"] == TextExtractionStatus.SKIPPED.value
+            assert (
+                result["text_extraction_status"]
+                == TextExtractionStatus.SKIPPED.value
+            )
             mock_alert.assert_called_once()
     else:
         pytest.skip("send_slack_alert not implemented")
@@ -400,30 +404,41 @@ def test_add_text_content_failed_alert(mock_extract_text):
 
     mock_extract_text.side_effect = Exception("something broke")
 
-    import opensearch_indexer.text_extraction as te
     if hasattr(te, "send_slack_alert"):
-        with patch("opensearch_indexer.text_extraction.send_slack_alert") as mock_alert:
+        with patch(
+            "opensearch_indexer.text_extraction.send_slack_alert"
+        ) as mock_alert:
             result = add_text_content(file, file_stream)
             assert result["content"] == ""
-            assert result["text_extraction_status"] == TextExtractionStatus.FAILED.value
+            assert (
+                result["text_extraction_status"]
+                == TextExtractionStatus.FAILED.value
+            )
             mock_alert.assert_called_once()
     else:
         pass
+
 
 def test_get_slack_webhook_success(monkeypatch):
     """
     get_slack_webhook returns webhook from secrets manager
     """
+
     class DummyBoto3Client:
         def get_secret_value(self, SecretId):
             assert SecretId == "slack-webhook"
-            return {"SecretString": '{"slack-webhook": "https://webhook.url"}'}
+            return {
+                "SecretString": '{"slack-webhook": "https://webhook.url"}'
+            }  # pragma: allowlist secret
+
     def dummy_boto3_client(service):
         assert service == "secretsmanager"
         return DummyBoto3Client()
+
     te = sys.modules["opensearch_indexer.text_extraction"]
     monkeypatch.setattr(te.boto3, "client", dummy_boto3_client)
     from opensearch_indexer.text_extraction import get_slack_webhook
+
     assert get_slack_webhook() == "https://webhook.url"
 
 
@@ -431,36 +446,41 @@ def test_convert_file_with_libreoffice_failure(tmp_path):
     """
     convert_file_with_libreoffice raises on nonzero return code
     """
-    import subprocess
-    from opensearch_indexer.text_extraction import convert_file_with_libreoffice
+
     def fake_run(*args, **kwargs):
         class Result:
             returncode = 1
             stderr = b"error"
+
         return Result()
+
     orig_run = subprocess.run
     subprocess.run = fake_run
     try:
         with pytest.raises(RuntimeError, match="LibreOffice conversion failed"):
-            convert_file_with_libreoffice(str(tmp_path/"file.doc"), "pdf")
+            te.convert_file_with_libreoffice(str(tmp_path / "file.doc"), "pdf")
     finally:
         subprocess.run = orig_run
+
 
 def test_convert_file_with_libreoffice_missing_output(tmp_path):
     """
     convert_file_with_libreoffice raises if output file not found
     """
-    import subprocess, os
-    from opensearch_indexer.text_extraction import convert_file_with_libreoffice
+
     def fake_run(*args, **kwargs):
         class Result:
             returncode = 0
             stderr = b""
+
         return Result()
+
     orig_run = subprocess.run
     subprocess.run = fake_run
     try:
-        with pytest.raises(FileNotFoundError, match="Expected LibreOffice output not found"):
-            convert_file_with_libreoffice(str(tmp_path/"file.doc"), "pdf")
+        with pytest.raises(
+            FileNotFoundError, match="Expected LibreOffice output not found"
+        ):
+            te.convert_file_with_libreoffice(str(tmp_path / "file.doc"), "pdf")
     finally:
         subprocess.run = orig_run
