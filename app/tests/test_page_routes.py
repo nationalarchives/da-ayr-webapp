@@ -297,3 +297,124 @@ class TestPageImageRoutes:
 
         assert response.status_code == 200
         assert "max-age=900" in response.headers["Cache-Control"]
+
+    @mock_aws
+    def test_get_page_image_s3_client_error(
+        self, app, client: FlaskClient, mock_all_access_user
+    ):
+        """Test that S3 ClientError returns 404 for page image."""
+        from unittest.mock import patch
+
+        from botocore.exceptions import ClientError
+
+        mock_all_access_user(client)
+
+        file = FileFactory(
+            ffid_metadata__PUID="fmt/18",
+            ffid_metadata__Extension="pdf",
+            FileName="test.pdf",
+        )
+
+        bucket_name = "test-bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        # Don't create the S3 bucket, so get_object will fail
+        # Mock get_pdf_from_s3 to raise ClientError
+        with patch("app.main.routes.get_pdf_from_s3") as mock_get_pdf:
+            mock_get_pdf.side_effect = ClientError(
+                {"Error": {"Code": "NoSuchKey", "Message": "Not found"}},
+                "GetObject",
+            )
+
+            response = client.get(f"/record/{file.FileId}/page/1")
+
+        assert response.status_code == 404
+
+    @mock_aws
+    def test_get_page_image_extraction_error(
+        self, app, client: FlaskClient, mock_all_access_user
+    ):
+        """Test that extraction Exception returns 500 for page image."""
+        from unittest.mock import patch
+
+        mock_all_access_user(client)
+
+        file = FileFactory(
+            ffid_metadata__PUID="fmt/18",
+            ffid_metadata__Extension="pdf",
+            FileName="test.pdf",
+        )
+
+        bucket_name = "test-bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        # Mock extract_single_page_as_image to raise an exception
+        with patch(
+            "app.main.routes.extract_single_page_as_image"
+        ) as mock_extract:
+            mock_extract.side_effect = Exception("Extraction failed")
+
+            response = client.get(f"/record/{file.FileId}/page/1")
+
+        assert response.status_code == 500
+
+    @mock_aws
+    def test_get_page_thumbnail_s3_client_error(
+        self, app, client: FlaskClient, mock_all_access_user
+    ):
+        """Test that S3 ClientError returns 404 for thumbnail."""
+        from unittest.mock import patch
+
+        from botocore.exceptions import ClientError
+
+        mock_all_access_user(client)
+
+        file = FileFactory(
+            ffid_metadata__PUID="fmt/18",
+            ffid_metadata__Extension="pdf",
+            FileName="test.pdf",
+        )
+
+        bucket_name = "test-bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+
+        # Mock get_pdf_from_s3 to raise ClientError
+        with patch("app.main.routes.get_pdf_from_s3") as mock_get_pdf:
+            mock_get_pdf.side_effect = ClientError(
+                {"Error": {"Code": "NoSuchKey", "Message": "Not found"}},
+                "GetObject",
+            )
+
+            response = client.get(f"/record/{file.FileId}/page/1/thumbnail")
+
+        assert response.status_code == 404
+
+    @mock_aws
+    def test_get_page_thumbnail_extraction_error(
+        self, app, client: FlaskClient, mock_all_access_user
+    ):
+        """Test that extraction Exception returns 500 for thumbnail."""
+        from unittest.mock import patch
+
+        mock_all_access_user(client)
+
+        file = FileFactory(
+            ffid_metadata__PUID="fmt/18",
+            ffid_metadata__Extension="pdf",
+            FileName="test.pdf",
+        )
+
+        bucket_name = "test-bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        # Mock extract_single_page_as_thumbnail to raise an exception
+        with patch(
+            "app.main.routes.extract_single_page_as_thumbnail"
+        ) as mock_extract:
+            mock_extract.side_effect = Exception("Thumbnail extraction failed")
+
+            response = client.get(f"/record/{file.FileId}/page/1/thumbnail")
+
+        assert response.status_code == 500
