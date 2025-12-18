@@ -426,10 +426,8 @@ def test_get_slack_webhook_success(monkeypatch):
 
     class DummyBoto3Client:
         def get_secret_value(self, SecretId):
-            assert SecretId == "slack-webhook"
-            return {
-                "SecretString": '{"slack-webhook": "https://webhook.url"}'
-            }  # pragma: allowlist secret
+            assert SecretId == "slack-webhook"  # pragma: allowlist secret
+            return {"SecretString": '{"slack-webhook": "https://webhook.url"}'}
 
     def dummy_boto3_client(service):
         assert service == "secretsmanager"
