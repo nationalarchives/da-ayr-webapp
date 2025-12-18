@@ -1,3 +1,4 @@
+import time
 from unittest.mock import Mock, patch
 
 from flask import Flask
@@ -5,10 +6,14 @@ from flask import Flask
 from app.main.util.render_utils import (
     create_presigned_url,
     extract_pdf_pages_as_images,
+    extract_single_page_as_image,
+    extract_single_page_as_thumbnail,
     generate_breadcrumb_values,
     get_download_filename,
     get_file_extension,
     get_file_puid,
+    get_pdf_from_s3,
+    pdf_cache,
 )
 
 
@@ -130,3 +135,175 @@ def test_extract_pdf_pages_as_images_success():
             extract_pdf_pages_as_images(MINIMAL_VALID_PDF_TWO_PAGES)
             == expected_pages
         )
+
+
+# Tests for get_pdf_from_s3
+@patch("boto3.client")
+def test_get_pdf_from_s3_initial_fetch(mock_boto_client):
+    """Test initial fetch from S3 when not in cache."""
+    app = Flask(__name__)
+    app.config["PDF_S3_CACHE_TTL"] = 300
+
+    # Clear cache before test
+    pdf_cache.clear()
+
+    mock_s3_client = mock_boto_client.return_value
+    mock_body = Mock()
+    mock_body.read.return_value = MINIMAL_VALID_PDF_TWO_PAGES
+    mock_s3_client.get_object.return_value = {"Body": mock_body}
+
+    with app.app_context():
+        result = get_pdf_from_s3("test-bucket", "test-key")
+
+    assert result == MINIMAL_VALID_PDF_TWO_PAGES
+    mock_s3_client.get_object.assert_called_once_with(
+        Bucket="test-bucket", Key="test-key"
+    )
+
+
+@patch("boto3.client")
+def test_get_pdf_from_s3_cache_hit(mock_boto_client):
+    """Test cache hit when PDF is already cached and within TTL."""
+    app = Flask(__name__)
+    app.config["PDF_S3_CACHE_TTL"] = 300
+
+    # Clear cache and add entry
+    pdf_cache.clear()
+    cache_key = "test-bucket:test-key"
+    pdf_cache[cache_key] = (MINIMAL_VALID_PDF_TWO_PAGES, time.time())
+
+    mock_s3_client = mock_boto_client.return_value
+
+    with app.app_context():
+        result = get_pdf_from_s3("test-bucket", "test-key")
+
+    assert result == MINIMAL_VALID_PDF_TWO_PAGES
+    # S3 should not be called when cache hit
+    mock_s3_client.get_object.assert_not_called()
+
+
+@patch("boto3.client")
+def test_get_pdf_from_s3_cache_expired(mock_boto_client):
+    """Test cache miss when cached PDF has exceeded TTL."""
+    app = Flask(__name__)
+    app.config["PDF_S3_CACHE_TTL"] = 300
+
+    # Clear cache and add expired entry
+    pdf_cache.clear()
+    cache_key = "test-bucket:test-key"
+    # Set timestamp to 400 seconds ago (beyond 300 second TTL)
+    pdf_cache[cache_key] = (b"old-pdf", time.time() - 400)
+
+    mock_s3_client = mock_boto_client.return_value
+    mock_body = Mock()
+    mock_body.read.return_value = MINIMAL_VALID_PDF_TWO_PAGES
+    mock_s3_client.get_object.return_value = {"Body": mock_body}
+
+    with app.app_context():
+        result = get_pdf_from_s3("test-bucket", "test-key")
+
+    assert result == MINIMAL_VALID_PDF_TWO_PAGES
+    # S3 should be called when cache expired
+    mock_s3_client.get_object.assert_called_once_with(
+        Bucket="test-bucket", Key="test-key"
+    )
+    # Cache should be updated with new PDF
+    assert cache_key in pdf_cache
+    assert pdf_cache[cache_key][0] == MINIMAL_VALID_PDF_TWO_PAGES
+
+
+@patch("boto3.client")
+def test_get_pdf_from_s3_different_keys(mock_boto_client):
+    """Test that different bucket/key combinations are cached separately."""
+    app = Flask(__name__)
+    app.config["PDF_S3_CACHE_TTL"] = 300
+
+    pdf_cache.clear()
+
+    pdf1 = b"pdf-content-1"
+    pdf2 = b"pdf-content-2"
+
+    mock_s3_client = mock_boto_client.return_value
+    mock_body1 = Mock()
+    mock_body1.read.return_value = pdf1
+    mock_body2 = Mock()
+    mock_body2.read.return_value = pdf2
+
+    # Configure side effect to return different PDFs for different calls
+    mock_s3_client.get_object.side_effect = [
+        {"Body": mock_body1},
+        {"Body": mock_body2},
+    ]
+
+    with app.app_context():
+        result1 = get_pdf_from_s3("bucket1", "key1")
+        result2 = get_pdf_from_s3("bucket2", "key2")
+
+    assert result1 == pdf1
+    assert result2 == pdf2
+    assert "bucket1:key1" in pdf_cache
+    assert "bucket2:key2" in pdf_cache
+
+
+# Tests for extract_single_page_as_image
+def test_extract_single_page_as_image_success():
+    """Test extracting a valid page as a full-size image."""
+    image_bytes = extract_single_page_as_image(MINIMAL_VALID_PDF_TWO_PAGES, 1)
+
+    assert isinstance(image_bytes, bytes)
+    assert len(image_bytes) > 0
+    # Verify it's a valid JPEG by checking magic bytes
+    assert image_bytes[:2] == b"\xff\xd8"
+
+
+def test_extract_single_page_as_image_second_page():
+    """Test extracting the second page."""
+    image_bytes = extract_single_page_as_image(MINIMAL_VALID_PDF_TWO_PAGES, 2)
+
+    assert isinstance(image_bytes, bytes)
+    assert len(image_bytes) > 0
+    assert image_bytes[:2] == b"\xff\xd8"
+
+
+def test_extract_single_page_as_image_invalid_page_zero():
+    """Test that page number 0 raises ValueError."""
+    try:
+        extract_single_page_as_image(MINIMAL_VALID_PDF_TWO_PAGES, 0)
+        assert False, "Expected ValueError"
+    except ValueError as e:
+        assert "Invalid page number" in str(e)
+
+
+def test_extract_single_page_as_image_invalid_page_too_high():
+    """Test that page number beyond PDF page count raises ValueError."""
+    try:
+        extract_single_page_as_image(MINIMAL_VALID_PDF_TWO_PAGES, 99)
+        assert False, "Expected ValueError"
+    except ValueError as e:
+        assert "Invalid page number" in str(e)
+        assert "2 pages" in str(e)
+
+
+# Tests for extract_single_page_as_thumbnail
+def test_extract_single_page_as_thumbnail_success():
+    """Test extracting a valid page as a thumbnail."""
+    thumbnail_bytes = extract_single_page_as_thumbnail(
+        MINIMAL_VALID_PDF_TWO_PAGES, 1
+    )
+
+    assert isinstance(thumbnail_bytes, bytes)
+    assert len(thumbnail_bytes) > 0
+    # Verify it's a valid JPEG
+    assert thumbnail_bytes[:2] == b"\xff\xd8"
+    # Thumbnail should be smaller than full image
+    full_image = extract_single_page_as_image(MINIMAL_VALID_PDF_TWO_PAGES, 1)
+    assert len(thumbnail_bytes) < len(full_image)
+
+
+def test_extract_single_page_as_thumbnail_invalid_page():
+    """Test that invalid page number raises ValueError."""
+    try:
+        extract_single_page_as_thumbnail(MINIMAL_VALID_PDF_TWO_PAGES, 99)
+        assert False, "Expected ValueError"
+    except ValueError as e:
+        assert "Invalid page number" in str(e)
