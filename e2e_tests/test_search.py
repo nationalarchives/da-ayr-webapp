@@ -1,3 +1,5 @@
+import re
+
 from playwright.sync_api import Page, expect
 
 
@@ -147,8 +149,12 @@ class TestSearchTransferringBody:
         locator.wait_for(state="visible")
         locator.click()
 
-        url = f"{self.browse_transferring_body_route_url}/{self.transferring_body_id}?search_area=everywhere"
-        expect(aau_user_page).to_have_url(url)
+        # Use regex to match URL with additional query parameters
+        url_pattern = re.compile(
+            rf""".*{re.escape(self.browse_transferring_body_route_url)}/
+            {re.escape(self.transferring_body_id)}\?.*search_area=everywhere.*"""
+        )
+        expect(aau_user_page).to_have_url(url_pattern)
 
     def test_click_on_clear_all_as_aau_user_redirects_to_browse(
         self, aau_user_page: Page
