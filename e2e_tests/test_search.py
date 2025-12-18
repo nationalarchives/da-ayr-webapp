@@ -149,11 +149,13 @@ class TestSearchTransferringBody:
         locator.wait_for(state="visible")
         locator.click()
 
-        # Use regex to match URL with additional query parameters
-        url_pattern = re.compile(
-            rf""".*{re.escape(self.browse_transferring_body_route_url)}/
-            {re.escape(self.transferring_body_id)}\?.*search_area=everywhere.*"""
+        browse_transferring_body_url = re.escape(
+            self.browse_transferring_body_route_url
         )
+        params = r"\?.*search_area=everywhere.*"
+        # Use regex to match URL with additional query parameters
+        pattern = rf""".*{browse_transferring_body_url}/{re.escape(self.transferring_body_id)}{params}"""
+        url_pattern = re.compile(pattern)
         expect(aau_user_page).to_have_url(url_pattern)
 
     def test_click_on_clear_all_as_aau_user_redirects_to_browse(
