@@ -859,18 +859,6 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
     puid = get_file_puid(file)
 
-    # def get_s3_file_obj(file, bucket_name=None):
-    #     """
-    #     Helper to get S3 file object and presigned URL for a given file.
-    #     """
-    #     s3 = boto3.client("s3")
-    #     bucket = bucket_name or current_app.config["RECORD_BUCKET_NAME"]
-    #     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-    #     s3_file_object = s3.get_object(Bucket=bucket, Key=key)
-    #     return s3_file_object
-
-    # s3_file_obj = get_s3_file_obj(file)
-
     if (
         puid
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS"]
@@ -892,13 +880,9 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
             key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
         )
     elif puid in CONVERTIBLE_PUIDS:
-        # file_obj = get_s3_file_obj(
-        #     file, bucket_name=current_app.config["ACCESS_COPY_BUCKET"]
-        # )
         return generate_pdf_manifest(
             file.FileName,
             manifest_url,
-            # file_obj=file_obj,
             bucket=current_app.config["ACCESS_COPY_BUCKET"],
             key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
             record_id=str(record_id),
@@ -943,13 +927,10 @@ def get_page_image(record_id: uuid.UUID, page_number: int):
         bucket = current_app.config["RECORD_BUCKET_NAME"]
 
     # Fetch PDF from S3
-    # s3 = boto3.client("s3")
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
     try:
         pdf_bytes = get_pdf_from_s3(bucket=bucket, key=key)
-        # s3_object = s3.get_object(Bucket=bucket, Key=key)
-        # pdf_bytes = s3_object["Body"].read()
     except ClientError as e:
         current_app.app_logger.error(
             f"Failed to fetch PDF from S3 for page image: {e}"
@@ -1012,13 +993,10 @@ def get_page_thumbnail(record_id: uuid.UUID, page_number: int):
         bucket = current_app.config["RECORD_BUCKET_NAME"]
 
     # Fetch PDF from S3
-    # s3 = boto3.client("s3")
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
 
     try:
         pdf_bytes = get_pdf_from_s3(bucket=bucket, key=key)
-        # s3_object = s3.get_object(Bucket=bucket, Key=key)
-        # pdf_bytes = s3_object["Body"].read()
     except ClientError as e:
         current_app.app_logger.error(
             f"Failed to fetch PDF from S3 for thumbnail: {e}"

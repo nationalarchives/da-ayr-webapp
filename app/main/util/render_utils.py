@@ -209,7 +209,6 @@ def create_presigned_url_for_access_copy(file: File) -> str:
 def generate_pdf_manifest(
     file_name: str,
     manifest_url: str,
-    # file_obj: Any = None,
     bucket: str = None,
     key: str = None,
     record_id: str = None,
@@ -335,7 +334,6 @@ def generate_image_manifest(
     file_name: str,
     file_url: str,
     manifest_url: str,
-    # s3_file_object: Any,
     bucket: str = None,
     key: str = None,
 ) -> Response:
