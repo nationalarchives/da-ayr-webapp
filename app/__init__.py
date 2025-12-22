@@ -130,11 +130,9 @@ def create_app(config_class, database_uri=None):
 
     # setup database components
     with app.app_context():
-        # create db objects for testing else use existing database objects
+        # create db objects for testing
         if database_uri:
             db.create_all()
-        else:
-            db.Model.metadata.reflect(bind=db.engine, schema="public")
 
     # Register blueprints
     from app.main import bp as main_bp
