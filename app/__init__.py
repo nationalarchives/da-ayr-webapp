@@ -8,6 +8,7 @@ from flask_s3 import FlaskS3
 from flask_talisman import Talisman
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
+from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 
 from app.logger_config import setup_logging
@@ -142,8 +143,15 @@ def create_app(config_class, database_uri=None):
             if "password" in str(e).lower():
                 print("🔄 DB password invalid — refreshing secret")
                 secrets.refresh_db_secret()
+
+                new_uri = secrets.SQLALCHEMY_DATABASE_URI
+                app.config["SQLALCHEMY_DATABASE_URI"] = new_uri
                 print(database_uri)
+
                 db.engine.dispose()
+                db._engine = create_engine(new_uri)
+
+                db.Model.metadata.clear()
                 # retry once
                 if database_uri:
                     db.create_all()
