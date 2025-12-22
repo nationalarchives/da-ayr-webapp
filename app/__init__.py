@@ -2,6 +2,7 @@ import inspect
 from datetime import datetime
 
 import bleach
+import psycopg2
 from flask import Flask, g
 from flask_compress import Compress
 from flask_s3 import FlaskS3
@@ -61,6 +62,26 @@ def format_date_iso(value):
         return value
 
 
+# -------------------------------
+# ⭐ Dynamic connection creator
+# -------------------------------
+def get_connection():
+    cfg = AWSSecretsManagerConfig()
+
+    # TEMPORARY LOGGING FOR TESTING ONLY
+    safe_uri = f"postgresql://{cfg.DB_USER}:****@{cfg.DB_HOST}:{cfg.DB_PORT}/{cfg.DB_NAME}"
+    print("🆕 Opening new DB connection")
+    print(f"URI: {safe_uri}")
+
+    return psycopg2.connect(
+        host=cfg.DB_HOST,
+        port=cfg.DB_PORT,
+        user=cfg.DB_USER,
+        password=cfg.DB_PASSWORD,
+        dbname=cfg.DB_NAME,
+    )
+
+
 def create_app(config_class, database_uri=None):
     app = Flask(__name__, static_url_path="/assets")
     config = config_class()
@@ -112,11 +133,7 @@ def create_app(config_class, database_uri=None):
 
     csp = get_csp_config(app)
 
-    # setup database uri for testing
-    if database_uri:
-        app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
-
-    # Initialise app extensions
+    # Initialise extensions
     setup_logging(app)
     db.init_app(app)
     s3.init_app(app)
@@ -130,35 +147,39 @@ def create_app(config_class, database_uri=None):
         ],
     )
     WTFormsHelpers(app)
-    secrets = AWSSecretsManagerConfig()
-    # setup database components
 
+    # -------------------------------
+    # ⭐ Database engine setup
+    # -------------------------------
     with app.app_context():
-        try:
-            if database_uri:
-                db.create_all()
-            else:
-                db.Model.metadata.reflect(bind=db.engine, schema="public")
-        except OperationalError as e:
-            if "password" in str(e).lower():
-                print("🔄 DB password invalid — refreshing secret")
-                secrets.refresh_db_secret()
+        if database_uri:
+            # Testing mode: use static URI
+            app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
+            db.create_all()
+        else:
+            # Production mode: dynamic engine
+            engine = create_engine(
+                "postgresql+psycopg2://",
+                creator=get_connection,
+                pool_pre_ping=True,
+            )
 
-                new_uri = secrets.SQLALCHEMY_DATABASE_URI
-                app.config["SQLALCHEMY_DATABASE_URI"] = new_uri
-                print(database_uri)
+            # Bind session to dynamic engine
+            db.session.configure(bind=engine)
 
-                db.engine.dispose()
-                db._engine = create_engine(new_uri)
-
-                db.Model.metadata.clear()
-                # retry once
-                if database_uri:
-                    db.create_all()
+            # Reflect schema
+            try:
+                db.Model.metadata.reflect(bind=engine, schema="public")
+            except OperationalError as e:
+                if "password" in str(e).lower():
+                    print(
+                        "❌ Password invalid on cold start — refreshing secret"
+                    )
+                    AWSSecretsManagerConfig().refresh_db_secret()
+                    engine.dispose()
+                    db.Model.metadata.reflect(bind=engine, schema="public")
                 else:
-                    db.Model.metadata.reflect(bind=db.engine, schema="public")
-            else:
-                raise
+                    raise
 
     # Register blueprints
     from app.main import bp as main_bp
