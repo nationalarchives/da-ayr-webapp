@@ -6,6 +6,13 @@ import pytest
 from playwright.sync_api import Page
 
 
+def pytest_configure(config):
+    """Register custom markers."""
+    config.addinivalue_line(
+        "markers", "health_check: Health check tests for monitoring"
+    )
+
+
 class Utils:
     @staticmethod
     def get_desktop_page_table_headers(page: Page):

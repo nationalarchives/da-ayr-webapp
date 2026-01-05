@@ -1,5 +1,5 @@
 # Python 3.13-slim
-FROM python@sha256:6632dac1bc03ec8ea49547d866f0e5763db8fb4827bc91169ad8909248fd8190
+FROM python@sha256:492b292a9449d096aefe5b1399cc64de53359845754da3e4d2539402013c826b
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
