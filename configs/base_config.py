@@ -26,15 +26,6 @@ UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS = {
 }
 
 CONVERTIBLE_PUIDS = {
-    "fmt/1": "wav",
-    "fmt/2": "wav",
-    "fmt/6": "wav",
-    "fmt/141": "wav",
-    "fmt/142": "wav",
-    "fmt/143": "wav",
-    "fmt/134": "mp3",
-    "fmt/386": "mpg",
-    "fmt/278": "elm",
     "fmt/39": "doc",
     "fmt/40": "doc",
     "x-fmt/44": "doc",
@@ -42,7 +33,6 @@ CONVERTIBLE_PUIDS = {
     "fmt/50": "rtf",
     "fmt/59": "xls",
     "fmt/61": "xls",
-    "fmt/116": "bmp",
     "x-fmt/111": "txt",
     "x-fmt/116": "wk4",
     "fmt/126": "ppt",
@@ -51,17 +41,14 @@ CONVERTIBLE_PUIDS = {
     "fmt/355": "rtf",
     "x-fmt/394": "wp",
     "fmt/412": "docx",
-    "x-fmt/245": "mpp",
-    "x-fmt/430": "msg",
+    "x-fmt/115": "wk3",
+    "fmt/116": "bmp",
     "x-fmt/258": "vsd",
     "fmt/443": "vsd",
     "fmt/1510": "vsd",
-    "x-fmt/115": "wk3",
     "x-fmt/255": "pub",
     "x-fmt/332": "fm3",
     "x-fmt/18": "csv",
-    "fmt/291": "odt",
-    "fmt/203": "ogg",
 }
 
 

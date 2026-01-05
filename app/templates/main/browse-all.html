@@ -134,7 +134,7 @@
                     classes="govuk-button__browse-all-filters-form-apply-button"
                     ) }}
                     <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-all-filter"
-                       href="{{ url_for('main.browse', sort=request.args.get('sort'), _anchor='browse-records') }}">Clear filters</a>
+                       href="{{ url_for('main.browse', sort=query_string_parameters.get('sort'), _anchor='browse-records') }}">Clear filters</a>
                 </div>
             </div>
         </div>

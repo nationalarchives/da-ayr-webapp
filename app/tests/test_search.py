@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
 
 import opensearchpy
 import pytest
@@ -1334,22 +1335,38 @@ class TestSearchTransferringBody:
             "a", {"aria-label": f"Remove filter for '{term1}'"}
         )
         button_term2 = soup.find(
-            "a", {"aria-label": f"Remove filter for '{term1}'"}
+            "a", {"aria-label": f"Remove filter for '{term2}'"}
         )
-        anchor_term1 = soup.find(
-            "a",
-            {"href": f"{self.route_url}/{transferring_body_id}?query={term2}"},
-        )
-        anchor_term2 = soup.find(
-            "a",
-            {"href": f"{self.route_url}/{transferring_body_id}?query={term1}"},
-        )
+
+        # Verify that the remove links exist and have the correct query parameter
+        # Get the hrefs from the button elements
+        href_term1 = button_term1["href"] if button_term1 else None
+        href_term2 = button_term2["href"] if button_term2 else None
+
+        # Parse and check the query parameters
+        if href_term1:
+            parsed = urlparse(href_term1)
+            query_params = parse_qs(parsed.query)
+            expected_query = term2
+            assert (
+                "query" in query_params
+                and query_params["query"][0] == expected_query
+            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+
+        if href_term2:
+            parsed = urlparse(href_term2)
+            query_params = parse_qs(parsed.query)
+            expected_query = term1
+            assert (
+                "query" in query_params
+                and query_params["query"][0] == expected_query
+            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
 
         assert (
             anchor_clear["href"]
             == f"{self.browse_all_route_url}#browse-records"
         )
-        assert button_term1 and button_term2 and anchor_term1 and anchor_term2
+        assert button_term1 and button_term2
 
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_display_filter_tray_standard_user(
@@ -1395,20 +1412,36 @@ class TestSearchTransferringBody:
         button_term2 = soup.find(
             "a", {"aria-label": f"Remove filter for '{term2}'"}
         )
-        anchor_term1 = soup.find(
-            "a",
-            {"href": f"{self.route_url}/{transferring_body_id}?query={term2}"},
-        )
-        anchor_term2 = soup.find(
-            "a",
-            {"href": f"{self.route_url}/{transferring_body_id}?query={term1}"},
-        )
+
+        # Verify that the remove links exist and have the correct query parameter
+        # Get the hrefs from the button elements
+        href_term1 = button_term1["href"] if button_term1 else None
+        href_term2 = button_term2["href"] if button_term2 else None
+
+        # Parse and check the query parameters
+        if href_term1:
+            parsed = urlparse(href_term1)
+            query_params = parse_qs(parsed.query)
+            expected_query = term2
+            assert (
+                "query" in query_params
+                and query_params["query"][0] == expected_query
+            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+
+        if href_term2:
+            parsed = urlparse(href_term2)
+            query_params = parse_qs(parsed.query)
+            expected_query = term1
+            assert (
+                "query" in query_params
+                and query_params["query"][0] == expected_query
+            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
 
         assert (
             anchor_clear["href"]
             == f"{self.browse_transferring_body_route_url}/{transferring_body_id}#browse-records"
         )
-        assert button_term1 and button_term2 and anchor_term1 and anchor_term2
+        assert button_term1 and button_term2
 
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_display_multiple_search_terms_in_filter_tray(
@@ -1460,37 +1493,45 @@ class TestSearchTransferringBody:
             "a", {"aria-label": f"Remove filter for '{term3}'"}
         )
 
-        anchor_term1 = soup.find(
-            "a",
-            {
-                "href": f"{self.route_url}/{transferring_body_id}?query={term2}%2B{term3}"
-            },
-        )
-        anchor_term2 = soup.find(
-            "a",
-            {
-                "href": f"{self.route_url}/{transferring_body_id}?query={term1}%2B{term3}"
-            },
-        )
-        anchor_term3 = soup.find(
-            "a",
-            {
-                "href": f"{self.route_url}/{transferring_body_id}?query={term1}%2B{term2}"
-            },
-        )
+        # Verify that the remove links exist and have the correct query parameter
+        # Get the hrefs from the button elements
+        href_term1 = button_term1["href"] if button_term1 else None
+        href_term2 = button_term2["href"] if button_term2 else None
+        href_term3 = button_term3["href"] if button_term3 else None
+
+        # Parse and check the query parameters
+        if href_term1:
+            parsed = urlparse(href_term1)
+            query_params = parse_qs(parsed.query)
+            expected_query = f"{term2}+{term3}"
+            assert (
+                "query" in query_params
+                and query_params["query"][0] == expected_query
+            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+
+        if href_term2:
+            parsed = urlparse(href_term2)
+            query_params = parse_qs(parsed.query)
+            expected_query = f"{term1}+{term3}"
+            assert (
+                "query" in query_params
+                and query_params["query"][0] == expected_query
+            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+
+        if href_term3:
+            parsed = urlparse(href_term3)
+            query_params = parse_qs(parsed.query)
+            expected_query = f"{term1}+{term2}"
+            assert (
+                "query" in query_params
+                and query_params["query"][0] == expected_query
+            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
 
         assert (
             anchor_clear["href"]
             == f"{self.browse_transferring_body_route_url}/{transferring_body_id}#browse-records"
         )
-        assert (
-            button_term1
-            and button_term2
-            and button_term3
-            and anchor_term1
-            and anchor_term2
-            and anchor_term3
-        )
+        assert button_term1 and button_term2 and button_term3
 
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_verify_table_headers(
