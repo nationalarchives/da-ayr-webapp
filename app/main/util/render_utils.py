@@ -231,7 +231,6 @@ def generate_pdf_manifest(
 
     # Read PDF to get page count and dimensions
     pdf_bytes = get_pdf_from_s3(bucket, key)
-    # pdf_bytes = file_obj["Body"].read()
     current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
 
     canvas_items = []
