@@ -217,7 +217,7 @@
 
   --ball-size: 13px;
   --border-width: 3px;
-  --colour: $colour-timeline-normal;
+  --colour: #{$colour-timeline-normal};
 }
 
 .record-container .record-arrangement-list li {
