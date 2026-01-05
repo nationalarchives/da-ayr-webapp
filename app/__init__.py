@@ -62,16 +62,8 @@ def format_date_iso(value):
         return value
 
 
-# -------------------------------
-# ⭐ Dynamic connection creator
-# -------------------------------
 def get_connection():
     cfg = AWSSecretsManagerConfig()
-
-    # TEMPORARY LOGGING FOR TESTING ONLY
-    safe_uri = f"postgresql://{cfg.DB_USER}:****@{cfg.DB_HOST}:{cfg.DB_PORT}/{cfg.DB_NAME}"
-    print("🆕 Opening new DB connection")
-    print(f"URI: {safe_uri}")
 
     return psycopg2.connect(
         host=cfg.DB_HOST,
@@ -148,9 +140,6 @@ def create_app(config_class, database_uri=None):
     )
     WTFormsHelpers(app)
 
-    # -------------------------------
-    # ⭐ Database engine setup
-    # -------------------------------
     with app.app_context():
         if database_uri:
             # Testing mode: use static URI
@@ -172,11 +161,13 @@ def create_app(config_class, database_uri=None):
                 db.Model.metadata.reflect(bind=engine, schema="public")
             except OperationalError as e:
                 if "password" in str(e).lower():
-                    print(
-                        "❌ Password invalid on cold start — refreshing secret"
-                    )
+                    print("Password invalid on cold start — refreshing secret")
                     AWSSecretsManagerConfig().refresh_db_secret()
-                    engine.dispose()
+                    engine = create_engine(
+                        "postgresql+psycopg2://",
+                        creator=get_connection,
+                        pool_pre_ping=True,
+                    )
                     db.Model.metadata.reflect(bind=engine, schema="public")
                 else:
                     raise
