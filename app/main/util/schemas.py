@@ -119,3 +119,13 @@ class GenerateManifestRequestSchema(Schema):
 
     class Meta:
         unknown = EXCLUDE
+
+
+class PageImageRequestSchema(Schema):
+    """Schema for page image request parameters."""
+
+    record_id = UUIDField(required=True)
+    page_number = fields.Integer(required=True, validate=validate.Range(min=1))
+
+    class Meta:
+        unknown = EXCLUDE
