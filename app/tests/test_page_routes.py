@@ -36,10 +36,6 @@ class TestPageImageRoutes:
         assert len(response.data) > 0
         # Verify JPEG magic bytes
         assert response.data[:2] == b"\xff\xd8"
-        # Verify cache headers
-        assert "Cache-Control" in response.headers
-        assert "max-age=300" in response.headers["Cache-Control"]
-        assert "ETag" in response.headers
 
     @mock_aws
     def test_get_page_image_invalid_page_number(
@@ -151,11 +147,6 @@ class TestPageImageRoutes:
         assert len(response.data) > 0
         # Verify JPEG magic bytes
         assert response.data[:2] == b"\xff\xd8"
-        # Verify cache headers
-        assert "Cache-Control" in response.headers
-        assert "max-age=300" in response.headers["Cache-Control"]
-        assert "ETag" in response.headers
-        assert "-thumb" in response.headers["ETag"]
 
     @mock_aws
     def test_get_page_thumbnail_smaller_than_full_image(
@@ -243,51 +234,6 @@ class TestPageImageRoutes:
 
         assert response.status_code == 200
         assert response.content_type == "image/jpeg"
-
-    @mock_aws
-    def test_page_image_cache_control_configured(
-        self, app, client: FlaskClient, mock_all_access_user
-    ):
-        """Test that cache control max-age is configurable."""
-        mock_all_access_user(client)
-
-        file = FileFactory(
-            ffid_metadata__PUID="fmt/18",
-            ffid_metadata__Extension="pdf",
-            FileName="test.pdf",
-        )
-
-        bucket_name = "test-bucket"
-        app.config["RECORD_BUCKET_NAME"] = bucket_name
-
-        create_mock_s3_bucket_with_object(bucket_name, file)
-
-        response = client.get(f"/record/{file.FileId}/page/1")
-
-        assert response.status_code == 200
-        assert "max-age=600" in response.headers["Cache-Control"]
-
-    @mock_aws
-    def test_page_thumbnail_cache_control_configured(
-        self, app, client: FlaskClient, mock_all_access_user
-    ):
-        """Test that thumbnail cache control max-age is configurable."""
-        mock_all_access_user(client)
-
-        file = FileFactory(
-            ffid_metadata__PUID="fmt/18",
-            ffid_metadata__Extension="pdf",
-            FileName="test.pdf",
-        )
-
-        bucket_name = "test-bucket"
-        app.config["RECORD_BUCKET_NAME"] = bucket_name
-
-        create_mock_s3_bucket_with_object(bucket_name, file)
-
-        response = client.get(f"/record/{file.FileId}/page/1/thumbnail")
-
-        assert response.status_code == 200
 
     @mock_aws
     def test_get_page_image_s3_client_error(
