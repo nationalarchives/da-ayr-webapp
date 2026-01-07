@@ -60,7 +60,22 @@ jobs:
         sudo apt-get install -y docker-compose
 
     - name: Run Docker Compose Tests
-      run:  docker compose -f docker-compose.test.yml up --exit-code-from access_copy_converter_tests --exit-code-from opensearch_indexer_tests
+      run: |
+        docker compose -f docker-compose.test.yml up --abort-on-container-exit
+        access_copy_id=$(docker ps -a --filter "name=access_copy_converter_tests" --format "{{.ID}}")
+        opensearch_id=$(docker ps -a --filter "name=opensearch_indexer_tests" --format "{{.ID}}")
+        if [ -z "$access_copy_id" ] || [ -z "$opensearch_id" ]; then
+          echo "Could not find one or both test containers."
+          exit 1
+        fi
+        access_copy_exit=$(docker inspect -f '{{ .State.ExitCode }}' $access_copy_id)
+        opensearch_exit=$(docker inspect -f '{{ .State.ExitCode }}' $opensearch_id)
+        echo "access_copy_converter_tests exit code: $access_copy_exit"
+        echo "opensearch_indexer_tests exit code: $opensearch_exit"
+        if [ "$access_copy_exit" != "0" ] || [ "$opensearch_exit" != "0" ]; then
+          echo "One or both test containers failed."
+          exit 1
+        fi
 
     - name: Copy coverage file from shared volume
       run: |
