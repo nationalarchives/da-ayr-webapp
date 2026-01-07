@@ -2,16 +2,20 @@ import inspect
 from datetime import datetime
 
 import bleach
+import boto3
+import psycopg2
 from flask import Flask, g
 from flask_compress import Compress
 from flask_s3 import FlaskS3
 from flask_talisman import Talisman
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
+from sqlalchemy import create_engine
 
 from app.logger_config import setup_logging
 from app.main.db.models import db
 from app.main.util.search_utils import OPENSEARCH_FIELD_NAME_MAP
+from configs.aws_secrets_manager_config import AWSSecretsManagerConfig
 
 compress = Compress()
 talisman = Talisman()
@@ -109,11 +113,7 @@ def create_app(config_class, database_uri=None):
 
     csp = get_csp_config(app)
 
-    # setup database uri for testing
-    if database_uri:
-        app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
-
-    # Initialise app extensions
+    # Initialise extensions
     setup_logging(app)
     db.init_app(app)
     s3.init_app(app)
@@ -128,13 +128,43 @@ def create_app(config_class, database_uri=None):
     )
     WTFormsHelpers(app)
 
-    # setup database components
+    # ---------- DATABASE SETUP ----------
     with app.app_context():
-        # create db objects for testing else use existing database objects
         if database_uri:
+            # Testing/local mode: use static URI
+            app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
             db.create_all()
+
         else:
-            db.Model.metadata.reflect(bind=db.engine, schema="public")
+            # Production: IAM authentication via RDS Proxy
+            cfg = AWSSecretsManagerConfig()
+            rds = boto3.client("rds")
+
+            def get_connection():
+                token = rds.generate_db_auth_token(
+                    DBHostname=cfg.DB_HOST,
+                    Port=int(cfg.DB_PORT),
+                    DBUsername=cfg.DB_USER,
+                    Region=cfg.AWS_REGION,
+                )
+                return psycopg2.connect(
+                    host=cfg.DB_HOST,
+                    port=int(cfg.DB_PORT),
+                    user=cfg.DB_USER,
+                    password=token,
+                    dbname=cfg.DB_NAME,
+                    sslmode="require",
+                )
+
+            engine = create_engine(
+                "postgresql+psycopg2://",
+                creator=get_connection,
+                pool_pre_ping=True,
+            )
+
+            db.session.configure(bind=engine)
+            app.logger.info("Created DB connection with IAM auth")
+            db.Model.metadata.reflect(bind=engine, schema="public")
 
     # Register blueprints
     from app.main import bp as main_bp
@@ -143,53 +173,11 @@ def create_app(config_class, database_uri=None):
 
     @app.context_processor
     def inject_authenticated_view_status():
-        """
-        This context processor is designed to provide information about the authentication
-        status of the current view to the templates.
-        It specifically checks if the `access_token_sign_in_required` attribute is set on
-        the Flask `g` object, indicating whether the current view requires authentication.
-
-        The `access_token_sign_in_required` attribute is typically set by the
-        `access_token_sign_in_required` decorator applied to specific routes. This decorator
-        is responsible for enforcing access token sign in requirements and protecting routes
-        that require authentication.
-
-        The primary purpose of this context processor is to make the `authenticated_view`
-        variable available in templates, allowing template logic to conditionally display
-        elements based on whether the current view requires authentication or not.
-
-        Example Usage in a Template:
-        ```html
-        {% if authenticated_view %}
-            <!-- Display elements for authenticated views -->
-            <div>
-                You are signed in.
-            </div>
-        {% else %}
-            <!-- Display elements for views that do not require authentication -->
-            <div>
-                Please sign in to access this page.
-            </div>
-        {% endif %}
-        ```
-
-        Note: Ensure that the `access_token_sign_in_required` decorator is appropriately
-        applied to routes where authentication is required for accurate behavior of
-        this context processor.
-
-
-        Returns:
-            dict: A dictionary containing the `authenticated_view` variable, which is a
-                boolean indicating whether the current view requires authentication.
-        """
         authenticated_view = getattr(g, "access_token_sign_in_required", False)
         return dict(authenticated_view=authenticated_view)
 
     @app.after_request
     def add_no_caching_headers(r):
-        """
-        Add headers to tell browsers not to cache the pages to protected routes
-        """
         if g.get("access_token_sign_in_required"):
             r.headers["Cache-Control"] = (
                 "public, max-age=0, no-cache, no-store, must-revalidate"
