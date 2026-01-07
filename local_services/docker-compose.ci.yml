@@ -1,6 +1,6 @@
 services:
   opensearch-node1:
-    image: opensearchproject/opensearch@sha256:22fdee0d6db3f500a64cd27ddff3633f32244d0ea58b68ffb151cd2217f0bb0d # opensearch:latest with digest for immutability
+    image: opensearchproject/opensearch@sha256:c27e2f52eed924f7b7a98970618debb0f4bea0217b5dbee36f966d27727e18c0 # opensearch:latest with digest for immutability
     container_name: opensearch-node1
     environment:
       - discovery.type=single-node
@@ -34,7 +34,7 @@ services:
       start_period: 60s
 
   opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards@sha256:936b7c350c2679f59c6b7fb85856feac2dcd5934e6efc47b7ea26a95978684d3 # opensearch-dashboards:latest with digest for immutability
+    image: opensearchproject/opensearch-dashboards@sha256:75c60615daf360f37b10a64870e661accb9cde82f61fb4b10ca037c36d393251 # opensearch-dashboards:latest with digest for immutability
     container_name: opensearch-dashboards
     ports:
       - 5601:5601
