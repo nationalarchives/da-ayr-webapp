@@ -2,6 +2,7 @@ import pytest
 from playwright.sync_api import expect
 
 
+@pytest.mark.health_check
 @pytest.mark.parametrize(
     "link_text, expected_url",
     [
@@ -22,6 +23,7 @@ def test_header_link(page, link_text, expected_url):
     expect(page).to_have_url(expected_url)
 
 
+@pytest.mark.health_check
 @pytest.mark.parametrize(
     "link_text, expected_url",
     [
@@ -47,6 +49,7 @@ def test_header_link(page, link_text, expected_url):
         ),
     ],
 )
+@pytest.mark.health_check
 def test_footer_links(page, link_text, expected_url):
     """
     Given an unauthenticated user on the home page
