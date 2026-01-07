@@ -450,6 +450,32 @@ def test_no_sign_out_button_on_unprotected_view_that_uses_base_template(app):
     assert "Sign out" not in response.data.decode()
 
 
+def test_no_cache_headers_set_on_response_for_protected_view(app):
+    """
+    Given a view that is protected by the 'access_token_sign_in_required' decorator,
+    When a user accesses the view,
+    Then the response headers should contain
+        "Expires", "Pragma" or "Cache-Control" entries that instruct browsers not to cache
+        the response
+    """
+    view_name = "/protected_view"
+
+    @app.route(view_name)
+    @access_token_sign_in_required
+    def protected_base_view():
+        return "Protected View"
+
+    with app.test_client() as client:
+        response = client.get(view_name)
+
+    assert (
+        response.headers["Cache-Control"]
+        == "public, max-age=0, no-cache, no-store, must-revalidate"
+    )
+    assert response.headers["Pragma"] == "no-cache"
+    assert response.headers["Expires"] == "0"
+
+
 def test_no_cache_headers_not_set_on_response_for_unprotected_view(app):
     """
     Given a view that is NOT protected by the 'access_token_sign_in_required' decorator,
