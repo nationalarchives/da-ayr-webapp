@@ -10,7 +10,7 @@ repos:
     -   id: check-json
     -   id: check-added-large-files
         args: ['--maxkb=1024']
-        exclude: local_services/files/TDR-2025-ABCD/
+        exclude: local_services/files/TDR-2025-ABCD/|local_services/mds_data_generator/example_files/.*|local_services/files/test-record-download/AYR-2026-V2HJ
     -   id: check-merge-conflict
 
 - repo: https://github.com/Riverside-Healthcare/djLint
