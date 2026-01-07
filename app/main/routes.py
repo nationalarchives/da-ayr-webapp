@@ -6,7 +6,6 @@ from flask import (
     Response,
     abort,
     current_app,
-    g,
     redirect,
     render_template,
     request,
@@ -847,9 +846,6 @@ def download_record(record_id: uuid.UUID):
 @log_page_view
 @validate_request(GenerateManifestRequestSchema, location="path")
 def generate_manifest(record_id: uuid.UUID) -> Response:
-    # Enable client-side caching for manifest endpoint
-    g.allow_client_cache = True
-
     file = db.session.get(File, record_id)
     if file is None:
         abort(404)
@@ -909,9 +905,6 @@ def get_page_image(record_id: uuid.UUID, page_number: int):
     Returns:
         Image response (JPEG)
     """
-    # Enable client-side caching for this endpoint
-    g.allow_client_cache = True
-
     file = db.session.get(File, record_id)
     if file is None:
         abort(404)
@@ -942,11 +935,6 @@ def get_page_image(record_id: uuid.UUID, page_number: int):
         image_bytes = extract_single_page_as_image(pdf_bytes, page_number)
         response = Response(image_bytes, mimetype="image/jpeg")
 
-        # Set cache headers using configured duration
-        max_age = current_app.config["UV_PAGE_IMAGE_CACHE_MAX_AGE"]
-        response.headers["Cache-Control"] = f"private, max-age={max_age}"
-        response.headers["ETag"] = f'"{record_id}-{page_number}"'
-
         return response
     except ValueError as e:
         current_app.app_logger.error(f"Invalid page number {page_number}: {e}")
@@ -975,9 +963,6 @@ def get_page_thumbnail(record_id: uuid.UUID, page_number: int):
     Returns:
         Thumbnail image response (JPEG, 150x200 max)
     """
-    # Enable client-side caching for this endpoint
-    g.allow_client_cache = True
-
     file = db.session.get(File, record_id)
     if file is None:
         abort(404)
@@ -1008,14 +993,7 @@ def get_page_thumbnail(record_id: uuid.UUID, page_number: int):
         thumbnail_bytes = extract_single_page_as_thumbnail(
             pdf_bytes, page_number
         )
-        response = Response(thumbnail_bytes, mimetype="image/jpeg")
-
-        # Set cache headers using configured duration
-        max_age = current_app.config["UV_THUMBNAIL_CACHE_MAX_AGE"]
-        response.headers["Cache-Control"] = f"private, max-age={max_age}"
-        response.headers["ETag"] = f'"{record_id}-{page_number}-thumb"'
-
-        return response
+        return Response(thumbnail_bytes, mimetype="image/jpeg")
     except ValueError as e:
         current_app.app_logger.error(
             f"Invalid page number {page_number} for thumbnail: {e}"

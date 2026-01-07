@@ -69,14 +69,6 @@ class BaseConfig(object):
         *UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS,
     ]
 
-    # Client-side cache durations (in seconds) for Universal Viewer assets
-    UV_PAGE_IMAGE_CACHE_MAX_AGE = 300  # 5 minutes for full page images
-    UV_THUMBNAIL_CACHE_MAX_AGE = 300  # 5 minutes for thumbnails
-    UV_MANIFEST_CACHE_MAX_AGE = 300  # 5 minutes for IIIF manifests
-
-    # Server-side cache durations (in seconds)
-    PDF_S3_CACHE_TTL = 300  # 5 minutes for cached PDF bytes from S3
-
     @staticmethod
     def _parse_config_value(config_value):
         """Parses the configuration value into a list, applying necessary formatting."""

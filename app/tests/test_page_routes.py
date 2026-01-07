@@ -26,7 +26,6 @@ class TestPageImageRoutes:
         # Create S3 bucket with PDF
         bucket_name = "test-bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["UV_PAGE_IMAGE_CACHE_MAX_AGE"] = 300
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         # Request page 1
@@ -120,7 +119,6 @@ class TestPageImageRoutes:
         # Create S3 bucket with PDF in ACCESS_COPY_BUCKET
         access_copy_bucket = "test-access-copy-bucket"
         app.config["ACCESS_COPY_BUCKET"] = access_copy_bucket
-        app.config["UV_PAGE_IMAGE_CACHE_MAX_AGE"] = 300
         create_mock_s3_bucket_with_object(access_copy_bucket, file)
 
         response = client.get(f"/record/{file.FileId}/page/1")
@@ -143,7 +141,6 @@ class TestPageImageRoutes:
 
         bucket_name = "test-bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["UV_THUMBNAIL_CACHE_MAX_AGE"] = 300
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         # Request thumbnail for page 1
@@ -175,8 +172,6 @@ class TestPageImageRoutes:
 
         bucket_name = "test-bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["UV_PAGE_IMAGE_CACHE_MAX_AGE"] = 300
-        app.config["UV_THUMBNAIL_CACHE_MAX_AGE"] = 300
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         # Get both full image and thumbnail
@@ -242,7 +237,6 @@ class TestPageImageRoutes:
 
         access_copy_bucket = "test-access-copy-bucket"
         app.config["ACCESS_COPY_BUCKET"] = access_copy_bucket
-        app.config["UV_THUMBNAIL_CACHE_MAX_AGE"] = 300
         create_mock_s3_bucket_with_object(access_copy_bucket, file)
 
         response = client.get(f"/record/{file.FileId}/page/1/thumbnail")
@@ -265,7 +259,6 @@ class TestPageImageRoutes:
 
         bucket_name = "test-bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["UV_PAGE_IMAGE_CACHE_MAX_AGE"] = 600  # Set to 10 minutes
 
         create_mock_s3_bucket_with_object(bucket_name, file)
 
@@ -289,14 +282,12 @@ class TestPageImageRoutes:
 
         bucket_name = "test-bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
-        app.config["UV_THUMBNAIL_CACHE_MAX_AGE"] = 900  # Set to 15 minutes
 
         create_mock_s3_bucket_with_object(bucket_name, file)
 
         response = client.get(f"/record/{file.FileId}/page/1/thumbnail")
 
         assert response.status_code == 200
-        assert "max-age=900" in response.headers["Cache-Control"]
 
     @mock_aws
     def test_get_page_image_s3_client_error(

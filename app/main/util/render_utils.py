@@ -1,6 +1,5 @@
 import base64
 import io
-import time
 from typing import List
 
 import boto3
@@ -10,8 +9,6 @@ from flask import Response, current_app, jsonify
 from PIL import Image
 
 from app.main.db.models import File
-
-pdf_cache = {}
 
 
 def generate_breadcrumb_values(file):
@@ -321,10 +318,6 @@ def generate_pdf_manifest(
     )
 
     response = jsonify(manifest)
-    # Set cache headers using configured duration
-    max_age = current_app.config["UV_MANIFEST_CACHE_MAX_AGE"]
-    response.headers["Cache-Control"] = f"private, max-age={max_age}"
-    response.headers["ETag"] = f'"{record_id}-manifest"'
 
     return response
 
@@ -394,30 +387,14 @@ def generate_image_manifest(
     }
 
     response = jsonify(manifest)
-    # Set cache headers using configured duration
-    max_age = current_app.config["UV_MANIFEST_CACHE_MAX_AGE"]
-    response.headers["Cache-Control"] = f"private, max-age={max_age}"
 
     return response
 
 
 def get_pdf_from_s3(bucket: str, key: str) -> bytes:
-    """Check if PDF has been cached
-    else fetch PDF file from S3 and return its bytes."""
-    cache_key = f"{bucket}:{key}"
-    cache_ttl = current_app.config["PDF_S3_CACHE_TTL"]
-
-    if cache_key in pdf_cache:
-        cached_pdf, timestamp = pdf_cache[cache_key]
-        if time.time() - timestamp < cache_ttl:
-            return cached_pdf
-        else:
-            del pdf_cache[cache_key]  # Remove stale cache entry
-
+    """fetch PDF file from S3 and return its bytes."""
     s3 = boto3.client("s3")
     s3_object = s3.get_object(Bucket=bucket, Key=key)
     pdf_bytes = s3_object["Body"].read()
 
-    # save to cache
-    pdf_cache[cache_key] = (pdf_bytes, time.time())
     return pdf_bytes
