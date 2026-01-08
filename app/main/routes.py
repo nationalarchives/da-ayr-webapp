@@ -49,12 +49,15 @@ from app.main.util.pagination import (
 from app.main.util.render_utils import (
     create_presigned_url,
     create_presigned_url_for_access_copy,
+    extract_single_page_as_image,
+    extract_single_page_as_thumbnail,
     generate_breadcrumb_values,
     generate_image_manifest,
     generate_pdf_manifest,
     get_download_filename,
     get_file_extension,
     get_file_puid,
+    get_pdf_from_s3,
 )
 from app.main.util.request_validation_utils import validate_request
 from app.main.util.schemas import (
@@ -65,6 +68,7 @@ from app.main.util.schemas import (
     CallbackRequestSchema,
     DownloadRequestSchema,
     GenerateManifestRequestSchema,
+    PageImageRequestSchema,
     RecordRequestSchema,
     SearchRequestSchema,
     SearchResultsSummaryRequestSchema,
@@ -851,42 +855,155 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
     puid = get_file_puid(file)
 
-    def get_s3_file_obj(file, bucket_name=None):
-        """
-        Helper to get S3 file object and presigned URL for a given file.
-        """
-        s3 = boto3.client("s3")
-        bucket = bucket_name or current_app.config["RECORD_BUCKET_NAME"]
-        key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-        s3_file_object = s3.get_object(Bucket=bucket, Key=key)
-        return s3_file_object
-
-    s3_file_obj = get_s3_file_obj(file)
-
     if (
         puid
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS"]
     ):
         return generate_pdf_manifest(
-            file_name, manifest_url, file_obj=s3_file_obj
+            file_name,
+            manifest_url,
+            bucket=current_app.config["RECORD_BUCKET_NAME"],
+            key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
+            record_id=str(record_id),
         )
     elif puid in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS"]:
         file_url = create_presigned_url(file)
         return generate_image_manifest(
-            file_name, file_url, manifest_url, s3_file_object=s3_file_obj
+            file_name,
+            file_url,
+            manifest_url,
+            bucket=current_app.config["RECORD_BUCKET_NAME"],
+            key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
         )
     elif puid in CONVERTIBLE_PUIDS:
-        file_obj = get_s3_file_obj(
-            file, bucket_name=current_app.config["ACCESS_COPY_BUCKET"]
-        )
         return generate_pdf_manifest(
-            file.FileName, manifest_url, file_obj=file_obj
+            file.FileName,
+            manifest_url,
+            bucket=current_app.config["ACCESS_COPY_BUCKET"],
+            key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
+            record_id=str(record_id),
         )
 
     current_app.app_logger.error(
         f"Failed to create manifest for file with ID {file.FileId} as not a supported file type"
     )
     abort(400)
+
+
+@bp.route("/record/<uuid:record_id>/page/<int:page_number>", methods=["GET"])
+@access_token_sign_in_required
+@log_page_view
+@validate_request(PageImageRequestSchema, location="path")
+def get_page_image(record_id: uuid.UUID, page_number: int):
+    """
+    Serve a specific page from a PDF as a full-size JPEG image.
+
+    Args:
+        record_id: The file UUID
+        page_number: 1-indexed page number
+
+    Returns:
+        Image response (JPEG)
+    """
+    file = db.session.get(File, record_id)
+    if file is None:
+        abort(404)
+
+    validate_body_user_groups_or_404(file.consignment.series.body.Name)
+
+    puid = get_file_puid(file)
+
+    # Determine which bucket to use
+    if puid in CONVERTIBLE_PUIDS:
+        bucket = current_app.config["ACCESS_COPY_BUCKET"]
+    else:
+        bucket = current_app.config["RECORD_BUCKET_NAME"]
+
+    # Fetch PDF from S3
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+
+    try:
+        pdf_bytes = get_pdf_from_s3(bucket=bucket, key=key)
+    except ClientError as e:
+        current_app.app_logger.error(
+            f"Failed to fetch PDF from S3 for page image: {e}"
+        )
+        abort(404)
+
+    # Extract the specific page as image
+    try:
+        image_bytes = extract_single_page_as_image(pdf_bytes, page_number)
+        response = Response(image_bytes, mimetype="image/jpeg")
+
+        return response
+    except ValueError as e:
+        current_app.app_logger.error(f"Invalid page number {page_number}: {e}")
+        abort(400)
+    except Exception as e:
+        current_app.app_logger.error(
+            f"Failed to extract page {page_number} as image: {e}"
+        )
+        abort(500)
+
+
+@bp.route(
+    "/record/<uuid:record_id>/page/<int:page_number>/thumbnail", methods=["GET"]
+)
+@access_token_sign_in_required
+@log_page_view
+@validate_request(PageImageRequestSchema, location="path")
+def get_page_thumbnail(record_id: uuid.UUID, page_number: int):
+    """
+    Serve a thumbnail for a specific PDF page.
+
+    Args:
+        record_id: The file UUID
+        page_number: 1-indexed page number
+
+    Returns:
+        Thumbnail image response (JPEG, 150x200 max)
+    """
+    file = db.session.get(File, record_id)
+    if file is None:
+        abort(404)
+
+    validate_body_user_groups_or_404(file.consignment.series.body.Name)
+
+    puid = get_file_puid(file)
+
+    # Determine which bucket to use
+    if puid in CONVERTIBLE_PUIDS:
+        bucket = current_app.config["ACCESS_COPY_BUCKET"]
+    else:
+        bucket = current_app.config["RECORD_BUCKET_NAME"]
+
+    # Fetch PDF from S3
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+
+    try:
+        pdf_bytes = get_pdf_from_s3(bucket=bucket, key=key)
+    except ClientError as e:
+        current_app.app_logger.error(
+            f"Failed to fetch PDF from S3 for thumbnail: {e}"
+        )
+        abort(404)
+
+    # Extract the specific page as thumbnail
+    try:
+        thumbnail_bytes = extract_single_page_as_thumbnail(
+            pdf_bytes, page_number
+        )
+        return Response(thumbnail_bytes, mimetype="image/jpeg")
+    except ValueError as e:
+        current_app.app_logger.error(
+            f"Invalid page number {page_number} for thumbnail: {e}"
+        )
+        abort(400)
+    except Exception as e:
+        current_app.app_logger.error(
+            f"Failed to extract page {page_number} as thumbnail: {e}"
+        )
+        abort(500)
 
 
 @bp.route("/signed-out", methods=["GET"])

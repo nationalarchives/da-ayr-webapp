@@ -5,6 +5,8 @@ from flask import Flask
 from app.main.util.render_utils import (
     create_presigned_url,
     extract_pdf_pages_as_images,
+    extract_single_page_as_image,
+    extract_single_page_as_thumbnail,
     generate_breadcrumb_values,
     get_download_filename,
     get_file_extension,
@@ -130,3 +132,67 @@ def test_extract_pdf_pages_as_images_success():
             extract_pdf_pages_as_images(MINIMAL_VALID_PDF_TWO_PAGES)
             == expected_pages
         )
+
+
+# Tests for extract_single_page_as_image
+def test_extract_single_page_as_image_success():
+    """Test extracting a valid page as a full-size image."""
+    image_bytes = extract_single_page_as_image(MINIMAL_VALID_PDF_TWO_PAGES, 1)
+
+    assert isinstance(image_bytes, bytes)
+    assert len(image_bytes) > 0
+    # Verify it's a valid JPEG by checking magic bytes
+    assert image_bytes[:2] == b"\xff\xd8"
+
+
+def test_extract_single_page_as_image_second_page():
+    """Test extracting the second page."""
+    image_bytes = extract_single_page_as_image(MINIMAL_VALID_PDF_TWO_PAGES, 2)
+
+    assert isinstance(image_bytes, bytes)
+    assert len(image_bytes) > 0
+    assert image_bytes[:2] == b"\xff\xd8"
+
+
+def test_extract_single_page_as_image_invalid_page_zero():
+    """Test that page number 0 raises ValueError."""
+    try:
+        extract_single_page_as_image(MINIMAL_VALID_PDF_TWO_PAGES, 0)
+        assert False, "Expected ValueError"
+    except ValueError as e:
+        assert "Invalid page number" in str(e)
+
+
+def test_extract_single_page_as_image_invalid_page_too_high():
+    """Test that page number beyond PDF page count raises ValueError."""
+    try:
+        extract_single_page_as_image(MINIMAL_VALID_PDF_TWO_PAGES, 99)
+        assert False, "Expected ValueError"
+    except ValueError as e:
+        assert "Invalid page number" in str(e)
+        assert "2 pages" in str(e)
+
+
+# Tests for extract_single_page_as_thumbnail
+def test_extract_single_page_as_thumbnail_success():
+    """Test extracting a valid page as a thumbnail."""
+    thumbnail_bytes = extract_single_page_as_thumbnail(
+        MINIMAL_VALID_PDF_TWO_PAGES, 1
+    )
+
+    assert isinstance(thumbnail_bytes, bytes)
+    assert len(thumbnail_bytes) > 0
+    # Verify it's a valid JPEG
+    assert thumbnail_bytes[:2] == b"\xff\xd8"
+    # Thumbnail should be smaller than full image
+    full_image = extract_single_page_as_image(MINIMAL_VALID_PDF_TWO_PAGES, 1)
+    assert len(thumbnail_bytes) < len(full_image)
+
+
+def test_extract_single_page_as_thumbnail_invalid_page():
+    """Test that invalid page number raises ValueError."""
+    try:
+        extract_single_page_as_thumbnail(MINIMAL_VALID_PDF_TWO_PAGES, 99)
+        assert False, "Expected ValueError"
+    except ValueError as e:
+        assert "Invalid page number" in str(e)
