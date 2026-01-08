@@ -240,7 +240,7 @@ services:
         poetry run flask run --host=0.0.0.0 --port=5000 --debug
       "
     ports:
-      - "5000:5000"
+      - "${WEBAPP_PORT}:5000"
     volumes:
       # Mount source code for hot reloading directly
       - ../app:/docker_app/app
@@ -262,7 +262,7 @@ services:
       - opensearch-node1
       - opensearch-restore
     healthcheck:
-      test: ["CMD", "curl", "-f", "-k", "https://localhost:5000"]
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:${WEBAPP_PORT}"]
       interval: 10s
       timeout: 5s
       retries: 30

@@ -44,20 +44,20 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "test-client-secret",
       "redirectUris": [
-        "https://127.0.0.1:5000/*",
-        "https://localhost:5000/*",
-        "https://host.docker.internal:5000/*",
-        "http://127.0.0.1:5000/*",
-        "http://localhost:5000/*",
-        "http://host.docker.internal:5000/*"
+        "https://127.0.0.1:8000/*",
+        "https://localhost:8000/*",
+        "https://host.docker.internal:8000/*",
+        "http://127.0.0.1:8000/*",
+        "http://localhost:8000/*",
+        "http://host.docker.internal:8000/*"
       ],
       "webOrigins": [
-        "https://127.0.0.1:5000",
-        "https://localhost:5000",
-        "https://host.docker.internal:5000",
-        "http://127.0.0.1:5000",
-        "http://localhost:5000",
-        "http://host.docker.internal:5000"
+        "https://127.0.0.1:8000",
+        "https://localhost:8000",
+        "https://host.docker.internal:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "http://host.docker.internal:8000"
       ],
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
