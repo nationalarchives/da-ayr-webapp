@@ -148,6 +148,7 @@ def create_app(config_class, database_uri=None):
                     DBUsername=cfg.DB_USER,
                     Region=cfg.AWS_REGION,
                 )
+                print(f"TOKEN: {token}")
                 return psycopg2.connect(
                     host=cfg.DB_HOST,
                     port=int(cfg.DB_PORT),
