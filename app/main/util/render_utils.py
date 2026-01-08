@@ -1,6 +1,6 @@
 import base64
 import io
-from typing import Any, List
+from typing import List
 
 import boto3
 import pymupdf
@@ -120,6 +120,73 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
         return page_data
 
 
+def extract_single_page_as_image(
+    pdf_bytes: bytes, page_number: int, thumbnail: bool = False
+) -> bytes:
+    """
+    Extract a single page from PDF as JPEG bytes.
+
+    Args:
+        pdf_bytes: The PDF file bytes
+        page_number: 1-indexed page number
+        thumbnail: If True, return thumbnail size (150x200)
+
+    Returns:
+        JPEG image bytes
+
+    Raises:
+        ValueError: If page_number is invalid
+    """
+    DPI = 150
+
+    with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
+        if page_number < 1 or page_number > pdf_document.page_count:
+            raise ValueError(
+                f"Invalid page number: {page_number}. PDF has {pdf_document.page_count} pages."
+            )
+
+        # Load page (convert 1-indexed to 0-indexed)
+        page = pdf_document.load_page(page_number - 1)
+        mat = pymupdf.Matrix(DPI / 72, DPI / 72)
+        pix = page.get_pixmap(matrix=mat)
+        img_bytes = pix.tobytes("png")
+
+        # Convert to PIL Image
+        page_image = Image.open(io.BytesIO(img_bytes))
+
+        if thumbnail:
+            page_image.thumbnail((150, 200), Image.Resampling.LANCZOS)
+            quality = 70
+        else:
+            quality = 75
+
+        # Convert to JPEG
+        output_buffer = io.BytesIO()
+        page_image.save(output_buffer, format="JPEG", quality=quality)
+
+        # Clean up
+        page_image.close()
+        pix = None
+
+        return output_buffer.getvalue()
+
+
+def extract_single_page_as_thumbnail(
+    pdf_bytes: bytes, page_number: int
+) -> bytes:
+    """
+    Extract a single page from PDF as a thumbnail JPEG.
+
+    Args:
+        pdf_bytes: The PDF file bytes
+        page_number: 1-indexed page number
+
+    Returns:
+        JPEG thumbnail bytes (150x200 max)
+    """
+    return extract_single_page_as_image(pdf_bytes, page_number, thumbnail=True)
+
+
 def create_presigned_url_for_access_copy(file: File) -> str:
     s3 = boto3.client("s3")
     bucket = current_app.config["ACCESS_COPY_BUCKET"]
@@ -137,64 +204,97 @@ def create_presigned_url_for_access_copy(file: File) -> str:
 
 
 def generate_pdf_manifest(
-    file_name: str, manifest_url: str, file_obj: Any = None
+    file_name: str,
+    manifest_url: str,
+    bucket: str = None,
+    key: str = None,
+    record_id: str = None,
 ) -> Response:
     """
-    Generate an IIIF manifest for a PDF file, including page thumbnails and images if possible.
+    Generate an IIIF manifest for a PDF file with URLs to page images.
 
     Args:
         file_name (str): The display name of the file.
         manifest_url (str): The manifest's own URL.
         file_obj (Any, optional): The File object for S3 access.
+        record_id (str, optional): The record UUID for generating image URLs.
 
     Returns:
         Response: Flask JSON response containing the IIIF manifest.
     """
-    page_data = []
     current_app.logger.info(
-        f"Generating PDF manifest for {file_name}, file_obj: {file_obj is not None}"
+        f"Generating PDF manifest for {file_name}, record_id: {record_id}"
     )
 
-    pdf_bytes = file_obj["Body"].read()
+    # Read PDF to get page count and dimensions
+    pdf_bytes = get_pdf_from_s3(bucket, key)
     current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
-
-    page_data = extract_pdf_pages_as_images(pdf_bytes)
-    current_app.logger.info(f"Extracted {len(page_data)} pages from PDF")
 
     canvas_items = []
 
-    for page_info in page_data:
-        canvas_id = f"{manifest_url}/canvas/{page_info['page_number']}"
-        canvas_items.append(
-            {
-                "@type": "sc:Canvas",
-                "@id": canvas_id,
-                "label": f"Page {page_info['page_number']}",
-                "width": page_info["width"],
-                "height": page_info["height"],
-                "thumbnail": {
-                    "@id": page_info["thumbnail_url"],
-                    "@type": "dctypes:Image",
-                    "format": "image/jpeg",
-                    "width": 150,
-                    "height": 200,
-                },
-                "images": [
-                    {
-                        "@type": "oa:Annotation",
-                        "motivation": "sc:painting",
-                        "resource": {
-                            "@id": page_info["page_image_url"],
-                            "@type": "dctypes:Image",
-                            "format": "image/jpeg",
-                            "width": page_info["width"],
-                            "height": page_info["height"],
-                        },
-                        "on": canvas_id,
-                    }
-                ],
-            }
-        )
+    with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
+        page_count = pdf_document.page_count
+        current_app.logger.info(f"PDF has {page_count} pages")
+
+        for page_num in range(page_count):
+            page = pdf_document.load_page(page_num)
+            rect = page.rect
+
+            # Calculate dimensions at 150 DPI
+            DPI = 150
+            width = int(rect.width * DPI / 72)
+            height = int(rect.height * DPI / 72)
+
+            page_number = page_num + 1
+
+            # Generate URLs for this page
+            from flask import url_for
+
+            page_image_url = url_for(
+                "main.get_page_image",
+                record_id=record_id,
+                page_number=page_number,
+                _external=True,
+            )
+
+            thumbnail_url = url_for(
+                "main.get_page_thumbnail",
+                record_id=record_id,
+                page_number=page_number,
+                _external=True,
+            )
+
+            canvas_id = f"{manifest_url}/canvas/{page_number}"
+            canvas_items.append(
+                {
+                    "@type": "sc:Canvas",
+                    "@id": canvas_id,
+                    "label": f"Page {page_number}",
+                    "width": width,
+                    "height": height,
+                    "thumbnail": {
+                        "@id": thumbnail_url,
+                        "@type": "dctypes:Image",
+                        "format": "image/jpeg",
+                        "width": 150,
+                        "height": 200,
+                    },
+                    "images": [
+                        {
+                            "@type": "oa:Annotation",
+                            "motivation": "sc:painting",
+                            "resource": {
+                                "@id": page_image_url,
+                                "@type": "dctypes:Image",
+                                "format": "image/jpeg",
+                                "width": width,
+                                "height": height,
+                            },
+                            "on": canvas_id,
+                        }
+                    ],
+                }
+            )
 
     manifest = {
         "@context": "https://iiif.io/api/presentation/3/context.json",
@@ -216,13 +316,21 @@ def generate_pdf_manifest(
     current_app.logger.info(
         f"Generated PDF manifest with {len(canvas_items)} canvases for {file_name}"
     )
-    return jsonify(manifest)
+
+    response = jsonify(manifest)
+
+    return response
 
 
 def generate_image_manifest(
-    file_name: str, file_url: str, manifest_url: str, s3_file_object: Any
+    file_name: str,
+    file_url: str,
+    manifest_url: str,
+    bucket: str = None,
+    key: str = None,
 ) -> Response:
-    image = Image.open(io.BytesIO(s3_file_object["Body"].read()))
+    pdf_bytes = get_pdf_from_s3(bucket, key)
+    image = Image.open(io.BytesIO(pdf_bytes))
     image_width, image_height = image.size
 
     # Detect image format
@@ -278,4 +386,15 @@ def generate_image_manifest(
         ],
     }
 
-    return jsonify(manifest)
+    response = jsonify(manifest)
+
+    return response
+
+
+def get_pdf_from_s3(bucket: str, key: str) -> bytes:
+    """fetch PDF file from S3 and return its bytes."""
+    s3 = boto3.client("s3")
+    s3_object = s3.get_object(Bucket=bucket, Key=key)
+    pdf_bytes = s3_object["Body"].read()
+
+    return pdf_bytes
