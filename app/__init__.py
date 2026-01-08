@@ -139,7 +139,9 @@ def create_app(config_class, database_uri=None):
             # Production: IAM authentication via RDS Proxy
             cfg = AWSSecretsManagerConfig()
             rds = boto3.client("rds")
-            print(f"DB_HOST: {cfg.DB_HOST}")
+            sts = boto3.client("sts")
+            print("Caller identity:", sts.get_caller_identity())
+            print("DB host:", cfg.DB_HOST)
 
             def get_connection():
                 token = rds.generate_db_auth_token(
@@ -148,7 +150,7 @@ def create_app(config_class, database_uri=None):
                     DBUsername=cfg.DB_USER,
                     Region=cfg.AWS_REGION,
                 )
-                print(f"TOKEN: {token}")
+
                 return psycopg2.connect(
                     host=cfg.DB_HOST,
                     port=int(cfg.DB_PORT),
