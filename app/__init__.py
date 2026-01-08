@@ -139,6 +139,7 @@ def create_app(config_class, database_uri=None):
             # Production: IAM authentication via RDS Proxy
             cfg = AWSSecretsManagerConfig()
             rds = boto3.client("rds")
+            print(f"DB_HOST: {cfg.DB_HOST}")
 
             def get_connection():
                 token = rds.generate_db_auth_token(
@@ -152,7 +153,7 @@ def create_app(config_class, database_uri=None):
                     port=int(cfg.DB_PORT),
                     user=cfg.DB_USER,
                     password=token,
-                    dbname=cfg.DB_NAME,
+                    database=cfg.DB_NAME,
                     sslmode="require",
                 )
 
