@@ -59,8 +59,13 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y docker-compose
 
-    - name: Run Docker Compose Tests
-      run: docker compose -f docker-compose.test.yml up --exit-code-from opensearch_indexer_tests
+    - name: Run OpenSearch Indexer Tests
+      run: |
+        docker compose -f docker-compose.test.yml run --rm opensearch_indexer_tests
+
+    - name: Run Access Copy Converter Tests
+      run: |
+        docker compose -f docker-compose.test.yml run --rm access_copy_converter_tests
 
     - name: Copy coverage file from shared volume
       run: |

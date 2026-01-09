@@ -24,6 +24,38 @@ services:
           --cov-report=xml:/test_results/coverage.xml \
           --cov-report=term-missing \
           -vvs data_management/opensearch_indexer/tests
+    depends_on:
+      - postgres
+
+  access_copy_converter_tests:
+    build:
+      context: ./data_management/access_copy_converter
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - ./test_results:/test_results
+    working_dir: /app
+    entrypoint: ""
+    environment:
+      AWS_DEFAULT_REGION: eu-west-2
+    command:
+    - sh
+    - -c
+    - |
+        set -e
+
+        apt-get update
+
+        echo 'Installing Python test dependencies...'
+        pip install -r data_management/access_copy_converter/requirements-dev.txt
+
+        pytest \
+          --cov=data_management/access_copy_converter/access_copy_converter \
+          --cov-report=xml:/test_results/coverage.xml \
+          --cov-report=term-missing \
+          -vvs data_management/access_copy_converter/tests
+    depends_on:
+      - postgres
 
   postgres:
     image: postgres@sha256:bfe50b2b0ddd9b55eadedd066fe24c7c6fe06626185b73358c480ea37868024d # postgres:18.0 with digest for immutability
