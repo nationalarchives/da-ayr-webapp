@@ -1,13 +1,18 @@
 import argparse
 import json
 import os
+import secrets
+import string
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import boto3
 from botocore.client import Config
 from dotenv import load_dotenv
+from index_file_content_and_metadata_in_opensearch import (
+    index_file_content_and_metadata_in_opensearch,
+)
 from requests_aws4auth import AWS4Auth
 
 from app import create_app, db
@@ -15,14 +20,12 @@ from app.main.db.models import Body, File, Series
 from app.tests.factories import (
     BodyFactory,
     ConsignmentFactory,
+    FFIDMetadataFactory,
     FileFactory,
     FileMetadataFactory,
     SeriesFactory,
 )
 from configs.env_config import EnvConfig
-from data_management.opensearch_indexer.opensearch_indexer.index_file_content_and_metadata_in_opensearch import (
-    index_file_content_and_metadata_in_opensearch,
-)
 
 load_dotenv()
 
@@ -35,7 +38,7 @@ def get_s3_client():
         aws_access_key_id=os.getenv("MINIO_ROOT_USER"),
         aws_secret_access_key=os.getenv("MINIO_ROOT_PASSWORD"),
         config=Config(signature_version="s3v4"),
-        region_name="us-east-1",
+        region_name="eu-west-2",
     )
 
 
@@ -72,7 +75,7 @@ def upload_file_to_s3(file_path, s3_key):
 
     with open(file_path, "rb") as file_data:
         s3.put_object(
-            Bucket=bucket, Key=s3_key, Body=file_data, ACL="public-read"
+            Bucket=bucket, Key=s3_key, Body=file_data.read(), ACL="public-read"
         )
 
 
@@ -87,11 +90,9 @@ def create_test_filepaths(file_type_counts):
     example_files = Path("local_services/mds_data_generator/example_files")
 
     example_file_paths = {
-        "pdf": example_files / "file.pdf",
-        "png": example_files / "file.png",
-        "jpg": example_files / "file.jpg",
-        "tiff": example_files / "file.tiff",
-        "txt": example_files / "file.txt",
+        f.suffix.lstrip("."): example_files / f.name
+        for f in example_files.iterdir()
+        if f.is_file() and f.suffix.lstrip(".")
     }
 
     created_files = []
@@ -130,76 +131,158 @@ def process_files(files):
 
             series = (
                 db.session.query(Series)
-                .filter_by(Name="Test Series", body=body)
+                .filter_by(Name="SCOT 13", body=body)
                 .first()
             )
             if not series:
                 series = SeriesFactory.create(
                     body=body,
-                    Name="Test Series",
+                    Name="SCOT 13",
                     Description="Test Series Description",
                 )
 
-            timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-            consignment_ref = f"TEST-{timestamp}"
+            timestamp = datetime.now(UTC).strftime("%Y")
+            random_string = "".join(
+                secrets.choice(string.ascii_uppercase + string.digits)
+                for _ in range(4)
+            )
+            consignment_ref = f"AYR-{timestamp}-{random_string}"
+
             consignment = ConsignmentFactory.create(
                 series=series,
+                BodyId=body.BodyId,
                 ConsignmentReference=consignment_ref,
                 ConsignmentType="Test",
                 IncludeTopLevelFolder=True,
                 ContactName="Test User",
                 ContactEmail="test@example.com",
-                TransferStartDatetime=datetime.utcnow(),
-                CreatedDatetime=datetime.utcnow(),
+                TransferStartDatetime=datetime.now(UTC),
+                CreatedDatetime=datetime.now(UTC),
             )
+
+            mime_types = {
+                # Assigning PUIDs to correct extensions as sets
+                "pdf": {"application/pdf", "fmt/276"},
+                "doc": {"application/msword", "fmt/40"},
+                "docx": {
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "fmt/412",
+                },
+                "ppt": {"application/vnd.ms-powerpoint", "fmt/126"},
+                "pptx": {
+                    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                    "fmt/215",
+                },
+                "wk3": {"application/vnd.lotus-1-2-3", "x-fmt/115"},
+                "wk4": {"application/vnd.lotus-1-2-3", "x-fmt/116"},
+                "wp": {"application/wordperfect", "x-fmt/394"},
+                "rtf": {"application/rtf", "fmt/50"},
+                "xls": {"application/vnd.ms-excel", "fmt/59"},
+                "xlsx": {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "fmt/214",
+                },
+                "png": {"image/png", "fmt/11"},
+                "jpg": {"image/jpeg", "fmt/43"},
+                "txt": {"text/plain", "x-fmt/111"},
+                "csv": {"Comma-Separated Values", "x-fmt/18"},
+                "tif": {"Tagged Image File Format", "fmt/353"},
+            }
+
+            format_names = {
+                "pdf": "PDF",
+                "doc": "Microsoft Word Document",
+                "docx": "Microsoft Word Open XML Document",
+                "ppt": "Microsoft PowerPoint Presentation",
+                "pptx": "Microsoft PowerPoint Open XML Presentation",
+                "wk1": "Lotus 1-2-3 Spreadsheet",
+                "wk4": "Lotus 1-2-3 Spreadsheet",
+                "wp": "WordPerfect Document",
+                "rtf": "Rich Text Format",
+                "xls": "Microsoft Excel Spreadsheet",
+                "xlsx": "Microsoft Excel Open XML Spreadsheet",
+                "png": "Portable Network Graphics",
+                "jpg": "JPEG Image",
+                "txt": "Plain Text",
+                "csv": "Comma-Separated Values",
+                "tif": "Tagged Image File Format",
+            }
 
             for i, (file_id, file_ext, source_path) in enumerate(files):
                 filename = source_path.name
+                try:
+                    upload_file_to_s3(
+                        source_path, f"{consignment_ref}/{file_id}"
+                    )
+                except Exception as e:
+                    print(f"Failed to upload {filename}: {e}")
+                    continue  # Skip DB entry if upload fails
 
-                upload_file_to_s3(source_path, f"{consignment_ref}/{file_id}")
+                ffid_metadata = FFIDMetadataFactory.create(
+                    FileId=file_id,
+                    Extension=file_ext,
+                    PUID=next(
+                        (
+                            m
+                            for m in mime_types.get(file_ext, set())
+                            if m.startswith("fmt/") or m.startswith("x-fmt/")
+                        ),
+                        None,
+                    ),
+                    FormatName=format_names.get(file_ext, "Unknown"),
+                )
 
                 file = FileFactory.create(
                     FileId=file_id,
                     consignment=consignment,
-                    FileType="File",
                     FileName=filename,
-                    FilePath=f"{consignment.ConsignmentId}/{file_id}/{filename}",
-                    FileReference=file_id,
-                    CreatedDatetime=datetime.utcnow(),
+                    FileType="File",
+                    FilePath=f"data/content/{filename}",
+                    FileReference="".join(
+                        secrets.choice(string.ascii_uppercase + string.digits)
+                        for _ in range(4)
+                    ),
+                    CreatedDatetime=datetime.now(UTC),
+                    CiteableReference=f"CITE-{i + 1:04d}",
+                    ffid_metadata=ffid_metadata,
                 )
 
                 metadata_dict = {
                     "source": "test_file",
-                    "file_type": file_ext,
-                    "created_at": datetime.utcnow().isoformat(),
-                    "last_transfer_date": datetime.utcnow().isoformat(),
+                    "file_name": filename,
+                    "file_type": "File",
                     "file_size": str(os.path.getsize(source_path)),
+                    "rights_copyright": "Crown Copyright",
+                    "legal_status": "Public Record(s)",
+                    "held_by": "The National Archives",
+                    "date_last_modified": datetime.now(UTC).isoformat(),
+                    "description": "Test file for AYR development",
+                    "closure_type": "Open",
+                    "title_closed": "false",
+                    "description_closed": "false",
+                    "language": "English",
+                    "created_at": datetime.now(UTC).isoformat(),
+                    "last_transfer_date": datetime.now(UTC).isoformat(),
                     "file_format": file_ext.upper(),
                     "file_extension": file_ext,
-                    "mime_type": f"application/{file_ext}",
                     "closure_status": "Open",
-                    "closure_type": "Open",
                     "closure_period": "0",
                     "foi_exemption_code": "None",
                     "foi_exemption_code_description": "None",
                     "title": f"Test File {i + 1}",
-                    "description": "Test file for AYR development",
-                    "language": "English",
-                    "security_classification": "Open",
-                    "copyright_status": "Crown Copyright",
-                    "legal_status": "Public Record",
                 }
 
                 for key, value in metadata_dict.items():
                     FileMetadataFactory.create(
+                        FileId=file_id,
                         file=file,
                         PropertyName=key,
                         Value=value,
-                        CreatedDatetime=datetime.utcnow(),
+                        CreatedDatetime=datetime.now(UTC),
                     )
 
                 print(f"Processed file: {filename} (ID: {file_id})")
-
+            print(f"Creating consignment with reference: {consignment_ref}")
             db.session.commit()
 
         except Exception as e:
@@ -222,11 +305,10 @@ def index_in_opensearch(files):
             aws_key = os.getenv("AWS_ACCESS_KEY_ID")
             aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
 
+            open_search_host_url = os.getenv("OPEN_SEARCH_HOST_URL")
             open_search_http_auth = AWS4Auth(
                 aws_key, aws_secret, aws_region, aws_service
             )
-
-            open_search_ca_certs = os.getenv("OPEN_SEARCH_CA_CERTS")
             database_url = app.config["SQLALCHEMY_DATABASE_URI"]
 
             for file_id, file_ext, file_path in files:
@@ -236,7 +318,6 @@ def index_in_opensearch(files):
                     continue
 
                 filename = os.path.basename(file_path)
-
                 file_id = file.FileId
                 consignment_ref = file.consignment.ConsignmentReference
 
@@ -249,8 +330,8 @@ def index_in_opensearch(files):
                         file_id,
                         file_stream,
                         database_url,
+                        open_search_host_url,
                         open_search_http_auth,
-                        open_search_ca_certs,
                     )
 
                     print(
@@ -277,32 +358,25 @@ def main():
     parser = argparse.ArgumentParser(
         description="Generate and process test files for AYR testing"
     )
-    parser.add_argument(
-        "--num-pdf", type=int, default=1, help="Number of PDF files to create"
+    example_files = Path("local_services/mds_data_generator/example_files")
+    file_types = sorted(
+        {
+            f.suffix.lstrip(".")
+            for f in example_files.iterdir()
+            if f.is_file() and f.suffix.lstrip(".")
+        }
     )
-    parser.add_argument(
-        "--num-png", type=int, default=1, help="Number of PNG files to create"
-    )
-    parser.add_argument(
-        "--num-jpg", type=int, default=1, help="Number of JPG files to create"
-    )
-    parser.add_argument(
-        "--num-tiff", type=int, default=1, help="Number of TIF files to create"
-    )
-
-    parser.add_argument(
-        "--num-txt", type=int, default=1, help="Number of txt files to create"
-    )
+    for ext in file_types:
+        parser.add_argument(
+            f"--num-{ext}",
+            type=int,
+            default=1,
+            help=f"Number of {ext.upper()} files to create",
+        )
 
     args = parser.parse_args()
 
-    file_type_counts = {
-        "pdf": args.num_pdf,
-        "png": args.num_png,
-        "jpg": args.num_jpg,
-        "tiff": args.num_tiff,
-        "txt": args.num_txt,
-    }
+    file_type_counts = {ext: getattr(args, f"num_{ext}") for ext in file_types}
 
     file_paths = create_test_filepaths(file_type_counts)
     process_files(file_paths)
