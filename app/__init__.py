@@ -128,19 +128,15 @@ def create_app(config_class, database_uri=None):
     )
     WTFormsHelpers(app)
 
-    # ---------- DATABASE SETUP ----------
     with app.app_context():
         if database_uri:
-            # Testing/local mode: use static URI
             app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
             db.create_all()
 
         else:
-            # Production: IAM authentication via RDS Proxy
             cfg = AWSSecretsManagerConfig()
             rds = boto3.client("rds")
-            sts = boto3.client("sts")
-            print("Caller identity:", sts.get_caller_identity())
+
             print("DB host:", cfg.DB_HOST)
 
             def get_connection():
