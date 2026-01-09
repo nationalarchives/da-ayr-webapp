@@ -1,4 +1,5 @@
 import inspect
+import socket
 from datetime import datetime
 
 import bleach
@@ -138,17 +139,18 @@ def create_app(config_class, database_uri=None):
             rds = boto3.client("rds")
             print("DB_HOST repr:", repr(cfg.DB_HOST))
             print("DB_PORT repr:", repr(cfg.DB_PORT))
+            resolved = socket.gethostbyname_ex(cfg.DB_HOST)[0]
 
             def get_connection():
                 token = rds.generate_db_auth_token(
-                    DBHostname=cfg.DB_HOST,
+                    DBHostname=resolved,
                     Port=int(cfg.DB_PORT),
                     DBUsername=cfg.DB_USER,
                     Region=cfg.AWS_REGION,
                 )
                 print("TOKEN:", token)
                 return psycopg2.connect(
-                    host=cfg.DB_HOST,
+                    host=resolved,
                     port=int(cfg.DB_PORT),
                     user=cfg.DB_USER,
                     password=token,
