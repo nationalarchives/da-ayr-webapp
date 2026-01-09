@@ -237,10 +237,10 @@ services:
       sh -c "
         echo 'Building CSS files...' &&
         npm run build &&
-        poetry run flask run --host=0.0.0.0 --port=5000 --debug
+        poetry run flask run --host=0.0.0.0 --port=${WEBAPP_PORT} --debug
       "
     ports:
-      - "${WEBAPP_PORT}:5000"
+      - "${WEBAPP_PORT}:${WEBAPP_PORT}"
     volumes:
       # Mount source code for hot reloading directly
       - ../app:/docker_app/app

@@ -144,7 +144,7 @@ Ensure you set the above environment variables in the `.env` file as appropriate
 flask run
 ```
 
-You should now have the app running on <https://localhost:5000/>
+You should now have the app running on <https://localhost:8000/>
 
 **Note:** Unless you have changed the `FLASK_APP` value in the `.flaskenv` file to point to another application entrypoint other than `main_app`, you must specify the `CONFIG_SOURCE` environment variable (as populated by the env file templates), to be either `AWS_SECRETS_MANAGER` or `ENVIRONMENT_VARIABLES` otherwise `flask run` will raise an error.
 
@@ -222,7 +222,7 @@ export KEYCLOAK_CLIENT_ID=ayr-beta
 export KEYCLOAK_CLIENT_SECRET=<secret regenerated above>
 
 
-export DB_PORT=5433
+export DB_PORT=5434
 export DB_HOST=localhost
 export DB_NAME=local_db
 export DB_USER=local_db_user
@@ -632,7 +632,7 @@ Note: a `.env.e2e_tests.template` file has been provided, which you can then `cp
 You can then run all of our Playwright tests against an instance, localhost for example, by running:
 
 ```shell
-pytest e2e_tests/ --base-url=https://localhost:5000
+pytest e2e_tests/ --base-url=https://localhost:8000
 ```
 
 You can swap out the base-url for another if you want to run the tests against another instance of the application.
@@ -682,7 +682,7 @@ Whilst the Docker container is running, snapshots of visual regression for pages
 
 - To run the tests on specific browsers, as long as they have been installed already with `playwright install` you can add as many `--browser` flags as you want, e.g.
 
-`pytest e2e_tests/ --base-url=https://localhost:5000 --browser chromium --browser firefox --browser webkit`
+`pytest e2e_tests/ --base-url=https://localhost:8000 --browser chromium --browser firefox --browser webkit`
 
 will run all the tests against `chromium`, `firefox` and `webkit`
 
@@ -690,20 +690,20 @@ will run all the tests against `chromium`, `firefox` and `webkit`
 
 - To view the browser when the tests are running, you can add the `--headed` flag, e.g.
 
-`pytest e2e_tests/ --base-url=https://localhost:5000 --headed`
+`pytest e2e_tests/ --base-url=https://localhost:8000 --headed`
 
 #### PWDEBUG
 
 - To utilise the playwright debugger, you can set the `PWDEBUG=1` environment variable, e.g.
 
-`PWDEBUG=1 poetry run pytest e2e_tests/test_search.py --base-url=https://localhost:5000 --headed`
+`PWDEBUG=1 poetry run pytest e2e_tests/test_search.py --base-url=https://localhost:8000 --headed`
 
 1. individual tests in file with multiple tests (use -k):
-poetry run pytest e2e_tests/test_record_metadata.py -k test_page_title_and_header --base-url=https://localhost:5000 --headed
+poetry run pytest e2e_tests/test_record_metadata.py -k test_page_title_and_header --base-url=https://localhost:8000 --headed
 
 ### Generate playwright tests using GUI
 
-Run `poetry run playwright codegen https://localhost:5000 --ignore-https-errors` to spin up a browser instance which you can interact with, where each interaction will be captured as a pytest playwright line, which builds out a test skeleton file for you to add assertions to.
+Run `poetry run playwright codegen https://localhost:8000 --ignore-https-errors` to spin up a browser instance which you can interact with, where each interaction will be captured as a pytest playwright line, which builds out a test skeleton file for you to add assertions to.
 
 ### When to add an E2E Tests?
 
@@ -750,7 +750,7 @@ The following ENV Vars are required:
 
 1. Run the flask app on a specific environment LOCAL / INT / TEST
 2. Ensure Locust is installed with `pip install locust`
-3. Run locust with the following command: `locust --host=https://127.0.0.1:5000`
+3. Run locust with the following command: `locust --host=https://127.0.0.1:8000`
 4. Ensure the ENV variable PERF_TEST = True
 5. Access locust via the provided URL and start a new test with the required amount of users
 
@@ -850,7 +850,7 @@ END RequestId: 4e2b263b-fc27-4db2-b87e-867fc4596e69
 
 LOG ENTRY for an Error
 ```
-[2023-12-15 15:40:14,119] 127.0.0.1 requested https://localhost:5000/logger_test?log_level=error
+[2023-12-15 15:40:14,119] 127.0.0.1 requested https://localhost:8000/logger_test?log_level=error
 ERROR in routes: Some error
 ```
 
