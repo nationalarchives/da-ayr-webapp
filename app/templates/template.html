@@ -30,8 +30,6 @@
             {#- Hardcoded value of $govuk-black #}
             <link rel="apple-touch-icon"
                   href="{{ assetPath | default('/assets', true) }}/image/tna-apple-touch-icon-180x180.png">
-            <link rel="manifest"
-                  href="{{ assetPath | default('/assets', true) }}/manifest.json">
         {% endblock %}
         {% block head %}{% endblock %}
         {#- OpenGraph images needs to be absolute, so we need either a URL for the image or for assetUrl to be set #}
