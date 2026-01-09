@@ -136,8 +136,8 @@ def create_app(config_class, database_uri=None):
         else:
             cfg = AWSSecretsManagerConfig()
             rds = boto3.client("rds")
-
-            print("DB host:", cfg.DB_HOST)
+            print("DB_HOST repr:", repr(cfg.DB_HOST))
+            print("DB_PORT repr:", repr(cfg.DB_PORT))
 
             def get_connection():
                 token = rds.generate_db_auth_token(
