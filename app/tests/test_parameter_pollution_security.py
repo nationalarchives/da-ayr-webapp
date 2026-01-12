@@ -5,8 +5,6 @@ Tests that Flask reserved parameters (_external, _anchor, _scheme, _method)
 cannot be injected by users to cause errors or security issues.
 """
 
-import pytest
-
 from app.main.util.request_validation_utils import (
     _filter_non_defaults,
     sanitize_url_params,
@@ -76,7 +74,7 @@ class TestParameterPollutionSecurity:
         assert filtered["page"] == 2
 
     def test_search_endpoint_prevents_typeerror_from_duplicate_anchor(
-        self, client, standard_user
+        self, client, mock_standard_user
     ):
         """
         Test that duplicate _anchor parameter doesn't cause errors.
@@ -85,21 +83,11 @@ class TestParameterPollutionSecurity:
         _anchor both as explicit kwarg and in **redirect_params,
         causing TypeError: got multiple values for keyword argument '_anchor'
         """
+        # Set up authenticated session
+        mock_standard_user(client)
+
         # This should NOT crash with TypeError
-        response = client.get(
-            "/search?query=test&_anchor=exploit",
-            headers={"Cookie": f"session={standard_user}"},
-        )
+        response = client.get("/search?query=test&_anchor=exploit")
 
         assert response.status_code in [200, 302]
         assert response.status_code != 500
-
-
-@pytest.fixture
-def standard_user(authenticated_client):
-    """Fixture providing a standard user session."""
-    from unittest.mock import MagicMock
-
-    mock_user = MagicMock()
-    mock_user.body_id = "123e4567-e89b-12d3-a456-426614174000"
-    return mock_user
