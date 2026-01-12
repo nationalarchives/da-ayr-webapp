@@ -73,6 +73,9 @@ def _filter_non_defaults(
     """
     Filter out fields that have default values to keep redirect URLs clean.
     Only returns fields that were explicitly provided in the original request.
+
+    Filters out Flask reserved parameters to prevent parameter
+    pollution attacks in url_for() calls.
     """
     filtered = {}
 
@@ -81,9 +84,34 @@ def _filter_non_defaults(
         if field is None:
             continue
 
+        # Block Flask reserved parameters that start with underscore
+        # These are special parameters for url_for() and could be used for attacks:
+        # _external, _scheme, _anchor, _method, etc.
+        if field_name.startswith("_"):
+            continue
+
         # Only include if the field was explicitly provided in original data
         # (regardless of whether it matches the default value)
         if field_name in original_data and value is not None and value != "":
             filtered[field_name] = value
 
     return filtered
+
+
+def sanitize_url_params(params: dict) -> dict:
+    """
+    Remove Flask reserved parameters from a dict to prevent parameter pollution.
+
+    Flask's url_for() accepts special parameters starting with underscore:
+    - _external: Generate absolute URL
+    - _scheme: URL scheme (http/https)
+    - _anchor: URL fragment
+    - _method: HTTP method
+
+    Args:
+        params: Dictionary of URL parameters
+
+    Returns:
+        Sanitised dictionary with Flask reserved parameters removed
+    """
+    return {k: v for k, v in params.items() if not k.startswith("_")}
