@@ -1,5 +1,5 @@
 {% if pagination %}
-    {# SECURITY: Sanitize params to prevent Flask parameter pollution attacks #}
+    {# Sanitize params to prevent Flask parameter pollution attacks #}
     {% set filtered_params = query_string_parameters | sanitize_url_params %}
     {% set filtered_params = filtered_params.copy() %}
     {% set _ = filtered_params.pop('page', None) %}
