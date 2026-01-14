@@ -31,9 +31,6 @@ def validate_request(
                     f"Validation error in {f.__name__}: {e.messages}"
                 )
                 request.validated_data = _fallback_to_defaults(schema, data)
-                request.validated_data_non_defaults = _filter_non_defaults(
-                    request.validated_data, schema, data
-                )
             return f(*args, **kwargs)
 
         return wrapper
