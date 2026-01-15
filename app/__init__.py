@@ -1,7 +1,6 @@
 import inspect
+import logging
 import socket
-import sys
-import traceback
 from datetime import datetime
 
 import bleach
@@ -13,7 +12,6 @@ from flask_s3 import FlaskS3
 from flask_talisman import Talisman
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
-from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 
 from app.logger_config import setup_logging
@@ -119,7 +117,15 @@ def create_app(config_class, database_uri=None):
 
     # Initialise extensions
     setup_logging(app)
-    db.init_app(app)
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    )
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+    logging.getLogger("sqlalchemy.pool").setLevel(logging.DEBUG)
+    logging.getLogger("psycopg2").setLevel(logging.DEBUG)
+
+    # Initialize Flask extensions
     s3.init_app(app)
     compress.init_app(app)
     talisman.init_app(
@@ -132,149 +138,64 @@ def create_app(config_class, database_uri=None):
     )
     WTFormsHelpers(app)
 
-    with app.app_context():
-        if database_uri:
-            app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
+    # === DATABASE SETUP ===
+    cfg = AWSSecretsManagerConfig()
+    rds = boto3.client("rds")
+
+    def get_connection():
+        print("\n--- New connection attempt ---")
+        print(
+            f"[{datetime.utcnow().isoformat()}] Using DB_HOST: {repr(cfg.DB_HOST)}"
+        )
+
+        # DNS check
+        try:
+            ips = socket.gethostbyname_ex(cfg.DB_HOST)[2]
+            print(f"  → Resolved IPs: {ips}")
+        except Exception as e:
+            print(f"  → DNS error: {e}")
+
+        # Generate IAM token
+        token = rds.generate_db_auth_token(
+            DBHostname=cfg.DB_HOST,
+            Port=int(cfg.DB_PORT),
+            DBUsername=cfg.DB_USER,
+            Region=cfg.AWS_REGION,
+        )
+        print(
+            f"[{datetime.utcnow().isoformat()}] IAM token generated, length={len(token)}"
+        )
+
+        # Connect using psycopg2
+        try:
+            conn = psycopg2.connect(
+                host=cfg.DB_HOST,
+                port=int(cfg.DB_PORT),
+                user=cfg.DB_USER,
+                password=token,
+                database=cfg.DB_NAME,
+                sslmode="require",
+                connect_timeout=10,
+            )
+            print("!!! CONNECTION SUCCEEDED !!!")
+            return conn
+        except Exception as e:
+            print(f"!!! CONNECTION FAILED: {type(e).__name__}: {e}")
+            raise
+
+    if database_uri:
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
+        db.init_app(app)
+        with app.app_context():
             db.create_all()
-
-        else:
-            cfg = AWSSecretsManagerConfig()
-            rds = boto3.client("rds")
-
-            print("\n=== DEBUG: Configuration & Environment ===")
-            print(f"Current UTC time:          {datetime.utcnow().isoformat()}")
-            print(f"DB_HOST (repr):            {repr(cfg.DB_HOST)}")
-            print(f"DB_PORT (repr):            {repr(cfg.DB_PORT)}")
-            print(f"DB_USER:                   {cfg.DB_USER}")
-            print(f"DB_NAME:                   {cfg.DB_NAME}")
-            print(f"AWS_REGION:                {cfg.AWS_REGION}")
-            print(f"Python version:            {sys.version.splitlines()[0]}")
-            print("Running in:                Lambda / CloudShell / Other")
-
-            def get_connection():
-                print("\n--- New connection attempt ---")
-                print(
-                    f"[{datetime.utcnow().isoformat()}] Using DB_HOST: {repr(cfg.DB_HOST)}"
-                )
-
-                # DNS resolution check from inside this runtime
-                print("DNS resolution check:")
-                try:
-                    resolved_ips = socket.gethostbyname_ex(cfg.DB_HOST)[2]
-                    print(f"  → Resolves to IPs: {resolved_ips}")
-                    print(
-                        f"  → First IP: {resolved_ips[0] if resolved_ips else 'None'}"
-                    )
-                except socket.gaierror as dns_err:
-                    print(f"  → DNS resolution FAILED: {dns_err}")
-                except Exception as e:
-                    print(f"  → DNS check error: {type(e).__name__}: {e}")
-
-                # Token generation
-                print(
-                    f"[{datetime.utcnow().isoformat()}] Generating IAM auth token for:"
-                )
-                print(f"  Hostname: {repr(cfg.DB_HOST)}")
-                print(f"  Port:     {repr(cfg.DB_PORT)}")
-                print(f"  User:     {repr(cfg.DB_USER)}")
-
-                try:
-                    token = rds.generate_db_auth_token(
-                        DBHostname=cfg.DB_HOST,
-                        Port=int(cfg.DB_PORT),
-                        DBUsername=cfg.DB_USER,
-                        Region=cfg.AWS_REGION,
-                    )
-                    print("Token generated successfully")
-                    print(f"Token length: {len(token)}")
-                    print(f"Token prefix (first 120 chars):\n{token[:120]}...")
-                    print(
-                        f"Expected prefix starts with: {repr(cfg.DB_HOST + ':' + cfg.DB_PORT + '/')}"
-                    )
-
-                    # Quick self-check
-                    expected_start = f"{cfg.DB_HOST}:{cfg.DB_PORT}/"
-                    actual_start = token[: len(expected_start)]
-                    print(
-                        f"Token matches expected start? {actual_start == expected_start}"
-                    )
-                    if not actual_start == expected_start:
-                        print("!!! TOKEN PREFIX MISMATCH DETECTED !!!")
-                except Exception as gen_err:
-                    print("!!! TOKEN GENERATION FAILED !!!")
-                    print(f"Error: {type(gen_err).__name__}: {gen_err}")
-                    traceback.print_exc()
-                    raise
-
-                # Connection attempt
-                print(
-                    f"[{datetime.utcnow().isoformat()}] Attempting psycopg2.connect() with:"
-                )
-                print(f"  host={repr(cfg.DB_HOST)}")
-                print(f"  port={repr(cfg.DB_PORT)}")
-                print(f"  user={repr(cfg.DB_USER)}")
-                print(f"  dbname={repr(cfg.DB_NAME)}")
-                print("  sslmode=require")
-
-                try:
-                    conn = psycopg2.connect(
-                        host=cfg.DB_HOST,
-                        port=int(cfg.DB_PORT),
-                        user=cfg.DB_USER,
-                        password=token,
-                        database=cfg.DB_NAME,
-                        sslmode="require",
-                        connect_timeout=10,
-                    )
-                    print("!!! CONNECTION SUCCEEDED !!!")
-                    return conn
-                except psycopg2.OperationalError as op_err:
-                    print(
-                        "!!! psycopg2 OperationalError (most likely proxy rejection) !!!"
-                    )
-                    print(f"Error: {op_err}")
-                    print(f"pgcode: {op_err.pgcode}")
-                    print(f"pgerror: {op_err.pgerror}")
-                    print(f"DB_HOST at failure: {repr(cfg.DB_HOST)}")
-                    raise
-                except psycopg2.Error as pg_err:
-                    print("!!! General psycopg2 Error !!!")
-                    print(f"Error: {pg_err}")
-                    traceback.print_exc()
-                    raise
-                except Exception as conn_err:
-                    print("!!! Unexpected connection error !!!")
-                    print(f"Type: {type(conn_err).__name__}")
-                    print(f"Message: {conn_err}")
-                    traceback.print_exc()
-                    raise
-
-            try:
-                print("\nCreating SQLAlchemy engine...")
-                engine = create_engine(
-                    "postgresql+psycopg2://",
-                    creator=get_connection,
-                    poolclass=NullPool,
-                )
-                print("Engine created successfully")
-            except Exception as engine_err:
-                print("!!! ENGINE CREATION FAILED !!!")
-                print(f"Error: {engine_err}")
-                traceback.print_exc()
-                raise
-
-            db.session.configure(bind=engine)
-            app.logger.info("Created DB connection with IAM auth")
-
-            # try:
-            #     print("Reflecting metadata...")
-            #     db.Model.metadata.reflect(bind=engine, schema="public")
-            #     print("Metadata reflection succeeded")
-            # except Exception as reflect_err:
-            #     print("!!! METADATA REFLECTION FAILED !!!")
-            #     print(f"Error: {reflect_err}")
-            #     traceback.print_exc()
-            #     raise
+    else:
+        # Pass creator to SQLAlchemy engine so it uses IAM token
+        app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://"
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "creator": get_connection,
+            "poolclass": NullPool,
+        }
+        db.init_app(app)
 
     # Register blueprints
     from app.main import bp as main_bp
