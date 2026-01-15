@@ -247,10 +247,11 @@ def build_browse_consignment_query(
                 query = query.order_by(desc(sort_field))
             else:
                 query = query.order_by(sort_field)
+            query = query.order_by(sub_query.c.file_name.collate("C"))
         else:
             query = _build_sorting_orders(query, sub_query, sorting_orders)
     else:
-        query = query.order_by(sub_query.c.file_name)
+        query = query.order_by(sub_query.c.file_name.collate("C"))
 
     return query
 
@@ -295,6 +296,8 @@ def _build_sorting_orders(query, sub_query, sorting_orders):
                 if order == "desc"
                 else query.order_by(column)
             )
+    # Add secondary sort by file_name for deterministic ordering
+    query = query.order_by(sub_query.c.file_name.collate("C"))
     return query
 
 
