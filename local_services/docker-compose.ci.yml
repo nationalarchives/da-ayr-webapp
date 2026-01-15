@@ -140,7 +140,7 @@ services:
     image: quay.io/keycloak/keycloak:26.5.0
     env_file:
       - .docker.env
-    entrypoint: ["/bin/bash", "/update-keycloak-realm.sh"]
+    entrypoint: ["/bin/bash", "-c","./update-keycloak-realm.sh"]
     environment:
       KC_HOSTNAME: localhost
       KC_HOSTNAME_PORT: 8080

@@ -97,10 +97,10 @@ jobs:
         retention-days: 7
     - name: Check logs after test failure
       if: failure()
-      run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env logs
+      run: cd local_services && docker compose -f docker-compose.ci.yml logs
     - name: Stop services
       if: always()
       run: |
         cd local_services
-        docker compose -f docker-compose.ci.yml down -v --env-file .docker.env
+        docker compose -f docker-compose.ci.yml down -v
         docker system prune -f
