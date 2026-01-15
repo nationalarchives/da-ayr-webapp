@@ -12,7 +12,7 @@ from flask_s3 import FlaskS3
 from flask_talisman import Talisman
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import QueuePool
 
 from app.logger_config import setup_logging
 from app.main.db.models import db
@@ -138,15 +138,13 @@ def create_app(config_class, database_uri=None):
     )
     WTFormsHelpers(app)
 
-    # === DATABASE SETUP ===
     cfg = AWSSecretsManagerConfig()
     rds = boto3.client("rds")
 
     def get_connection():
+        """Return a new psycopg2 connection with fresh IAM token."""
         print("\n--- New connection attempt ---")
-        print(
-            f"[{datetime.utcnow().isoformat()}] Using DB_HOST: {repr(cfg.DB_HOST)}"
-        )
+        print(f"[{datetime.utcnow().isoformat()}] Using DB_HOST: {cfg.DB_HOST}")
 
         # DNS check
         try:
@@ -183,6 +181,7 @@ def create_app(config_class, database_uri=None):
             print(f"!!! CONNECTION FAILED: {type(e).__name__}: {e}")
             raise
 
+    # Use pooled connections with token refresh
     if database_uri:
         app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
         db.init_app(app)
@@ -193,7 +192,12 @@ def create_app(config_class, database_uri=None):
         app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://"
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
             "creator": get_connection,
-            "poolclass": NullPool,
+            "poolclass": QueuePool,
+            "pool_size": 5,
+            "max_overflow": 10,
+            "pool_timeout": 30,
+            "pool_recycle": 600,  # recycle idle connections (RDS/NAT safe)
+            "pool_pre_ping": True,
         }
         db.init_app(app)
 
