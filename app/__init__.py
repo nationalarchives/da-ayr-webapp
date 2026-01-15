@@ -266,15 +266,15 @@ def create_app(config_class, database_uri=None):
             db.session.configure(bind=engine)
             app.logger.info("Created DB connection with IAM auth")
 
-            try:
-                print("Reflecting metadata...")
-                db.Model.metadata.reflect(bind=engine, schema="public")
-                print("Metadata reflection succeeded")
-            except Exception as reflect_err:
-                print("!!! METADATA REFLECTION FAILED !!!")
-                print(f"Error: {reflect_err}")
-                traceback.print_exc()
-                raise
+            # try:
+            #     print("Reflecting metadata...")
+            #     db.Model.metadata.reflect(bind=engine, schema="public")
+            #     print("Metadata reflection succeeded")
+            # except Exception as reflect_err:
+            #     print("!!! METADATA REFLECTION FAILED !!!")
+            #     print(f"Error: {reflect_err}")
+            #     traceback.print_exc()
+            #     raise
 
     # Register blueprints
     from app.main import bp as main_bp
