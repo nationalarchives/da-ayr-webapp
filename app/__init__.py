@@ -14,6 +14,7 @@ from flask_talisman import Talisman
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 from sqlalchemy import create_engine
+from sqlalchemy.pool import NullPool
 
 from app.logger_config import setup_logging
 from app.main.db.models import db
@@ -253,10 +254,7 @@ def create_app(config_class, database_uri=None):
                 engine = create_engine(
                     "postgresql+psycopg2://",
                     creator=get_connection,
-                    pool_pre_ping=True,
-                    pool_size=3,
-                    max_overflow=2,
-                    pool_timeout=30,
+                    poolclass=NullPool,
                 )
                 print("Engine created successfully")
             except Exception as engine_err:
