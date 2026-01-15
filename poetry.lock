@@ -1481,14 +1481,14 @@ email = ["email-validator"]
 
 [[package]]
 name = "govuk-frontend-jinja"
-version = "3.9.0"
+version = "3.10.0"
 description = "GOV.UK Frontend Jinja Macros"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "govuk_frontend_jinja-3.9.0-py3-none-any.whl", hash = "sha256:f561a792967cbf337c17b9cd511e50339eba3ce5b949d683db4aa5dfbd773d72"},
-    {file = "govuk_frontend_jinja-3.9.0.tar.gz", hash = "sha256:7b70b505e70a88ab5dd3fad9176ec1dec36f97122b317a6758ad8fcbee173227"},
+    {file = "govuk_frontend_jinja-3.10.0-py3-none-any.whl", hash = "sha256:1cc429b044e4b4afab40777dcf20e7b9b4d8b6f1132a8668430407f6ae8017df"},
+    {file = "govuk_frontend_jinja-3.10.0.tar.gz", hash = "sha256:d48c6e9bbaabaefa133aa9d75feb2e0275f6a4865bb6f1d7357f6ae348b3f86c"},
 ]
 
 [package.dependencies]
@@ -4599,4 +4599,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "71a72c4b9f261c2e6886b9d8ff6ad2f00f3e1b2f40cdd1d098d8bdba94beb299"
+content-hash = "68976d8e4bec69cd6a73ff8b4a1707e2dd013ea451b4f8ce047dc8b8d139d2d9"
