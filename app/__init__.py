@@ -16,9 +16,6 @@ from app.main.db.models import db
 from app.main.util.search_utils import OPENSEARCH_FIELD_NAME_MAP
 from configs.aws_secrets_manager_config import AWSSecretsManagerConfig
 
-# from sqlalchemy.pool import QueuePool
-
-
 compress = Compress()
 talisman = Talisman()
 s3 = FlaskS3()
@@ -171,12 +168,6 @@ def create_app(config_class, database_uri=None):
         app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://"
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
             "creator": get_connection,
-            # "poolclass": QueuePool,
-            # "pool_size": 5,
-            # "max_overflow": 10,
-            # "pool_timeout": 30,
-            # "pool_recycle": 600,
-            # "pool_pre_ping": True,
         }
         db.init_app(app)
 
