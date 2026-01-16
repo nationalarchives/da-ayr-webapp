@@ -1,6 +1,4 @@
 import inspect
-import logging
-import socket
 from datetime import datetime
 
 import bleach
@@ -64,6 +62,40 @@ def format_date_iso(value):
         return value
 
 
+def get_connection():
+    """Return a new psycopg2 connection with fresh IAM token."""
+    print("\n--- New connection attempt ---")
+    cfg = AWSSecretsManagerConfig()
+    rds = boto3.client("rds")
+    # # DNS check
+    # try:
+    #     ips = socket.gethostbyname_ex(cfg.DB_HOST)[2]
+    #     print(f"  → Resolved IPs: {ips}")
+    # except Exception as e:
+    #     print(f"  → DNS error: {e}")
+    token = rds.generate_db_auth_token(
+        DBHostname=cfg.DB_HOST,
+        Port=int(cfg.DB_PORT),
+        DBUsername=cfg.DB_USER,
+        Region=cfg.AWS_REGION,
+    )
+
+    try:
+        conn = psycopg2.connect(
+            host=cfg.DB_HOST,
+            port=int(cfg.DB_PORT),
+            user=cfg.DB_USER,
+            password=token,
+            database=cfg.DB_NAME,
+            sslmode="require",
+            connect_timeout=10,
+        )
+        return conn
+    except Exception as e:
+        print(f"!!! CONNECTION FAILED: {type(e).__name__}: {e}")
+        raise
+
+
 def create_app(config_class, database_uri=None):
     app = Flask(__name__, static_url_path="/assets")
     config = config_class()
@@ -114,18 +146,7 @@ def create_app(config_class, database_uri=None):
         }
 
     csp = get_csp_config(app)
-
-    # Initialise extensions
     setup_logging(app)
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s %(levelname)s %(name)s %(message)s",
-    )
-    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
-    logging.getLogger("sqlalchemy.pool").setLevel(logging.DEBUG)
-    logging.getLogger("psycopg2").setLevel(logging.DEBUG)
-
-    # Initialize Flask extensions
     s3.init_app(app)
     compress.init_app(app)
     talisman.init_app(
@@ -138,57 +159,12 @@ def create_app(config_class, database_uri=None):
     )
     WTFormsHelpers(app)
 
-    cfg = AWSSecretsManagerConfig()
-    rds = boto3.client("rds")
-
-    def get_connection():
-        """Return a new psycopg2 connection with fresh IAM token."""
-        print("\n--- New connection attempt ---")
-        print(f"[{datetime.utcnow().isoformat()}] Using DB_HOST: {cfg.DB_HOST}")
-
-        # DNS check
-        try:
-            ips = socket.gethostbyname_ex(cfg.DB_HOST)[2]
-            print(f"  → Resolved IPs: {ips}")
-        except Exception as e:
-            print(f"  → DNS error: {e}")
-
-        # Generate IAM token
-        token = rds.generate_db_auth_token(
-            DBHostname=cfg.DB_HOST,
-            Port=int(cfg.DB_PORT),
-            DBUsername=cfg.DB_USER,
-            Region=cfg.AWS_REGION,
-        )
-        print(
-            f"[{datetime.utcnow().isoformat()}] IAM token generated, length={len(token)}"
-        )
-
-        # Connect using psycopg2
-        try:
-            conn = psycopg2.connect(
-                host=cfg.DB_HOST,
-                port=int(cfg.DB_PORT),
-                user=cfg.DB_USER,
-                password=token,
-                database=cfg.DB_NAME,
-                sslmode="require",
-                connect_timeout=10,
-            )
-            print("!!! CONNECTION SUCCEEDED !!!")
-            return conn
-        except Exception as e:
-            print(f"!!! CONNECTION FAILED: {type(e).__name__}: {e}")
-            raise
-
-    # Use pooled connections with token refresh
     if database_uri:
         app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
         db.init_app(app)
         with app.app_context():
             db.create_all()
     else:
-        # Pass creator to SQLAlchemy engine so it uses IAM token
         app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://"
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
             "creator": get_connection,
