@@ -10,11 +10,12 @@ if os.getenv("CONFIG_SOURCE") == "AWS_SECRETS_MANAGER":
     config_class = AWSSecretsManagerConfig
 elif os.getenv("CONFIG_SOURCE") == "ENVIRONMENT_VARIABLES":
     config_class = EnvConfig
+    local_env = True
 else:
     config_class = EnvConfig
-
+    local_env = False
 try:
-    app = create_app(config_class)
+    app = create_app(config_class, local_env)
 except Exception as e:
     print(e)
     print(traceback.format_exc())

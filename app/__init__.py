@@ -86,7 +86,7 @@ def get_connection():
     return conn
 
 
-def create_app(config_class, database_uri=None):
+def create_app(config_class, local_env):
     app = Flask(__name__, static_url_path="/assets")
     config = config_class()
     inspect.getmembers(config)
@@ -150,13 +150,15 @@ def create_app(config_class, database_uri=None):
     WTFormsHelpers(app)
 
     # setup database components
-    if database_uri:
-        app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
+    if local_env:
+        print("LOCAL---")
+        print(app.config["SQLALCHEMY_DATABASE_URI"])
         db.init_app(app)
         # create db objects for testing
         with app.app_context():
             db.create_all()
     else:
+        print("Production-------")
         app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://"
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
             "creator": get_connection,
