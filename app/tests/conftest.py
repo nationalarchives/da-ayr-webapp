@@ -93,7 +93,7 @@ def mock_all_access_user():
 
 @pytest.fixture
 def app(database):
-    app = create_app(TestingConfig, database.url())
+    app = create_app(TestingConfig, database.url(), local_env=True)
     yield app
 
 

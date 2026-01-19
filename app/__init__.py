@@ -86,7 +86,7 @@ def get_connection():
     return conn
 
 
-def create_app(config_class, local_env):
+def create_app(config_class, database_uri=None, local_env=False):
     app = Flask(__name__, static_url_path="/assets")
     config = config_class()
     inspect.getmembers(config)
@@ -136,6 +136,12 @@ def create_app(config_class, local_env):
         }
 
     csp = get_csp_config(app)
+
+    # setup database uri for testing
+    if database_uri:
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
+
+    # Initialise app extensions
     setup_logging(app)
     s3.init_app(app)
     compress.init_app(app)
@@ -151,19 +157,21 @@ def create_app(config_class, local_env):
 
     # setup database components
     if local_env:
-        print("LOCAL---")
-        print(app.config["SQLALCHEMY_DATABASE_URI"])
         db.init_app(app)
         # create db objects for testing
         with app.app_context():
             db.create_all()
     else:
-        print("Production-------")
         app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://"
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
             "creator": get_connection,
         }
         db.init_app(app)
+
+    with app.app_context():
+        # create db objects for testing
+        if database_uri:
+            db.create_all()
 
     # Register blueprints
     from app.main import bp as main_bp
