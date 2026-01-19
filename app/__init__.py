@@ -86,7 +86,7 @@ def get_connection():
     return conn
 
 
-def create_app(config_class, database_uri=None, local_env=False):
+def create_app(config_class, local_env, database_uri=None):
     app = Flask(__name__, static_url_path="/assets")
     config = config_class()
     inspect.getmembers(config)
