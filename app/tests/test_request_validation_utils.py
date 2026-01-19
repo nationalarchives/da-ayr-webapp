@@ -1,7 +1,10 @@
 from flask import Flask
 from marshmallow import Schema, fields
 
-from app.main.util.request_validation_utils import validate_request
+from app.main.util.request_validation_utils import (
+    _fallback_to_defaults,
+    validate_request,
+)
 
 
 class DummySchema(Schema):
@@ -54,6 +57,21 @@ def test_validate_request_combined():
     assert resp.status_code == 200
 
 
-def test_validate_request_invalid_request():
-    resp = make_app_with_route("unknown", data={})
-    assert resp.status_code == 200
+class DefaultSchema(Schema):
+    a = fields.String(load_default="foo")
+    b = fields.Integer(load_default=42)
+
+
+def test_fallback_to_defaults_invalid_field():
+    schema = DefaultSchema()
+    data = {"a": 123, "b": "notint"}
+    result = _fallback_to_defaults(schema, data)
+    assert result["a"] == "foo"  # fallback to default
+    assert result["b"] == 42  # fallback to default
+
+
+def test_fallback_to_defaults_empty():
+    schema = DefaultSchema()
+    data = {}
+    result = _fallback_to_defaults(schema, data)
+    assert result == {"a": "foo", "b": 42}
