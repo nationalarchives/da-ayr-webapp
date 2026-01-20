@@ -22,10 +22,22 @@ def get_secret_data(secret_id: str) -> Dict[str, Any]:
     return json.loads(secret_response["SecretString"])
 
 
+def get_iam_connection(db_secret_string: Dict[str, Any]):
+    rds = boto3.client("rds")
+    host = db_secret_string["proxy"]
+    port = int(db_secret_string["port"])
+    user = db_secret_string["username"]
+
+    return rds.generate_db_auth_token(
+        DBHostname=host, Port=port, DBUsername=user
+    )
+
+
 def _build_db_url(db_secret_string: Dict[str, Any]) -> str:
+    token = get_iam_connection(db_secret_string)
     return (
         "postgresql+pg8000://"
-        f'{db_secret_string["username"]}:{quote_plus(db_secret_string["password"])}'
+        f'{db_secret_string["username"]}:{quote_plus(token)}'
         f'@{db_secret_string["proxy"]}:{db_secret_string["port"]}/{db_secret_string["dbname"]}'
     )
 
