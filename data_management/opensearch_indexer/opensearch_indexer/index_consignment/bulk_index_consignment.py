@@ -7,11 +7,11 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import sqlalchemy
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
 from ..aws_helpers import (
-    _build_db_url,
+    _build_db_engine,
     _get_opensearch_auth,
     get_s3_file,
 )
@@ -41,15 +41,17 @@ def bulk_index_consignment_from_aws(
 
     Args:
         consignment_reference (str): The reference identifier for the consignment.
-        secret_string (str):  AWS secret storing s3 record bucket name,
-            and database and OpenSearch credentials.
-        db_secret_string (str): AWS secret storing database credentials.
+        secret_string (Dict[str, Any]): AWS secret storing S3 record bucket name,
+            and OpenSearch credentials/config.
+        db_secret_string (Dict[str, Any]): AWS secret storing database connection details
+            (proxy, port, username, dbname, region) used for IAM auth.
 
     Returns:
         None
     """
     bucket_name = secret_string["RECORD_BUCKET_NAME"]
-    database_url = _build_db_url(db_secret_string)
+    engine = _build_db_engine(db_secret_string)
+
     open_search_host_url = secret_string["OPEN_SEARCH_HOST"]
     open_search_http_auth = _get_opensearch_auth(secret_string)
     open_search_bulk_index_timeout = int(
@@ -59,7 +61,7 @@ def bulk_index_consignment_from_aws(
     bulk_index_consignment(
         consignment_reference,
         bucket_name,
-        database_url,
+        engine,
         open_search_host_url,
         open_search_http_auth,
         open_search_bulk_index_timeout,
@@ -69,7 +71,7 @@ def bulk_index_consignment_from_aws(
 def bulk_index_consignment(
     consignment_reference: str,
     bucket_name: str,
-    database_url: str,
+    engine,
     open_search_host_url: str,
     open_search_http_auth: Union[Tuple[str, str], AWS4Auth],
     open_search_bulk_index_timeout: int,
@@ -83,7 +85,7 @@ def bulk_index_consignment(
     Args:
         consignment_reference (str): The unique reference identifying the consignment to be indexed.
         bucket_name (str): Name of the S3 bucket.
-        database_url (str): Database connection URL.
+        engine: SQLAlchemy engine configured with IAM authentication.
         open_search_host_url (str): OpenSearch endpoint URL.
         open_search_http_auth (AWS4Auth or tuple): Authentication details for OpenSearch.
         open_search_bulk_index_timeout (int): Timeout for OpenSearch bulk indexing.
@@ -92,7 +94,7 @@ def bulk_index_consignment(
     Raises:
         ConsignmentBulkIndexError: If errors occur during text extraction or bulk indexing.
     """
-    files = fetch_files_in_consignment(consignment_reference, database_url)
+    files = fetch_files_in_consignment(consignment_reference, engine)
     documents_to_index = construct_documents(files, bucket_name)
 
     text_extraction_error = validate_text_extraction(documents_to_index)
@@ -185,14 +187,14 @@ def construct_documents(files: List[Dict], bucket_name: str) -> List[Dict]:
 
 
 def fetch_files_in_consignment(
-    consignment_reference: str, database_url: str
+    consignment_reference: str, engine
 ) -> List[Dict]:
     """
     Fetch file metadata associated with the given consignment reference, including FFID file extension.
 
     Args:
         consignment_reference (str): The unique reference identifying the consignment.
-        database_url (str): The database connection URL.
+        engine: SQLAlchemy engine configured with IAM authentication.
 
     Returns:
         list: A list of dictionaries, each containing metadata for a file in the consignment.
@@ -200,7 +202,6 @@ def fetch_files_in_consignment(
     Raises:
         sqlalchemy.exc.ProgrammingError: If the database query fails.
     """
-    engine = create_engine(database_url)
     Session = sessionmaker(bind=engine)
     session = Session()
 
@@ -295,7 +296,7 @@ def bulk_index_files_in_opensearch(
 
     Args:
         documents_to_index (List[Dict[str, Union[str, Dict]]]): The documents to index.
-        host_url (str): (str): The OpenSearch cluster URL.
+        host_url (str): The OpenSearch cluster URL.
         http_auth (Union[AWS4Auth, Tuple[str, str]]): The authentication credentials.
         timeout (int): Timeout in seconds for bulk indexing operations.
         ca_certs (Optional[str]): Path to CA certificates for SSL verification.
@@ -332,7 +333,10 @@ def bulk_index_files_in_opensearch(
         error_message = "Opensearch bulk indexing errors:"
         for item in bulk_response["items"]:
             if "error" in item.get("index", {}):
-                error_message += f"\nError for document ID {item['index']['_id']}: {item['index']['error']}"
+                error_message += (
+                    f"\nError for document ID {item['index']['_id']}: "
+                    f"{item['index']['error']}"
+                )
         raise Exception(error_message)
     else:
         logger.info("Opensearch bulk indexing completed successfully")

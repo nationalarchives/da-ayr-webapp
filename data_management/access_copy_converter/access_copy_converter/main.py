@@ -6,6 +6,7 @@ import tempfile
 
 import boto3
 import psutil
+import psycopg2
 from botocore.exceptions import ClientError
 from sqlalchemy import MetaData, Table, create_engine, select
 from sqlalchemy.exc import SQLAlchemyError
@@ -44,6 +45,7 @@ logger = logging.getLogger()
 
 s3 = boto3.client("s3")
 sm = boto3.client("secretsmanager")
+rds = boto3.client("rds")
 
 
 def get_secret_string(secret_id):
@@ -51,16 +53,39 @@ def get_secret_string(secret_id):
     return json.loads(secret_value["SecretString"])  # pragma: allowlist secret
 
 
-def get_engine():
+def get_rds_iam_connection():
     db_secret_id = os.getenv("DB_SECRET_ID")
     if not db_secret_id:
         raise Exception("DB_SECRET_ID environment variable not found")
     creds = get_secret_string(db_secret_id)
-    url = (
-        f"postgresql+psycopg2://{creds['username']}:{creds['password']}"
-        f"@{creds['proxy']}:{creds['port']}/{creds['dbname']}"
+
+    host = creds["proxy"]
+    port = int(creds["port"])
+    user = creds["username"]
+    dbname = creds["dbname"]
+
+    rds = boto3.client("rds")
+
+    token = rds.generate_db_auth_token(
+        DBHostname=host, Port=port, DBUsername=user
     )
-    return create_engine(url)
+
+    return psycopg2.connect(
+        host=host,
+        port=port,
+        user=user,
+        password=token,
+        database=dbname,
+        sslmode="require",
+        connect_timeout=10,
+    )
+
+
+def get_engine():
+    return create_engine(
+        "postgresql+psycopg2://",
+        creator=get_rds_iam_connection,
+    )
 
 
 def already_converted(bucket, key):

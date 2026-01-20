@@ -1,10 +1,11 @@
 import json
 import logging
 from typing import Any, Dict
-from urllib.parse import quote_plus
 
 import boto3
+import psycopg2
 from requests_aws4auth import AWS4Auth
+from sqlalchemy import create_engine
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -22,14 +23,6 @@ def get_secret_data(secret_id: str) -> Dict[str, Any]:
     return json.loads(secret_response["SecretString"])
 
 
-def _build_db_url(db_secret_string: Dict[str, Any]) -> str:
-    return (
-        "postgresql+pg8000://"
-        f'{db_secret_string["username"]}:{quote_plus(db_secret_string["password"])}'
-        f'@{db_secret_string["proxy"]}:{db_secret_string["port"]}/{db_secret_string["dbname"]}'
-    )
-
-
 def _get_opensearch_auth(secret_string: Dict[str, Any]) -> AWS4Auth:
     session = boto3.Session()
     credentials = session.get_credentials()
@@ -41,3 +34,38 @@ def _get_opensearch_auth(secret_string: Dict[str, Any]) -> AWS4Auth:
         session_token=credentials.token,
     )
     return auth
+
+
+def get_iam_connection(db_secret_string: Dict[str, Any]):
+    rds = boto3.client("rds")
+    host = db_secret_string["proxy"]
+    port = int(db_secret_string["port"])
+    user = db_secret_string["username"]
+    dbname = db_secret_string["dbname"]
+
+    token = rds.generate_db_auth_token(
+        DBHostname=host, Port=port, DBUsername=user
+    )
+
+    return psycopg2.connect(
+        host=host,
+        port=port,
+        user=user,
+        password=token,
+        database=dbname,
+        sslmode="require",
+        connect_timeout=10,
+    )
+
+
+def _build_db_engine(db_secret_string):
+
+    def connection_creator():
+        return get_iam_connection(db_secret_string)
+
+    return create_engine(
+        "postgresql+psycopg2://",
+        creator=connection_creator,
+        pool_pre_ping=True,
+        pool_recycle=300,
+    )
