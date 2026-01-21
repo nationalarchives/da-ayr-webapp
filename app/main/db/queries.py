@@ -296,8 +296,17 @@ def _build_sorting_orders(query, sub_query, sorting_orders):
                 if order == "desc"
                 else query.order_by(column)
             )
-    # Add secondary sort by file_name for deterministic ordering
-    query = query.order_by(sub_query.c.file_name.collate("C"))
+    # Add secondary sort for ordering based on available columns
+    secondary_sort_column = None
+    if hasattr(sub_query.c, "file_name"):
+        secondary_sort_column = sub_query.c.file_name
+    elif hasattr(sub_query.c, "consignment_reference"):
+        secondary_sort_column = sub_query.c.consignment_reference
+    elif hasattr(sub_query.c, "series"):
+        secondary_sort_column = sub_query.c.series
+
+    if secondary_sort_column is not None:
+        query = query.order_by(secondary_sort_column.collate("C"))
     return query
 
 
