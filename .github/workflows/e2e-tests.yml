@@ -55,6 +55,9 @@ jobs:
         KEYCLOAK_CLIENT_ID=ayr-beta
         KEYCLOAK_REALM_NAME=tdr
         KEYCLOAK_CLIENT_SECRET=test-client-secret
+        GIT_REF=main
+        BROWSERS=chromium
+        TEST_FILTER=.
         EOF
 
     - name: Build E2E Docker image with cache
