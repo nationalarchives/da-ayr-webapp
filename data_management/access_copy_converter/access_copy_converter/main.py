@@ -3,6 +3,7 @@ import logging
 import os
 import subprocess  # nosec
 import tempfile
+from urllib.parse import quote_plus
 
 import boto3
 import psutil
@@ -69,7 +70,7 @@ def get_engine():
     creds = get_secret_string(db_secret_id)
     token = get_iam_connection(creds)
     url = (
-        f"postgresql+psycopg2://{creds['username']}:{token}"
+        f"postgresql+psycopg2://{creds['username']}:{quote_plus(token)}"
         f"@{creds['proxy']}:{creds['port']}/{creds['dbname']}"
     )
     return create_engine(url)
