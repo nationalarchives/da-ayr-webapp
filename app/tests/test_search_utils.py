@@ -138,7 +138,10 @@ def test_format_opensearch_results(results, expected):
                 *fields_without_file_name,
             ],
             "file_name",
-            [{"_score": {"order": "desc"}}],
+            [
+                {"_score": {"order": "desc"}},
+                {"file_name.keyword": {"order": "asc"}},
+            ],
         ),
         (
             "metadata",
@@ -155,13 +158,19 @@ def test_format_opensearch_results(results, expected):
                 "consignment_reference^1",
             ],
             "metadata",
-            [{"_score": {"order": "desc"}}],
+            [
+                {"_score": {"order": "desc"}},
+                {"file_name.keyword": {"order": "asc"}},
+            ],
         ),
         (
             "record",
             ["file_name^3", "content^1"],
             "file_name",
-            [{"_score": {"order": "desc"}}],
+            [
+                {"_score": {"order": "desc"}},
+                {"file_name.keyword": {"order": "asc"}},
+            ],
         ),
         (
             "all",
@@ -170,7 +179,10 @@ def test_format_opensearch_results(results, expected):
                 *fields_without_file_name,
             ],
             "file_name",
-            [{"_score": {"order": "desc"}}],
+            [
+                {"_score": {"order": "desc"}},
+                {"file_name.keyword": {"order": "asc"}},
+            ],
         ),
         (
             "all",
@@ -189,7 +201,10 @@ def test_format_opensearch_results(results, expected):
                 "consignment_reference^1",
             ],
             "description",
-            [{"_score": {"order": "desc"}}],
+            [
+                {"_score": {"order": "desc"}},
+                {"file_name.keyword": {"order": "asc"}},
+            ],
         ),
         (
             "all",
@@ -208,13 +223,19 @@ def test_format_opensearch_results(results, expected):
                 "consignment_reference^1",
             ],
             "content",
-            [{"_score": {"order": "desc"}}],
+            [
+                {"_score": {"order": "desc"}},
+                {"file_name.keyword": {"order": "asc"}},
+            ],
         ),
         (
             "all",
             fields_all,
             "least_matches",
-            [{"_score": {"order": "asc"}}],
+            [
+                {"_score": {"order": "asc"}},
+                {"file_name.keyword": {"order": "asc"}},
+            ],
         ),
         (
             "",
@@ -223,7 +244,10 @@ def test_format_opensearch_results(results, expected):
                 *fields_without_file_name,
             ],
             "file_name",
-            [{"_score": {"order": "desc"}}],
+            [
+                {"_score": {"order": "desc"}},
+                {"file_name.keyword": {"order": "asc"}},
+            ],
         ),
         (
             None,
@@ -232,13 +256,19 @@ def test_format_opensearch_results(results, expected):
                 *fields_without_file_name,
             ],
             "file_name",
-            [{"_score": {"order": "desc"}}],
+            [
+                {"_score": {"order": "desc"}},
+                {"file_name.keyword": {"order": "asc"}},
+            ],
         ),
         (
             "invalid_area",
             ["file_name^3", *fields_without_file_name],
             "file_name",
-            [{"_score": {"order": "desc"}}],
+            [
+                {"_score": {"order": "desc"}},
+                {"file_name.keyword": {"order": "asc"}},
+            ],
         ),
     ],
 )

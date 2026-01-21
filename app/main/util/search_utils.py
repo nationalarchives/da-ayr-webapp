@@ -209,7 +209,11 @@ def get_sorting_config(sort, sort_option_map):
     """
     sort_config = sort_option_map.get(sort, {})
     sort_order = sort_config.get("order", "desc")
-    return [{"_score": {"order": sort_order}}]
+    # Add secondary sort by file_name.keyword for deterministic ordering
+    return [
+        {"_score": {"order": sort_order}},
+        {"file_name.keyword": {"order": "asc"}},
+    ]
 
 
 def apply_field_boosts(fields, boost_map):
