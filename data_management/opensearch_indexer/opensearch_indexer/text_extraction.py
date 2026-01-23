@@ -3,6 +3,7 @@ import logging
 import os
 import subprocess  # nosec
 import tempfile
+import threading
 from enum import Enum
 from typing import Dict
 
@@ -13,6 +14,7 @@ import textract
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+libreoffice_lock = threading.Lock()
 
 TEXTRACT_FILE_PUIDS_FALLBACK_CONVERSION_MAP = {
     "fmt/59": "fmt/214",
@@ -89,11 +91,6 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
         )
         file["content"] = ""
         file["text_extraction_status"] = TextExtractionStatus.SKIPPED.value
-        # send_slack_alert(
-        #     f"Text extraction *SKIPPED* for file `{file_id}`\n"
-        #     f"*Environment:* `{ENVIRONMENT.upper()}`\n"
-        #     f"*Reason:* Unsupported file type - `{file_type}`"
-        # )
     else:
         try:
             file["content"] = extract_text(file_stream, file_puid)
@@ -105,11 +102,6 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
             logger.error(f"Text extraction failed for file {file_id}: {e}")
             file["content"] = ""
             file["text_extraction_status"] = TextExtractionStatus.FAILED.value
-            # send_slack_alert(
-            #     f"Text extraction *FAILED* for file `{file_id}`\n"
-            #     f"*Environment:* `{ENVIRONMENT.upper()}`\n"
-            #     f"*Reason:* `{e}`"
-            # )
     return file
 
 
@@ -156,18 +148,19 @@ def convert_file_with_libreoffice(
     input_path: str, output_file_type: str
 ) -> str:
     output_dir = tempfile.gettempdir()
-    result = subprocess.run(  # nosec
-        [
-            "libreoffice",
-            "--headless",
-            "--convert-to",
-            output_file_type,
-            "--outdir",
-            output_dir,
-            input_path,
-        ],
-        capture_output=True,
-    )
+    with libreoffice_lock:
+        result = subprocess.run(  # nosec
+            [
+                "libreoffice",
+                "--headless",
+                "--convert-to",
+                output_file_type,
+                "--outdir",
+                output_dir,
+                input_path,
+            ],
+            capture_output=True,
+        )
 
     if result.returncode != 0:
         raise RuntimeError(
@@ -193,23 +186,3 @@ def get_slack_webhook():
     secret_string = json.loads(response["SecretString"])
     slack_webhook = secret_string["slack-webhook"]
     return slack_webhook
-
-
-# Commented out because no egress to internet
-
-# def send_slack_alert(message: str):
-#     try:
-#         webhook_url = get_slack_webhook()
-#     except Exception:
-#         logger.warning("Slack alert not sent due to webhook fetch failure.")
-#         return
-
-#     try:
-#         response = requests.post(
-#             webhook_url,
-#             data=json.dumps({"text": message, "channel": SLACK_CHANNEL}),
-#             timeout=5,
-#         )
-#         response.raise_for_status()
-#     except Exception as e:
-#         logger.error(f"Failed to send Slack alert: {e}")
