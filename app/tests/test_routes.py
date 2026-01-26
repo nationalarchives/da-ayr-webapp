@@ -59,6 +59,17 @@ MINIMAL_VALID_PDF = (
     b"trailer\n<< /Root 1 0 R /Size 4 >>\nstartxref\n178\n%%EOF"
 )
 
+MINIMAL_VALID_PDF_THREE_PAGES = (
+    b"%PDF-1.4\n"
+    b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+    b"2 0 obj\n<< /Type /Pages /Kids [3 0 R 4 0 R 5 0 R] /Count 3 >>\nendobj\n"
+    b"3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >>\nendobj\n"
+    b"4 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >>\nendobj\n"
+    b"5 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >>\nendobj\n"
+    b"xref\n0 6\n0000000000 65535 f \n0000000010 00000 n \n0000000061 00000 n \n0000000128 00000 n \n0000000195 00000 n \n0000000262 00000 n \n"  # noqa
+    b"trailer\n<< /Root 1 0 R /Size 6 >>\nstartxref\n329\n%%EOF"
+)
+
 
 def create_mock_s3_bucket_with_object(bucket_name, file):
     """
@@ -182,6 +193,10 @@ class TestRoutes:
                     "test.pdf",
                 ],
             },
+            "pageRange": {
+                "end": 1,
+                "start": 1,
+            },
             "sequences": [
                 {
                     "@id": f"http://localhost/record/{file.FileId}/manifest/sequence/1",
@@ -219,12 +234,101 @@ class TestRoutes:
                     "label": "Sequence 1",
                 },
             ],
+            "totalPages": 1,
             "viewingDirection": "left-to-right",
         }
 
         actual_manifest = json.loads(response.text)
         assert response.status_code == 200
         assert actual_manifest == expected_pdf_manifest
+
+    @mock_aws
+    @patch("boto3.client")
+    @patch("app.main.routes.create_presigned_url")
+    def test_route_generate_pdf_manifest_with_page_range(
+        self,
+        mock_create_presigned_url,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        """Test PDF manifest generation with page range parameters."""
+        mock_create_presigned_url.return_value = (
+            "https://presigned-url.com/download.pdf"
+        )
+
+        # Mock S3 get_object to return valid 3-page PDF bytes
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {
+            "Body": BytesIO(MINIMAL_VALID_PDF_THREE_PAGES)
+        }
+
+        mock_all_access_user(client)
+        file = FileFactory(ffid_metadata__PUID="fmt/276", FileName="test.pdf")
+        bucket_name = "test-bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        # Request only pages 2-3
+        response = client.get(
+            f"{self.record_route_url}/{file.FileId}/manifest?start_page=2&end_page=3"
+        )
+        assert response.status_code == 200
+
+        actual_manifest = json.loads(response.text)
+
+        # Verify totalPages and pageRange metadata
+        assert actual_manifest["totalPages"] == 3
+        assert actual_manifest["pageRange"]["start"] == 2
+        assert actual_manifest["pageRange"]["end"] == 3
+
+        # Verify only 2 canvases are returned (pages 2 and 3)
+        canvases = actual_manifest["sequences"][0]["canvases"]
+        assert len(canvases) == 2
+        assert canvases[0]["label"] == "Page 2"
+        assert canvases[1]["label"] == "Page 3"
+
+    @mock_aws
+    @patch("boto3.client")
+    @patch("app.main.routes.create_presigned_url")
+    def test_route_generate_pdf_manifest_without_page_range(
+        self,
+        mock_create_presigned_url,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        """Test PDF manifest generation returns all pages when no range specified."""
+        mock_create_presigned_url.return_value = (
+            "https://presigned-url.com/download.pdf"
+        )
+
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {
+            "Body": BytesIO(MINIMAL_VALID_PDF_THREE_PAGES)
+        }
+
+        mock_all_access_user(client)
+        file = FileFactory(ffid_metadata__PUID="fmt/276", FileName="test.pdf")
+        bucket_name = "test-bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        # Request without page range - should return all pages
+        response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
+        assert response.status_code == 200
+
+        actual_manifest = json.loads(response.text)
+
+        # Verify all pages returned
+        assert actual_manifest["totalPages"] == 3
+        assert actual_manifest["pageRange"]["start"] == 1
+        assert actual_manifest["pageRange"]["end"] == 3
+
+        canvases = actual_manifest["sequences"][0]["canvases"]
+        assert len(canvases) == 3
 
     @mock_aws
     @patch("app.main.routes.create_presigned_url")

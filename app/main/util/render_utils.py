@@ -209,6 +209,8 @@ def generate_pdf_manifest(
     bucket: str = None,
     key: str = None,
     record_id: str = None,
+    start_page: int = None,
+    end_page: int = None,
 ) -> Response:
     """
     Generate an IIIF manifest for a PDF file with URLs to page images.
@@ -216,14 +218,18 @@ def generate_pdf_manifest(
     Args:
         file_name (str): The display name of the file.
         manifest_url (str): The manifest's own URL.
-        file_obj (Any, optional): The File object for S3 access.
+        bucket (str, optional): The S3 bucket name.
+        key (str, optional): The S3 object key.
         record_id (str, optional): The record UUID for generating image URLs.
+        start_page (int, optional): The first page to include (1-indexed).
+        end_page (int, optional): The last page to include (1-indexed, inclusive).
 
     Returns:
         Response: Flask JSON response containing the IIIF manifest.
     """
     current_app.logger.info(
-        f"Generating PDF manifest for {file_name}, record_id: {record_id}"
+        f"Generating PDF manifest for {file_name}, record_id: {record_id}, "
+        f"start_page: {start_page}, end_page: {end_page}"
     )
 
     # Read PDF to get page count and dimensions
@@ -233,10 +239,21 @@ def generate_pdf_manifest(
     canvas_items = []
 
     with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
-        page_count = pdf_document.page_count
-        current_app.logger.info(f"PDF has {page_count} pages")
+        total_pages = pdf_document.page_count
+        current_app.logger.info(f"PDF has {total_pages} pages")
 
-        for page_num in range(page_count):
+        # Calculate effective page range (convert to 0-indexed for iteration)
+        effective_start = (start_page - 1) if start_page else 0
+        effective_end = min(end_page, total_pages) if end_page else total_pages
+
+        effective_start = max(0, min(effective_start, total_pages - 1))
+
+        current_app.logger.info(
+            f"Processing pages {effective_start + 1} to {effective_end} "
+            f"(0-indexed: {effective_start} to {effective_end - 1})"
+        )
+
+        for page_num in range(effective_start, effective_end):
             page = pdf_document.load_page(page_num)
             rect = page.rect
 
@@ -303,6 +320,11 @@ def generate_pdf_manifest(
         "label": {"en": [file_name]},
         "description": f"Manifest for {file_name}",
         "viewingDirection": "left-to-right",
+        "totalPages": total_pages,
+        "pageRange": {
+            "start": effective_start + 1,
+            "end": effective_end,
+        },
         "sequences": [
             {
                 "@type": "sc:Sequence",

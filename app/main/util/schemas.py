@@ -8,8 +8,10 @@ to prevent vulnerabilities from invalid input data.
 from marshmallow import (
     EXCLUDE,
     Schema,
+    ValidationError,
     fields,
     validate,
+    validates_schema,
 )
 
 from app.main.util.base_schemas import (
@@ -116,9 +118,28 @@ class GenerateManifestRequestSchema(Schema):
     """Schema for manifest generation parameters."""
 
     record_id = UUIDField(required=True)
+    start_page = fields.Integer(
+        required=False,
+        load_default=None,
+        validate=validate.Range(min=1),
+    )
+    end_page = fields.Integer(
+        required=False,
+        load_default=None,
+        validate=validate.Range(min=1),
+    )
 
     class Meta:
         unknown = EXCLUDE
+
+    @validates_schema
+    def validate_page_range(self, data, **kwargs):
+        start = data.get("start_page")
+        end = data.get("end_page")
+        if start is not None and end is not None and start > end:
+            raise ValidationError(
+                "start_page must be less than or equal to end_page"
+            )
 
 
 class PageImageRequestSchema(Schema):

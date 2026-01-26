@@ -844,12 +844,16 @@ def download_record(record_id: uuid.UUID):
 @bp.route("/record/<uuid:record_id>/manifest")
 @access_token_sign_in_required
 @log_page_view
-@validate_request(GenerateManifestRequestSchema, location="path")
+@validate_request(GenerateManifestRequestSchema, location="combined")
 def generate_manifest(record_id: uuid.UUID) -> Response:
     file = db.session.get(File, record_id)
     if file is None:
         abort(404)
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
+
+    # Parse optional page range query parameters
+    start_page = request.args.get("start_page", type=int)
+    end_page = request.args.get("end_page", type=int)
 
     file_name = file.FileName
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
@@ -865,6 +869,8 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
             bucket=current_app.config["RECORD_BUCKET_NAME"],
             key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
             record_id=str(record_id),
+            start_page=start_page,
+            end_page=end_page,
         )
     elif puid in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS"]:
         file_url = create_presigned_url(file)
@@ -882,6 +888,8 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
             bucket=current_app.config["ACCESS_COPY_BUCKET"],
             key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
             record_id=str(record_id),
+            start_page=start_page,
+            end_page=end_page,
         )
 
     current_app.app_logger.error(

@@ -74,6 +74,66 @@ class TestGenerateManifestRequestSchema:
         data = schema.load({"record_id": record_id, "extra": "ignored"})
         assert "extra" not in data
 
+    def test_valid_page_range_parameters(self):
+        schema = GenerateManifestRequestSchema()
+        record_id = str(uuid.uuid4())
+        data = schema.load(
+            {"record_id": record_id, "start_page": 1, "end_page": 20}
+        )
+        assert data["start_page"] == 1
+        assert data["end_page"] == 20
+
+    def test_page_range_defaults_to_none(self):
+        schema = GenerateManifestRequestSchema()
+        record_id = str(uuid.uuid4())
+        data = schema.load({"record_id": record_id})
+        assert data["start_page"] is None
+        assert data["end_page"] is None
+
+    def test_start_page_only(self):
+        schema = GenerateManifestRequestSchema()
+        record_id = str(uuid.uuid4())
+        data = schema.load({"record_id": record_id, "start_page": 5})
+        assert data["start_page"] == 5
+        assert data["end_page"] is None
+
+    def test_end_page_only(self):
+        schema = GenerateManifestRequestSchema()
+        record_id = str(uuid.uuid4())
+        data = schema.load({"record_id": record_id, "end_page": 10})
+        assert data["start_page"] is None
+        assert data["end_page"] == 10
+
+    def test_invalid_start_page_zero(self):
+        schema = GenerateManifestRequestSchema()
+        record_id = str(uuid.uuid4())
+        with pytest.raises(ValidationError) as exc_info:
+            schema.load({"record_id": record_id, "start_page": 0})
+        assert "start_page" in exc_info.value.messages
+
+    def test_invalid_start_page_negative(self):
+        schema = GenerateManifestRequestSchema()
+        record_id = str(uuid.uuid4())
+        with pytest.raises(ValidationError) as exc_info:
+            schema.load({"record_id": record_id, "start_page": -1})
+        assert "start_page" in exc_info.value.messages
+
+    def test_invalid_end_page_zero(self):
+        schema = GenerateManifestRequestSchema()
+        record_id = str(uuid.uuid4())
+        with pytest.raises(ValidationError) as exc_info:
+            schema.load({"record_id": record_id, "end_page": 0})
+        assert "end_page" in exc_info.value.messages
+
+    def test_start_page_greater_than_end_page(self):
+        schema = GenerateManifestRequestSchema()
+        record_id = str(uuid.uuid4())
+        with pytest.raises(ValidationError) as exc_info:
+            schema.load(
+                {"record_id": record_id, "start_page": 20, "end_page": 10}
+            )
+        assert "_schema" in exc_info.value.messages
+
 
 class TestDownloadRequestSchema:
     """Tests for DownloadRequestSchema."""
