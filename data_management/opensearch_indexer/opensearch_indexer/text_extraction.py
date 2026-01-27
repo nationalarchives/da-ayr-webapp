@@ -86,6 +86,7 @@ SUPPORTED_TEXTRACT_PUIDS = {
     "fmt/42": "jpg",
     "fmt/43": "jpg",
     "fmt/44": "jpg",
+    "fmt/391": "jpg",
     "fmt/11": "png",
     "fmt/12": "png",
     "fmt/13": "png",
