@@ -99,19 +99,21 @@ class TestSearchResultsSummary:
         )
 
         expected_row_metadata = [
-            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
             ["TSTA 1", "TDR-2023-BV6", "Closed", "18/10/2048"],
-            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
-            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
             ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
             ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
             ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
         ]
 
-        assert table_row_metadata == expected_row_metadata
+        # Sort both lists to make comparison order-independent
+        # (OpenSearch result order can vary between environments)
+        assert sorted(table_row_metadata) == sorted(expected_row_metadata)
 
         verify_search_transferring_body_table_header_row(header_rows)
         verify_search_transferring_body_inner_table_row(inner_table_header_rows)
