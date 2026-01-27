@@ -71,7 +71,7 @@
         "use.refresh.tokens": "true",
         "backchannel.logout.session.required": "true"
       },
-      "fullScopeAllowed": false,
+      "fullScopeAllowed": true,
       "defaultClientScopes": [
         "group_mapper_client_scope",
         "basic"
