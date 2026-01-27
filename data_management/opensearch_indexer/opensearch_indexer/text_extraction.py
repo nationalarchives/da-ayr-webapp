@@ -49,6 +49,7 @@ SUPPORTED_TEXTRACT_PUIDS = {
     "fmt/355": "rtf",
     "fmt/412": "docx",
     "x-fmt/430": "msg",
+    "x-fmt/18": "csv",
     "fmt/291": "odt",
     "fmt/203": "ogg",
     "fmt/16": "pdf",
