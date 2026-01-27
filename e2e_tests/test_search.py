@@ -100,15 +100,15 @@ class TestSearchResultsSummary:
 
         expected_row_metadata = [
             ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
             ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
             ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
-            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
             ["TSTA 1", "TDR-2023-BV6", "Closed", "18/10/2048"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
             ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
             ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
             ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
+            ["TSTA 1", "TDR-2023-GXFH", "Open", "–"],
+            ["TSTA 1", "TDR-2023-BV6", "Open", "–"],
         ]
 
         assert table_row_metadata == expected_row_metadata
