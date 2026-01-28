@@ -1,6 +1,62 @@
+import os
 import re
 
+import requests
 from playwright.sync_api import Page, expect
+
+
+def print_opensearch_scores(query="a", transferring_body_id=None):
+    """Helper to print OpenSearch scores for debugging ordering differences."""
+    opensearch_host = os.environ.get(
+        "OPEN_SEARCH_HOST", "http://localhost:9200"
+    )
+    opensearch_user = os.environ.get("OPEN_SEARCH_USER", "admin")
+    opensearch_pass = os.environ.get(
+        "OPEN_SEARCH_PASSWORD",
+        os.environ.get("OPENSEARCH_INITIAL_ADMIN_PASSWORD", ""),
+    )
+
+    search_body = {
+        "query": {
+            "bool": {
+                "should": [{"multi_match": {"query": query, "fields": ["*"]}}],
+                "minimum_should_match": 1,
+            }
+        },
+        "sort": [
+            {"_score": {"order": "desc"}},
+            {"file_name.keyword": {"order": "asc"}},
+            {"file_id.keyword": {"order": "asc"}},
+        ],
+        "size": 20,
+        "_source": ["file_name", "consignment_reference", "transferring_body"],
+    }
+
+    if transferring_body_id:
+        search_body["query"]["bool"]["filter"] = [
+            {"term": {"transferring_body_id.keyword": transferring_body_id}}
+        ]
+
+    try:
+        response = requests.get(
+            f"{opensearch_host}/documents/_search",
+            json=search_body,
+            auth=(opensearch_user, opensearch_pass),
+            verify=False,
+            timeout=10,
+        )
+        results = response.json()
+        print("\n=== OpenSearch Scores ===")
+        for hit in results.get("hits", {}).get("hits", []):
+            print(
+                f"Score: {hit['_score']:.6f}, "
+                f"File: {hit['_source'].get('file_name', 'N/A')}, "
+                f"Consignment: {hit['_source'].get('consignment_reference', 'N/A')}, "
+                f"ID: {hit['_id']}"
+            )
+        print("=========================\n")
+    except Exception as e:
+        print(f"Could not fetch OpenSearch scores: {e}")
 
 
 def verify_search_results_summary_header_row(header_rows):
@@ -96,6 +152,13 @@ class TestSearchResultsSummary:
 
         table_row_metadata = utils.get_desktop_page_table_metadata(
             aau_user_page
+        )
+
+        # Print OpenSearch scores for debugging
+        # Testing A transferring_body_id
+        print_opensearch_scores(
+            query="a",
+            transferring_body_id="c3e3fd83-4d52-4638-a085-1f4e4e4dfa50",
         )
 
         expected_row_metadata = [

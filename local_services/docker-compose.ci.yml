@@ -270,7 +270,6 @@ services:
 
 volumes:
   opensearch-data1:
-  opensearch-data2:
   kc_postgres_data:
     driver: local
   webapp_postgres_data:

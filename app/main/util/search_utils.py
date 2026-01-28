@@ -246,12 +246,18 @@ def execute_search(open_search, dsl_query, page, per_page):
     """Execute the search query using OpenSearch"""
     from_ = per_page * (page - 1)
     try:
-        return open_search.search(
+        results = open_search.search(
             body=dsl_query,
             from_=from_,
             size=per_page,
             timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
         )
+        # Temporary: log scores for debugging ordering differences
+        for hit in results.get("hits", {}).get("hits", []):
+            print(
+                f"Score: {hit['_score']}, File: {hit['_source'].get('file_name')}, ID: {hit['_id']}"
+            )
+        return results
     except opensearchpy.exceptions.ConnectionTimeout:
         abort(504)
 
