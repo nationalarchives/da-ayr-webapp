@@ -2,6 +2,8 @@ import inspect
 from datetime import datetime
 
 import bleach
+import boto3
+import psycopg2
 from flask import Flask, g
 from flask_compress import Compress
 from flask_s3 import FlaskS3
@@ -12,6 +14,7 @@ from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 from app.logger_config import setup_logging
 from app.main.db.models import db
 from app.main.util.search_utils import OPENSEARCH_FIELD_NAME_MAP
+from configs.aws_secrets_manager_config import AWSSecretsManagerConfig
 
 compress = Compress()
 talisman = Talisman()
@@ -58,7 +61,32 @@ def format_date_iso(value):
         return value
 
 
-def create_app(config_class, database_uri=None):
+def get_connection():
+    """Return a new psycopg2 connection with fresh IAM token."""
+    print("\n--- New connection attempt ---")
+    cfg = AWSSecretsManagerConfig()
+    rds = boto3.client("rds")
+
+    token = rds.generate_db_auth_token(
+        DBHostname=cfg.DB_HOST,
+        Port=int(cfg.DB_PORT),
+        DBUsername=cfg.DB_USER,
+        Region=cfg.AWS_REGION,
+    )
+
+    conn = psycopg2.connect(
+        host=cfg.DB_HOST,
+        port=int(cfg.DB_PORT),
+        user=cfg.DB_USER,
+        password=token,
+        database=cfg.DB_NAME,
+        sslmode="require",
+        connect_timeout=10,
+    )
+    return conn
+
+
+def create_app(config_class, local_env, database_uri=None):
     app = Flask(__name__, static_url_path="/assets")
     config = config_class()
     inspect.getmembers(config)
@@ -115,7 +143,6 @@ def create_app(config_class, database_uri=None):
 
     # Initialise app extensions
     setup_logging(app)
-    db.init_app(app)
     s3.init_app(app)
     compress.init_app(app)
     talisman.init_app(
@@ -129,12 +156,22 @@ def create_app(config_class, database_uri=None):
     WTFormsHelpers(app)
 
     # setup database components
+    if local_env:
+        db.init_app(app)
+        # create db objects for testing
+        with app.app_context():
+            db.create_all()
+    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://"
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "creator": get_connection,
+        }
+        db.init_app(app)
+
     with app.app_context():
-        # create db objects for testing else use existing database objects
+        # create db objects for testing
         if database_uri:
             db.create_all()
-        else:
-            db.Model.metadata.reflect(bind=db.engine, schema="public")
 
     # Register blueprints
     from app.main import bp as main_bp
