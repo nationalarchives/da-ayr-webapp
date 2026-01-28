@@ -906,3 +906,5 @@ Uses [Flask Compress](https://github.com/colour-science/flask-compress) to compr
 This software is provided _"as-is"_ without warranty. Support is provided on a _"best endeavours"_ basis by the maintainers and open source community.
 
 Please see the [contribution guidelines](CONTRIBUTING.md) for how to raise a bug report or feature request.
+
+For security concerns, please review our [Security Policy](SECURITY.md).

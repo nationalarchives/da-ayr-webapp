@@ -27,3 +27,19 @@ If you want to contribute code directly to the project in order to fix a bug or 
 4. If the build passes, [create a pull request](https://guides.github.com/activities/forking/#making-a-pull-request). Please provide as much useful information about your change as possible.
 
 5. Your new pull request will be reviewed by one of the project maintainers, who may ask for more detail, suggest another course of action, or prioritise and allocate it to a future milestone.
+
+## Modifying GitHub Workflows
+
+GitHub Actions workflows in the `.github/workflows` directory control important automation, including CI/CD and security processes.
+
+**Special consideration for auto-approval workflows:**
+
+If you need to modify workflows that perform automated approval or merging (such as the Dependabot auto-merge workflow):
+
+1. Read the [Security Policy](SECURITY.md) first to understand the boundaries
+2. Discuss the proposed change with the team before implementation
+3. Ensure security boundaries are maintained or strengthened
+4. Document the rationale for the change in your pull request
+5. Expect additional scrutiny during review
+
+These workflows have strict security boundaries to prevent unintended auto-approval of code that should require human review.

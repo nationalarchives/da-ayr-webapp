@@ -1,6 +1,26 @@
 name: Approve and enable auto-merge on Dependabot PRs for patch and minor updates
-# This workflow approves and enables auto-merge on Dependabot pull requests for minor and patch updates
-# when the PR is created by Dependabot and the repository matches 'nationalarchives/da-ayr-beta-webapp'.
+
+# ⚠️ SECURITY NOTICE ⚠️
+# This workflow automatically approves and merges pull requests under STRICT conditions.
+# 
+# SECURITY BOUNDARIES - DO NOT MODIFY WITHOUT TEAM REVIEW:
+# 1. ONLY for Dependabot-created PRs (github.event.pull_request.user.login == 'dependabot[bot]')
+# 2. ONLY for this specific repository (github.repository == 'nationalarchives/da-ayr-beta-webapp')
+# 3. ONLY for minor and patch version updates (NOT major versions)
+# 4. All other PRs, including AI-generated code, require human review and approval
+#
+# WHY THESE RESTRICTIONS MATTER:
+# - Dependabot PRs are automated dependency updates with known security scanning
+# - Minor/patch updates are less likely to contain breaking changes
+# - Major version updates require human review due to potential breaking changes
+# - AI-generated code and human PRs always require human oversight
+#
+# If you need to modify this workflow, ensure you:
+# 1. Discuss with the team and document the reason
+# 2. Maintain or strengthen the security boundaries
+# 3. Never remove the user.login or repository checks
+# 4. Never extend auto-approval to non-Dependabot PRs
+
 on: pull_request
 
 permissions:
