@@ -141,6 +141,7 @@ def test_format_opensearch_results(results, expected):
             [
                 {"_score": {"order": "desc"}},
                 {"file_name.keyword": {"order": "asc"}},
+                {"file_id.keyword": {"order": "asc"}},
             ],
         ),
         (
@@ -161,6 +162,7 @@ def test_format_opensearch_results(results, expected):
             [
                 {"_score": {"order": "desc"}},
                 {"file_name.keyword": {"order": "asc"}},
+                {"file_id.keyword": {"order": "asc"}},
             ],
         ),
         (
@@ -170,6 +172,7 @@ def test_format_opensearch_results(results, expected):
             [
                 {"_score": {"order": "desc"}},
                 {"file_name.keyword": {"order": "asc"}},
+                {"file_id.keyword": {"order": "asc"}},
             ],
         ),
         (
@@ -182,6 +185,7 @@ def test_format_opensearch_results(results, expected):
             [
                 {"_score": {"order": "desc"}},
                 {"file_name.keyword": {"order": "asc"}},
+                {"file_id.keyword": {"order": "asc"}},
             ],
         ),
         (
@@ -204,6 +208,7 @@ def test_format_opensearch_results(results, expected):
             [
                 {"_score": {"order": "desc"}},
                 {"file_name.keyword": {"order": "asc"}},
+                {"file_id.keyword": {"order": "asc"}},
             ],
         ),
         (
@@ -226,6 +231,7 @@ def test_format_opensearch_results(results, expected):
             [
                 {"_score": {"order": "desc"}},
                 {"file_name.keyword": {"order": "asc"}},
+                {"file_id.keyword": {"order": "asc"}},
             ],
         ),
         (
@@ -235,6 +241,7 @@ def test_format_opensearch_results(results, expected):
             [
                 {"_score": {"order": "asc"}},
                 {"file_name.keyword": {"order": "asc"}},
+                {"file_id.keyword": {"order": "asc"}},
             ],
         ),
         (
@@ -247,6 +254,7 @@ def test_format_opensearch_results(results, expected):
             [
                 {"_score": {"order": "desc"}},
                 {"file_name.keyword": {"order": "asc"}},
+                {"file_id.keyword": {"order": "asc"}},
             ],
         ),
         (
@@ -259,6 +267,7 @@ def test_format_opensearch_results(results, expected):
             [
                 {"_score": {"order": "desc"}},
                 {"file_name.keyword": {"order": "asc"}},
+                {"file_id.keyword": {"order": "asc"}},
             ],
         ),
         (
@@ -268,6 +277,7 @@ def test_format_opensearch_results(results, expected):
             [
                 {"_score": {"order": "desc"}},
                 {"file_name.keyword": {"order": "asc"}},
+                {"file_id.keyword": {"order": "asc"}},
             ],
         ),
     ],
