@@ -209,10 +209,12 @@ def get_sorting_config(sort, sort_option_map):
     """
     sort_config = sort_option_map.get(sort, {})
     sort_order = sort_config.get("order", "desc")
-    # Add secondary sort by file_name.keyword for deterministic ordering
+    # Add secondary sort by file_name.keyword and tertiary sort by file_id.keyword
+    # for deterministic ordering across different OpenSearch cluster configurations
     return [
         {"_score": {"order": sort_order}},
         {"file_name.keyword": {"order": "asc"}},
+        {"file_id.keyword": {"order": "asc"}},
     ]
 
 
