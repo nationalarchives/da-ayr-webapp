@@ -140,7 +140,11 @@ services:
     image: quay.io/keycloak/keycloak:26.5.0
     env_file:
       - .docker.env
-    entrypoint: ["/bin/bash", "/update-keycloak-realm.sh"]
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        chmod +x /update-keycloak-realm.sh && exec /bin/bash /update-keycloak-realm.sh
     environment:
       KC_HOSTNAME: localhost
       KC_HOSTNAME_PORT: 8080
@@ -158,7 +162,7 @@ services:
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - ./import:/opt/keycloak/data/import
-      - ./update-keycloak-realm.sh:/update-keycloak-realm.sh:ro
+      - ./update-keycloak-realm.sh:/update-keycloak-realm.sh
     ports:
       - 8080:8080
     restart: always
