@@ -133,7 +133,7 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
                 file_puid
             ]
             target_ext = SUPPORTED_TEXTRACT_PUIDS[target_puid]
-
+            logger.info(f"Converting {file_id} to {target_ext}")
             with tempfile.NamedTemporaryFile(delete=True) as src:
                 src.write(file_stream)
                 src.flush()
