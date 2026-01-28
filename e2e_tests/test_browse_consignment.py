@@ -90,9 +90,10 @@ class TestBrowseConsignment:
         ]
 
         verify_header_row(header_rows)
-        # Sort both lists to make comparison order-independent
-        # (collation differences between environments affect ordering)
-        assert sorted(rows) == sorted(expected_rows)
+        assert rows == expected_rows
+        # # Sort both lists to make comparison order-independent
+        # # (collation differences between environments affect ordering)
+        # assert sorted(rows) == sorted(expected_rows)
 
     def test_browse_consignment_clear_filter_functionality(
         self, standard_user_page: Page
