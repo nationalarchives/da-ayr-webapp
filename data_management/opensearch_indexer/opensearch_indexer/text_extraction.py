@@ -26,7 +26,7 @@ TEXTRACT_FILE_PUIDS_CONVERT_TO_SUPPORTED_MAP = {
     "fmt/116": "fmt/20",  # .bmp to .pdf
     "x-fmt/258": "fmt/20",  # .vsd to .pdf
     "x-fmt/1510": "fmt/20",  # .vsd to .pdf
-    "x-fmt/443": "fmt/20",  # .vsd to .pdf
+    "fmt/443": "fmt/20",  # .vsd to .pdf
     "x-fmt/255": "fmt/20",  # .pub to .pdf
     "x-fmt/332": "fmt/20",  # .fm3 to .pdf
 }
