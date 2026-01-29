@@ -321,6 +321,7 @@ def browse_transferring_body(_id: uuid.UUID):
     try:
         browse_results = query.paginate(page=page, per_page=per_page)
     except NotFound:
+        # Redirect to first page if page does not exist
         return redirect_if_page_invalid(
             page, default_page, "main.browse_transferring_body", _id=_id
         )
@@ -420,6 +421,7 @@ def browse_series(_id: uuid.UUID):
     try:
         browse_results = query.paginate(page=page, per_page=per_page)
     except NotFound:
+        # Redirect to first page if page does not exist
         return redirect_if_page_invalid(
             page, default_page, "main.browse_series", _id=_id
         )
@@ -522,6 +524,7 @@ def browse_consignment(_id: uuid.UUID):
     try:
         browse_results = query.paginate(page=page, per_page=per_page)
     except NotFound:
+        # Redirect to first page if page does not exist
         return redirect_if_page_invalid(
             page, default_page, "main.browse_consignment", _id=_id
         )
@@ -704,7 +707,15 @@ def search_transferring_body(_id: uuid.UUID):
             sorting,
         )
 
-        search_results = execute_search(open_search, dsl_query, page, per_page)
+        try:
+            search_results = execute_search(
+                open_search, dsl_query, page, per_page
+            )
+        except NotFound:
+            # Redirect to first page if page does not exist
+            return redirect_if_page_invalid(
+                page, default_page, "main.search_transferring_body", _id=_id
+            )
         results = post_process_opensearch_results(
             search_results["hits"]["hits"], sort
         )
@@ -716,10 +727,7 @@ def search_transferring_body(_id: uuid.UUID):
         )
 
         page_count = calculate_total_pages(total_records, per_page)
-        if page > page_count and page_count != 0:
-            return redirect_if_page_invalid(
-                page, default_page, "main.search_transferring_body", _id=_id
-            )
+
         pagination = get_pagination(page, page_count)
         num_records_found = total_records
 
