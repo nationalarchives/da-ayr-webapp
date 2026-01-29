@@ -251,6 +251,7 @@ def execute_search(open_search, dsl_query, page, per_page):
             from_=from_,
             size=per_page,
             timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
+            search_type="dfs_query_then_fetch",
         )
     except opensearchpy.exceptions.ConnectionTimeout:
         abort(504)

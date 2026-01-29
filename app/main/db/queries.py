@@ -187,7 +187,6 @@ def build_browse_consignment_query(
         .join(File.consignment)
         .filter(*query_filters)
         .group_by(File.FileId)
-        .order_by(File.FileName)
     ).subquery()
 
     query = db.session.query(
@@ -248,10 +247,14 @@ def build_browse_consignment_query(
             else:
                 query = query.order_by(sort_field)
             query = query.order_by(sub_query.c.file_name.collate("C"))
+            # Add tertiary sort by file_id for deterministic ordering
+            query = query.order_by(sub_query.c.file_id)
         else:
             query = _build_sorting_orders(query, sub_query, sorting_orders)
     else:
         query = query.order_by(sub_query.c.file_name.collate("C"))
+        # Add secondary sort by file_id for deterministic ordering
+        query = query.order_by(sub_query.c.file_id)
 
     return query
 
@@ -307,6 +310,11 @@ def _build_sorting_orders(query, sub_query, sorting_orders):
 
     if secondary_sort_column is not None:
         query = query.order_by(secondary_sort_column.collate("C"))
+
+    # Add tertiary sort by file_id for deterministic ordering when available
+    if hasattr(sub_query.c, "file_id"):
+        query = query.order_by(sub_query.c.file_id)
+
     return query
 
 
