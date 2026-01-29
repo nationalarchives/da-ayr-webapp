@@ -37,12 +37,12 @@ class PaginationSchema(Schema):
     page = fields.Integer(
         allow_none=True,
         load_default=1,
-        validate=validate.Range(min=1, max=10000),
+        validate=validate.Range(min=1),
     )
     per_page = fields.Integer(
         allow_none=True,
         load_default=None,
-        validate=validate.Range(min=1, max=100),
+        validate=validate.Range(min=1),
     )
 
 
