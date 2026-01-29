@@ -5,6 +5,7 @@ from flask import (
     url_for,
 )
 
+
 def get_page_and_per_page(validated_data):
     page = validated_data.get("page")
     per_page = validated_data.get("per_page")
