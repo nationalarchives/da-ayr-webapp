@@ -140,6 +140,7 @@ def test_format_opensearch_results(results, expected):
             "file_name",
             [
                 {"_score": {"order": "desc"}},
+                {"consignment_reference.keyword": {"order": "asc"}},
                 {"file_name.keyword": {"order": "asc"}},
                 {"file_id.keyword": {"order": "asc"}},
             ],
@@ -161,6 +162,7 @@ def test_format_opensearch_results(results, expected):
             "metadata",
             [
                 {"_score": {"order": "desc"}},
+                {"consignment_reference.keyword": {"order": "asc"}},
                 {"file_name.keyword": {"order": "asc"}},
                 {"file_id.keyword": {"order": "asc"}},
             ],
@@ -171,6 +173,7 @@ def test_format_opensearch_results(results, expected):
             "file_name",
             [
                 {"_score": {"order": "desc"}},
+                {"consignment_reference.keyword": {"order": "asc"}},
                 {"file_name.keyword": {"order": "asc"}},
                 {"file_id.keyword": {"order": "asc"}},
             ],
@@ -184,6 +187,7 @@ def test_format_opensearch_results(results, expected):
             "file_name",
             [
                 {"_score": {"order": "desc"}},
+                {"consignment_reference.keyword": {"order": "asc"}},
                 {"file_name.keyword": {"order": "asc"}},
                 {"file_id.keyword": {"order": "asc"}},
             ],
@@ -207,6 +211,7 @@ def test_format_opensearch_results(results, expected):
             "description",
             [
                 {"_score": {"order": "desc"}},
+                {"consignment_reference.keyword": {"order": "asc"}},
                 {"file_name.keyword": {"order": "asc"}},
                 {"file_id.keyword": {"order": "asc"}},
             ],
@@ -230,6 +235,7 @@ def test_format_opensearch_results(results, expected):
             "content",
             [
                 {"_score": {"order": "desc"}},
+                {"consignment_reference.keyword": {"order": "asc"}},
                 {"file_name.keyword": {"order": "asc"}},
                 {"file_id.keyword": {"order": "asc"}},
             ],
@@ -240,6 +246,7 @@ def test_format_opensearch_results(results, expected):
             "least_matches",
             [
                 {"_score": {"order": "asc"}},
+                {"consignment_reference.keyword": {"order": "asc"}},
                 {"file_name.keyword": {"order": "asc"}},
                 {"file_id.keyword": {"order": "asc"}},
             ],
@@ -253,6 +260,7 @@ def test_format_opensearch_results(results, expected):
             "file_name",
             [
                 {"_score": {"order": "desc"}},
+                {"consignment_reference.keyword": {"order": "asc"}},
                 {"file_name.keyword": {"order": "asc"}},
                 {"file_id.keyword": {"order": "asc"}},
             ],
@@ -266,6 +274,7 @@ def test_format_opensearch_results(results, expected):
             "file_name",
             [
                 {"_score": {"order": "desc"}},
+                {"consignment_reference.keyword": {"order": "asc"}},
                 {"file_name.keyword": {"order": "asc"}},
                 {"file_id.keyword": {"order": "asc"}},
             ],
@@ -276,6 +285,7 @@ def test_format_opensearch_results(results, expected):
             "file_name",
             [
                 {"_score": {"order": "desc"}},
+                {"consignment_reference.keyword": {"order": "asc"}},
                 {"file_name.keyword": {"order": "asc"}},
                 {"file_id.keyword": {"order": "asc"}},
             ],
