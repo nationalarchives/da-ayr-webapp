@@ -1,12 +1,18 @@
-from app.main.db.queries import build_browse_query
-from app.main.util.filter_sort_builder import build_filters, build_sorting_orders
-from app.main.util.pagination import get_pagination
-
-from app.main.db.models import db
-from app.main.util.date_filters_validator import validate_date_filters
 from sqlalchemy import func
 
-def process_browse_request(validated_data, default_page_size, transferring_bodies):
+from app.main.db.models import db
+from app.main.db.queries import build_browse_query
+from app.main.util.date_filters_validator import validate_date_filters
+from app.main.util.filter_sort_builder import (
+    build_filters,
+    build_sorting_orders,
+)
+from app.main.util.pagination import get_pagination
+
+
+def process_browse_request(
+    validated_data, default_page_size, transferring_bodies
+):
     """
     Process the browse request for all-access users.
     Args:
@@ -44,9 +50,7 @@ def process_browse_request(validated_data, default_page_size, transferring_bodie
         filters=filters,
         sorting_orders=sorting_orders,
     )
-    browse_results = query.paginate(
-        page=page, per_page=per_page
-    )
+    browse_results = query.paginate(page=page, per_page=per_page)
     total_records = db.session.query(
         func.sum(query.subquery().c.records_held)
     ).scalar()
@@ -54,9 +58,7 @@ def process_browse_request(validated_data, default_page_size, transferring_bodie
         num_records_found = total_records
     else:
         num_records_found = 0
-    pagination = get_pagination(
-        page, browse_results.pages
-    )
+    pagination = get_pagination(page, browse_results.pages)
     return {
         "current_page": page,
         "results": browse_results,
