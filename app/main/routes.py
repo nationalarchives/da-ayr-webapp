@@ -195,6 +195,7 @@ def redirect_if_page_invalid(requested_page, default_page, endpoint, **kwargs):
 def browse():
     form = SearchForm()
     transferring_bodies = []
+    default_page = 1
 
     ayr_user = AYRUser(session.get("user_groups"))
     if ayr_user.is_standard_user:
@@ -243,7 +244,7 @@ def browse():
             browse_results = query.paginate(page=page, per_page=per_page)
         except NotFound:
             # Redirect to first page if page does not exist
-            return redirect_if_page_invalid(page, 1, "main.browse")
+            return redirect_if_page_invalid(page, default_page, "main.browse")
 
         total_records = db.session.query(
             func.sum(query.subquery().c.records_held)
@@ -299,6 +300,8 @@ def browse_transferring_body(_id: uuid.UUID):
     validated_data = request.validated_data
     page, per_page = get_page_and_per_page(validated_data)
 
+    default_page = 1
+
     date_validation_errors = []
     from_date = None
     to_date = None
@@ -335,7 +338,7 @@ def browse_transferring_body(_id: uuid.UUID):
         browse_results = query.paginate(page=page, per_page=per_page)
     except NotFound:
         return redirect_if_page_invalid(
-            page, 1, "main.browse_transferring_body", _id=_id
+            page, default_page, "main.browse_transferring_body", _id=_id
         )
 
     total_records = db.session.query(
@@ -396,6 +399,8 @@ def browse_series(_id: uuid.UUID):
     validated_data = request.validated_data
     page, per_page = get_page_and_per_page(validated_data)
 
+    default_page = 1
+
     date_validation_errors = []
     from_date = None
     to_date = None
@@ -431,7 +436,9 @@ def browse_series(_id: uuid.UUID):
     try:
         browse_results = query.paginate(page=page, per_page=per_page)
     except NotFound:
-        return redirect_if_page_invalid(page, 1, "main.browse_series", _id=_id)
+        return redirect_if_page_invalid(
+            page, default_page, "main.browse_series", _id=_id
+        )
 
     total_records = db.session.query(
         func.sum(query.subquery().c.records_held)
@@ -494,6 +501,8 @@ def browse_consignment(_id: uuid.UUID):
     validated_data = request.validated_data
     page, per_page = get_page_and_per_page(validated_data)
 
+    default_page = 1
+
     date_validation_errors = []
     from_date = None
     to_date = None
@@ -530,7 +539,7 @@ def browse_consignment(_id: uuid.UUID):
         browse_results = query.paginate(page=page, per_page=per_page)
     except NotFound:
         return redirect_if_page_invalid(
-            page, 1, "main.browse_consignment", _id=_id
+            page, default_page, "main.browse_consignment", _id=_id
         )
 
     total_records = query.count()
@@ -662,6 +671,8 @@ def search_transferring_body(_id: uuid.UUID):
     sort = validated_data["sort"] or "file_name"
     highlight_tag = f"uuid_prefix_{uuid.uuid4().hex}"
 
+    default_page = 1
+
     query = validated_data["query"]
     search_area = validated_data["search_area"]
 
@@ -722,11 +733,8 @@ def search_transferring_body(_id: uuid.UUID):
 
         page_count = calculate_total_pages(total_records, per_page)
         if page > page_count and page_count != 0:
-            # Redirect to default page (page=1) with same query params
-            args = request.args.to_dict()
-            args["page"] = 1
-            return redirect(
-                url_for("main.search_transferring_body", _id=_id, **args)
+            return redirect_if_page_invalid(
+                page, default_page, "main.search_transferring_body", _id=_id
             )
         pagination = get_pagination(page, page_count)
         num_records_found = total_records
