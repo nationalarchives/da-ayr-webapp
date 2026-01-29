@@ -28,6 +28,10 @@ SLACK_CHANNEL = os.getenv("SLACK_CHANNEL")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 
 
+class EncryptedDocumentError(Exception):
+    pass
+
+
 class TextExtractionStatus(Enum):
     SUCCEEDED = "SUCCEEDED"
     FAILED = "FAILED"
@@ -116,6 +120,12 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
             file["text_extraction_status"] = (
                 TextExtractionStatus.SUCCEEDED.value
             )
+        except EncryptedDocumentError as e:
+            logger.warning(
+                f"Text extraction skipped for encrypted file {file_id}: {e}"
+            )
+            file["content"] = ""
+            file["text_extraction_status"] = TextExtractionStatus.SKIPPED.value
         except Exception as e:
             logger.error(f"Text extraction failed for file {file_id}: {e}")
             file["content"] = ""
@@ -136,6 +146,13 @@ def extract_text(file_stream: bytes, file_puid: str) -> str:
             return context.decode("utf-8")
 
         except Exception as e:
+            error_msg = str(e).lower
+            if "encrypted" in error_msg:
+                logger.warning(
+                    f"Skipping text extraction for encrypted document: {file_path}"
+                )
+                raise EncryptedDocumentError(str(e))
+
             logger.warning(f"Textract failed on {file_path}: {e}")
 
             if file_puid not in TEXTRACT_FILE_PUIDS_FALLBACK_CONVERSION_MAP:
@@ -156,6 +173,12 @@ def extract_text(file_stream: bytes, file_puid: str) -> str:
                 text = textract.process(converted_path)
                 return text.decode("utf-8")
             except Exception as convert_err:
+                error_msg = str(convert_err).lower
+                if "encrypted" in error_msg:
+                    logger.warning(
+                        f"Skipping text extraction for encrypted document: {file_path}"
+                    )
+                    raise EncryptedDocumentError(str(e))
                 logger.error(f"LibreOffice fallback also failed: {convert_err}")
                 raise Exception(
                     f"Textract failed on original file: {e}: LibreOffice fallback also failed: {convert_err}"
