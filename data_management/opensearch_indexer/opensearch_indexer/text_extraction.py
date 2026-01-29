@@ -111,6 +111,29 @@ SUPPORTED_TEXTRACT_PUIDS = {
 }
 
 
+def convert_file_and_extract_text_in_memory(
+    file_stream: bytes, file_puid: str, file_id: str
+) -> str:
+    target_puid = TEXTRACT_FILE_PUIDS_CONVERT_TO_SUPPORTED_MAP[file_puid]
+    target_ext = SUPPORTED_TEXTRACT_PUIDS[target_puid]
+    logger.info(f"Converting {file_id} to {target_ext}")
+    with tempfile.NamedTemporaryFile(delete=True) as src:
+        src.write(file_stream)
+        src.flush()
+
+        converted_path = convert_file_with_libreoffice(src.name, target_ext)
+
+        return extract_text(converted_path, target_puid)
+
+
+def extract_text_in_memory(file_stream: bytes, file_puid: str) -> str:
+    ext = SUPPORTED_TEXTRACT_PUIDS[file_puid]
+    with tempfile.NamedTemporaryFile(suffix=f".{ext}", delete=True) as temp:
+        temp.write(file_stream)
+        temp.flush()
+        return extract_text(temp.name, file_puid)
+
+
 def add_text_content(file: Dict, file_stream: bytes) -> Dict:
 
     file_puid = file["file_puid"] if file["file_puid"] else None
@@ -129,28 +152,11 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
             return file
 
         if file_puid in TEXTRACT_FILE_PUIDS_CONVERT_TO_SUPPORTED_MAP:
-            target_puid = TEXTRACT_FILE_PUIDS_CONVERT_TO_SUPPORTED_MAP[
-                file_puid
-            ]
-            target_ext = SUPPORTED_TEXTRACT_PUIDS[target_puid]
-            logger.info(f"Converting {file_id} to {target_ext}")
-            with tempfile.NamedTemporaryFile(delete=True) as src:
-                src.write(file_stream)
-                src.flush()
-
-                converted_path = convert_file_with_libreoffice(
-                    src.name, target_ext
-                )
-
-                file["content"] = extract_text(converted_path, target_puid)
+            file["content"] = convert_file_and_extract_text_in_memory(
+                file_stream, file_puid, file_id
+            )
         else:
-            ext = SUPPORTED_TEXTRACT_PUIDS[file_puid]
-            with tempfile.NamedTemporaryFile(
-                suffix=f".{ext}", delete=True
-            ) as temp:
-                temp.write(file_stream)
-                temp.flush()
-                file["content"] = extract_text(temp.name, file_puid)
+            file["content"] = extract_text_in_memory(file_stream, file_puid)
 
         file["text_extraction_status"] = TextExtractionStatus.SUCCEEDED.value
         logger.info(f"Text extraction succeeded for file {file_id}")
