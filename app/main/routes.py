@@ -597,6 +597,8 @@ def search_results_summary():
     validated_data = request.validated_data
     page, per_page = get_page_and_per_page(validated_data)
 
+    default_page = 1
+
     query = validated_data["query"]
     search_area = validated_data["search_area"]
     filters = {"query": query}
@@ -611,12 +613,22 @@ def search_results_summary():
         dsl_query = build_search_results_summary_query(
             search_fields, quoted_phrases, single_terms, sorting
         )
-        search_results = execute_search(open_search, dsl_query, page, per_page)
+
+        try:
+            search_results = execute_search(
+                open_search, dsl_query, page, per_page
+            )
+        except NotFound:
+            # Redirect to first page if page does not exist
+            return redirect_if_page_invalid(
+                page, default_page, "main.search_results_summary"
+            )
         results = search_results["aggregations"][
             "aggregate_by_transferring_body"
         ]["buckets"]
 
         total_records = sum(bucket["doc_count"] for bucket in results)
+
         paginated_results = paginate(results, page, per_page)
         # Match browse: get number of pages from paginated_results.pages if available, else calculate
         page_count = getattr(paginated_results, "pages", None)
