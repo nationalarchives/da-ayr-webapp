@@ -88,87 +88,7 @@ from app.main.util.search_utils import (
 from configs.base_config import CONVERTIBLE_PUIDS
 
 from .forms import SearchForm
-
-
-class BrowseRoute:
-    def __init__(self, validated_data):
-        self.validated_data = validated_data
-        self.form = None
-        self.transferring_bodies = []
-        self.ayr_user = AYRUser(session.get("user_groups"))
-        self.page = validated_data["page"]
-        self.per_page = validated_data["per_page"] or int(
-            current_app.config["DEFAULT_PAGE_SIZE"]
-        )
-        self.date_validation_errors = []
-        self.from_date = None
-        self.to_date = None
-        self.date_filters = {}
-        self.date_error_fields = []
-        self.filters = None
-        self.sorting_orders = None
-        self.browse_results = None
-        self.total_records = None
-        self.num_records_found = 0
-        self.pagination = None
-
-    def get_browse_route_data(self, form):
-        self.form = form
-        if self.ayr_user.is_standard_user:
-            return redirect(
-                f"/browse/transferring_body/{self.ayr_user.transferring_body.BodyId}"
-            )
-        else:
-            self.transferring_bodies = [body.Name for body in Body.query.all()]
-            if len(self.validated_data) > 0:
-                (
-                    self.date_validation_errors,
-                    self.from_date,
-                    self.to_date,
-                    self.date_filters,
-                    self.date_error_fields,
-                ) = validate_date_filters(self.validated_data)
-            self.filters = build_filters(
-                self.validated_data,
-                date_from=self.from_date,
-                date_to=self.to_date,
-            )
-            self.sorting_orders = build_sorting_orders(self.validated_data)
-            if len(self.sorting_orders) == 0:
-                self.sorting_orders["transferring_body"] = "asc"
-            query = build_browse_query(
-                filters=self.filters,
-                sorting_orders=self.sorting_orders,
-            )
-            self.browse_results = query.paginate(
-                page=self.page, per_page=self.per_page
-            )
-            self.total_records = db.session.query(
-                func.sum(query.subquery().c.records_held)
-            ).scalar()
-            if self.total_records:
-                self.num_records_found = self.total_records
-            else:
-                self.num_records_found = 0
-            self.pagination = get_pagination(
-                self.page, self.browse_results.pages
-            )
-            return {
-                "form": self.form,
-                "current_page": self.page,
-                "browse_type": "browse",
-                "results": self.browse_results,
-                "date_validation_errors": self.date_validation_errors,
-                "date_error_fields": self.date_error_fields,
-                "transferring_bodies": self.transferring_bodies,
-                "pagination": self.pagination,
-                "filters": self.filters,
-                "date_filters": self.date_filters,
-                "sorting_orders": self.sorting_orders,
-                "num_records_found": self.num_records_found,
-                "query_string_parameters": self.validated_data,
-                "id": None,
-            }
+from .process_routes.browse_route import process_browse_request
 
 
 @bp.route("/", methods=["GET"])
@@ -255,12 +175,35 @@ def accessibility():
 @log_page_view
 @validate_request(BrowseRequestSchema, location="combined")
 def browse():
+    """
+    Render the browse page for all-access users.
+
+    """
     form = SearchForm()
-    validated_browse_data = BrowseRoute(request.validated_data)
-    result = validated_browse_data.get_browse_route_data(form)
-    if isinstance(result, dict):
-        return render_template("browse.html", **result)
-    return result
+
+    ayr_user = AYRUser(session.get("user_groups"))
+    if ayr_user.is_standard_user:
+        return redirect(
+            f"/browse/transferring_body/{ayr_user.transferring_body.BodyId}"
+        )
+    else:
+        transferring_bodies = [body.Name for body in Body.query.all()]
+        validated_data = request.validated_data
+
+        # Process the browse request (business logic)
+        result_data = process_browse_request(
+            validated_data=validated_data,
+            default_page_size=int(current_app.config["DEFAULT_PAGE_SIZE"]),
+            transferring_bodies=transferring_bodies,
+        )
+
+        return render_template(
+            "browse.html",
+            form=form,
+            browse_type="browse",
+            id=None,
+            **result_data,
+        )
 
 
 @bp.route("/browse/transferring_body/<uuid:_id>", methods=["GET"])
