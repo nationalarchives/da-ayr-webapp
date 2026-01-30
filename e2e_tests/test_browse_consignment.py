@@ -78,11 +78,11 @@ class TestBrowseConsignment:
         rows = utils.get_desktop_page_table_rows(standard_user_page)
 
         expected_rows = [
-            ["22/11/2023", "closed_file.txt", "Open", "–"],
             ["22/11/2023", "closed_file_R - Copy.pdf", "Open", "–"],
             ["22/11/2023", "closed_file_R.pdf", "Open", "–"],
-            ["22/11/2023", "file-a1,.txt", "Open", "–"],
+            ["22/11/2023", "closed_file.txt", "Open", "–"],
             ["22/11/2023", "file-a1.txt", "Open", "–"],
+            ["22/11/2023", "file-a1,.txt", "Open", "–"],
             ["22/11/2023", "file-a2.txt", "Open", "–"],
             ["22/11/2023", "file-b1.txt", "Open", "–"],
             ["22/11/2023", "file-b2.txt", "Open", "–"],

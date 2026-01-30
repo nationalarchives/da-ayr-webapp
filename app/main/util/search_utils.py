@@ -240,16 +240,12 @@ def execute_search(open_search, dsl_query, page, per_page):
     """Execute the search query using OpenSearch"""
     from_ = per_page * (page - 1)
     try:
-        response = open_search.search(
+        return open_search.search(
             body=dsl_query,
             from_=from_,
             size=per_page,
             timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
         )
-        total_hits = response.get("hits", {}).get("total", {}).get("value", 0)
-        if page < 1 or (page > 1 and from_ >= total_hits):
-            abort(404)
-        return response
     except opensearchpy.exceptions.ConnectionTimeout:
         abort(504)
 
