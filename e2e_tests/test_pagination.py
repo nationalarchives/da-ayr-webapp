@@ -43,7 +43,7 @@ class TestPagination:
 
         url = (
             f"{self.route_url}/{self.transferring_body_id}"
-            "?page=1&query=a&search_area=everywhere&sort=file_name&open_all=&search_filter=#tbl_result"
+            "?page=1&query=a&search_area=everywhere#tbl_result"
         )
         assert (
             aau_user_page.locator("data-testid=pagination-link")
@@ -108,7 +108,7 @@ class TestPagination:
         )
         expected_url = (
             f"{self.route_url}/{self.transferring_body_id}"
-            "?page=1&query=a&search_area=everywhere&sort=file_name&open_all=&search_filter=#tbl_result"
+            "?page=1&query=a&search_area=everywhere#tbl_result"
         )
         actual_href = (
             aau_user_page.locator("data-testid=pagination-link")
@@ -122,7 +122,7 @@ class TestPagination:
         actual_relative_url = aau_user_page.url.split("://", 1)[1].split(
             "/", 1
         )[1]
-        url_params = "page=2&query=a&search_area=everywhere&sort=file_name&open_all=&search_filter=#tbl_result"
+        url_params = "page=2&query=a&search_area=everywhere#tbl_result"
         expected_next_url = (
             f"""{self.route_url}/{self.transferring_body_id}?{url_params}"""
         )
@@ -202,7 +202,7 @@ class TestPagination:
 
         url = (
             f"{self.route_url}/{self.transferring_body_id}"
-            "?page=1&query=a&search_area=everywhere&sort=file_name#tbl_result"
+            "?page=1&query=a&search_area=everywhere#tbl_result"
         )
         expect(aau_user_page).to_have_url(url)
 
@@ -238,7 +238,7 @@ class TestPagination:
 
         url = (
             f"{self.route_url}/{self.transferring_body_id}"
-            "?page=2&query=a&search_area=everywhere&sort=file_name&open_all=&search_filter=#tbl_result"
+            "?page=2&query=a&search_area=everywhere#tbl_result"
         )
         expect(aau_user_page).to_have_url(url)
 
