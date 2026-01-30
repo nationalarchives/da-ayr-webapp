@@ -86,32 +86,18 @@ def _clean_empty_strings(data: dict) -> dict:
     return {k: (None if v == "" else v) for k, v in data.items()}
 
 
-# Flask reserved parameters that could be exploited in url_for() calls
-# These should never be passed through from user input
-FLASK_RESERVED_PARAMS = frozenset(
-    {"_external", "_anchor", "_scheme", "_method", "_netloc"}
-)
-
-
 def _filter_non_defaults(
     validated_data: dict, schema: Schema, original_data: dict
 ) -> dict:
     """
     Filter out fields that have default values to keep redirect URLs clean.
     Only returns fields that were explicitly provided in the original request.
-
-    Filters out Flask reserved parameters to prevent parameter
-    pollution attacks in url_for() calls.
     """
     filtered = {}
 
     for field_name, value in validated_data.items():
         field = schema.fields.get(field_name)
         if field is None:
-            continue
-
-        # Block Flask reserved parameters that could be used for attacks
-        if field_name in FLASK_RESERVED_PARAMS:
             continue
 
         # Only include if the field was explicitly provided in original data
