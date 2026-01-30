@@ -326,7 +326,6 @@ def test_execute_search(mock_open_search, app):
         from_=0,
         size=10,
         timeout=10,
-        search_type="dfs_query_then_fetch",
     )
 
 
