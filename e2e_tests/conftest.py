@@ -105,14 +105,27 @@ def create_user_page(
     return _create_user_page
 
 
+def get_keycloak_token(keycloak_openid):
+    """Get a fresh token from Keycloak."""
+    return keycloak_openid.token(grant_type="client_credentials")
+
+
+def refresh_keycloak_admin_token(keycloak_admin_instance, keycloak_openid):
+    """Refresh the token on a KeycloakAdmin instance."""
+    token = get_keycloak_token(keycloak_openid)
+    keycloak_admin_instance.token = token
+    return keycloak_admin_instance
+
+
 @pytest.fixture(scope="session")
-def keycloak_admin():
+def keycloak_openid_client():
+    """Create a reusable KeycloakOpenID client for token operations."""
     realm_name = os.environ.get("KEYCLOAK_REALM_NAME")
     client_id = os.environ.get("KEYCLOAK_CLIENT_ID")
     client_secret = os.environ.get("KEYCLOAK_CLIENT_SECRET")
     server_url = os.environ.get("KEYCLOAK_BASE_URI")
 
-    keycloak_openid = keycloak.KeycloakOpenID(
+    return keycloak.KeycloakOpenID(
         server_url=server_url,
         client_id=client_id,
         realm_name=realm_name,
@@ -120,7 +133,13 @@ def keycloak_admin():
         verify=False,
     )
 
-    token = keycloak_openid.token(grant_type="client_credentials")
+
+@pytest.fixture(scope="session")
+def keycloak_admin(keycloak_openid_client):
+    realm_name = os.environ.get("KEYCLOAK_REALM_NAME")
+    server_url = os.environ.get("KEYCLOAK_BASE_URI")
+
+    token = get_keycloak_token(keycloak_openid_client)
     keycloak_admin = keycloak.KeycloakAdmin(
         server_url=server_url,
         realm_name=realm_name,
@@ -153,7 +172,9 @@ def create_keycloak_user(keycloak_admin):
 
 
 @pytest.fixture(scope="session")
-def create_aau_keycloak_user(keycloak_admin, create_keycloak_user):
+def create_aau_keycloak_user(
+    keycloak_admin, keycloak_openid_client, create_keycloak_user
+):
     user_groups = ["/ayr_user_type/view_all"]
     user_type = "aau"
     user_id, user_email, user_pass = create_keycloak_user(
@@ -162,11 +183,14 @@ def create_aau_keycloak_user(keycloak_admin, create_keycloak_user):
 
     yield user_email, user_pass
 
+    refresh_keycloak_admin_token(keycloak_admin, keycloak_openid_client)
     keycloak_admin.delete_user(user_id=user_id)
 
 
 @pytest.fixture(scope="session")
-def create_standard_keycloak_user(keycloak_admin, create_keycloak_user):
+def create_standard_keycloak_user(
+    keycloak_admin, keycloak_openid_client, create_keycloak_user
+):
     user_groups = [
         "/ayr_user_type/view_dept",
         "/transferring_body_user/Testing A",
@@ -178,12 +202,13 @@ def create_standard_keycloak_user(keycloak_admin, create_keycloak_user):
 
     yield user_email, user_pass
 
+    refresh_keycloak_admin_token(keycloak_admin, keycloak_openid_client)
     keycloak_admin.delete_user(user_id=user_id)
 
 
 @pytest.fixture(scope="session")
 def create_aau_keycloak_user_with_download(
-    keycloak_admin, create_keycloak_user
+    keycloak_admin, keycloak_openid_client, create_keycloak_user
 ):
     user_groups = ["/ayr_user_type/view_all", "/ayr_user_type/download"]
     user_type = "aau"
@@ -193,12 +218,13 @@ def create_aau_keycloak_user_with_download(
 
     yield user_email, user_pass
 
+    refresh_keycloak_admin_token(keycloak_admin, keycloak_openid_client)
     keycloak_admin.delete_user(user_id=user_id)
 
 
 @pytest.fixture(scope="session")
 def create_standard_keycloak_user_with_download(
-    keycloak_admin, create_keycloak_user
+    keycloak_admin, keycloak_openid_client, create_keycloak_user
 ):
     user_groups = [
         "/ayr_user_type/view_dept",
@@ -212,6 +238,7 @@ def create_standard_keycloak_user_with_download(
 
     yield user_email, user_pass
 
+    refresh_keycloak_admin_token(keycloak_admin, keycloak_openid_client)
     keycloak_admin.delete_user(user_id=user_id)
 
 
