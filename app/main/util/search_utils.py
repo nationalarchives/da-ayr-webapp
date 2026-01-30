@@ -210,10 +210,7 @@ def get_sorting_config(sort, sort_option_map):
     sort_config = sort_option_map.get(sort, {})
     sort_order = sort_config.get("order", "desc")
     # Add secondary sorts for deterministic ordering across different
-    # OpenSearch cluster configurations:
-    # - consignment_reference.keyword: groups results by consignment
-    # - file_name.keyword: alphabetical order within consignment
-    # - file_id.keyword: final tiebreaker for identical file names
+    # OpenSearch cluster configurations
     return [
         {"_score": {"order": sort_order}},
         {"consignment_reference.keyword": {"order": "asc"}},
@@ -255,7 +252,6 @@ def execute_search(open_search, dsl_query, page, per_page):
             from_=from_,
             size=per_page,
             timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
-            search_type="dfs_query_then_fetch",
         )
     except opensearchpy.exceptions.ConnectionTimeout:
         abort(504)
