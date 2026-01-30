@@ -112,9 +112,6 @@ class TestSearchResultsSummary:
         ]
 
         assert table_row_metadata == expected_row_metadata
-        # # Sort both lists to make comparison order-independent
-        # # (OpenSearch result order can vary between environments)
-        # assert sorted(table_row_metadata) == sorted(expected_row_metadata)
 
         verify_search_transferring_body_table_header_row(header_rows)
         verify_search_transferring_body_inner_table_row(inner_table_header_rows)
