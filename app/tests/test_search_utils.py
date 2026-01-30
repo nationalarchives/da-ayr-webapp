@@ -138,12 +138,7 @@ def test_format_opensearch_results(results, expected):
                 *fields_without_file_name,
             ],
             "file_name",
-            [
-                {"_score": {"order": "desc"}},
-                {"consignment_reference.keyword": {"order": "asc"}},
-                {"file_name.keyword": {"order": "asc"}},
-                {"file_id.keyword": {"order": "asc"}},
-            ],
+            [{"_score": {"order": "desc"}}],
         ),
         (
             "metadata",
@@ -160,23 +155,13 @@ def test_format_opensearch_results(results, expected):
                 "consignment_reference^1",
             ],
             "metadata",
-            [
-                {"_score": {"order": "desc"}},
-                {"consignment_reference.keyword": {"order": "asc"}},
-                {"file_name.keyword": {"order": "asc"}},
-                {"file_id.keyword": {"order": "asc"}},
-            ],
+            [{"_score": {"order": "desc"}}],
         ),
         (
             "record",
             ["file_name^3", "content^1"],
             "file_name",
-            [
-                {"_score": {"order": "desc"}},
-                {"consignment_reference.keyword": {"order": "asc"}},
-                {"file_name.keyword": {"order": "asc"}},
-                {"file_id.keyword": {"order": "asc"}},
-            ],
+            [{"_score": {"order": "desc"}}],
         ),
         (
             "all",
@@ -185,12 +170,7 @@ def test_format_opensearch_results(results, expected):
                 *fields_without_file_name,
             ],
             "file_name",
-            [
-                {"_score": {"order": "desc"}},
-                {"consignment_reference.keyword": {"order": "asc"}},
-                {"file_name.keyword": {"order": "asc"}},
-                {"file_id.keyword": {"order": "asc"}},
-            ],
+            [{"_score": {"order": "desc"}}],
         ),
         (
             "all",
@@ -209,12 +189,7 @@ def test_format_opensearch_results(results, expected):
                 "consignment_reference^1",
             ],
             "description",
-            [
-                {"_score": {"order": "desc"}},
-                {"consignment_reference.keyword": {"order": "asc"}},
-                {"file_name.keyword": {"order": "asc"}},
-                {"file_id.keyword": {"order": "asc"}},
-            ],
+            [{"_score": {"order": "desc"}}],
         ),
         (
             "all",
@@ -233,23 +208,13 @@ def test_format_opensearch_results(results, expected):
                 "consignment_reference^1",
             ],
             "content",
-            [
-                {"_score": {"order": "desc"}},
-                {"consignment_reference.keyword": {"order": "asc"}},
-                {"file_name.keyword": {"order": "asc"}},
-                {"file_id.keyword": {"order": "asc"}},
-            ],
+            [{"_score": {"order": "desc"}}],
         ),
         (
             "all",
             fields_all,
             "least_matches",
-            [
-                {"_score": {"order": "asc"}},
-                {"consignment_reference.keyword": {"order": "asc"}},
-                {"file_name.keyword": {"order": "asc"}},
-                {"file_id.keyword": {"order": "asc"}},
-            ],
+            [{"_score": {"order": "asc"}}],
         ),
         (
             "",
@@ -258,12 +223,7 @@ def test_format_opensearch_results(results, expected):
                 *fields_without_file_name,
             ],
             "file_name",
-            [
-                {"_score": {"order": "desc"}},
-                {"consignment_reference.keyword": {"order": "asc"}},
-                {"file_name.keyword": {"order": "asc"}},
-                {"file_id.keyword": {"order": "asc"}},
-            ],
+            [{"_score": {"order": "desc"}}],
         ),
         (
             None,
@@ -272,23 +232,13 @@ def test_format_opensearch_results(results, expected):
                 *fields_without_file_name,
             ],
             "file_name",
-            [
-                {"_score": {"order": "desc"}},
-                {"consignment_reference.keyword": {"order": "asc"}},
-                {"file_name.keyword": {"order": "asc"}},
-                {"file_id.keyword": {"order": "asc"}},
-            ],
+            [{"_score": {"order": "desc"}}],
         ),
         (
             "invalid_area",
             ["file_name^3", *fields_without_file_name],
             "file_name",
-            [
-                {"_score": {"order": "desc"}},
-                {"consignment_reference.keyword": {"order": "asc"}},
-                {"file_name.keyword": {"order": "asc"}},
-                {"file_id.keyword": {"order": "asc"}},
-            ],
+            [{"_score": {"order": "desc"}}],
         ),
     ],
 )
@@ -322,10 +272,7 @@ def test_execute_search(mock_open_search, app):
     dsl_query = {"query": {"match_all": {}}}
     execute_search(mock_open_search, dsl_query, page=1, per_page=10)
     mock_open_search.search.assert_called_once_with(
-        body={"query": {"match_all": {}}},
-        from_=0,
-        size=10,
-        timeout=10,
+        body={"query": {"match_all": {}}}, from_=0, size=10, timeout=10
     )
 
 

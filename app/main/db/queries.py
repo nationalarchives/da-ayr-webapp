@@ -187,6 +187,7 @@ def build_browse_consignment_query(
         .join(File.consignment)
         .filter(*query_filters)
         .group_by(File.FileId)
+        .order_by(File.FileName)
     ).subquery()
 
     query = db.session.query(
@@ -246,19 +247,10 @@ def build_browse_consignment_query(
                 query = query.order_by(desc(sort_field))
             else:
                 query = query.order_by(sort_field)
-            # Use convert_to for consistent byte-order sorting across all environments
-            query = query.order_by(
-                func.convert_to(sub_query.c.file_name, "UTF8")
-            )
-            # Add tertiary sort by file_id for deterministic ordering
-            query = query.order_by(sub_query.c.file_id)
         else:
             query = _build_sorting_orders(query, sub_query, sorting_orders)
     else:
-        # Use convert_to for consistent byte-order sorting across all environments
-        query = query.order_by(func.convert_to(sub_query.c.file_name, "UTF8"))
-        # Add secondary sort by file_id for deterministic ordering
-        query = query.order_by(sub_query.c.file_id)
+        query = query.order_by(sub_query.c.file_name)
 
     return query
 
@@ -303,20 +295,6 @@ def _build_sorting_orders(query, sub_query, sorting_orders):
                 if order == "desc"
                 else query.order_by(column)
             )
-    # Add secondary sort for ordering based on available columns
-    # Use convert_to for file_name to ensure consistent byte-order sorting
-    # across all PostgreSQL environments
-    if hasattr(sub_query.c, "file_name"):
-        query = query.order_by(func.convert_to(sub_query.c.file_name, "UTF8"))
-    elif hasattr(sub_query.c, "consignment_reference"):
-        query = query.order_by(sub_query.c.consignment_reference.collate("C"))
-    elif hasattr(sub_query.c, "series"):
-        query = query.order_by(sub_query.c.series.collate("C"))
-
-    # Add tertiary sort by file_id for deterministic ordering when available
-    if hasattr(sub_query.c, "file_id"):
-        query = query.order_by(sub_query.c.file_id)
-
     return query
 
 

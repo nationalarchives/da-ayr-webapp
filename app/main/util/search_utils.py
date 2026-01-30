@@ -209,14 +209,7 @@ def get_sorting_config(sort, sort_option_map):
     """
     sort_config = sort_option_map.get(sort, {})
     sort_order = sort_config.get("order", "desc")
-    # Add secondary sorts for deterministic ordering across different
-    # OpenSearch cluster configurations
-    return [
-        {"_score": {"order": sort_order}},
-        {"consignment_reference.keyword": {"order": "asc"}},
-        {"file_name.keyword": {"order": "asc"}},
-        {"file_id.keyword": {"order": "asc"}},
-    ]
+    return [{"_score": {"order": sort_order}}]
 
 
 def apply_field_boosts(fields, boost_map):
@@ -247,12 +240,16 @@ def execute_search(open_search, dsl_query, page, per_page):
     """Execute the search query using OpenSearch"""
     from_ = per_page * (page - 1)
     try:
-        return open_search.search(
+        response = open_search.search(
             body=dsl_query,
             from_=from_,
             size=per_page,
             timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
         )
+        total_hits = response.get("hits", {}).get("total", {}).get("value", 0)
+        if page < 1 or (page > 1 and from_ >= total_hits):
+            abort(404)
+        return response
     except opensearchpy.exceptions.ConnectionTimeout:
         abort(504)
 
