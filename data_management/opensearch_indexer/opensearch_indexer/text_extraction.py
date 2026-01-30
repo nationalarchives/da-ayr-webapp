@@ -3,6 +3,7 @@ import logging
 import os
 import subprocess  # nosec
 import tempfile
+import threading
 from enum import Enum
 from typing import Dict
 
@@ -13,6 +14,7 @@ import textract
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+libreoffice_lock = threading.Lock()
 
 TEXTRACT_FILE_PUIDS_FALLBACK_CONVERSION_MAP = {
     "fmt/59": "fmt/214",
@@ -33,48 +35,66 @@ class TextExtractionStatus(Enum):
 
 
 SUPPORTED_TEXTRACT_PUIDS = {
-    "fmt/1": "wav",
-    "fmt/2": "wav",
-    "fmt/6": "wav",
-    "fmt/141": "wav",
-    "fmt/142": "wav",
-    "fmt/143": "wav",
-    "fmt/134": "mp3",
-    "fmt/386": "mpg",
-    "fmt/278": "eml",
+    "x-fmt/111": "txt",
+    "x-fmt/18": "csv",
     "fmt/39": "doc",
     "fmt/40": "doc",
-    "x-fmt/44": "doc",
-    "x-fmt/45": "doc",
-    "fmt/50": "rtf",
-    "fmt/59": "xls",
-    "fmt/61": "xls",
-    "fmt/116": "bmp",
-    "x-fmt/111": "txt",
-    "x-fmt/116": "wk4",
-    "fmt/126": "ppt",
-    "fmt/214": "xlsx",
-    "fmt/215": "pptx",
-    "fmt/355": "rtf",
+    "fmt/609": "doc",
     "fmt/412": "docx",
-    "x-fmt/245": "mpp",
-    "x-fmt/430": "msg",
-    "x-fmt/258": "vsd",
-    "fmt/443": "vsd",
-    "fmt/1510": "vsd",
-    "x-fmt/115": "wk3",
-    "x-fmt/255": "pub",
-    "x-fmt/332": "fm3",
-    "x-fmt/18": "csv",
+    "fmt/45": "rtf",
+    "fmt/50": "rtf",
+    "fmt/52": "rtf",
+    "fmt/53": "rtf",
+    "fmt/355": "rtf",
+    "fmt/136": "odt",
+    "fmt/290": "odt",
     "fmt/291": "odt",
-    "fmt/203": "ogg",
+    "fmt/14": "pdf",
+    "fmt/15": "pdf",
     "fmt/16": "pdf",
     "fmt/17": "pdf",
     "fmt/18": "pdf",
     "fmt/19": "pdf",
     "fmt/20": "pdf",
     "fmt/276": "pdf",
+    "fmt/95": "pdf",
+    "fmt/354": "pdf",
+    "fmt/476": "pdf",
+    "fmt/477": "pdf",
+    "fmt/478": "pdf",
+    "fmt/479": "pdf",
+    "fmt/480": "pdf",
+    "fmt/481": "pdf",
+    "fmt/488": "pdf",
+    "fmt/489": "pdf",
+    "fmt/490": "pdf",
+    "fmt/491": "pdf",
+    "fmt/492": "pdf",
+    "fmt/493": "pdf",
+    "fmt/144": "pdf",
+    "fmt/145": "pdf",
+    "fmt/146": "pdf",
+    "fmt/147": "pdf",
+    "fmt/148": "pdf",
+    "fmt/157": "pdf",
+    "fmt/158": "pdf",
     "x-fmt/394": "html",
+    "fmt/278": "eml",
+    "x-fmt/430": "msg",
+    "fmt/3": "gif",
+    "fmt/4": "gif",
+    "fmt/42": "jpg",
+    "fmt/43": "jpg",
+    "fmt/44": "jpg",
+    "fmt/391": "jpg",
+    "fmt/11": "png",
+    "fmt/12": "png",
+    "fmt/13": "png",
+    "fmt/353": "tif",
+    "fmt/59": "xls",
+    "fmt/61": "xls",
+    "fmt/214": "xlsx",
+    "fmt/215": "pptx",
 }
 
 
@@ -89,11 +109,6 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
         )
         file["content"] = ""
         file["text_extraction_status"] = TextExtractionStatus.SKIPPED.value
-        # send_slack_alert(
-        #     f"Text extraction *SKIPPED* for file `{file_id}`\n"
-        #     f"*Environment:* `{ENVIRONMENT.upper()}`\n"
-        #     f"*Reason:* Unsupported file type - `{file_type}`"
-        # )
     else:
         try:
             file["content"] = extract_text(file_stream, file_puid)
@@ -105,11 +120,6 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
             logger.error(f"Text extraction failed for file {file_id}: {e}")
             file["content"] = ""
             file["text_extraction_status"] = TextExtractionStatus.FAILED.value
-            # send_slack_alert(
-            #     f"Text extraction *FAILED* for file `{file_id}`\n"
-            #     f"*Environment:* `{ENVIRONMENT.upper()}`\n"
-            #     f"*Reason:* `{e}`"
-            # )
     return file
 
 
@@ -156,18 +166,19 @@ def convert_file_with_libreoffice(
     input_path: str, output_file_type: str
 ) -> str:
     output_dir = tempfile.gettempdir()
-    result = subprocess.run(  # nosec
-        [
-            "libreoffice",
-            "--headless",
-            "--convert-to",
-            output_file_type,
-            "--outdir",
-            output_dir,
-            input_path,
-        ],
-        capture_output=True,
-    )
+    with libreoffice_lock:
+        result = subprocess.run(  # nosec
+            [
+                "libreoffice",
+                "--headless",
+                "--convert-to",
+                output_file_type,
+                "--outdir",
+                output_dir,
+                input_path,
+            ],
+            capture_output=True,
+        )
 
     if result.returncode != 0:
         raise RuntimeError(
@@ -193,23 +204,3 @@ def get_slack_webhook():
     secret_string = json.loads(response["SecretString"])
     slack_webhook = secret_string["slack-webhook"]
     return slack_webhook
-
-
-# Commented out because no egress to internet
-
-# def send_slack_alert(message: str):
-#     try:
-#         webhook_url = get_slack_webhook()
-#     except Exception:
-#         logger.warning("Slack alert not sent due to webhook fetch failure.")
-#         return
-
-#     try:
-#         response = requests.post(
-#             webhook_url,
-#             data=json.dumps({"text": message, "channel": SLACK_CHANNEL}),
-#             timeout=5,
-#         )
-#         response.raise_for_status()
-#     except Exception as e:
-#         logger.error(f"Failed to send Slack alert: {e}")

@@ -219,34 +219,40 @@ def test_main_invokes_bulk_index_with_correct_file_data(monkeypatch, database):
     monkeypatch.setenv("SNS_MESSAGE", json.dumps(sns_message))
 
     with patch(
-        "opensearch_indexer.index_consignment.bulk_index_consignment.bulk_index_files_in_opensearch"
-    ) as mock_bulk_index:
-        consignment_indexer()
+        "opensearch_indexer.aws_helpers.get_iam_connection",
+        return_value="testPass123",
+    ):
+        with patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment.bulk_index_files_in_opensearch"
+        ) as mock_bulk_index:
+            consignment_indexer()
 
-        args, _ = mock_bulk_index.call_args
-        assert args[1] == "https://test-opensearch.com"
+            args, _ = mock_bulk_index.call_args
+            assert args[1] == "https://test-opensearch.com"
 
-        aws_auth = args[2]
-        assert isinstance(aws_auth, AWS4Auth)
-        assert aws_auth.access_id == "test_access_key"
-        assert (
-            aws_auth.signing_key.secret_key
-            == "test_secret_key"  # pragma: allowlist secret
-        )
-        assert aws_auth.region == "eu-west-2"
-        assert aws_auth.service == "es"
-        assert aws_auth.session_token == "test_token"
+            aws_auth = args[2]
+            assert isinstance(aws_auth, AWS4Auth)
+            assert aws_auth.access_id == "test_access_key"
+            assert (
+                aws_auth.signing_key.secret_key
+                == "test_secret_key"  # pragma: allowlist secret
+            )
+            assert aws_auth.region == "eu-west-2"
+            assert aws_auth.service == "es"
+            assert aws_auth.session_token == "test_token"
 
-        assert args[3] == 600
-        assert args[4] is None
+            assert args[3] == 600
+            assert args[4] is None
 
-        doc = next(
-            d["document"] for d in args[0] if d["file_id"] == str(file_ids[0])
-        )
-        assert doc["file_name"] == "test-document.txt"
-        assert doc["file_extension"] == "txt"
-        assert doc["Key1"] == "Value1"
-        assert doc["content"] == "Test file content"
+            doc = next(
+                d["document"]
+                for d in args[0]
+                if d["file_id"] == str(file_ids[0])
+            )
+            assert doc["file_name"] == "test-document.txt"
+            assert doc["file_extension"] == "txt"
+            assert doc["Key1"] == "Value1"
+            assert doc["content"] == "Test file content"
 
 
 @mock_aws
@@ -361,37 +367,41 @@ def test_all_consignments_index_invoked(monkeypatch, database):
     monkeypatch.setenv("INDEXER_TYPE", "ALL")
 
     with patch(
-        "opensearch_indexer.index_consignment.bulk_index_consignment.bulk_index_files_in_opensearch"
-    ) as mock_bulk_index:
-        consignment_indexer()
+        "opensearch_indexer.aws_helpers.get_iam_connection",
+        return_value="testPass123",
+    ):
+        with patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment.bulk_index_files_in_opensearch"
+        ) as mock_bulk_index:
+            consignment_indexer()
 
-        args, _ = mock_bulk_index.call_args
-        assert args[1] == "https://test-opensearch.com"
+            args, _ = mock_bulk_index.call_args
+            assert args[1] == "https://test-opensearch.com"
 
-        aws_auth = args[2]
-        assert isinstance(aws_auth, AWS4Auth)
-        assert aws_auth.access_id == "test_access_key"
-        assert aws_auth.region == "eu-west-2"
-        assert aws_auth.service == "es"
-        assert aws_auth.session_token == "test_token"
-        assert args[3] == 600
+            aws_auth = args[2]
+            assert isinstance(aws_auth, AWS4Auth)
+            assert aws_auth.access_id == "test_access_key"
+            assert aws_auth.region == "eu-west-2"
+            assert aws_auth.service == "es"
+            assert aws_auth.session_token == "test_token"
+            assert args[3] == 600
 
-        assert mock_bulk_index.call_count == len(consignments)
+            assert mock_bulk_index.call_count == len(consignments)
 
-        indexed_file_names = set()
-        for call in mock_bulk_index.call_args_list:
-            args, _ = call
-            for doc in args[0]:
-                indexed_file_names.add(doc["document"]["file_name"])
+            indexed_file_names = set()
+            for call in mock_bulk_index.call_args_list:
+                args, _ = call
+                for doc in args[0]:
+                    indexed_file_names.add(doc["document"]["file_name"])
 
-        expected_file_names = {
-            "test-0-0.txt",
-            "test-0-1.txt",
-            "test-1-0.txt",
-            "test-1-1.txt",
-        }
+            expected_file_names = {
+                "test-0-0.txt",
+                "test-0-1.txt",
+                "test-1-0.txt",
+                "test-1-1.txt",
+            }
 
-        assert indexed_file_names == expected_file_names
+            assert indexed_file_names == expected_file_names
 
 
 @mock_aws
@@ -503,17 +513,23 @@ def test_all_consignments_index_raises_error_after_collecting_failures(
     monkeypatch.setenv("INDEXER_TYPE", "ALL")
 
     with patch(
-        "opensearch_indexer.index_consignment.bulk_index_consignment.bulk_index_files_in_opensearch"
-    ) as mock_bulk:
+        "opensearch_indexer.aws_helpers.get_iam_connection",
+        return_value="testPass123",
+    ):
+        with patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment.bulk_index_files_in_opensearch"
+        ) as mock_bulk:
 
-        mock_bulk.side_effect = [None, Exception("Error")]
+            # First consignment succeeds, second fails
+            mock_bulk.side_effect = [None, Exception("Error")]
 
-        with pytest.raises(BulkIndexMultipleConsignmentsError) as excinfo:
-            consignment_indexer()
+            with pytest.raises(BulkIndexMultipleConsignmentsError) as excinfo:
+                consignment_indexer()
 
-        error_msg = str(excinfo.value)
-        assert "1 consignments had error(s):" in error_msg
-        assert "Bulk Index Errors:\nError" in error_msg
+            error_msg = str(excinfo.value)
+
+            assert "1 consignments had error(s):" in error_msg
+            assert "Bulk Index Errors:\nError" in error_msg
 
 
 @mock_aws

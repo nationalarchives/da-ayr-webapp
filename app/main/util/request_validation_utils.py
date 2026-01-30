@@ -17,26 +17,9 @@ def validate_request(
     def decorator(f: Callable) -> Callable:
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
-            from flask import abort, current_app, request
+            from flask import current_app, request
 
-            if location == "args":
-                data = _clean_empty_strings(request.args.to_dict())
-            elif location == "form":
-                data = _clean_empty_strings(request.form.to_dict())
-            elif location == "json":
-                data = request.get_json() or {}
-            elif location == "path":
-                data = kwargs
-            elif location == "combined":
-                combined = {
-                    **kwargs,
-                    **request.form.to_dict(),
-                    **request.args.to_dict(),
-                }
-                data = _clean_empty_strings(combined)
-            else:
-                data = {}
-
+            data = _get_request_data(location, request, kwargs)
             schema = schema_class()
             try:
                 request.validated_data = schema.load(data)
@@ -48,15 +31,51 @@ def validate_request(
                 current_app.logger.warning(
                     f"Validation error in {f.__name__}: {e.messages}"
                 )
-                abort(
-                    400, description=f"Invalid request parameters: {e.messages}"
-                )
-
+                request.validated_data = _fallback_to_defaults(schema, data)
             return f(*args, **kwargs)
 
         return wrapper
 
     return decorator
+
+
+def _get_request_data(location, request, kwargs):
+    if location == "args":
+        return _clean_empty_strings(request.args.to_dict())
+    elif location == "form":
+        return _clean_empty_strings(request.form.to_dict())
+    elif location == "json":
+        return request.get_json() or {}
+    elif location == "path":
+        return kwargs
+    elif location == "combined":
+        combined = {
+            **kwargs,
+            **request.form.to_dict(),
+            **request.args.to_dict(),
+        }
+        return _clean_empty_strings(combined)
+    else:
+        return {}
+
+
+def _fallback_to_defaults(schema, data):
+    valid_data = {}
+    for field_name, field in schema.fields.items():
+        if field_name in data:
+            try:
+                valid_data[field_name] = field.deserialize(data[field_name])
+            except Exception:
+                valid_data[field_name] = (
+                    field.load_default
+                    if hasattr(field, "load_default")
+                    else None
+                )
+        else:
+            valid_data[field_name] = (
+                field.load_default if hasattr(field, "load_default") else None
+            )
+    return valid_data
 
 
 def _clean_empty_strings(data: dict) -> dict:
@@ -99,5 +118,4 @@ def _filter_non_defaults(
         # (regardless of whether it matches the default value)
         if field_name in original_data and value is not None and value != "":
             filtered[field_name] = value
-
     return filtered
