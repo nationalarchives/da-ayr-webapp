@@ -2,7 +2,7 @@
 FROM python@sha256:326df678c20c78d465db501563f3492d17c42a4afe33a1f2bf5406a1d56b0e86
 
 # Install system dependencies including LibreOffice
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get -y upgrade && apt-get install -y \
     libreoffice \
     libreoffice-writer \
     libreoffice-calc \
