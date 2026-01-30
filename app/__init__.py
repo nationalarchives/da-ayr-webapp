@@ -58,24 +58,6 @@ def format_date_iso(value):
         return value
 
 
-def sanitize_url_params(params):
-    """
-    Remove Flask reserved parameters to prevent parameter pollution.
-
-    Flask's url_for() accepts special parameters starting with underscore
-    (_external, _scheme, _anchor, _method). User values for these
-    can cause errors or security issues.
-    Args:
-        params: Dictionary of URL parameters
-
-    Returns:
-        Sanitised dictionary with Flask reserved parameters removed
-    """
-    if not isinstance(params, dict):
-        return params
-    return {k: v for k, v in params.items() if not k.startswith("_")}
-
-
 def create_app(config_class, database_uri=None):
     app = Flask(__name__, static_url_path="/assets")
     config = config_class()
@@ -97,7 +79,6 @@ def create_app(config_class, database_uri=None):
         format_number_with_commas
     )
     app.jinja_env.filters["format_date_iso"] = format_date_iso
-    app.jinja_env.filters["sanitize_url_params"] = sanitize_url_params
     app.jinja_loader = ChoiceLoader(
         [
             PackageLoader("app"),

@@ -298,16 +298,14 @@
                                         {% endfor %}
                                         {% set new_query = terms_to_keep | join('+') %}
                                         {% if search_terms | length == 1 %}
-                                            {# Sanitize params to prevent Flask parameter pollution #}
-                                            {% set remove_url_args = query_string_parameters | sanitize_url_params %}
-                                            {% set remove_url_args = remove_url_args.copy() %}
+                                            {# query_string_parameters is already sanitized via validated_args #}
+                                            {% set remove_url_args = query_string_parameters.copy() %}
                                             {% set _ = remove_url_args.pop('query', None) %}
                                             {% set _ = remove_url_args.pop('_id', None) %}
                                             {% set search_term_url = url_for('main.browse_transferring_body', _id = query_string_parameters['_id'], **remove_url_args) %}
                                         {% else %}
-                                            {# Sanitize params to prevent Flask parameter pollution #}
-                                            {% set remove_url_args = query_string_parameters | sanitize_url_params %}
-                                            {% set remove_url_args = remove_url_args.copy() %}
+                                            {# query_string_parameters is already sanitized via validated_args #}
+                                            {% set remove_url_args = query_string_parameters.copy() %}
                                             {% set _ = remove_url_args.pop('query', None) %}
                                             {% set _ = remove_url_args.pop('_id', None) %}
                                             {% if new_query %}

@@ -6,48 +6,26 @@ cannot be injected by users to cause errors or security issues.
 """
 
 from app.main.util.request_validation_utils import (
+    FLASK_RESERVED_PARAMS,
     _filter_non_defaults,
-    sanitize_url_params,
 )
 
 
 class TestParameterPollutionSecurity:
     """Security tests for parameter pollution attack prevention."""
 
-    def test_sanitize_url_params_removes_flask_reserved_parameters(self):
-        """Test that sanitize_url_params removes all Flask reserved parameters."""
-        malicious_params = {
-            "query": "test search",
-            "_external": "1",  # Could enable open redirect
-            "_anchor": "malicious",  # Could cause TypeError
-            "_scheme": "http",  # Could downgrade HTTPS
-            "_method": "POST",  # Could manipulate HTTP method
-            "page": "2",
-            "_netloc": "evil.com",  # Could enable open redirect
-        }
-
-        sanitized = sanitize_url_params(malicious_params)
-
-        # Verify Flask reserved parameters are removed
-        assert "_external" not in sanitized
-        assert "_anchor" not in sanitized
-        assert "_scheme" not in sanitized
-        assert "_method" not in sanitized
-        assert "_netloc" not in sanitized
-
-        # Verify legitimate parameters are kept
-        assert sanitized["query"] == "test search"
-        assert sanitized["page"] == "2"
-
-    def test_filter_non_defaults_blocks_underscore_parameters(self):
-        """Test that _filter_non_defaults blocks parameters starting with underscore."""
+    def test_filter_non_defaults_blocks_flask_reserved_parameters(self):
+        """Test that _filter_non_defaults blocks Flask reserved parameters."""
         from marshmallow import Schema, fields
 
         class TestSchema(Schema):
             query = fields.Str()
             page = fields.Int(load_default=1)
-            _external = fields.Str()  # Should be blocked even if in schema
-            _anchor = fields.Str()  # Should be blocked even if in schema
+            _external = fields.Str()  # Should be blocked
+            _anchor = fields.Str()  # Should be blocked
+            _scheme = fields.Str()  # Should be blocked
+            _method = fields.Str()  # Should be blocked
+            _id = fields.Str()  # Should NOT be blocked (legitimate path param)
 
         schema = TestSchema()
         validated_data = {
@@ -55,23 +33,30 @@ class TestParameterPollutionSecurity:
             "page": 2,
             "_external": "1",
             "_anchor": "malicious",
+            "_scheme": "http",
+            "_method": "POST",
+            "_id": "abc123",
         }
         original_data = {
             "query": "test",
             "page": "2",
             "_external": "1",
             "_anchor": "malicious",
+            "_scheme": "http",
+            "_method": "POST",
+            "_id": "abc123",
         }
 
         filtered = _filter_non_defaults(validated_data, schema, original_data)
 
-        # Verify underscore parameters are blocked
-        assert "_external" not in filtered
-        assert "_anchor" not in filtered
+        # Verify Flask reserved parameters are blocked
+        for param in FLASK_RESERVED_PARAMS:
+            assert param not in filtered
 
         # Verify legitimate parameters pass through
         assert filtered["query"] == "test"
         assert filtered["page"] == 2
+        assert filtered["_id"] == "abc123"  # Path params should pass through
 
     def test_search_endpoint_prevents_typeerror_from_duplicate_anchor(
         self, client, mock_standard_user
