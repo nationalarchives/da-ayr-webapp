@@ -1,5 +1,6 @@
+import tempfile
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import pytest
 from opensearch_indexer.text_extraction import (
@@ -75,10 +76,7 @@ class TestExtractText:
     )
     def test_extract_text(self, file_name, file_type, expected_output):
         path = Path(__file__).parent / f"test_files/{file_name}"
-        with open(path, "rb") as file:
-            file_stream = file.read()
-
-        assert extract_text(file_stream, file_type) == expected_output
+        assert extract_text(str(path), file_type) == expected_output
 
 
 # Mock ENVIRONMENT for slack alerts
@@ -123,7 +121,7 @@ def test_add_text_content_success(mock_extract_text, caplog):
     assert (
         result["text_extraction_status"] == TextExtractionStatus.SUCCEEDED.value
     )
-    mock_extract_text.assert_called_once_with(file_stream, "fmt/276")
+    mock_extract_text.assert_called_once_with(ANY, "fmt/276")
 
     assert "Text extraction succeeded for file 1" in caplog.text
 
@@ -155,7 +153,7 @@ def test_add_text_content_no_ffid_metadata_success(mock_extract_text, caplog):
     assert (
         result["text_extraction_status"] == TextExtractionStatus.SUCCEEDED.value
     )
-    mock_extract_text.assert_called_once_with(file_stream, "fmt/276")
+    mock_extract_text.assert_called_once_with(ANY, "fmt/276")
 
     assert "Text extraction succeeded for file 1" in caplog.text
 
@@ -223,7 +221,7 @@ def test_add_text_content_failure(mock_extract_text, caplog):
     # Then
     assert result["content"] == ""
     assert result["text_extraction_status"] == TextExtractionStatus.FAILED.value
-    mock_extract_text.assert_called_once_with(file_stream, "x-fmt/111")
+    mock_extract_text.assert_called_once_with(ANY, "x-fmt/111")
 
     assert (
         "Text extraction failed for file 3: Text extraction failed"
@@ -307,20 +305,29 @@ def test_extract_text_libreoffice_conversion_failure():
     """
     file_bytes = b"dummy content"
 
-    with patch(
-        "opensearch_indexer.text_extraction.textract.process"
-    ) as mock_textract, patch(
-        "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
-    ) as mock_convert:
+    with tempfile.NamedTemporaryFile(suffix=".xls", delete=True) as temp:
+        temp.write(file_bytes)
+        temp.flush()
 
-        mock_textract.side_effect = Exception("initial textract failed")
-        mock_convert.side_effect = Exception("libreoffice conversion failed")
+        with patch(
+            "opensearch_indexer.text_extraction.textract.process"
+        ) as mock_textract, patch(
+            "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
+        ) as mock_convert:
 
-        with pytest.raises(Exception, match="libreoffice conversion failed"):
-            extract_text(file_bytes, "fmt/59")
+            mock_textract.side_effect = Exception("initial textract failed")
+            mock_convert.side_effect = Exception(
+                "libreoffice conversion failed"
+            )
 
-        mock_textract.assert_called_once()
-        mock_convert.assert_called_once()
+            with pytest.raises(Exception) as exc_info:
+                extract_text(temp.name, "fmt/59")
+
+            assert "initial textract failed" in str(exc_info.value)
+            assert "libreoffice conversion failed" in str(exc_info.value)
+
+            mock_textract.assert_called_once()
+            mock_convert.assert_called_once()
 
 
 def test_extract_text_fallback_conversion_failure():
@@ -331,25 +338,154 @@ def test_extract_text_fallback_conversion_failure():
     file_bytes = b"dummy file content"
     converted_path = "/tmp/converted.xlsx"
 
+    with tempfile.NamedTemporaryFile(suffix=".xls", delete=True) as temp:
+        temp.write(file_bytes)
+        temp.flush()
+
+        with patch(
+            "opensearch_indexer.text_extraction.textract.process"
+        ) as mock_textract, patch(
+            "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
+        ) as mock_convert:
+
+            # Given
+            mock_textract.side_effect = [
+                Exception("initial textract failed"),
+                Exception("converted textract failed"),
+            ]
+            mock_convert.return_value = converted_path
+
+            # Then
+            with pytest.raises(Exception) as exc_info:
+                extract_text(temp.name, "fmt/59")
+
+            assert "initial textract failed" in str(exc_info.value)
+            assert "converted textract failed" in str(exc_info.value)
+
+            assert mock_textract.call_count == 2
+            mock_convert.assert_called_once()
+
+
+def test_add_text_content_proactive_conversion_success(caplog):
+    """
+    Given an unsupported file type that is in the proactive conversion map,
+    When conversion and subsequent extraction succeed,
+    Then the content is extracted from the converted file and status is SUCCEEDED.
+    """
+    # Given a PUID in the convert map (e.g., x-fmt/44: .wpd to .docx)
+    file = {
+        "file_id": 6,
+        "file_name": "example.wpd",
+        "file_extension": "wpd",
+        "file_puid": "x-fmt/44",
+        "content": "",
+        "text_extraction_status": "",
+    }
+    file_stream = b"original wpd content"
+
     with patch(
         "opensearch_indexer.text_extraction.textract.process"
     ) as mock_textract, patch(
         "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
     ) as mock_convert:
+        mock_textract.return_value = b"extracted from docx"
+        mock_convert.return_value = "/tmp/example.docx"
 
-        # Given
-        mock_textract.side_effect = [
-            Exception("initial textract failed"),
-            Exception("converted textract failed"),
-        ]
-        mock_convert.return_value = converted_path
+        # When
+        result = add_text_content(file, file_stream)
 
         # Then
-        with pytest.raises(Exception, match="converted textract failed"):
-            extract_text(file_bytes, "fmt/59")
+        assert result["content"] == "extracted from docx"
+        assert (
+            result["text_extraction_status"]
+            == TextExtractionStatus.SUCCEEDED.value
+        )
+        mock_convert.assert_called_once_with(ANY, "docx")
+        mock_textract.assert_called_once_with("/tmp/example.docx")
+        assert "Converting 6 to docx" in caplog.text
+        assert "Text extraction succeeded for file 6" in caplog.text
 
-        assert mock_textract.call_count == 2
-        mock_convert.assert_called_once()
+
+def test_add_text_content_proactive_conversion_failure(caplog):
+    """
+    Given an unsupported file type that is in the proactive conversion map,
+    When conversion fails,
+    Then the status is set to FAILED and content is empty.
+    """
+    # Given a PUID in the convert map (e.g., fmt/126: .ppt to .pptx)
+    file = {
+        "file_id": 7,
+        "file_name": "example.ppt",
+        "file_extension": "ppt",
+        "file_puid": "fmt/126",
+        "content": "",
+        "text_extraction_status": "",
+    }
+    file_stream = b"original ppt content"
+
+    with patch(
+        "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
+    ) as mock_convert:
+        mock_convert.side_effect = Exception("conversion failed")
+
+        # When
+        result = add_text_content(file, file_stream)
+
+        # Then
+        assert result["content"] == ""
+        assert (
+            result["text_extraction_status"]
+            == TextExtractionStatus.FAILED.value
+        )
+        mock_convert.assert_called_once_with(ANY, "pptx")
+        assert "Converting 7 to pptx" in caplog.text
+        assert (
+            "Text extraction failed for file 7: conversion failed"
+            in caplog.text
+        )
+
+
+def test_add_text_content_proactive_conversion_extract_failure(caplog):
+    """
+    Given an unsupported file type that is in the proactive conversion map,
+    When conversion succeeds but extraction on converted file fails,
+    Then the status is set to FAILED and content is empty.
+    """
+    # Given a PUID in the convert map (e.g., x-fmt/258: .vsd to .pdf)
+    file = {
+        "file_id": 8,
+        "file_name": "example.vsd",
+        "file_extension": "vsd",
+        "file_puid": "x-fmt/258",
+        "content": "",
+        "text_extraction_status": "",
+    }
+    file_stream = b"original vsd content"
+
+    with patch(
+        "opensearch_indexer.text_extraction.textract.process"
+    ) as mock_textract, patch(
+        "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
+    ) as mock_convert:
+        mock_textract.side_effect = Exception("extract after convert failed")
+        mock_convert.return_value = "/tmp/example.pdf"
+
+        # When
+        result = add_text_content(file, file_stream)
+
+        # Then
+        assert result["content"] == ""
+        assert (
+            result["text_extraction_status"]
+            == TextExtractionStatus.FAILED.value
+        )
+        mock_convert.assert_called_once_with(ANY, "pdf")
+        mock_textract.assert_called_once_with("/tmp/example.pdf")
+        assert "Converting 8 to pdf" in caplog.text
+        assert (
+            "Text extraction failed for file 8: extract after convert failed"
+            in caplog.text
+        )
 
 
 # def test_add_text_content_skipped_alert():

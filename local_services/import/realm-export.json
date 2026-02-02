@@ -2,6 +2,9 @@
   "realm": "tdr",
   "enabled": true,
   "sslRequired": "none",
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 10800,
+  "ssoSessionMaxLifespan": 36000,
   "groups": [
     {
       "name": "ayr_user_type",
@@ -71,23 +74,7 @@
       "fullScopeAllowed": true,
       "defaultClientScopes": [
         "group_mapper_client_scope",
-        "basic",
-        "roles",
-        "web-origins"
-      ],
-      "protocolMappers": [
-        {
-          "name": "audience-mapper",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-audience-mapper",
-          "consentRequired": false,
-          "config": {
-            "included.client.audience": "ayr-beta",
-            "id.token.claim": "false",
-            "access.token.claim": "true",
-            "userinfo.token.claim": "false"
-          }
-        }
+        "basic"
       ]
     }
   ],
