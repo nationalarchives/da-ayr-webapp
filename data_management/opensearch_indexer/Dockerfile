@@ -1,8 +1,8 @@
 # Python 3.13-slim
-FROM python@sha256:37cba1153c7a3cd4477640ce0f976f7460308f812bc29d7149532e352a97ac8b
+FROM python@sha256:17bc9f1d032a760546802cc4e406401eb5fe99dbcb4602c91628e73672fa749c
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get -y upgrade && apt-get install -y --no-install-recommends \
     python3-dev \
     libxml2-dev libxslt1-dev \
     antiword unrtf poppler-utils tesseract-ocr \

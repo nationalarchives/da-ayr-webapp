@@ -56,18 +56,6 @@ files = [
 ]
 
 [[package]]
-name = "async-property"
-version = "0.2.2"
-description = "Python decorator for async properties."
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "async_property-0.2.2-py2.py3-none-any.whl", hash = "sha256:8924d792b5843994537f8ed411165700b27b2bd966cefc4daeefc1253442a9d7"},
-    {file = "async_property-0.2.2.tar.gz", hash = "sha256:17d9bd6ca67e27915a75d92549df64b5c7174e9dc806b30a3934dc4ff0506380"},
-]
-
-[[package]]
 name = "async-timeout"
 version = "5.0.1"
 description = "Timeout context manager for asyncio programs"
@@ -381,18 +369,18 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.42.30"
+version = "1.42.37"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "boto3-1.42.30-py3-none-any.whl", hash = "sha256:d7e548bea65e0ae2c465c77de937bc686b591aee6a352d5a19a16bc751e591c1"},
-    {file = "boto3-1.42.30.tar.gz", hash = "sha256:ba9cd2f7819637d15bfbeb63af4c567fcc8a7dcd7b93dd12734ec58601169538"},
+    {file = "boto3-1.42.37-py3-none-any.whl", hash = "sha256:e1e38fd178ffc66cfbe9cb6838b8c460000c3eb741e5f40f57eb730780ef0ed4"},
+    {file = "boto3-1.42.37.tar.gz", hash = "sha256:d8b6c52c86f3bf04f71a5a53e7fb4d1527592afebffa5170cf3ef7d70966e610"},
 ]
 
 [package.dependencies]
-botocore = ">=1.42.30,<1.43.0"
+botocore = ">=1.42.37,<1.43.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.16.0,<0.17.0"
 
@@ -401,14 +389,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.42.30"
+version = "1.42.37"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "botocore-1.42.30-py3-none-any.whl", hash = "sha256:97070a438cac92430bb7b65f8ebd7075224f4a289719da4ee293d22d1e98db02"},
-    {file = "botocore-1.42.30.tar.gz", hash = "sha256:9bf1662b8273d5cc3828a49f71ca85abf4e021011c1f0a71f41a2ea5769a5116"},
+    {file = "botocore-1.42.37-py3-none-any.whl", hash = "sha256:f13bb8b560a10714d96fb7b0c7f17828dfa6e6606a1ead8c01c6ebb8765acbd8"},
+    {file = "botocore-1.42.37.tar.gz", hash = "sha256:3ec58eb98b0857f67a2ae6aa3ded51597e7335f7640be654e0e86da4f173b5b2"},
 ]
 
 [package.dependencies]
@@ -1656,25 +1644,25 @@ protobuf = ["grpcio-tools (>=1.76.0)"]
 
 [[package]]
 name = "gunicorn"
-version = "23.0.0"
+version = "24.1.1"
 description = "WSGI HTTP Server for UNIX"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "gunicorn-23.0.0-py3-none-any.whl", hash = "sha256:ec400d38950de4dfd418cff8328b2c8faed0edb0d517d3394e457c317908ca4d"},
-    {file = "gunicorn-23.0.0.tar.gz", hash = "sha256:f014447a0101dc57e294f6c18ca6b40227a4c90e9bdb586042628030cba004ec"},
+    {file = "gunicorn-24.1.1-py3-none-any.whl", hash = "sha256:757f6b621fc4f7581a90600b2cd9df593461f06a41d7259cb9b94499dc4095a8"},
+    {file = "gunicorn-24.1.1.tar.gz", hash = "sha256:f006d110e5cb3102859b4f5cd48335dbd9cc28d0d27cd24ddbdafa6c60929408"},
 ]
 
 [package.dependencies]
 packaging = "*"
 
 [package.extras]
-eventlet = ["eventlet (>=0.24.1,!=0.36.0)"]
-gevent = ["gevent (>=1.4.0)"]
+eventlet = ["eventlet (>=0.40.3)"]
+gevent = ["gevent (>=24.10.1)"]
 setproctitle = ["setproctitle"]
-testing = ["coverage", "eventlet", "gevent", "pytest", "pytest-cov"]
-tornado = ["tornado (>=0.2)"]
+testing = ["coverage", "eventlet (>=0.40.3)", "gevent (>=24.10.1)", "pytest", "pytest-asyncio", "pytest-cov"]
+tornado = ["tornado (>=6.5.0)"]
 
 [[package]]
 name = "h11"
@@ -2148,14 +2136,14 @@ files = [
 
 [[package]]
 name = "marshmallow"
-version = "4.2.0"
+version = "4.2.1"
 description = "A lightweight library for converting complex datatypes to and from native Python datatypes."
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "marshmallow-4.2.0-py3-none-any.whl", hash = "sha256:1dc369bd13a8708a9566d6f73d1db07d50142a7580f04fd81e1c29a4d2e10af4"},
-    {file = "marshmallow-4.2.0.tar.gz", hash = "sha256:908acabd5aa14741419d3678d3296bda6abe28a167b7dcd05969ceb8256943ac"},
+    {file = "marshmallow-4.2.1-py3-none-any.whl", hash = "sha256:d82b1a83cfbb4667d050850fbed4e9d4435576cb95f5ff37894f375dce201768"},
+    {file = "marshmallow-4.2.1.tar.gz", hash = "sha256:4d1d66189c8d279ca73a6b0599d74117e5f8a3830b5cd766b75c2bb08e3464e7"},
 ]
 
 [package.extras]
@@ -3354,19 +3342,18 @@ cli = ["click (>=5.0)"]
 
 [[package]]
 name = "python-keycloak"
-version = "5.8.1"
+version = "7.0.3"
 description = "python-keycloak is a Python package providing access to the Keycloak API."
 optional = false
-python-versions = "<4.0,>=3.9"
+python-versions = "<4,>=3.10"
 groups = ["main"]
 files = [
-    {file = "python_keycloak-5.8.1-py3-none-any.whl", hash = "sha256:f80accf3e63b6c907f0f873ffac7a07705bd89d935520ba235259ba81b9ed864"},
-    {file = "python_keycloak-5.8.1.tar.gz", hash = "sha256:b99a1efc7eb8715c3a7d915005728f8ba2ee03c81cdf12210c65ce794cd148ad"},
+    {file = "python_keycloak-7.0.3-py3-none-any.whl", hash = "sha256:08de2c53f742360ed228e17f812a49964c5c52dcaf2439c3a6a1ab28e287cdd6"},
+    {file = "python_keycloak-7.0.3.tar.gz", hash = "sha256:13e5ac449acf5334d62550895bfcd2c08d60c8e22f61a6512a6ad9c844cf9f73"},
 ]
 
 [package.dependencies]
 aiofiles = ">=24.1.0"
-async-property = ">=0.2.2"
 deprecation = ">=2.1.0"
 httpx = ">=0.23.2"
 jwcrypto = ">=1.5.4"
@@ -4357,18 +4344,21 @@ watchdog = ["watchdog (>=2.3)"]
 
 [[package]]
 name = "wheel"
-version = "0.45.1"
-description = "A built-package format for Python"
+version = "0.46.2"
+description = "Command line tool for manipulating wheel files"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "wheel-0.45.1-py3-none-any.whl", hash = "sha256:708e7481cc80179af0e556bbf0cc00b8444c7321e2700b8d8580231d13017248"},
-    {file = "wheel-0.45.1.tar.gz", hash = "sha256:661e1abd9198507b1409a20c02106d9670b2576e916d58f520316666abca6729"},
+    {file = "wheel-0.46.2-py3-none-any.whl", hash = "sha256:33ae60725d69eaa249bc1982e739943c23b34b58d51f1cb6253453773aca6e65"},
+    {file = "wheel-0.46.2.tar.gz", hash = "sha256:3d79e48fde9847618a5a181f3cc35764c349c752e2fe911e65fa17faab9809b0"},
 ]
 
+[package.dependencies]
+packaging = ">=24.0"
+
 [package.extras]
-test = ["pytest (>=6.0.0)", "setuptools (>=65)"]
+test = ["pytest (>=6.0.0)", "setuptools (>=77)"]
 
 [[package]]
 name = "wtforms"
@@ -4606,4 +4596,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "428a86a5c6c05a1cf9bdc57592f5721455adf84a65c698bf723cc6aae770fcf8"
+content-hash = "38e0c5e71f6b18b04a8c70cb8b3411aeb4ae4d3c6f1271e30e5f79107ff5106d"

@@ -3,6 +3,7 @@ import logging
 import os
 import subprocess  # nosec
 import tempfile
+from urllib.parse import quote_plus
 
 import boto3
 import psutil
@@ -44,6 +45,7 @@ logger = logging.getLogger()
 
 s3 = boto3.client("s3")
 sm = boto3.client("secretsmanager")
+rds = boto3.client("rds")
 
 
 def get_secret_string(secret_id):
@@ -51,13 +53,24 @@ def get_secret_string(secret_id):
     return json.loads(secret_value["SecretString"])  # pragma: allowlist secret
 
 
+def get_iam_connection(db_secret_string):
+    host = db_secret_string["proxy"]
+    port = int(db_secret_string["port"])
+    user = db_secret_string["username"]
+
+    return rds.generate_db_auth_token(
+        DBHostname=host, Port=port, DBUsername=user
+    )
+
+
 def get_engine():
     db_secret_id = os.getenv("DB_SECRET_ID")
     if not db_secret_id:
         raise Exception("DB_SECRET_ID environment variable not found")
     creds = get_secret_string(db_secret_id)
+    token = get_iam_connection(creds)
     url = (
-        f"postgresql+psycopg2://{creds['username']}:{creds['password']}"
+        f"postgresql+psycopg2://{creds['username']}:{quote_plus(token)}"
         f"@{creds['proxy']}:{creds['port']}/{creds['dbname']}"
     )
     return create_engine(url)
