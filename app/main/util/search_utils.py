@@ -2,7 +2,7 @@ import re
 import urllib.parse
 
 import opensearchpy
-from flask import abort, current_app, redirect, url_for
+from flask import abort, current_app, redirect, request, url_for
 from opensearchpy import OpenSearch, RequestsHttpConnection
 
 from app.main.util.date_validator import format_opensearch_date
@@ -483,11 +483,12 @@ def check_additional_term(query, validated_data):
 
         query = f"{query}+{additional_term}" if query else additional_term
 
-        validated_data["query"] = query
+        redirect_params = request.validated_args.copy()
+        redirect_params["query"] = query
         return redirect(
             url_for(
                 "main.search_transferring_body",
-                **validated_data,
+                **redirect_params,
                 _anchor="browse-records",
             )
         )
