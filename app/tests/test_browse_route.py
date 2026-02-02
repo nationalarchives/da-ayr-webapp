@@ -1,19 +1,15 @@
+from unittest.mock import MagicMock, patch
 
 import pytest
-from unittest.mock import patch, MagicMock
+
 from app.main.process_routes import browse_route
 
 
 class TestBrowseRoute:
 
-
     @pytest.fixture
     def validated_data(self):
-        return {
-            "page": 1,
-            "per_page": 10,
-            "some_filter": "value"
-        }
+        return {"page": 1, "per_page": 10, "some_filter": "value"}
 
     @pytest.fixture
     def transferring_bodies(self):
@@ -34,7 +30,7 @@ class TestBrowseRoute:
         mock_db,
         mock_get_pagination,
         validated_data,
-        transferring_bodies
+        transferring_bodies,
     ):
         # Setup mocks
         mock_validate_date_filters.return_value = ([], None, None, {}, [])
@@ -63,7 +59,7 @@ class TestBrowseRoute:
         assert result["sorting_orders"]["transferring_body"] == "asc"
         assert result["num_records_found"] == 42
         assert result["query_string_parameters"] == validated_data
-    
+
     @patch("app.main.process_routes.browse_route.get_pagination")
     @patch("app.main.process_routes.browse_route.db")
     @patch("app.main.process_routes.browse_route.build_browse_query")
@@ -79,7 +75,7 @@ class TestBrowseRoute:
         mock_db,
         mock_get_pagination,
         validated_data,
-        transferring_bodies
+        transferring_bodies,
     ):
         # Setup mocks for pagination
         mock_validate_date_filters.return_value = ([], None, None, {}, [])
@@ -104,7 +100,6 @@ class TestBrowseRoute:
         assert result["pagination"]["pages"] == 7
         assert result["current_page"] == 3
 
-
     @patch("app.main.process_routes.browse_route.get_pagination")
     @patch("app.main.process_routes.browse_route.db")
     @patch("app.main.process_routes.browse_route.build_browse_query")
@@ -120,7 +115,7 @@ class TestBrowseRoute:
         mock_db,
         mock_get_pagination,
         validated_data,
-        transferring_bodies
+        transferring_bodies,
     ):
         mock_validate_date_filters.return_value = ([], None, None, {}, [])
         mock_build_filters.return_value = {"some_filter": "value"}
@@ -139,7 +134,6 @@ class TestBrowseRoute:
 
         assert result["num_records_found"] == 0
 
-
     @patch("app.main.process_routes.browse_route.get_pagination")
     @patch("app.main.process_routes.browse_route.db")
     @patch("app.main.process_routes.browse_route.build_browse_query")
@@ -155,9 +149,15 @@ class TestBrowseRoute:
         mock_db,
         mock_get_pagination,
         validated_data,
-        transferring_bodies
+        transferring_bodies,
     ):
-        mock_validate_date_filters.return_value = (["error"], "2020-01-01", "2020-12-31", {"from": "2020-01-01", "to": "2020-12-31"}, ["from", "to"])
+        mock_validate_date_filters.return_value = (
+            ["error"],
+            "2020-01-01",
+            "2020-12-31",
+            {"from": "2020-01-01", "to": "2020-12-31"},
+            ["from", "to"],
+        )
         mock_build_filters.return_value = {"date": "2020-01-01"}
         mock_build_sorting_orders.return_value = {"transferring_body": "desc"}
         mock_query = MagicMock()
@@ -174,6 +174,9 @@ class TestBrowseRoute:
 
         assert result["date_validation_errors"] == ["error"]
         assert result["date_error_fields"] == ["from", "to"]
-        assert result["date_filters"] == {"from": "2020-01-01", "to": "2020-12-31"}
+        assert result["date_filters"] == {
+            "from": "2020-01-01",
+            "to": "2020-12-31",
+        }
         assert result["filters"] == {"date": "2020-01-01"}
         assert result["sorting_orders"]["transferring_body"] == "desc"
