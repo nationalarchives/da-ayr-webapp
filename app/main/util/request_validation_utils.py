@@ -23,7 +23,6 @@ def validate_request(
             schema = schema_class()
             try:
                 request.validated_data = schema.load(data)
-                # Store validated data without defaults for cleaner redirect URLs
                 request.validated_args = _filter_non_defaults(
                     request.validated_data, schema, data
                 )
