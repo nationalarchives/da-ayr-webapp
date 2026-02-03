@@ -24,8 +24,6 @@ class TestParameterPollutionSecurity:
         # Set up authenticated session
         mock_standard_user(client)
 
-        # This should NOT crash with TypeError
         response = client.get("/search?query=test&_anchor=exploit")
 
-        assert response.status_code in [200, 302]
-        assert response.status_code != 500
+        assert response.status_code == 302
