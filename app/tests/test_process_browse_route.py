@@ -3,14 +3,15 @@ from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
-
-from app.tests.test_browse import verify_desktop_data_rows, verify_browse_view_header_row
-
-from app.tests.test_browse import TestBrowse
+from app.tests.test_browse import (
+    TestBrowse,
+    verify_browse_view_header_row,
+    verify_desktop_data_rows,
+)
 
 
 class TestProcessBrowseRoute(TestBrowse):
-    
+
     def test_browse_filter_no_results(
         self, client: FlaskClient, mock_all_access_user
     ):
@@ -545,20 +546,21 @@ class TestProcessBrowseRoute(TestBrowse):
         assert not previous_option
         assert next_option.text.replace("\n", "").strip("") == "Nextpage"
 
-
     def test_browse_invalid_page_redirects_to_default(
-            self, client: FlaskClient, app, mock_all_access_user, browse_files
-        ):
-            """
-            Given an all_access_user accessing the browse page
-            When they make a GET request with an invalid page value (e.g., page=0 or page=-1 or page=abc)
-            Then they should be redirected to the default page (page 1)
-            """
-            mock_all_access_user(client)
-            app.config["DEFAULT_PAGE_SIZE"] = 2
+        self, client: FlaskClient, app, mock_all_access_user, browse_files
+    ):
+        """
+        Given an all_access_user accessing the browse page
+        When they make a GET request with an invalid page value (e.g., page=0 or page=-1 or page=abc)
+        Then they should be redirected to the default page (page 1)
+        """
+        mock_all_access_user(client)
+        app.config["DEFAULT_PAGE_SIZE"] = 2
 
-            for invalid_page in ["-1", "0", "abc"]:
-                response = client.get(f"{self.route_url}?page={invalid_page}", follow_redirects=True)
-                assert response.status_code == 200
-                # Should show page 1
-                assert b'aria-label="Page 1"' in response.data
+        for invalid_page in ["-1", "0", "abc"]:
+            response = client.get(
+                f"{self.route_url}?page={invalid_page}", follow_redirects=True
+            )
+            assert response.status_code == 200
+            # Should show page 1
+            assert b'aria-label="Page 1"' in response.data
