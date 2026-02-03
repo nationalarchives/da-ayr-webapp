@@ -23,7 +23,7 @@ def validate_request(
             schema = schema_class()
             try:
                 request.validated_data = schema.load(data)
-                request.validated_data_non_defaults = _filter_non_defaults(
+                request.validated_args = _filter_non_defaults(
                     request.validated_data, schema, data
                 )
             except ValidationError as e:
@@ -98,6 +98,7 @@ def _filter_non_defaults(
         field = schema.fields.get(field_name)
         if field is None:
             continue
+
         # Only include if the field was explicitly provided in original data
         # (regardless of whether it matches the default value)
         if field_name in original_data and value is not None and value != "":
