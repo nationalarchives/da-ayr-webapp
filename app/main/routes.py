@@ -299,7 +299,7 @@ def browse_transferring_body(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters=validated_data,
+        query_string_parameters=request.validated_args,
     )
 
 
@@ -399,7 +399,7 @@ def browse_series(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters=validated_data,
+        query_string_parameters=request.validated_args,
     )
 
 
@@ -499,7 +499,7 @@ def browse_consignment(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters=validated_data,
+        query_string_parameters=request.validated_args,
     )
 
 
@@ -513,7 +513,7 @@ def search():
 
     ayr_user = AYRUser(session.get("user_groups"))
 
-    redirect_params = request.validated_data_non_defaults
+    redirect_params = request.validated_args
 
     if ayr_user.is_standard_user or transferring_body_id:
         if not transferring_body_id:
@@ -598,7 +598,7 @@ def search_results_summary():
         results=paginated_results,
         pagination=pagination,
         num_records_found=num_records_found,
-        query_string_parameters=validated_data,
+        query_string_parameters=request.validated_args,
         id=None,
     )
 
@@ -705,7 +705,7 @@ def search_transferring_body(_id: uuid.UUID):
         pagination=pagination,
         open_all=open_all,
         highlight_tag=highlight_tag,
-        query_string_parameters=validated_data,
+        query_string_parameters=request.validated_args,
     )
 
 

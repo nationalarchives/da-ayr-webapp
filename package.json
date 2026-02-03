@@ -12,7 +12,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@storybook/html-vite": "10.2.1",
+    "@storybook/html-vite": "10.2.4",
     "@testing-library/jest-dom": "^6.9.1",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.2.1",
@@ -25,7 +25,7 @@
     "stylelint-selector-bem-pattern": "^4.0.1"
   },
   "dependencies": {
-    "govuk-frontend": "^5.13.0",
+    "govuk-frontend": "^5.14.0",
     "npm": "^11.8.0"
   },
   "jest": {

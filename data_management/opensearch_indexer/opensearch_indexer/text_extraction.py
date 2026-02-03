@@ -48,6 +48,10 @@ class TextExtractionStatus(Enum):
     SKIPPED = "SKIPPED"
 
 
+class EncryptedDocumentError(Exception):
+    pass
+
+
 SUPPORTED_TEXTRACT_PUIDS = {
     "x-fmt/111": "txt",
     "x-fmt/18": "csv",
@@ -123,15 +127,17 @@ def convert_file_and_extract_text_in_memory(
 
         converted_path = convert_file_with_libreoffice(src.name, target_ext)
 
-        return extract_text(converted_path, target_puid)
+        return extract_text(converted_path, target_puid, file_id)
 
 
-def extract_text_in_memory(file_stream: bytes, file_puid: str) -> str:
+def extract_text_in_memory(
+    file_stream: bytes, file_puid: str, file_id: str
+) -> str:
     ext = SUPPORTED_TEXTRACT_PUIDS[file_puid]
     with tempfile.NamedTemporaryFile(suffix=f".{ext}", delete=True) as temp:
         temp.write(file_stream)
         temp.flush()
-        return extract_text(temp.name, file_puid)
+        return extract_text(temp.name, file_puid, file_id)
 
 
 def add_text_content(file: Dict, file_stream: bytes) -> Dict:
@@ -156,10 +162,19 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
                 file_stream, file_puid, file_id
             )
         else:
-            file["content"] = extract_text_in_memory(file_stream, file_puid)
+            file["content"] = extract_text_in_memory(
+                file_stream, file_puid, file_id
+            )
 
         file["text_extraction_status"] = TextExtractionStatus.SUCCEEDED.value
         logger.info(f"Text extraction succeeded for file {file_id}")
+
+    except EncryptedDocumentError as e:
+        logger.warning(
+            f"Text extraction skipped for encrypted file {file_id}: {e}"
+        )
+        file["content"] = ""
+        file["text_extraction_status"] = TextExtractionStatus.SKIPPED.value
 
     except Exception as e:
         logger.error(f"Text extraction failed for file {file_id}: {e}")
@@ -169,36 +184,39 @@ def add_text_content(file: Dict, file_stream: bytes) -> Dict:
     return file
 
 
-def extract_text(file_path: str, file_puid: str) -> str:
+def extract_text(file_path: str, file_puid: str, file_id: str) -> str:
     try:
         context = textract.process(file_path)
         return context.decode("utf-8")
 
     except Exception as e:
-        logger.warning(f"Textract failed on {file_path}: {e}")
+        encrypted = "encrypted" in str(e).lower()
 
         if file_puid not in TEXTRACT_FILE_PUIDS_FALLBACK_CONVERSION_MAP:
+            if encrypted:
+                raise EncryptedDocumentError(e)
+            logger.warning(f"Textract failed on {file_id}: {e}")
             raise e
 
         output_file_type = SUPPORTED_TEXTRACT_PUIDS[
             TEXTRACT_FILE_PUIDS_FALLBACK_CONVERSION_MAP[file_puid]
         ]
         logger.info(
-            f"Attempting to convert to {output_file_type} before trying textract again..."
+            f"Failed to textract, attempting to convert {file_id} to {output_file_type} before trying textract again.."
         )
 
         try:
             converted_path = convert_file_with_libreoffice(
                 file_path, output_file_type
             )
-            logger.info(f"Converted to: {converted_path}")
+            logger.info(f"Converted {file_id} to {output_file_type}")
             text = textract.process(converted_path)
             return text.decode("utf-8")
         except Exception as convert_err:
-            logger.error(f"LibreOffice fallback also failed: {convert_err}")
-            raise Exception(
-                f"Textract failed on original file: {e}: LibreOffice fallback also failed: {convert_err}"
-            )
+            logger.warning(f"Failed to convert {file_id}")
+            if encrypted:
+                raise EncryptedDocumentError(e) from e
+            raise convert_err from e
 
 
 def convert_file_with_libreoffice(
@@ -208,7 +226,7 @@ def convert_file_with_libreoffice(
     with libreoffice_lock:
         result = subprocess.run(  # nosec
             [
-                "libreoffice",
+                "soffice",
                 "--headless",
                 "--convert-to",
                 output_file_type,
