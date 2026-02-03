@@ -42,3 +42,11 @@
     margin-top: 3rem;
   }
 }
+
+.govuk-summary-list-long-word {
+  word-break: normal;
+}
+
+.govuk-summary-list-short-word {
+  word-break: break-word;
+}
