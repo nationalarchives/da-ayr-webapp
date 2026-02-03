@@ -76,7 +76,7 @@ class TestExtractText:
     )
     def test_extract_text(self, file_name, file_type, expected_output):
         path = Path(__file__).parent / f"test_files/{file_name}"
-        assert extract_text(str(path), file_type) == expected_output
+        assert extract_text(str(path), file_type, 1) == expected_output
 
 
 # Mock ENVIRONMENT for slack alerts
@@ -121,7 +121,7 @@ def test_add_text_content_success(mock_extract_text, caplog):
     assert (
         result["text_extraction_status"] == TextExtractionStatus.SUCCEEDED.value
     )
-    mock_extract_text.assert_called_once_with(ANY, "fmt/276")
+    mock_extract_text.assert_called_once_with(ANY, "fmt/276", file["file_id"])
 
     assert "Text extraction succeeded for file 1" in caplog.text
 
@@ -153,7 +153,7 @@ def test_add_text_content_no_ffid_metadata_success(mock_extract_text, caplog):
     assert (
         result["text_extraction_status"] == TextExtractionStatus.SUCCEEDED.value
     )
-    mock_extract_text.assert_called_once_with(ANY, "fmt/276")
+    mock_extract_text.assert_called_once_with(ANY, "fmt/276", file["file_id"])
 
     assert "Text extraction succeeded for file 1" in caplog.text
 
@@ -221,7 +221,7 @@ def test_add_text_content_failure(mock_extract_text, caplog):
     # Then
     assert result["content"] == ""
     assert result["text_extraction_status"] == TextExtractionStatus.FAILED.value
-    mock_extract_text.assert_called_once_with(ANY, "x-fmt/111")
+    mock_extract_text.assert_called_once_with(ANY, "x-fmt/111", file["file_id"])
 
     assert (
         "Text extraction failed for file 3: Text extraction failed"
@@ -301,7 +301,8 @@ def test_extract_text_libreoffice_conversion_failure():
     """
     Given textract fails on the original file,
     And LibreOffice conversion also fails (e.g. subprocess error),
-    Then extract_text should raise the conversion exception.
+    Then extract_text should raise the conversion exception,
+    with the initial textract failure as the cause.
     """
     file_bytes = b"dummy content"
 
@@ -321,10 +322,11 @@ def test_extract_text_libreoffice_conversion_failure():
             )
 
             with pytest.raises(Exception) as exc_info:
-                extract_text(temp.name, "fmt/59")
+                extract_text(temp.name, "fmt/59", 1)
 
-            assert "initial textract failed" in str(exc_info.value)
             assert "libreoffice conversion failed" in str(exc_info.value)
+            assert exc_info.value.__cause__ is not None
+            assert "initial textract failed" in str(exc_info.value.__cause__)
 
             mock_textract.assert_called_once()
             mock_convert.assert_called_once()
@@ -333,7 +335,8 @@ def test_extract_text_libreoffice_conversion_failure():
 def test_extract_text_fallback_conversion_failure():
     """
     Given textract fails on both original and converted files,
-    Then extract_text should raise the second exception.
+    Then extract_text should raise the converted textract exception,
+    with the initial textract failure as the cause.
     """
     file_bytes = b"dummy file content"
     converted_path = "/tmp/converted.xlsx"
@@ -357,10 +360,11 @@ def test_extract_text_fallback_conversion_failure():
 
             # Then
             with pytest.raises(Exception) as exc_info:
-                extract_text(temp.name, "fmt/59")
+                extract_text(temp.name, "fmt/59", 1)
 
-            assert "initial textract failed" in str(exc_info.value)
             assert "converted textract failed" in str(exc_info.value)
+            assert exc_info.value.__cause__ is not None
+            assert "initial textract failed" in str(exc_info.value.__cause__)
 
             assert mock_textract.call_count == 2
             mock_convert.assert_called_once()

@@ -215,8 +215,8 @@ def extract_text(file_path: str, file_puid: str, file_id: str) -> str:
         except Exception as convert_err:
             logger.warning(f"Failed to convert {file_id}")
             if encrypted:
-                raise EncryptedDocumentError(str(e))
-            raise Exception(convert_err)
+                raise EncryptedDocumentError(e) from e
+            raise convert_err from e
 
 
 def convert_file_with_libreoffice(
