@@ -555,7 +555,6 @@ class TestRecord:
                     assert dd is not None and value_text in dd.get_text(
                         strip=True
                     )
-                    # Check for long/short word class
                     if len(value_text) > 40:
                         span = row.find(
                             "span", class_="govuk-summary-list-long-word"
@@ -645,7 +644,6 @@ class TestRecord:
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
-        # opening_date is not used, so removed to fix lint error
         closure_start_date = datetime.strptime(
             metadata_by_key["closure_start_date"].Value, db_date_format
         ).strftime(python_date_format)
@@ -780,7 +778,6 @@ class TestRecord:
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
-        # opening_date is not used, so removed to fix lint error
         closure_start_date = datetime.strptime(
             metadata_by_key["closure_start_date"].Value, db_date_format
         ).strftime(python_date_format)
