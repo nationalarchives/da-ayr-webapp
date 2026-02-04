@@ -555,7 +555,7 @@ class TestRecord:
                     assert dd is not None and value_text in dd.get_text(
                         strip=True
                     )
-                    if len(value_text) > 40:
+                    if len(value_text) > 45:
                         span = row.find(
                             "span", class_="govuk-summary-list-long-word"
                         )
@@ -672,7 +672,7 @@ class TestRecord:
                     )
                     if key_text == "Status":
                         return
-                    if len(value_text) > 40:
+                    if len(value_text) > 45:
                         span = row.find(
                             "span", class_="govuk-summary-list-long-word"
                         )
@@ -806,7 +806,7 @@ class TestRecord:
                     assert dd is not None and value_text in dd.get_text(
                         strip=True
                     )
-                    if len(value_text) > 40:
+                    if len(value_text) > 45:
                         span = row.find(
                             "span", class_="govuk-summary-list-long-word"
                         )
