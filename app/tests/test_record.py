@@ -558,14 +558,14 @@ class TestRecord:
                     # Check for long/short word class
                     if len(value_text) > 40:
                         span = row.find(
-                            "span", class_="govuk-summary-list_long-word"
+                            "span", class_="govuk-summary-list-long-word"
                         )
-                        assert "govuk-summary-list_long-word" in span["class"]
+                        assert "govuk-summary-list-long-word" in span["class"]
                     else:
                         span = row.find(
-                            "span", class_="govuk-summary-list_short-word"
+                            "span", class_="govuk-summary-list-short-word"
                         )
-                        assert "govuk-summary-list_short-word" in span["class"]
+                        assert "govuk-summary-list-short-word" in span["class"]
                     return
             assert False, f"Summary row with key '{key_text}' not found"
 
@@ -676,14 +676,14 @@ class TestRecord:
                         return
                     if len(value_text) > 40:
                         span = row.find(
-                            "span", class_="govuk-summary-list_long-word"
+                            "span", class_="govuk-summary-list-long-word"
                         )
-                        assert "govuk-summary-list_long-word" in span["class"]
+                        assert "govuk-summary-list-long-word" in span["class"]
                     else:
                         span = row.find(
-                            "span", class_="govuk-summary-list_short-word"
+                            "span", class_="govuk-summary-list-short-word"
                         )
-                        assert "govuk-summary-list_short-word" in span["class"]
+                        assert "govuk-summary-list-short-word" in span["class"]
                     return
             assert False, f"Summary row with key '{key_text}' not found"
 
@@ -811,14 +811,14 @@ class TestRecord:
                     )
                     if len(value_text) > 40:
                         span = row.find(
-                            "span", class_="govuk-summary-list_long-word"
+                            "span", class_="govuk-summary-list-long-word"
                         )
-                        assert "govuk-summary-list_long-word" in span["class"]
+                        assert "govuk-summary-list-long-word" in span["class"]
                     else:
                         span = row.find(
-                            "span", class_="govuk-summary-list_short-word"
+                            "span", class_="govuk-summary-list-short-word"
                         )
-                        assert "govuk-summary-list_short-word" in span["class"]
+                        assert "govuk-summary-list-short-word" in span["class"]
                     return
             assert False, f"Summary row with key '{key_text}' not found"
 
