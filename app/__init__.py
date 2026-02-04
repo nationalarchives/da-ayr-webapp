@@ -231,6 +231,7 @@ def create_app(config_class, local_env, database_uri=None):
         if g.get("access_token_sign_in_required"):
             if "/manifest" in request.path or "/page/" in request.path:
                 r.headers["Cache-Control"] = "public, max-age=300"
+                r.headers["Vary"] = "Accept-Encoding"
             else:
                 r.headers["Cache-Control"] = (
                     "public, max-age=0, no-cache, no-store, must-revalidate"
