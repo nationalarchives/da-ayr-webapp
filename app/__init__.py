@@ -4,7 +4,7 @@ from datetime import datetime
 import bleach
 import boto3
 import psycopg2
-from flask import Flask, g
+from flask import Flask, g, request
 from flask_compress import Compress
 from flask_s3 import FlaskS3
 from flask_talisman import Talisman
@@ -225,14 +225,18 @@ def create_app(config_class, local_env, database_uri=None):
     @app.after_request
     def add_no_caching_headers(r):
         """
-        Add headers to tell browsers not to cache the pages to protected routes
+        Add headers to tell browsers not to cache the pages to protected routes.
+        Manifest and page endpoints allow caching for CloudFront.
         """
         if g.get("access_token_sign_in_required"):
-            r.headers["Cache-Control"] = (
-                "public, max-age=0, no-cache, no-store, must-revalidate"
-            )
-            r.headers["Pragma"] = "no-cache"
-            r.headers["Expires"] = "0"
+            if "/manifest" in request.path or "/page/" in request.path:
+                r.headers["Cache-Control"] = "private, max-age=300"
+            else:
+                r.headers["Cache-Control"] = (
+                    "public, max-age=0, no-cache, no-store, must-revalidate"
+                )
+                r.headers["Pragma"] = "no-cache"
+                r.headers["Expires"] = "0"
         return r
 
     return app
