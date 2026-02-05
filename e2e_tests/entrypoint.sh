@@ -19,7 +19,7 @@ IFS=',' read -ra BROWSER_LIST <<< "$BROWSERS"
 for BROWSER in "${BROWSER_LIST[@]}"; do
     echo "Running tests for browser: $BROWSER, test filter: $TEST_PATH"
     pytest -vvv -s "$TEST_PATH" \
-        --base-url=https://127.0.0.1:$WEBAPP_HOST_PORT \
+        --base-url=https://127.0.0.1:${WEBAPP_HOST_PORT:-5000} \
         --browser "$BROWSER" \
         --update-snapshots \
         --html=playwright-report/report.html \
