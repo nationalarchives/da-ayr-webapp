@@ -156,6 +156,7 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres/${POSTGRES_DB}
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      WEBAPP_HOST_PORT: ${WEBAPP_HOST_PORT:-5000}
     volumes:
       - ./import:/opt/keycloak/data/import
     ports:
