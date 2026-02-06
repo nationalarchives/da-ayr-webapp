@@ -131,7 +131,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
     ports:
-      - ${WEBAPP_POSTGRES_PORT}:5432
+      - "${WEBAPP_POSTGRES_PORT:-5433}:5432"
     networks:
       - default
     command: ["postgres"]
@@ -156,6 +156,7 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres/${POSTGRES_DB}
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      WEBAPP_HOST_PORT: ${WEBAPP_HOST_PORT:-5000}
     volumes:
       - ./import:/opt/keycloak/data/import
     ports:
@@ -240,7 +241,7 @@ services:
         poetry run flask run --host=0.0.0.0 --port=5000 --debug
       "
     ports:
-      - "5000:5000"
+      - "${WEBAPP_HOST_PORT:-5000}:5000"
     volumes:
       # Mount source code for hot reloading directly
       - ../app:/docker_app/app
