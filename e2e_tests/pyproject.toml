@@ -14,7 +14,7 @@ PyJWT = "^2.11.0"
 itsdangerous = "^2.2.0"
 python-keycloak = "^7.0.3"
 playwright = "^1.58.0"
-cryptography = "46.0.4"
+cryptography = "46.0.5"
 numpy = "^2.2.6"
 scikit-image = "^0.25.2"
 
