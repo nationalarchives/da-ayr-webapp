@@ -1,4 +1,6 @@
+from flask import request
 from sqlalchemy import func
+from werkzeug.exceptions import NotFound
 
 from app.main.db.models import db
 from app.main.db.queries import build_browse_query
@@ -7,6 +9,7 @@ from app.main.util.filter_sort_builder import (
     build_filters,
     build_sorting_orders,
 )
+from app.main.util.page_utils import redirect_if_page_invalid
 from app.main.util.pagination import get_pagination
 
 
@@ -25,6 +28,7 @@ def process_browse_request(
     page = validated_data["page"]
     per_page = validated_data["per_page"] or default_page_size
 
+    default_page = 1
     date_validation_errors = []
     from_date = None
     to_date = None
@@ -50,7 +54,11 @@ def process_browse_request(
         filters=filters,
         sorting_orders=sorting_orders,
     )
-    browse_results = query.paginate(page=page, per_page=per_page)
+    try:
+        browse_results = query.paginate(page=page, per_page=per_page)
+    except NotFound:
+        # Redirect to first page if page does not exist
+        return redirect_if_page_invalid(page, default_page, "main.browse")
     total_records = db.session.query(
         func.sum(query.subquery().c.records_held)
     ).scalar()
@@ -59,6 +67,11 @@ def process_browse_request(
     else:
         num_records_found = 0
     pagination = get_pagination(page, browse_results.pages)
+
+    if hasattr(request, "validated_args"):
+        query_string_parameters = request.validated_args
+    else:
+        query_string_parameters = validated_data
     return {
         "current_page": page,
         "results": browse_results,
@@ -70,5 +83,5 @@ def process_browse_request(
         "date_filters": date_filters,
         "sorting_orders": sorting_orders,
         "num_records_found": num_records_found,
-        "query_string_parameters": validated_data,
+        "query_string_parameters": query_string_parameters,
     }

@@ -8,6 +8,7 @@ including the main validation decorator used across endpoints.
 import functools
 from typing import Callable, Type
 
+from flask import redirect, url_for
 from marshmallow import Schema, ValidationError
 
 
@@ -30,7 +31,49 @@ def validate_request(
                 current_app.logger.warning(
                     f"Validation error in {f.__name__}: {e.messages}"
                 )
-                request.validated_data = _fallback_to_defaults(schema, data)
+                # Set default_data based on incoming data, fallback to hardcoded defaults
+                default_data = {
+                    "query": data.get("query", ""),
+                    "search_area": data.get("search_area", "everywhere"),
+                    "date_from_day": data.get("date_from_day", None),
+                    "date_from_month": data.get("date_from_month", None),
+                    "date_from_year": data.get("date_from_year", None),
+                    "date_to_day": data.get("date_to_day", None),
+                    "date_to_month": data.get("date_to_month", None),
+                    "date_to_year": data.get("date_to_year", None),
+                    "transferring_body_filter": data.get(
+                        "transferring_body_filter", ""
+                    ),
+                    "series_filter": data.get("series_filter", ""),
+                    "consignment_reference": data.get(
+                        "consignment_reference", ""
+                    ),
+                    "file_name": data.get("file_name", ""),
+                    "description": data.get("description", ""),
+                    "date_filter_field": data.get("date_filter_field", ""),
+                    "record_status": data.get("record_status", "all"),
+                    "sort": data.get("sort", "transferring_body"),
+                    "page": None,
+                    "per_page": data.get("per_page", None),
+                    "_id": data.get("_id", None),
+                }
+                # Validate and handle 'page' param
+                page_val = data.get("page")
+                try:
+                    page_val = int(page_val)
+                    if page_val < 1:
+                        raise ValueError
+                except (TypeError, ValueError):
+
+                    # Use current endpoint and args, but set page=1
+                    args = request.args.to_dict()
+                    args["page"] = 1
+                    return redirect(url_for(request.endpoint, **args))
+                default_data["page"] = page_val
+                request.validated_data = schema.load(default_data)
+                request.validated_args = _filter_non_defaults(
+                    request.validated_data, schema, default_data
+                )
             return f(*args, **kwargs)
 
         return wrapper

@@ -199,6 +199,10 @@ def browse():
             transferring_bodies=transferring_bodies,
         )
 
+        # If result_data is a Response (redirect), return it directly
+        if isinstance(result_data, Response):
+            return result_data
+
         return render_template(
             "browse.html",
             form=form,
