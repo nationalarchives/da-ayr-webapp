@@ -68,6 +68,7 @@ def process_browse_request(
         num_records_found = 0
     pagination = get_pagination(page, browse_results.pages)
 
+    # Use validated_args if available, otherwise fallback to validated_data for query string parameters for testing purposes # noqa: E501
     if hasattr(request, "validated_args"):
         query_string_parameters = request.validated_args
     else:

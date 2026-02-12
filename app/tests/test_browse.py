@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
+from app.tests.assertions import assert_contains_html
 from app.tests.factories import BodyFactory
 from app.tests.utils import decompose_desktop_invisible_elements
 
@@ -93,3 +94,56 @@ class TestBrowse:
         assert b"Search for digital records" in response.data
         assert b"You are viewing" in response.data
         assert b"All available records" in response.data
+
+    def test_browse_check_transferring_bodies_list_filled_for_all_access_user(
+        self, client: FlaskClient, browse_files, mock_all_access_user
+    ):
+        """
+        Given an all_access_user accessing the browse page
+        When they make a GET request
+        Then they should see the browse page content
+        and transferring body dropdown will be filled with list of all transferring bodies available in database
+        """
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        expected_html = """
+                <input
+                    class="govuk-input"
+                    id="transferring_body_filter"
+                    name="transferring_body_filter"
+                    type="text"
+                    list="transferring_bodies"
+                    autocomplete="off"
+                >
+            """
+
+        assert_contains_html(
+            expected_html,
+            html,
+            "input",
+            {"name": "transferring_body_filter"},
+        )
+
+    def test_browse_submit_search_query(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given an all_access_user accessing the browse page
+        When they make a POST request
+        Then they should see results in content.
+        """
+        mock_all_access_user(client)
+
+        query = "test"
+        response = client.get(f"{self.route_url}", data={"query": query})
+
+        assert response.status_code == 200
+
+        assert b"Search for digital records" in response.data
+        assert b"Browse records 27" in response.data

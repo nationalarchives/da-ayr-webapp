@@ -2,7 +2,6 @@ from flask import Response
 from flask.testing import FlaskClient
 
 from app.main.process_routes.browse_route import process_browse_request
-from app.tests.assertions import assert_contains_html
 from app.tests.test_browse import (
     TestBrowse,
 )
@@ -302,41 +301,6 @@ class TestProcessBrowseRoute(TestBrowse):
             "sort": "transferring_body",
             "transferring_body_filter": "",
         }
-
-    def test_browse_check_transferring_bodies_list_filled_for_all_access_user(
-        self, client: FlaskClient, browse_files, mock_all_access_user
-    ):
-        """
-        Given an all_access_user accessing the browse page
-        When they make a GET request
-        Then they should see the browse page content
-        and transferring body dropdown will be filled with list of all transferring bodies available in database
-        """
-        mock_all_access_user(client)
-
-        response = client.get(f"{self.route_url}")
-
-        assert response.status_code == 200
-
-        html = response.data.decode()
-
-        expected_html = """
-            <input
-                class="govuk-input"
-                id="transferring_body_filter"
-                name="transferring_body_filter"
-                type="text"
-                list="transferring_bodies"
-                autocomplete="off"
-            >
-        """
-
-        assert_contains_html(
-            expected_html,
-            html,
-            "input",
-            {"name": "transferring_body_filter"},
-        )
 
     def test_browse_submit_search_query(
         self, client: FlaskClient, mock_all_access_user, browse_files
