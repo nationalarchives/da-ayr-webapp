@@ -2,7 +2,15 @@ from flask import Response
 from flask.testing import FlaskClient
 
 from app.main.process_routes.browse_route import process_browse_request
-from app.tests.test_browse import (
+from app.main.process_routes.browse_route import process_browse_request
+
+
+class TestProcessBrowseRoute:
+
+    @property
+    def route_url(self):
+        return "/browse"
+
     TestBrowse,
 )
 
