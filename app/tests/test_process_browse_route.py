@@ -2,7 +2,6 @@ from flask import Response
 from flask.testing import FlaskClient
 
 from app.main.process_routes.browse_route import process_browse_request
-from app.main.process_routes.browse_route import process_browse_request
 
 
 class TestProcessBrowseRoute:
@@ -10,12 +9,6 @@ class TestProcessBrowseRoute:
     @property
     def route_url(self):
         return "/browse"
-
-    TestBrowse,
-)
-
-
-class TestProcessBrowseRoute(TestBrowse):
 
     def test_browse_filter_no_results(
         self, client: FlaskClient, mock_all_access_user
