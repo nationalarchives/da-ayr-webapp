@@ -1,7 +1,7 @@
 ---
 services:
   opensearch-node1:
-    image: opensearchproject/opensearch:3.4.0
+    image: opensearchproject/opensearch:3.5.0
     container_name: opensearch-node1
     environment:
       - cluster.name=opensearch-cluster
@@ -36,7 +36,7 @@ services:
       - opensearch-net
 
   opensearch-node2:
-    image: opensearchproject/opensearch:3.4.0
+    image: opensearchproject/opensearch:3.5.0
     container_name: opensearch-node2
     environment:
       - cluster.name=opensearch-cluster
