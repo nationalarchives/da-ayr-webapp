@@ -16,7 +16,18 @@
                             {% endif %}
                         {% endif %}
                     {% else %}
-                        {{ value }}
+                        {% set words = value.replace("-", " ").replace(",", " ").replace(".", " ").replace("  ", " ").split() %}
+                        {% set ns = namespace(long_word=false) %}
+                        {% for w in words %}
+                            {% if w|length > 45 %}
+                                {% set ns.long_word = true %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if ns.long_word %}
+                            <span class="govuk-summary-list-long-word">{{ value }}</span>
+                        {% else %}
+                            <span class="govuk-summary-list-short-word">{{ value }}</span>
+                        {% endif %}
                     {% endif %}
                 {% else %}
                     <span>Not provided</span>

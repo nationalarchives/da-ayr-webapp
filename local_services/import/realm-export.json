@@ -47,20 +47,16 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "test-client-secret",
       "redirectUris": [
-        "https://127.0.0.1:5000/*",
-        "https://localhost:5000/*",
-        "https://host.docker.internal:5000/*",
-        "http://127.0.0.1:5000/*",
-        "http://localhost:5000/*",
-        "http://host.docker.internal:5000/*"
+        "https://127.0.0.1:${WEBAPP_HOST_PORT}/*",
+        "https://localhost:${WEBAPP_HOST_PORT}/*",
+        "https://host.docker.internal:${WEBAPP_HOST_PORT}/*"
+
       ],
       "webOrigins": [
-        "https://127.0.0.1:5000",
-        "https://localhost:5000",
-        "https://host.docker.internal:5000",
-        "http://127.0.0.1:5000",
-        "http://localhost:5000",
-        "http://host.docker.internal:5000"
+        "https://127.0.0.1:${WEBAPP_HOST_PORT}",
+        "https://localhost:${WEBAPP_HOST_PORT}",
+        "https://host.docker.internal:${WEBAPP_HOST_PORT}"
+
       ],
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,

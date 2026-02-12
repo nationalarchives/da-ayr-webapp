@@ -102,7 +102,7 @@ services:
       "
 
   postgres:
-    image: postgres@sha256:5773fe724c49c42a7a9ca70202e11e1dff21fb7235b335a73f39297d200b73a2 # postgres:18.0 with digest for immutability
+    image: postgres@sha256:1090bc3a8ccfb0b55f78a494d76f8d603434f7e4553543d6e807bc7bd6bbd17f # postgres:18.0 with digest for immutability
     env_file:
       - .docker.env
     volumes:
@@ -117,7 +117,7 @@ services:
       - keycloak_network
 
   webapp_postgres:
-    image: postgres@sha256:5773fe724c49c42a7a9ca70202e11e1dff21fb7235b335a73f39297d200b73a2 # postgres:18.0 with digest for immutability
+    image: postgres@sha256:1090bc3a8ccfb0b55f78a494d76f8d603434f7e4553543d6e807bc7bd6bbd17f # postgres:18.0 with digest for immutability
     env_file:
       - .docker.env
     user: postgres
@@ -131,13 +131,13 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
     ports:
-      - ${WEBAPP_POSTGRES_PORT}:5432
+      - "${WEBAPP_POSTGRES_PORT:-5433}:5432"
     networks:
       - default
     command: ["postgres"]
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.5.2
+    image: quay.io/keycloak/keycloak:26.5.3
     env_file:
       - .docker.env
     command: start-dev --import-realm --spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true
@@ -156,6 +156,7 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres/${POSTGRES_DB}
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      WEBAPP_HOST_PORT: ${WEBAPP_HOST_PORT:-5000}
     volumes:
       - ./import:/opt/keycloak/data/import
     ports:
@@ -240,7 +241,7 @@ services:
         poetry run flask run --host=0.0.0.0 --port=5000 --debug
       "
     ports:
-      - "5000:5000"
+      - "${WEBAPP_HOST_PORT:-5000}:5000"
     volumes:
       # Mount source code for hot reloading directly
       - ../app:/docker_app/app
