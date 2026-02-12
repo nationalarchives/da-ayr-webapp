@@ -339,7 +339,7 @@ class TestProcessBrowseRoute(TestBrowse):
             "date_filter_field": "",
             "record_status": "all",
             "sort": "transferring_body",
-            "page": 10,  # Invalid page
+            "page": -1,  # Invalid page
             "per_page": 2,
         }
 
