@@ -19,7 +19,7 @@ def redirect_if_page_invalid(requested_page, default_page, endpoint, **kwargs):
     Redirects to the default page if the requested page is invalid (e.g., out of range).
     Returns a redirect response if a redirect is needed, otherwise None.
     """
-    if requested_page != default_page:
+    if int(requested_page) != default_page:
         # Copy current query parameters and set page to default_page
         args = request.args.to_dict()
         args["page"] = default_page
