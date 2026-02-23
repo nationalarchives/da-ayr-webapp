@@ -423,7 +423,7 @@ class TestProcessBrowseRoute:
             "record_status": "all",
             "sort": "transferring_body",
             "page": 1,
-            "per_page": 10,
+            "per_page": 8,
         }
         result = process_browse_request(
             validated_data=mock_validated_data,
