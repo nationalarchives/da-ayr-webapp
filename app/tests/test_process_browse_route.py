@@ -413,7 +413,7 @@ class TestProcessBrowseRoute:
             "date_from_year": 2025,
             "date_to_day": 1,
             "date_to_month": 1,
-            "date_to_year": 2024,  # date_to before date_from
+            "date_to_year": 2024,
             "transferring_body_filter": "",
             "series_filter": "",
             "consignment_reference": "",
@@ -423,7 +423,7 @@ class TestProcessBrowseRoute:
             "record_status": "all",
             "sort": "transferring_body",
             "page": 1,
-            "per_page": 8,
+            "per_page": 10,
         }
         result = process_browse_request(
             validated_data=mock_validated_data,
