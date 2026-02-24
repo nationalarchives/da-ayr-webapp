@@ -349,7 +349,6 @@ class TestLibreOfficeRealConversion:
     def test_convert_with_libreoffice_real_docx_to_pdf(self, tmp_path: Path):
         docx_path = tmp_path / "input.docx"
         expected_pdf = tmp_path / "input.pdf"
-        print(docx_path)
 
         doc = Document()
         doc.add_paragraph("testing libreoffice conversion")
@@ -363,7 +362,7 @@ class TestLibreOfficeRealConversion:
         text = extract_text(expected_pdf)
         assert "testing" in text
 
-    def test_convert_excel_to_pdf_real_xlsx_to_pdf(self, tmp_path: Path):
+    def test_convert_with_libreoffice_real_xlsx_to_pdf(self, tmp_path: Path):
         xlsx_path = tmp_path / "input.xlsx"
         expected_pdf = tmp_path / "input.pdf"
 
