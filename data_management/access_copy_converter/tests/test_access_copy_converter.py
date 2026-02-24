@@ -1,4 +1,5 @@
 import subprocess
+from pathlib import Path
 from unittest import mock
 
 import access_copy_converter.main as main_module
@@ -11,7 +12,10 @@ from access_copy_converter.main import (
     get_puid,
     process_consignment,
 )
+from docx import Document
 from moto import mock_aws
+from openpyxl import Workbook
+from pdfminer.high_level import extract_text
 from sqlalchemy import (
     Column,
     Integer,
@@ -339,3 +343,40 @@ class TestProcessConsignment:
         assert "cons1/file1" in uploaded_keys
         assert "cons1/file3" in uploaded_keys
         assert "cons1/file2" not in uploaded_keys
+
+
+class TestLibreOfficeRealConversion:
+    def test_convert_with_libreoffice_real_docx_to_pdf(self, tmp_path: Path):
+        docx_path = tmp_path / "input.docx"
+        expected_pdf = tmp_path / "input.pdf"
+        print(docx_path)
+
+        doc = Document()
+        doc.add_paragraph("testing libreoffice conversion")
+        doc.save(docx_path)
+
+        convert_with_libreoffice(str(docx_path), str(expected_pdf))
+
+        assert expected_pdf.exists()
+        data = expected_pdf.read_bytes()
+        assert data.startswith(b"%PDF-")
+        text = extract_text(expected_pdf)
+        assert "testing" in text
+
+    def test_convert_excel_to_pdf_real_xlsx_to_pdf(self, tmp_path: Path):
+        xlsx_path = tmp_path / "input.xlsx"
+        expected_pdf = tmp_path / "input.pdf"
+
+        wb = Workbook()
+        ws = wb.active
+        ws["A1"] = "testing"
+        ws["B1"] = 123
+        wb.save(xlsx_path)
+
+        convert_excel_to_pdf(str(tmp_path), str(xlsx_path), str(expected_pdf))
+
+        assert expected_pdf.exists()
+        data = expected_pdf.read_bytes()
+        assert data.startswith(b"%PDF-")
+        text = extract_text(expected_pdf)
+        assert "testing" in text
