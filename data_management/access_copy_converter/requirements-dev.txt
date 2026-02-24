@@ -3,4 +3,4 @@ pytest-cov
 moto
 python-docx
 openpyxl
-pdfminer
+pdfminer.six
