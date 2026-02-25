@@ -3,6 +3,8 @@ from pathlib import Path
 from unittest.mock import ANY, patch
 
 import pytest
+from docx import Document
+from openpyxl import Workbook
 from opensearch_indexer.text_extraction import (
     TextExtractionStatus,
     add_text_content,
@@ -77,6 +79,43 @@ class TestExtractText:
     def test_extract_text(self, file_name, file_type, expected_output):
         path = Path(__file__).parent / f"test_files/{file_name}"
         assert extract_text(str(path), file_type, 1) == expected_output
+
+
+class TestRealTextExtraction:
+    def test_textract_real_docx(self, tmp_path: Path):
+        docx_path = tmp_path / "test.docx"
+        doc = Document()
+        doc.add_paragraph("testing textract")
+        doc.save(docx_path)
+
+        file_dict = {"file_id": "123-123", "file_puid": "fmt/412"}
+        file_bytes = docx_path.read_bytes()
+
+        extracted_text = add_text_content(file_dict, file_bytes)
+
+        assert "testing textract" in extracted_text["content"].lower()
+
+    def test_textract_real_xlsx(self, tmp_path: Path):
+        xlsx_path = tmp_path / "test.xlsx"
+        wb = Workbook()
+        ws = wb.active
+
+        ws["A1"] = "Header1"
+        ws["B1"] = "Header2"
+        ws["A2"] = "Value1"
+        ws["B2"] = "Value2"
+
+        wb.save(xlsx_path)
+
+        file_dict = {"file_id": "693-9382", "file_puid": "fmt/214"}
+        file_bytes = xlsx_path.read_bytes()
+
+        extracted_text = add_text_content(file_dict, file_bytes)
+
+        assert "header1" in extracted_text["content"].lower()
+        assert "header2" in extracted_text["content"].lower()
+        assert "value1" in extracted_text["content"].lower()
+        assert "value2" in extracted_text["content"].lower()
 
 
 # Mock ENVIRONMENT for slack alerts
