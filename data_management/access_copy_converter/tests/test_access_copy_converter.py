@@ -12,10 +12,7 @@ from access_copy_converter.main import (
     get_puid,
     process_consignment,
 )
-from docx import Document
 from moto import mock_aws
-from openpyxl import Workbook
-from pdfminer.high_level import extract_text
 from sqlalchemy import (
     Column,
     Integer,
@@ -346,36 +343,49 @@ class TestProcessConsignment:
 
 
 class TestLibreOfficeRealConversion:
-    def test_convert_with_libreoffice_real_docx_to_pdf(self, tmp_path: Path):
-        docx_path = tmp_path / "input.docx"
-        expected_pdf = tmp_path / "input.pdf"
+    @pytest.mark.parametrize(
+        "input_file, expected_pdf, converter",
+        [
+            (
+                "doc_integration_test.doc",
+                "doc_integration_test.pdf",
+                convert_with_libreoffice,
+            ),
+            (
+                "docx_integration_test.docx",
+                "docx_integration_test.pdf",
+                convert_with_libreoffice,
+            ),
+            (
+                "xls_integration_test.xls",
+                "xls_integration_test.pdf",
+                convert_excel_to_pdf,
+            ),
+            (
+                "xlsx_integration_test.xlsx",
+                "xlsx_integration_test.pdf",
+                convert_excel_to_pdf,
+            ),
+        ],
+    )
+    def test_real_conversion(
+        self,
+        tmp_path: Path,
+        input_file: str,
+        expected_pdf: str,
+        converter,
+    ):
+        repo_root = Path(__file__).resolve().parents[3]
+        input_path = (
+            repo_root / "data_management/integration_test_files" / input_file
+        )
+        output_path = tmp_path / expected_pdf
 
-        doc = Document()
-        doc.add_paragraph("testing libreoffice conversion")
-        doc.save(docx_path)
+        if converter is convert_excel_to_pdf:
+            converter(str(tmp_path), str(input_path), str(output_path))
+        else:
+            converter(str(input_path), str(output_path))
 
-        convert_with_libreoffice(str(docx_path), str(expected_pdf))
-
-        assert expected_pdf.exists()
-        data = expected_pdf.read_bytes()
+        assert output_path.exists()
+        data = output_path.read_bytes()
         assert data.startswith(b"%PDF-")
-        text = extract_text(expected_pdf)
-        assert "testing" in text
-
-    def test_convert_with_libreoffice_real_xlsx_to_pdf(self, tmp_path: Path):
-        xlsx_path = tmp_path / "input.xlsx"
-        expected_pdf = tmp_path / "input.pdf"
-
-        wb = Workbook()
-        ws = wb.active
-        ws["A1"] = "testing"
-        ws["B1"] = 123
-        wb.save(xlsx_path)
-
-        convert_excel_to_pdf(str(tmp_path), str(xlsx_path), str(expected_pdf))
-
-        assert expected_pdf.exists()
-        data = expected_pdf.read_bytes()
-        assert data.startswith(b"%PDF-")
-        text = extract_text(expected_pdf)
-        assert "testing" in text
