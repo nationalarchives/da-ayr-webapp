@@ -3,6 +3,7 @@ import logging
 import os
 import subprocess  # nosec
 import tempfile
+from pathlib import Path
 from urllib.parse import quote_plus
 
 import boto3
@@ -152,7 +153,8 @@ def convert_with_libreoffice(input_path, output_path, convert_to="pdf"):
 
 
 def convert_excel_to_pdf(tmpdir, input_path, output_path):
-    temp_ods = os.path.join(tmpdir, "input.ods")
+    stem = Path(input_path).stem
+    temp_ods = os.path.join(tmpdir, f"{stem}.ods")
     convert_with_libreoffice(input_path, temp_ods, convert_to="ods")
     convert_with_libreoffice(
         temp_ods,

@@ -1,4 +1,5 @@
 import subprocess
+from pathlib import Path
 from unittest import mock
 
 import access_copy_converter.main as main_module
@@ -339,3 +340,52 @@ class TestProcessConsignment:
         assert "cons1/file1" in uploaded_keys
         assert "cons1/file3" in uploaded_keys
         assert "cons1/file2" not in uploaded_keys
+
+
+class TestLibreOfficeRealConversion:
+    @pytest.mark.parametrize(
+        "input_file, expected_pdf, converter",
+        [
+            (
+                "doc_integration_test.doc",
+                "doc_integration_test.pdf",
+                convert_with_libreoffice,
+            ),
+            (
+                "docx_integration_test.docx",
+                "docx_integration_test.pdf",
+                convert_with_libreoffice,
+            ),
+            (
+                "xls_integration_test.xls",
+                "xls_integration_test.pdf",
+                convert_excel_to_pdf,
+            ),
+            (
+                "xlsx_integration_test.xlsx",
+                "xlsx_integration_test.pdf",
+                convert_excel_to_pdf,
+            ),
+        ],
+    )
+    def test_real_conversion(
+        self,
+        tmp_path: Path,
+        input_file: str,
+        expected_pdf: str,
+        converter,
+    ):
+        repo_root = Path(__file__).resolve().parents[3]
+        input_path = (
+            repo_root / "data_management/integration_test_files" / input_file
+        )
+        output_path = tmp_path / expected_pdf
+
+        if converter is convert_excel_to_pdf:
+            converter(str(tmp_path), str(input_path), str(output_path))
+        else:
+            converter(str(input_path), str(output_path))
+
+        assert output_path.exists()
+        data = output_path.read_bytes()
+        assert data.startswith(b"%PDF-")
