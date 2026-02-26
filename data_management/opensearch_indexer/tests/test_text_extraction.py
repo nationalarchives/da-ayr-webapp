@@ -3,8 +3,6 @@ from pathlib import Path
 from unittest.mock import ANY, patch
 
 import pytest
-from docx import Document
-from openpyxl import Workbook
 from opensearch_indexer.text_extraction import (
     TextExtractionStatus,
     add_text_content,
@@ -82,40 +80,42 @@ class TestExtractText:
 
 
 class TestRealTextExtraction:
-    def test_textract_real_docx(self, tmp_path: Path):
-        docx_path = tmp_path / "test.docx"
-        doc = Document()
-        doc.add_paragraph("testing textract")
-        doc.save(docx_path)
-
-        file_dict = {"file_id": "123-123", "file_puid": "fmt/412"}
-        file_bytes = docx_path.read_bytes()
-
+    @pytest.mark.parametrize(
+        "input_file, file_puid, content_checks",
+        [
+            (
+                "doc_integration_test.doc",
+                "fmt/40",
+                ["integration testing"],
+            ),
+            (
+                "docx_integration_test.docx",
+                "fmt/412",
+                ["integration testing"],
+            ),
+            (
+                "xls_integration_test.xls",
+                "fmt/59",
+                ["testing", "123"],
+            ),
+            (
+                "xlsx_integration_test.xlsx",
+                "fmt/214",
+                ["testing", "123"],
+            ),
+        ],
+    )
+    def test_real_text_extraction(self, input_file, file_puid, content_checks):
+        repo_root = Path(__file__).resolve().parents[3]
+        input_path = (
+            repo_root / "data_management/integration_test_files" / input_file
+        )
+        file_dict = {"file_id": "test-id", "file_puid": file_puid}
+        file_bytes = input_path.read_bytes()
         extracted_text = add_text_content(file_dict, file_bytes)
-
-        assert "testing textract" in extracted_text["content"].lower()
-
-    def test_textract_real_xlsx(self, tmp_path: Path):
-        xlsx_path = tmp_path / "test.xlsx"
-        wb = Workbook()
-        ws = wb.active
-
-        ws["A1"] = "Header1"
-        ws["B1"] = "Header2"
-        ws["A2"] = "Value1"
-        ws["B2"] = "Value2"
-
-        wb.save(xlsx_path)
-
-        file_dict = {"file_id": "693-9382", "file_puid": "fmt/214"}
-        file_bytes = xlsx_path.read_bytes()
-
-        extracted_text = add_text_content(file_dict, file_bytes)
-
-        assert "header1" in extracted_text["content"].lower()
-        assert "header2" in extracted_text["content"].lower()
-        assert "value1" in extracted_text["content"].lower()
-        assert "value2" in extracted_text["content"].lower()
+        content = extracted_text["content"].lower()
+        for check in content_checks:
+            assert check in content
 
 
 # Mock ENVIRONMENT for slack alerts
