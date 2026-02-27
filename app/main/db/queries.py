@@ -482,6 +482,15 @@ def _get_file_metadata_query(file_id: uuid.UUID):
                 else_=None,
             ),
         ).label("language"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "evidence_provided_by",
+                    FileMetadata.Value,
+                ),
+                else_=None,
+            ),
+        ).label("evidence_provided_by"),
     )
 
     filters = [
@@ -537,6 +546,7 @@ def _get_file_metadata_query(file_id: uuid.UUID):
             sub_query.c.legal_status,
             sub_query.c.rights_copyright,
             sub_query.c.language,
+            sub_query.c.evidence_provided_by,
             Body.Name.label("transferring_body"),
             Series.Name.label("series"),
             Consignment.ConsignmentReference.label("consignment_reference"),
