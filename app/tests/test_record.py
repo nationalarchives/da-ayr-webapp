@@ -905,3 +905,73 @@ class TestRecord:
             "div",
             {"class": "uv"},
         )
+
+    @mock_aws
+    def test_record_summary_list_renders_evidence_provided_by_when_present(
+        self, app, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a File with evidence_provided_by metadata
+        When the record details page is rendered
+        Then the 'Evidence provided by' row is shown with the metadata value
+        """
+        file = FileFactory()
+
+        evidence_value = "Evidence provided by test"
+        FileMetadataFactory(
+            file=file,
+            PropertyName="evidence_provided_by",
+            Value=evidence_value,
+        )
+
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+        summary_list = soup.find("dl", class_="govuk-summary-list--record")
+        assert summary_list is not None
+
+        rows = summary_list.find_all(
+            "div", class_="govuk-summary-list__row--record"
+        )
+        for row in rows:
+            dt = row.find("dt", class_="govuk-summary-list__key--record-table")
+            dd = row.find("dd", class_="govuk-summary-list__value--record")
+            if dt and dt.get_text(strip=True) == "Evidence provided by":
+                assert dd is not None
+                assert evidence_value in dd.get_text(strip=True)
+                return
+
+        assert False, "Summary row with key 'Evidence provided by' not found"
+
+    @mock_aws
+    def test_record_summary_list_hides_evidence_provided_by_when_missing(
+        self, app, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a File with no evidence_provided_by metadata
+        When the record details page is rendered
+        Then the 'Evidence provided by' row is not shown at all
+        """
+        file = FileFactory()
+
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+        summary_list = soup.find("dl", class_="govuk-summary-list--record")
+        assert summary_list is not None
+
+        assert "Evidence provided by" not in summary_list.get_text(strip=True)

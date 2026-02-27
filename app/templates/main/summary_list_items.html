@@ -1,38 +1,40 @@
 {% for key, value in dict.items() %}
     {% if key != "opening_date" %}
-        <div class="govuk-summary-list__row govuk-summary-list__row--record">
-            <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">{{ key }}</dt>
-            <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                {% if value %}
-                    {% if key == "Status" %}
-                        {% if (value | lower == "closed") %}
-                            <span class="govuk-tag govuk-tag--red">{{ value }}</span>
+        {% if not (key == "Evidence provided by" and (value is none or value|string|trim == "")) %}
+            <div class="govuk-summary-list__row govuk-summary-list__row--record">
+                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">{{ key }}</dt>
+                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
+                    {% if value %}
+                        {% if key == "Status" %}
+                            {% if (value | lower == "closed") %}
+                                <span class="govuk-tag govuk-tag--red">{{ value }}</span>
+                            {% else %}
+                                <span class="govuk-tag govuk-tag--green">{{ value }}</span>
+                            {% endif %}
+                            {% if dict.get("Closure start date") %}
+                                {% if dict.get('opening_date') %}
+                                    <p class="ayr-opening-date">Record opening date {{ dict.get('opening_date') }}</p>
+                                {% endif %}
+                            {% endif %}
                         {% else %}
-                            <span class="govuk-tag govuk-tag--green">{{ value }}</span>
-                        {% endif %}
-                        {% if dict.get("Closure start date") %}
-                            {% if dict.get('opening_date') %}
-                                <p class="ayr-opening-date">Record opening date {{ dict.get('opening_date') }}</p>
+                            {% set words = value.replace("-", " ").replace(",", " ").replace(".", " ").replace("  ", " ").split() %}
+                            {% set ns = namespace(long_word=false) %}
+                            {% for w in words %}
+                                {% if w|length > 45 %}
+                                    {% set ns.long_word = true %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if ns.long_word %}
+                                <span class="govuk-summary-list-long-word">{{ value }}</span>
+                            {% else %}
+                                <span class="govuk-summary-list-short-word">{{ value }}</span>
                             {% endif %}
                         {% endif %}
                     {% else %}
-                        {% set words = value.replace("-", " ").replace(",", " ").replace(".", " ").replace("  ", " ").split() %}
-                        {% set ns = namespace(long_word=false) %}
-                        {% for w in words %}
-                            {% if w|length > 45 %}
-                                {% set ns.long_word = true %}
-                            {% endif %}
-                        {% endfor %}
-                        {% if ns.long_word %}
-                            <span class="govuk-summary-list-long-word">{{ value }}</span>
-                        {% else %}
-                            <span class="govuk-summary-list-short-word">{{ value }}</span>
-                        {% endif %}
+                        <span>Not provided</span>
                     {% endif %}
-                {% else %}
-                    <span>Not provided</span>
-                {% endif %}
-            </dd>
-        </div>
+                </dd>
+            </div>
+        {% endif %}
     {% endif %}
 {% endfor %}
