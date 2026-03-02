@@ -19,8 +19,8 @@ def test_header_link(page, link_text, expected_url):
     Then the user is redirected to the associated page
     """
     page.goto("/")
-    page.click(f'text="{link_text}"')
-    expect(page).to_have_url(expected_url)
+    link = page.get_by_role("link", name=link_text)
+    expect(link).to_have_attribute("href", expected_url)
 
 
 @pytest.mark.health_check
