@@ -1,5 +1,3 @@
 pytest
 pytest-cov
 moto
-python-docx
-openpyxl
