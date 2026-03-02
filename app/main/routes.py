@@ -13,7 +13,7 @@ from flask import (
     url_for,
 )
 from sqlalchemy import func
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, NotFound
 
 from app.main import bp
 from app.main.authorize.access_token_sign_in_required import (
@@ -40,6 +40,10 @@ from app.main.util.filter_sort_builder import (
     build_browse_consignment_filters,
     build_filters,
     build_sorting_orders,
+)
+from app.main.util.page_utils import (
+    get_page_and_per_page,
+    redirect_if_page_invalid,
 )
 from app.main.util.pagination import (
     calculate_total_pages,
@@ -81,13 +85,13 @@ from app.main.util.search_utils import (
     execute_search,
     extract_search_terms,
     get_open_search_fields_to_search_on_and_sorting,
-    get_pagination_info,
     post_process_opensearch_results,
     setup_opensearch,
 )
 from configs.base_config import CONVERTIBLE_PUIDS
 
 from .forms import SearchForm
+from .process_routes.browse_route import process_browse_request
 
 
 @bp.route("/", methods=["GET"])
@@ -174,84 +178,37 @@ def accessibility():
 @log_page_view
 @validate_request(BrowseRequestSchema, location="combined")
 def browse():
-    form = SearchForm()
-    transferring_bodies = []
+    """
+    Render the browse page for all-access users.
 
+    """
+    form = SearchForm()
     ayr_user = AYRUser(session.get("user_groups"))
     if ayr_user.is_standard_user:
         return redirect(
             f"/browse/transferring_body/{ayr_user.transferring_body.BodyId}"
         )
     else:
-        # all access user (all_access_user)
-        for body in Body.query.all():
-            transferring_bodies.append(body.Name)
-
+        transferring_bodies = [body.Name for body in Body.query.all()]
         validated_data = request.validated_data
-        page = validated_data["page"]
-        per_page = validated_data["per_page"] or int(
-            current_app.config["DEFAULT_PAGE_SIZE"]
+
+        # Process the browse request (business logic)
+        result_data = process_browse_request(
+            validated_data=validated_data,
+            default_page_size=int(current_app.config["DEFAULT_PAGE_SIZE"]),
+            transferring_bodies=transferring_bodies,
         )
 
-        date_validation_errors = []
-        from_date = None
-        to_date = None
-        date_filters = {}
-        date_error_fields = []
-
-        if len(validated_data) > 0:
-            (
-                date_validation_errors,
-                from_date,
-                to_date,
-                date_filters,
-                date_error_fields,
-            ) = validate_date_filters(validated_data)
-
-        filters = build_filters(
-            validated_data,
-            date_from=from_date,
-            date_to=to_date,
-        )
-        sorting_orders = build_sorting_orders(validated_data)
-        # set default sort
-        if len(sorting_orders) == 0:
-            sorting_orders["transferring_body"] = "asc"
-
-        query = build_browse_query(
-            filters=filters,
-            sorting_orders=sorting_orders,
-        )
-
-        browse_results = query.paginate(page=page, per_page=per_page)
-
-        total_records = db.session.query(
-            func.sum(query.subquery().c.records_held)
-        ).scalar()
-
-        if total_records:
-            num_records_found = total_records
-        else:
-            num_records_found = 0
-
-        pagination = get_pagination(page, browse_results.pages)
+        # If result_data is a Response (redirect), return it directly
+        if isinstance(result_data, Response):
+            return result_data
 
         return render_template(
             "browse.html",
             form=form,
-            current_page=page,
             browse_type="browse",
-            results=browse_results,
-            date_validation_errors=date_validation_errors,
-            date_error_fields=date_error_fields,
-            transferring_bodies=transferring_bodies,
-            pagination=pagination,
-            filters=filters,
-            date_filters=date_filters,
-            sorting_orders=sorting_orders,
-            num_records_found=num_records_found,
-            query_string_parameters=validated_data,
             id=None,
+            **result_data,
         )
 
 
@@ -277,10 +234,9 @@ def browse_transferring_body(_id: uuid.UUID):
 
     form = SearchForm()
     validated_data = request.validated_data
-    page = validated_data["page"]
-    per_page = validated_data["per_page"] or int(
-        current_app.config["DEFAULT_PAGE_SIZE"]
-    )
+    page, per_page = get_page_and_per_page(validated_data)
+
+    default_page = 1
 
     date_validation_errors = []
     from_date = None
@@ -314,7 +270,13 @@ def browse_transferring_body(_id: uuid.UUID):
         sorting_orders=sorting_orders,
     )
 
-    browse_results = query.paginate(page=page, per_page=per_page)
+    try:
+        browse_results = query.paginate(page=page, per_page=per_page)
+    except NotFound:
+        # Redirect to first page if page does not exist
+        return redirect_if_page_invalid(
+            page, default_page, "main.browse_transferring_body", _id=_id
+        )
 
     total_records = db.session.query(
         func.sum(query.subquery().c.records_held)
@@ -341,7 +303,7 @@ def browse_transferring_body(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters=validated_data,
+        query_string_parameters=request.validated_args,
     )
 
 
@@ -372,10 +334,9 @@ def browse_series(_id: uuid.UUID):
 
     form = SearchForm()
     validated_data = request.validated_data
-    page = validated_data["page"]
-    per_page = validated_data["per_page"] or int(
-        current_app.config["DEFAULT_PAGE_SIZE"]
-    )
+    page, per_page = get_page_and_per_page(validated_data)
+
+    default_page = 1
 
     date_validation_errors = []
     from_date = None
@@ -409,7 +370,13 @@ def browse_series(_id: uuid.UUID):
         sorting_orders=sorting_orders,
     )
 
-    browse_results = query.paginate(page=page, per_page=per_page)
+    try:
+        browse_results = query.paginate(page=page, per_page=per_page)
+    except NotFound:
+        # Redirect to first page if page does not exist
+        return redirect_if_page_invalid(
+            page, default_page, "main.browse_series", _id=_id
+        )
 
     total_records = db.session.query(
         func.sum(query.subquery().c.records_held)
@@ -436,7 +403,7 @@ def browse_series(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters=validated_data,
+        query_string_parameters=request.validated_args,
     )
 
 
@@ -470,10 +437,9 @@ def browse_consignment(_id: uuid.UUID):
 
     form = SearchForm()
     validated_data = request.validated_data
-    page = validated_data["page"]
-    per_page = validated_data["per_page"] or int(
-        current_app.config["DEFAULT_PAGE_SIZE"]
-    )
+    page, per_page = get_page_and_per_page(validated_data)
+
+    default_page = 1
 
     date_validation_errors = []
     from_date = None
@@ -507,7 +473,13 @@ def browse_consignment(_id: uuid.UUID):
         sorting_orders=sorting_orders,
     )
 
-    browse_results = query.paginate(page=page, per_page=per_page)
+    try:
+        browse_results = query.paginate(page=page, per_page=per_page)
+    except NotFound:
+        # Redirect to first page if page does not exist
+        return redirect_if_page_invalid(
+            page, default_page, "main.browse_consignment", _id=_id
+        )
 
     total_records = query.count()
     if total_records:
@@ -531,7 +503,7 @@ def browse_consignment(_id: uuid.UUID):
         date_filters=date_filters,
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
-        query_string_parameters=validated_data,
+        query_string_parameters=request.validated_args,
     )
 
 
@@ -545,7 +517,7 @@ def search():
 
     ayr_user = AYRUser(session.get("user_groups"))
 
-    redirect_params = request.validated_data_non_defaults
+    redirect_params = request.validated_args
 
     if ayr_user.is_standard_user or transferring_body_id:
         if not transferring_body_id:
@@ -575,10 +547,9 @@ def search_results_summary():
 
     form = SearchForm()
     validated_data = request.validated_data
-    page = validated_data["page"]
-    per_page = validated_data["per_page"] or int(
-        current_app.config["DEFAULT_PAGE_SIZE"]
-    )
+    page, per_page = get_page_and_per_page(validated_data)
+
+    default_page = 1
 
     query = validated_data["query"]
     search_area = validated_data["search_area"]
@@ -594,18 +565,30 @@ def search_results_summary():
         dsl_query = build_search_results_summary_query(
             search_fields, quoted_phrases, single_terms, sorting
         )
-        search_results = execute_search(open_search, dsl_query, page, per_page)
+
+        try:
+            search_results = execute_search(
+                open_search, dsl_query, page, per_page
+            )
+        except NotFound:
+            # Redirect to first page if page does not exist
+            return redirect_if_page_invalid(
+                page, default_page, "main.search_results_summary"
+            )
         results = search_results["aggregations"][
             "aggregate_by_transferring_body"
         ]["buckets"]
 
-        total_records = 0
-        for bucket in results:
-            total_records += bucket["doc_count"]
+        total_records = sum(bucket["doc_count"] for bucket in results)
 
-        page_count = calculate_total_pages(len(results), per_page)
-        pagination = get_pagination(page, page_count)
         paginated_results = paginate(results, page, per_page)
+        # Match browse: get number of pages from paginated_results.pages if available, else calculate
+        page_count = getattr(paginated_results, "pages", None)
+        if page_count is None:
+            from math import ceil
+
+            page_count = ceil(len(results) / per_page) if per_page else 1
+        pagination = get_pagination(page, page_count)
 
         if total_records:
             num_records_found = total_records
@@ -619,7 +602,7 @@ def search_results_summary():
         results=paginated_results,
         pagination=pagination,
         num_records_found=num_records_found,
-        query_string_parameters=validated_data,
+        query_string_parameters=request.validated_args,
         id=None,
     )
 
@@ -634,13 +617,12 @@ def search_transferring_body(_id: uuid.UUID):
 
     form = SearchForm()
     validated_data = request.validated_data
-    page = validated_data["page"]
-    per_page = validated_data["per_page"] or int(
-        current_app.config["DEFAULT_PAGE_SIZE"]
-    )
+    page, per_page = get_page_and_per_page(validated_data)
     open_all = validated_data["open_all"]
     sort = validated_data["sort"] or "file_name"
     highlight_tag = f"uuid_prefix_{uuid.uuid4().hex}"
+
+    default_page = 1
 
     query = validated_data["query"]
     search_area = validated_data["search_area"]
@@ -689,14 +671,28 @@ def search_transferring_body(_id: uuid.UUID):
             sorting,
         )
 
-        search_results = execute_search(open_search, dsl_query, page, per_page)
+        try:
+            search_results = execute_search(
+                open_search, dsl_query, page, per_page
+            )
+        except NotFound:
+            # Redirect to first page if page does not exist
+            return redirect_if_page_invalid(
+                page, default_page, "main.search_transferring_body", _id=_id
+            )
         results = post_process_opensearch_results(
             search_results["hits"]["hits"], sort
         )
 
-        total_records, pagination = get_pagination_info(
-            search_results, page, per_page
+        total_records = (
+            search_results["hits"]["total"]["value"]
+            if "hits" in search_results
+            else 0
         )
+
+        page_count = calculate_total_pages(total_records, per_page)
+
+        pagination = get_pagination(page, page_count)
         num_records_found = total_records
 
     return render_template(
@@ -713,7 +709,7 @@ def search_transferring_body(_id: uuid.UUID):
         pagination=pagination,
         open_all=open_all,
         highlight_tag=highlight_tag,
-        query_string_parameters=validated_data,
+        query_string_parameters=request.validated_args,
     )
 
 

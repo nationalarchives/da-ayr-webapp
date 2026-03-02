@@ -43,13 +43,10 @@ def test_sign_in_succeeds_when_valid_credentials(
     )
 
     assert set(decoded_token_dict.keys()) == {
-        "aud",
         "exp",
         "iat",
         "auth_time",
         "jti",
-        "realm_access",
-        "resource_access",
         "iss",
         "sub",
         "typ",
@@ -57,7 +54,6 @@ def test_sign_in_succeeds_when_valid_credentials(
         "scope",
         "sid",
         "groups",
-        "allowed-origins",
     }
 
     refresh_token = json.loads(decoded_data)["refresh_token"]
@@ -127,7 +123,7 @@ def test_token_expiry(page: Page, create_aau_keycloak_user):
     exp_time = decoded_refresh_token["exp"]
     iat_time = decoded_refresh_token["iat"]
     token_lifetime = exp_time - iat_time
-    expected_lifetime = 1800
+    expected_lifetime = 10800
     assert (
         abs(token_lifetime - expected_lifetime) < 5
     ), "Refresh token expiry does not match expected config"

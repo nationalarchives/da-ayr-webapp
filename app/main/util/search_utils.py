@@ -2,7 +2,7 @@ import re
 import urllib.parse
 
 import opensearchpy
-from flask import abort, current_app, redirect, url_for
+from flask import abort, current_app, redirect, request, url_for
 from opensearchpy import OpenSearch, RequestsHttpConnection
 
 from app.main.util.date_validator import format_opensearch_date
@@ -240,12 +240,16 @@ def execute_search(open_search, dsl_query, page, per_page):
     """Execute the search query using OpenSearch"""
     from_ = per_page * (page - 1)
     try:
-        return open_search.search(
+        response = open_search.search(
             body=dsl_query,
             from_=from_,
             size=per_page,
             timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
         )
+        total_hits = response.get("hits", {}).get("total", {}).get("value", 0)
+        if page < 1 or (page > 1 and from_ >= total_hits):
+            abort(404)
+        return response
     except opensearchpy.exceptions.ConnectionTimeout:
         abort(504)
 
@@ -479,11 +483,12 @@ def check_additional_term(query, validated_data):
 
         query = f"{query}+{additional_term}" if query else additional_term
 
-        validated_data["query"] = query
+        redirect_params = request.validated_args.copy()
+        redirect_params["query"] = query
         return redirect(
             url_for(
                 "main.search_transferring_body",
-                **validated_data,
+                **redirect_params,
                 _anchor="browse-records",
             )
         )

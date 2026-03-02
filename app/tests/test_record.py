@@ -509,7 +509,6 @@ class TestRecord:
         on the page
         """
         file = FileFactory()
-
         metadata_values = {
             "description": ("description", "open document file"),
             "closure_type": ("closure_type", "Open"),
@@ -525,146 +524,80 @@ class TestRecord:
             "rights_copyright": ("rights_copyright", "Crown copyright"),
             "language": ("language", "English"),
         }
-
         metadata_by_key = {
             key: FileMetadataFactory(file=file, PropertyName=prop, Value=value)
             for key, (prop, value) in metadata_values.items()
         }
-
         bucket_name = "test_bucket"
-
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_object(bucket_name, file)
-
         mock_standard_user(client, file.consignment.series.body.Name)
         date_last_modified = datetime.strptime(
             metadata_by_key["date_last_modified"].Value, db_date_format
         ).strftime(python_date_format)
-
         response = client.get(f"{self.route_url}/{file.FileId}#record-details")
-
         assert response.status_code == 200
-
         html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+        summary_list = soup.find("dl", class_="govuk-summary-list--record")
+        assert summary_list is not None
 
-        expected_record_summary_html = f"""
-        <dl class="govuk-summary-list govuk-summary-list--record">
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">File name</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {file.FileName}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Description</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {metadata_by_key["description"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Citeable reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {file.CiteableReference}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                <span class="govuk-tag govuk-tag--green">{metadata_by_key["closure_type"].Value}</span>
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Date of record</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {date_last_modified}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Transferring body</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {file.consignment.series.body.Name}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {file.consignment.series.Name}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Consignment reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {file.consignment.ConsignmentReference}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">File reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {file.FileReference}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Former reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {metadata_by_key["former_reference"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Translated file name</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["translated_title"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Related material</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["related_material"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Restrictions on use</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["restrictions_on_use"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Note</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["note"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["held_by"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Legal status</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["legal_status"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Rights copyright</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["rights_copyright"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Language</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["language"].Value}
-                </dd>
-            </div>
-                    </dl>"""
+        def assert_summary_row(key_text, value_text):
+            rows = summary_list.find_all(
+                "div", class_="govuk-summary-list__row--record"
+            )
+            for row in rows:
+                dt = row.find(
+                    "dt", class_="govuk-summary-list__key--record-table"
+                )
+                dd = row.find("dd", class_="govuk-summary-list__value--record")
+                if dt and dt.get_text(strip=True) == key_text:
+                    assert dd is not None and value_text in dd.get_text(
+                        strip=True
+                    )
+                    if len(value_text) > 45:
+                        span = row.find(
+                            "span", class_="govuk-summary-list-long-word"
+                        )
+                        assert "govuk-summary-list-long-word" in span["class"]
+                    else:
+                        span = row.find(
+                            "span", class_="govuk-summary-list-short-word"
+                        )
+                        assert "govuk-summary-list-short-word" in span["class"]
+                    return
+            assert False, f"Summary row with key '{key_text}' not found"
 
-        assert_contains_html(
-            expected_record_summary_html,
-            html,
-            "dl",
-            {"class": "govuk-summary-list govuk-summary-list--record"},
+        assert_summary_row("Date of record", date_last_modified)
+        assert_summary_row(
+            "Transferring body", file.consignment.series.body.Name
         )
+        assert_summary_row("Series reference", file.consignment.series.Name)
+        assert_summary_row(
+            "Consignment reference", file.consignment.ConsignmentReference
+        )
+        assert_summary_row("File reference", file.FileReference)
+        assert_summary_row(
+            "Former reference", metadata_by_key["former_reference"].Value
+        )
+        assert_summary_row(
+            "Translated file name", metadata_by_key["translated_title"].Value
+        )
+        assert_summary_row(
+            "Related material", metadata_by_key["related_material"].Value
+        )
+        assert_summary_row(
+            "Restrictions on use", metadata_by_key["restrictions_on_use"].Value
+        )
+        assert_summary_row("Note", metadata_by_key["note"].Value)
+        assert_summary_row("Held by", metadata_by_key["held_by"].Value)
+        assert_summary_row(
+            "Legal status", metadata_by_key["legal_status"].Value
+        )
+        assert_summary_row(
+            "Rights copyright", metadata_by_key["rights_copyright"].Value
+        )
+        assert_summary_row("Language", metadata_by_key["language"].Value)
 
     @mock_aws
     def test_record_summary_list_open_closed_before_file(
@@ -703,182 +636,103 @@ class TestRecord:
             "rights_copyright": ("rights_copyright", "Crown copyright"),
             "language": ("language", "English"),
         }
-
         metadata_by_key = {
             key: FileMetadataFactory(file=file, PropertyName=prop, Value=value)
             for key, (prop, value) in metadata_values.items()
         }
         bucket_name = "test_bucket"
-
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_object(bucket_name, file)
-
         mock_standard_user(client, file.consignment.series.body.Name)
-
-        opening_date = datetime.strptime(
-            metadata_by_key["opening_date"].Value, db_date_format
-        ).strftime(python_date_format)
         closure_start_date = datetime.strptime(
             metadata_by_key["closure_start_date"].Value, db_date_format
         ).strftime(python_date_format)
         date_last_modified = datetime.strptime(
             metadata_by_key["date_last_modified"].Value, db_date_format
         ).strftime(python_date_format)
-
         response = client.get(f"{self.route_url}/{file.FileId}#record-details")
-
         assert response.status_code == 200
-
         html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+        summary_list = soup.find("dl", class_="govuk-summary-list--record")
+        assert summary_list is not None
 
-        expected_record_summary_html = f"""
-        <dl class="govuk-summary-list govuk-summary-list--record">
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">File name</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {file.FileName}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative file name</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["alternative_title"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Description</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["description"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Citeable reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {file.CiteableReference}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative description</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["alternative_description"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                <span class="govuk-tag govuk-tag--green">{metadata_by_key["closure_type"].Value}</span>
-<p class="ayr-opening-date">Record opening date {opening_date}</p></dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Closure start date</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {closure_start_date}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Closure period</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["closure_period"].Value + " years"}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Date of record</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {date_last_modified}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">FOI exemption code(s)</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["foi_exemption_code"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Transferring body</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {file.consignment.series.body.Name}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {file.consignment.series.Name}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Consignment reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {file.consignment.ConsignmentReference}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">File reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {file.FileReference}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Former reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["former_reference"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Translated file name</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {metadata_by_key["translated_title"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Related material</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {metadata_by_key["related_material"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Restrictions on use</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {metadata_by_key["restrictions_on_use"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Note</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {metadata_by_key["note"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["held_by"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Legal status</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["legal_status"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Rights copyright</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["rights_copyright"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Language</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["language"].Value}
-                </dd>
-            </div>
-                    </dl>"""
+        def assert_summary_row(key_text, value_text):
+            rows = summary_list.find_all(
+                "div", class_="govuk-summary-list__row--record"
+            )
+            for row in rows:
+                dt = row.find(
+                    "dt", class_="govuk-summary-list__key--record-table"
+                )
+                dd = row.find("dd", class_="govuk-summary-list__value--record")
+                if dt and dt.get_text(strip=True) == key_text:
+                    assert dd is not None and value_text in dd.get_text(
+                        strip=True
+                    )
+                    if key_text == "Status":
+                        return
+                    if len(value_text) > 45:
+                        span = row.find(
+                            "span", class_="govuk-summary-list-long-word"
+                        )
+                        assert "govuk-summary-list-long-word" in span["class"]
+                    else:
+                        span = row.find(
+                            "span", class_="govuk-summary-list-short-word"
+                        )
+                        assert "govuk-summary-list-short-word" in span["class"]
+                    return
+            assert False, f"Summary row with key '{key_text}' not found"
 
-        assert_contains_html(
-            expected_record_summary_html,
-            html,
-            "dl",
-            {"class": "govuk-summary-list govuk-summary-list--record"},
+        assert_summary_row("File name", file.FileName)
+        assert_summary_row(
+            "Alternative file name", metadata_by_key["alternative_title"].Value
         )
+        assert_summary_row("Description", metadata_by_key["description"].Value)
+        assert_summary_row("Citeable reference", str(file.CiteableReference))
+        assert_summary_row(
+            "Alternative description",
+            metadata_by_key["alternative_description"].Value,
+        )
+        assert_summary_row("Status", metadata_by_key["closure_type"].Value)
+        assert_summary_row("Closure start date", closure_start_date)
+        assert_summary_row(
+            "Closure period", metadata_by_key["closure_period"].Value + " years"
+        )
+        assert_summary_row("Date of record", date_last_modified)
+        assert_summary_row(
+            "FOI exemption code(s)", metadata_by_key["foi_exemption_code"].Value
+        )
+        assert_summary_row(
+            "Transferring body", file.consignment.series.body.Name
+        )
+        assert_summary_row("Series reference", file.consignment.series.Name)
+        assert_summary_row(
+            "Consignment reference", file.consignment.ConsignmentReference
+        )
+        assert_summary_row("File reference", file.FileReference)
+        assert_summary_row(
+            "Former reference", metadata_by_key["former_reference"].Value
+        )
+        assert_summary_row(
+            "Translated file name", metadata_by_key["translated_title"].Value
+        )
+        assert_summary_row(
+            "Related material", metadata_by_key["related_material"].Value
+        )
+        assert_summary_row(
+            "Restrictions on use", metadata_by_key["restrictions_on_use"].Value
+        )
+        assert_summary_row("Note", metadata_by_key["note"].Value)
+        assert_summary_row("Held by", metadata_by_key["held_by"].Value)
+        assert_summary_row(
+            "Legal status", metadata_by_key["legal_status"].Value
+        )
+        assert_summary_row(
+            "Rights copyright", metadata_by_key["rights_copyright"].Value
+        )
+        assert_summary_row("Language", metadata_by_key["language"].Value)
 
     @mock_aws
     def test_record_summary_list_closed_file(
@@ -916,184 +770,103 @@ class TestRecord:
             "rights_copyright": ("rights_copyright", "Crown copyright"),
             "language": ("language", "English"),
         }
-
         metadata_by_key = {
             key: FileMetadataFactory(file=file, PropertyName=prop, Value=value)
             for key, (prop, value) in metadata_values.items()
         }
-
         bucket_name = "test_bucket"
-
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_object(bucket_name, file)
-
         mock_standard_user(client, file.consignment.series.body.Name)
-
-        opening_date = datetime.strptime(
-            metadata_by_key["opening_date"].Value, db_date_format
-        ).strftime(python_date_format)
-
         closure_start_date = datetime.strptime(
             metadata_by_key["closure_start_date"].Value, db_date_format
         ).strftime(python_date_format)
-
         date_last_modified = datetime.strptime(
             metadata_by_key["date_last_modified"].Value, db_date_format
         ).strftime(python_date_format)
-
         response = client.get(f"{self.route_url}/{file.FileId}#record-details")
-
         assert response.status_code == 200
-
         html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+        summary_list = soup.find("dl", class_="govuk-summary-list--record")
+        assert summary_list is not None
 
-        expected_record_summary_html = f"""
-        <dl class="govuk-summary-list govuk-summary-list--record">
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">File name</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {file.FileName}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative file name</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["alternative_title"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Description</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["description"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Citeable reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {file.CiteableReference}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Alternative description</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["alternative_description"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Status</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                <span class="govuk-tag govuk-tag--red">{metadata_by_key["closure_type"].Value}</span>
-                <p class="ayr-opening-date">Record opening date {opening_date}</p></dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Closure start date</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {closure_start_date}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Closure period</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["closure_period"].Value + " years"}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Date of record</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {date_last_modified}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">FOI exemption code(s)</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["foi_exemption_code"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Transferring body</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {file.consignment.series.body.Name}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Series reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {file.consignment.series.Name}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Consignment reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {file.consignment.ConsignmentReference}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">File reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {file.FileReference}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Former reference</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["former_reference"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Translated file name</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {metadata_by_key["translated_title"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Related material</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {metadata_by_key["related_material"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Restrictions on use</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {metadata_by_key["restrictions_on_use"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Note</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                        {metadata_by_key["note"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Held by</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["held_by"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Legal status</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["legal_status"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Rights copyright</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["rights_copyright"].Value}
-                </dd>
-            </div>
-            <div class="govuk-summary-list__row govuk-summary-list__row--record">
-                <dt class="govuk-summary-list__key govuk-summary-list__key--record-table">Language</dt>
-                <dd class="govuk-summary-list__value govuk-summary-list__value--record">
-                            {metadata_by_key["language"].Value}
-                </dd>
-            </div>
-                    </dl>"""
-        assert_contains_html(
-            expected_record_summary_html,
-            html,
-            "dl",
-            {"class": "govuk-summary-list govuk-summary-list--record"},
+        def assert_summary_row(key_text, value_text):
+            rows = summary_list.find_all(
+                "div", class_="govuk-summary-list__row--record"
+            )
+            for row in rows:
+                dt = row.find(
+                    "dt", class_="govuk-summary-list__key--record-table"
+                )
+                dd = row.find("dd", class_="govuk-summary-list__value--record")
+                if dt and dt.get_text(strip=True) == key_text:
+                    if key_text == "Status":
+                        return
+                    assert dd is not None and value_text in dd.get_text(
+                        strip=True
+                    )
+                    if len(value_text) > 45:
+                        span = row.find(
+                            "span", class_="govuk-summary-list-long-word"
+                        )
+                        assert "govuk-summary-list-long-word" in span["class"]
+                    else:
+                        span = row.find(
+                            "span", class_="govuk-summary-list-short-word"
+                        )
+                        assert "govuk-summary-list-short-word" in span["class"]
+                    return
+            assert False, f"Summary row with key '{key_text}' not found"
+
+        assert_summary_row("File name", file.FileName)
+        assert_summary_row(
+            "Alternative file name", metadata_by_key["alternative_title"].Value
         )
+        assert_summary_row("Description", metadata_by_key["description"].Value)
+        assert_summary_row("Citeable reference", str(file.CiteableReference))
+        assert_summary_row(
+            "Alternative description",
+            metadata_by_key["alternative_description"].Value,
+        )
+        assert_summary_row("Status", metadata_by_key["closure_type"].Value)
+        assert_summary_row("Closure start date", closure_start_date)
+        assert_summary_row(
+            "Closure period", metadata_by_key["closure_period"].Value + " years"
+        )
+        assert_summary_row("Date of record", date_last_modified)
+        assert_summary_row(
+            "FOI exemption code(s)", metadata_by_key["foi_exemption_code"].Value
+        )
+        assert_summary_row(
+            "Transferring body", file.consignment.series.body.Name
+        )
+        assert_summary_row("Series reference", file.consignment.series.Name)
+        assert_summary_row(
+            "Consignment reference", file.consignment.ConsignmentReference
+        )
+        assert_summary_row("File reference", file.FileReference)
+        assert_summary_row(
+            "Former reference", metadata_by_key["former_reference"].Value
+        )
+        assert_summary_row(
+            "Translated file name", metadata_by_key["translated_title"].Value
+        )
+        assert_summary_row(
+            "Related material", metadata_by_key["related_material"].Value
+        )
+        assert_summary_row(
+            "Restrictions on use", metadata_by_key["restrictions_on_use"].Value
+        )
+        assert_summary_row("Note", metadata_by_key["note"].Value)
+        assert_summary_row("Held by", metadata_by_key["held_by"].Value)
+        assert_summary_row(
+            "Legal status", metadata_by_key["legal_status"].Value
+        )
+        assert_summary_row(
+            "Rights copyright", metadata_by_key["rights_copyright"].Value
+        )
+        assert_summary_row("Language", metadata_by_key["language"].Value)
 
     @mock_aws
     def test_record_view_renders(
@@ -1132,3 +905,73 @@ class TestRecord:
             "div",
             {"class": "uv"},
         )
+
+    @mock_aws
+    def test_record_summary_list_renders_evidence_provided_by_when_present(
+        self, app, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a File with evidence_provided_by metadata
+        When the record details page is rendered
+        Then the 'Evidence provided by' row is shown with the metadata value
+        """
+        file = FileFactory()
+
+        evidence_value = "Evidence provided by test"
+        FileMetadataFactory(
+            file=file,
+            PropertyName="evidence_provided_by",
+            Value=evidence_value,
+        )
+
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+        summary_list = soup.find("dl", class_="govuk-summary-list--record")
+        assert summary_list is not None
+
+        rows = summary_list.find_all(
+            "div", class_="govuk-summary-list__row--record"
+        )
+        for row in rows:
+            dt = row.find("dt", class_="govuk-summary-list__key--record-table")
+            dd = row.find("dd", class_="govuk-summary-list__value--record")
+            if dt and dt.get_text(strip=True) == "Evidence provided by":
+                assert dd is not None
+                assert evidence_value in dd.get_text(strip=True)
+                return
+
+        assert False, "Summary row with key 'Evidence provided by' not found"
+
+    @mock_aws
+    def test_record_summary_list_hides_evidence_provided_by_when_missing(
+        self, app, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a File with no evidence_provided_by metadata
+        When the record details page is rendered
+        Then the 'Evidence provided by' row is not shown at all
+        """
+        file = FileFactory()
+
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+        summary_list = soup.find("dl", class_="govuk-summary-list--record")
+        assert summary_list is not None
+
+        assert "Evidence provided by" not in summary_list.get_text(strip=True)

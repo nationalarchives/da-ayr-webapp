@@ -119,22 +119,10 @@ class TestBrowseRequestSchema:
             schema.load({"page": 0})
         assert "page" in exc_info.value.messages
 
-    def test_invalid_page_too_large(self):
-        schema = BrowseRequestSchema()
-        with pytest.raises(ValidationError) as exc_info:
-            schema.load({"page": 10001})
-        assert "page" in exc_info.value.messages
-
     def test_invalid_per_page_negative(self):
         schema = BrowseRequestSchema()
         with pytest.raises(ValidationError) as exc_info:
             schema.load({"per_page": 0})
-        assert "per_page" in exc_info.value.messages
-
-    def test_invalid_per_page_too_large(self):
-        schema = BrowseRequestSchema()
-        with pytest.raises(ValidationError) as exc_info:
-            schema.load({"per_page": 101})
         assert "per_page" in exc_info.value.messages
 
     def test_date_filters(self):

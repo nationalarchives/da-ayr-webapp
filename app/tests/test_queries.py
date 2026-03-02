@@ -43,6 +43,7 @@ class TestGetFileMetadata:
                 "citeable_reference": file.CiteableReference,
                 "alternative_title": record_files[1]["alternative_title"].Value,
                 "description": record_files[1]["description"].Value,
+                "evidence_provided_by": None,
                 "alternative_description": record_files[1][
                     "alternative_description"
                 ].Value,
@@ -112,6 +113,7 @@ class TestGetFileMetadata:
                 "citeable_reference": file.CiteableReference,
                 "alternative_title": record_files[3]["alternative_title"].Value,
                 "description": record_files[3]["description"].Value,
+                "evidence_provided_by": None,
                 "alternative_description": record_files[3][
                     "alternative_description"
                 ].Value,
