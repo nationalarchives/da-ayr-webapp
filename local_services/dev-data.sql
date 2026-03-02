@@ -27,7 +27,7 @@ CREATE EXTENSION IF NOT EXISTS tablefunc WITH SCHEMA public;
 
 
 --
--- Name: EXTENSION tablefunc; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION tablefunc; Type: COMMENT; Schema: -; Owner:
 --
 
 COMMENT ON EXTENSION tablefunc IS 'functions that manipulate whole tables, including crosstab';
@@ -41,7 +41,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 
 
 --
--- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner:
 --
 
 COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
@@ -1546,4 +1546,3 @@ ALTER TABLE ONLY public."Series"
 --
 
 \unrestrict 7gWCH43hGT7z9GcO102mxHiIE8qIghELLsPOZfSW2XWne7HDJflwy9NZvKzpbOE
-
