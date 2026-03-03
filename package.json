@@ -12,7 +12,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@storybook/html-vite": "10.2.12",
+    "@storybook/html-vite": "10.2.13",
     "@testing-library/jest-dom": "^6.9.1",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.2.1",
@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "govuk-frontend": "^5.14.0",
-    "npm": "^11.10.1"
+    "npm": "^11.11.0"
   },
   "jest": {
     "testEnvironment": "jsdom"
