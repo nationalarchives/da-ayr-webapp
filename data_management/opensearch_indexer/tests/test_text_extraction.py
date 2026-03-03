@@ -79,6 +79,45 @@ class TestExtractText:
         assert extract_text(str(path), file_type, 1) == expected_output
 
 
+class TestRealTextExtraction:
+    @pytest.mark.parametrize(
+        "input_file, file_puid, content_checks",
+        [
+            (
+                "doc_integration_test.doc",
+                "fmt/40",
+                ["integration testing"],
+            ),
+            (
+                "docx_integration_test.docx",
+                "fmt/412",
+                ["integration testing"],
+            ),
+            (
+                "xls_integration_test.xls",
+                "fmt/59",
+                ["testing", "123"],
+            ),
+            (
+                "xlsx_integration_test.xlsx",
+                "fmt/214",
+                ["testing", "123"],
+            ),
+        ],
+    )
+    def test_real_text_extraction(self, input_file, file_puid, content_checks):
+        repo_root = Path(__file__).resolve().parents[3]
+        input_path = (
+            repo_root / "data_management/integration_test_files" / input_file
+        )
+        file_dict = {"file_id": "test-id", "file_puid": file_puid}
+        file_bytes = input_path.read_bytes()
+        extracted_text = add_text_content(file_dict, file_bytes)
+        content = extracted_text["content"].lower()
+        for check in content_checks:
+            assert check in content
+
+
 # Mock ENVIRONMENT for slack alerts
 @pytest.fixture(autouse=True)
 def patch_environment():
