@@ -36,6 +36,10 @@ CONVERTIBLE_PUIDS = {
     "x-fmt/255": "pub",
     "x-fmt/332": "fm3",
     "x-fmt/18": "csv",
+    "fmt/353": "tif",
+    "fmt/483": "epub",
+    "fmt/136": "odt",
+    "fmt/101": "xml",
 }
 
 EXCEL_PUIDS = {"fmt/214": "xlsx", "fmt/59": "xls", "fmt/61": "xls"}

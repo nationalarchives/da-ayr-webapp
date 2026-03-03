@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.5
--- Dumped by pg_dump version 16.3
+-- Dumped from database version 18.3 (Debian 18.3-1.pgdg13+1)
+-- Dumped by pg_dump version 18.1 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -24,7 +24,7 @@ CREATE EXTENSION IF NOT EXISTS tablefunc WITH SCHEMA public;
 
 
 --
--- Name: EXTENSION tablefunc; Type: COMMENT; Schema: -; Owner: -
+-- Name: EXTENSION tablefunc; Type: COMMENT; Schema: -; Owner:
 --
 
 COMMENT ON EXTENSION tablefunc IS 'functions that manipulate whole tables, including crosstab';
@@ -38,7 +38,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 
 
 --
--- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: -
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner:
 --
 
 COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
@@ -49,7 +49,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: AVMetadata; Type: TABLE; Schema: public; Owner: -
+-- Name: AVMetadata; Type: TABLE; Schema: public; Owner: local_db_user
 --
 
 CREATE TABLE public."AVMetadata" (
@@ -60,7 +60,7 @@ CREATE TABLE public."AVMetadata" (
 
 
 --
--- Name: Body; Type: TABLE; Schema: public; Owner: -
+-- Name: Body; Type: TABLE; Schema: public; Owner: local_db_user
 --
 
 CREATE TABLE public."Body" (
@@ -71,7 +71,7 @@ CREATE TABLE public."Body" (
 
 
 --
--- Name: Consignment; Type: TABLE; Schema: public; Owner: -
+-- Name: Consignment; Type: TABLE; Schema: public; Owner: local_db_user
 --
 
 CREATE TABLE public."Consignment" (
@@ -91,7 +91,7 @@ CREATE TABLE public."Consignment" (
 
 
 --
--- Name: FFIDMetadata; Type: TABLE; Schema: public; Owner: -
+-- Name: FFIDMetadata; Type: TABLE; Schema: public; Owner: local_db_user
 --
 
 CREATE TABLE public."FFIDMetadata" (
@@ -108,7 +108,7 @@ CREATE TABLE public."FFIDMetadata" (
 
 
 --
--- Name: File; Type: TABLE; Schema: public; Owner: -
+-- Name: File; Type: TABLE; Schema: public; Owner: local_db_user
 --
 
 CREATE TABLE public."File" (
@@ -127,7 +127,7 @@ CREATE TABLE public."File" (
 
 
 --
--- Name: FileMetadata; Type: TABLE; Schema: public; Owner: -
+-- Name: FileMetadata; Type: TABLE; Schema: public; Owner: local_db_user
 --
 
 CREATE TABLE public."FileMetadata" (
@@ -140,7 +140,7 @@ CREATE TABLE public."FileMetadata" (
 
 
 --
--- Name: Series; Type: TABLE; Schema: public; Owner: -
+-- Name: Series; Type: TABLE; Schema: public; Owner: local_db_user
 --
 
 CREATE TABLE public."Series" (
@@ -152,7 +152,7 @@ CREATE TABLE public."Series" (
 
 
 --
--- Data for Name: AVMetadata; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: AVMetadata; Type: TABLE DATA; Schema: public; Owner: local_db_user
 --
 
 COPY public."AVMetadata" ("FileId", "AV-Software", "AV-SoftwareVersion") FROM stdin;
@@ -194,7 +194,7 @@ a948a34f-6ba0-4ff2-bef6-a290aec31d3f	E2E tests software	E2E tests software versi
 
 
 --
--- Data for Name: Body; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: Body; Type: TABLE DATA; Schema: public; Owner: local_db_user
 --
 
 COPY public."Body" ("BodyId", "Name", "Description") FROM stdin;
@@ -202,11 +202,12 @@ COPY public."Body" ("BodyId", "Name", "Description") FROM stdin;
 8ccc8cd1-c0ee-431d-afad-70cf404ba337	Mock 1 Department	Mock 1 Department
 c3e3fd83-4d52-4638-a085-1f4e4e4dfa50	Testing A	Testing A
 9ced8d31-ea58-4794-9582-4b4de1409d59	MOCK1 Department	MOCK1 Department
+935839c0-c070-4d61-924f-f16ee8d8a160	Test Transferring Body	Test Transferring Body Description
 \.
 
 
 --
--- Data for Name: Consignment; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: Consignment; Type: TABLE DATA; Schema: public; Owner: local_db_user
 --
 
 COPY public."Consignment" ("ConsignmentId", "BodyId", "SeriesId", "ConsignmentReference", "ConsignmentType", "IncludeTopLevelFolder", "ContactName", "ContactEmail", "TransferStartDatetime", "TransferCompleteDatetime", "ExportDatetime", "CreatedDatetime") FROM stdin;
@@ -220,11 +221,12 @@ df05b8b8-c222-47c3-903b-9b7f2a8aa1c6	9ced8d31-ea58-4794-9582-4b4de1409d59	8bd7ad
 3184c737-fe10-4493-8025-77adc5062a84	8ccc8cd1-c0ee-431d-afad-70cf404ba337	8bd7ad22-90d1-4c7f-ae00-645dfd1987cc	TDR-2024-J42R	standard	f	Test First Name Test Last Name	xzbu9vs0@testsomething.com	2024-02-19 08:32:59+00	2024-02-19 08:33:38+00	2024-02-19 08:34:20+00	2024-02-20 16:23:56.124+00
 436d6273-fcdb-454e-a9a5-8f55fd064457	c3e3fd83-4d52-4638-a085-1f4e4e4dfa50	1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7	TDR-2023-BV6	standard	f	Paul Young	paul.young@something2.com	2023-10-18 08:46:20+00	2023-10-18 09:44:07+00	2023-10-18 09:44:51+00	2024-02-20 16:44:57.314+00
 2fd4e03e-5913-4c04-b4f2-5a823fafd430	8ccc8cd1-c0ee-431d-afad-70cf404ba337	8bd7ad22-90d1-4c7f-ae00-645dfd1987cc	TDR-2024-KKX4	standard	f	Test First Name Test Last Name	vskf5utn@testsomething.com	2024-03-05 15:05:30+00	2024-03-05 15:05:38+00	2024-03-05 15:06:21+00	2024-03-06 10:43:30.509+00
+7c665764-2103-45f9-800b-f36893dd4436	935839c0-c070-4d61-924f-f16ee8d8a160	7f0a484e-2bbb-493b-90bd-7e6832345b1d	AYR-2026-KSJ2	Test	t	Test User	test@example.com	2026-03-03 00:53:24.768571+00	1974-01-19 21:58:42.449942+00	1991-06-28 22:23:32.298597+00	2026-03-03 00:53:24.768572+00
 \.
 
 
 --
--- Data for Name: FFIDMetadata; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: FFIDMetadata; Type: TABLE DATA; Schema: public; Owner: local_db_user
 --
 
 COPY public."FFIDMetadata" ("FileId", "Extension", "PUID", "FormatName", "ExtensionMismatch", "FFID-Software", "FFID-SoftwareVersion", "FFID-BinarySignatureFileVersion", "FFID-ContainerSignatureFileVersion") FROM stdin;
@@ -264,11 +266,30 @@ b9a8f847-ce98-4894-8c48-3986570dec7d	docx	fmt/276	Acrobat PDF 1.7 - Portable Doc
 8ffacc5a-443a-4568-a5c9-c9741955b40f	txt	x-fmt/111		false	e2e-test-software	e2e-test-software-version	e2e-test-binary-signature-file	e2e-test-container-signature.xml
 a948a34f-6ba0-4ff2-bef6-a290aec31d3f	txt	x-fmt/111		false	e2e-test-software	e2e-test-software-version	e2e-test-binary-signature-file	e2e-test-container-signature.xml
 47526ba9-88e5-4cc8-8bc1-d682a10fa270	txt	x-fmt/111		false	e2e-test-software	e2e-test-software-version	e2e-test-binary-signature-file	e2e-test-container-signature.xml
+a8514206-0ebb-4762-9022-fee2edce6436	csv	x-fmt/18	Comma-Separated Values	true	DROID	TdmPk	qROGO	Eayjl
+6a25d42c-14bb-4a62-b929-fa524fe90a9f	doc	fmt/40	Microsoft Word Document	true	Siegfried	LzyYu	JFiKA	keKME
+c05f2c17-19e3-4865-9642-7e828281bd22	docx	fmt/412	Microsoft Word Open XML Document	false	Siegfried	iBwOb	qypTa	KQOUw
+bddef9e5-3d18-416a-b553-55b66ce2e568	epub	fmt/483åå	Electronic Publication	true	DROID	tHXqo	PQWfa	HCEiU
+4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	jpg	fmt/43	JPEG Image	true	DROID	txdnP	JXeSl	vhVPg
+0840ee82-34c5-46aa-9457-6d95acd4ba2e	odt	fmt/136	OpenDocument Text Document	true	DROID	WLcLv	jHhuh	PiUQU
+99340295-cfb4-4cd1-8739-c1077093a947	pdf	fmt/276	PDF	false	Siegfried	eKCGx	zPwHr	HUEJh
+5f33717a-8f57-445a-ba9a-7adb3986ee57	png	fmt/11	Portable Network Graphics	false	DROID	cwiqT	CVkBr	bHvFR
+99fe139b-ae16-445d-9fd2-73e7c8ef2606	ppt	fmt/126	Microsoft PowerPoint Presentation	false	Siegfried	QMZAa	afgpe	aZBan
+f307cc16-798d-4c85-ae4c-7b75c685c1fe	pptx	fmt/215	Microsoft PowerPoint Open XML Presentation	false	Siegfried	SnRCb	qzxkw	VSjnP
+dfa3baef-7a85-4c26-8137-a88cf6425528	rtf	fmt/50	Rich Text Format	false	DROID	gsoVT	dPkrD	VwSmX
+dc197ca6-9a7c-4348-8032-cb697cb41244	tif	fmt/353	Tagged Image File Format	true	Siegfried	UdGGd	EYyyV	SzBLE
+2e931072-946a-4358-b6f9-ca713afc68b0	txt	x-fmt/111	Plain Text	false	DROID	hnzeo	LVrJl	SPYCH
+e07586cb-ca18-4c5c-9a6e-f321cc999ee4	wk1	x-fmt/115	Lotus 1-2-3 Spreadsheet	false	Siegfried	dcliz	bbObF	fAYmq
+8311bc81-e8fb-45dd-98dd-aa2f7e76f351	wk4	x-fmt/116	Lotus 1-2-3 Spreadsheet	true	DROID	hCDXz	YUWeJ	LgOSa
+085371e5-9398-4c1d-b9b4-358241368647	wp	x-fmt/394	WordPerfect Document	true	Siegfried	yLkcG	MDNpH	NuQaR
+abd498c3-94f3-41b8-a79d-128f2711e800	xls	fmt/59	Microsoft Excel Spreadsheet	false	Siegfried	zoBNU	xIjaR	vGxIp
+8b0ed2f4-1851-48e7-86ba-28a545a27ed9	xlsx	fmt/214	Microsoft Excel Open XML Spreadsheet	false	DROID	aQCnS	jpaAM	pIeGG
+ab87e483-2fd5-49e9-8055-2fd3c88e223b	xml	fmt/101	XML Document	true	DROID	QulIE	WXeur	DgsAm
 \.
 
 
 --
--- Data for Name: File; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: File; Type: TABLE DATA; Schema: public; Owner: local_db_user
 --
 
 COPY public."File" ("FileId", "ConsignmentId", "FileType", "FileName", "FilePath", "FileReference", "CiteableReference", "ParentReference", "OriginalFilePath", "Checksum", "CreatedDatetime") FROM stdin;
@@ -327,11 +348,30 @@ b5cdde0f-93e8-4975-accf-93372d5774c3	2fd4e03e-5913-4c04-b4f2-5a823fafd430	Folder
 a948a34f-6ba0-4ff2-bef6-a290aec31d3f	2fd4e03e-5913-4c04-b4f2-5a823fafd430	File	path2	data/E2E_tests/original/path2	ZD8MCN	MOCK1 123/ZD8MCN	ZD8MCP		e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	2024-03-06 10:43:30.685+00
 7fb02107-17e3-4659-a644-69f854a6058d	2fd4e03e-5913-4c04-b4f2-5a823fafd430	Folder	E2E_tests	data/E2E_tests	ZD8MCM	MOCK1 123/ZD8MCM			\N	2024-03-06 10:43:30.768+00
 47526ba9-88e5-4cc8-8bc1-d682a10fa270	2fd4e03e-5913-4c04-b4f2-5a823fafd430	File	path1	data/E2E_tests/original/path1	ZD8MCL	MOCK1 123/ZD8MCL	ZD8MCP		e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	2024-03-06 10:43:30.809+00
+a8514206-0ebb-4762-9022-fee2edce6436	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_KTV6RM.csv	data/content/AYR 25_KTV6RM.csv	SLGI	CITE-0001	\N	\N	scZlNfJIWo	2026-03-03 00:53:24.909437+00
+6a25d42c-14bb-4a62-b929-fa524fe90a9f	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_ZFW6DB.doc	data/content/AYR 25_ZFW6DB.doc	TPHD	CITE-0002	\N	\N	MPgQOgyRAm	2026-03-03 00:53:24.926154+00
+c05f2c17-19e3-4865-9642-7e828281bd22	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_ZDC8J4.docx	data/content/AYR 25_ZDC8J4.docx	C26Y	CITE-0003	\N	\N	polQLXxvLU	2026-03-03 00:53:24.941713+00
+bddef9e5-3d18-416a-b553-55b66ce2e568	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_LW73EO.epub	data/content/AYR 25_LW73EO.epub	8FXB	CITE-0004	\N	\N	JdrhpaWXkW	2026-03-03 00:53:25.008804+00
+4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_6YTFTC.jpg	data/content/AYR 25_6YTFTC.jpg	LPWU	CITE-0005	\N	\N	HsfdjnqnEA	2026-03-03 00:53:25.072758+00
+0840ee82-34c5-46aa-9457-6d95acd4ba2e	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_Z9P4WW.odt	data/content/AYR 25_Z9P4WW.odt	1LS7	CITE-0006	\N	\N	lCFNwODjeE	2026-03-03 00:53:25.243722+00
+99340295-cfb4-4cd1-8739-c1077093a947	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_ZDKL26.pdf	data/content/AYR 25_ZDKL26.pdf	V28X	CITE-0007	\N	\N	exzBRrVanX	2026-03-03 00:53:25.260706+00
+5f33717a-8f57-445a-ba9a-7adb3986ee57	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_G85D3R.png	data/content/AYR 25_G85D3R.png	P7W2	CITE-0008	\N	\N	IUhXibQnMW	2026-03-03 00:53:25.394997+00
+99fe139b-ae16-445d-9fd2-73e7c8ef2606	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_Z95P37.ppt	data/content/AYR 25_Z95P37.ppt	V2VA	CITE-0009	\N	\N	rhRcuRBgGM	2026-03-03 00:53:25.417247+00
+f307cc16-798d-4c85-ae4c-7b75c685c1fe	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_ZG8SKW.pptx	data/content/AYR 25_ZG8SKW.pptx	5CW3	CITE-0010	\N	\N	KHChGCGGmy	2026-03-03 00:53:25.434036+00
+dfa3baef-7a85-4c26-8137-a88cf6425528	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_ZJ56LA.rtf	data/content/AYR 25_ZJ56LA.rtf	5FE6	CITE-0011	\N	\N	ZyILZGXgev	2026-03-03 00:53:25.46627+00
+dc197ca6-9a7c-4348-8032-cb697cb41244	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_VCT56L.tif	data/content/AYR 25_VCT56L.tif	S2ME	CITE-0012	\N	\N	OrwXvzQeUI	2026-03-03 00:53:25.484242+00
+2e931072-946a-4358-b6f9-ca713afc68b0	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_DNI76K.txt	data/content/AYR 25_DNI76K.txt	D1SV	CITE-0013	\N	\N	GSpYZJPsvr	2026-03-03 00:53:25.498687+00
+e07586cb-ca18-4c5c-9a6e-f321cc999ee4	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_ZB33RH.wk1	data/content/AYR 25_ZB33RH.wk1	SKK4	CITE-0014	\N	\N	icjRDCEcCF	2026-03-03 00:53:25.512517+00
+8311bc81-e8fb-45dd-98dd-aa2f7e76f351	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_ZB33RK.wk4	data/content/AYR 25_ZB33RK.wk4	FZK9	CITE-0015	\N	\N	fvWICBbFrO	2026-03-03 00:53:25.527538+00
+085371e5-9398-4c1d-b9b4-358241368647	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_Z9P523.wp	data/content/AYR 25_Z9P523.wp	MIR2	CITE-0016	\N	\N	bTUeAfbGmU	2026-03-03 00:53:25.544613+00
+abd498c3-94f3-41b8-a79d-128f2711e800	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_VTC9WP.xls	data/content/AYR 25_VTC9WP.xls	PWP9	CITE-0017	\N	\N	WNTnsvbXBB	2026-03-03 00:53:25.560144+00
+8b0ed2f4-1851-48e7-86ba-28a545a27ed9	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_UYT6DV.xlsx	data/content/AYR 25_UYT6DV.xlsx	DSW1	CITE-0018	\N	\N	JtavPulYDk	2026-03-03 00:53:25.578595+00
+ab87e483-2fd5-49e9-8055-2fd3c88e223b	7c665764-2103-45f9-800b-f36893dd4436	File	AYR 25_Z9P524.xml	data/content/AYR 25_Z9P524.xml	2L6C	CITE-0019	\N	\N	UAjUhhXnAl	2026-03-03 00:53:25.593615+00
 \.
 
 
 --
--- Data for Name: FileMetadata; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: FileMetadata; Type: TABLE DATA; Schema: public; Owner: local_db_user
 --
 
 COPY public."FileMetadata" ("MetadataId", "FileId", "PropertyName", "Value", "CreatedDatetime") FROM stdin;
@@ -915,22 +955,441 @@ c9a5a089-1a72-47ff-b539-2383d26b8d8a	47526ba9-88e5-4cc8-8bc1-d682a10fa270	descri
 3b4cf046-987a-4e26-804d-765e61385a13	47526ba9-88e5-4cc8-8bc1-d682a10fa270	language	English	2024-03-06 10:43:30.841+00
 de9021a5-6134-4a15-b5c9-a49626bf0a1c	b2279f23-8d07-4fa5-b0af-94ec4123e21e	note	This record has a .docx extension, but the file content is PDF	2026-02-23 13:40:22.357821+00
 e08eb12e-94e5-4877-94e1-930580e26cc1	b9a8f847-ce98-4894-8c48-3986570dec7d	note	This record has a .docx extension, but the file content is PDF	2026-02-23 13:40:22.357821+00
+01508379-7ea0-4926-b4bd-836cc9ceff7c	a8514206-0ebb-4762-9022-fee2edce6436	source	test_file	2026-03-03 00:53:24.909585+00
+da2bbb78-f59d-40d8-8d81-6f188da290ae	a8514206-0ebb-4762-9022-fee2edce6436	file_name	AYR 25_KTV6RM.csv	2026-03-03 00:53:24.909659+00
+5d1a9094-523d-4a37-aeb1-303c59880e3b	a8514206-0ebb-4762-9022-fee2edce6436	file_type	File	2026-03-03 00:53:24.909709+00
+12ac5162-03a2-49a7-8397-24d58a835b38	a8514206-0ebb-4762-9022-fee2edce6436	file_size	81888	2026-03-03 00:53:24.909754+00
+d4872ca1-6b21-4239-92af-b4882cb2fb86	a8514206-0ebb-4762-9022-fee2edce6436	rights_copyright	Crown Copyright	2026-03-03 00:53:24.909794+00
+1b5bb15f-333e-4a9e-9407-b90478eb23d7	a8514206-0ebb-4762-9022-fee2edce6436	legal_status	Public Record(s)	2026-03-03 00:53:24.909833+00
+7b9c92c6-ca96-4b82-b2c4-89d7fcc7e0fb	a8514206-0ebb-4762-9022-fee2edce6436	held_by	The National Archives	2026-03-03 00:53:24.909874+00
+ce739d0f-2b54-4cfa-b513-7bf84aa75430	a8514206-0ebb-4762-9022-fee2edce6436	date_last_modified	2026-03-03T00:53:24.909574+00:00	2026-03-03 00:53:24.909914+00
+f44a559f-0815-4e42-9ecd-2ee1607d0f74	a8514206-0ebb-4762-9022-fee2edce6436	description	Test file for AYR development	2026-03-03 00:53:24.909955+00
+4fd73bb0-9035-4b4c-b154-abee533cecb5	a8514206-0ebb-4762-9022-fee2edce6436	closure_type	Open	2026-03-03 00:53:24.909992+00
+59420ce3-dcf3-42ce-bc1b-bfc45eaa3dfd	a8514206-0ebb-4762-9022-fee2edce6436	title_closed	false	2026-03-03 00:53:24.910028+00
+3bcbd8a5-47ab-4f32-921b-1298d9cd3a36	a8514206-0ebb-4762-9022-fee2edce6436	description_closed	false	2026-03-03 00:53:24.910066+00
+56937249-b931-4ffa-9622-80e8f3181487	a8514206-0ebb-4762-9022-fee2edce6436	language	English	2026-03-03 00:53:24.910103+00
+4ed578c4-6506-4fe6-9b9c-657e9b4a1618	a8514206-0ebb-4762-9022-fee2edce6436	created_at	2026-03-03T00:53:24.909580+00:00	2026-03-03 00:53:24.910138+00
+43aaa7e2-7242-4a09-8520-b992b22cf408	a8514206-0ebb-4762-9022-fee2edce6436	last_transfer_date	2026-03-03T00:53:24.909582+00:00	2026-03-03 00:53:24.910175+00
+817722a0-21af-4330-9283-5e37e0e0071a	a8514206-0ebb-4762-9022-fee2edce6436	file_format	CSV	2026-03-03 00:53:24.910211+00
+ad95b3fc-f421-415c-8585-71bde5b8f2e5	a8514206-0ebb-4762-9022-fee2edce6436	file_extension	csv	2026-03-03 00:53:24.910246+00
+3bc290c5-f306-4bb0-8d0b-66187e769bbd	a8514206-0ebb-4762-9022-fee2edce6436	closure_status	Open	2026-03-03 00:53:24.910281+00
+4b6cb0a3-802a-465a-87e0-f7b840b70bcc	a8514206-0ebb-4762-9022-fee2edce6436	closure_period	0	2026-03-03 00:53:24.91032+00
+02946f66-f5ac-457b-8a6c-b263d788c149	a8514206-0ebb-4762-9022-fee2edce6436	foi_exemption_code	None	2026-03-03 00:53:24.910356+00
+0e743a9b-b9c0-4e1a-be92-e50c824d2141	a8514206-0ebb-4762-9022-fee2edce6436	foi_exemption_code_description	None	2026-03-03 00:53:24.910392+00
+45dfa4e2-f249-48bc-93a6-a17964542eb1	a8514206-0ebb-4762-9022-fee2edce6436	title	Test File 1	2026-03-03 00:53:24.910427+00
+db7b1c8d-0527-49ac-b77d-94376e03b42c	6a25d42c-14bb-4a62-b929-fa524fe90a9f	source	test_file	2026-03-03 00:53:24.926304+00
+e3b99651-ca59-43ac-8ec2-276e542c8aaf	6a25d42c-14bb-4a62-b929-fa524fe90a9f	file_name	AYR 25_ZFW6DB.doc	2026-03-03 00:53:24.926373+00
+9a8c9341-6a81-4712-ad4c-7a349e6192b8	6a25d42c-14bb-4a62-b929-fa524fe90a9f	file_type	File	2026-03-03 00:53:24.926419+00
+b3d10dfa-9ba3-4c90-84c5-55515ed5348c	6a25d42c-14bb-4a62-b929-fa524fe90a9f	file_size	73216	2026-03-03 00:53:24.926463+00
+971d6004-335b-46b5-b197-17a771269d4c	6a25d42c-14bb-4a62-b929-fa524fe90a9f	rights_copyright	Crown Copyright	2026-03-03 00:53:24.926505+00
+61be2a16-06b3-473d-a82b-69278b96da4d	6a25d42c-14bb-4a62-b929-fa524fe90a9f	legal_status	Public Record(s)	2026-03-03 00:53:24.926543+00
+bfd95ea3-7175-4ead-9b18-56db8dbda458	6a25d42c-14bb-4a62-b929-fa524fe90a9f	held_by	The National Archives	2026-03-03 00:53:24.92658+00
+9bb27078-5af6-466e-9a96-1dc1e31cab3b	6a25d42c-14bb-4a62-b929-fa524fe90a9f	date_last_modified	2026-03-03T00:53:24.926290+00:00	2026-03-03 00:53:24.926616+00
+ad2913a1-fc2d-4484-a12a-2c71efa6eb93	6a25d42c-14bb-4a62-b929-fa524fe90a9f	description	Test file for AYR development	2026-03-03 00:53:24.926652+00
+f041bdec-9914-4431-bec1-0ff159521082	6a25d42c-14bb-4a62-b929-fa524fe90a9f	closure_type	Open	2026-03-03 00:53:24.926687+00
+ea6ed74b-a3e7-4b0f-b683-30a8cb812a33	6a25d42c-14bb-4a62-b929-fa524fe90a9f	title_closed	false	2026-03-03 00:53:24.926722+00
+83d048e7-10d0-47e9-86a8-c709788a333d	6a25d42c-14bb-4a62-b929-fa524fe90a9f	description_closed	false	2026-03-03 00:53:24.92676+00
+8c7b7e16-769e-456c-bae4-e5b3e8ec4fb0	6a25d42c-14bb-4a62-b929-fa524fe90a9f	language	English	2026-03-03 00:53:24.926796+00
+c4272b8c-e8c9-4f70-a328-91484b07dc71	6a25d42c-14bb-4a62-b929-fa524fe90a9f	created_at	2026-03-03T00:53:24.926298+00:00	2026-03-03 00:53:24.926833+00
+20b5d475-983b-400b-9288-2f730ec6506f	6a25d42c-14bb-4a62-b929-fa524fe90a9f	last_transfer_date	2026-03-03T00:53:24.926300+00:00	2026-03-03 00:53:24.926868+00
+872c23f2-019a-405a-91db-56f65fa484bc	6a25d42c-14bb-4a62-b929-fa524fe90a9f	file_format	DOC	2026-03-03 00:53:24.926903+00
+f7953e21-192b-4a28-a6b2-0ca7cdfb8d2e	6a25d42c-14bb-4a62-b929-fa524fe90a9f	file_extension	doc	2026-03-03 00:53:24.926938+00
+70c14e04-e8a8-4b6d-ae56-f2daa7744258	6a25d42c-14bb-4a62-b929-fa524fe90a9f	closure_status	Open	2026-03-03 00:53:24.926976+00
+415c781c-4787-4529-b3d4-b45584037912	6a25d42c-14bb-4a62-b929-fa524fe90a9f	closure_period	0	2026-03-03 00:53:24.92701+00
+220cb82f-fd82-41c7-aae5-0b0913bdf94b	6a25d42c-14bb-4a62-b929-fa524fe90a9f	foi_exemption_code	None	2026-03-03 00:53:24.927049+00
+e8bb3bc8-4459-482e-bdf1-12b3a9210cea	6a25d42c-14bb-4a62-b929-fa524fe90a9f	foi_exemption_code_description	None	2026-03-03 00:53:24.927083+00
+1ca5a970-9feb-4846-8754-c49ff8b779aa	6a25d42c-14bb-4a62-b929-fa524fe90a9f	title	Test File 2	2026-03-03 00:53:24.927119+00
+5d8f9729-9def-4520-8078-0f2e0cdfb300	c05f2c17-19e3-4865-9642-7e828281bd22	source	test_file	2026-03-03 00:53:24.941872+00
+c85ebb09-686b-46ff-a696-f8a29d10e565	c05f2c17-19e3-4865-9642-7e828281bd22	file_name	AYR 25_ZDC8J4.docx	2026-03-03 00:53:24.941939+00
+e390ebf1-4d4f-428b-858c-f49d82481259	c05f2c17-19e3-4865-9642-7e828281bd22	file_type	File	2026-03-03 00:53:24.941985+00
+a28cbeef-3a98-4f8e-9c3e-48f4674d0527	c05f2c17-19e3-4865-9642-7e828281bd22	file_size	9075	2026-03-03 00:53:24.942028+00
+4bf6e59e-d8c8-42ec-ba4a-11ec67544810	c05f2c17-19e3-4865-9642-7e828281bd22	rights_copyright	Crown Copyright	2026-03-03 00:53:24.942068+00
+364c9fbd-3d91-48c2-abfa-f7a27a3dc96e	c05f2c17-19e3-4865-9642-7e828281bd22	legal_status	Public Record(s)	2026-03-03 00:53:24.942109+00
+d92ade9b-09c2-44f8-bfca-ccf0d754991e	c05f2c17-19e3-4865-9642-7e828281bd22	held_by	The National Archives	2026-03-03 00:53:24.942146+00
+1d542f73-a534-4bbf-b0f2-74594ac64978	c05f2c17-19e3-4865-9642-7e828281bd22	date_last_modified	2026-03-03T00:53:24.941859+00:00	2026-03-03 00:53:24.942181+00
+c1363737-23f7-48b0-b1f3-e823788c005c	c05f2c17-19e3-4865-9642-7e828281bd22	description	Test file for AYR development	2026-03-03 00:53:24.942217+00
+c022e986-9e95-4fd9-b0fd-cd6c305147d3	c05f2c17-19e3-4865-9642-7e828281bd22	closure_type	Open	2026-03-03 00:53:24.942252+00
+fb156213-de76-44cf-9c0b-983151b6061a	c05f2c17-19e3-4865-9642-7e828281bd22	title_closed	false	2026-03-03 00:53:24.942287+00
+f60e624e-d516-4a65-bcbd-3f43f6bb0d59	c05f2c17-19e3-4865-9642-7e828281bd22	description_closed	false	2026-03-03 00:53:24.942321+00
+10def379-45be-4817-9231-0a4d3b3328e3	c05f2c17-19e3-4865-9642-7e828281bd22	language	English	2026-03-03 00:53:24.942355+00
+e8e3d70d-28de-416c-afe5-26a038aef443	c05f2c17-19e3-4865-9642-7e828281bd22	created_at	2026-03-03T00:53:24.941866+00:00	2026-03-03 00:53:24.942388+00
+b4f4c36d-8ea6-413c-8164-4c0fa477c673	c05f2c17-19e3-4865-9642-7e828281bd22	last_transfer_date	2026-03-03T00:53:24.941867+00:00	2026-03-03 00:53:24.942426+00
+e131eb48-ed52-4b5c-b84a-3c282a04cdf4	c05f2c17-19e3-4865-9642-7e828281bd22	file_format	DOCX	2026-03-03 00:53:24.942465+00
+871bc7bf-0d23-4367-a3b3-9a7ceebefb97	c05f2c17-19e3-4865-9642-7e828281bd22	file_extension	docx	2026-03-03 00:53:24.942501+00
+605be1f9-3de9-4f8a-9f46-cfaffdb12840	c05f2c17-19e3-4865-9642-7e828281bd22	closure_status	Open	2026-03-03 00:53:24.942564+00
+f8bf46f1-04c3-40cd-93a2-da151623d551	c05f2c17-19e3-4865-9642-7e828281bd22	closure_period	0	2026-03-03 00:53:24.942596+00
+5f22e9db-2816-42bc-8bbf-7fc598b94614	c05f2c17-19e3-4865-9642-7e828281bd22	foi_exemption_code	None	2026-03-03 00:53:24.94263+00
+684a1be3-a4b4-4eef-91c9-bfc683f77959	c05f2c17-19e3-4865-9642-7e828281bd22	foi_exemption_code_description	None	2026-03-03 00:53:24.942663+00
+42e07a21-9ae5-440a-bc09-1be793b229ae	c05f2c17-19e3-4865-9642-7e828281bd22	title	Test File 3	2026-03-03 00:53:24.942696+00
+b5d2356d-93cb-4ba8-965a-499f11551ede	bddef9e5-3d18-416a-b553-55b66ce2e568	source	test_file	2026-03-03 00:53:25.008948+00
+97a4921c-cb3c-46d2-9d00-54ebc22118af	bddef9e5-3d18-416a-b553-55b66ce2e568	file_name	AYR 25_LW73EO.epub	2026-03-03 00:53:25.009013+00
+7712c00b-9c1a-4bbd-aad7-3ec2f0b33bc1	bddef9e5-3d18-416a-b553-55b66ce2e568	file_type	File	2026-03-03 00:53:25.00906+00
+3c86bea9-6840-4781-ae81-c0a4fef49a49	bddef9e5-3d18-416a-b553-55b66ce2e568	file_size	3999513	2026-03-03 00:53:25.009103+00
+a7d30e30-0cfb-4929-86a3-a9568fbe6d38	bddef9e5-3d18-416a-b553-55b66ce2e568	rights_copyright	Crown Copyright	2026-03-03 00:53:25.009142+00
+1645b974-30df-4380-9374-818548892272	bddef9e5-3d18-416a-b553-55b66ce2e568	legal_status	Public Record(s)	2026-03-03 00:53:25.00918+00
+d2e181ad-3e1b-4234-a3c8-785fe97105e4	bddef9e5-3d18-416a-b553-55b66ce2e568	held_by	The National Archives	2026-03-03 00:53:25.009216+00
+772e1875-dcf1-4420-977e-64ce0b4fabad	bddef9e5-3d18-416a-b553-55b66ce2e568	date_last_modified	2026-03-03T00:53:25.008934+00:00	2026-03-03 00:53:25.00925+00
+e5b618dd-ba38-4291-b806-97509e65bd27	bddef9e5-3d18-416a-b553-55b66ce2e568	description	Test file for AYR development	2026-03-03 00:53:25.009283+00
+56bea944-3892-4bbd-bf77-0ee293d1e682	bddef9e5-3d18-416a-b553-55b66ce2e568	closure_type	Open	2026-03-03 00:53:25.009315+00
+99f41907-3bee-4567-83a8-bd56bfaa9e47	bddef9e5-3d18-416a-b553-55b66ce2e568	title_closed	false	2026-03-03 00:53:25.009349+00
+ba64abc1-5445-4ba4-ac19-b128cdb869d4	bddef9e5-3d18-416a-b553-55b66ce2e568	description_closed	false	2026-03-03 00:53:25.009383+00
+a39b7c1a-f306-49ac-a613-38540e1a19dd	bddef9e5-3d18-416a-b553-55b66ce2e568	language	English	2026-03-03 00:53:25.009417+00
+e0c42f3d-8f04-4338-9da1-717abf425e33	bddef9e5-3d18-416a-b553-55b66ce2e568	created_at	2026-03-03T00:53:25.008941+00:00	2026-03-03 00:53:25.009451+00
+54378d15-8685-4f1e-a1e2-b90883897417	bddef9e5-3d18-416a-b553-55b66ce2e568	last_transfer_date	2026-03-03T00:53:25.008943+00:00	2026-03-03 00:53:25.009485+00
+36a00795-1740-405e-a15d-36d350786c0e	bddef9e5-3d18-416a-b553-55b66ce2e568	file_format	EPUB	2026-03-03 00:53:25.009518+00
+fc8cb08a-6797-46e1-8ffb-31c62080429a	bddef9e5-3d18-416a-b553-55b66ce2e568	file_extension	epub	2026-03-03 00:53:25.009551+00
+99378e9d-379e-40bf-b632-3e87be1ca1de	bddef9e5-3d18-416a-b553-55b66ce2e568	closure_status	Open	2026-03-03 00:53:25.009584+00
+e9a1b41f-c894-4f67-a371-ff3bf16bb54e	bddef9e5-3d18-416a-b553-55b66ce2e568	closure_period	0	2026-03-03 00:53:25.009617+00
+6c7fd0b3-4142-47ad-a70c-fd0476ed5e33	bddef9e5-3d18-416a-b553-55b66ce2e568	foi_exemption_code	None	2026-03-03 00:53:25.00965+00
+a606d49e-8fff-49bc-9f57-acfeb8c23778	bddef9e5-3d18-416a-b553-55b66ce2e568	foi_exemption_code_description	None	2026-03-03 00:53:25.009682+00
+c576b5aa-7ef3-448a-a8bf-bc89ce65f884	bddef9e5-3d18-416a-b553-55b66ce2e568	title	Test File 4	2026-03-03 00:53:25.009715+00
+a3c554ad-ac1c-4cf4-9e84-3e2d8c48bbc0	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	source	test_file	2026-03-03 00:53:25.072903+00
+d630fc4a-2583-4c9e-b931-5745754575d8	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	file_name	AYR 25_6YTFTC.jpg	2026-03-03 00:53:25.072971+00
+4c1d392f-8f48-4f73-b211-95a4eb27f97c	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	file_type	File	2026-03-03 00:53:25.073017+00
+0a8ed247-8f26-4e3c-94d8-4e574574e61f	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	file_size	5631665	2026-03-03 00:53:25.073061+00
+24bbcb09-ea87-491b-b2fa-76ca6874c020	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	rights_copyright	Crown Copyright	2026-03-03 00:53:25.073101+00
+73382016-0087-41e0-b901-7a772785ff2b	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	legal_status	Public Record(s)	2026-03-03 00:53:25.073139+00
+1281fd17-7811-4799-967c-9a17fe0cf979	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	held_by	The National Archives	2026-03-03 00:53:25.073175+00
+4d362850-1dab-4149-b490-ee73a069bd93	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	date_last_modified	2026-03-03T00:53:25.072890+00:00	2026-03-03 00:53:25.073211+00
+a77943a2-6b00-45ab-89c5-d2d37f57e7c2	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	description	Test file for AYR development	2026-03-03 00:53:25.073245+00
+d5a9c647-394c-4388-a52e-268055b7822a	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	closure_type	Open	2026-03-03 00:53:25.073282+00
+7d237438-76b6-4bf2-aaa6-3f5cb5f27968	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	title_closed	false	2026-03-03 00:53:25.073317+00
+44e81299-c80b-4e7a-94d7-85d31505b79d	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	description_closed	false	2026-03-03 00:53:25.073354+00
+4aab0cc7-dbfb-442c-8732-e4695be149ff	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	language	English	2026-03-03 00:53:25.073391+00
+649915f4-743b-4e33-9941-f7065bba6b2a	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	created_at	2026-03-03T00:53:25.072897+00:00	2026-03-03 00:53:25.07343+00
+41730e05-ccde-4ed0-b422-5561e65ae522	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	last_transfer_date	2026-03-03T00:53:25.072898+00:00	2026-03-03 00:53:25.073467+00
+39edb72e-5109-41f3-963b-9e7857c3d499	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	file_format	JPG	2026-03-03 00:53:25.073503+00
+242767ec-9321-4e00-8e36-2814a17de177	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	file_extension	jpg	2026-03-03 00:53:25.073539+00
+5b98cf9a-388d-48b5-9640-03f971878765	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	closure_status	Open	2026-03-03 00:53:25.073692+00
+878a02f1-aaa4-4573-8db7-2e5f1953cf59	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	closure_period	0	2026-03-03 00:53:25.073752+00
+ced6e612-c9f4-432a-858f-c01ea494c9af	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	foi_exemption_code	None	2026-03-03 00:53:25.073798+00
+68fbefaa-ab36-4ce4-b30b-560912bdcce2	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	foi_exemption_code_description	None	2026-03-03 00:53:25.073842+00
+a1d84e39-bd00-4a9f-9f56-d2e716a41f58	4dfa0a8a-65dd-4d7a-8fa9-a54ec3a07613	title	Test File 5	2026-03-03 00:53:25.073884+00
+8bf05c4d-233b-44c3-9af8-ae96037677a9	0840ee82-34c5-46aa-9457-6d95acd4ba2e	source	test_file	2026-03-03 00:53:25.243877+00
+91a111d5-1412-4988-a0b6-9aeb5e17657e	0840ee82-34c5-46aa-9457-6d95acd4ba2e	file_name	AYR 25_Z9P4WW.odt	2026-03-03 00:53:25.243943+00
+6c48898d-7855-4ed0-af60-0c062862616f	0840ee82-34c5-46aa-9457-6d95acd4ba2e	file_type	File	2026-03-03 00:53:25.243987+00
+93cb0e55-46bb-43ad-97d4-ad3ecc0f2e15	0840ee82-34c5-46aa-9457-6d95acd4ba2e	file_size	14101361	2026-03-03 00:53:25.244031+00
+a7d2371e-1676-4c3f-a638-0f7fb11b15f4	0840ee82-34c5-46aa-9457-6d95acd4ba2e	rights_copyright	Crown Copyright	2026-03-03 00:53:25.244071+00
+3a725db5-5f89-4bf8-9591-be82199de466	0840ee82-34c5-46aa-9457-6d95acd4ba2e	legal_status	Public Record(s)	2026-03-03 00:53:25.244108+00
+f115e0da-dfc8-4894-aa20-74e436a94995	0840ee82-34c5-46aa-9457-6d95acd4ba2e	held_by	The National Archives	2026-03-03 00:53:25.244145+00
+bb75f846-703e-40c4-9f8f-3bc5bccb6396	0840ee82-34c5-46aa-9457-6d95acd4ba2e	date_last_modified	2026-03-03T00:53:25.243859+00:00	2026-03-03 00:53:25.244183+00
+70891645-4b59-4ef5-a598-00e84b12a9ac	0840ee82-34c5-46aa-9457-6d95acd4ba2e	description	Test file for AYR development	2026-03-03 00:53:25.244218+00
+fb946489-56b8-4379-a212-fd9bb14f0059	0840ee82-34c5-46aa-9457-6d95acd4ba2e	closure_type	Open	2026-03-03 00:53:25.244254+00
+d876e869-7a5c-4533-ba89-8e7d8a844c78	0840ee82-34c5-46aa-9457-6d95acd4ba2e	title_closed	false	2026-03-03 00:53:25.244289+00
+6cdc8fc5-4402-443d-a925-4b63a234a4e4	0840ee82-34c5-46aa-9457-6d95acd4ba2e	description_closed	false	2026-03-03 00:53:25.244329+00
+fa17895f-6b18-4699-a2df-2a3cd011764f	0840ee82-34c5-46aa-9457-6d95acd4ba2e	language	English	2026-03-03 00:53:25.244365+00
+d300f538-9710-46b9-877c-745486874d16	0840ee82-34c5-46aa-9457-6d95acd4ba2e	created_at	2026-03-03T00:53:25.243868+00:00	2026-03-03 00:53:25.244402+00
+ce254de7-74a3-499e-b63d-f03a7dcf19c5	0840ee82-34c5-46aa-9457-6d95acd4ba2e	last_transfer_date	2026-03-03T00:53:25.243869+00:00	2026-03-03 00:53:25.244437+00
+e92a0504-025a-421d-93d8-962b1cb9a301	0840ee82-34c5-46aa-9457-6d95acd4ba2e	file_format	ODT	2026-03-03 00:53:25.244472+00
+804f0f41-24e7-40ea-ba8e-b35fa0aa89a1	0840ee82-34c5-46aa-9457-6d95acd4ba2e	file_extension	odt	2026-03-03 00:53:25.244507+00
+97b74730-a3a8-4980-abab-4bd67f8f2615	0840ee82-34c5-46aa-9457-6d95acd4ba2e	closure_status	Open	2026-03-03 00:53:25.244542+00
+1ae2c30f-3dd6-4b21-84b9-4c7d32a5213e	0840ee82-34c5-46aa-9457-6d95acd4ba2e	closure_period	0	2026-03-03 00:53:25.244578+00
+a66e0500-446d-45b6-97a6-eab5b9544488	0840ee82-34c5-46aa-9457-6d95acd4ba2e	foi_exemption_code	None	2026-03-03 00:53:25.244615+00
+11b7df35-4f34-4af0-86fe-3b9bc99ffa07	0840ee82-34c5-46aa-9457-6d95acd4ba2e	foi_exemption_code_description	None	2026-03-03 00:53:25.244651+00
+5b5c266c-eb6a-4dac-9950-fdfe6baeb466	0840ee82-34c5-46aa-9457-6d95acd4ba2e	title	Test File 6	2026-03-03 00:53:25.244689+00
+fb868dbc-c964-4033-84f2-be63c9a7ff02	99340295-cfb4-4cd1-8739-c1077093a947	source	test_file	2026-03-03 00:53:25.260845+00
+0d3808ca-4f4f-4310-8d67-70447ffec418	99340295-cfb4-4cd1-8739-c1077093a947	file_name	AYR 25_ZDKL26.pdf	2026-03-03 00:53:25.260909+00
+899119e2-1333-48df-a2e2-7252a6fd50e8	99340295-cfb4-4cd1-8739-c1077093a947	file_type	File	2026-03-03 00:53:25.260954+00
+336f872e-12ee-4314-b0e3-67ba67e4ce77	99340295-cfb4-4cd1-8739-c1077093a947	file_size	117889	2026-03-03 00:53:25.261021+00
+b29116d3-8667-4d94-a967-28959a3c8eb8	99340295-cfb4-4cd1-8739-c1077093a947	rights_copyright	Crown Copyright	2026-03-03 00:53:25.261061+00
+30efb58f-3004-4fbb-99ce-9ca5526d3fa1	99340295-cfb4-4cd1-8739-c1077093a947	legal_status	Public Record(s)	2026-03-03 00:53:25.261098+00
+d8fade4b-9b3b-437b-8483-246a9ea8d767	99340295-cfb4-4cd1-8739-c1077093a947	held_by	The National Archives	2026-03-03 00:53:25.261132+00
+2cd2ebe4-beab-4232-9a62-1722ce3d33ad	99340295-cfb4-4cd1-8739-c1077093a947	date_last_modified	2026-03-03T00:53:25.260832+00:00	2026-03-03 00:53:25.261174+00
+66eceed9-40bf-4731-9644-d284f2c8cd9f	99340295-cfb4-4cd1-8739-c1077093a947	description	Test file for AYR development	2026-03-03 00:53:25.261209+00
+5320da47-ac75-4714-9b64-59b39d46baf7	99340295-cfb4-4cd1-8739-c1077093a947	closure_type	Open	2026-03-03 00:53:25.261245+00
+32128fb7-6d8d-4cad-99af-460040e03fa1	99340295-cfb4-4cd1-8739-c1077093a947	title_closed	false	2026-03-03 00:53:25.261281+00
+57745607-56ee-47b0-a50f-ab246b632ab7	99340295-cfb4-4cd1-8739-c1077093a947	description_closed	false	2026-03-03 00:53:25.261315+00
+451fefa3-11e2-439e-a7a4-ecc346aba25f	99340295-cfb4-4cd1-8739-c1077093a947	language	English	2026-03-03 00:53:25.26135+00
+9ed33a69-d856-4dc7-b2de-8c8bf6836d2c	99340295-cfb4-4cd1-8739-c1077093a947	created_at	2026-03-03T00:53:25.260839+00:00	2026-03-03 00:53:25.261386+00
+998290f8-447e-44ee-b48a-aca987af51c3	99340295-cfb4-4cd1-8739-c1077093a947	last_transfer_date	2026-03-03T00:53:25.260841+00:00	2026-03-03 00:53:25.261428+00
+3a0d3bde-4910-4f83-a288-dcbe3acb95a5	99340295-cfb4-4cd1-8739-c1077093a947	file_format	PDF	2026-03-03 00:53:25.261462+00
+b0dab808-9934-45b1-a5b4-237e39010fa7	99340295-cfb4-4cd1-8739-c1077093a947	file_extension	pdf	2026-03-03 00:53:25.261497+00
+69b142e7-8d98-490e-95b3-1aeae9cb68e9	99340295-cfb4-4cd1-8739-c1077093a947	closure_status	Open	2026-03-03 00:53:25.261544+00
+7bb58e74-2844-4d8b-b421-f6e837d0262e	99340295-cfb4-4cd1-8739-c1077093a947	closure_period	0	2026-03-03 00:53:25.261578+00
+5f9dd774-b9b1-4582-a75e-28896088c36c	99340295-cfb4-4cd1-8739-c1077093a947	foi_exemption_code	None	2026-03-03 00:53:25.261614+00
+7b9f790b-14f9-489a-adbf-2042102682e6	99340295-cfb4-4cd1-8739-c1077093a947	foi_exemption_code_description	None	2026-03-03 00:53:25.261702+00
+1e243256-60d3-4bc8-87c7-dac5c745d36d	99340295-cfb4-4cd1-8739-c1077093a947	title	Test File 7	2026-03-03 00:53:25.261822+00
+71ffb07e-147c-46c6-8862-7273f37d7763	5f33717a-8f57-445a-ba9a-7adb3986ee57	source	test_file	2026-03-03 00:53:25.395136+00
+1d11afa3-3e17-49bb-9bed-34e544eb28d5	5f33717a-8f57-445a-ba9a-7adb3986ee57	file_name	AYR 25_G85D3R.png	2026-03-03 00:53:25.395198+00
+d6007879-0a1f-4bd0-ad72-c217ac1bb4fc	5f33717a-8f57-445a-ba9a-7adb3986ee57	file_type	File	2026-03-03 00:53:25.395242+00
+8a284501-f9ca-4d52-8bfc-da37e235a3b9	5f33717a-8f57-445a-ba9a-7adb3986ee57	file_size	14089962	2026-03-03 00:53:25.395284+00
+e3566f45-d37b-4b16-b208-7e6a6938d51c	5f33717a-8f57-445a-ba9a-7adb3986ee57	rights_copyright	Crown Copyright	2026-03-03 00:53:25.395324+00
+7f42ee78-f3b8-4e2d-910f-547f32907913	5f33717a-8f57-445a-ba9a-7adb3986ee57	legal_status	Public Record(s)	2026-03-03 00:53:25.395362+00
+45f5ad9c-0298-4a38-b2a5-cda501c2b21d	5f33717a-8f57-445a-ba9a-7adb3986ee57	held_by	The National Archives	2026-03-03 00:53:25.395402+00
+e66677f8-5fd0-419f-bbcb-d355cbc00d53	5f33717a-8f57-445a-ba9a-7adb3986ee57	date_last_modified	2026-03-03T00:53:25.395124+00:00	2026-03-03 00:53:25.395439+00
+beb8910f-d3c5-4da2-b9c0-e53566166fe6	5f33717a-8f57-445a-ba9a-7adb3986ee57	description	Test file for AYR development	2026-03-03 00:53:25.395474+00
+c4172834-1ecc-4383-9282-452d95a46d7e	5f33717a-8f57-445a-ba9a-7adb3986ee57	closure_type	Open	2026-03-03 00:53:25.39551+00
+5f47dd08-66a9-4f27-9395-8e7f4e7526e3	5f33717a-8f57-445a-ba9a-7adb3986ee57	title_closed	false	2026-03-03 00:53:25.395544+00
+bcfa2f28-0323-40ac-a56c-0a62ed5803b5	5f33717a-8f57-445a-ba9a-7adb3986ee57	description_closed	false	2026-03-03 00:53:25.39558+00
+f684460d-656c-4c7e-8e86-797a1b7df012	5f33717a-8f57-445a-ba9a-7adb3986ee57	language	English	2026-03-03 00:53:25.395615+00
+fd8efc0c-4c83-4662-a4f5-461fc8de151b	5f33717a-8f57-445a-ba9a-7adb3986ee57	created_at	2026-03-03T00:53:25.395131+00:00	2026-03-03 00:53:25.395653+00
+bab8d9db-c430-4e2a-af21-c26d7a47e602	085371e5-9398-4c1d-b9b4-358241368647	file_type	File	2026-03-03 00:53:25.544884+00
+412af94e-e5b9-4dad-875a-65ce75437fd7	5f33717a-8f57-445a-ba9a-7adb3986ee57	last_transfer_date	2026-03-03T00:53:25.395133+00:00	2026-03-03 00:53:25.39569+00
+6a5afcbc-19b8-4f9f-812f-36956a5572ef	5f33717a-8f57-445a-ba9a-7adb3986ee57	file_format	PNG	2026-03-03 00:53:25.395724+00
+a37c31bb-b96a-46a1-bec8-6549783fd5ae	5f33717a-8f57-445a-ba9a-7adb3986ee57	file_extension	png	2026-03-03 00:53:25.395759+00
+9db4b45e-cc1c-409f-9cbe-fb9c35cb5342	5f33717a-8f57-445a-ba9a-7adb3986ee57	closure_status	Open	2026-03-03 00:53:25.395795+00
+f264ec0d-16eb-4ab4-82c9-85c0106d2227	5f33717a-8f57-445a-ba9a-7adb3986ee57	closure_period	0	2026-03-03 00:53:25.395831+00
+b0a2d87f-3e6b-4945-8ce3-bd9b296053b5	5f33717a-8f57-445a-ba9a-7adb3986ee57	foi_exemption_code	None	2026-03-03 00:53:25.395868+00
+6760ffff-ae33-491f-b79d-6b2082530245	5f33717a-8f57-445a-ba9a-7adb3986ee57	foi_exemption_code_description	None	2026-03-03 00:53:25.395904+00
+87b4840f-2f63-4c97-8eb0-85471c3f9acd	5f33717a-8f57-445a-ba9a-7adb3986ee57	title	Test File 8	2026-03-03 00:53:25.39594+00
+821cf4a4-ac56-4f5a-a632-48acfa2a61ac	99fe139b-ae16-445d-9fd2-73e7c8ef2606	source	test_file	2026-03-03 00:53:25.417384+00
+9e1bc95b-5756-4e6d-aea4-4c66fbb7e731	99fe139b-ae16-445d-9fd2-73e7c8ef2606	file_name	AYR 25_Z95P37.ppt	2026-03-03 00:53:25.417443+00
+1df42bf3-e256-4d52-8310-4ceecaa4559f	99fe139b-ae16-445d-9fd2-73e7c8ef2606	file_type	File	2026-03-03 00:53:25.417487+00
+c76eb840-a725-4a3e-9353-1be16be882e6	99fe139b-ae16-445d-9fd2-73e7c8ef2606	file_size	520704	2026-03-03 00:53:25.417528+00
+123fafc6-75d9-48d1-935b-a381395ed5f6	99fe139b-ae16-445d-9fd2-73e7c8ef2606	rights_copyright	Crown Copyright	2026-03-03 00:53:25.417566+00
+965333c2-6ef7-4838-940c-2e37c43bc047	99fe139b-ae16-445d-9fd2-73e7c8ef2606	legal_status	Public Record(s)	2026-03-03 00:53:25.417603+00
+77f4f474-593e-4a00-8043-a9b3c15d9831	99fe139b-ae16-445d-9fd2-73e7c8ef2606	held_by	The National Archives	2026-03-03 00:53:25.417638+00
+0a7105c8-df87-4fce-a80c-ae9190df57ef	99fe139b-ae16-445d-9fd2-73e7c8ef2606	date_last_modified	2026-03-03T00:53:25.417372+00:00	2026-03-03 00:53:25.417676+00
+a241aec6-9c02-46c9-acd7-60aacc448e4f	99fe139b-ae16-445d-9fd2-73e7c8ef2606	description	Test file for AYR development	2026-03-03 00:53:25.417711+00
+a7a77724-bd16-49cb-a22d-4c862dc1b36f	99fe139b-ae16-445d-9fd2-73e7c8ef2606	closure_type	Open	2026-03-03 00:53:25.417745+00
+8306a9d4-0f35-4175-bde8-7b1c63715422	99fe139b-ae16-445d-9fd2-73e7c8ef2606	title_closed	false	2026-03-03 00:53:25.417781+00
+4838ff3b-cdf5-47d7-b389-cfdeca0d3523	99fe139b-ae16-445d-9fd2-73e7c8ef2606	description_closed	false	2026-03-03 00:53:25.417817+00
+edb368ba-f335-41d8-9e11-18c7c22dd6e5	99fe139b-ae16-445d-9fd2-73e7c8ef2606	language	English	2026-03-03 00:53:25.417853+00
+8dad936c-2870-4a3e-9e07-f729c517d9a0	99fe139b-ae16-445d-9fd2-73e7c8ef2606	created_at	2026-03-03T00:53:25.417379+00:00	2026-03-03 00:53:25.417894+00
+fa698321-e481-409b-994f-78c74324280b	99fe139b-ae16-445d-9fd2-73e7c8ef2606	last_transfer_date	2026-03-03T00:53:25.417380+00:00	2026-03-03 00:53:25.41793+00
+5cadd320-87c0-4a77-a7e7-203e9b945765	99fe139b-ae16-445d-9fd2-73e7c8ef2606	file_format	PPT	2026-03-03 00:53:25.417968+00
+1bdd61fb-e8b6-4703-8a09-9e723241e5b9	99fe139b-ae16-445d-9fd2-73e7c8ef2606	file_extension	ppt	2026-03-03 00:53:25.418003+00
+1d7342e8-9bc0-4127-8d4e-65559712dae7	99fe139b-ae16-445d-9fd2-73e7c8ef2606	closure_status	Open	2026-03-03 00:53:25.418038+00
+eafb25fa-47a8-42f4-b6db-967a0fca5984	99fe139b-ae16-445d-9fd2-73e7c8ef2606	closure_period	0	2026-03-03 00:53:25.418071+00
+662b726a-a0b8-4c6e-9d36-4f083da69585	99fe139b-ae16-445d-9fd2-73e7c8ef2606	foi_exemption_code	None	2026-03-03 00:53:25.418105+00
+2cd12a2c-4ba1-4790-ad4a-304d3818d2e0	99fe139b-ae16-445d-9fd2-73e7c8ef2606	foi_exemption_code_description	None	2026-03-03 00:53:25.41814+00
+4befc114-c395-4a57-92e9-fd9b9d52c545	99fe139b-ae16-445d-9fd2-73e7c8ef2606	title	Test File 9	2026-03-03 00:53:25.418174+00
+a76d19dc-8322-44e4-ae5d-37c113d918f5	f307cc16-798d-4c85-ae4c-7b75c685c1fe	source	test_file	2026-03-03 00:53:25.434176+00
+130ba1f6-d19d-4597-807c-9f310ad5902c	f307cc16-798d-4c85-ae4c-7b75c685c1fe	file_name	AYR 25_ZG8SKW.pptx	2026-03-03 00:53:25.434241+00
+3a7aeefc-eeb7-47ba-806a-58d6221c3be2	f307cc16-798d-4c85-ae4c-7b75c685c1fe	file_type	File	2026-03-03 00:53:25.434288+00
+dee5452b-5869-4ab0-a2b3-a6dbdb5cc505	f307cc16-798d-4c85-ae4c-7b75c685c1fe	file_size	70690	2026-03-03 00:53:25.434329+00
+47a44fcd-a29c-49c3-8dd1-d29288f39fc6	f307cc16-798d-4c85-ae4c-7b75c685c1fe	rights_copyright	Crown Copyright	2026-03-03 00:53:25.434367+00
+34c142c7-ae8a-44c4-a3ef-2e3415939bb7	f307cc16-798d-4c85-ae4c-7b75c685c1fe	legal_status	Public Record(s)	2026-03-03 00:53:25.434405+00
+da4e9e66-aebd-4fa1-a29d-0fdbadbe4c62	f307cc16-798d-4c85-ae4c-7b75c685c1fe	held_by	The National Archives	2026-03-03 00:53:25.434441+00
+d495e750-7a00-469d-87d6-1f53f9320510	f307cc16-798d-4c85-ae4c-7b75c685c1fe	date_last_modified	2026-03-03T00:53:25.434164+00:00	2026-03-03 00:53:25.434475+00
+9657aea4-052e-41fe-814a-f7c42e5550bf	f307cc16-798d-4c85-ae4c-7b75c685c1fe	description	Test file for AYR development	2026-03-03 00:53:25.434511+00
+d3aac730-c804-4742-abb4-b53fc863bd3f	f307cc16-798d-4c85-ae4c-7b75c685c1fe	closure_type	Open	2026-03-03 00:53:25.434667+00
+37101547-5a09-4a7a-9b72-e05a1372c582	f307cc16-798d-4c85-ae4c-7b75c685c1fe	title_closed	false	2026-03-03 00:53:25.434733+00
+a451a45b-a2ac-4bc4-9b98-27546a634895	f307cc16-798d-4c85-ae4c-7b75c685c1fe	description_closed	false	2026-03-03 00:53:25.434783+00
+e41ae6db-f70e-4e91-890c-87bb3af53a17	f307cc16-798d-4c85-ae4c-7b75c685c1fe	language	English	2026-03-03 00:53:25.434827+00
+973d1409-f52f-4d32-b3c8-97f236af2e7e	f307cc16-798d-4c85-ae4c-7b75c685c1fe	created_at	2026-03-03T00:53:25.434170+00:00	2026-03-03 00:53:25.434868+00
+a739fe76-461b-4067-9920-5e1eb85b0135	f307cc16-798d-4c85-ae4c-7b75c685c1fe	last_transfer_date	2026-03-03T00:53:25.434171+00:00	2026-03-03 00:53:25.434911+00
+e8216c86-b75b-4d8f-8868-e66413690a55	f307cc16-798d-4c85-ae4c-7b75c685c1fe	file_format	PPTX	2026-03-03 00:53:25.434949+00
+ed30b10a-9f28-40f9-bc2c-1a50550959ca	f307cc16-798d-4c85-ae4c-7b75c685c1fe	file_extension	pptx	2026-03-03 00:53:25.434986+00
+f14d68e6-73e1-43ce-ba68-bf9296d346cd	f307cc16-798d-4c85-ae4c-7b75c685c1fe	closure_status	Open	2026-03-03 00:53:25.435025+00
+644551dd-af83-495a-bdd4-2730c2521d54	f307cc16-798d-4c85-ae4c-7b75c685c1fe	closure_period	0	2026-03-03 00:53:25.435063+00
+52f45e43-d360-42f8-90cd-3e0da4dcc0ee	f307cc16-798d-4c85-ae4c-7b75c685c1fe	foi_exemption_code	None	2026-03-03 00:53:25.435102+00
+1e9dadeb-d225-491d-9665-738ee5d3a6f3	f307cc16-798d-4c85-ae4c-7b75c685c1fe	foi_exemption_code_description	None	2026-03-03 00:53:25.43514+00
+c95ff5be-34ba-497d-a693-674575bf0150	f307cc16-798d-4c85-ae4c-7b75c685c1fe	title	Test File 10	2026-03-03 00:53:25.435179+00
+b31abb65-6bdb-4141-b97c-ceb2ec2770a0	dfa3baef-7a85-4c26-8137-a88cf6425528	source	test_file	2026-03-03 00:53:25.466419+00
+c21b0581-6960-4e95-b9d8-65ffff9b74e8	dfa3baef-7a85-4c26-8137-a88cf6425528	file_name	AYR 25_ZJ56LA.rtf	2026-03-03 00:53:25.466486+00
+cf60e4fd-8251-49b4-b95e-70af8e226210	dfa3baef-7a85-4c26-8137-a88cf6425528	file_type	File	2026-03-03 00:53:25.466533+00
+2fa51db2-1f85-444c-82ea-79515db49123	dfa3baef-7a85-4c26-8137-a88cf6425528	file_size	1621760	2026-03-03 00:53:25.466581+00
+0eff3dc6-06c3-4826-8b9d-2d4c2da18d43	dfa3baef-7a85-4c26-8137-a88cf6425528	rights_copyright	Crown Copyright	2026-03-03 00:53:25.466622+00
+1332b6d6-f5f3-4890-8364-b788241cf186	dfa3baef-7a85-4c26-8137-a88cf6425528	legal_status	Public Record(s)	2026-03-03 00:53:25.46666+00
+2eb77932-b945-47ba-b978-ef5d39db2d46	dfa3baef-7a85-4c26-8137-a88cf6425528	held_by	The National Archives	2026-03-03 00:53:25.466699+00
+a11bfef2-9d4a-4a17-a73e-583c49561c95	dfa3baef-7a85-4c26-8137-a88cf6425528	date_last_modified	2026-03-03T00:53:25.466406+00:00	2026-03-03 00:53:25.466737+00
+a1afb575-99ef-40ec-85c2-fba4002cab18	dfa3baef-7a85-4c26-8137-a88cf6425528	description	Test file for AYR development	2026-03-03 00:53:25.466773+00
+46a778c4-70a2-44e9-88f0-d7c30e2dd55b	dfa3baef-7a85-4c26-8137-a88cf6425528	closure_type	Open	2026-03-03 00:53:25.46681+00
+713d85ec-4db7-49a0-84ed-f1dece5eb30e	dfa3baef-7a85-4c26-8137-a88cf6425528	title_closed	false	2026-03-03 00:53:25.466847+00
+f1bbc937-8766-490c-8d33-888eabdff3ff	dfa3baef-7a85-4c26-8137-a88cf6425528	description_closed	false	2026-03-03 00:53:25.466886+00
+f5a452a1-18a4-4321-9880-0b882e792e0a	dfa3baef-7a85-4c26-8137-a88cf6425528	language	English	2026-03-03 00:53:25.466924+00
+d2168ab5-6e0f-4586-bf42-dce09ce48988	dfa3baef-7a85-4c26-8137-a88cf6425528	created_at	2026-03-03T00:53:25.466413+00:00	2026-03-03 00:53:25.466962+00
+a22af090-b9d8-4a82-be39-d6e9fff5a963	dfa3baef-7a85-4c26-8137-a88cf6425528	last_transfer_date	2026-03-03T00:53:25.466415+00:00	2026-03-03 00:53:25.466999+00
+2ab6867d-6f99-4c50-82b2-0a06ee0c03b0	dfa3baef-7a85-4c26-8137-a88cf6425528	file_format	RTF	2026-03-03 00:53:25.467036+00
+331f2a2d-d842-48a2-8bf8-e6a4b0afdf74	dfa3baef-7a85-4c26-8137-a88cf6425528	file_extension	rtf	2026-03-03 00:53:25.467072+00
+0befa22b-cd42-43a3-be2a-9faf756ae7c8	dfa3baef-7a85-4c26-8137-a88cf6425528	closure_status	Open	2026-03-03 00:53:25.467108+00
+9c2f70d2-1aa6-43f1-b287-4a79c4ccdc50	dfa3baef-7a85-4c26-8137-a88cf6425528	closure_period	0	2026-03-03 00:53:25.467145+00
+814e4415-ebb9-4fb7-a28f-31c36e940be1	dfa3baef-7a85-4c26-8137-a88cf6425528	foi_exemption_code	None	2026-03-03 00:53:25.467183+00
+a5e58915-41b9-4c9b-828b-dca4efb00c43	dfa3baef-7a85-4c26-8137-a88cf6425528	foi_exemption_code_description	None	2026-03-03 00:53:25.46722+00
+4a502159-c3ff-4c93-b639-e19a53caaabd	dfa3baef-7a85-4c26-8137-a88cf6425528	title	Test File 11	2026-03-03 00:53:25.467255+00
+04f39aaa-c9a1-48b7-a0d2-5dc4a212c23f	dc197ca6-9a7c-4348-8032-cb697cb41244	source	test_file	2026-03-03 00:53:25.484384+00
+2f1bab9b-f48b-4cd7-bc35-8dc655e0ae7c	dc197ca6-9a7c-4348-8032-cb697cb41244	file_name	AYR 25_VCT56L.tif	2026-03-03 00:53:25.484451+00
+72d6825f-8463-41a4-9b65-b72e0950c405	dc197ca6-9a7c-4348-8032-cb697cb41244	file_type	File	2026-03-03 00:53:25.484495+00
+7005a167-7466-48f7-8f6c-c5378f4b9f9b	dc197ca6-9a7c-4348-8032-cb697cb41244	file_size	133147	2026-03-03 00:53:25.484535+00
+6ddfccac-f5bd-44d3-9f32-19ea591a7bd3	dc197ca6-9a7c-4348-8032-cb697cb41244	rights_copyright	Crown Copyright	2026-03-03 00:53:25.484573+00
+495ca2d6-159d-4fe5-afd5-5b513e05ecea	dc197ca6-9a7c-4348-8032-cb697cb41244	legal_status	Public Record(s)	2026-03-03 00:53:25.484611+00
+58a1bdd1-482c-4e73-86e1-dfab972c052d	dc197ca6-9a7c-4348-8032-cb697cb41244	held_by	The National Archives	2026-03-03 00:53:25.484647+00
+132d99cb-3fe4-4c0b-a400-40601649e506	dc197ca6-9a7c-4348-8032-cb697cb41244	date_last_modified	2026-03-03T00:53:25.484369+00:00	2026-03-03 00:53:25.484684+00
+37d45e43-c6e6-4bcf-afda-60fd05032156	dc197ca6-9a7c-4348-8032-cb697cb41244	description	Test file for AYR development	2026-03-03 00:53:25.48472+00
+5ae1632b-4e30-41b4-8aca-0812e2622101	dc197ca6-9a7c-4348-8032-cb697cb41244	closure_type	Open	2026-03-03 00:53:25.484754+00
+6d10329f-3638-4bd8-8891-5e0e42c46b50	dc197ca6-9a7c-4348-8032-cb697cb41244	title_closed	false	2026-03-03 00:53:25.484789+00
+8f15944d-6b87-4f82-a88e-e3436fecd413	dc197ca6-9a7c-4348-8032-cb697cb41244	description_closed	false	2026-03-03 00:53:25.484826+00
+0fcddb71-d15c-4d0b-813a-b9c4dc877164	dc197ca6-9a7c-4348-8032-cb697cb41244	language	English	2026-03-03 00:53:25.484861+00
+a2493f38-d6d8-482f-b3f8-525a2b1d0a6a	dc197ca6-9a7c-4348-8032-cb697cb41244	created_at	2026-03-03T00:53:25.484378+00:00	2026-03-03 00:53:25.484897+00
+c469bb24-607c-4303-a88d-73fa312dcd2a	dc197ca6-9a7c-4348-8032-cb697cb41244	last_transfer_date	2026-03-03T00:53:25.484380+00:00	2026-03-03 00:53:25.484935+00
+55c58753-9790-4eaf-a182-a1034b8830fd	dc197ca6-9a7c-4348-8032-cb697cb41244	file_format	TIF	2026-03-03 00:53:25.484969+00
+d470fb76-9e23-4090-ab28-52010bca3fb0	dc197ca6-9a7c-4348-8032-cb697cb41244	file_extension	tif	2026-03-03 00:53:25.485003+00
+af952bef-3c6e-4530-86da-9317e6442ec3	dc197ca6-9a7c-4348-8032-cb697cb41244	closure_status	Open	2026-03-03 00:53:25.485039+00
+41636370-8659-4af0-8506-9c4f1ac8d1bf	dc197ca6-9a7c-4348-8032-cb697cb41244	closure_period	0	2026-03-03 00:53:25.485075+00
+cca8b99d-63e3-40c4-a1d7-bda7a2efa6e7	dc197ca6-9a7c-4348-8032-cb697cb41244	foi_exemption_code	None	2026-03-03 00:53:25.485111+00
+c1ed4b10-2b56-458e-b7e2-abb0b8e0847d	dc197ca6-9a7c-4348-8032-cb697cb41244	foi_exemption_code_description	None	2026-03-03 00:53:25.485147+00
+ca890029-69ca-4b85-b550-af310027c10d	dc197ca6-9a7c-4348-8032-cb697cb41244	title	Test File 12	2026-03-03 00:53:25.485181+00
+61b59f79-f9b9-468d-945d-0b082e6dcd72	2e931072-946a-4358-b6f9-ca713afc68b0	source	test_file	2026-03-03 00:53:25.498825+00
+2fe01598-6998-400d-9cd6-d567bde500dd	2e931072-946a-4358-b6f9-ca713afc68b0	file_name	AYR 25_DNI76K.txt	2026-03-03 00:53:25.49889+00
+299d7529-571c-4276-a4c6-91c34c61efdc	2e931072-946a-4358-b6f9-ca713afc68b0	file_type	File	2026-03-03 00:53:25.498938+00
+cf7c687c-789d-4678-9dae-646567d5a143	2e931072-946a-4358-b6f9-ca713afc68b0	file_size	25975	2026-03-03 00:53:25.49898+00
+7483c0c6-2726-4b77-9b37-94f4e07e18b3	2e931072-946a-4358-b6f9-ca713afc68b0	rights_copyright	Crown Copyright	2026-03-03 00:53:25.499019+00
+2e7120c4-720c-4eb8-ad40-54a934052fcf	2e931072-946a-4358-b6f9-ca713afc68b0	legal_status	Public Record(s)	2026-03-03 00:53:25.499056+00
+b01da863-b45b-4dc4-aec6-fddd3084a390	2e931072-946a-4358-b6f9-ca713afc68b0	held_by	The National Archives	2026-03-03 00:53:25.499094+00
+74135660-9533-4606-ae77-f33f97e074c9	2e931072-946a-4358-b6f9-ca713afc68b0	date_last_modified	2026-03-03T00:53:25.498812+00:00	2026-03-03 00:53:25.499128+00
+c41e8b03-a0fc-4a85-9684-2ab63c03332c	2e931072-946a-4358-b6f9-ca713afc68b0	description	Test file for AYR development	2026-03-03 00:53:25.49916+00
+cdfddeb8-5056-4468-8557-a679c6b2a4c2	2e931072-946a-4358-b6f9-ca713afc68b0	closure_type	Open	2026-03-03 00:53:25.499192+00
+f9955e6d-a929-4a98-af0a-ec25c7d9e28f	2e931072-946a-4358-b6f9-ca713afc68b0	title_closed	false	2026-03-03 00:53:25.499224+00
+fe8eb1b1-cbf6-44d0-b749-3dd3e703e4c5	2e931072-946a-4358-b6f9-ca713afc68b0	description_closed	false	2026-03-03 00:53:25.49926+00
+c11cfaf0-52f5-48e2-8802-30c99ca9f91d	2e931072-946a-4358-b6f9-ca713afc68b0	language	English	2026-03-03 00:53:25.499294+00
+2811d470-de06-4f87-bbc9-aa63910b125d	2e931072-946a-4358-b6f9-ca713afc68b0	created_at	2026-03-03T00:53:25.498819+00:00	2026-03-03 00:53:25.49933+00
+bd31a0e4-b42f-484f-bc7b-69ddadbdc257	2e931072-946a-4358-b6f9-ca713afc68b0	last_transfer_date	2026-03-03T00:53:25.498820+00:00	2026-03-03 00:53:25.499364+00
+aeb71dc8-2fb2-4bb4-b149-79f9bc0dc6a0	2e931072-946a-4358-b6f9-ca713afc68b0	file_format	TXT	2026-03-03 00:53:25.499398+00
+041436b2-6974-40e5-b9fd-495ca22447ed	2e931072-946a-4358-b6f9-ca713afc68b0	file_extension	txt	2026-03-03 00:53:25.49943+00
+95e04943-67ae-43de-a130-08ad70ab4710	2e931072-946a-4358-b6f9-ca713afc68b0	closure_status	Open	2026-03-03 00:53:25.499464+00
+767770bb-50ca-4f96-ba7b-2036a78e5d8b	2e931072-946a-4358-b6f9-ca713afc68b0	closure_period	0	2026-03-03 00:53:25.499499+00
+05abb360-7833-4cc3-877b-d790196f0c39	2e931072-946a-4358-b6f9-ca713afc68b0	foi_exemption_code	None	2026-03-03 00:53:25.499533+00
+99f4a14e-0432-4389-9fa9-ad70b0b8994a	2e931072-946a-4358-b6f9-ca713afc68b0	foi_exemption_code_description	None	2026-03-03 00:53:25.499568+00
+41cd85c4-e351-4d5f-a505-bc817a2224ce	2e931072-946a-4358-b6f9-ca713afc68b0	title	Test File 13	2026-03-03 00:53:25.499604+00
+395cfc47-44b2-4925-b832-c41bdb506743	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	source	test_file	2026-03-03 00:53:25.512655+00
+976dfe29-2817-4fd5-a59d-20f9a4e92934	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	file_name	AYR 25_ZB33RH.wk1	2026-03-03 00:53:25.512718+00
+7e9a9a2a-b8b8-4a2b-a908-06fbf14781fa	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	file_type	File	2026-03-03 00:53:25.512762+00
+77bc3e15-a5d8-44de-bdff-6a32404960c8	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	file_size	5475	2026-03-03 00:53:25.512803+00
+1303f8f7-483e-4d37-9095-02c906dcb3fd	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	rights_copyright	Crown Copyright	2026-03-03 00:53:25.512844+00
+72bcbb1e-639d-4995-b1e1-5809485f6ad8	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	legal_status	Public Record(s)	2026-03-03 00:53:25.512883+00
+fbd9cb86-f00c-4dce-b538-afec6bab405c	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	held_by	The National Archives	2026-03-03 00:53:25.512919+00
+97b2591c-61af-42bf-97d1-88c48bb0d0fe	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	date_last_modified	2026-03-03T00:53:25.512642+00:00	2026-03-03 00:53:25.512957+00
+b6c7541e-7655-43f1-a86e-7158d13cc92a	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	description	Test file for AYR development	2026-03-03 00:53:25.512995+00
+d06f0aee-bd4f-480b-9f77-3af38ac8b6ab	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	closure_type	Open	2026-03-03 00:53:25.513036+00
+30c8e608-781a-4b8a-8bbd-e3dc441ce157	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	title_closed	false	2026-03-03 00:53:25.51307+00
+77cc8a83-0b43-4312-a6c9-71ad97fc1035	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	description_closed	false	2026-03-03 00:53:25.513106+00
+16cc641f-2b15-4ee6-938b-2679c84a6490	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	language	English	2026-03-03 00:53:25.513139+00
+ae81a9a1-ba9e-48f2-85cd-fd14c64f75d2	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	created_at	2026-03-03T00:53:25.512649+00:00	2026-03-03 00:53:25.513173+00
+6fa1aa13-36b2-42a1-aa7e-f9696f1c930e	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	last_transfer_date	2026-03-03T00:53:25.512651+00:00	2026-03-03 00:53:25.513206+00
+581c15b1-478e-4416-8376-ec4fa4a72053	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	file_format	WK1	2026-03-03 00:53:25.513239+00
+f52eda98-8b0d-456f-9bec-278be0ea33d3	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	file_extension	wk1	2026-03-03 00:53:25.513271+00
+30898b83-0151-49ab-8db0-ae2171229f24	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	closure_status	Open	2026-03-03 00:53:25.513304+00
+594df928-d8b1-44e1-988f-715df62b878f	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	closure_period	0	2026-03-03 00:53:25.513337+00
+3b38538b-27fc-49cc-a96e-0951c53299c9	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	foi_exemption_code	None	2026-03-03 00:53:25.513371+00
+f91ed56b-ffc7-4da3-8209-d5eaf4a6d5e5	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	foi_exemption_code_description	None	2026-03-03 00:53:25.513405+00
+230d613b-0a30-415d-b784-ebe183df30f7	e07586cb-ca18-4c5c-9a6e-f321cc999ee4	title	Test File 14	2026-03-03 00:53:25.513439+00
+e85873c3-d22f-4ea1-9f60-7b616b31e03f	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	source	test_file	2026-03-03 00:53:25.527686+00
+982e30a5-613e-45ef-b74f-bbb7017c7ac6	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	file_name	AYR 25_ZB33RK.wk4	2026-03-03 00:53:25.527749+00
+d8ee6bfd-b2dd-4201-b681-2622706940c2	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	file_type	File	2026-03-03 00:53:25.527802+00
+e9bc23a6-d535-40ea-9cc7-17890221ad66	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	file_size	11264	2026-03-03 00:53:25.527845+00
+64d831fd-35bf-467d-8b53-876d2a48d516	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	rights_copyright	Crown Copyright	2026-03-03 00:53:25.527884+00
+d91322e1-2e80-480a-adde-ff125a59f3e4	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	legal_status	Public Record(s)	2026-03-03 00:53:25.527923+00
+89c3264c-0e21-43af-a494-c304f5f11ab7	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	held_by	The National Archives	2026-03-03 00:53:25.527961+00
+ffba972b-af04-4074-b0c4-d5626e61cbc6	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	date_last_modified	2026-03-03T00:53:25.527674+00:00	2026-03-03 00:53:25.527997+00
+caf8da92-5cd2-4f5b-9ace-9bf240e8e947	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	description	Test file for AYR development	2026-03-03 00:53:25.528032+00
+9b25bcb9-78a2-4f69-8b55-2b98a37d04b7	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	closure_type	Open	2026-03-03 00:53:25.528067+00
+f0c80d88-8944-4832-b51b-9657c1087138	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	title_closed	false	2026-03-03 00:53:25.528101+00
+812a26d9-46da-43cb-8eca-707b44f0e9d2	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	description_closed	false	2026-03-03 00:53:25.52814+00
+57b9c1b6-90f3-46b9-8c65-566e72ee6679	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	language	English	2026-03-03 00:53:25.528176+00
+0448afe9-3fdf-462a-a7bc-5513c54ee281	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	created_at	2026-03-03T00:53:25.527681+00:00	2026-03-03 00:53:25.528211+00
+172c7f84-ed76-4926-bdaf-c9d7e19afd32	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	last_transfer_date	2026-03-03T00:53:25.527682+00:00	2026-03-03 00:53:25.528247+00
+f05944ac-e889-46bf-9c8f-e2a71086bd12	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	file_format	WK4	2026-03-03 00:53:25.528283+00
+551e73ae-afa4-47dc-b842-a6e5d84e8a4d	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	file_extension	wk4	2026-03-03 00:53:25.528319+00
+f23b48db-b292-436f-96aa-65255f0a75b1	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	closure_status	Open	2026-03-03 00:53:25.528355+00
+ed4951a0-f262-440b-9af2-78ef9bb1141d	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	closure_period	0	2026-03-03 00:53:25.528388+00
+37939777-b40e-4e9a-9c66-08902a2f07d7	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	foi_exemption_code	None	2026-03-03 00:53:25.528423+00
+d407136d-5e1c-4314-83a9-87ba28fd3494	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	foi_exemption_code_description	None	2026-03-03 00:53:25.528457+00
+38450d38-d1e0-428f-9978-63f92dc23311	8311bc81-e8fb-45dd-98dd-aa2f7e76f351	title	Test File 15	2026-03-03 00:53:25.52849+00
+f88c7f2e-afc6-4b4a-a421-8dd1f50d6cfe	085371e5-9398-4c1d-b9b4-358241368647	source	test_file	2026-03-03 00:53:25.544766+00
+42a39370-facf-4c31-98a0-cf0f47d3f4ae	085371e5-9398-4c1d-b9b4-358241368647	file_name	AYR 25_Z9P523.wp	2026-03-03 00:53:25.544836+00
+6524b615-f2ea-4f1f-99cb-5fd1b025339c	085371e5-9398-4c1d-b9b4-358241368647	file_size	6216	2026-03-03 00:53:25.544927+00
+21a87c80-ef1c-4ea0-8ea1-101e6cde92e1	085371e5-9398-4c1d-b9b4-358241368647	rights_copyright	Crown Copyright	2026-03-03 00:53:25.54497+00
+e8ba3718-fd4f-49f6-8307-9bb0f95a3058	085371e5-9398-4c1d-b9b4-358241368647	legal_status	Public Record(s)	2026-03-03 00:53:25.545009+00
+951d5fbd-107c-4561-b17d-899d35d51061	085371e5-9398-4c1d-b9b4-358241368647	held_by	The National Archives	2026-03-03 00:53:25.545046+00
+1b727326-78a5-4af0-9578-d1f757488866	085371e5-9398-4c1d-b9b4-358241368647	date_last_modified	2026-03-03T00:53:25.544754+00:00	2026-03-03 00:53:25.545085+00
+7459a78e-6541-49ab-bd45-c4d0e8281115	085371e5-9398-4c1d-b9b4-358241368647	description	Test file for AYR development	2026-03-03 00:53:25.545122+00
+2325ed74-892e-499a-8aa4-047ac0ff8cbe	085371e5-9398-4c1d-b9b4-358241368647	closure_type	Open	2026-03-03 00:53:25.545157+00
+84a987ee-046d-43fc-9bb9-c5d03fec4268	085371e5-9398-4c1d-b9b4-358241368647	title_closed	false	2026-03-03 00:53:25.545194+00
+9a736568-b17e-4fee-85a1-0c91df88a753	085371e5-9398-4c1d-b9b4-358241368647	description_closed	false	2026-03-03 00:53:25.545232+00
+942cfdc0-6175-48e8-b17c-ce45efef091a	085371e5-9398-4c1d-b9b4-358241368647	language	English	2026-03-03 00:53:25.545269+00
+488f5c17-e4cd-4238-9f0e-ea9231b6347c	085371e5-9398-4c1d-b9b4-358241368647	created_at	2026-03-03T00:53:25.544761+00:00	2026-03-03 00:53:25.545309+00
+ce36cebe-a32d-4402-9cdf-f79eff83808c	085371e5-9398-4c1d-b9b4-358241368647	last_transfer_date	2026-03-03T00:53:25.544762+00:00	2026-03-03 00:53:25.545347+00
+d84aa0ad-537b-4b68-8d67-b64281a33e1b	085371e5-9398-4c1d-b9b4-358241368647	file_format	WP	2026-03-03 00:53:25.545385+00
+67498e2a-4265-414f-a910-51dfa1a88bb2	085371e5-9398-4c1d-b9b4-358241368647	file_extension	wp	2026-03-03 00:53:25.545423+00
+57df4fa3-696f-4481-a2ec-c6e7cad27416	085371e5-9398-4c1d-b9b4-358241368647	closure_status	Open	2026-03-03 00:53:25.545461+00
+612121c9-368f-4885-8768-3c37b77539ed	085371e5-9398-4c1d-b9b4-358241368647	closure_period	0	2026-03-03 00:53:25.545498+00
+f5af58fc-062a-4ee2-8746-9e0d8f6347bd	085371e5-9398-4c1d-b9b4-358241368647	foi_exemption_code	None	2026-03-03 00:53:25.545536+00
+a88cedc6-c8b3-47b3-a327-e89f18493a82	085371e5-9398-4c1d-b9b4-358241368647	foi_exemption_code_description	None	2026-03-03 00:53:25.545574+00
+81a70358-6a45-4a2e-a58f-dd0bf54bc9dc	085371e5-9398-4c1d-b9b4-358241368647	title	Test File 16	2026-03-03 00:53:25.54561+00
+9002c56c-f274-4cba-934f-dff7d76b0035	abd498c3-94f3-41b8-a79d-128f2711e800	source	test_file	2026-03-03 00:53:25.560278+00
+5d75e27f-2130-4b8a-9d39-c6824d194ee9	abd498c3-94f3-41b8-a79d-128f2711e800	file_name	AYR 25_VTC9WP.xls	2026-03-03 00:53:25.560343+00
+39826859-ca96-423f-b045-10adc96c88c4	abd498c3-94f3-41b8-a79d-128f2711e800	file_type	File	2026-03-03 00:53:25.56039+00
+30b0e866-780a-4714-8400-7c00846cd3b7	abd498c3-94f3-41b8-a79d-128f2711e800	file_size	16652	2026-03-03 00:53:25.560432+00
+4c82252b-4490-47b4-b3ab-19602ee5d0f5	abd498c3-94f3-41b8-a79d-128f2711e800	rights_copyright	Crown Copyright	2026-03-03 00:53:25.560472+00
+bc7b2c4e-99fe-4f0f-8d73-34d62de60111	abd498c3-94f3-41b8-a79d-128f2711e800	legal_status	Public Record(s)	2026-03-03 00:53:25.560513+00
+9a5f5741-773c-416b-b2b8-9c3f4c22998a	abd498c3-94f3-41b8-a79d-128f2711e800	held_by	The National Archives	2026-03-03 00:53:25.560551+00
+40241c46-2f98-496d-93e3-b1bfad3813f9	abd498c3-94f3-41b8-a79d-128f2711e800	date_last_modified	2026-03-03T00:53:25.560267+00:00	2026-03-03 00:53:25.560589+00
+0d1e49de-81b6-4b1a-8982-9ac3c3fe4096	abd498c3-94f3-41b8-a79d-128f2711e800	description	Test file for AYR development	2026-03-03 00:53:25.560626+00
+133470a3-bd7d-4239-9088-843b6548a326	abd498c3-94f3-41b8-a79d-128f2711e800	closure_type	Open	2026-03-03 00:53:25.560662+00
+83226edb-2944-4872-8593-1f403ce92b3d	abd498c3-94f3-41b8-a79d-128f2711e800	title_closed	false	2026-03-03 00:53:25.560698+00
+15af5ab2-3f2a-4b4d-90c3-b0b931fa4741	abd498c3-94f3-41b8-a79d-128f2711e800	description_closed	false	2026-03-03 00:53:25.560733+00
+335c80c6-b96a-42cc-b7e4-ccd1d962ce1c	abd498c3-94f3-41b8-a79d-128f2711e800	language	English	2026-03-03 00:53:25.560769+00
+f3940521-f521-431f-aa58-e65e81014ffb	abd498c3-94f3-41b8-a79d-128f2711e800	created_at	2026-03-03T00:53:25.560273+00:00	2026-03-03 00:53:25.560805+00
+066cf5c3-479e-43f3-a53b-15dc2f09d4ec	abd498c3-94f3-41b8-a79d-128f2711e800	last_transfer_date	2026-03-03T00:53:25.560275+00:00	2026-03-03 00:53:25.560843+00
+4ddb33eb-4b5d-4e35-be77-f81753694bc0	abd498c3-94f3-41b8-a79d-128f2711e800	file_format	XLS	2026-03-03 00:53:25.560877+00
+aeb04579-c341-4994-b93a-6426c629f623	abd498c3-94f3-41b8-a79d-128f2711e800	file_extension	xls	2026-03-03 00:53:25.560912+00
+0bb112c8-fcac-459d-8ead-77ae8e49edce	abd498c3-94f3-41b8-a79d-128f2711e800	closure_status	Open	2026-03-03 00:53:25.560948+00
+62ef8eb7-0249-474a-a0be-54f2ab825f18	abd498c3-94f3-41b8-a79d-128f2711e800	closure_period	0	2026-03-03 00:53:25.560982+00
+d08df75a-cba2-4baf-93a2-48d5dab52490	abd498c3-94f3-41b8-a79d-128f2711e800	foi_exemption_code	None	2026-03-03 00:53:25.561018+00
+18873716-5d36-42ad-9144-dd4666b93f4a	abd498c3-94f3-41b8-a79d-128f2711e800	foi_exemption_code_description	None	2026-03-03 00:53:25.561052+00
+2fe6784a-3900-45f1-8ec5-4877d74276dc	abd498c3-94f3-41b8-a79d-128f2711e800	title	Test File 17	2026-03-03 00:53:25.561086+00
+f9a75d0f-f942-4bb0-962b-2d3190e6339b	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	source	test_file	2026-03-03 00:53:25.578741+00
+040a41b6-37b6-4666-9a72-eee5b79fc26c	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	file_name	AYR 25_UYT6DV.xlsx	2026-03-03 00:53:25.578805+00
+f3c2cc85-b1c5-41ca-8df1-d4eac25e10a4	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	file_type	File	2026-03-03 00:53:25.578848+00
+dbbef6d8-9152-4040-a88e-bd43d45a789e	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	file_size	16652	2026-03-03 00:53:25.578889+00
+44d668c3-d907-4c15-aeda-af268fa8a6ad	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	rights_copyright	Crown Copyright	2026-03-03 00:53:25.578929+00
+efe99570-e965-4308-b737-6de1e6bec46f	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	legal_status	Public Record(s)	2026-03-03 00:53:25.578968+00
+f894c037-a45a-4146-8c88-6716c610348c	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	held_by	The National Archives	2026-03-03 00:53:25.579006+00
+c014d230-8315-4804-be7e-6027074f880f	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	date_last_modified	2026-03-03T00:53:25.578728+00:00	2026-03-03 00:53:25.579043+00
+0d0342ef-cc2b-47a8-9e5e-eb8e658ca706	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	description	Test file for AYR development	2026-03-03 00:53:25.579081+00
+cb51b1a5-0da5-4bea-b3c5-7bb2d2e7d244	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	closure_type	Open	2026-03-03 00:53:25.579115+00
+79a25a1a-ad66-4e77-a441-c361f4830406	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	title_closed	false	2026-03-03 00:53:25.579149+00
+b8f0290e-e97b-443e-974d-c5af6a0a1d1d	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	description_closed	false	2026-03-03 00:53:25.579186+00
+3e1f65b7-f97d-41be-b6a2-2cab01be7b3f	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	language	English	2026-03-03 00:53:25.579221+00
+96cbdc84-33ff-45b7-b7c4-11ac4789c3c3	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	created_at	2026-03-03T00:53:25.578735+00:00	2026-03-03 00:53:25.579257+00
+a23de63f-6ca0-4820-b4b5-a86cef1d1656	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	last_transfer_date	2026-03-03T00:53:25.578737+00:00	2026-03-03 00:53:25.579293+00
+e38767fd-902e-4159-8253-1e805531cda9	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	file_format	XLSX	2026-03-03 00:53:25.579328+00
+d2fe8384-6bfc-4a1b-a449-fdcb8d8d9aaa	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	file_extension	xlsx	2026-03-03 00:53:25.579361+00
+50e81c0f-24b0-4d13-869a-6fd456eed339	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	closure_status	Open	2026-03-03 00:53:25.579396+00
+90411aa6-8811-4e41-b74f-0c78d3d556d9	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	closure_period	0	2026-03-03 00:53:25.579429+00
+63649e5e-0b4d-471b-8f1b-64c139f587b9	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	foi_exemption_code	None	2026-03-03 00:53:25.579464+00
+9d64afb7-ef90-41f4-90f9-39845260564e	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	foi_exemption_code_description	None	2026-03-03 00:53:25.579499+00
+a1156726-70ba-4e85-96d5-af24cec8800b	8b0ed2f4-1851-48e7-86ba-28a545a27ed9	title	Test File 18	2026-03-03 00:53:25.579535+00
+49026981-9877-4330-8a36-f6a12319a4e1	ab87e483-2fd5-49e9-8055-2fd3c88e223b	source	test_file	2026-03-03 00:53:25.59375+00
+bde13642-32cc-4728-86d5-5f8349210e33	ab87e483-2fd5-49e9-8055-2fd3c88e223b	file_name	AYR 25_Z9P524.xml	2026-03-03 00:53:25.593812+00
+015a14ac-30b9-4ac1-a65f-117ede2c9fd8	ab87e483-2fd5-49e9-8055-2fd3c88e223b	file_type	File	2026-03-03 00:53:25.593857+00
+fdd9468a-9eb5-459b-916c-c6626353f6f1	ab87e483-2fd5-49e9-8055-2fd3c88e223b	file_size	7787	2026-03-03 00:53:25.593899+00
+d3e2ab9b-7e46-469f-9dc9-b228bf40af45	ab87e483-2fd5-49e9-8055-2fd3c88e223b	rights_copyright	Crown Copyright	2026-03-03 00:53:25.593938+00
+af33eee2-bead-4340-aa88-d25ffd4a955d	ab87e483-2fd5-49e9-8055-2fd3c88e223b	legal_status	Public Record(s)	2026-03-03 00:53:25.593976+00
+82bc1afe-1623-4295-955e-01aba5451c66	ab87e483-2fd5-49e9-8055-2fd3c88e223b	held_by	The National Archives	2026-03-03 00:53:25.594014+00
+601ba1d2-0e2b-4f40-a681-8e235bf89a9b	ab87e483-2fd5-49e9-8055-2fd3c88e223b	date_last_modified	2026-03-03T00:53:25.593740+00:00	2026-03-03 00:53:25.594048+00
+45f68f0e-74e2-45b4-871a-c9571ddfa5e2	ab87e483-2fd5-49e9-8055-2fd3c88e223b	description	Test file for AYR development	2026-03-03 00:53:25.594084+00
+ae0f30cf-07b0-43b4-9b4d-4d1181580beb	ab87e483-2fd5-49e9-8055-2fd3c88e223b	closure_type	Open	2026-03-03 00:53:25.59412+00
+35376f09-e99f-4de0-82a1-7f3ffff283eb	ab87e483-2fd5-49e9-8055-2fd3c88e223b	title_closed	false	2026-03-03 00:53:25.594155+00
+dd7fa1e9-f4c9-4992-a842-2e7bf9688328	ab87e483-2fd5-49e9-8055-2fd3c88e223b	description_closed	false	2026-03-03 00:53:25.594191+00
+9e24c225-bbc1-4e98-944d-6312881b45b2	ab87e483-2fd5-49e9-8055-2fd3c88e223b	language	English	2026-03-03 00:53:25.594227+00
+a5b74edd-801a-4321-87c6-90ba0135ec88	ab87e483-2fd5-49e9-8055-2fd3c88e223b	created_at	2026-03-03T00:53:25.593745+00:00	2026-03-03 00:53:25.594261+00
+6e6312f7-d0f4-49a9-86a8-56e6d30f1fa4	ab87e483-2fd5-49e9-8055-2fd3c88e223b	last_transfer_date	2026-03-03T00:53:25.593747+00:00	2026-03-03 00:53:25.594296+00
+2c95b6c8-ee58-4f84-8695-265966968716	ab87e483-2fd5-49e9-8055-2fd3c88e223b	file_format	XML	2026-03-03 00:53:25.594328+00
+af07c1de-2155-4f10-b5dd-00c29aa2be5b	ab87e483-2fd5-49e9-8055-2fd3c88e223b	file_extension	xml	2026-03-03 00:53:25.594362+00
+686137cc-6b31-4f9a-8a48-da09b065c4dd	ab87e483-2fd5-49e9-8055-2fd3c88e223b	closure_status	Open	2026-03-03 00:53:25.594395+00
+b688f2fe-bb8d-498c-b3d8-a216fde20583	ab87e483-2fd5-49e9-8055-2fd3c88e223b	closure_period	0	2026-03-03 00:53:25.594428+00
+7c655281-acad-421a-8d3e-09d180abda00	ab87e483-2fd5-49e9-8055-2fd3c88e223b	foi_exemption_code	None	2026-03-03 00:53:25.594464+00
+bbbcdcb1-34aa-47c0-a885-a9f7e8d543db	ab87e483-2fd5-49e9-8055-2fd3c88e223b	foi_exemption_code_description	None	2026-03-03 00:53:25.594497+00
+66057497-c442-4905-b2c1-41a7d097f4a7	ab87e483-2fd5-49e9-8055-2fd3c88e223b	title	Test File 19	2026-03-03 00:53:25.59453+00
 \.
 
 
 --
--- Data for Name: Series; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: Series; Type: TABLE DATA; Schema: public; Owner: local_db_user
 --
 
 COPY public."Series" ("SeriesId", "BodyId", "Name", "Description") FROM stdin;
 93ed0101-2318-45ab-8730-c681958ded7e	4654e9f9-335b-4ab1-acd8-edff54f908d4	AYR 1	AYR 1
 8bd7ad22-90d1-4c7f-ae00-645dfd1987cc	8ccc8cd1-c0ee-431d-afad-70cf404ba337	MOCK1 123	MOCK1 123
 1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7	c3e3fd83-4d52-4638-a085-1f4e4e4dfa50	TSTA 1	TSTA 1
+7f0a484e-2bbb-493b-90bd-7e6832345b1d	935839c0-c070-4d61-924f-f16ee8d8a160	SCOT 13	Test Series Description
 \.
 
 
 --
--- Name: Body Body_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: Body Body_pkey; Type: CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."Body"
@@ -938,7 +1397,7 @@ ALTER TABLE ONLY public."Body"
 
 
 --
--- Name: Consignment Consignment_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: Consignment Consignment_pkey; Type: CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."Consignment"
@@ -946,7 +1405,7 @@ ALTER TABLE ONLY public."Consignment"
 
 
 --
--- Name: FileMetadata FileMetadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: FileMetadata FileMetadata_pkey; Type: CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."FileMetadata"
@@ -954,7 +1413,7 @@ ALTER TABLE ONLY public."FileMetadata"
 
 
 --
--- Name: File File_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: File File_pkey; Type: CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."File"
@@ -962,7 +1421,7 @@ ALTER TABLE ONLY public."File"
 
 
 --
--- Name: Series Series_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: Series Series_pkey; Type: CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."Series"
@@ -970,7 +1429,7 @@ ALTER TABLE ONLY public."Series"
 
 
 --
--- Name: Body body_name_unq; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: Body body_name_unq; Type: CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."Body"
@@ -978,7 +1437,7 @@ ALTER TABLE ONLY public."Body"
 
 
 --
--- Name: File consignment_filepath_unq; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: File consignment_filepath_unq; Type: CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."File"
@@ -986,7 +1445,7 @@ ALTER TABLE ONLY public."File"
 
 
 --
--- Name: FileMetadata fileid_property_value_unq; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: FileMetadata fileid_property_value_unq; Type: CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."FileMetadata"
@@ -994,7 +1453,7 @@ ALTER TABLE ONLY public."FileMetadata"
 
 
 --
--- Name: Consignment reference_unique; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: Consignment reference_unique; Type: CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."Consignment"
@@ -1002,7 +1461,7 @@ ALTER TABLE ONLY public."Consignment"
 
 
 --
--- Name: Series series_name_unq; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: Series series_name_unq; Type: CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."Series"
@@ -1010,7 +1469,7 @@ ALTER TABLE ONLY public."Series"
 
 
 --
--- Name: File FK_File.ConsignmentId; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: File FK_File.ConsignmentId; Type: FK CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."File"
@@ -1018,7 +1477,7 @@ ALTER TABLE ONLY public."File"
 
 
 --
--- Name: AVMetadata avmetadata_fileid_file_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: AVMetadata avmetadata_fileid_file_fkey; Type: FK CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."AVMetadata"
@@ -1026,7 +1485,7 @@ ALTER TABLE ONLY public."AVMetadata"
 
 
 --
--- Name: Consignment consignment_bodyid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: Consignment consignment_bodyid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."Consignment"
@@ -1034,7 +1493,7 @@ ALTER TABLE ONLY public."Consignment"
 
 
 --
--- Name: Consignment consignment_seriesid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: Consignment consignment_seriesid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."Consignment"
@@ -1042,7 +1501,7 @@ ALTER TABLE ONLY public."Consignment"
 
 
 --
--- Name: FFIDMetadata ffidmetadata_fileid_file_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: FFIDMetadata ffidmetadata_fileid_file_fkey; Type: FK CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."FFIDMetadata"
@@ -1050,7 +1509,7 @@ ALTER TABLE ONLY public."FFIDMetadata"
 
 
 --
--- Name: FileMetadata filemetadata_fileid_file_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: FileMetadata filemetadata_fileid_file_fkey; Type: FK CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."FileMetadata"
@@ -1058,7 +1517,7 @@ ALTER TABLE ONLY public."FileMetadata"
 
 
 --
--- Name: Series series_bodyid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: Series series_bodyid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: local_db_user
 --
 
 ALTER TABLE ONLY public."Series"
