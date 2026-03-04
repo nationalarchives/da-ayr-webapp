@@ -907,7 +907,6 @@ This software is provided _"as-is"_ without warranty. Support is provided on a _
 
 Please see the [contribution guidelines](CONTRIBUTING.md) for how to raise a bug report or feature request.
 
-Could this be added to the mds script readme:
 
 ## MDS Test Data Generator
 
