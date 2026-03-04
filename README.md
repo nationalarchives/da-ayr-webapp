@@ -907,6 +907,49 @@ This software is provided _"as-is"_ without warranty. Support is provided on a _
 
 Please see the [contribution guidelines](CONTRIBUTING.md) for how to raise a bug report or feature request.
 
+Could this be added to the mds script readme:
+
+## MDS Test Data Generator
+
+This tool generates test data for AYR development and performance testing by:
+
+1. Creating test files across a range of document formats (PDF, DOCX, DOC, PPTX, PPT, XLSX, XLS, CSV, RTF, ODT, TIF, PNG, JPG, EPUB, TXT, WK1, WK4, WP, XML)
+2. Adding metadata to a PostgreSQL database
+3. Uploading files to S3/MinIO storage
+4. Indexing files in OpenSearch
+
+## Prerequisites
+
+Before running the tool, ensure the following environment variables are set (usually via `.env`):
+
+- `MINIO_ROOT_USER` – your MinIO access key
+- `MINIO_ROOT_PASSWORD` – your MinIO secret key
+- `AWS_ENDPOINT_URL` – the S3/MinIO endpoint (e.g., http://localhost:9000)
+- `RECORD_BUCKET_NAME` – the name of the bucket used for test files
+
+Example `.env`:
+
+```env
+MINIO_ROOT_USER=
+MINIO_ROOT_PASSWORD=
+AWS_ENDPOINT_URL=http://localhost:9000
+RECORD_BUCKET_NAME=test-record-download
+```
+
+## To Run
+
+Pass `--num-{ext}` arguments to specify how many files of each type to create:
+
+```
+python local_services/mds_data_generator/mds_test_file_importer.py --num-pdf 5 --num-tif 5
+```
+
+If no arguments are passed, the script will default to **1 file of every supported type** (19 files total). To import a specific set of formats only, pass explicit counts and set others to 0:
+
+```
+python local_services/mds_data_generator/mds_test_file_importer.py --num-pdf 5 --num-docx 3 --num-tif 0
+```
+
 ## New files
 
 AYR 25_G85D3R.png : iPRES 2025 Bake Off google drive  [link](https://drive.google.com/drive/folders/1fyyoupWHtqAAV0Woq0XFPNhxEfG7kdFC)
