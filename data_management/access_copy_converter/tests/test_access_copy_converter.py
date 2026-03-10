@@ -1,3 +1,4 @@
+import json
 import subprocess
 from pathlib import Path
 from unittest import mock
@@ -49,6 +50,69 @@ def sqlite_conn():
     finally:
         conn.close()
         engine.dispose()
+
+
+class TestSetupHelpers:
+    """Setup helper tests"""
+
+    def test_get_secret_string(self, monkeypatch):
+        fake_sm = mock.Mock()
+        fake_sm.get_secret_value.return_value = {
+            "SecretString": json.dumps({"username": "user"})
+        }
+        monkeypatch.setattr(main_module, "sm", fake_sm)
+
+        result = main_module.get_secret_string("secret-id")
+
+        assert result == {"username": "user"}
+
+    def test_get_iam_connection(self, monkeypatch):
+        fake_rds = mock.Mock()
+        fake_rds.generate_db_auth_token.return_value = "token123"
+        monkeypatch.setattr(main_module, "rds", fake_rds)
+
+        result = main_module.get_iam_connection(
+            {
+                "proxy": "db.proxy",
+                "port": "5432",
+                "username": "dbuser",
+            }
+        )
+
+        assert result == "token123"
+
+    def test_get_engine_missing_db_secret_id(self, monkeypatch):
+        monkeypatch.delenv("DB_SECRET_ID", raising=False)
+
+        with pytest.raises(Exception) as exc:
+            main_module.get_engine()
+
+        assert "DB_SECRET_ID environment variable not found" in str(exc.value)
+
+    def test_get_engine_success(self, monkeypatch):
+        monkeypatch.setenv("DB_SECRET_ID", "db-secret")
+
+        monkeypatch.setattr(
+            main_module,
+            "get_secret_string",
+            lambda secret_id: {
+                "username": "dbuser",
+                "proxy": "db.proxy",
+                "port": "5432",
+                "dbname": "testdb",
+            },
+        )
+        monkeypatch.setattr(
+            main_module, "get_iam_connection", lambda creds: "token123"
+        )
+
+        create_engine_mock = mock.Mock(return_value="engine")
+        monkeypatch.setattr(main_module, "create_engine", create_engine_mock)
+
+        result = main_module.get_engine()
+
+        assert result == "engine"
+        create_engine_mock.assert_called_once()
 
 
 class TestConvertedFiles:
@@ -110,6 +174,15 @@ class TestGetPUID:
             get_puid("file123", conn, metadata)
         assert "Error querying FFIDMetadata table" in str(exc.value)
 
+    def test_get_puid_returns_none_when_puid_is_null(self, sqlite_conn):
+        conn, metadata, ffid, file_table = sqlite_conn
+        conn.execute(insert(ffid).values(FileId="file123", PUID=None))
+        conn.commit()
+
+        puid = get_puid("file123", conn, metadata)
+
+        assert puid is None
+
 
 class TestConvertWithLibreoffice:
     """LibreOffice conversion tests"""
@@ -138,6 +211,41 @@ class TestConvertWithLibreoffice:
         (tmp_path / "in.docx").write_text("dummy")
         with pytest.raises(RuntimeError):
             convert_with_libreoffice(in_path, out_path)
+
+    def test_convert_with_libreoffice_stderr_triggers_error(
+        self, monkeypatch, tmp_path
+    ):
+        def fake_run(*args, **kwargs):
+            result = mock.Mock()
+            result.stderr = b"conversion failed"
+            return result
+
+        monkeypatch.setattr(subprocess, "run", fake_run)
+
+        in_path = str(tmp_path / "in.docx")
+        out_path = str(tmp_path / "out.pdf")
+
+        (tmp_path / "in.docx").write_text("dummy")
+
+        with pytest.raises(RuntimeError) as exc:
+            convert_with_libreoffice(in_path, out_path)
+
+        assert "LibreOffice conversion failed" in str(exc.value)
+
+    def test_convert_with_libreoffice_timeout(self, monkeypatch, tmp_path):
+        def fake_run(*args, **kwargs):
+            raise subprocess.TimeoutExpired(cmd="soffice", timeout=300)
+
+        monkeypatch.setattr(subprocess, "run", fake_run)
+
+        in_path = str(tmp_path / "in.docx")
+        out_path = str(tmp_path / "out.pdf")
+        (tmp_path / "in.docx").write_text("dummy")
+
+        with pytest.raises(RuntimeError) as exc:
+            convert_with_libreoffice(in_path, out_path)
+
+        assert "LibreOffice timed out after 300s converting" in str(exc.value)
 
     def test_convert_excel_to_pdf(self, monkeypatch, tmp_path):
         calls = []
@@ -340,6 +448,298 @@ class TestProcessConsignment:
         assert "cons1/file1" in uploaded_keys
         assert "cons1/file3" in uploaded_keys
         assert "cons1/file2" not in uploaded_keys
+
+
+class TestMain:
+    """Main entrypoint tests"""
+
+    def test_main_missing_app_secret_id(self, monkeypatch):
+        monkeypatch.delenv("APP_SECRET_ID", raising=False)
+
+        with pytest.raises(Exception) as exc:
+            main_module.main()
+
+        assert "APP_SECRET_ID environment variable not found" in str(exc.value)
+
+    def test_main_all_conversion(self, monkeypatch):
+        monkeypatch.setenv("APP_SECRET_ID", "app-secret")
+        monkeypatch.setenv("CONVERSION_TYPE", "ALL")
+
+        monkeypatch.setattr(
+            main_module,
+            "get_secret_string",
+            lambda secret_id: {
+                "RECORD_BUCKET_NAME": "source-bucket",
+                "ACCESS_COPY_BUCKET": "dest-bucket",
+            },
+        )
+
+        fake_conn = mock.Mock()
+        fake_engine = mock.Mock()
+        fake_engine.connect.return_value = fake_conn
+
+        monkeypatch.setattr(main_module, "get_engine", lambda: fake_engine)
+
+        all_mock = mock.Mock()
+        monkeypatch.setattr(
+            main_module,
+            "create_access_copies_for_all_consignments",
+            all_mock,
+        )
+
+        main_module.main()
+
+        all_mock.assert_called_once_with(
+            "source-bucket",
+            "dest-bucket",
+            fake_conn,
+        )
+
+    def test_main_single_conversion(self, monkeypatch):
+        monkeypatch.setenv("APP_SECRET_ID", "app-secret")
+        monkeypatch.setenv("CONVERSION_TYPE", "SINGLE")
+
+        monkeypatch.setattr(
+            main_module,
+            "get_secret_string",
+            lambda secret_id: {
+                "RECORD_BUCKET_NAME": "source-bucket",
+                "ACCESS_COPY_BUCKET": "dest-bucket",
+            },
+        )
+
+        fake_conn = mock.Mock()
+        fake_engine = mock.Mock()
+        fake_engine.connect.return_value = fake_conn
+
+        monkeypatch.setattr(main_module, "get_engine", lambda: fake_engine)
+
+        single_mock = mock.Mock()
+        monkeypatch.setattr(
+            main_module,
+            "create_access_copy_from_sns",
+            single_mock,
+        )
+
+        main_module.main()
+
+        single_mock.assert_called_once_with(
+            "source-bucket",
+            "dest-bucket",
+            fake_conn,
+        )
+
+    def test_main_empty_conversion_type(self, monkeypatch):
+        monkeypatch.setenv("APP_SECRET_ID", "app-secret")
+        monkeypatch.setenv("CONVERSION_TYPE", "")
+
+        monkeypatch.setattr(
+            main_module,
+            "get_secret_string",
+            lambda secret_id: {
+                "RECORD_BUCKET_NAME": "source-bucket",
+                "ACCESS_COPY_BUCKET": "dest-bucket",
+            },
+        )
+
+        with pytest.raises(Exception) as exc:
+            main_module.main()
+
+        assert "CONVERSION_TYPE environment variable not found" in str(
+            exc.value
+        )
+
+    def test_main_invalid_conversion_type(self, monkeypatch):
+        monkeypatch.setenv("APP_SECRET_ID", "app-secret")
+        monkeypatch.setenv("CONVERSION_TYPE", "INVALID")
+
+        monkeypatch.setattr(
+            main_module,
+            "get_secret_string",
+            lambda secret_id: {
+                "RECORD_BUCKET_NAME": "source-bucket",
+                "ACCESS_COPY_BUCKET": "dest-bucket",
+            },
+        )
+
+        fake_engine = mock.Mock()
+        fake_engine.connect.return_value = mock.Mock()
+        monkeypatch.setattr(main_module, "get_engine", lambda: fake_engine)
+
+        with pytest.raises(ValueError) as exc:
+            main_module.main()
+
+        assert "Invalid CONVERSION_TYPE" in str(exc.value)
+
+
+class TestTopLevelConversionFlows:
+    """Top-level conversion flow tests"""
+
+    def test_create_access_copies_for_all_consignments_success(
+        self, monkeypatch
+    ):
+        class FakePaginator:
+            def paginate(self, Bucket):
+                return [
+                    {
+                        "Contents": [
+                            {"Key": "cons1/file1"},
+                            {"Key": "cons2/file2"},
+                        ]
+                    }
+                ]
+
+        fake_s3 = mock.Mock()
+        fake_s3.get_paginator.return_value = FakePaginator()
+        monkeypatch.setattr(main_module, "s3", fake_s3)
+
+        processed = []
+
+        def fake_process_consignment(
+            consignment_ref, source_bucket, dest_bucket, conn
+        ):
+            processed.append(consignment_ref)
+            return []
+
+        monkeypatch.setattr(
+            main_module, "process_consignment", fake_process_consignment
+        )
+
+        main_module.create_access_copies_for_all_consignments(
+            "source-bucket", "dest-bucket", mock.Mock()
+        )
+
+        assert set(processed) == {"cons1", "cons2"}
+
+    def test_create_access_copies_for_all_consignments_raises_on_failures(
+        self, monkeypatch
+    ):
+        class FakePaginator:
+            def paginate(self, Bucket):
+                return [{"Contents": [{"Key": "cons1/file1"}]}]
+
+        fake_s3 = mock.Mock()
+        fake_s3.get_paginator.return_value = FakePaginator()
+        monkeypatch.setattr(main_module, "s3", fake_s3)
+
+        monkeypatch.setattr(
+            main_module,
+            "process_consignment",
+            lambda consignment_ref, source_bucket, dest_bucket, conn: [
+                "cons1/file1"
+            ],
+        )
+
+        with pytest.raises(RuntimeError) as exc:
+            main_module.create_access_copies_for_all_consignments(
+                "source-bucket", "dest-bucket", mock.Mock()
+            )
+
+        assert "Conversion failed for 1 file(s)" in str(exc.value)
+        assert "cons1/file1" in str(exc.value)
+
+    def test_create_access_copies_for_all_consignments_empty(self, monkeypatch):
+        class FakePaginator:
+            def paginate(self, Bucket):
+                return []
+
+        fake_s3 = mock.Mock()
+        fake_s3.get_paginator.return_value = FakePaginator()
+        monkeypatch.setattr(main_module, "s3", fake_s3)
+
+        process_mock = mock.Mock()
+        monkeypatch.setattr(main_module, "process_consignment", process_mock)
+
+        main_module.create_access_copies_for_all_consignments(
+            "source-bucket", "dest-bucket", mock.Mock()
+        )
+
+        process_mock.assert_not_called()
+
+    def test_create_access_copy_from_sns_missing_message(self, monkeypatch):
+        monkeypatch.delenv("SNS_MESSAGE", raising=False)
+
+        with pytest.raises(Exception) as exc:
+            main_module.create_access_copy_from_sns(
+                "source-bucket", "dest-bucket", mock.Mock()
+            )
+
+        assert "SNS_MESSAGE environment variable not found" in str(exc.value)
+
+    def test_create_access_copy_from_sns_invalid_json(
+        self, monkeypatch, caplog
+    ):
+        monkeypatch.setenv("SNS_MESSAGE", "not json")
+
+        with pytest.raises(Exception):
+            main_module.create_access_copy_from_sns(
+                "source-bucket", "dest-bucket", mock.Mock()
+            )
+
+        assert "Error parsing SNS_MESSAGE" in caplog.text
+
+    def test_create_access_copy_from_sns_missing_reference(self, monkeypatch):
+        monkeypatch.setenv("SNS_MESSAGE", json.dumps({"parameters": {}}))
+
+        with pytest.raises(Exception) as exc:
+            main_module.create_access_copy_from_sns(
+                "source-bucket", "dest-bucket", mock.Mock()
+            )
+
+        assert "Missing consignment_reference in SNS Message" in str(exc.value)
+
+    def test_create_access_copy_from_sns_success(self, monkeypatch):
+        monkeypatch.setenv(
+            "SNS_MESSAGE",
+            json.dumps({"parameters": {"reference": "cons1"}}),
+        )
+
+        called = {}
+
+        def fake_process_consignment(
+            consignment_ref, source_bucket, dest_bucket, conn
+        ):
+            called["consignment_ref"] = consignment_ref
+            called["source_bucket"] = source_bucket
+            called["dest_bucket"] = dest_bucket
+            called["conn"] = conn
+            return []
+
+        monkeypatch.setattr(
+            main_module, "process_consignment", fake_process_consignment
+        )
+
+        conn = mock.Mock()
+        main_module.create_access_copy_from_sns(
+            "source-bucket", "dest-bucket", conn
+        )
+
+        assert called["consignment_ref"] == "cons1"
+        assert called["source_bucket"] == "source-bucket"
+        assert called["dest_bucket"] == "dest-bucket"
+        assert called["conn"] == conn
+
+    def test_create_access_copy_from_sns_raises_on_failures(self, monkeypatch):
+        monkeypatch.setenv(
+            "SNS_MESSAGE",
+            json.dumps({"parameters": {"reference": "cons1"}}),
+        )
+
+        monkeypatch.setattr(
+            main_module,
+            "process_consignment",
+            lambda consignment_ref, source_bucket, dest_bucket, conn: [
+                "cons1/file1"
+            ],
+        )
+
+        with pytest.raises(RuntimeError) as exc:
+            main_module.create_access_copy_from_sns(
+                "source-bucket", "dest-bucket", mock.Mock()
+            )
+
+        assert "Conversion failed for 1 file(s)" in str(exc.value)
+        assert "cons1/file1" in str(exc.value)
 
 
 class TestLibreOfficeRealConversion:
