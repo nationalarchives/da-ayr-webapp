@@ -358,6 +358,7 @@ def create_access_copy_from_sns(source_bucket, dest_bucket, conn):
 
 
 def main():
+    print("testing")
     app_secret_id = os.getenv("APP_SECRET_ID")
     if not app_secret_id:
         raise Exception("APP_SECRET_ID environment variable not found")
