@@ -906,3 +906,68 @@ Uses [Flask Compress](https://github.com/colour-science/flask-compress) to compr
 This software is provided _"as-is"_ without warranty. Support is provided on a _"best endeavours"_ basis by the maintainers and open source community.
 
 Please see the [contribution guidelines](CONTRIBUTING.md) for how to raise a bug report or feature request.
+
+
+## MDS Test Data Generator
+
+This tool generates test data for AYR development and performance testing by:
+
+1. Creating test files across a range of document formats (PDF, DOCX, DOC, PPTX, PPT, XLSX, XLS, CSV, RTF, ODT, TIF, PNG, JPG, EPUB, TXT, WK1, WK4, WP, XML)
+2. Adding metadata to a PostgreSQL database
+3. Uploading files to S3/MinIO storage
+4. Indexing files in OpenSearch
+
+## Prerequisites
+
+Before running the tool, ensure the following environment variables are set (usually via `.env`):
+
+- `MINIO_ROOT_USER` – your MinIO access key
+- `MINIO_ROOT_PASSWORD` – your MinIO secret key
+- `AWS_ENDPOINT_URL` – the S3/MinIO endpoint (e.g., http://localhost:9000)
+- `RECORD_BUCKET_NAME` – the name of the bucket used for test files
+
+Example `.env`:
+
+```env
+MINIO_ROOT_USER=
+MINIO_ROOT_PASSWORD=
+AWS_ENDPOINT_URL=http://localhost:9000
+RECORD_BUCKET_NAME=test-record-download
+```
+
+## To Run
+
+Pass `--num-{ext}` arguments to specify how many files of each type to create:
+
+```
+python local_services/mds_data_generator/mds_test_file_importer.py --num-pdf 5 --num-tif 5
+```
+
+If no arguments are passed, the script will default to **1 file of every supported type** (19 files total). To import a specific set of formats only, pass explicit counts and set others to 0:
+
+```
+python local_services/mds_data_generator/mds_test_file_importer.py --num-pdf 5 --num-docx 3 --num-tif 0
+```
+
+## New files
+
+AYR 25_G85D3R.png : iPRES 2025 Bake Off google drive  [link](https://drive.google.com/drive/folders/1fyyoupWHtqAAV0Woq0XFPNhxEfG7kdFC)
+AYR 25_6YTFTC.jpg : iPRES 2025 Bake Off google drive  [link](https://drive.google.com/drive/folders/1fyyoupWHtqAAV0Woq0XFPNhxEfG7kdFC)
+AYR 25_VCT56L.tif  : iPRES 2025 Bake Off google drive [link](https://drive.google.com/drive/folders/1iyH31dpkdQclDAUuBuvRZJukSx-YNSPu)
+AYR 25_UYT6DV.xlsx: Part of the data from iPRES 2025 Bake Off google drive  [link](https://docs.google.com/spreadsheets/d/1eCvJJF8M3175CK0OExW-tem9bU4Ndmyy/edit?gid=606401880#gid=606401880)
+
+AYR 25_VTC9WP.xls : Part of the data from iPRES 2025 Bake Off google drive  [link](https://docs.google.com/spreadsheets/d/1eCvJJF8M3175CK0OExW-tem9bU4Ndmyy/edit?gid=606401880#gid=606401880)
+
+AYR 25_KTV6RM.csv : Part of the data from iPRES 2025 Bake Off google drive  [link](https://docs.google.com/spreadsheets/d/1eCvJJF8M3175CK0OExW-tem9bU4Ndmyy/edit?gid=606401880#gid=606401880)
+
+AYR 25_ZB33RH.wk1 : Three pages of calendar dates
+AYR 25_ZB33RK.wk4 : Three pages of calendar dates
+
+AYR 25_ZDC8J4.docx  : Pages with "The quick brown fox jumps over the lazy dog" text
+AYR 25_ZFW6DB.doc   : Pages with "The quick brown fox jumps over the lazy dog" text
+AYR 25_ZDKL26.pdf   : Pages with "The quick brown fox jumps over the lazy dog" text
+AYR 25_DNI76K.txt   : Pages with "The quick brown fox jumps over the lazy dog" text
+AYR 25_ZJ56LA.rtf   : Pages with "The quick brown fox jumps over the lazy dog" text
+AYR 25_ZG8SKW.pptx  : Slides with "The National Archives" and "PAGE number"
+AYR 25_Z95P37.ppt   : Slides with "The National Archives" and "PAGE number"
+AYR 25_Z9P523.wp    : Pages with "The quick brown fox jumps over the lazy dog" text
