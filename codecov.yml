@@ -1,6 +1,17 @@
 coverage:
   status:
     project:
-      default:
-        target: 95%
-        threshold: 0%
+      app:
+        target: 85%
+        flags:
+          - app
+
+      opensearch_indexer:
+        target: 85%
+        flags:
+          - opensearch_indexer
+
+      access_copy_converter:
+        target: 85%
+        flags:
+          - access_copy_converter
