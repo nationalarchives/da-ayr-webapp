@@ -851,6 +851,9 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
     manifest_url = f"{url_for('main.generate_manifest', record_id=record_id, _external=True)}"
     puid = get_file_puid(file)
 
+    consignment_ref = file.consignment.ConsignmentReference
+    file_id = str(file.FileId)
+
     if (
         puid
         in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS"]
@@ -859,8 +862,10 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
             file_name,
             manifest_url,
             bucket=current_app.config["RECORD_BUCKET_NAME"],
-            key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
+            key=f"{consignment_ref}/{file_id}",
             record_id=str(record_id),
+            consignment_ref=consignment_ref,
+            file_id=file_id,
         )
     elif puid in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS"]:
         file_url = create_presigned_url(file)
@@ -869,15 +874,17 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
             file_url,
             manifest_url,
             bucket=current_app.config["RECORD_BUCKET_NAME"],
-            key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
+            key=f"{consignment_ref}/{file_id}",
         )
     elif puid in CONVERTIBLE_PUIDS:
         return generate_pdf_manifest(
             file.FileName,
             manifest_url,
             bucket=current_app.config["ACCESS_COPY_BUCKET"],
-            key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
+            key=f"{consignment_ref}/{file_id}",
             record_id=str(record_id),
+            consignment_ref=consignment_ref,
+            file_id=file_id,
         )
 
     current_app.app_logger.error(

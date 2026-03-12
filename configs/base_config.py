@@ -170,6 +170,22 @@ class BaseConfig(object):
         return self._get_config_value("ACCESS_COPY_BUCKET")
 
     @property
+    def RENDERED_PAGES_BUCKET(self):
+        # Optional — set this env var to enable pre-generated image path.
+        # When absent the manifest falls back to on-demand rasterisation.
+        try:
+            return self._get_config_value("RENDERED_PAGES_BUCKET")
+        except KeyError:
+            return None
+
+    @property
+    def RENDERED_PAGES_BUCKET_URL(self):
+        bucket = self.RENDERED_PAGES_BUCKET
+        if not bucket:
+            return None
+        return f"https://{bucket}.s3.amazonaws.com"
+
+    @property
     def S3_BUCKET_URL(self):
         return f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"
 
@@ -273,13 +289,16 @@ class BaseConfig(object):
 
     @property
     def CSP_IMG_SRC(self):
-        return [
+        sources = [
             SELF,
             self.FLASKS3_CDN_DOMAIN,
             self.S3_BUCKET_URL,
             self.ACCESS_COPY_BUCKET_URL,
             "data:",
         ]
+        if self.RENDERED_PAGES_BUCKET_URL:
+            sources.append(self.RENDERED_PAGES_BUCKET_URL)
+        return sources
 
     @property
     def CSP_FRAME_SRC(self):

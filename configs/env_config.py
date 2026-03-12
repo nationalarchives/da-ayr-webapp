@@ -17,3 +17,13 @@ class EnvConfig(BaseConfig):
         if aws_endpoint_url:
             return f"{aws_endpoint_url}/{self.RECORD_BUCKET_NAME}/"
         return super().S3_BUCKET_URL
+
+    @property
+    def RENDERED_PAGES_BUCKET_URL(self):
+        bucket = self.RENDERED_PAGES_BUCKET
+        if not bucket:
+            return None
+        aws_endpoint_url = os.getenv("AWS_ENDPOINT_URL")
+        if aws_endpoint_url:
+            return f"{aws_endpoint_url}/{bucket}/"
+        return super().RENDERED_PAGES_BUCKET_URL

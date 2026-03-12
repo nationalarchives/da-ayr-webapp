@@ -1,6 +1,7 @@
 import base64
 import io
-from typing import List
+import json
+from typing import List, Optional
 
 import boto3
 import pymupdf
@@ -209,59 +210,65 @@ def generate_pdf_manifest(
     bucket: str = None,
     key: str = None,
     record_id: str = None,
+    consignment_ref: str = None,
+    file_id: str = None,
 ) -> Response:
     """
     Generate an IIIF manifest for a PDF file with URLs to page images.
 
+    When RENDERED_PAGES_BUCKET is configured and pre-generated images exist for
+    this document (produced by the thumbnail_generator task), the manifest
+    contains presigned S3 URLs to those images.  No PDF rasterisation occurs at
+    view time and the manifest itself is generated without downloading the PDF
+    (dimensions are read from the stored metadata.json).
+
+    Falls back to the on-demand /page/<n> endpoints if pre-generated images are
+    not available, preserving the existing behaviour.
+
     Args:
         file_name (str): The display name of the file.
         manifest_url (str): The manifest's own URL.
-        file_obj (Any, optional): The File object for S3 access.
-        record_id (str, optional): The record UUID for generating image URLs.
+        bucket (str): S3 bucket containing the source PDF (fallback path).
+        key (str): S3 key of the source PDF (fallback path).
+        record_id (str): The record UUID for generating on-demand image URLs.
+        consignment_ref (str): Consignment reference for the pre-generated path.
+        file_id (str): File UUID for the pre-generated path.
 
     Returns:
         Response: Flask JSON response containing the IIIF manifest.
     """
+    from flask import url_for
+
     current_app.logger.info(
         f"Generating PDF manifest for {file_name}, record_id: {record_id}"
     )
 
-    # Read PDF to get page count and dimensions
-    pdf_bytes = get_pdf_from_s3(bucket, key)
-    current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
-
     canvas_items = []
 
-    with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
-        page_count = pdf_document.page_count
-        current_app.logger.info(f"PDF has {page_count} pages")
+    # ------------------------------------------------------------------
+    # Fast path: use pre-generated images if available
+    # ------------------------------------------------------------------
+    pregenerated_data = None
+    if consignment_ref and file_id:
+        pregenerated_data = get_pregenerated_manifest_data(
+            consignment_ref, file_id
+        )
 
-        for page_num in range(page_count):
-            page = pdf_document.load_page(page_num)
-            rect = page.rect
+    if pregenerated_data:
+        current_app.logger.info(
+            f"Using pre-generated images for {file_id} "
+            f"({pregenerated_data['page_count']} pages)"
+        )
+        for page_meta in pregenerated_data["pages"]:
+            page_number = page_meta["page"]
+            width = page_meta["width"]
+            height = page_meta["height"]
 
-            # Calculate dimensions at 150 DPI
-            DPI = 150
-            width = int(rect.width * DPI / 72)
-            height = int(rect.height * DPI / 72)
-
-            page_number = page_num + 1
-
-            # Generate URLs for this page
-            from flask import url_for
-
-            page_image_url = url_for(
-                "main.get_page_image",
-                record_id=record_id,
-                page_number=page_number,
-                _external=True,
+            page_image_url = make_presigned_url_for_pregenerated(
+                consignment_ref, file_id, page_number, thumbnail=False
             )
-
-            thumbnail_url = url_for(
-                "main.get_page_thumbnail",
-                record_id=record_id,
-                page_number=page_number,
-                _external=True,
+            thumbnail_url = make_presigned_url_for_pregenerated(
+                consignment_ref, file_id, page_number, thumbnail=True
             )
 
             canvas_id = f"{manifest_url}/canvas/{page_number}"
@@ -295,6 +302,79 @@ def generate_pdf_manifest(
                     ],
                 }
             )
+
+    else:
+        # ------------------------------------------------------------------
+        # Fallback: on-demand rasterisation (existing behaviour)
+        # ------------------------------------------------------------------
+        current_app.logger.info(
+            "No pre-generated images found — falling back to on-demand rendering"
+        )
+
+        # Read PDF to get page count and dimensions
+        pdf_bytes = get_pdf_from_s3(bucket, key)
+        current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
+
+        with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
+            page_count = pdf_document.page_count
+            current_app.logger.info(f"PDF has {page_count} pages")
+
+            for page_num in range(page_count):
+                page = pdf_document.load_page(page_num)
+                rect = page.rect
+
+                # Calculate dimensions at 150 DPI
+                DPI = 150
+                width = int(rect.width * DPI / 72)
+                height = int(rect.height * DPI / 72)
+
+                page_number = page_num + 1
+
+                page_image_url = url_for(
+                    "main.get_page_image",
+                    record_id=record_id,
+                    page_number=page_number,
+                    _external=True,
+                )
+
+                thumbnail_url = url_for(
+                    "main.get_page_thumbnail",
+                    record_id=record_id,
+                    page_number=page_number,
+                    _external=True,
+                )
+
+                canvas_id = f"{manifest_url}/canvas/{page_number}"
+                canvas_items.append(
+                    {
+                        "@type": "sc:Canvas",
+                        "@id": canvas_id,
+                        "label": f"Page {page_number}",
+                        "width": width,
+                        "height": height,
+                        "thumbnail": {
+                            "@id": thumbnail_url,
+                            "@type": "dctypes:Image",
+                            "format": "image/jpeg",
+                            "width": 150,
+                            "height": 200,
+                        },
+                        "images": [
+                            {
+                                "@type": "oa:Annotation",
+                                "motivation": "sc:painting",
+                                "resource": {
+                                    "@id": page_image_url,
+                                    "@type": "dctypes:Image",
+                                    "format": "image/jpeg",
+                                    "width": width,
+                                    "height": height,
+                                },
+                                "on": canvas_id,
+                            }
+                        ],
+                    }
+                )
 
     manifest = {
         "@context": "https://iiif.io/api/presentation/3/context.json",
@@ -398,3 +478,89 @@ def get_pdf_from_s3(bucket: str, key: str) -> bytes:
     pdf_bytes = s3_object["Body"].read()
 
     return pdf_bytes
+
+
+# ---------------------------------------------------------------------------
+# Pre-generated image helpers (AYR-1594 POC)
+# ---------------------------------------------------------------------------
+# When thumbnail_generator has run for a document, page images and thumbnails
+# are stored in RENDERED_PAGES_BUCKET under:
+#   {consignment_ref}/{file_id}/pages/{n}.jpg
+#   {consignment_ref}/{file_id}/thumbs/{n}.jpg
+#   {consignment_ref}/{file_id}/metadata.json  ← page count + dimensions
+#
+# The manifest endpoint calls get_pregenerated_manifest_data() first.  If it
+# returns data, presigned URLs to the pre-rendered objects are embedded in the
+# manifest instead of the on-demand /page/<n> endpoints.  This eliminates all
+# server-side rasterisation at view time.
+# ---------------------------------------------------------------------------
+
+_PRESIGNED_URL_EXPIRY = 3600  # 1 hour
+
+
+def _rendered_bucket() -> Optional[str]:
+    """Return RENDERED_PAGES_BUCKET from env or config, or None if not configured."""
+    import os
+
+    bucket = os.getenv("RENDERED_PAGES_BUCKET") or current_app.config.get(
+        "RENDERED_PAGES_BUCKET"
+    )
+    current_app.logger.info(f"_rendered_bucket: {bucket!r}")
+    return bucket
+
+
+def get_pregenerated_manifest_data(
+    consignment_ref: str, file_id: str
+) -> Optional[dict]:
+    """
+    Check whether pre-generated images exist for this document and return the
+    stored metadata if so.
+
+    Returns the parsed metadata dict on success, or None if the rendered bucket
+    is not configured or the metadata object does not exist.
+
+    The metadata dict has shape::
+
+        {
+            "file_id": str,
+            "consignment_ref": str,
+            "dpi": int,
+            "page_count": int,
+            "pages": [{"page": int, "width": int, "height": int}, ...]
+        }
+    """
+    bucket = _rendered_bucket()
+    if not bucket:
+        return None
+
+    s3 = boto3.client("s3")
+    key = f"{consignment_ref}/{file_id}/metadata.json"
+    try:
+        response = s3.get_object(Bucket=bucket, Key=key)
+        return json.loads(response["Body"].read())
+    except ClientError as e:
+        if e.response["Error"]["Code"] in ("404", "NoSuchKey"):
+            return None
+        raise
+
+
+def make_presigned_url_for_pregenerated(
+    consignment_ref: str,
+    file_id: str,
+    page_number: int,
+    thumbnail: bool = False,
+) -> str:
+    """
+    Generate a presigned URL for a pre-rendered page image or thumbnail.
+
+    Raises ClientError if the object does not exist.
+    """
+    bucket = _rendered_bucket()
+    sub = "thumbs" if thumbnail else "pages"
+    key = f"{consignment_ref}/{file_id}/{sub}/{page_number}.jpg"
+    s3 = boto3.client("s3")
+    return s3.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": bucket, "Key": key},
+        ExpiresIn=_PRESIGNED_URL_EXPIRY,
+    )
