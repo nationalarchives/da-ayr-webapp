@@ -1,13 +1,7 @@
-# Python 3.13-slim — same base as access_copy_converter for consistency
-FROM python@sha256:151ab3571dad616bb031052e86411e2165295c7f67ef27206852203e854bcd12
+FROM public.ecr.aws/lambda/python:3.13
 
-COPY thumbnail_generator/ /app/
+COPY thumbnail_generator/ ${LAMBDA_TASK_ROOT}/
 
-RUN pip install --no-cache-dir -r /app/requirements.txt
+RUN pip install --no-cache-dir -r ${LAMBDA_TASK_ROOT}/requirements.txt
 
-WORKDIR /app
-
-# ECS entry point.  The same image can be deployed as a Lambda container
-# image by overriding CMD to point at the Lambda handler:
-#   CMD ["main.lambda_handler"]
-CMD ["python", "main.py"]
+CMD ["main.lambda_handler"]

@@ -5,8 +5,20 @@ Queries the database for all renderable files (native PDFs and converted access
 copies) and runs the thumbnail generator for each one, skipping any that have
 already been generated.
 
+DB auth modes
+-------------
+Direct (local / basic auth):
+    Set DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD.
+
+RDS IAM (AWS):
+    Set DB_SECRET_ID (Secrets Manager secret containing host/port/username/
+    dbname/proxy).  An IAM auth token is generated automatically.
+    Requires rds-db:connect permission on the IAM role.
+
 Usage
 -----
+Local (MinIO + local Postgres):
+
     AWS_ENDPOINT_URL=http://127.0.0.1:9000 \
     AWS_ACCESS_KEY_ID=ROOTNAME \
     AWS_SECRET_ACCESS_KEY=CHANGEME123 \
@@ -21,25 +33,40 @@ Usage
     RENDERED_BUCKET=test-thumbnail-bucket \
     poetry run python data_management/thumbnail_generator/thumbnail_generator/backfill.py
 
+AWS / staging (RDS IAM auth):
+
+    AWS_REGION=eu-west-2 \
+    DB_SECRET_ID=<secretsmanager-secret-id> \
+    RECORD_BUCKET=<record-bucket> \
+    ACCESS_COPY_BUCKET=<access-copy-bucket> \
+    RENDERED_BUCKET=<rendered-pages-bucket> \
+    poetry run python data_management/thumbnail_generator/thumbnail_generator/backfill.py
+
 Required environment variables
 -------------------------------
-    DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
     RECORD_BUCKET       bucket containing native PDFs
     ACCESS_COPY_BUCKET  bucket containing converted PDFs
     RENDERED_BUCKET     bucket to write rendered images to
 
+    One of:
+      DB_SECRET_ID                        (AWS / RDS IAM auth)
+      DB_HOST, DB_PORT, DB_NAME,          (direct auth)
+      DB_USER, DB_PASSWORD
+
 Optional
 --------
-    DB_SSL_ROOT_CERTIFICATE   path to RDS CA bundle
+    DB_SSL_ROOT_CERTIFICATE   path to RDS CA bundle (direct auth only)
     FORCE_REGENERATE          set to "true" to re-render already-generated files
     DRY_RUN                   set to "true" to list files without rendering
 """
 
+import json
 import logging
 import os
 import sys
 from urllib.parse import quote_plus
 
+import boto3
 from main import process
 from sqlalchemy import MetaData, Table, create_engine, select
 
@@ -86,7 +113,10 @@ CONVERTIBLE_PUIDS = {
 ALL_RENDERABLE_PUIDS = NATIVE_PDF_PUIDS | CONVERTIBLE_PUIDS
 
 
-def get_engine():
+def _get_engine_direct():
+    """Build engine using explicit DB_HOST/DB_USER/DB_PASSWORD env vars."""
+
+    rds = boto3.client("rds")
     host = os.environ["DB_HOST"]
     port = os.environ["DB_PORT"]
     name = os.environ["DB_NAME"]
@@ -100,7 +130,23 @@ def get_engine():
         connect_args["sslrootcert"] = ssl_cert
         connect_args["sslmode"] = "verify-full"
 
-    return create_engine(url, connect_args=connect_args)
+    token = rds.generate_db_auth_token(
+        DBHostname=host, Port=port, DBUsername=user
+    )
+    print("Generated IAM auth token for RDS")
+    url = (
+        f"postgresql+psycopg2://{user}:{quote_plus(token)}"
+        f"@{host}:{port}/{name}"
+    )
+    return create_engine(
+        url,
+        connect_args={"sslmode": "require"},
+    )
+
+
+def get_engine():
+    logger.info("Using direct DB auth (DB_HOST/DB_USER/DB_PASSWORD)")
+    return _get_engine_direct()
 
 
 def get_renderable_files(conn):
@@ -215,22 +261,46 @@ def run_backfill():
 
 def lambda_handler(event: dict, context) -> dict:
     """
-    Lambda entry point — full backfill in a single invocation.
+    Lambda entry point — two modes depending on ``event["mode"]``:
 
+    "run" (default) — full backfill in a single invocation
+    --------------------------------------------------------
     Queries the DB, renders every unprocessed file, returns a summary.
-    Suitable for small corpora.
+    Suitable for small amount of records.  Will hit the 15-minute Lambda timeout for
+    large datasets — use "fanout" mode instead.
 
     Event schema::
 
         {
+            "mode": "run",           // optional, default
             "force_regenerate": false
         }
 
-    Environment variables
-    ---------------------
-        DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD
+    "fanout" — coordinator for large amount of records
+    -----------------------------------------
+    Queries the DB and sends one SQS message per file.  Each message is
+    consumed by the per-file ``lambda_handler`` in ``main.py``, which can
+    run in parallel across many Lambda instances with no timeout risk.
+
+    Requires SQS_QUEUE_URL env var pointing at the processing queue.
+
+    Event schema::
+
+        {
+            "mode": "fanout",
+            "force_regenerate": false
+        }
+
+    Environment variables (both modes)
+    -----------------------------------
+        DB_SECRET_ID or DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD
         RECORD_BUCKET, ACCESS_COPY_BUCKET, RENDERED_BUCKET
+        SQS_QUEUE_URL   (fanout mode only)
     """
+    mode = event.get("mode", "run")
+
+    if mode == "fanout":
+        return _lambda_fanout(event)
     return _lambda_run(event)
 
 
@@ -268,6 +338,42 @@ def _lambda_run(event: dict) -> dict:
             failed += 1
 
     return {"succeeded": succeeded, "skipped": skipped, "failed": failed}
+
+
+def _lambda_fanout(event: dict) -> dict:
+    """
+    Query the DB and enqueue one SQS message per file.
+    Each message is consumed by the per-file lambda_handler in main.py.
+    """
+    sqs = boto3.client("sqs")
+    queue_url = os.environ["SQS_QUEUE_URL"]
+    rendered_bucket = os.environ["RENDERED_BUCKET"]
+    force_regenerate = event.get("force_regenerate", False)
+
+    engine = get_engine()
+    with engine.connect() as conn:
+        files = get_renderable_files(conn)
+
+    logger.info(f"Enqueuing {len(files)} file(s) → {queue_url}")
+
+    enqueued = 0
+    for f in files:
+        message = {
+            "source_bucket": f["bucket"],
+            "rendered_bucket": rendered_bucket,
+            "s3_key": f"{f['consignment_ref']}/{f['file_id']}",
+            "file_id": f["file_id"],
+            "consignment_ref": f["consignment_ref"],
+            "force_regenerate": force_regenerate,
+        }
+        sqs.send_message(
+            QueueUrl=queue_url,
+            MessageBody=json.dumps(message),
+        )
+        enqueued += 1
+
+    logger.info(f"Enqueued {enqueued} messages")
+    return {"enqueued": enqueued}
 
 
 if __name__ == "__main__":

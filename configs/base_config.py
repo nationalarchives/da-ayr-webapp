@@ -183,7 +183,7 @@ class BaseConfig(object):
         bucket = self.RENDERED_PAGES_BUCKET
         if not bucket:
             return None
-        return f"https://{bucket}.s3.amazonaws.com"
+        return f"https://{bucket}.s3.eu-west-2.amazonaws.com"
 
     @property
     def S3_BUCKET_URL(self):
