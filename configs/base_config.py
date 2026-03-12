@@ -186,6 +186,13 @@ class BaseConfig(object):
         return f"https://{bucket}.s3.amazonaws.com"
 
     @property
+    def RENDERED_PAGES_BUCKET_URL_REGIONAL(self):
+        bucket = self.RENDERED_PAGES_BUCKET
+        if not bucket:
+            return None
+        return f"https://{bucket}.s3.eu-west-2.amazonaws.com"
+
+    @property
     def S3_BUCKET_URL(self):
         return f"https://{self.RECORD_BUCKET_NAME}.s3.amazonaws.com"
 
@@ -298,6 +305,8 @@ class BaseConfig(object):
         ]
         if self.RENDERED_PAGES_BUCKET_URL:
             sources.append(self.RENDERED_PAGES_BUCKET_URL)
+        if self.RENDERED_PAGES_BUCKET_URL_REGIONAL:
+            sources.append(self.RENDERED_PAGES_BUCKET_URL_REGIONAL)
         return sources
 
     @property
