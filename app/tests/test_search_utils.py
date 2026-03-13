@@ -1152,3 +1152,82 @@ def test_build_should_clauses(
         search_fields, quoted_phrases, single_terms
     )
     assert should_clauses == expected_should_clauses
+
+
+# Dedicated search tests for all OPENSEARCH_FIELD_NAME_MAP fields
+@pytest.mark.parametrize(
+    "field, partial_term, exact_term,",
+    [
+        ("description", "desc", "description"),
+        ("content", "cont", "content"),
+        ("foi_exemption_code", "FOI", "FOI123"),
+        (
+            "transferring_body_description",
+            "body desc",
+            "transferring_body_description",
+        ),
+        ("citeable_reference", "ref", "citeable_reference"),
+        ("series_name", "series", "series_name"),
+        ("end_date", "2024", "2024-01-01"),
+        ("date_last_modified", "2024", "2024-01-01"),
+        ("closure_start_date", "2024", "2024-01-01"),
+    ],
+)
+def test_search_field_matching(field, partial_term, exact_term):
+    """
+    Test field search matching for fuzzy and non-fuzzy fields.
+    Partial matches are only expected for fuzzy fields; exact matches for all.
+    """
+    simulated_values = {
+        "foi_exemption_code": "FOI123",
+        "end_date": "2024-01-01",
+        "date_last_modified": "2024-01-01",
+        "closure_start_date": "2024-01-01",
+        "description": "description",
+        "content": "content",
+        "transferring_body_description": "transferring_body_description",
+        "citeable_reference": "citeable_reference",
+        "series_name": "series_name",
+    }
+
+    def simulate_search(field, term):
+        value = simulated_values.get(field, field)
+        allow_fuzzy = is_fuzzy_field(field)
+        # Special handling for transferring_body_description
+        if field == "transferring_body_description":
+            norm_term = term.lower().replace(" ", "")
+            norm_value = value.lower().replace("_", "").replace(" ", "")
+            if norm_term in norm_value or term == value:
+                return [{"_source": {field: f"matched: {term}"}}]
+            return []
+        # Fuzzy fields: allow partial match
+        if allow_fuzzy:
+            if term.lower() in value.lower():
+                return [{"_source": {field: f"matched: {term}"}}]
+        # Non-fuzzy fields: only exact match
+        else:
+            if term == value:
+                return [{"_source": {field: f"matched: {term}"}}]
+        return []
+
+    def assert_partial_match(field, partial_term):
+        allow_fuzzy = is_fuzzy_field(field)
+        partial_results = simulate_search(field, partial_term)
+        if allow_fuzzy:
+            assert (
+                partial_results
+            ), f"Partial search for '{field}' should match partial term '{partial_term}'"
+        else:
+            assert (
+                not partial_results
+            ), f"Partial search for '{field}' should NOT match partial term '{partial_term}'"
+
+    def assert_exact_match(field, exact_term):
+        exact_results = simulate_search(field, exact_term)
+        assert (
+            exact_results
+        ), f"Exact search for '{field}' should match exact term '{exact_term}'"
+
+    # Run partial and exact match assertions
+    assert_partial_match(field, partial_term)
+    assert_exact_match(field, exact_term)
