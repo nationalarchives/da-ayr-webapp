@@ -1155,79 +1155,51 @@ def test_build_should_clauses(
 
 
 # Dedicated search tests for all OPENSEARCH_FIELD_NAME_MAP fields
+
+
 @pytest.mark.parametrize(
-    "field, partial_term, exact_term,",
+    "field, partial_term",
     [
-        ("description", "desc", "description"),
-        ("content", "cont", "content"),
-        ("foi_exemption_code", "FOI", "FOI123"),
-        (
-            "transferring_body_description",
-            "body desc",
-            "transferring_body_description",
-        ),
-        ("citeable_reference", "ref", "citeable_reference"),
-        ("series_name", "series", "series_name"),
-        ("end_date", "2024", "2024-01-01"),
-        ("date_last_modified", "2024", "2024-01-01"),
-        ("closure_start_date", "2024", "2024-01-01"),
+        ("description", "desc"),
+        ("content", "cont"),
+        ("foi_exemption_code", "FOI"),
+        ("transferring_body_description", "body"),
     ],
 )
-def test_search_field_matching(field, partial_term, exact_term):
+def test_fuzzy_field_partial_term_generates_fuzzy_clause(field, partial_term):
     """
-    Test field search matching for fuzzy and non-fuzzy fields.
-    Partial matches are only expected for fuzzy fields; exact matches for all.
+    Fuzzy fields (allow_fuzzy=True) must produce a multi_match clause with
+    fuzziness=AUTO when searched with a partial term, confirming they will
+    return matching results for approximate input.
     """
-    simulated_values = {
-        "foi_exemption_code": "FOI123",
-        "end_date": "2024-01-01",
-        "date_last_modified": "2024-01-01",
-        "closure_start_date": "2024-01-01",
-        "description": "description",
-        "content": "content",
-        "transferring_body_description": "transferring_body_description",
-        "citeable_reference": "citeable_reference",
-        "series_name": "series_name",
-    }
+    should_clauses = build_should_clauses([field], [], [partial_term])
 
-    def simulate_search(field, term):
-        value = simulated_values.get(field, field)
-        allow_fuzzy = is_fuzzy_field(field)
-        # Special handling for transferring_body_description
-        if field == "transferring_body_description":
-            norm_term = term.lower().replace(" ", "")
-            norm_value = value.lower().replace("_", "").replace(" ", "")
-            if norm_term in norm_value or term == value:
-                return [{"_source": {field: f"matched: {term}"}}]
-            return []
-        # Fuzzy fields: allow partial match
-        if allow_fuzzy:
-            if term.lower() in value.lower():
-                return [{"_source": {field: f"matched: {term}"}}]
-        # Non-fuzzy fields: only exact match
-        else:
-            if term == value:
-                return [{"_source": {field: f"matched: {term}"}}]
-        return []
+    assert len(should_clauses) == 1
+    clause = should_clauses[0]["multi_match"]
+    assert clause["fuzziness"] == "AUTO"
+    assert field in clause["fields"]
 
-    def assert_partial_match(field, partial_term):
-        allow_fuzzy = is_fuzzy_field(field)
-        partial_results = simulate_search(field, partial_term)
-        if allow_fuzzy:
-            assert (
-                partial_results
-            ), f"Partial search for '{field}' should match partial term '{partial_term}'"
-        else:
-            assert (
-                not partial_results
-            ), f"Partial search for '{field}' should NOT match partial term '{partial_term}'"
 
-    def assert_exact_match(field, exact_term):
-        exact_results = simulate_search(field, exact_term)
-        assert (
-            exact_results
-        ), f"Exact search for '{field}' should match exact term '{exact_term}'"
+@pytest.mark.parametrize(
+    "field, term",
+    [
+        ("citeable_reference", "TNA/123/456"),
+        ("series_name", "Cabinet Papers"),
+        ("end_date", "2024-01-01"),
+        ("date_last_modified", "2024-01-01"),
+        ("closure_start_date", "2024-01-01"),
+    ],
+)
+def test_non_fuzzy_field_generates_phrase_clause(field, term):
+    """
+    Non-fuzzy fields (allow_fuzzy=False) must produce a phrase multi_match
+    clause without fuzziness, confirming that only exact values will match
+    and partial or misspelled terms will not.
+    """
+    should_clauses = build_should_clauses([field], [], [term])
 
-    # Run partial and exact match assertions
-    assert_partial_match(field, partial_term)
-    assert_exact_match(field, exact_term)
+    assert len(should_clauses) == 1
+    clause = should_clauses[0]["multi_match"]
+    assert clause["type"] == "phrase"
+    assert "fuzziness" not in clause
+    assert field in clause["fields"]
