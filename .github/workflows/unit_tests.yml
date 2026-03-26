@@ -42,7 +42,7 @@ jobs:
       run: poetry run coverage xml
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad
+      uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: ${{ github.repository }}
@@ -73,7 +73,7 @@ jobs:
         cp ./test_results/opensearch_indexer_coverage.xml ./opensearch_indexer_coverage.xml || echo "OpenSearch Indexer coverage file not found"
 
     - name: Upload OpenSearch Indexer coverage to Codecov
-      uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad
+      uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2
       with:
         files: ./opensearch_indexer_coverage.xml
         token: ${{ secrets.CODECOV_TOKEN }}
@@ -85,7 +85,7 @@ jobs:
         cp ./test_results/access_copy_converter_coverage.xml ./access_copy_converter_coverage.xml || echo "Access Copy Converter coverage file not found"
 
     - name: Upload Access Copy Converter coverage to Codecov
-      uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad
+      uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2
       with:
         files: ./access_copy_converter_coverage.xml
         token: ${{ secrets.CODECOV_TOKEN }}
