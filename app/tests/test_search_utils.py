@@ -520,6 +520,7 @@ def test_build_search_transferring_body_query():
                             ],
                             "fuzziness": "AUTO",
                             "lenient": True,
+                            "operator": "AND",
                         }
                     },
                 ],
