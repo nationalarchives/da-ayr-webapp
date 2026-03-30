@@ -1,5 +1,8 @@
 name: Trigger Non Prod Deployment CD
 
+permissions:
+  contents: read
+
 on:
     push:
       branches:
