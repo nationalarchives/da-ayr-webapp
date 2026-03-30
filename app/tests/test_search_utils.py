@@ -1145,10 +1145,7 @@ def test_is_fuzzy_field_unknown_fields(field):
                     }
                 },
             ],
-        ),
-        # Test case 11: Filename with extension — all tokens must match (AND)
-        # so "TEST_1.PDF" → ["test", "1", "pdf"] requires
-        # all tokens, preventing every PDF file from matching via the "pdf" token.
+        ),        
         (
             ["file_name", "description", "content"],
             [],
@@ -1165,8 +1162,6 @@ def test_is_fuzzy_field_unknown_fields(field):
                 },
             ],
         ),
-        # Test case 12: Filename with extension in mixed fields — AND operator
-        # prevents the "pdf" token alone from matching unrelated documents.
         (
             ["file_name", "closure_start_date"],
             [],
