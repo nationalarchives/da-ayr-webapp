@@ -923,6 +923,7 @@ def test_is_fuzzy_field_unknown_fields(field):
                         "query": "test",
                         "fields": ["file_name", "description", "content"],
                         "fuzziness": "AUTO",
+                        "operator": "AND",
                         "lenient": True,
                     }
                 },
@@ -931,6 +932,7 @@ def test_is_fuzzy_field_unknown_fields(field):
                         "query": "search",
                         "fields": ["file_name", "description", "content"],
                         "fuzziness": "AUTO",
+                        "operator": "AND",
                         "lenient": True,
                     }
                 },
@@ -992,6 +994,7 @@ def test_is_fuzzy_field_unknown_fields(field):
                         "query": "test",
                         "fields": ["file_name", "description"],
                         "fuzziness": "AUTO",
+                        "operator": "AND",
                         "lenient": True,
                     }
                 },
@@ -1048,6 +1051,7 @@ def test_is_fuzzy_field_unknown_fields(field):
                         "query": "fuzzy",
                         "fields": ["file_name", "content"],
                         "fuzziness": "AUTO",
+                        "operator": "AND",
                         "lenient": True,
                     }
                 },
@@ -1064,6 +1068,7 @@ def test_is_fuzzy_field_unknown_fields(field):
                         "query": "term",
                         "fields": ["file_name", "content"],
                         "fuzziness": "AUTO",
+                        "operator": "AND",
                         "lenient": True,
                     }
                 },
@@ -1088,6 +1093,7 @@ def test_is_fuzzy_field_unknown_fields(field):
                         "query": "test",
                         "fields": ["file_name^2", "description^3"],
                         "fuzziness": "AUTO",
+                        "operator": "AND",
                         "lenient": True,
                     }
                 },
@@ -1134,6 +1140,52 @@ def test_is_fuzzy_field_unknown_fields(field):
                         "query": "search",
                         "fields": ["file_name", "description", "content"],
                         "fuzziness": "AUTO",
+                        "operator": "AND",
+                        "lenient": True,
+                    }
+                },
+            ],
+        ),
+        # Test case 11: Filename with extension — all tokens must match (AND)
+        # so "TEST_1.PDF" → ["test", "1", "pdf"] requires
+        # all tokens, preventing every PDF file from matching via the "pdf" token.
+        (
+            ["file_name", "description", "content"],
+            [],
+            ["TEST_1.PDF"],
+            [
+                {
+                    "multi_match": {
+                        "query": "TEST_1.PDF",
+                        "fields": ["file_name", "description", "content"],
+                        "fuzziness": "AUTO",
+                        "operator": "AND",
+                        "lenient": True,
+                    }
+                },
+            ],
+        ),
+        # Test case 12: Filename with extension in mixed fields — AND operator
+        # prevents the "pdf" token alone from matching unrelated documents.
+        (
+            ["file_name", "closure_start_date"],
+            [],
+            ["report.pdf"],
+            [
+                {
+                    "multi_match": {
+                        "query": "report.pdf",
+                        "fields": ["closure_start_date"],
+                        "type": "phrase",
+                        "lenient": True,
+                    }
+                },
+                {
+                    "multi_match": {
+                        "query": "report.pdf",
+                        "fields": ["file_name"],
+                        "fuzziness": "AUTO",
+                        "operator": "AND",
                         "lenient": True,
                     }
                 },

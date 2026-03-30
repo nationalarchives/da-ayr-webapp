@@ -331,6 +331,7 @@ def build_should_clauses(search_fields, quoted_phrases, single_terms):
                         "query": term,
                         "fields": fuzzy_fields,
                         "fuzziness": "AUTO",
+                        "operator": "AND",
                         "lenient": True,
                     }
                 }
