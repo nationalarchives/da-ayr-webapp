@@ -1,4 +1,7 @@
 name: Pre-commit check
+
+permissions:
+  contents: read
 on:
   pull_request:
   merge_group:
