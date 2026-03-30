@@ -1145,7 +1145,7 @@ def test_is_fuzzy_field_unknown_fields(field):
                     }
                 },
             ],
-        ),        
+        ),
         (
             ["file_name", "description", "content"],
             [],
