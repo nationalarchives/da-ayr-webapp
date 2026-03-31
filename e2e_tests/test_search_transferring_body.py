@@ -121,3 +121,53 @@ class TestSearchResults:
 
         # Should find no results due to minimum_should_match requirement
         assert row_count == 0, "Expected no results for nonsense query terms"
+
+    def test_filename_with_extension_does_not_return_all_pdfs(
+        self, standard_user_page: Page
+    ):
+        """
+        Before the fix, search split "something.pdf" into the
+        tokens ["something", "pdf"].  With no operator specified, OpenSearch
+        used OR logic, so every document containing "pdf" was returned.
+
+        Using operator=AND is set on fuzzy multi_match clauses, so
+        all tokens must be present. A search with ("nonexistent") combined
+        with ".pdf" should then return 0 results and not a large
+        number of PDFs matched via the "pdf" token alone.
+        """
+        url = (
+            f"{self.transferring_body_search_url}?"
+            "query=nonexistent.pdf&search_area=everywhere#browse-records"
+        )
+        standard_user_page.goto(url)
+        row_count = _check_row_count(standard_user_page)
+        assert row_count == 0
+
+    def test_filename_with_extension_fewer_results_than_extension_alone(
+        self, standard_user_page: Page
+    ):
+        """
+        Test confirming that appending a stem to a common extension
+        narrows results rather than returning the same broad set.
+
+        Searching for just "pdf" may return many documents (the word appears in
+        filenames, descriptions, or content).  Searching for a specific stem
+        plus ".pdf" must return no more results than "pdf" alone
+        """
+        # Baseline: how many results does searching "pdf" alone return
+        url_pdf_only = (
+            f"{self.transferring_body_search_url}?"
+            "query=pdf&search_area=everywhere#browse-records"
+        )
+        standard_user_page.goto(url_pdf_only)
+        pdf_only_count = _check_row_count(standard_user_page)
+
+        # A specific stem + ".pdf" must return fewer results
+        url_with_stem = (
+            f"{self.transferring_body_search_url}?"
+            "query=unique.pdf&search_area=everywhere#browse-records"
+        )
+        standard_user_page.goto(url_with_stem)
+        stem_pdf_count = _check_row_count(standard_user_page)
+
+        assert stem_pdf_count < pdf_only_count
