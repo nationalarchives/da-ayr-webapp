@@ -147,27 +147,28 @@ class TestSearchResults:
         self, standard_user_page: Page
     ):
         """
-        Test confirming that appending a stem to a common extension
+        Regression test confirming that adding a non matching token to a query
         narrows results rather than returning the same broad set.
 
-        Searching for just "pdf" may return many documents (the word appears in
-        filenames, descriptions, or content).  Searching for a specific stem
-        plus ".pdf" must return no more results than "pdf" alone
+        "fil" is known to return 9 results via fuzzy matching. Before the fix,
+        OpenSearch used OR logic on multi token terms, so "fil.abcextension"
+        would still match any document containing "fil".
+        With operator=AND, all tokens must match, so the example extension
+        token "abcextension" eliminates all results.
         """
-        # Baseline: how many results does searching "pdf" alone return
-        url_pdf_only = (
+        url_term_only = (
             f"{self.transferring_body_search_url}?"
-            "query=pdf&search_area=everywhere#browse-records"
+            "query=fil&search_area=everywhere#browse-records"
         )
-        standard_user_page.goto(url_pdf_only)
-        pdf_only_count = _check_row_count(standard_user_page)
+        standard_user_page.goto(url_term_only)
+        term_only_count = _check_row_count(standard_user_page)
+        assert term_only_count == 9
 
-        # A specific stem + ".pdf" must return fewer results
-        url_with_stem = (
+        url_with_extension = (
             f"{self.transferring_body_search_url}?"
-            "query=unique.pdf&search_area=everywhere#browse-records"
+            "query=fil.abcextension&search_area=everywhere#browse-records"
         )
-        standard_user_page.goto(url_with_stem)
-        stem_pdf_count = _check_row_count(standard_user_page)
+        standard_user_page.goto(url_with_extension)
+        with_extension_count = _check_row_count(standard_user_page)
 
-        assert stem_pdf_count < pdf_only_count
+        assert with_extension_count < term_only_count
