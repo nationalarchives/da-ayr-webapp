@@ -1152,3 +1152,54 @@ def test_build_should_clauses(
         search_fields, quoted_phrases, single_terms
     )
     assert should_clauses == expected_should_clauses
+
+
+# Dedicated search tests for all OPENSEARCH_FIELD_NAME_MAP fields
+
+
+@pytest.mark.parametrize(
+    "field, partial_term",
+    [
+        ("description", "desc"),
+        ("content", "cont"),
+        ("foi_exemption_code", "FOI"),
+        ("transferring_body_description", "body"),
+    ],
+)
+def test_fuzzy_field_partial_term_generates_fuzzy_clause(field, partial_term):
+    """
+    Fuzzy fields (allow_fuzzy=True) must produce a multi_match clause with
+    fuzziness=AUTO when searched with a partial term, confirming they will
+    return matching results for approximate input.
+    """
+    should_clauses = build_should_clauses([field], [], [partial_term])
+
+    assert len(should_clauses) == 1
+    clause = should_clauses[0]["multi_match"]
+    assert clause["fuzziness"] == "AUTO"
+    assert field in clause["fields"]
+
+
+@pytest.mark.parametrize(
+    "field, term",
+    [
+        ("citeable_reference", "TNA/123/456"),
+        ("series_name", "Cabinet Papers"),
+        ("end_date", "2024-01-01"),
+        ("date_last_modified", "2024-01-01"),
+        ("closure_start_date", "2024-01-01"),
+    ],
+)
+def test_non_fuzzy_field_generates_phrase_clause(field, term):
+    """
+    Non-fuzzy fields (allow_fuzzy=False) must produce a phrase multi_match
+    clause without fuzziness, confirming that only exact values will match
+    and partial or misspelled terms will not.
+    """
+    should_clauses = build_should_clauses([field], [], [term])
+
+    assert len(should_clauses) == 1
+    clause = should_clauses[0]["multi_match"]
+    assert clause["type"] == "phrase"
+    assert "fuzziness" not in clause
+    assert field in clause["fields"]
