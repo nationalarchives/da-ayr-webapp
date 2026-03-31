@@ -121,3 +121,54 @@ class TestSearchResults:
 
         # Should find no results due to minimum_should_match requirement
         assert row_count == 0, "Expected no results for nonsense query terms"
+
+    def test_filename_with_extension_does_not_return_all_pdfs(
+        self, standard_user_page: Page
+    ):
+        """
+        Before the fix, search split "something.pdf" into the
+        tokens ["something", "pdf"].  With no operator specified, OpenSearch
+        used OR logic, so every document containing "pdf" was returned.
+
+        Using operator=AND is set on fuzzy multi_match clauses, so
+        all tokens must be present. A search with ("nonexistent") combined
+        with ".pdf" should then return 0 results and not a large
+        number of PDFs matched via the "pdf" token alone.
+        """
+        url = (
+            f"{self.transferring_body_search_url}?"
+            "query=nonexistent.pdf&search_area=everywhere#browse-records"
+        )
+        standard_user_page.goto(url)
+        row_count = _check_row_count(standard_user_page)
+        assert row_count == 0
+
+    def test_filename_with_extension_fewer_results_than_extension_alone(
+        self, standard_user_page: Page
+    ):
+        """
+        Test confirming that adding a non matching token to a query
+        narrows results rather than returning the same broad set.
+
+        "fil" is known to return 9 results via fuzzy matching. Before the fix,
+        OpenSearch used OR logic on multi token terms, so "fil.abcextension"
+        would still match any document containing "fil".
+        With operator=AND, all tokens must match, so the example extension
+        token "abcextension" eliminates all results.
+        """
+        url_term_only = (
+            f"{self.transferring_body_search_url}?"
+            "query=fil&search_area=everywhere#browse-records"
+        )
+        standard_user_page.goto(url_term_only)
+        term_only_count = _check_row_count(standard_user_page)
+        assert term_only_count == 9
+
+        url_with_extension = (
+            f"{self.transferring_body_search_url}?"
+            "query=fil.abcextension&search_area=everywhere#browse-records"
+        )
+        standard_user_page.goto(url_with_extension)
+        with_extension_count = _check_row_count(standard_user_page)
+
+        assert with_extension_count < term_only_count
