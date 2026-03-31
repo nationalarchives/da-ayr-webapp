@@ -147,7 +147,7 @@ class TestSearchResults:
         self, standard_user_page: Page
     ):
         """
-        Regression test confirming that adding a non matching token to a query
+        Test confirming that adding a non matching token to a query
         narrows results rather than returning the same broad set.
 
         "fil" is known to return 9 results via fuzzy matching. Before the fix,
