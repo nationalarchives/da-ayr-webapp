@@ -16,7 +16,7 @@ else:
     config_class = EnvConfig
     local_env = True
 try:
-    app = create_app(config_class, local_env)
+    create_app(config_class, local_env)
 except Exception as e:
     print(e)
     print(traceback.format_exc())
