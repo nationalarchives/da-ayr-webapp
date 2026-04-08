@@ -45,7 +45,7 @@ def assert_matches_snapshot(snapshot, device, page_name):
         )
         os.makedirs(os.path.dirname(baseline_path), exist_ok=True)
         screenshot_image.save(baseline_path)
-        return
+        return None
 
     result, score = compare_snapshot(baseline_path, screenshot_image)
 

@@ -19,7 +19,9 @@ def validate_body_user_groups_or_404(
     ayr_user = AYRUser(session.get("user_groups"))
 
     if ayr_user.is_all_access_user:
-        return
+        return None
 
     if transferring_body_name != ayr_user.transferring_body.Name:
         abort(404)
+
+    return None

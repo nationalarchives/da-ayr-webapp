@@ -238,11 +238,11 @@ def process_file(
 
     if puid not in CONVERTIBLE_PUIDS:
         logger.info(f"File {file_id} does not require conversion")
-        return
+        return None
 
     if already_converted(dest_bucket, key):
         logger.info(f"Skipping {file_id}, already converted")
-        return
+        return None
 
     logger.info(f"File {file_id} requires conversion to PDF")
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -258,6 +258,8 @@ def process_file(
             f"Files in {tmpdir} after converting {file_id}: {os.listdir(tmpdir)}"
         )
         _upload_output(output_path, dest_bucket, key, file_id)
+
+    return None
 
 
 def process_consignment(consignment_ref, source_bucket, dest_bucket, conn):

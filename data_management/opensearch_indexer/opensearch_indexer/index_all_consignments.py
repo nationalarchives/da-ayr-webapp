@@ -102,7 +102,7 @@ def main():
 
     if not consignment_references:
         logger.warning("No consignments found in database")
-        return
+        return None
 
     # Index each consignment
     failed_consignments = []
@@ -140,6 +140,8 @@ def main():
     if failed_consignments:
         logger.error(f"Failed consignments: {', '.join(failed_consignments)}")
         sys.exit(1)
+
+    return None
 
 
 if __name__ == "__main__":
