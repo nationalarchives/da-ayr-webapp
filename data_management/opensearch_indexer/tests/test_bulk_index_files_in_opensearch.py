@@ -586,7 +586,6 @@ def test_bulk_index_consignment_error_handling(
 
     # Prepare input data
     database_url = database.url()
-    consignment_reference = "consignment-123"
     bucket_name = "test-bucket"
     open_search_host_url = "https://opensearch.example.com"
     open_search_http_auth = ("username", "password")

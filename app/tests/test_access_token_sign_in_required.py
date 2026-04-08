@@ -65,8 +65,6 @@ class TestAccessTokenSignInRequiredDecorator:
                 session["access_token"] = "inactive_access_token"
                 session["refresh_token"] = "inactive_refresh_token"
 
-            session
-
             def mock_refresh_token(token):
                 raise keycloak.exceptions.KeycloakPostError
 

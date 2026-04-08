@@ -115,7 +115,6 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
             # Clean up resources
             page_image.close()
             thumbnail.close()
-            pix = None
 
         return page_data
 
@@ -166,7 +165,6 @@ def extract_single_page_as_image(
 
         # Clean up
         page_image.close()
-        pix = None
 
         return output_buffer.getvalue()
 
