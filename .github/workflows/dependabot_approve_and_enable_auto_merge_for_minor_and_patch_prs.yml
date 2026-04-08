@@ -10,7 +10,7 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'nationalarchives/da-ayr-beta-webapp'
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'nationalarchives/da-ayr-webapp'
     name: Approve and enable auto-merge on Dependabot PRs for minor and patch updates
     steps:
       - name: Fetch Dependabot metadata
