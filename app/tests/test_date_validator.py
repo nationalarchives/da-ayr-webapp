@@ -530,7 +530,7 @@ class TestDateValidator:
         it returns various errors based on the data filter values
         """
         mock_date.today.return_value = date(2023, 1, 1)
-        mock_date.side_effect = lambda *args, **kw: date(*args, **kw)
+        mock_date.side_effect = date
         assert validate_dates(request_args) == expected_results
 
     @pytest.mark.parametrize(
@@ -672,5 +672,5 @@ class TestDateValidator:
         it returns valid completed date for date filter values
         """
         mock_date.today.return_value = date(2023, 1, 1)
-        mock_date.side_effect = lambda *args, **kw: date(*args, **kw)
+        mock_date.side_effect = date
         assert validate_dates(request_args) == expected_results
