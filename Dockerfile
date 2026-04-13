@@ -38,6 +38,7 @@ RUN cp -r /docker_app/app/static/src/css /tmp/css_backup
 COPY app/ /docker_app/app
 COPY configs/ /docker_app/configs
 COPY main_app.py .flaskenv /docker_app/
+COPY local_services/mds_data_generator/ /docker_app/local_services/mds_data_generator/
 # Restore the built CSS files
 RUN cp -r /tmp/css_backup /docker_app/app/static/src/css
 

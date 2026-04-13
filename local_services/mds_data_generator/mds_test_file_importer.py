@@ -10,9 +10,6 @@ from pathlib import Path
 import boto3
 from botocore.client import Config
 from dotenv import load_dotenv
-from index_file_content_and_metadata_in_opensearch import (
-    index_file_content_and_metadata_in_opensearch,
-)
 from requests_aws4auth import AWS4Auth
 
 from app import create_app, db
@@ -115,7 +112,7 @@ def process_files(files):
     - Upload example file from source_path to S3 using file_id as key
     - Create DB entries with FileFactory and metadata
     """
-    app = create_app(EnvConfig)
+    app = create_app(EnvConfig, True)
     with app.app_context():
         try:
             body = (
@@ -290,6 +287,7 @@ def process_files(files):
                 print(f"Processed file: {filename} (ID: {file_id})")
             print(f"Creating consignment with reference: {consignment_ref}")
             db.session.commit()
+            return consignment_ref
 
         except Exception as e:
             print(f"Error processing files: {e}")
@@ -299,7 +297,11 @@ def process_files(files):
 
 def index_in_opensearch(files):
     """Index each processed file in OpenSearch."""
-    app = create_app(EnvConfig)
+    from index_file_content_and_metadata_in_opensearch import (
+        index_file_content_and_metadata_in_opensearch,
+    )
+
+    app = create_app(EnvConfig, True)
     with app.app_context():
         try:
 
@@ -385,9 +387,9 @@ def main():
     file_type_counts = {ext: getattr(args, f"num_{ext}") for ext in file_types}
 
     file_paths = create_test_filepaths(file_type_counts)
-    process_files(file_paths)
+    consignment_ref = process_files(file_paths)
     index_in_opensearch(file_paths)
-    print("Successfully processed files")
+    print(f"Successfully processed files (consignment: {consignment_ref})")
 
 
 if __name__ == "__main__":

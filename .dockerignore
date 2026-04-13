@@ -33,6 +33,7 @@ Thumbs.db
 
 # Local services and development files
 local_services
+!local_services/mds_data_generator
 e2e_tests
 performance_tests
 snapshots
