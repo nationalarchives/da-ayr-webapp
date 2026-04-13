@@ -18,7 +18,27 @@ from configs.env_config import EnvConfig
 
 load_dotenv()
 
-FILE_TYPE_COUNTS = {"pdf": 1, "docx": 1}
+FILE_TYPE_COUNTS = {
+    "csv": 1,
+    "doc": 1,
+    "docx": 1,
+    "epub": 1,
+    "jpg": 1,
+    "odt": 1,
+    "pdf": 1,
+    "png": 1,
+    "ppt": 1,
+    "pptx": 1,
+    "rtf": 1,
+    "tif": 1,
+    "txt": 1,
+    "wk1": 1,
+    "wk4": 1,
+    "wp": 1,
+    "xls": 1,
+    "xlsx": 1,
+    "xml": 1,
+}
 
 EXPECTED_METADATA_KEYS = {
     "source",
