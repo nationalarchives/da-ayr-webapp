@@ -38,5 +38,9 @@ e2e_tests
 performance_tests
 snapshots
 
+# Data management - only include what's needed for the indexer
+data_management
+!data_management/opensearch_indexer/requirements.txt
+
 # CI/CD
 .github

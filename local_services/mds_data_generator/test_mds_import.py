@@ -1,16 +1,23 @@
 """
 Integration test: runs mds_test_file_importer and asserts the expected records
-exist in the database.
+exist in the database and OpenSearch.
 
 Usage:
     python local_services/mds_data_generator/test_mds_import.py
 
 """
 
+import os
 import sys
 
 from dotenv import load_dotenv
-from mds_test_file_importer import create_test_filepaths, process_files
+from mds_test_file_importer import (
+    create_test_filepaths,
+    index_in_opensearch,
+    process_files,
+)
+from opensearchpy import OpenSearch, RequestsHttpConnection
+from requests_aws4auth import AWS4Auth
 
 from app import create_app, db
 from app.main.db.models import Consignment, FFIDMetadata, File, FileMetadata
@@ -66,6 +73,23 @@ EXPECTED_METADATA_KEYS = {
 }
 
 
+def get_opensearch_client():
+    open_search_host_url = os.getenv("OPEN_SEARCH_HOST")
+    aws_auth = AWS4Auth(
+        os.getenv("AWS_ACCESS_KEY_ID"),
+        os.getenv("AWS_SECRET_ACCESS_KEY"),
+        os.getenv("AWS_REGION"),
+        "es",
+    )
+    return OpenSearch(
+        open_search_host_url,
+        http_auth=aws_auth,
+        use_ssl=False,
+        verify_certs=False,
+        connection_class=RequestsHttpConnection,
+    )
+
+
 def run():
     expected_file_count = sum(FILE_TYPE_COUNTS.values())
 
@@ -119,7 +143,23 @@ def run():
                 not missing_keys
             ), f"File {f.FileName} is missing metadata keys: {missing_keys}"
 
-            print(f"  OK: {f.FileName} (ID: {f.FileId})")
+            print(f"  DB OK: {f.FileName} (ID: {f.FileId})")
+
+        file_ids = [f.FileId for f in files]
+
+    # 5. Index files in OpenSearch
+    print("\nIndexing files in OpenSearch ...")
+    index_in_opensearch(file_paths)
+
+    # 6. Assert each file was indexed in OpenSearch
+    print("Asserting OpenSearch documents ...")
+    opensearch = get_opensearch_client()
+    for file_id in file_ids:
+        result = opensearch.get(index="documents", id=file_id)
+        assert result[
+            "found"
+        ], f"File ID {file_id} not found in OpenSearch index"
+        print(f"  OpenSearch OK: {file_id}")
 
     print("\nAll assertions passed.")
     return 0

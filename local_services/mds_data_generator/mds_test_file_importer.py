@@ -313,7 +313,7 @@ def index_in_opensearch(files):
             aws_key = os.getenv("AWS_ACCESS_KEY_ID")
             aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
 
-            open_search_host_url = os.getenv("OPEN_SEARCH_HOST_URL")
+            open_search_host_url = os.getenv("OPEN_SEARCH_HOST")
             open_search_http_auth = AWS4Auth(
                 aws_key, aws_secret, aws_region, aws_service
             )

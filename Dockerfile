@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     tesseract-ocr \
     antiword \
+    unrtf \
     libreoffice \
     nodejs \
     npm \
@@ -39,6 +40,8 @@ COPY app/ /docker_app/app
 COPY configs/ /docker_app/configs
 COPY main_app.py .flaskenv /docker_app/
 COPY local_services/mds_data_generator/ /docker_app/local_services/mds_data_generator/
+COPY data_management/opensearch_indexer/requirements.txt /tmp/indexer-requirements.txt
+RUN pip install --no-cache-dir -r /tmp/indexer-requirements.txt
 # Restore the built CSS files
 RUN cp -r /tmp/css_backup /docker_app/app/static/src/css
 

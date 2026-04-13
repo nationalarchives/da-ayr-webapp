@@ -50,7 +50,10 @@ jobs:
     - name: Run MDS importer smoke test
       run: |
         docker compose -f local_services/docker-compose.ci.yml \
-          exec -T -e PYTHONPATH=/docker_app webapp \
+          exec -T \
+          -e PYTHONPATH=/docker_app:/docker_app/local_services/mds_data_generator \
+          -e LANG=C.UTF-8 \
+          webapp \
           python local_services/mds_data_generator/test_mds_import.py
 
     - name: Set up E2E test environment
