@@ -78,6 +78,15 @@ jobs:
         docker run --rm --env-file .env.e2e_tests --network=host \
           -v "$(pwd)/e2e_tests":/e2e_tests e2e_tests:latest
 
+    - name: Run MDS importer smoke test
+      run: |
+        docker compose -f local_services/docker-compose.ci.yml \
+          exec -T \
+          -e PYTHONPATH=/docker_app:/docker_app/local_services/mds_data_generator \
+          -e LANG=C.UTF-8 \
+          webapp \
+          python local_services/mds_data_generator/test_mds_import.py
+
     - name: Upload test results
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       if: always()

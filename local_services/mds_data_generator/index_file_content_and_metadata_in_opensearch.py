@@ -55,7 +55,12 @@ def _add_text_content(
         "epub",
         "csv",
     ]:
-        new_file_data["content"] = extract_text(file_stream)
+        try:
+            new_file_data["content"] = extract_text(file_stream, file_type)
+        except Exception as e:
+            logger.warning(
+                f"Text extraction failed for {file_type} file, indexing without content: {e}"
+            )
     return new_file_data
 
 
@@ -126,8 +131,9 @@ def _fetch_file_data(
     return file_data
 
 
-def extract_text(file_stream: bytes) -> str:
-    with tempfile.NamedTemporaryFile(delete=True) as temp:
+def extract_text(file_stream: bytes, file_type: str = "") -> str:
+    suffix = f".{file_type}" if file_type else ""
+    with tempfile.NamedTemporaryFile(delete=True, suffix=suffix) as temp:
         temp.write(file_stream)
         temp.flush()
         context = textract.process(temp.name)
