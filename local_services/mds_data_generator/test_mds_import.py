@@ -159,7 +159,7 @@ def run():
         assert result[
             "found"
         ], f"File ID {file_id} not found in OpenSearch index"
-        print(f"  OpenSearch OK: {file_id}")
+        print(f"OpenSearch OK: {file_id}")
 
     print("\nAll assertions passed.")
     return 0
