@@ -1,6 +1,6 @@
 """
-Integration test: runs mds_test_file_importer and asserts the expected records
-exist in the database and OpenSearch.
+Integration test: runs mds_test_file_importer as a subprocess and asserts the
+expected records exist in the database and OpenSearch.
 
 Usage:
     python local_services/mds_data_generator/test_mds_import.py
@@ -8,14 +8,12 @@ Usage:
 """
 
 import os
+import re
+import subprocess
 import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
-from mds_test_file_importer import (
-    create_test_filepaths,
-    index_in_opensearch,
-    process_files,
-)
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 
@@ -72,6 +70,10 @@ EXPECTED_METADATA_KEYS = {
     "title",
 }
 
+# Project root is two levels up from this file (local_services/mds_data_generator/)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+IMPORTER_SCRIPT = Path(__file__).resolve().parent / "mds_test_file_importer.py"
+
 
 def get_opensearch_client():
     open_search_host_url = os.getenv("OPEN_SEARCH_HOST")
@@ -93,16 +95,32 @@ def get_opensearch_client():
 def run():
     expected_file_count = sum(FILE_TYPE_COUNTS.values())
 
-    # 1. Run the importer and capture the consignment reference
-    print(f"Importing {FILE_TYPE_COUNTS} ...")
-    file_paths = create_test_filepaths(FILE_TYPE_COUNTS)
-    consignment_ref = process_files(file_paths)
-    assert consignment_ref, "process_files() did not return a consignment_ref"
+    # 1. Run the importer script as a subprocess
+    print("Running mds_test_file_importer.py ...")
+    result = subprocess.run(
+        [sys.executable, str(IMPORTER_SCRIPT)],
+        capture_output=True,
+        text=True,
+        cwd=PROJECT_ROOT,
+    )
+    print(result.stdout)
+    if result.returncode != 0:
+        print(result.stderr)
+        raise RuntimeError(
+            f"mds_test_file_importer.py exited with code {result.returncode}"
+        )
+
+    # 2. Parse the consignment ref from the script's output
+    match = re.search(
+        r"Successfully processed files \(consignment: ([^)]+)\)", result.stdout
+    )
+    assert match, "Could not find consignment ref in importer output"
+    consignment_ref = match.group(1)
     print(f"Importer created consignment: {consignment_ref}")
 
     app = create_app(EnvConfig, True)
     with app.app_context():
-        # 2. Find the consignment by its reference
+        # 3. Find the consignment by its reference
         consignment = (
             db.session.query(Consignment)
             .filter_by(ConsignmentReference=consignment_ref)
@@ -112,7 +130,7 @@ def run():
             consignment is not None
         ), f"Consignment '{consignment_ref}' not found in database"
 
-        # 3. Assert correct number of File rows
+        # 4. Assert correct number of File rows
         files = (
             db.session.query(File)
             .filter_by(ConsignmentId=consignment.ConsignmentId)
@@ -122,7 +140,7 @@ def run():
             len(files) == expected_file_count
         ), f"Expected {expected_file_count} files, got {len(files)}"
 
-        # 4. Assert each file has FFIDMetadata and all expected FileMetadata keys
+        # 5. Assert each file has FFIDMetadata and all expected FileMetadata keys
         for f in files:
             ffid = (
                 db.session.query(FFIDMetadata)
@@ -147,19 +165,15 @@ def run():
 
         file_ids = [f.FileId for f in files]
 
-    # 5. Index files in OpenSearch
-    print("\nIndexing files in OpenSearch ...")
-    index_in_opensearch(file_paths)
-
     # 6. Assert each file was indexed in OpenSearch
-    print("Asserting OpenSearch documents ...")
+    print("\nAsserting OpenSearch documents ...")
     opensearch = get_opensearch_client()
     for file_id in file_ids:
         result = opensearch.get(index="documents", id=file_id)
         assert result[
             "found"
         ], f"File ID {file_id} not found in OpenSearch index"
-        print(f"OpenSearch OK: {file_id}")
+        print(f"  OpenSearch OK: {file_id}")
 
     print("\nAll assertions passed.")
     return 0
