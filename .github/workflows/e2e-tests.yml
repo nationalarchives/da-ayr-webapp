@@ -47,15 +47,6 @@ jobs:
     - name: Start Docker Compose with CI-specific configuration
       run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
-    - name: Run MDS importer smoke test
-      run: |
-        docker compose -f local_services/docker-compose.ci.yml \
-          exec -T \
-          -e PYTHONPATH=/docker_app:/docker_app/local_services/mds_data_generator \
-          -e LANG=C.UTF-8 \
-          webapp \
-          python local_services/mds_data_generator/test_mds_import.py
-
     - name: Set up E2E test environment
       run: | # pragma: allowlist secret
         cat > .env.e2e_tests << EOF
@@ -86,6 +77,15 @@ jobs:
       run: |
         docker run --rm --env-file .env.e2e_tests --network=host \
           -v "$(pwd)/e2e_tests":/e2e_tests e2e_tests:latest
+
+    - name: Run MDS importer smoke test
+      run: |
+        docker compose -f local_services/docker-compose.ci.yml \
+          exec -T \
+          -e PYTHONPATH=/docker_app:/docker_app/local_services/mds_data_generator \
+          -e LANG=C.UTF-8 \
+          webapp \
+          python local_services/mds_data_generator/test_mds_import.py
 
     - name: Upload test results
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
