@@ -2,9 +2,9 @@
   "name": "da-ayr-beta-webapp",
   "description": "This is a repo created and maintained by The National Archives for the Access Your Records (AYR) project. It holds a Flask application based from the [Land Registry GOV.UK Frontend Flask template repo](https://github.com/LandRegistry/govuk-frontend-flask). Currently the intention is to deploy this via AWS Lambda and API Gateway but you can run it however you would like.",
   "scripts": {
-    "dev": "sass --watch app/static/src/scss:app/static/src/css",
+    "dev": "sass --load-path=node_modules --watch app/static/src/scss:app/static/src/css",
     "lint": "prettier --write 'app/static/src/scss/**/*.scss' && stylelint --fix 'app/static/src/scss/**/*.scss'",
-    "build": "sass --style=compressed app/static/src/scss:app/static/src/css",
+    "build": "sass --load-path=node_modules --style=compressed app/static/src/scss:app/static/src/css",
     "prestorybook": "python storybook/render_macros.py",
     "storybook": "concurrently \"npm run watch-macro-tasks\" \"storybook dev -p 6006\"",
     "watch-macro-tasks": "chokidar 'storybook/render-macro-tasks.json' -c 'npm run prestorybook'",

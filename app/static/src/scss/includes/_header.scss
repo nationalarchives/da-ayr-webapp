@@ -1,3 +1,5 @@
+@use "variables" as *;
+
 @mixin on-mobile {
   @media screen and (width <= $breakpoint-medium) {
     @content;

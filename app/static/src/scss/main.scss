@@ -1,37 +1,42 @@
 // govuk scss variables override
-$govuk-font-family: Arial, Helvetica, sans-serif;
 
 // govuk styles import
-@import "../../../../node_modules/govuk-frontend/govuk/all";
+@use "../../../../node_modules/govuk-frontend/dist/govuk/index" with (
+  $govuk-font-family: (
+    Arial,
+    Helvetica,
+    sans-serif,
+  )
+);
 
 // variables
-@import "includes/variables";
+@use "includes/variables";
 
 // other styles
-@import "includes/signposting-text";
-@import "includes/accessibility";
-@import "includes/base";
-@import "includes/browse";
-@import "includes/browse-all";
-@import "includes/browse-series";
-@import "includes/browse-consignment";
-@import "includes/browse-transferring-body";
-@import "includes/footer";
-@import "includes/header";
-@import "includes/index";
-@import "includes/pagination";
-@import "includes/record";
-@import "includes/signed-out";
-@import "includes/breadcrumbs";
-@import "includes/search";
-@import "includes/table";
-@import "includes/search-transferring-body";
-@import "includes/search-results-summary";
-@import "includes/static-content-template";
-@import "includes/overrides";
-@import "includes/uv";
-@import "includes/static-pages";
+@use "includes/signposting-text";
+@use "includes/accessibility";
+@use "includes/base";
+@use "includes/browse";
+@use "includes/browse-all";
+@use "includes/browse-series";
+@use "includes/browse-consignment";
+@use "includes/browse-transferring-body";
+@use "includes/footer";
+@use "includes/header";
+@use "includes/index" as index2;
+@use "includes/pagination";
+@use "includes/record";
+@use "includes/signed-out";
+@use "includes/breadcrumbs";
+@use "includes/search";
+@use "includes/table";
+@use "includes/search-transferring-body";
+@use "includes/search-results-summary";
+@use "includes/static-content-template";
+@use "includes/overrides";
+@use "includes/uv";
+@use "includes/static-pages";
 
 // components
-@import "includes/components/alert-banner";
-@import "includes/components/belly-band";
+@use "includes/components/alert-banner";
+@use "includes/components/belly-band";
