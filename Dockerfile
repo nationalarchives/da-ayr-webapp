@@ -28,6 +28,7 @@ RUN poetry config virtualenvs.create false && \
 
 # Copy Node.js dependency files and install
 COPY package*.json /docker_app/
+RUN npm install --no-cache
 RUN npm ci
 COPY app/static/src/scss /docker_app/app/static/src/scss
 # Build CSS files before copying the rest of the app as
