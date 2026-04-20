@@ -674,6 +674,12 @@ The tests can then be run from the root directory using:
 docker run --rm --env-file ../.env.e2e_tests --network=host -v "$(pwd)":/e2e_tests e2e_tests
 ```
 
+To run for all browsers the following command can be used:
+
+```shell
+docker run --rm --env-file ../.env.e2e_tests --network=host -v "$(pwd)":/e2e_tests -e BROWSERS=chromium,firefox,webkit e2e_tests
+```
+
 Whilst the Docker container is running, snapshots of visual regression for pages that have been modified will be automatically saved inside of `e2e_tests/snapshots/desktop` and `e2e_tests/snapshots/mobile`.
 
 ### Useful playwright pytest run modes
