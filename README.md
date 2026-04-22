@@ -187,7 +187,12 @@ flask run --debug
 1. Have `docker` installed
 2. Create certs for the webapp postgres instance in `local_services/webapp_postgres_certs` by running `generate_webapp_postgres_certs.sh` inside it
 3. Create certs for the opensearch nodes in `local_services/opensearch_certs` by running `generate_opensearch_certs.sh` inside it
-4. Create a `.env` file inside of `local_services` using `local_services/.env.template`
+4. Create TLS certs for Keycloak in `local_services/keycloak_certs` by running `generate-keycloak-certs.sh` inside `local_services`:
+   ```shell
+   cd local_services && ./generate-keycloak-certs.sh
+   ```
+   These are required so that webkit-based browsers can complete the Keycloak login flow (webkit enforces the `Secure` cookie flag strictly and will only store it over HTTPS).
+5. Create a `.env` file inside of `local_services` using `local_services/.env.template`
 
 
 #### For local development:
@@ -202,6 +207,26 @@ A specialised CI configuration has been added that:
 - Automatically restores test data from snapshots
 - Includes a containerised webapp built from the new multi-stage Dockerfile
 - Provides proper networking between all services in CI environments
+
+#### Local browser access with the full CI stack
+
+When running `docker-compose.ci.yml`, Keycloak is configured with `KC_HOSTNAME: keycloak` so that the e2e test container (which resolves Docker service names) can reach it over HTTPS. However, a Mac browser cannot resolve the `keycloak` hostname directly.
+
+A local override file `local_services/docker-compose.local.yml` (gitignored) is provided to switch Keycloak back to `localhost` for browser-accessible development. To use it:
+
+```shell
+cd local_services
+docker compose -f docker-compose.ci.yml -f docker-compose.local.yml up
+```
+
+With this override, Keycloak is accessible at `http://localhost:8080` and the browser login redirect will return to a resolvable address.
+
+For CI and e2e tests (no override needed):
+
+```shell
+cd local_services
+docker compose -f docker-compose.ci.yml up
+```
 
 
 ### Running the stack:
