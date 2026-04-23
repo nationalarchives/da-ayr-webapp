@@ -1,0 +1,118 @@
+name: Run Lighthouse CI
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: "Target environment for Keycloak auth URL"
+        type: choice
+        required: false
+        default: int
+        options:
+        - int
+        - test-one
+        - stg
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v3.1.1
+
+    - name: Set up Docker Compose
+      uses: docker/setup-compose-action@8cccb8c14b6500aaffebff1aa49c502c34d2e5e6 # v2.1.0
+      with:
+        version: v2.40.3
+
+    - name: Pre-build webapp image with cache
+      uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+      with:
+        push: false
+        load: true
+        tags: "da-ayr-beta-webapp:latest"
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Start Docker Compose with CI-specific configuration
+      run: |
+        cd local_services
+        docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: npm
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Set up lighthouse test environment
+      env:
+        TARGET_ENV: ${{ github.event.inputs.target_env || vars.LIGHTHOUSE_TARGET_ENV || 'int' }}
+        KEYCLOAK_AUTH_URL_INT: ${{ vars.KEYCLOAK_AUTH_URL_INT || 'http://127.0.0.1:8080/realms/tdr/protocol/openid-connect/token' }}
+        KEYCLOAK_AUTH_URL_TEST_ONE: ${{ vars.KEYCLOAK_AUTH_URL_TEST_ONE || 'http://127.0.0.1:8080/realms/tdr/protocol/openid-connect/token' }}
+        KEYCLOAK_AUTH_URL_STG: ${{ vars.KEYCLOAK_AUTH_URL_STG || 'http://127.0.0.1:8080/realms/tdr/protocol/openid-connect/token' }}
+      run: | # pragma: allowlist secret
+        case "$TARGET_ENV" in
+          int)
+            RESOLVED_KEYCLOAK_AUTH_URL="$KEYCLOAK_AUTH_URL_INT"
+            ;;
+          test-one)
+            RESOLVED_KEYCLOAK_AUTH_URL="$KEYCLOAK_AUTH_URL_TEST_ONE"
+            ;;
+          stg)
+            RESOLVED_KEYCLOAK_AUTH_URL="$KEYCLOAK_AUTH_URL_STG"
+            ;;
+          *)
+            echo "Unsupported target environment: $TARGET_ENV"
+            exit 1
+            ;;
+        esac
+
+        cat > .env.lighthouse << EOF
+        AYR_AAU_USER_USERNAME=testuser
+        AYR_AAU_USER_PASSWORD=password123
+        KEYCLOAK_AUTH_URL=$RESOLVED_KEYCLOAK_AUTH_URL
+        KEYCLOAK_CLIENT_ID=ayr-beta
+        KEYCLOAK_CLIENT_SECRET=test-client-secret
+        EOF
+
+    - name: Run Lighthouse CI
+      run: |
+        mkdir -p .lighthouseci
+        set -a
+        source .env.lighthouse
+        set +a
+        npm run lighthouse:ci
+
+    - name: Upload Lighthouse artifacts
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      if: always()
+      with:
+        name: lighthouse-report
+        path: .lighthouseci/
+        retention-days: 7
+
+    - name: Check logs after test failure
+      if: failure()
+      run: |
+        cd local_services
+        docker compose -f docker-compose.ci.yml logs
+
+    - name: Stop services
+      if: always()
+      run: |
+        cd local_services
+        docker compose -f docker-compose.ci.yml down -v
+        docker system prune -f

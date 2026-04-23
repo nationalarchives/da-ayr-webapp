@@ -754,6 +754,29 @@ The following ENV Vars are required:
 4. Ensure the ENV variable PERF_TEST = True
 5. Access locust via the provided URL and start a new test with the required amount of users
 
+### Lighthouse Tests
+
+Lighthouse tests have been set up with Lighthouse CI: https://github.com/GoogleChrome/lighthouse-ci
+
+The following ENV Vars are required (same Keycloak auth inputs as performance tests):
+
+- AYR_AAU_USER_USERNAME=""
+- AYR_AAU_USER_PASSWORD=""
+- KEYCLOAK_AUTH_URL="https://example.co.uk/realms/realm-name/protocol/openid-connect/token"
+- KEYCLOAK_CLIENT_ID=""
+- KEYCLOAK_CLIENT_SECRET=""
+
+Additional requirement:
+
+- PERF_TEST=True
+
+1. Run the flask app on a specific environment LOCAL / INT / TEST so it is available at `https://localhost:5000`
+2. Ensure local services (Keycloak/OpenSearch/etc.) are running for the target environment
+3. Ensure npm dependencies are installed with `npm install`
+4. Run Lighthouse CI with `npm run lighthouse:ci`
+
+The `lighthouse:ci` script fetches a Keycloak bearer token and passes it to Lighthouse as an Authorization header before running all URLs defined in `lighthouserc.json`.
+
 
 ### Storybook
 
