@@ -766,10 +766,6 @@ The following ENV Vars are required (same Keycloak auth inputs as performance te
 - KEYCLOAK_CLIENT_ID=""
 - KEYCLOAK_CLIENT_SECRET=""
 
-Additional requirement:
-
-- PERF_TEST=True
-
 1. Run the flask app on a specific environment LOCAL / INT / TEST so it is available at `https://localhost:5000`
 2. Ensure local services (Keycloak/OpenSearch/etc.) are running for the target environment
 3. Ensure npm dependencies are installed with `npm install`

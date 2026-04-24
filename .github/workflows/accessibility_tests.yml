@@ -6,7 +6,6 @@ permissions:
 on:
   pull_request:
   merge_group:
-  workflow_dispatch:
 
 jobs:
   accessibility_tests:
@@ -15,6 +14,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v3.1.1
@@ -46,11 +47,13 @@ jobs:
       run: npm ci
 
     - name: Set up Accessibility test environment
+      env:
+        KEYCLOAK_AUTH_URL_VALUE: ${{ vars.KEYCLOAK_AUTH_URL || 'http://127.0.0.1:8080/realms/tdr/protocol/openid-connect/token' }}
       run: | # pragma: allowlist secret
         cat > .env.accessibility << EOF
         AYR_AAU_USER_USERNAME=testuser
         AYR_AAU_USER_PASSWORD=password123
-        KEYCLOAK_AUTH_URL=${{ vars.KEYCLOAK_AUTH_URL || 'http://127.0.0.1:8080/realms/tdr/protocol/openid-connect/token' }}
+        KEYCLOAK_AUTH_URL=$KEYCLOAK_AUTH_URL_VALUE
         KEYCLOAK_CLIENT_ID=ayr-beta
         KEYCLOAK_CLIENT_SECRET=test-client-secret
         EOF
