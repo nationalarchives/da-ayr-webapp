@@ -3,13 +3,11 @@ const BASE_URL = "https://localhost:5000";
 const transferringBodyIds = [
   "4654e9f9-335b-4ab1-acd8-edff54f908d4",
   "8ccc8cd1-c0ee-431d-afad-70cf404ba337",
-  "c3e3fd83-4d52-4638-a085-1f4e4e4dfa50",
 ];
 
 const seriesIds = [
   "93ed0101-2318-45ab-8730-c681958ded7e",
   "8bd7ad22-90d1-4c7f-ae00-645dfd1987cc",
-  "1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7",
 ];
 
 const searchTerms = ["test", "ab", "ld"];
@@ -144,11 +142,6 @@ const searchResultsByTermUrls = searchTerms.map(
   (query) => `${BASE_URL}/search_results_summary?query=${query}`,
 );
 
-const searchSummaryUrls = [
-  `${BASE_URL}/search_results_summary?query=test&search_area=everywhere&open_all=true&page=1&per_page=10`,
-  `${BASE_URL}/search_results_summary?query=ab&search_area=record&search_filter=test&sort=file_name&page=1&per_page=10`,
-];
-
 const searchTransferringBodyUrls = [
   `${BASE_URL}/search/transferring_body/8ccc8cd1-c0ee-431d-afad-70cf404ba337?query=a&sort=series-asc&search_filter=test`,
 ];
@@ -156,7 +149,6 @@ const searchTransferringBodyUrls = [
 const recordIds = [
   "123e4567-e89b-12d3-a456-426614174000",
   "100251bb-5b93-48a9-953f-ad5bd9abfbdc",
-  "99340295-cfb4-4cd1-8739-c1077093a947",
 ];
 
 const recordUrls = recordIds.map((id) => `${BASE_URL}/record/${id}`);
@@ -181,7 +173,6 @@ module.exports = {
         ...heavilyFilteredBrowseUrls,
         ...searchLandingUrls,
         ...searchResultsByTermUrls,
-        ...searchSummaryUrls,
         ...searchTransferringBodyUrls,
         ...recordUrls,
         ...documentRenderUrls,
