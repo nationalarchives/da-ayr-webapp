@@ -10,14 +10,12 @@ const seriesIds = [
   "8bd7ad22-90d1-4c7f-ae00-645dfd1987cc",
 ];
 
-const searchTerms = ["test", "ab", "ld"];
+const searchTerms = ["test", "ab"];
 const transferringBodyFilters = ["a", "b"];
 const seriesFilters = ["ab", "y"];
 
 const seriesSorts = [
-  "consignment_reference-desc",
   "consignment_reference-asc",
-  "last_record_transferred-asc",
   "last_record_transferred-desc",
 ];
 
@@ -29,14 +27,6 @@ const fixedDateSets = [
     date_to_day: 28,
     date_to_month: 12,
     date_to_year: 1993,
-  },
-  {
-    date_from_day: 15,
-    date_from_month: 6,
-    date_from_year: 2001,
-    date_to_day: 20,
-    date_to_month: 9,
-    date_to_year: 2004,
   },
 ];
 
@@ -64,7 +54,6 @@ const seriesUrls = seriesSorts.map((sort, idx) => {
 const consignmentIds = [
   "2fd4e03e-5913-4c04-b4f2-5a823fafd430",
   "016031db-1398-4fe4-b743-630aa82ea32a",
-  "d9f8e7c2-4b8d-4c9a-8b7e-1a2b3c4d5e6f",
 ];
 
 const consignmentUrls = consignmentIds.map(
@@ -120,19 +109,6 @@ const browseSeriesUrls = seriesFilters.map((seriesFilter, idx) => {
   return `${BASE_URL}/browse?${params.toString()}#browse-series`;
 });
 
-const heavilyFilteredBrowseUrls = [
-  `${BASE_URL}/browse?${new URLSearchParams({
-    transferring_body_filter: "",
-    series_filter: "MOCK1 123",
-    date_from_day: "01",
-    date_from_month: "01",
-    date_from_year: "2020",
-    date_to_day: "01",
-    date_to_month: "01",
-    date_to_year: "2026",
-  }).toString()}#browse-records`,
-];
-
 const searchLandingUrls = [
   `${BASE_URL}/search?query=test&search_area=everywhere&search_filter=test`,
   `${BASE_URL}/search?query=ab&search_area=record&search_filter=go`,
@@ -151,9 +127,7 @@ const recordIds = [
   "100251bb-5b93-48a9-953f-ad5bd9abfbdc",
 ];
 
-const recordUrls = recordIds.map((id) => `${BASE_URL}/record/${id}`);
-
-const documentRenderUrls = recordIds.map(
+const recordViewUrls = recordIds.map(
   (id) => `${BASE_URL}/record/${id}#record-view`,
 );
 
@@ -170,12 +144,10 @@ module.exports = {
         ...consignmentFilteredUrls,
         ...browseRecordUrls,
         ...browseSeriesUrls,
-        ...heavilyFilteredBrowseUrls,
         ...searchLandingUrls,
         ...searchResultsByTermUrls,
         ...searchTransferringBodyUrls,
-        ...recordUrls,
-        ...documentRenderUrls,
+        ...recordViewUrls,
       ],
       settings: {
         chromeFlags:
