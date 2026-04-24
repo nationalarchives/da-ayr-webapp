@@ -113,7 +113,9 @@ jobs:
           --host=http://127.0.0.1:5000 \
           --users "${{ github.event.inputs.users || '20' }}" \
           --spawn-rate "${{ github.event.inputs.spawn_rate || '2' }}" \
+          --autostart \
           --run-time "${{ github.event.inputs.run_time || '3m' }}" \
+          --stop-timeout 10 \
           --exit-code-on-error 1 \
           --only-summary \
           --csv performance_tests/results/locust \

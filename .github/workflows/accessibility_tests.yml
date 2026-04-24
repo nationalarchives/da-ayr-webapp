@@ -1,4 +1,4 @@
-name: Run Accessibility CI
+name: Run Accessibility Tests
 
 permissions:
   contents: read
