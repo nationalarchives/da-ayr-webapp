@@ -1,4 +1,4 @@
-name: Run Lighthouse CI
+name: Run Accessibility CI
 
 permissions:
   contents: read
@@ -19,7 +19,7 @@ on:
         - stg
 
 jobs:
-  lighthouse:
+  Accessibility_tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -57,9 +57,9 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Set up lighthouse test environment
+    - name: Set up Accessibility test environment
       env:
-        TARGET_ENV: ${{ github.event.inputs.target_env || vars.LIGHTHOUSE_TARGET_ENV || 'int' }}
+        TARGET_ENV: ${{ github.event.inputs.target_env || vars.ACCESSIBILITY_TARGET_ENV || 'int' }}
         KEYCLOAK_AUTH_URL_INT: ${{ vars.KEYCLOAK_AUTH_URL_INT || 'http://127.0.0.1:8080/realms/tdr/protocol/openid-connect/token' }}
         KEYCLOAK_AUTH_URL_TEST_ONE: ${{ vars.KEYCLOAK_AUTH_URL_TEST_ONE || 'http://127.0.0.1:8080/realms/tdr/protocol/openid-connect/token' }}
         KEYCLOAK_AUTH_URL_STG: ${{ vars.KEYCLOAK_AUTH_URL_STG || 'http://127.0.0.1:8080/realms/tdr/protocol/openid-connect/token' }}
@@ -80,7 +80,7 @@ jobs:
             ;;
         esac
 
-        cat > .env.lighthouse << EOF
+        cat > .env.accessibility << EOF
         AYR_AAU_USER_USERNAME=testuser
         AYR_AAU_USER_PASSWORD=password123
         KEYCLOAK_AUTH_URL=$RESOLVED_KEYCLOAK_AUTH_URL
@@ -88,20 +88,20 @@ jobs:
         KEYCLOAK_CLIENT_SECRET=test-client-secret
         EOF
 
-    - name: Run Lighthouse CI
+    - name: Run Accessibility CI
       run: |
-        mkdir -p .lighthouseci
+        mkdir -p .accessibilityci
         set -a
-        source .env.lighthouse
+        source .env.accessibility
         set +a
         npm run lighthouse:ci
 
-    - name: Upload Lighthouse artifacts
+    - name: Upload Accessibility artifacts
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       if: always()
       with:
-        name: lighthouse-report
-        path: .lighthouseci/
+        name: accessibility-report
+        path: .accessibilityci/
         retention-days: 7
 
     - name: Check logs after test failure

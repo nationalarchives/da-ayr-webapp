@@ -754,9 +754,9 @@ The following ENV Vars are required:
 4. Ensure the ENV variable PERF_TEST = True
 5. Access locust via the provided URL and start a new test with the required amount of users
 
-### Lighthouse Tests
+### Accessibility Tests
 
-Lighthouse tests have been set up with Lighthouse CI: https://github.com/GoogleChrome/lighthouse-ci
+Accessibility tests have been set up with Lighthouse CI: https://github.com/GoogleChrome/lighthouse-ci
 
 The following ENV Vars are required (same Keycloak auth inputs as performance tests):
 

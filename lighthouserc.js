@@ -59,7 +59,7 @@ const staticUrls = [
 const browseLandingUrls = [`${BASE_URL}/browse`];
 
 const transferringBodyUrls = transferringBodyIds.map(
-  (id) => `${BASE_URL}/browse/transferring_body/${id}`
+  (id) => `${BASE_URL}/browse/transferring_body/${id}`,
 );
 
 const seriesUrls = seriesSorts.map((sort, idx) => {
@@ -70,11 +70,29 @@ const seriesUrls = seriesSorts.map((sort, idx) => {
 const consignmentIds = [
   "2fd4e03e-5913-4c04-b4f2-5a823fafd430",
   "016031db-1398-4fe4-b743-630aa82ea32a",
+  "d9f8e7c2-4b8d-4c9a-8b7e-1a2b3c4d5e6f",
+  "7c665764-2103-45f9-800b-f36893dd4436",
 ];
 
 const consignmentUrls = consignmentIds.map(
-  (id) => `${BASE_URL}/browse/consignment/${id}`
+  (id) => `${BASE_URL}/browse/consignment/${id}`,
 );
+
+const consignmentFilteredUrls = consignmentIds.map((id) => {
+  const params = new URLSearchParams({
+    series_filter: "AYR 1",
+    date_from_day: "01",
+    date_from_month: "01",
+    date_from_year: "2020",
+    date_to_day: "01",
+    date_to_month: "01",
+    date_to_year: "2026",
+    page: "1",
+    per_page: "10",
+  });
+
+  return `${BASE_URL}/browse/consignment/${id}?${params.toString()}`;
+});
 
 const browseRecordUrls = fixedDateSets.map((dates, idx) => {
   const transferringBodyFilter =
@@ -109,9 +127,34 @@ const browseSeriesUrls = seriesFilters.map((seriesFilter, idx) => {
   return `${BASE_URL}/browse?${params.toString()}#browse-series`;
 });
 
+const heavilyFilteredBrowseUrls = [
+  `${BASE_URL}/browse?${new URLSearchParams({
+    transferring_body_filter: "",
+    series_filter: "MOCK1 123",
+    date_from_day: "01",
+    date_from_month: "01",
+    date_from_year: "2020",
+    date_to_day: "01",
+    date_to_month: "01",
+    date_to_year: "2026",
+  }).toString()}#browse-records`,
+];
+
+const searchLandingUrls = [
+  `${BASE_URL}/search?query=test&search_area=everywhere&search_filter=test`,
+  `${BASE_URL}/search?query=ab&search_area=record&search_filter=go`,
+  `${BASE_URL}/search?query=ld&search_area=metadata&search_filter=tr`,
+];
+
 const searchUrls = searchTerms.map(
-  (query) => `${BASE_URL}/search_results_summary?query=${query}`
+  (query) => `${BASE_URL}/search_results_summary?query=${query}`,
 );
+
+const searchSummaryUrls = [
+  `${BASE_URL}/search_results_summary?query=test&search_area=everywhere&open_all=true&page=1&per_page=10`,
+  `${BASE_URL}/search_results_summary?query=ab&search_area=record&search_filter=test&sort=file_name&page=1&per_page=10`,
+  `${BASE_URL}/search_results_summary?query=go&search_area=metadata&open_all=open_all&sort=file_name&page=1&per_page=10`,
+];
 
 const searchTransferringBodyUrls = [
   `${BASE_URL}/search/transferring_body/8ccc8cd1-c0ee-431d-afad-70cf404ba337?query=a&sort=series-asc&search_filter=test`,
@@ -121,9 +164,15 @@ const searchTransferringBodyUrls = [
 const recordIds = [
   "123e4567-e89b-12d3-a456-426614174000",
   "100251bb-5b93-48a9-953f-ad5bd9abfbdc",
+  "99340295-cfb4-4cd1-8739-c1077093a947",
+  "6a25d42c-14bb-4a62-b929-fa524fe90a9f",
 ];
 
 const recordUrls = recordIds.map((id) => `${BASE_URL}/record/${id}`);
+
+const documentRenderUrls = recordIds.map(
+  (id) => `${BASE_URL}/record/${id}#record-view`,
+);
 
 module.exports = {
   ci: {
@@ -135,11 +184,16 @@ module.exports = {
         ...transferringBodyUrls,
         ...seriesUrls,
         ...consignmentUrls,
+        ...consignmentFilteredUrls,
         ...browseRecordUrls,
         ...browseSeriesUrls,
+        ...heavilyFilteredBrowseUrls,
+        ...searchLandingUrls,
         ...searchUrls,
+        ...searchSummaryUrls,
         ...searchTransferringBodyUrls,
         ...recordUrls,
+        ...documentRenderUrls,
       ],
       settings: {
         chromeFlags:

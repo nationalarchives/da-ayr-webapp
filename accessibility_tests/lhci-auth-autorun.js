@@ -32,7 +32,7 @@ async function fetchAccessToken() {
   if (!response.ok) {
     const body = await response.text();
     throw new Error(
-      `Keycloak auth failed (${response.status}): ${body.slice(0, 500)}`
+      `Keycloak auth failed (${response.status}): ${body.slice(0, 500)}`,
     );
   }
 
@@ -61,7 +61,7 @@ function runLhciWithToken(accessToken) {
     {
       stdio: "inherit",
       env: process.env,
-    }
+    },
   );
 
   if (result.error) {
@@ -77,8 +77,8 @@ function runLhciWithToken(accessToken) {
   if (missing.length > 0) {
     console.error(
       `Missing required env vars for authenticated Lighthouse run: ${missing.join(
-        ", "
-      )}`
+        ", ",
+      )}`,
     );
     process.exit(1);
   }
