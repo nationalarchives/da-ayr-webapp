@@ -8,15 +8,6 @@ on:
   merge_group:
   workflow_dispatch:
     inputs:
-      target_env:
-        description: "Target environment for Keycloak auth URL"
-        type: choice
-        required: false
-        default: int
-        options:
-        - int
-        - test-one
-        - stg
       users:
         description: "Number of concurrent users"
         required: false
@@ -37,8 +28,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        persist-credentials: false
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v3.1.1
@@ -58,9 +47,7 @@ jobs:
         cache-to: type=gha,mode=max
 
     - name: Start Docker Compose with CI-specific configuration
-      run: |
-        cd local_services
-        docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
+      run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Set up Python
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
@@ -71,33 +58,12 @@ jobs:
       run: pip install locust
 
     - name: Set up performance test environment
-      env:
-        TARGET_ENV: ${{ github.event.inputs.target_env || vars.PERFORMANCE_TARGET_ENV || 'int' }}
-        KEYCLOAK_AUTH_URL_INT: ${{ vars.KEYCLOAK_AUTH_URL_INT || 'http://127.0.0.1:8080/realms/tdr/protocol/openid-connect/token' }}
-        KEYCLOAK_AUTH_URL_TEST_ONE: ${{ vars.KEYCLOAK_AUTH_URL_TEST_ONE || 'http://127.0.0.1:8080/realms/tdr/protocol/openid-connect/token' }}
-        KEYCLOAK_AUTH_URL_STG: ${{ vars.KEYCLOAK_AUTH_URL_STG || 'http://127.0.0.1:8080/realms/tdr/protocol/openid-connect/token' }}
       run: | # pragma: allowlist secret
-        case "$TARGET_ENV" in
-          int)
-            RESOLVED_KEYCLOAK_AUTH_URL="$KEYCLOAK_AUTH_URL_INT"
-            ;;
-          test-one)
-            RESOLVED_KEYCLOAK_AUTH_URL="$KEYCLOAK_AUTH_URL_TEST_ONE"
-            ;;
-          stg)
-            RESOLVED_KEYCLOAK_AUTH_URL="$KEYCLOAK_AUTH_URL_STG"
-            ;;
-          *)
-            echo "Unsupported target environment: $TARGET_ENV"
-            exit 1
-            ;;
-        esac
-
         cat > .env.performance << EOF
         CERT_PATH=False
         AYR_AAU_USER_USERNAME=testuser
         AYR_AAU_USER_PASSWORD=password123
-        KEYCLOAK_AUTH_URL=$RESOLVED_KEYCLOAK_AUTH_URL
+        KEYCLOAK_AUTH_URL=${{ vars.KEYCLOAK_AUTH_URL || 'http://127.0.0.1:8080/realms/tdr/protocol/openid-connect/token' }}
         KEYCLOAK_CLIENT_ID=ayr-beta
         KEYCLOAK_CLIENT_SECRET=test-client-secret
         PERF_TEST=True
@@ -112,7 +78,7 @@ jobs:
         locust \
           -f performance_tests/locustfile.py \
           --headless \
-          --host=http://127.0.0.1:5000 \
+          --host=https://127.0.0.1:5000 \
           --users "${{ github.event.inputs.users || '20' }}" \
           --spawn-rate "${{ github.event.inputs.spawn_rate || '2' }}" \
           --autostart \
@@ -133,9 +99,7 @@ jobs:
 
     - name: Check logs after test failure
       if: failure()
-      run: |
-        cd local_services
-        docker compose -f docker-compose.ci.yml logs
+      run: cd local_services && docker compose -f docker-compose.ci.yml logs
 
     - name: Stop services
       if: always()
