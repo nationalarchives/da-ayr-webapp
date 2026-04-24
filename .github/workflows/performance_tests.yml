@@ -3,6 +3,9 @@ name: Run Performance Tests
 permissions:
   contents: read
 
+env:
+  WEBAPP_IMAGE_CACHE_SCOPE: da-ayr-beta-webapp-ci-image
+
 on:
   pull_request:
   merge_group:
@@ -45,8 +48,8 @@ jobs:
         push: false
         load: true
         tags: "da-ayr-beta-webapp:latest"
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=gha,scope=${{ env.WEBAPP_IMAGE_CACHE_SCOPE }}
+        cache-to: type=gha,scope=${{ env.WEBAPP_IMAGE_CACHE_SCOPE }},mode=max
 
     - name: Start Docker Compose with CI-specific configuration
       run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
