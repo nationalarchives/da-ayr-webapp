@@ -22,7 +22,7 @@ on:
         default: "3m"
 
 jobs:
-  e2e_tests:
+  build_webapp_image:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,6 +31,42 @@ jobs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v3.1.1
+
+    - name: Build webapp image tar with cache
+      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+      with:
+        push: false
+        tags: "da-ayr-beta-webapp:latest"
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        outputs: type=docker,dest=/tmp/da-ayr-beta-webapp-image.tar
+
+    - name: Upload webapp image artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: da-ayr-beta-webapp-image
+        path: /tmp/da-ayr-beta-webapp-image.tar
+        retention-days: 1
+
+  e2e_tests:
+    needs: build_webapp_image
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v3.1.1
+
+    - name: Download webapp image artifact
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: da-ayr-beta-webapp-image
+        path: /tmp
+
+    - name: Load webapp image
+      run: docker load --input /tmp/da-ayr-beta-webapp-image.tar
 
     - name: Free up disk space
       run: |
@@ -48,15 +84,6 @@ jobs:
       uses: docker/setup-compose-action@8cccb8c14b6500aaffebff1aa49c502c34d2e5e6 # v2.1.0
       with:
         version: v2.40.3
-
-    - name: Pre-build webapp image with cache
-      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
-      with:
-        push: false
-        load: true
-        tags: "da-ayr-beta-webapp:latest"
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
 
     - name: Start Docker Compose with CI-specific configuration
       run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
@@ -137,6 +164,7 @@ jobs:
         docker system prune -f
 
   accessibility_tests:
+    needs: build_webapp_image
     runs-on: ubuntu-latest
 
     steps:
@@ -148,19 +176,19 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v3.1.1
 
+    - name: Download webapp image artifact
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: da-ayr-beta-webapp-image
+        path: /tmp
+
+    - name: Load webapp image
+      run: docker load --input /tmp/da-ayr-beta-webapp-image.tar
+
     - name: Set up Docker Compose
       uses: docker/setup-compose-action@8cccb8c14b6500aaffebff1aa49c502c34d2e5e6 # v2.1.0
       with:
         version: v2.40.3
-
-    - name: Pre-build webapp image with cache
-      uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
-      with:
-        push: false
-        load: true
-        tags: "da-ayr-beta-webapp:latest"
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
 
     - name: Start Docker Compose with CI-specific configuration
       run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
@@ -214,6 +242,7 @@ jobs:
         docker system prune -f
 
   performance_tests:
+    needs: build_webapp_image
     runs-on: ubuntu-latest
 
     steps:
@@ -225,19 +254,19 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v3.1.1
 
+    - name: Download webapp image artifact
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: da-ayr-beta-webapp-image
+        path: /tmp
+
+    - name: Load webapp image
+      run: docker load --input /tmp/da-ayr-beta-webapp-image.tar
+
     - name: Set up Docker Compose
       uses: docker/setup-compose-action@8cccb8c14b6500aaffebff1aa49c502c34d2e5e6 # v2.1.0
       with:
         version: v2.40.3
-
-    - name: Pre-build webapp image with cache
-      uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
-      with:
-        push: false
-        load: true
-        tags: "da-ayr-beta-webapp:latest"
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
 
     - name: Start Docker Compose with CI-specific configuration
       run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
