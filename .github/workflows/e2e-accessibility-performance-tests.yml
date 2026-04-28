@@ -1,4 +1,4 @@
-name: Run E2E, Accessibility, and Performance Tests
+name: Run E2E Accessibility and Performance Tests
 
 permissions:
   contents: read
@@ -21,56 +21,16 @@ on:
         required: false
         default: "3m"
 
-shared-checkout-step: &checkout-step
-  name: Checkout code
-  uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-  with:
-    persist-credentials: false
-
-shared-setup-buildx-step: &setup-buildx-step
-  name: Set up Docker Buildx
-  uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v3.1.1
-
-shared-setup-compose-step: &setup-compose-step
-  name: Set up Docker Compose
-  uses: docker/setup-compose-action@8cccb8c14b6500aaffebff1aa49c502c34d2e5e6 # v2.1.0
-  with:
-    version: v2.40.3
-
-shared-prebuild-webapp-step: &prebuild-webapp-step
-  name: Pre-build webapp image with cache
-  uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
-  with:
-    push: false
-    load: true
-    tags: "da-ayr-beta-webapp:latest"
-    cache-from: type=gha
-    cache-to: type=gha,mode=max
-
-shared-start-ci-compose-step: &start-ci-compose-step
-  name: Start Docker Compose with CI-specific configuration
-  run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
-
-shared-failure-logs-step: &failure-logs-step
-  name: Check logs after test failure
-  if: failure()
-  run: cd local_services && docker compose -f docker-compose.ci.yml logs
-
-shared-stop-services-step: &stop-services-step
-  name: Stop services
-  if: always()
-  run: |
-    cd local_services
-    docker compose -f docker-compose.ci.yml down -v
-    docker system prune -f
-
 jobs:
   e2e_tests:
     runs-on: ubuntu-latest
 
     steps:
-    - *checkout-step
-    - *setup-buildx-step
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v3.1.1
 
     - name: Free up disk space
       run: |
@@ -84,9 +44,22 @@ jobs:
         sudo rm -rf /usr/share/swift
         df -h
 
-    - *setup-compose-step
-    - *prebuild-webapp-step
-    - *start-ci-compose-step
+    - name: Set up Docker Compose
+      uses: docker/setup-compose-action@8cccb8c14b6500aaffebff1aa49c502c34d2e5e6 # v2.1.0
+      with:
+        version: v2.40.3
+
+    - name: Pre-build webapp image with cache
+      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+      with:
+        push: false
+        load: true
+        tags: "da-ayr-beta-webapp:latest"
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Start Docker Compose with CI-specific configuration
+      run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Set up E2E test environment
       run: | # pragma: allowlist secret
@@ -152,18 +125,45 @@ jobs:
         path: e2e_tests/test-results/
         retention-days: 7
 
-    - *failure-logs-step
-    - *stop-services-step
+    - name: Check logs after test failure
+      if: failure()
+      run: cd local_services && docker compose -f docker-compose.ci.yml logs
+
+    - name: Stop services
+      if: always()
+      run: |
+        cd local_services
+        docker compose -f docker-compose.ci.yml down -v
+        docker system prune -f
 
   accessibility_tests:
     runs-on: ubuntu-latest
 
     steps:
-    - *checkout-step
-    - *setup-buildx-step
-    - *setup-compose-step
-    - *prebuild-webapp-step
-    - *start-ci-compose-step
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v3.1.1
+
+    - name: Set up Docker Compose
+      uses: docker/setup-compose-action@8cccb8c14b6500aaffebff1aa49c502c34d2e5e6 # v2.1.0
+      with:
+        version: v2.40.3
+
+    - name: Pre-build webapp image with cache
+      uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+      with:
+        push: false
+        load: true
+        tags: "da-ayr-beta-webapp:latest"
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Start Docker Compose with CI-specific configuration
+      run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Set up Node.js
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -202,18 +202,45 @@ jobs:
         path: .accessibilityci/
         retention-days: 7
 
-    - *failure-logs-step
-    - *stop-services-step
+    - name: Check logs after test failure
+      if: failure()
+      run: cd local_services && docker compose -f docker-compose.ci.yml logs
+
+    - name: Stop services
+      if: always()
+      run: |
+        cd local_services
+        docker compose -f docker-compose.ci.yml down -v
+        docker system prune -f
 
   performance_tests:
     runs-on: ubuntu-latest
 
     steps:
-    - *checkout-step
-    - *setup-buildx-step
-    - *setup-compose-step
-    - *prebuild-webapp-step
-    - *start-ci-compose-step
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v3.1.1
+
+    - name: Set up Docker Compose
+      uses: docker/setup-compose-action@8cccb8c14b6500aaffebff1aa49c502c34d2e5e6 # v2.1.0
+      with:
+        version: v2.40.3
+
+    - name: Pre-build webapp image with cache
+      uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+      with:
+        push: false
+        load: true
+        tags: "da-ayr-beta-webapp:latest"
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Start Docker Compose with CI-specific configuration
+      run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Set up Python
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
@@ -285,5 +312,13 @@ jobs:
         path: performance_tests/results/
         retention-days: 7
 
-    - *failure-logs-step
-    - *stop-services-step
+    - name: Check logs after test failure
+      if: failure()
+      run: cd local_services && docker compose -f docker-compose.ci.yml logs
+
+    - name: Stop services
+      if: always()
+      run: |
+        cd local_services
+        docker compose -f docker-compose.ci.yml down -v
+        docker system prune -f
