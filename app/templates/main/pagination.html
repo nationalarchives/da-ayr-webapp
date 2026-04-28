@@ -28,8 +28,8 @@
         {% endif %}
         <ul class="govuk-pagination__list">
             {% for page in pagination.pages %}
-                <li class="govuk-pagination__item {% if page == current_page %}govuk-pagination__item--current{% endif %} {% if page == 'ellipses' %}govuk-pagination__item--ellipses{% endif %} ">
-                    {% if page == 'ellipses' %}
+                <li class="govuk-pagination__item {% if page == current_page %}govuk-pagination__item--current{% endif %} {% if page == 'ellipsis' %}govuk-pagination__item--ellipsis{% endif %} ">
+                    {% if page == 'ellipsis' %}
                         ...
                     {% else %}
                         <a data-testid="pagination-link"

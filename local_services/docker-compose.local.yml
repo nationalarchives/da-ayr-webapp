@@ -1,24 +1,14 @@
-# Local developer override — enables Keycloak HTTPS so that webkit-based
-# e2e tests work correctly. (WebKit enforces the Secure cookie flag strictly
-# and drops session cookies received over plain HTTP.)
-#
-# Prerequisites: generate self-signed certs first (run once):
-#   ./local_services/generate-keycloak-certs.sh
+# Local developer override — switches Keycloak back to HTTP/localhost so a
+# Mac browser can resolve and reach the login page without TLS cert errors.
 #
 # Usage:
 #   docker compose -f docker-compose.ci.yml -f docker-compose.local.yml up
 #
-# CI (chromium only, no HTTPS needed):
+# CI / e2e tests (no override):
 #   docker compose -f docker-compose.ci.yml up
 
 services:
   keycloak:
     environment:
-      KC_HOSTNAME: keycloak
-      KC_HOSTNAME_PORT: 8443
-      KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/tls/cert.pem
-      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/tls/key.pem
-    volumes:
-      - ./keycloak_certs:/opt/keycloak/conf/tls:ro
-    ports:
-      - 8443:8443
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
