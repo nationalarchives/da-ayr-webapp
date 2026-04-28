@@ -88,9 +88,11 @@ npm run lint
 
 ### SCSS files
 
-If you need to add any new style files, then you can create a [partial scss](https://sass-lang.com/guide/#partials) file, with filename prefixed by an underscore to mark it as such and then include it in the main.scss file using `@import`.
+If you need to add any new style files, then you can create a [partial scss](https://sass-lang.com/guide/#partials) file, with filename prefixed by an underscore to mark it as such and then include it in the main.scss file using `@use`.
 
-e.g. for `_foo.scss`, add `@import "includes/foo";`.
+e.g. for `_foo.scss`, add `@use "includes/foo";` at the top of the file that needs it.
+
+Note: unlike the older `@import` syntax, `@use` requires any mixins, variables or functions from the imported file to be namespaced with the filename. For example, a mixin called `on-mobile` defined in `_header.scss` must be called as `@include header.on-mobile { ... }`. To import all names without a namespace prefix, use `@use "includes/foo" as *;`.
 
 ### Set up SSL Certificate
 
@@ -144,7 +146,7 @@ Ensure you set the above environment variables in the `.env` file as appropriate
 flask run
 ```
 
-You should now have the app running on <https://localhost:5000/>
+You should now have the app running on <https://localhost:8000/>
 
 **Note:** Unless you have changed the `FLASK_APP` value in the `.flaskenv` file to point to another application entrypoint other than `main_app`, you must specify the `CONFIG_SOURCE` environment variable (as populated by the env file templates), to be either `AWS_SECRETS_MANAGER` or `ENVIRONMENT_VARIABLES` otherwise `flask run` will raise an error.
 
@@ -163,26 +165,15 @@ A new multi-stage Dockerfile has been added to the root directory that enables r
 **Changes**
 - **Poetry integration**: Uses Poetry for Python dependency management within the container
 
-You can build and run all the containers using:
-```shell
-docker compose -f docker-compose.ci.yml up
-```
+There are three compose files in `local_services/`, used for different scenarios:
 
-as part of the full stack via `docker-compose.ci.yml` which includes the webapp container alongside all dependencies.
+| File | Purpose |
+|---|---|
+| `docker-compose.ci.yml` | Main configuration — runs the full stack including the containerised webapp. Works for local browser access and CI. |
+| `docker-compose.local.yml` | Optional override — explicitly sets Keycloak hostname to `localhost`. Use this if you have previously run the webkit override and want to revert. |
+| `docker-compose.webkit.yml` | Webkit e2e test override — enables Keycloak HTTPS with `KC_HOSTNAME: keycloak`. Required for webkit browser tests. |
 
-or
-
-```shell
-docker compose up
-```
-
-Which will require certificates to be made using the scripts inside /local_services and the flask app to be run using:
-
-```shell
-flask run --debug
-```
-
-### Prerequisites for running this docker compose stack:
+### Prerequisites for running this docker compose stack
 
 1. Have `docker` installed
 2. Create certs for the webapp postgres instance in `local_services/webapp_postgres_certs` by running `generate_webapp_postgres_certs.sh` inside it
@@ -191,41 +182,47 @@ flask run --debug
    ```shell
    cd local_services && ./generate-keycloak-certs.sh
    ```
-   These are required so that webkit-based browsers can complete the Keycloak login flow (webkit enforces the `Secure` cookie flag strictly and will only store it over HTTPS).
+   These are required so that webkit-based browsers can complete the Keycloak login flow (webkit enforces the `Secure` cookie flag strictly and will only store it over HTTPS). Only needed if you intend to run webkit e2e tests using `docker-compose.webkit.yml`.
 5. Create a `.env` file inside of `local_services` using `local_services/.env.template`
 
-
-#### For local development:
-```shell
-docker compose up -d
-flask run --debug
-```
-
-#### For CI/CD environments:
-A specialised CI configuration has been added that:
-- Uses a simplified setup with security disabled
-- Automatically restores test data from snapshots
-- Includes a containerised webapp built from the new multi-stage Dockerfile
-- Provides proper networking between all services in CI environments
-
-#### Local browser access with the full CI stack
-
-When running `docker-compose.ci.yml`, Keycloak is configured with `KC_HOSTNAME: keycloak` so that the e2e test container (which resolves Docker service names) can reach it over HTTPS. However, a Mac browser cannot resolve the `keycloak` hostname directly.
-
-A local override file `local_services/docker-compose.local.yml` (gitignored) is provided to switch Keycloak back to `localhost` for browser-accessible development. To use it:
+#### For local development
 
 ```shell
 cd local_services
-docker compose -f docker-compose.ci.yml -f docker-compose.local.yml up
+docker compose -f docker-compose.ci.yml up -d
+flask run --debug
 ```
 
-With this override, Keycloak is accessible at `http://localhost:8080` and the browser login redirect will return to a resolvable address.
+Keycloak will be accessible at `http://localhost:8080` and the webapp at `https://localhost:8000`.
 
-For CI and e2e tests (no override needed):
+#### For CI/CD environments
+
+The CI configuration:
+
+- Uses a simplified setup with security disabled
+- Automatically restores test data from snapshots
+- Includes a containerised webapp built from the multi-stage Dockerfile
+- Provides proper networking between all services
 
 ```shell
 cd local_services
 docker compose -f docker-compose.ci.yml up
+```
+
+#### For webkit e2e tests
+
+Webkit enforces the `Secure` cookie flag and requires Keycloak to be served over HTTPS. Use the webkit override, which enables Keycloak HTTPS and sets its hostname to `keycloak` (resolvable inside the Docker network):
+
+```shell
+cd local_services
+docker compose -f docker-compose.ci.yml -f docker-compose.webkit.yml up
+```
+
+To return to standard HTTP/localhost after running the webkit stack:
+
+```shell
+cd local_services
+docker compose -f docker-compose.ci.yml -f docker-compose.local.yml up
 ```
 
 
