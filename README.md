@@ -146,7 +146,7 @@ Ensure you set the above environment variables in the `.env` file as appropriate
 flask run
 ```
 
-You should now have the app running on <https://localhost:8000/>
+You should now have the app running on <https://localhost:5000/>
 
 **Note:** Unless you have changed the `FLASK_APP` value in the `.flaskenv` file to point to another application entrypoint other than `main_app`, you must specify the `CONFIG_SOURCE` environment variable (as populated by the env file templates), to be either `AWS_SECRETS_MANAGER` or `ENVIRONMENT_VARIABLES` otherwise `flask run` will raise an error.
 
@@ -193,7 +193,7 @@ docker compose -f docker-compose.ci.yml up -d
 flask run --debug
 ```
 
-Keycloak will be accessible at `http://localhost:8080` and the webapp at `https://localhost:8000`.
+Keycloak will be accessible at `http://localhost:8080` and the webapp at `https://localhost:5000`.
 
 #### For CI/CD environments
 
