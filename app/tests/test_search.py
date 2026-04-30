@@ -1404,7 +1404,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         if href_term2:
             parsed = urlparse(href_term2)
@@ -1413,7 +1415,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         assert (
             anchor_clear["href"]
@@ -1479,7 +1483,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         if href_term2:
             parsed = urlparse(href_term2)
@@ -1488,7 +1494,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         assert (
             anchor_clear["href"]
@@ -1560,7 +1568,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         if href_term2:
             parsed = urlparse(href_term2)
@@ -1569,7 +1579,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         if href_term3:
             parsed = urlparse(href_term3)
@@ -1578,7 +1590,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         assert (
             anchor_clear["href"]
@@ -1763,7 +1777,6 @@ class TestSearchTransferringBody:
         expected_cell_values,
         expected_sort_select_value,
     ):
-
         mock_search_client.return_value = MockOpenSearch(
             search_return_value=mock_open_search_return
         )

@@ -86,9 +86,7 @@ def page(page, request) -> Page:
 @pytest.fixture
 def create_user_page(
     page,
-) -> (
-    Page
-):  # FIXME: browser_name specified until https://github.com/microsoft/playwright-pytest/issues/172 fixed
+) -> Page:  # FIXME: browser_name specified until https://github.com/microsoft/playwright-pytest/issues/172 fixed
     # so that multiple browser flags in cli are honoured
     def _create_user_page(username, password) -> Page:
         page.goto("/sign-in")

@@ -313,11 +313,14 @@ def test_add_text_content_fallback_success():
     }
     file_stream = b"original xls content"
 
-    with patch(
-        "opensearch_indexer.text_extraction.textract.process"
-    ) as mock_textract, patch(
-        "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
-    ) as mock_convert:
+    with (
+        patch(
+            "opensearch_indexer.text_extraction.textract.process"
+        ) as mock_textract,
+        patch(
+            "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
+        ) as mock_convert,
+    ):
         # Simulate first textract failure, second success after conversion
         mock_textract.side_effect = [
             Exception("initial fail"),
@@ -349,12 +352,14 @@ def test_extract_text_libreoffice_conversion_failure():
         temp.write(file_bytes)
         temp.flush()
 
-        with patch(
-            "opensearch_indexer.text_extraction.textract.process"
-        ) as mock_textract, patch(
-            "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
-        ) as mock_convert:
-
+        with (
+            patch(
+                "opensearch_indexer.text_extraction.textract.process"
+            ) as mock_textract,
+            patch(
+                "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
+            ) as mock_convert,
+        ):
             mock_textract.side_effect = Exception("initial textract failed")
             mock_convert.side_effect = Exception(
                 "libreoffice conversion failed"
@@ -384,12 +389,14 @@ def test_extract_text_fallback_conversion_failure():
         temp.write(file_bytes)
         temp.flush()
 
-        with patch(
-            "opensearch_indexer.text_extraction.textract.process"
-        ) as mock_textract, patch(
-            "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
-        ) as mock_convert:
-
+        with (
+            patch(
+                "opensearch_indexer.text_extraction.textract.process"
+            ) as mock_textract,
+            patch(
+                "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
+            ) as mock_convert,
+        ):
             # Given
             mock_textract.side_effect = [
                 Exception("initial textract failed"),
@@ -426,11 +433,14 @@ def test_add_text_content_proactive_conversion_success(caplog):
     }
     file_stream = b"original wpd content"
 
-    with patch(
-        "opensearch_indexer.text_extraction.textract.process"
-    ) as mock_textract, patch(
-        "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
-    ) as mock_convert:
+    with (
+        patch(
+            "opensearch_indexer.text_extraction.textract.process"
+        ) as mock_textract,
+        patch(
+            "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
+        ) as mock_convert,
+    ):
         mock_textract.return_value = b"extracted from docx"
         mock_convert.return_value = "/tmp/example.docx"
 
@@ -505,11 +515,14 @@ def test_add_text_content_proactive_conversion_extract_failure(caplog):
     }
     file_stream = b"original vsd content"
 
-    with patch(
-        "opensearch_indexer.text_extraction.textract.process"
-    ) as mock_textract, patch(
-        "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
-    ) as mock_convert:
+    with (
+        patch(
+            "opensearch_indexer.text_extraction.textract.process"
+        ) as mock_textract,
+        patch(
+            "opensearch_indexer.text_extraction.convert_file_with_libreoffice"
+        ) as mock_convert,
+    ):
         mock_textract.side_effect = Exception("extract after convert failed")
         mock_convert.return_value = "/tmp/example.pdf"
 

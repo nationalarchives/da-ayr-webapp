@@ -64,7 +64,6 @@ def validate_request(
                     if page_val < 1:
                         raise ValueError
                 except (TypeError, ValueError):
-
                     # Use current endpoint and args, but set page=1
                     args = request.args.to_dict()
                     args["page"] = 1
