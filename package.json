@@ -8,10 +8,12 @@
     "prestorybook": "python storybook/render_macros.py",
     "storybook": "concurrently \"npm run watch-macro-tasks\" \"storybook dev -p 6006\"",
     "watch-macro-tasks": "chokidar 'storybook/render-macro-tasks.json' -c 'npm run prestorybook'",
-    "test": "jest app/static/init.uv.test.js"
+    "test": "jest app/static/init.uv.test.js",
+    "lighthouse:ci": "node accessibility_tests/lhci-auth-autorun.js"
   },
   "license": "MIT",
   "devDependencies": {
+    "@lhci/cli": "^0.15.0",
     "@storybook/html-vite": "10.3.6",
     "@testing-library/jest-dom": "^6.9.1",
     "chokidar-cli": "^3.0.0",
