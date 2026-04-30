@@ -52,6 +52,6 @@ ENV PYTHONUNBUFFERED=1
 
 RUN openssl req -x509 -newkey rsa:2048 -nodes -out /docker_app/cert.pem -keyout /docker_app/key.pem -days 365 -subj '/C=GB/ST=Test/L=Test/O=Test/CN=localhost'
 
-EXPOSE 8000
+EXPOSE 5000
 
-CMD ["poetry", "run", "flask", "run", "--host=0.0.0.0", "--port=8000", "--debug"]
+CMD ["poetry", "run", "flask", "run", "--host=0.0.0.0", "--port=5000", "--debug"]
