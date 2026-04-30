@@ -28,7 +28,7 @@ RUN poetry config virtualenvs.create false && \
 
 # Copy Node.js dependency files and install
 COPY package*.json /docker_app/
-RUN npm install --no-cache
+# RUN npm install --no-cache
 RUN npm ci
 COPY app/static/src/scss /docker_app/app/static/src/scss
 # Build CSS files before copying the rest of the app as
@@ -53,6 +53,6 @@ ENV PYTHONUNBUFFERED=1
 
 RUN openssl req -x509 -newkey rsa:2048 -nodes -out /docker_app/cert.pem -keyout /docker_app/key.pem -days 365 -subj '/C=GB/ST=Test/L=Test/O=Test/CN=localhost'
 
-EXPOSE 5000
+EXPOSE 8000
 
-CMD ["poetry", "run", "flask", "run", "--host=0.0.0.0", "--port=5000", "--debug"]
+CMD ["poetry", "run", "flask", "run", "--host=0.0.0.0", "--port=8000", "--debug"]
