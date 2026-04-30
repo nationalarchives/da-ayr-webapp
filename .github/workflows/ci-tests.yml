@@ -297,7 +297,6 @@ jobs:
         KEYCLOAK_AUTH_URL=$KEYCLOAK_AUTH_URL_VALUE
         KEYCLOAK_CLIENT_ID=ayr-beta
         KEYCLOAK_CLIENT_SECRET=test-client-secret
-        PERF_TEST=True
         EOF
 
     - name: Run Locust headless
