@@ -1,8 +1,7 @@
-import os
 from functools import wraps
 
 import keycloak
-from flask import flash, g, redirect, request, session, url_for
+from flask import flash, g, redirect, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
 from app.main.flask_config_helpers import (
@@ -42,26 +41,17 @@ def access_token_sign_in_required(view_func):
         g.access_token_sign_in_required = True  # Set attribute on g
         tokens_are_refreshed = False
 
-        if os.getenv("PERF_TEST", "False") == "True":
-            access_token = request.headers.get("Authorization")
-            if access_token and access_token.startswith("Bearer "):
-                access_token[len("Bearer ") :]
-                session["access_token"] = access_token
-                refresh_token = None
-                session["user_type"] = "all_access_user"
-                session["user_groups"] = "/ayr_user_type/view_all"
-        else:
-            access_token = session.get("access_token")
-            refresh_token = session.get("refresh_token")
-            try:
-                (
-                    access_token,
-                    refresh_token,
-                    tokens_are_refreshed,
-                ) = _validate_or_refresh_tokens(access_token, refresh_token)
-            except InvalidAccessToken:
-                session.clear()
-                return redirect(url_for("main.sign_in"))
+        access_token = session.get("access_token")
+        refresh_token = session.get("refresh_token")
+        try:
+            (
+                access_token,
+                refresh_token,
+                tokens_are_refreshed,
+            ) = _validate_or_refresh_tokens(access_token, refresh_token)
+        except InvalidAccessToken:
+            session.clear()
+            return redirect(url_for("main.sign_in"))
 
         if tokens_are_refreshed:
             session["access_token"] = access_token
@@ -96,13 +86,8 @@ def access_token_sign_in_required(view_func):
 def _validate_or_refresh_tokens(access_token, refresh_token):
     tokens_are_refreshed = False
 
-    # PERFORMANCE TEST MODE
-    if os.getenv("PERF_TEST", "False") == "True":
-        if not (access_token):
-            raise InvalidAccessToken
-    else:  # NORMAL MODE
-        if not (access_token and refresh_token):
-            raise InvalidAccessToken
+    if not (access_token and refresh_token):
+        raise InvalidAccessToken
 
     keycloak_openid = get_keycloak_instance_from_flask_config()
 

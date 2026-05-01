@@ -376,7 +376,6 @@ Properties configurable at runtime:
 - `FLASKS3_ACTIVE`: whether to fetch static assets from s3/Cloudfront rather than the usual `url_for`.
 - `FLASKS3_CDN_DOMAIN`: CDN domain to fetch assets from if `FLASKS3_ACTIVE` is set to `True`
 - `FLASKS3_BUCKET_NAME`: S3 bucket assets are uploaded to and served to Cloudfront from.
-- `PERF_TEST`: Enable to allow access tokens generated via API to be accepted for performance testing.
 - `OPEN_SEARCH_HOST`: The host of the opensearch cluster to connect to.
 - `OPEN_SEARCH_USERNAME`: The username of the opensearch cluster to connect to.
 - `OPEN_SEARCH_PASSWORD`: The password of the opensearch cluster to connect to.
@@ -751,8 +750,7 @@ The following ENV Vars are required:
 1. Run the flask app on a specific environment LOCAL / INT / TEST
 2. Ensure Locust is installed with `pip install locust`
 3. Run locust with the following command: `locust --host=https://127.0.0.1:5000`
-4. Ensure the ENV variable PERF_TEST = True
-5. Access locust via the provided URL and start a new test with the required amount of users
+4. Access locust via the provided URL and start a new test with the required amount of users
 
 ### Accessibility Tests
 
