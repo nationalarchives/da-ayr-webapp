@@ -154,6 +154,66 @@ You should now have the app running on <https://localhost:5000/>
 
 The webapp depends on keycloak, a postgres instance holding metadata, an s3 bucket storing associated records and then an opensearch instance that is populated from those 2 via `data_management/opensearch_indexer`. For ease of use, we provide a `docker-compose.yml` file inside the `local_services` which spins up all these dependencies, using minio as a local replacement for an actual AWS s3, and populates them with consistent test data. Feel free to expand this data but data consistency is left up to you.
 
+### Quick reference — which setup do I need?
+
+| What you want to do | Stack to use | Flask |
+|---|---|---|
+| Manual testing in a browser | `docker-compose.ci.yml` | `flask run --debug` |
+| Full stack in Docker (no local Flask) | `docker-compose.ci.yml` | Not needed |
+| Chromium / Firefox e2e tests | `docker-compose.ci.yml` | `flask run --debug` |
+| Webkit e2e tests | `docker-compose.ci.yml` + `docker-compose.webkit.yml` | `flask run --debug` |
+
+**Prerequisites — run once before starting any stack:**
+
+```shell
+cd local_services
+./webapp_postgres_certs/generate_webapp_postgres_certs.sh
+./opensearch_certs/generate_opensearch_certs.sh
+cp .env.template .env  # then fill in the values
+```
+
+**Running chromium and firefox e2e tests** (from repo root, stack already running):
+
+```shell
+docker run --rm \
+  --env-file .env.e2e_tests \
+  -e WEBAPP_HOST_PORT=5000 \
+  -e KEYCLOAK_BASE_URI=http://localhost:8080 \
+  -e BROWSERS=chromium,firefox \
+  --network=host \
+  -v "$(pwd)/e2e_tests":/e2e_tests \
+  e2e_tests
+```
+
+**Running webkit e2e tests** (requires Keycloak HTTPS — generate certs first if not done):
+
+```shell
+cd local_services && ./generate-keycloak-certs.sh
+cd local_services && docker compose -f docker-compose.ci.yml -f docker-compose.webkit.yml up -d
+```
+
+Then from repo root:
+
+```shell
+docker run --rm \
+  --env-file .env.e2e_tests \
+  -e WEBAPP_HOST_PORT=5000 \
+  -e KEYCLOAK_BASE_URI=https://keycloak:8443 \
+  -e BROWSERS=webkit \
+  -e REQUESTS_CA_BUNDLE=/keycloak-ca.pem \
+  --network=host \
+  --add-host=keycloak:127.0.0.1 \
+  -v "$(pwd)/local_services/keycloak_certs/cert.pem":/keycloak-ca.pem \
+  -v "$(pwd)/e2e_tests":/e2e_tests \
+  e2e_tests
+```
+
+To revert the stack back to standard after webkit tests:
+
+```shell
+cd local_services && docker compose -f docker-compose.ci.yml down && docker compose -f docker-compose.ci.yml up -d
+```
+
 ### Containerised webapp
 
 A new multi-stage Dockerfile has been added to the root directory that enables running the webapp itself in a container. This Docker setup includes:
@@ -170,7 +230,6 @@ There are three compose files in `local_services/`, used for different scenarios
 | File | Purpose |
 |---|---|
 | `docker-compose.ci.yml` | Main configuration — runs the full stack including the containerised webapp. Works for local browser access and CI. |
-| `docker-compose.local.yml` | Optional override — explicitly sets Keycloak hostname to `localhost`. Use this if you have previously run the webkit override and want to revert. |
 | `docker-compose.webkit.yml` | Webkit e2e test override — enables Keycloak HTTPS with `KC_HOSTNAME: keycloak`. Required for webkit browser tests. |
 
 ### Prerequisites for running this docker compose stack
@@ -222,7 +281,7 @@ To return to standard HTTP/localhost after running the webkit stack:
 
 ```shell
 cd local_services
-docker compose -f docker-compose.ci.yml -f docker-compose.local.yml up
+docker compose -f docker-compose.ci.yml down && docker compose -f docker-compose.ci.yml up
 ```
 
 
