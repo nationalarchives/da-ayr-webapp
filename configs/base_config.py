@@ -217,10 +217,6 @@ class BaseConfig(object):
         return self._get_config_value("OPEN_SEARCH_VERIFY_CERTS") == "true"
 
     @property
-    def PERF_TEST(self):
-        return self._get_config_value("PERF_TEST") == "True"
-
-    @property
     def CSP_DEFAULT_SRC(self):
         return [SELF, self.FLASKS3_CDN_DOMAIN]
 
