@@ -3801,14 +3801,14 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<8)"]
 
 [[package]]
 name = "requests-aws4auth"
-version = "1.3.1"
+version = "1.3.2"
 description = "AWS4 authentication for Requests"
 optional = false
 python-versions = ">=3.7"
 groups = ["main"]
 files = [
-    {file = "requests_aws4auth-1.3.1-py3-none-any.whl", hash = "sha256:2969b5379ae6e60ee666638caf6cb94a32d67033f6bfcf0d50c95cd5474f2419"},
-    {file = "requests_aws4auth-1.3.1.tar.gz", hash = "sha256:b6ad4882310e03ba2538ebf94d1f001ca9feabc5c52618539cf1eb6d5af76791"},
+    {file = "requests_aws4auth-1.3.2-py3-none-any.whl", hash = "sha256:c6cbf45f17119af926e3cb77acfeed083d1cf9580d893ee6c0ecf01088fd34e5"},
+    {file = "requests_aws4auth-1.3.2.tar.gz", hash = "sha256:7a697bf3c7a66d82980ad3348a2539403870d5c1f1e313f5676fb11e6793eef8"},
 ]
 
 [package.dependencies]
@@ -4642,4 +4642,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "b7aef8158115408ec97cb2a730f00328cb98fcaa0266fc7281b063cbd29babc1"
+content-hash = "ec97fe025754bdfeb6f843e8538ed57fbf2bcd661d387491bde588a6d668d02b"
