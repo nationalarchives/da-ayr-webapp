@@ -1,3 +1,6 @@
+@use "browse";
+@use "variables" as *;
+
 .consignment-filter {
   &-container {
     background-color: $colour-container-normal;
@@ -256,7 +259,7 @@
 .sort-container__form {
   margin-bottom: 1.5rem;
 
-  @include on-mobile {
+  @include browse.on-mobile {
     margin-bottom: 0.5rem;
   }
 }

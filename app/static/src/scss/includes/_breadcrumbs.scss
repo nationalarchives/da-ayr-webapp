@@ -1,3 +1,7 @@
+@use "header";
+@use "signposting-text";
+@use "variables" as *;
+
 @mixin stacked-breadcrumbs {
   margin-right: 0.625em;
   padding-right: 0.9784em;
@@ -43,7 +47,7 @@
 
   &__list-item {
     &:last-child span {
-      @include signposting-text;
+      @include signposting-text.signposting-text;
       color: black;
       -webkit-text-fill-color: black;
       cursor: default;
@@ -58,7 +62,7 @@
     @include stacked_breadcrumbs;
   }
 
-  @include on-mobile {
+  @include header.on-mobile {
     &__list-item {
       @include stacked_breadcrumbs;
     }

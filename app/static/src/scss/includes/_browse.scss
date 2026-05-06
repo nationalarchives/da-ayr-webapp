@@ -1,3 +1,5 @@
+@use "variables" as *;
+
 /* Default styles for desktop */
 @mixin on-mobile {
   @media screen and (width <= $breakpoint-medium) {

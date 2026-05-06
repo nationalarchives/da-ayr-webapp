@@ -1,3 +1,5 @@
+@use "variables" as *;
+
 .govuk-accessibility {
   &--red {
     color: $colour-placeholder-normal;
