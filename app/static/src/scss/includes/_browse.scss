@@ -16,6 +16,21 @@
 
 // DESKTOP STYLES
 
+@media screen and (min-width: $breakpoint-desktop) {
+  .govuk-grid-column-one-third {
+    &--browse-all-filters {
+      display: block;
+      max-width: 320px;
+      padding: 0;
+      float: right;
+    }
+  }
+
+  .browse-all-filter-container {
+    min-width: 0 !important;
+  }
+}
+
 .govuk {
   &-grid-column-full__page_container {
     padding: 0;
