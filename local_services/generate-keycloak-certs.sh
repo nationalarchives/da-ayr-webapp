@@ -18,4 +18,6 @@ openssl req -x509 -newkey rsa:2048 -nodes \
   -subj '/CN=keycloak' \
   -addext 'subjectAltName=DNS:keycloak,DNS:localhost,IP:127.0.0.1'
 
+chmod 644 "$CERT_DIR/key.pem"
+
 echo "Keycloak certs written to $CERT_DIR"
