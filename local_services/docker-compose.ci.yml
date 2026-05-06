@@ -151,7 +151,6 @@ services:
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_HEALTH_ENABLED: true
       KC_SSL_REQUIRED: none
-      KC_PROXY: edge
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_DB: postgres
@@ -170,12 +169,12 @@ services:
       - postgres
     networks:
       - keycloak_network
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:8080/realms/master/.well-known/openid-configuration"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 30
-    #   start_period: 10s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/realms/master/.well-known/openid-configuration"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
 
   minio:
     env_file:
