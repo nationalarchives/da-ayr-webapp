@@ -1,3 +1,5 @@
+import hmac
+import secrets
 import uuid
 
 import boto3
@@ -114,9 +116,12 @@ def sign_out():
 @log_page_view
 def sign_in():
     keycloak_openid = get_keycloak_instance_from_flask_config()
+    state = secrets.token_urlsafe(32)
+    session["oauth_state"] = state
     auth_url = keycloak_openid.auth_url(
         redirect_uri=f"{request.url_root}callback",
         scope="group_mapper_client_scope",
+        state=state,
     )
 
     return redirect(auth_url)
@@ -129,6 +134,21 @@ def callback():
     keycloak_openid = get_keycloak_instance_from_flask_config()
     validated_data = request.validated_data
     code = validated_data["code"]
+    callback_state = validated_data.get("state")
+    session_state = session.pop("oauth_state", None)
+
+    if not callback_state or not session_state:
+        current_app.app_logger.error(
+            "Error during Keycloak callback validation: Missing state"
+        )
+        return redirect(url_for("main.sign_in"))
+
+    if not hmac.compare_digest(callback_state, session_state):
+        current_app.app_logger.error(
+            "Error during Keycloak callback validation: State mismatch"
+        )
+        return redirect(url_for("main.sign_in"))
+
     if not code:
         current_app.app_logger.error(
             "Error during Keycloak token exchange: Missing authorization code"

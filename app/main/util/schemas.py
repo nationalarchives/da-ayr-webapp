@@ -28,6 +28,11 @@ class CallbackRequestSchema(Schema):
         load_default=None,
         validate=validate.Length(min=1, max=500),
     )
+    state = fields.String(
+        allow_none=True,
+        load_default=None,
+        validate=validate.Length(min=1, max=500),
+    )
 
     class Meta:
         unknown = EXCLUDE
