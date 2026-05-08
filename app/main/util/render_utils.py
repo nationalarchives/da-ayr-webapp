@@ -5,7 +5,7 @@ from typing import List
 import boto3
 import pymupdf
 from botocore.exceptions import ClientError
-from flask import Response, current_app, jsonify
+from flask import Response, current_app, jsonify, url_for
 from PIL import Image
 
 from app.main.db.models import File
@@ -247,9 +247,6 @@ def generate_pdf_manifest(
 
             page_number = page_num + 1
 
-            # Generate URLs for this page
-            from flask import url_for
-
             page_image_url = url_for(
                 "main.get_page_image",
                 record_id=record_id,
@@ -296,6 +293,10 @@ def generate_pdf_manifest(
                 }
             )
 
+    pdf_url = url_for(
+        "main.get_record_pdf", record_id=record_id, _external=True
+    )
+
     manifest = {
         "@context": "https://iiif.io/api/presentation/3/context.json",
         "@type": "sc:Manifest",
@@ -303,6 +304,13 @@ def generate_pdf_manifest(
         "label": {"en": [file_name]},
         "description": f"Manifest for {file_name}",
         "viewingDirection": "left-to-right",
+        "rendering": [
+            {
+                "@id": pdf_url,
+                "@type": "dctypes:Text",
+                "format": "application/pdf",
+            }
+        ],
         "sequences": [
             {
                 "@type": "sc:Sequence",
