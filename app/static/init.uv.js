@@ -19,17 +19,18 @@ function initUniversalViewer() {
       moreInfoEnabled: false,
       shareEnabled: false,
     };
+    config.modules.pdfHeaderPanel = config.modules.pdfHeaderPanel || {};
+    config.modules.pdfHeaderPanel.options = {
+      centerOptionsEnabled: true,
+      downloadEnabled: false,
+      shareEnabled: false,
+    };
     cb({
       options: {
         footerPanelEnabled: true,
         leftPanelEnabled: true,
         rightPanelEnabled: false,
         headerPanelEnabled: true,
-      },
-      pdfHeaderPanel: {
-        options: {
-          centerOptionsEnabled: false,
-        },
       },
     });
   });
