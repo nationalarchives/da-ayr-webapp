@@ -2326,6 +2326,77 @@ class TestSearchTransferringBody:
         assert all("open" in details.attrs for details in details_elements)
 
     @patch("app.main.util.search_utils.OpenSearch")
+    def test_search_filter_redirects_with_term_merged_into_query(
+        self,
+        mock_search_client,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user submitting the 'Search within results' form
+        When search_filter is provided alongside an existing query
+        Then the response should be a redirect whose Location merges
+        search_filter into query and omits search_filter from the URL,
+        preventing an infinite redirect loop.
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}"
+            "?query=test&search_area=everywhere&search_filter=botany",
+            follow_redirects=False,
+        )
+
+        assert response.status_code == 302
+
+        location = response.headers["Location"]
+        parsed = urlparse(location)
+        params = parse_qs(parsed.query)
+
+        assert "test" in params["query"][0]
+        assert "botany" in params["query"][0]
+        assert "search_filter" not in params
+
+    @patch("app.main.util.search_utils.OpenSearch")
+    def test_search_filter_empty_does_not_redirect(
+        self,
+        mock_search_client,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user on the search transferring body page
+        When search_filter is absent
+        Then the response should be 200, not a redirect.
+        """
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value=os_mock_return_tb
+        )
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+        transferring_body_id = browse_consignment_files[
+            0
+        ].consignment.series.body.BodyId
+
+        response = client.get(
+            f"{self.route_url}/{transferring_body_id}?query=test&search_area=everywhere",
+            follow_redirects=False,
+        )
+
+        assert response.status_code == 200
+
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_transferring_body_empty_highlights_renders_file_name_and_search_results(
         self,
         mock_search_client,
