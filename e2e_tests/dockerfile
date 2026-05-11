@@ -1,10 +1,12 @@
 
-FROM mcr.microsoft.com/playwright/python@sha256:640d578aae63cfb632461d1b0aecb01414e4e020864ac3dd45a868dc0eff3078
+FROM mcr.microsoft.com/playwright/python:v1.59.0-noble@sha256:d8d9811a0e7cfac967f0c2f55d12b739087ae4b0808577b794c2a29ed5124938
 
 WORKDIR /e2e_tests
 
 # Install dependencies
-RUN pip install --no-cache-dir --upgrade pip wheel setuptools numpy scikit-image pillow playwright==1.55.0 python-keycloak pytest-playwright-visual==2.1.2 pytest-playwright==0.7.1 pytest-html PyJWT itsdangerous cryptography
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip wheel setuptools && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Accept build-time and run-time arguments
 ARG GIT_REF=main
