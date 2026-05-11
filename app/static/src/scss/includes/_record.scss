@@ -1,3 +1,6 @@
+@use "header";
+@use "variables" as *;
+
 /* SCSS for Record page */
 
 .govuk-tabs__list-item {
@@ -283,7 +286,7 @@
 
 .govuk-tabs__panel {
   padding: "3rem 0:0";
-  @include on-mobile {
+  @include header.on-mobile {
     padding: 0;
   }
 }

@@ -485,6 +485,7 @@ def check_additional_term(query, validated_data):
         query = f"{query}+{additional_term}" if query else additional_term
 
         redirect_params = request.validated_args.copy()
+        redirect_params.pop("search_filter", None)
         redirect_params["query"] = query
         return redirect(
             url_for(

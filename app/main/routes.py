@@ -627,7 +627,9 @@ def search_transferring_body(_id: uuid.UUID):
     query = validated_data["query"]
     search_area = validated_data["search_area"]
 
-    check_additional_term(query, validated_data.copy())
+    redirect_response = check_additional_term(query, validated_data.copy())
+    if redirect_response:
+        return redirect_response
 
     filters = {"query": query}
 

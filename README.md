@@ -88,9 +88,11 @@ npm run lint
 
 ### SCSS files
 
-If you need to add any new style files, then you can create a [partial scss](https://sass-lang.com/guide/#partials) file, with filename prefixed by an underscore to mark it as such and then include it in the main.scss file using `@import`.
+If you need to add any new style files, then you can create a [partial scss](https://sass-lang.com/guide/#partials) file, with filename prefixed by an underscore to mark it as such and then include it in the main.scss file using `@use`.
 
-e.g. for `_foo.scss`, add `@import "includes/foo";`.
+e.g. for `_foo.scss`, add `@use "includes/foo";` at the top of the file that needs it.
+
+Note: unlike the older `@import` syntax, `@use` requires any mixins, variables or functions from the imported file to be namespaced with the filename. For example, a mixin called `on-mobile` defined in `_header.scss` must be called as `@include header.on-mobile { ... }`. To import all names without a namespace prefix, use `@use "includes/foo" as *;`.
 
 ### Set up SSL Certificate
 
@@ -152,6 +154,36 @@ You should now have the app running on <https://localhost:5000/>
 
 The webapp depends on keycloak, a postgres instance holding metadata, an s3 bucket storing associated records and then an opensearch instance that is populated from those 2 via `data_management/opensearch_indexer`. For ease of use, we provide a `docker-compose.yml` file inside the `local_services` which spins up all these dependencies, using minio as a local replacement for an actual AWS s3, and populates them with consistent test data. Feel free to expand this data but data consistency is left up to you.
 
+### Quick reference — which setup do I need?
+
+| What you want to do | Stack to use | Flask |
+|---|---|---|
+| Manual testing in a browser | `docker-compose.ci.yml` | `flask run --debug` |
+| Full stack in Docker (no local Flask) | `docker-compose.ci.yml` | Not needed |
+| All browser e2e tests (chromium, firefox, webkit) | `docker-compose.ci.yml` | `flask run --debug` |
+
+**Prerequisites — run once before starting any stack:**
+
+```shell
+cd local_services
+./webapp_postgres_certs/generate_webapp_postgres_certs.sh
+./opensearch_certs/generate_opensearch_certs.sh
+cp .env.template .env  # then fill in the values
+```
+
+**Running e2e tests** (from repo root, stack already running):
+
+```shell
+docker run --rm \
+  --env-file .env.e2e_tests \
+  -e WEBAPP_HOST_PORT=5000 \
+  -e KEYCLOAK_BASE_URI=http://localhost:8080 \
+  -e BROWSERS=chromium,firefox,webkit \
+  --network=host \
+  -v "$(pwd)/e2e_tests":/e2e_tests \
+  e2e_tests
+```
+
 ### Containerised webapp
 
 A new multi-stage Dockerfile has been added to the root directory that enables running the webapp itself in a container. This Docker setup includes:
@@ -163,46 +195,46 @@ A new multi-stage Dockerfile has been added to the root directory that enables r
 **Changes**
 - **Poetry integration**: Uses Poetry for Python dependency management within the container
 
-You can build and run all the containers using:
-```shell
-docker compose -f docker-compose.ci.yml up
-```
+There are two compose files in `local_services/`, used for different scenarios:
 
-as part of the full stack via `docker-compose.ci.yml` which includes the webapp container alongside all dependencies.
+| File | Purpose |
+|---|---|
+| `docker-compose.ci.yml` | Main configuration — runs the full stack including the containerised webapp. Works for local browser access, all browser e2e tests, and CI. |
 
-or
-
-```shell
-docker compose up
-```
-
-Which will require certificates to be made using the scripts inside /local_services and the flask app to be run using:
-
-```shell
-flask run --debug
-```
-
-### Prerequisites for running this docker compose stack:
+### Prerequisites for running this docker compose stack
 
 1. Have `docker` installed
 2. Create certs for the webapp postgres instance in `local_services/webapp_postgres_certs` by running `generate_webapp_postgres_certs.sh` inside it
 3. Create certs for the opensearch nodes in `local_services/opensearch_certs` by running `generate_opensearch_certs.sh` inside it
-4. Create a `.env` file inside of `local_services` using `local_services/.env.template`
+4. Create TLS certs for Keycloak in `local_services/keycloak_certs` by running `generate-keycloak-certs.sh` inside `local_services`:
+   ```shell
+   cd local_services && ./generate-keycloak-certs.sh
+   ```
+5. Create a `.env` file inside of `local_services` using `local_services/.env.template`
 
+#### For local development
 
-#### For local development:
 ```shell
-docker compose up -d
+cd local_services
+docker compose -f docker-compose.ci.yml up -d
 flask run --debug
 ```
 
-#### For CI/CD environments:
-A specialised CI configuration has been added that:
+Keycloak will be accessible at `http://localhost:8080` (HTTP) and `https://localhost:8443` (HTTPS), and the webapp at `https://localhost:5000`.
+
+#### For CI/CD environments
+
+The CI configuration:
+
 - Uses a simplified setup with security disabled
 - Automatically restores test data from snapshots
-- Includes a containerised webapp built from the new multi-stage Dockerfile
-- Provides proper networking between all services in CI environments
+- Includes a containerised webapp built from the multi-stage Dockerfile
+- Provides proper networking between all services
 
+```shell
+cd local_services
+docker compose -f docker-compose.ci.yml up
+```
 
 ### Running the stack:
 
@@ -671,6 +703,12 @@ The tests can then be run from the root directory using:
 
 ```shell
 docker run --rm --env-file ../.env.e2e_tests --network=host -v "$(pwd)":/e2e_tests e2e_tests
+```
+
+To run for all browsers the following command can be used:
+
+```shell
+docker run --rm --env-file ../.env.e2e_tests --network=host -v "$(pwd)":/e2e_tests -e BROWSERS=chromium,firefox,webkit e2e_tests
 ```
 
 Whilst the Docker container is running, snapshots of visual regression for pages that have been modified will be automatically saved inside of `e2e_tests/snapshots/desktop` and `e2e_tests/snapshots/mobile`.
