@@ -25,4 +25,6 @@ RUN if [ "$GIT_REF" != "main" ]; then git fetch --all && git checkout "$GIT_REF"
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+USER root
+
 ENTRYPOINT ["/entrypoint.sh"]
