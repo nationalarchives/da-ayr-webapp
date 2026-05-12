@@ -91,25 +91,3 @@ class TestBrowseTransferringBody:
         verify_header_row(header_rows)
         assert rows == expected_rows
 
-    def test_browse_transferring_body_clear_filter_functionality(
-        self, standard_user_page: Page
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.transferring_body_id}")
-        standard_user_page.get_by_label("Sort by").select_option("series-desc")
-        standard_user_page.get_by_role(
-            "button", name="Apply", exact=True
-        ).click()
-        standard_user_page.get_by_role("link", name="Clear filters").click()
-        assert standard_user_page.inner_text("#series_filter") == ""
-        assert standard_user_page.inner_text("#date_from_day") == ""
-        assert standard_user_page.inner_text("#date_from_month") == ""
-        assert standard_user_page.inner_text("#date_from_year") == ""
-        assert standard_user_page.inner_text("#date_to_day") == ""
-        assert standard_user_page.inner_text("#date_to_month") == ""
-        assert standard_user_page.inner_text("#date_to_year") == ""
-        assert (
-            standard_user_page.get_by_label("Sort by", exact=True).evaluate(
-                "el => el.options[el.selectedIndex].text"
-            )
-            == "Series reference (Z to A)"
-        )

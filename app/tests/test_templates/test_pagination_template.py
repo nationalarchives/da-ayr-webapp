@@ -81,6 +81,52 @@ class TestPaginationTemplate:
             assert "govuk-pagination" in rendered
             assert "page=2" in rendered  # Next page link
 
+    def test_template_renders_previous_and_next_transition_links(self, app):
+        """Test previous/next links preserve non-page params and point to transitions."""
+        with app.test_request_context("/browse/transferring_body/test-id"):
+            rendered = render_template(
+                "main/pagination.html",
+                pagination={"previous": 2, "next": 4, "pages": [1, 2, 3, 4, 5]},
+                current_page=3,
+                view_name="main.browse_transferring_body",
+                id="test-id",
+                query_string_parameters={
+                    "query": "foo",
+                    "search_area": "everywhere",
+                    "page": 999,
+                    "_id": "ignored-id",
+                },
+            )
+
+            assert (
+                '/browse/transferring_body/test-id?page=2&amp;query=foo&amp;search_area=everywhere#tbl_result'
+                in rendered
+            )
+            assert (
+                '/browse/transferring_body/test-id?page=4&amp;query=foo&amp;search_area=everywhere#tbl_result'
+                in rendered
+            )
+
+    def test_template_renders_ellipsis_state_when_present(self, app):
+        """Test ellipsis state is rendered for long pagination ranges."""
+        with app.test_request_context("/browse"):
+            rendered = render_template(
+                "main/pagination.html",
+                pagination={
+                    "previous": 4,
+                    "next": 6,
+                    "pages": [1, "ellipsis", 4, 5, 6, "ellipsis", 10],
+                },
+                current_page=5,
+                view_name="main.browse",
+                id=None,
+                query_string_parameters={"sort": "date", "page": 999},
+            )
+
+            assert "govuk-pagination__item--ellipsis" in rendered
+            assert "..." in rendered
+            assert "aria-label=\"Page 5\"" in rendered
+
     def test_template_renders_nothing_when_no_pagination(self, app):
         """Test template renders empty when pagination is None."""
         with app.test_request_context("/browse"):
