@@ -79,4 +79,3 @@ class TestBrowse:
 
         verify_browse_all_header_row(header_rows)
         assert rows == expected_rows
-

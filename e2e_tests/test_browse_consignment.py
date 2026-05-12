@@ -91,4 +91,3 @@ class TestBrowseConsignment:
 
         verify_header_row(header_rows)
         assert rows == expected_rows
-

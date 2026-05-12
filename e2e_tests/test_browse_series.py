@@ -75,4 +75,3 @@ class TestBrowseSeries:
 
         verify_header_row(header_rows)
         assert rows == expected_rows
-

@@ -99,11 +99,11 @@ class TestPaginationTemplate:
             )
 
             assert (
-                '/browse/transferring_body/test-id?page=2&amp;query=foo&amp;search_area=everywhere#tbl_result'
+                "/browse/transferring_body/test-id?page=2&amp;query=foo&amp;search_area=everywhere#tbl_result"
                 in rendered
             )
             assert (
-                '/browse/transferring_body/test-id?page=4&amp;query=foo&amp;search_area=everywhere#tbl_result'
+                "/browse/transferring_body/test-id?page=4&amp;query=foo&amp;search_area=everywhere#tbl_result"
                 in rendered
             )
 
@@ -125,7 +125,7 @@ class TestPaginationTemplate:
 
             assert "govuk-pagination__item--ellipsis" in rendered
             assert "..." in rendered
-            assert "aria-label=\"Page 5\"" in rendered
+            assert 'aria-label="Page 5"' in rendered
 
     def test_template_renders_nothing_when_no_pagination(self, app):
         """Test template renders empty when pagination is None."""

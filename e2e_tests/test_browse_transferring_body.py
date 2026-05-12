@@ -90,4 +90,3 @@ class TestBrowseTransferringBody:
 
         verify_header_row(header_rows)
         assert rows == expected_rows
-
