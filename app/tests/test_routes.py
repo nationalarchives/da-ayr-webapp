@@ -171,7 +171,6 @@ class TestRoutes:
         response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
         assert response.status_code == 200
 
-        # Update this structure to match the latest render_utils.py output
         expected_pdf_manifest = {
             "@context": "https://iiif.io/api/presentation/3/context.json",
             "@id": f"http://localhost/record/{file.FileId}/manifest",
@@ -182,6 +181,19 @@ class TestRoutes:
                     "test.pdf",
                 ],
             },
+            "service": {
+                "@context": "http://iiif.io/api/search/1/context.json",
+                "@id": f"http://localhost/record/{file.FileId}/search",
+                "label": "Search within this record",
+                "profile": "http://iiif.io/api/search/1/search",
+            },
+            "rendering": [
+                {
+                    "@id": f"http://localhost/record/{file.FileId}/pdf",
+                    "@type": "dctypes:Text",
+                    "format": "application/pdf",
+                }
+            ],
             "sequences": [
                 {
                     "@id": f"http://localhost/record/{file.FileId}/manifest/sequence/1",
@@ -583,3 +595,70 @@ class TestRoutes:
         assert data["code"] == 405
         assert data["error"] == "Method Not Allowed"
         assert data["method"] == "POST"
+
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    def test_search_within_record_no_query(
+        self,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {"Body": BytesIO(MINIMAL_VALID_PDF)}
+
+        mock_all_access_user(client)
+        file = FileFactory(ffid_metadata__PUID="fmt/276", FileName="test.pdf")
+        bucket_name = "test-bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        response = client.get(f"/record/{file.FileId}/search")
+        assert response.status_code == 200
+        body = json.loads(response.data)
+        assert body["@type"] == "sc:AnnotationList"
+        assert body["resources"] == []
+        assert body["hits"] == []
+        assert body["within"]["total"] == 0
+
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    def test_search_within_record_with_query(
+        self,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {"Body": BytesIO(MINIMAL_VALID_PDF)}
+
+        mock_all_access_user(client)
+        file = FileFactory(ffid_metadata__PUID="fmt/276", FileName="test.pdf")
+        bucket_name = "test-bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        response = client.get(f"/record/{file.FileId}/search?q=hello")
+        assert response.status_code == 200
+        body = json.loads(response.data)
+        assert body["@type"] == "sc:AnnotationList"
+        assert "@context" in body
+        assert "resources" in body
+        assert "hits" in body
+
+    def test_search_within_record_unsupported_puid(
+        self,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        mock_all_access_user(client)
+        # fmt/999 is not in any supported PUID set
+        file = FileFactory(
+            ffid_metadata__PUID="fmt/999", FileName="test.unknown"
+        )
+
+        response = client.get(f"/record/{file.FileId}/search?q=hello")
+        assert response.status_code == 400
