@@ -8,7 +8,6 @@ RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
     openssl \
-    curl \
     tesseract-ocr \
     antiword \
     unrtf \
@@ -18,8 +17,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry (cached layer)
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="/root/.local/bin:$PATH"
+RUN pip install poetry==2.4.1
 
 # Copy Python dependency files first for better caching
 COPY pyproject.toml poetry.lock /docker_app/
