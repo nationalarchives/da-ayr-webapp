@@ -126,9 +126,9 @@ def run():
             .filter_by(ConsignmentReference=consignment_ref)
             .first()
         )
-        assert (
-            consignment is not None
-        ), f"Consignment '{consignment_ref}' not found in database"
+        assert consignment is not None, (
+            f"Consignment '{consignment_ref}' not found in database"
+        )
 
         # 4. Assert correct number of File rows
         files = (
@@ -136,9 +136,9 @@ def run():
             .filter_by(ConsignmentId=consignment.ConsignmentId)
             .all()
         )
-        assert (
-            len(files) == expected_file_count
-        ), f"Expected {expected_file_count} files, got {len(files)}"
+        assert len(files) == expected_file_count, (
+            f"Expected {expected_file_count} files, got {len(files)}"
+        )
 
         # 5. Assert each file has FFIDMetadata and all expected FileMetadata keys
         for f in files:
@@ -148,18 +148,18 @@ def run():
                 .first()
             )
             assert ffid is not None, f"No FFIDMetadata for file {f.FileName}"
-            assert (
-                ffid.Extension in FILE_TYPE_COUNTS
-            ), f"Unexpected extension '{ffid.Extension}' for file {f.FileName}"
+            assert ffid.Extension in FILE_TYPE_COUNTS, (
+                f"Unexpected extension '{ffid.Extension}' for file {f.FileName}"
+            )
 
             metadata_rows = (
                 db.session.query(FileMetadata).filter_by(FileId=f.FileId).all()
             )
             actual_keys = {m.PropertyName for m in metadata_rows}
             missing_keys = EXPECTED_METADATA_KEYS - actual_keys
-            assert (
-                not missing_keys
-            ), f"File {f.FileName} is missing metadata keys: {missing_keys}"
+            assert not missing_keys, (
+                f"File {f.FileName} is missing metadata keys: {missing_keys}"
+            )
 
             print(f"  DB OK: {f.FileName} (ID: {f.FileId})")
 
@@ -170,9 +170,9 @@ def run():
     opensearch = get_opensearch_client()
     for file_id in file_ids:
         result = opensearch.get(index="documents", id=file_id)
-        assert result[
-            "found"
-        ], f"File ID {file_id} not found in OpenSearch index"
+        assert result["found"], (
+            f"File ID {file_id} not found in OpenSearch index"
+        )
         print(f"  OpenSearch OK: {file_id}")
 
     print("\nAll assertions passed.")
