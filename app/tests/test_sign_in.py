@@ -1,5 +1,8 @@
+import json
+from pathlib import Path
 from unittest.mock import patch
 
+import jwt
 from flask import url_for
 
 
@@ -108,3 +111,59 @@ def test_callback_introspect_invalid_response(mock_keycloak, client):
 
     assert response.status_code == 302
     assert response.headers["Location"] == url_for("main.sign_in")
+
+
+@patch("app.main.routes.get_keycloak_instance_from_flask_config")
+def test_callback_tokens_have_expected_keycloak_lifetimes(
+    mock_keycloak, client
+):
+    """
+    Given the callback route receives Keycloak access and refresh tokens
+    When those tokens are stored in the session
+    Then their exp and iat claims should match the Keycloak realm lifetimes
+    """
+    realm_config_path = (
+        Path(__file__).resolve().parents[2]
+        / "local_services"
+        / "import"
+        / "realm-export.json"
+    )
+    with realm_config_path.open(encoding="utf-8") as realm_config_file:
+        realm_config = json.load(realm_config_file)
+
+    access_lifetime = realm_config["accessTokenLifespan"]
+    refresh_lifetime = realm_config["ssoSessionIdleTimeout"]
+
+    iat = 1_700_000_000
+    mock_keycloak.return_value.token.return_value = {
+        "access_token": jwt.encode(
+            {"iat": iat, "exp": iat + access_lifetime},
+            key="test-key",
+            algorithm="HS256",
+        ),
+        "refresh_token": jwt.encode(
+            {"iat": iat, "exp": iat + refresh_lifetime},
+            key="test-key",
+            algorithm="HS256",
+        ),
+    }
+    mock_keycloak.return_value.introspect.return_value = {
+        "groups": ["/ayr_user_type/view_all"],
+        "sub": "test_all_access_user",
+    }
+
+    response = client.get("/callback?code=valid_code")
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == url_for("main.browse")
+
+    with client.session_transaction() as sess:
+        access_token = jwt.decode(
+            sess["access_token"], options={"verify_signature": False}
+        )
+        refresh_token = jwt.decode(
+            sess["refresh_token"], options={"verify_signature": False}
+        )
+
+    assert access_token["exp"] - access_token["iat"] == access_lifetime
+    assert refresh_token["exp"] - refresh_token["iat"] == refresh_lifetime
