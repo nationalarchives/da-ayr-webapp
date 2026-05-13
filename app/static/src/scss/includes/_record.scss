@@ -14,6 +14,16 @@
   border: white;
 }
 
+@media screen and (min-width: $breakpoint-desktop) {
+  .govuk-width-container {
+    max-width: $breakpoint-desktop;
+  }
+
+  .govuk-grid-column-two-thirds {
+    max-width: 704px;
+  }
+}
+
 .govuk-width-container {
   &--desktop-record {
     display: flex;
