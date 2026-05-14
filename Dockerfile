@@ -1,5 +1,5 @@
 # Python 3.13-slim
-FROM python@sha256:2ca6cda25055227533141435ab8ec0dd3afd9165d78d8bf0f58c8d959d57b9fc
+FROM python@sha256:d49c1ff87eb98eac346fc250f52925f726eb913c43a92854246dd03c9692ad67
 
 WORKDIR /docker_app
 
@@ -8,7 +8,6 @@ RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
     openssl \
-    curl \
     tesseract-ocr \
     antiword \
     unrtf \
@@ -18,8 +17,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry (cached layer)
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="/root/.local/bin:$PATH"
+RUN pip install poetry==2.4.1
 
 # Copy Python dependency files first for better caching
 COPY pyproject.toml poetry.lock /docker_app/
