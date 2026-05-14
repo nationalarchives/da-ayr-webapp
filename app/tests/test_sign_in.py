@@ -205,7 +205,10 @@ def test_callback_tokens_have_expected_keycloak_lifetimes(
         "sub": "test_all_access_user",
     }
 
-    response = client.get("/callback?code=valid_code")
+    with client.session_transaction() as sess:
+        sess["oauth_state"] = "valid_state"
+
+    response = client.get("/callback?code=valid_code&state=valid_state")
 
     assert response.status_code == 302
     assert response.headers["Location"] == url_for("main.browse")
