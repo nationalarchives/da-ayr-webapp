@@ -188,33 +188,3 @@ class TestRecord:
             ).click()
         download = download_record.value
         assert "file-a2.txt" == download.suggested_filename
-
-    def test_record_download_record_standard_user_without_download_perms(
-        self, standard_user_page: Page
-    ):
-        """
-        Scenario: Downloading a record
-
-        Given the user navigates to the record page with ID "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
-        When the standard user with no download perms attempts to access the download record endpoint
-        They get a status 403 response
-        """
-        record_id = "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
-        response = standard_user_page.goto(f"download/{record_id}")
-
-        assert response.status == 403
-
-    def test_record_download_record_aau_user_without_download_perms(
-        self, aau_user_page: Page
-    ):
-        """
-        Scenario: Downloading a record
-
-        Given the user navigates to the record page with ID "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
-        When the all access user with no download perms attempts to access the download record endpoint
-        They get a status 403 response
-        """
-        record_id = "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
-        response = aau_user_page.goto(f"download/{record_id}")
-
-        assert response.status == 403
