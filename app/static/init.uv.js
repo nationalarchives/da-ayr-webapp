@@ -31,7 +31,6 @@ function initUniversalViewer() {
         leftPanelEnabled: true,
         rightPanelEnabled: false,
         headerPanelEnabled: true,
-        zoomToSearchResultEnabled: false,
       },
     });
   });
