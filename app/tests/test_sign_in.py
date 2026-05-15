@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import jwt
+import pytest
 from flask import url_for
 
 
@@ -26,14 +27,28 @@ def test_sign_in(mock_keycloak, client):
 
 
 @patch("app.main.routes.get_keycloak_instance_from_flask_config")
-def test_callback_route_all_access_user(mock_keycloak, client):
+@pytest.mark.parametrize(
+    "groups,sub,expected_user_type",
+    [
+        (
+            ["/ayr_user_type/view_all"],
+            "test_all_access_user",
+            "all_access_user",
+        ),
+        (["/ayr_user_type/view_dept"], "test_standard_user", "standard_user"),
+    ],
+    ids=["all_access_user", "standard_user"],
+)
+def test_callback_route_sets_user_type_and_user_id(
+    mock_keycloak, client, groups, sub, expected_user_type
+):
     mock_keycloak.return_value.token.return_value = {
         "access_token": "valid_access_token",
         "refresh_token": "valid_refresh_token",
     }
     mock_keycloak.return_value.introspect.return_value = {
-        "groups": ["/ayr_user_type/view_all"],
-        "sub": "test_all_access_user",
+        "groups": groups,
+        "sub": sub,
     }
 
     with client.session_transaction() as sess:
@@ -48,40 +63,15 @@ def test_callback_route_all_access_user(mock_keycloak, client):
 
     with client.session_transaction() as sess:
         assert "user_type" in sess
-        assert sess["user_type"] == "all_access_user"
-        assert sess["user_id"] == "test_all_access_user"
+        assert sess["user_type"] == expected_user_type
+        assert sess["user_id"] == sub
         assert "oauth_state" not in sess
 
 
 @patch("app.main.routes.get_keycloak_instance_from_flask_config")
-def test_callback_route_standard_user(mock_keycloak, client):
-    mock_keycloak.return_value.token.return_value = {
-        "access_token": "valid_access_token",
-        "refresh_token": "valid_refresh_token",
-    }
-    mock_keycloak.return_value.introspect.return_value = {
-        "groups": ["/ayr_user_type/view_dept"],
-        "sub": "test_standard_user",
-    }
-
-    with client.session_transaction() as sess:
-        sess["access_token"] = "valid_access_token"
-        sess["refresh_token"] = "valid_refresh_token"
-        sess["oauth_state"] = "valid_state"
-
-    response = client.get("/callback?code=valid_code&state=valid_state")
-
-    assert response.status_code == 302
-    assert response.headers["Location"] == url_for("main.browse")
-
-    with client.session_transaction() as sess:
-        assert "user_type" in sess
-        assert sess["user_type"] == "standard_user"
-        assert "oauth_state" not in sess
-
-
-@patch("app.main.routes.get_keycloak_instance_from_flask_config")
-def test_callback_missing_code(mock_keycloak, client):
+def test_callback_redirects_when_authorization_code_missing(
+    mock_keycloak, client
+):
     with client.session_transaction() as sess:
         sess["oauth_state"] = "valid_state"
 
@@ -131,11 +121,22 @@ def test_callback_introspect_invalid_response(mock_keycloak, client):
 
 
 @patch("app.main.routes.get_keycloak_instance_from_flask_config")
-def test_callback_missing_state(mock_keycloak, client):
-    with client.session_transaction() as sess:
-        sess["oauth_state"] = "valid_state"
+@pytest.mark.parametrize(
+    "callback_url,session_state",
+    [
+        ("/callback?code=valid_code", "valid_state"),
+        ("/callback?code=valid_code&state=valid_state", None),
+    ],
+    ids=["request_state_missing", "session_state_missing"],
+)
+def test_callback_redirects_when_state_missing(
+    mock_keycloak, client, callback_url, session_state
+):
+    if session_state is not None:
+        with client.session_transaction() as sess:
+            sess["oauth_state"] = session_state
 
-    response = client.get("/callback?code=valid_code")
+    response = client.get(callback_url)
 
     assert response.status_code == 302
     assert response.headers["Location"] == url_for("main.sign_in")
@@ -143,7 +144,9 @@ def test_callback_missing_state(mock_keycloak, client):
 
 
 @patch("app.main.routes.get_keycloak_instance_from_flask_config")
-def test_callback_mismatched_state(mock_keycloak, client):
+def test_callback_redirects_when_request_state_mismatches_session(
+    mock_keycloak, client
+):
     with client.session_transaction() as sess:
         sess["oauth_state"] = "valid_state"
 
@@ -155,15 +158,6 @@ def test_callback_mismatched_state(mock_keycloak, client):
 
     with client.session_transaction() as sess:
         assert "oauth_state" not in sess
-
-
-@patch("app.main.routes.get_keycloak_instance_from_flask_config")
-def test_callback_missing_session_state(mock_keycloak, client):
-    response = client.get("/callback?code=valid_code&state=valid_state")
-
-    assert response.status_code == 302
-    assert response.headers["Location"] == url_for("main.sign_in")
-    mock_keycloak.return_value.token.assert_not_called()
 
 
 @patch("app.main.routes.get_keycloak_instance_from_flask_config")
