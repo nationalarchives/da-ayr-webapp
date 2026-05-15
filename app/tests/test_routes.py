@@ -664,6 +664,48 @@ class TestRoutes:
         response = client.get(f"/record/{file.FileId}/search?q=hello")
         assert response.status_code == 400
 
+    def test_search_within_record_file_not_found_returns_404(
+        self,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        import uuid
+
+        mock_all_access_user(client)
+        response = client.get(f"/record/{uuid.uuid4()}/search?q=hello")
+        assert response.status_code == 404
+
+    @mock_aws
+    @patch("app.main.routes.search_within_pdf")
+    def test_search_within_record_convertible_puid_uses_access_copy_bucket(
+        self,
+        mock_search_within_pdf,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        from flask import jsonify
+
+        mock_search_within_pdf.return_value = jsonify(
+            {"@type": "sc:AnnotationList", "resources": [], "hits": []}
+        )
+
+        mock_all_access_user(client)
+        file = FileFactory(
+            ffid_metadata__PUID="fmt/40", ffid_metadata__Extension="xls"
+        )
+        access_bucket = "access-copy-bucket"
+        app.config["ACCESS_COPY_BUCKET"] = access_bucket
+
+        response = client.get(f"/record/{file.FileId}/search?q=hello")
+
+        assert response.status_code == 200
+        mock_search_within_pdf.assert_called_once()
+        assert (
+            mock_search_within_pdf.call_args.kwargs["bucket"] == access_bucket
+        )
+
     @mock_aws
     @patch("app.main.routes.boto3.client")
     def test_get_record_pdf_returns_pdf_content(
