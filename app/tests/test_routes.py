@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import boto3
 import pytest
+from botocore.exceptions import ClientError
 from bs4 import BeautifulSoup
 from flask import url_for
 from flask.testing import FlaskClient
@@ -662,3 +663,125 @@ class TestRoutes:
 
         response = client.get(f"/record/{file.FileId}/search?q=hello")
         assert response.status_code == 400
+
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    def test_get_record_pdf_returns_pdf_content(
+        self,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        from unittest.mock import MagicMock
+
+        mock_all_access_user(client)
+        file = FileFactory(ffid_metadata__PUID="fmt/276", FileName="test.pdf")
+        bucket_name = "test-bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        body_mock = MagicMock()
+        body_mock.iter_chunks.return_value = iter([MINIMAL_VALID_PDF])
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {
+            "Body": body_mock,
+            "ContentLength": len(MINIMAL_VALID_PDF),
+        }
+
+        response = client.get(f"/record/{file.FileId}/pdf")
+
+        assert response.status_code == 200
+        assert response.content_type == "application/pdf"
+        assert response.headers.get("Content-Disposition") == "inline"
+        assert response.headers.get("Content-Length") == str(
+            len(MINIMAL_VALID_PDF)
+        )
+
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    def test_get_record_pdf_file_not_in_db_returns_404(
+        self,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        mock_all_access_user(client)
+        import uuid
+
+        response = client.get(f"/record/{uuid.uuid4()}/pdf")
+        assert response.status_code == 404
+
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    def test_get_record_pdf_s3_not_found_returns_404(
+        self,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        mock_all_access_user(client)
+        file = FileFactory(ffid_metadata__PUID="fmt/276", FileName="test.pdf")
+        app.config["RECORD_BUCKET_NAME"] = "test-bucket"
+
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.side_effect = ClientError(
+            {"Error": {"Code": "404", "Message": "Not Found"}}, "GetObject"
+        )
+
+        response = client.get(f"/record/{file.FileId}/pdf")
+        assert response.status_code == 404
+
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    def test_get_record_pdf_s3_error_returns_500(
+        self,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        mock_all_access_user(client)
+        file = FileFactory(ffid_metadata__PUID="fmt/276", FileName="test.pdf")
+        app.config["RECORD_BUCKET_NAME"] = "test-bucket"
+
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.side_effect = ClientError(
+            {"Error": {"Code": "500", "Message": "Internal Error"}}, "GetObject"
+        )
+
+        response = client.get(f"/record/{file.FileId}/pdf")
+        assert response.status_code == 500
+
+    @mock_aws
+    @patch("app.main.routes.boto3.client")
+    def test_get_record_pdf_convertible_puid_uses_access_copy_bucket(
+        self,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        from unittest.mock import MagicMock
+
+        mock_all_access_user(client)
+        file = FileFactory(
+            ffid_metadata__PUID="fmt/40", ffid_metadata__Extension="xls"
+        )
+        access_bucket = "access-copy-bucket"
+        app.config["ACCESS_COPY_BUCKET"] = access_bucket
+
+        body_mock = MagicMock()
+        body_mock.iter_chunks.return_value = iter([MINIMAL_VALID_PDF])
+        s3_mock = mock_boto_client.return_value
+        s3_mock.get_object.return_value = {"Body": body_mock}
+
+        response = client.get(f"/record/{file.FileId}/pdf")
+
+        assert response.status_code == 200
+        s3_mock.get_object.assert_called_once_with(
+            Bucket=access_bucket,
+            Key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
+        )
