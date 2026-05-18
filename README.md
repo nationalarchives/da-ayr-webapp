@@ -758,16 +758,6 @@ Cons:
 
 Therefore we should try to add them sparingly on critical workflows.
 
-### E2E Coverage Decision: Clear Filters and Pagination
-
-As of May 2026, detailed clear-filter and pagination behaviour matrix checks were moved out of Playwright E2E tests.
-
-- Clear-filter coverage now lives in backend integration tests for browse routes.
-- Pagination state and transition details now live in template/component-level tests.
-- E2E retains one slim pagination smoke check to verify pagination is rendered in a real user flow.
-
-This keeps E2E focused on user-journey wiring while reducing duplication and data-coupled assertions.
-
 ### E2E Tests (Progressive Enhancement Support)
 
 E2E Tests by default run without JavaScript & CSS.
