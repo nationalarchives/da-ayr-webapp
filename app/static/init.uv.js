@@ -31,6 +31,7 @@ function initUniversalViewer() {
         leftPanelEnabled: true,
         rightPanelEnabled: false,
         headerPanelEnabled: true,
+        preserveViewport: true,
       },
     });
   });
