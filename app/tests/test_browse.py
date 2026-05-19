@@ -147,3 +147,31 @@ class TestBrowse:
 
         assert b"Search for digital records" in response.data
         assert b"Browse records 27" in response.data
+
+    def test_browse_clear_filters_link_resets_filters_and_keeps_sort(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given a user on browse with filters and sort applied
+        When the browse page is rendered
+        Then the clear filters link should reset filter query params and keep sort.
+        """
+        mock_all_access_user(client)
+
+        query_params = (
+            "sort=transferring_body-desc&transferring_body_filter=test"
+            "&series_filter=ABC&date_from_day=01&date_from_month=01"
+            "&date_from_year=2024&date_to_day=31&date_to_month=12&date_to_year=2024"
+        )
+        response = client.get(f"{self.route_url}?{query_params}")
+
+        assert response.status_code == 200
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        clear_filters_link = soup.find("a", string="Clear filters", href=True)
+
+        assert clear_filters_link
+        assert (
+            clear_filters_link["href"]
+            == "/browse?sort=transferring_body-desc#browse-records"
+        )
