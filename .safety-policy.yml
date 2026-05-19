@@ -1,0 +1,7 @@
+version: '3.0'
+
+security:
+  ignore-vulnerabilities:
+    70612:
+      reason: "Ignore disputed jinja2 vulnerability or context"
+      expires: "2026-12-31"
