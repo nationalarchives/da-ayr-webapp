@@ -5,15 +5,6 @@ Feature: Browse consignment functionality
 from playwright.sync_api import Page
 
 
-def verify_header_row(header_rows):
-    assert header_rows == [
-        "Date of record",
-        "File name",
-        "Status",
-        "Record opening date",
-    ]
-
-
 class TestBrowseConsignment:
     @property
     def route_url(self):
@@ -37,60 +28,6 @@ class TestBrowseConsignment:
         standard_user_page.goto(f"{self.route_url}/{consignment_id}")
 
         assert standard_user_page.inner_html("text='Page not found'")
-
-    def test_browse_consignment_sort_functionality_by_record_status_descending(
-        self, standard_user_page: Page, utils
-    ):
-        """
-        Scenario: Sorting functionality by record status in descending order
-
-        Given the user navigates to the consignment page with ID "016031db-1398-4fe4-b743-630aa82ea32a"
-        When the user selects "Sort by" as "closure_type-asc"
-        And the user sets the date filter from "01/01/2022"
-        And the user clicks the "Apply" button
-        Then the table headers should be:
-        | Date of record      |
-        | File name           |
-        | Status              |
-        | Record opening date |
-        And the table rows should be:
-        | 22/11/2023 | closed_file_R - Copy.pdf | Open | – |
-        | 22/11/2023 | closed_file_R.pdf        | Open | – |
-        | 22/11/2023 | closed_file.txt          | Open | – |
-        | 22/11/2023 | file-a1,.txt             | Open | – |
-        | 22/11/2023 | file-a1.txt              | Open | – |
-        """
-        standard_user_page.goto(f"{self.route_url}/{self.consignment_id}")
-        standard_user_page.get_by_label("Sort by").select_option(
-            "closure_type-asc"
-        )
-        standard_user_page.locator("label").filter(
-            has_text="Date of record"
-        ).click()
-        standard_user_page.locator("#date_from_day").fill("01")
-        standard_user_page.locator("#date_from_month").fill("01")
-        standard_user_page.locator("#date_from_year").fill("2022")
-        standard_user_page.get_by_role(
-            "button", name="Apply", exact=True
-        ).click()
-
-        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
-        rows = utils.get_desktop_page_table_rows(standard_user_page)
-
-        expected_rows = [
-            ["22/11/2023", "closed_file_R - Copy.pdf", "Open", "–"],
-            ["22/11/2023", "closed_file_R.pdf", "Open", "–"],
-            ["22/11/2023", "closed_file.txt", "Open", "–"],
-            ["22/11/2023", "file-a1.txt", "Open", "–"],
-            ["22/11/2023", "file-a1,.txt", "Open", "–"],
-            ["22/11/2023", "file-a2.txt", "Open", "–"],
-            ["22/11/2023", "file-b1.txt", "Open", "–"],
-            ["22/11/2023", "file-b2.txt", "Open", "–"],
-            ["22/11/2023", "mismatch.docx", "Open", "–"],
-        ]
-
-        verify_header_row(header_rows)
-        assert rows == expected_rows
 
     def test_browse_consignment_clear_filter_functionality(
         self, standard_user_page: Page

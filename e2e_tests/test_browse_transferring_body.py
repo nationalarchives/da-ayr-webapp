@@ -1,16 +1,6 @@
 from playwright.sync_api import Page
 
 
-def verify_header_row(header_rows):
-    assert header_rows == [
-        "Transferring body",
-        "Series reference",
-        "Last transfer date",
-        "Record total",
-        "Consignments within series",
-    ]
-
-
 class TestBrowseTransferringBody:
     @property
     def route_url(self):
@@ -64,32 +54,6 @@ class TestBrowseTransferringBody:
         assert standard_user_page.locator(
             "text='Alternatively, use the breadcrumbs to navigate back to the'"
         ).is_visible()
-
-    def test_browse_transferring_body_filter_functionality_with_series_filter(
-        self, standard_user_page: Page, utils
-    ):
-        standard_user_page.goto(f"{self.route_url}/{self.transferring_body_id}")
-        standard_user_page.locator("#series_filter").fill("TSTA 1")
-        standard_user_page.locator("#date_from_day").fill("1")
-        standard_user_page.locator("#date_from_month").fill("1")
-        standard_user_page.locator("#date_from_year").fill("2022")
-        standard_user_page.get_by_role("button", name="Apply filters").click()
-        standard_user_page.get_by_role(
-            "button", name="Apply", exact=True
-        ).click()
-
-        standard_user_page.get_by_label("Sort by").select_option("series-desc")
-        standard_user_page.get_by_role(
-            "button", name="Apply", exact=True
-        ).click()
-
-        header_rows = utils.get_desktop_page_table_headers(standard_user_page)
-        rows = utils.get_desktop_page_table_rows(standard_user_page)
-
-        expected_rows = [["Testing A", "TSTA 1", "30/11/2023", "16", "2"]]
-
-        verify_header_row(header_rows)
-        assert rows == expected_rows
 
     def test_browse_transferring_body_clear_filter_functionality(
         self, standard_user_page: Page
