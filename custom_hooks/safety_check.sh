@@ -13,4 +13,4 @@ if ! command -v safety &> /dev/null; then
     pip install safety==3.6.1
 fi
 # The --ignore flag was added here because the vulnerability with ID 70612 as reported by Safety CLI exists for all the latest versions of Jinja, it can be removed once fixed
-poetry export --without-hashes -f requirements.txt | safety check --full-report --stdin --ignore=70612
+poetry export --without-hashes -f requirements.txt | safety check --full-report --stdin
