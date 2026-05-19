@@ -58,7 +58,7 @@ services:
       - postgres
 
   postgres:
-    image: postgres@sha256:270cac6290e2dbf63201faa0e474bfa391fdeba5c439326904d43753b6f3387c # postgres:18.0 with digest for immutability
+    image: postgres@sha256:f7ce845ee6873dd84be93c9828fe0d1fab0f9707dc9ac569694657398b290bce # postgres:18.0 with digest for immutability
     environment:
       POSTGRES_USER: testuser
       POSTGRES_PASSWORD: testPass123 # pragma: allowlist secret
