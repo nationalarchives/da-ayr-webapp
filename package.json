@@ -24,7 +24,7 @@
     "sass": "^1.99.0",
     "stylelint": "^16.26.1",
     "stylelint-config-standard-scss": "^16.0.0",
-    "stylelint-selector-bem-pattern": "^4.0.1"
+    "stylelint-selector-bem-pattern": "^5.0.0"
   },
   "dependencies": {
     "govuk-frontend": "^6.1.0"
