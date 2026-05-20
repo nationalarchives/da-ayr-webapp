@@ -32,6 +32,7 @@ function initUniversalViewer() {
         rightPanelEnabled: false,
         headerPanelEnabled: true,
         preserveViewport: true,
+        zoomToSearchResultEnabled: false,
       },
     });
   });
