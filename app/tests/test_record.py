@@ -449,6 +449,43 @@ class TestRecord:
             expected_download_html, html, "div", {"class": "rights-container"}
         )
 
+    def test_record_standard_users_with_perms_can_see_download_button(
+        self, app, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a File in the database
+        When a standard user with download permissions requests the record page
+        Then the response status code should be 200
+        And the HTML content should show the download button
+        And the download button should link to the correct download URL
+        And the rights container should be visible on the page
+        """
+        file = FileFactory()
+        mock_standard_user(
+            client, file.consignment.series.body.Name, can_download=True
+        )
+
+        response = client.get(f"{self.route_url}/{file.FileId}")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+
+        button = soup.find("a", string="Download record")
+        assert (
+            button is not None
+        ), "Download button should be visible for a user with download permissions"
+
+        assert (
+            button["href"] == f"/download/{file.FileId}"
+        ), "Download button should link to the correct download URL"
+
+        rights_container = soup.find("div", {"class": "rights-container"})
+        assert (
+            rights_container is not None
+        ), "Rights container should be visible for a user with download permissions"
+
     def test_record_standard_user_without_perms_cant_see_download_button(
         self, app, client: FlaskClient, mock_standard_user
     ):
@@ -598,6 +635,73 @@ class TestRecord:
             "Rights copyright", metadata_by_key["rights_copyright"].Value
         )
         assert_summary_row("Language", metadata_by_key["language"].Value)
+
+    @mock_aws
+    def test_record_metadata_with_open_record_status(
+        self, app, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a File in the database
+        When a standard user navigates to the record page with the ID of an open record
+            and record closure type is 'Open' (never closed, no closure_start_date)
+        Then the response status code should be 200
+        And the HTML content should show only the fields for open records
+        And the closed-record-only fields should not be visible
+        """
+        file = FileFactory()
+
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+        summary_list = soup.find("dl", class_="govuk-summary-list--record")
+        assert summary_list is not None
+
+        summary_list_text = summary_list.get_text(strip=True)
+
+        expected_fields = [
+            "File name",
+            "Description",
+            "Status",
+            "Date of record",
+            "Transferring body",
+            "Series reference",
+            "Consignment reference",
+            "File reference",
+            "Former reference",
+            "Translated file name",
+            "Related material",
+            "Restrictions on use",
+            "Note",
+            "Held by",
+            "Legal status",
+            "Rights copyright",
+            "Language",
+        ]
+        for field in expected_fields:
+            assert (
+                field in summary_list_text
+            ), f"Expected field '{field}' to be visible for an open record"
+
+        closed_only_fields = [
+            "Alternative file name",
+            "Alternative description",
+            "Opening date",
+            "Closure start date",
+            "Closure period",
+            "FOI exemption code(s)",
+        ]
+        for field in closed_only_fields:
+            assert (
+                field not in summary_list_text
+            ), f"Field '{field}' should not be visible for a purely open record"
 
     @mock_aws
     def test_record_summary_list_open_closed_before_file(
@@ -867,6 +971,107 @@ class TestRecord:
             "Rights copyright", metadata_by_key["rights_copyright"].Value
         )
         assert_summary_row("Language", metadata_by_key["language"].Value)
+
+    @mock_aws
+    def test_record_metadata_with_closed_record_status(
+        self, app, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a File in the database
+        When a standard user navigates to the record page with the ID of a closed record
+            and record closure type is 'Closed'
+        Then the response status code should be 200
+        And the HTML content should show 'Closed' as the Status field value
+        And all closed-record-specific fields should be visible
+        And open-record-only fields should not be visible
+        """
+        file = FileFactory()
+        metadata_values = {
+            "alternative_title": ("title_alternate", "alternate title"),
+            "description": ("description", "closed document file"),
+            "alternative_description": ("description_alternate", "-"),
+            "closure_type": ("closure_type", "Closed"),
+            "date_last_modified": ("date_last_modified", "2023-01-15"),
+            "closure_start_date": ("closure_start_date", "2023-01-15"),
+            "closure_period": ("closure_period", "10"),
+            "foi_exemption_code": ("foi_exemption_code", "14(2)(b)"),
+            "former_reference": (
+                "former_reference_department",
+                "former reference",
+            ),
+            "translated_title": ("file_name_translation", "-"),
+            "related_material": ("related_material", "-"),
+            "restrictions_on_use": ("restrictions_on_use", "-"),
+            "note": ("note", "-"),
+            "held_by": ("held_by", "The National Archives, Kew"),
+            "legal_status": ("legal_status", "Public record(s)"),
+            "rights_copyright": ("rights_copyright", "Crown copyright"),
+            "language": ("language", "English"),
+        }
+        metadata_by_key = {
+            key: FileMetadataFactory(file=file, PropertyName=prop, Value=value)
+            for key, (prop, value) in metadata_values.items()
+        }
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+        summary_list = soup.find("dl", class_="govuk-summary-list--record")
+        assert summary_list is not None
+
+        summary_list_text = summary_list.get_text(strip=True)
+
+        rows = summary_list.find_all(
+            "div", class_="govuk-summary-list__row--record"
+        )
+        status_row_found = False
+        for row in rows:
+            dt = row.find("dt", class_="govuk-summary-list__key--record-table")
+            dd = row.find("dd", class_="govuk-summary-list__value--record")
+            if dt and dt.get_text(strip=True) == "Status":
+                assert dd is not None
+                assert metadata_by_key["closure_type"].Value in dd.get_text(
+                    strip=True
+                ), "Status field value should be 'Closed'"
+                status_row_found = True
+                break
+        assert status_row_found, "Status row not found in summary list"
+
+        expected_fields = [
+            "File name",
+            "Alternative file name",
+            "Description",
+            "Alternative description",
+            "Status",
+            "Closure start date",
+            "Closure period",
+            "Date of record",
+            "FOI exemption code(s)",
+            "Transferring body",
+            "Series reference",
+            "Consignment reference",
+            "File reference",
+            "Former reference",
+            "Translated file name",
+            "Related material",
+            "Restrictions on use",
+            "Note",
+            "Held by",
+            "Legal status",
+            "Rights copyright",
+            "Language",
+        ]
+        for field in expected_fields:
+            assert (
+                field in summary_list_text
+            ), f"Expected field '{field}' to be visible for a closed record"
 
     @mock_aws
     def test_record_view_renders(
