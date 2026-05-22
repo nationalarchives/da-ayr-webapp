@@ -6,10 +6,10 @@
                 <dd class="govuk-summary-list__value govuk-summary-list__value--record">
                     {% if value %}
                         {% if key == "Status" %}
-                            {% if (value | lower == "closed") %}
-                                <span class="govuk-tag govuk-tag--red">{{ value }}</span>
-                            {% else %}
+                            {% if (value | lower == "open") %}
                                 <span class="govuk-tag govuk-tag--green">{{ value }}</span>
+                            {% else %}
+                                <span class="govuk-tag govuk-tag--red">{{ value }}</span>
                             {% endif %}
                             {% if dict.get("Closure start date") %}
                                 {% if dict.get('opening_date') %}
