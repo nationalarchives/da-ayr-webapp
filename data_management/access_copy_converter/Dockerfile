@@ -11,7 +11,7 @@ RUN apt-get update && apt-get -y upgrade && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency files
-COPY requirements.txt /tmp/requirements.txt
+COPY access_copy_converter/requirements.txt /tmp/requirements.txt
 COPY requirements-dev.txt /tmp/requirements-dev.txt
 
 # Copy the Python script

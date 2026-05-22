@@ -14,7 +14,7 @@ services:
     - |
         set -e
 
-        pytest \
+        python -m pytest \
           --cov=data_management/opensearch_indexer/opensearch_indexer \
           --cov-report=xml:/test_results/opensearch_indexer_coverage.xml \
           --cov-report=term-missing \
@@ -39,7 +39,7 @@ services:
     - |
         set -e
 
-        pytest \
+        python -m pytest \
           --cov=data_management/access_copy_converter/access_copy_converter \
           --cov-report=xml:/test_results/access_copy_converter_coverage.xml \
           --cov-report=term-missing \
