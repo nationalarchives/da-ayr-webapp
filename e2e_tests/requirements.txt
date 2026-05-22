@@ -1,7 +1,7 @@
 numpy==2.2.6
 scikit-image==0.25.2
 pillow==12.2.0
-playwright==1.59.0
+playwright==1.60.0
 python-keycloak==7.1.1
 pytest-playwright-visual==2.1.2
 pytest-playwright==0.7.2
