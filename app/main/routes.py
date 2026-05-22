@@ -6,12 +6,14 @@ from flask import (
     Response,
     abort,
     current_app,
+    jsonify,
     redirect,
     render_template,
     request,
     session,
     url_for,
 )
+from jinja2.exceptions import TemplateNotFound
 from sqlalchemy import func
 from werkzeug.exceptions import HTTPException, NotFound
 
@@ -1031,4 +1033,17 @@ def terms_of_use():
 
 @bp.app_errorhandler(HTTPException)
 def http_exception(error):
-    return render_template(f"{error.code}.html"), error.code
+    try:
+        return render_template(f"{error.code}.html"), error.code
+    except TemplateNotFound:
+        return (
+            jsonify(
+                {
+                    "method": request.method,
+                    "error": error.name,
+                    "message": error.description,
+                    "code": error.code,
+                }
+            ),
+            error.code,
+        )
