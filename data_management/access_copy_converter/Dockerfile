@@ -10,11 +10,16 @@ RUN apt-get update && apt-get -y upgrade && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy dependency files
+COPY requirements.txt /tmp/requirements.txt
+COPY requirements-dev.txt /tmp/requirements-dev.txt
+
 # Copy the Python script
 COPY access_copy_converter/ /app/
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r /app/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt && \
+    pip install --no-cache-dir -r /tmp/requirements-dev.txt
 
 # Set working directory
 WORKDIR /app
