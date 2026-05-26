@@ -25,8 +25,8 @@ jobs:
       with:
         push: false
         tags: "da-ayr-beta-webapp:latest"
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=gha,scope=webapp
+        cache-to: type=gha,scope=webapp,mode=max
         outputs: type=docker,dest=/tmp/da-ayr-beta-webapp-image.tar
 
     - name: Upload webapp image artifact
@@ -37,6 +37,7 @@ jobs:
         retention-days: 1
 
   e2e_tests:
+    needs: build_webapp_image
     runs-on: ubuntu-latest
 
     steps:
@@ -44,9 +45,6 @@ jobs:
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         persist-credentials: false
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
 
     - name: Free up disk space
       run: |
@@ -60,14 +58,14 @@ jobs:
         sudo rm -rf /usr/share/swift
         df -h
 
-    - name: Build webapp image with cache
-      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+    - name: Download webapp image artifact
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
-        push: false
-        load: true
-        tags: "da-ayr-beta-webapp:latest"
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        name: da-ayr-beta-webapp-image
+        path: /tmp
+
+    - name: Load webapp image
+      run: docker load --input /tmp/da-ayr-beta-webapp-image.tar
 
     - name: Verify webapp image is available locally
       run: docker image inspect da-ayr-beta-webapp:latest > /dev/null
@@ -105,8 +103,8 @@ jobs:
         push: false
         load: true
         tags: "e2e_tests:latest"
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=gha,scope=e2e-tests
+        cache-to: type=gha,scope=e2e-tests,mode=max
 
     - name: Run E2E tests with Docker
       run: |
@@ -158,6 +156,7 @@ jobs:
         docker system prune -f
 
   accessibility_tests:
+    needs: build_webapp_image
     runs-on: ubuntu-latest
 
     steps:
@@ -166,17 +165,14 @@ jobs:
       with:
         persist-credentials: false
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
-
-    - name: Build webapp image with cache
-      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+    - name: Download webapp image artifact
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
-        push: false
-        load: true
-        tags: "da-ayr-beta-webapp:latest"
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        name: da-ayr-beta-webapp-image
+        path: /tmp
+
+    - name: Load webapp image
+      run: docker load --input /tmp/da-ayr-beta-webapp-image.tar
 
     - name: Verify webapp image is available locally
       run: docker image inspect da-ayr-beta-webapp:latest > /dev/null
