@@ -148,30 +148,32 @@ class TestBrowse:
         assert b"Search for digital records" in response.data
         assert b"Browse records 27" in response.data
 
-    def test_browse_clear_filters_link_resets_filters_and_keeps_sort(
-        self, client: FlaskClient, mock_all_access_user
+    def test_browse_filter_sort_and_choose_transferring_body_contract(
+        self, client: FlaskClient, mock_all_access_user, browse_files
     ):
         """
-        Given a user on browse with filters and sort applied
-        When the browse page is rendered
-        Then the clear filters link should reset filter query params and keep sort.
+        Given an all access user with browse fixtures
+        When they apply transferring body and date filters with sort order
+        Then results are filtered/sorted and include a selectable transferring body link
         """
         mock_all_access_user(client)
 
-        query_params = (
-            "sort=transferring_body-desc&transferring_body_filter=test"
-            "&series_filter=ABC&date_from_day=01&date_from_month=01"
-            "&date_from_year=2024&date_to_day=31&date_to_month=12&date_to_year=2024"
+        response = client.get(
+            "/browse?sort=transferring_body-desc&transferring_body_filter=first_body"
+            "&date_from_day=01&date_from_month=01&date_from_year=2023"
         )
-        response = client.get(f"{self.route_url}?{query_params}")
 
         assert response.status_code == 200
+        verify_browse_view_header_row(response.data)
+        verify_desktop_data_rows(
+            response.data,
+            [["'first_body', 'first_series', '07/02/2023', '3', '2'"]],
+        )
 
         soup = BeautifulSoup(response.data, "html.parser")
-        clear_filters_link = soup.find("a", string="Clear filters", href=True)
-
-        assert clear_filters_link
-        assert (
-            clear_filters_link["href"]
-            == "/browse?sort=transferring_body-desc#browse-records"
+        decompose_desktop_invisible_elements(soup)
+        body_link = soup.find(
+            "a",
+            href=f"{self.transferring_body_route_url}/{browse_files[0].consignment.series.body.BodyId}",
         )
+        assert body_link is not None
