@@ -32,25 +32,22 @@
     </header>
 {% endblock %}
 {% block beforeContent %}
-    <div class="govuk-phase-banner banner__container">
-        <div>
-            <p class="govuk-phase-banner__content">
-                <strong class="govuk-tag govuk-phase-banner__content__tag">Beta</strong>
-                <span class="govuk-phase-banner__text">
-                    Help us to improve this service by completing our <a class="govuk-link"
-    target="blank"
-    href="https://www.smartsurvey.co.uk/s/ayr-feedback/">feedback
-                survey (opens in a new tab)</a>
-            </span>
-        </p>
+    <div class="govuk-!-padding-top-1 banner__container">
+        {{ govukPhaseBanner({
+        'tag': {
+        'text': 'Beta',
+        },
+        'html': 'Help us to improve this service by completing our <a class="govuk-link"
+    target="_blank"
+    href="https://www.smartsurvey.co.uk/s/ayr-feedback/">feedback survey (opens in a new tab)</a>',
+        }) }}
+        {% if authenticated_view %}
+            <div class="sign-out govuk-!-margin-top-2">
+                <a class="govuk-body govuk-!-font-weight-bold govuk-!-font-size-19"
+                   href="/sign-out">Sign out</a>
+            </div>
+        {% endif %}
     </div>
-    {% if authenticated_view %}
-        <div class="sign-out">
-            <a class="govuk-body govuk-!-font-weight-bold govuk-!-font-size-19"
-               href="/sign-out">Sign out</a>
-        </div>
-    {% endif %}
-</div>
 {% endblock %}
 {% block content %}
     {% if form and form.errors %}{{ govukErrorSummary(wtforms_errors(form) ) }}{% endif %}
