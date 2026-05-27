@@ -46,8 +46,38 @@ jobs:
         path: /tmp/da-ayr-beta-webapp-image.tar
         retention-days: 1
 
+  prepare_auxiliary_images:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+
+    - name: Pull OpenSearch and Keycloak images
+      run: |
+        docker pull opensearchproject/opensearch:3.6.0
+        docker pull quay.io/keycloak/keycloak:26.6.1
+
+    - name: Save OpenSearch and Keycloak images
+      run: |
+        docker save \
+          -o /tmp/auxiliary-images.tar \
+          opensearchproject/opensearch:3.6.0 \
+          quay.io/keycloak/keycloak:26.6.1
+
+    - name: Upload auxiliary images artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: da-ayr-auxiliary-images
+        path: /tmp/auxiliary-images.tar
+        retention-days: 1
+
   e2e_tests:
-    needs: build_webapp_image
+    needs:
+    - build_webapp_image
+    - prepare_auxiliary_images
     runs-on: ubuntu-latest
 
     steps:
@@ -74,8 +104,17 @@ jobs:
         name: da-ayr-beta-webapp-image
         path: /tmp
 
+    - name: Download auxiliary images artifact
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: da-ayr-auxiliary-images
+        path: /tmp
+
     - name: Load webapp image
       run: docker load --input /tmp/da-ayr-beta-webapp-image.tar
+
+    - name: Load auxiliary images
+      run: docker load --input /tmp/auxiliary-images.tar
 
     - name: Verify webapp image is available locally
       run: docker image inspect da-ayr-beta-webapp:latest > /dev/null
@@ -178,7 +217,9 @@ jobs:
         docker system prune -f
 
   accessibility_tests:
-    needs: build_webapp_image
+    needs:
+    - build_webapp_image
+    - prepare_auxiliary_images
     runs-on: ubuntu-latest
 
     steps:
@@ -193,8 +234,17 @@ jobs:
         name: da-ayr-beta-webapp-image
         path: /tmp
 
+    - name: Download auxiliary images artifact
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: da-ayr-auxiliary-images
+        path: /tmp
+
     - name: Load webapp image
       run: docker load --input /tmp/da-ayr-beta-webapp-image.tar
+
+    - name: Load auxiliary images
+      run: docker load --input /tmp/auxiliary-images.tar
 
     - name: Verify webapp image is available locally
       run: docker image inspect da-ayr-beta-webapp:latest > /dev/null
