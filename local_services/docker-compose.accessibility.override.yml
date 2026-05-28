@@ -1,0 +1,13 @@
+services:
+  webapp:
+    environment:
+      SKIP_CSS_BUILD: "true"
+    depends_on:
+      webapp_postgres:
+        condition: service_started
+      keycloak:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      opensearch-node1:
+        condition: service_healthy

@@ -63,9 +63,11 @@ jobs:
       run: ./local_services/generate-keycloak-certs.sh
 
     - name: Start Docker Compose with CI-specific configuration
-      run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build webapp minio-init socat-localhost || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
+      run: cd local_services && SKIP_CSS_BUILD=true docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build webapp minio-init socat-localhost || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Set up E2E test environment
+      env:
+        E2E_TEST_FILTER_VALUE: ${{ github.event_name == 'pull_request' && 'navigation_journeys' || '.' }}
       run: | # pragma: allowlist secret
         cat > .env.e2e_tests << EOF
         AYR_AAU_USER_USERNAME=testuser
@@ -77,7 +79,7 @@ jobs:
         KEYCLOAK_REALM_NAME=tdr
         KEYCLOAK_CLIENT_SECRET=test-client-secret
         BROWSERS=chromium
-        TEST_FILTER=.
+        TEST_FILTER=$E2E_TEST_FILTER_VALUE
         EOF
 
     - name: Build E2E Docker image with cache
@@ -98,6 +100,7 @@ jobs:
           -v "$(pwd)/e2e_tests":/e2e_tests e2e_tests:latest
 
     - name: Run MDS importer smoke test
+      if: github.event_name == 'merge_group'
       run: |
         docker compose -f local_services/docker-compose.ci.yml \
           exec -T \
@@ -183,7 +186,7 @@ jobs:
       run: ./local_services/generate-keycloak-certs.sh
 
     - name: Start Docker Compose with CI-specific configuration
-      run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build webapp minio-init socat-localhost || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
+      run: cd local_services && SKIP_CSS_BUILD=true docker compose -f docker-compose.ci.yml -f docker-compose.accessibility.override.yml --env-file .docker.env up -d --wait --no-build webapp minio-init socat-localhost || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Set up Node.js
       uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
@@ -207,6 +210,8 @@ jobs:
         EOF
 
     - name: Run Accessibility CI
+      env:
+        LHCI_PR_SMOKE: "true"
       run: |
         mkdir -p .accessibilityci
         set -a
