@@ -145,6 +145,8 @@ describe("tests for init.uv.js", () => {
         leftPanelEnabled: true,
         rightPanelEnabled: false,
         headerPanelEnabled: true,
+        preserveViewport: true,
+        zoomToSearchResultEnabled: false,
       },
     });
   });
