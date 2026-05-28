@@ -131,40 +131,24 @@ const recordViewUrls = recordIds.map(
   (id) => `${BASE_URL}/record/${id}#record-view`,
 );
 
-const prSmokeUrls = [
-  ...staticUrls,
-  ...browseLandingUrls.slice(0, 1),
-  ...transferringBodyUrls.slice(0, 1),
-  ...seriesUrls.slice(0, 1),
-  ...consignmentUrls.slice(0, 1),
-  ...browseRecordUrls.slice(0, 1),
-  ...searchLandingUrls.slice(0, 1),
-  ...searchResultsByTermUrls.slice(0, 1),
-  ...recordViewUrls.slice(0, 1),
-];
-
-const allUrls = [
-  ...staticUrls,
-  ...browseLandingUrls,
-  ...transferringBodyUrls,
-  ...seriesUrls,
-  ...consignmentUrls,
-  ...consignmentFilteredUrls,
-  ...browseRecordUrls,
-  ...browseSeriesUrls,
-  ...searchLandingUrls,
-  ...searchResultsByTermUrls,
-  ...searchTransferringBodyUrls,
-  ...recordViewUrls,
-];
-
-const isPrSmokeMode = process.env.LHCI_PR_SMOKE === "true";
-
 module.exports = {
   ci: {
     collect: {
       numberOfRuns: 1,
-      url: isPrSmokeMode ? prSmokeUrls : allUrls,
+      url: [
+        ...staticUrls,
+        ...browseLandingUrls,
+        ...transferringBodyUrls,
+        ...seriesUrls,
+        ...consignmentUrls,
+        ...consignmentFilteredUrls,
+        ...browseRecordUrls,
+        ...browseSeriesUrls,
+        ...searchLandingUrls,
+        ...searchResultsByTermUrls,
+        ...searchTransferringBodyUrls,
+        ...recordViewUrls,
+      ],
       settings: {
         chromeFlags:
           "--no-sandbox --headless=new --ignore-certificate-errors --allow-insecure-localhost",
