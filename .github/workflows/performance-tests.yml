@@ -20,6 +20,10 @@ on:
         required: false
         default: "3m"
 
+concurrency:
+  group: performance-tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build_webapp_image:
     runs-on: ubuntu-latest
@@ -61,6 +65,7 @@ jobs:
   performance_tests:
     needs: build_webapp_image
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
     - name: Checkout code
@@ -89,7 +94,7 @@ jobs:
       run: ./local_services/generate-keycloak-certs.sh
 
     - name: Start Docker Compose with CI-specific configuration
-      run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
+      run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build webapp minio-init socat-localhost || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Set up Python
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
