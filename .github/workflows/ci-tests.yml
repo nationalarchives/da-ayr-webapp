@@ -23,7 +23,7 @@ jobs:
 
     - name: Detect changed paths
       id: filter
-      uses: dorny/paths-filter@v3
+      uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3.0.3
       with:
         filters: |
           e2e:
@@ -136,6 +136,8 @@ jobs:
       run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Set up E2E test environment
+      env:
+        E2E_TEST_FILTER_VALUE: ${{ github.event_name == 'pull_request' && 'navigation_journeys' || '.' }}
       run: | # pragma: allowlist secret
         cat > .env.e2e_tests << EOF
         AYR_AAU_USER_USERNAME=testuser
@@ -148,7 +150,7 @@ jobs:
         KEYCLOAK_CLIENT_SECRET=test-client-secret
         GIT_REF=main
         BROWSERS=chromium
-        TEST_FILTER=.
+        TEST_FILTER=$E2E_TEST_FILTER_VALUE
         EOF
 
     - name: Log in to GHCR for Docker cache
@@ -176,6 +178,7 @@ jobs:
           -v "$(pwd)/e2e_tests":/e2e_tests e2e_tests:latest
 
     - name: Run MDS importer smoke test
+      if: github.event_name == 'merge_group'
       run: |
         docker compose -f local_services/docker-compose.ci.yml \
           exec -T \
@@ -277,6 +280,8 @@ jobs:
         EOF
 
     - name: Run Accessibility CI
+      env:
+        LHCI_PR_SMOKE: ${{ github.event_name == 'pull_request' && 'true' || 'false' }}
       run: |
         mkdir -p .accessibilityci
         set -a
@@ -291,18 +296,6 @@ jobs:
         name: accessibility-report
         path: .accessibilityci/
         retention-days: 7
-
-    - name: Check logs after test failure
-      if: failure()
-      run: cd local_services && docker compose -f docker-compose.ci.yml logs
-
-    - name: Stop services
-      if: always()
-      run: |
-        cd local_services
-        docker compose -f docker-compose.ci.yml down -v
-        docker system prune -f
-
 
     - name: Check logs after test failure
       if: failure()
