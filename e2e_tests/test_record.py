@@ -72,7 +72,9 @@ class TestRecord:
         record_id = "100251bb-5b93-48a9-953f-ad5bd9abfbdc"
         standard_user_page_with_download.goto(f"{self.route_url}/{record_id}")
 
-        with standard_user_page_with_download.expect_download() as download_record:
+        with (
+            standard_user_page_with_download.expect_download() as download_record
+        ):
             standard_user_page_with_download.get_by_role(
                 "link", name="Download record"
             ).click()

@@ -113,7 +113,9 @@ def _format_date_elements(day, month, year):
     month_var = (
         str(month).rjust(2, "0")
         if len(str(month)) == 1
-        else month if month else 0 * 2
+        else month
+        if month
+        else 0 * 2
     )
     year_var = str(year).ljust(4, "0") if year and len(str(year)) > 0 else 0 * 4
 

@@ -304,7 +304,6 @@ def index_in_opensearch(files):
     app = create_app(EnvConfig, True)
     with app.app_context():
         try:
-
             s3 = get_s3_client()
             bucket = os.getenv("RECORD_BUCKET_NAME")
 
@@ -319,7 +318,7 @@ def index_in_opensearch(files):
             )
             database_url = app.config["SQLALCHEMY_DATABASE_URI"]
 
-            for file_id, file_ext, file_path in files:
+            for file_id, _file_ext, file_path in files:
                 file = db.session.query(File).filter_by(FileId=file_id).first()
                 if file is None:
                     print(f"File with ID {file_id} not found in DB, skipping.")

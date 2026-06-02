@@ -332,7 +332,6 @@ class TestRoutes:
         expected_params,
         mock_all_access_user,
     ):
-
         mock_all_access_user(client)
 
         query_string = "&".join(

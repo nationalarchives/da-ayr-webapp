@@ -473,18 +473,18 @@ class TestRecord:
         soup = BeautifulSoup(html, "html.parser")
 
         button = soup.find("a", string="Download record")
-        assert (
-            button is not None
-        ), "Download button should be visible for a user with download permissions"
+        assert button is not None, (
+            "Download button should be visible for a user with download permissions"
+        )
 
-        assert (
-            button["href"] == f"/download/{file.FileId}"
-        ), "Download button should link to the correct download URL"
+        assert button["href"] == f"/download/{file.FileId}", (
+            "Download button should link to the correct download URL"
+        )
 
         rights_container = soup.find("div", {"class": "rights-container"})
-        assert (
-            rights_container is not None
-        ), "Rights container should be visible for a user with download permissions"
+        assert rights_container is not None, (
+            "Rights container should be visible for a user with download permissions"
+        )
 
     def test_record_standard_user_without_perms_cant_see_download_button(
         self, app, client: FlaskClient, mock_standard_user
@@ -686,9 +686,9 @@ class TestRecord:
             "Language",
         ]
         for field in expected_fields:
-            assert (
-                field in summary_list_text
-            ), f"Expected field '{field}' to be visible for an open record"
+            assert field in summary_list_text, (
+                f"Expected field '{field}' to be visible for an open record"
+            )
 
         closed_only_fields = [
             "Alternative file name",
@@ -699,9 +699,9 @@ class TestRecord:
             "FOI exemption code(s)",
         ]
         for field in closed_only_fields:
-            assert (
-                field not in summary_list_text
-            ), f"Field '{field}' should not be visible for a purely open record"
+            assert field not in summary_list_text, (
+                f"Field '{field}' should not be visible for a purely open record"
+            )
 
     @mock_aws
     def test_record_summary_list_open_closed_before_file(
@@ -1069,9 +1069,9 @@ class TestRecord:
             "Language",
         ]
         for field in expected_fields:
-            assert (
-                field in summary_list_text
-            ), f"Expected field '{field}' to be visible for a closed record"
+            assert field in summary_list_text, (
+                f"Expected field '{field}' to be visible for a closed record"
+            )
 
     @mock_aws
     def test_record_view_renders(

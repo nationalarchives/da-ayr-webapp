@@ -112,7 +112,6 @@ class TestGetAllConsignmentReferences:
 
 
 class TestMain:
-
     @pytest.fixture
     def mock_env_vars(self, monkeypatch):
         """Set up all required environment variables."""

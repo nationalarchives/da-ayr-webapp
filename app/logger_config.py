@@ -7,7 +7,6 @@ from flask import has_request_context, request
 
 class RequestFormatter(logging.Formatter):
     def format(self, record):
-
         log_record = {
             "log_type": record.name,
             "timestamp": self.formatTime(record),

@@ -15,9 +15,9 @@ def assert_contains_html(
     soup = BeautifulSoup(html, "html.parser")
     actual_element = soup.find(sub_element_type, sub_element_filter)
 
-    assert (
-        actual_element is not None
-    ), f"Element not found: {sub_element_type} with filter {sub_element_filter}"  # nosec
+    assert actual_element is not None, (
+        f"Element not found: {sub_element_type} with filter {sub_element_filter}"
+    )  # nosec
 
     # normalise both elements by converting to a string representation
     # This handles attribute ordering differences
