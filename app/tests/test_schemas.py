@@ -14,6 +14,7 @@ from app.main.util.schemas import (
     SearchRequestSchema,
     SearchResultsSummaryRequestSchema,
     SearchTransferringBodyRequestSchema,
+    SearchWithinRequestSchema,
 )
 
 
@@ -358,3 +359,47 @@ class TestSearchTransferringBodyRequestSchema:
         )
         assert data["page"] == 3
         assert data["per_page"] == 10
+
+
+class TestSearchWithinRequestSchema:
+    """Tests for SearchWithinRequestSchema."""
+
+    def test_valid_with_record_id_and_q(self):
+        schema = SearchWithinRequestSchema()
+        record_id = str(uuid.uuid4())
+        data = schema.load({"record_id": record_id, "q": "hello"})
+        assert isinstance(data["record_id"], uuid.UUID)
+        assert data["q"] == "hello"
+
+    def test_q_defaults_to_empty_string_when_absent(self):
+        schema = SearchWithinRequestSchema()
+        record_id = str(uuid.uuid4())
+        data = schema.load({"record_id": record_id})
+        assert data["q"] == ""
+
+    def test_q_too_long_raises_validation_error(self):
+        schema = SearchWithinRequestSchema()
+        record_id = str(uuid.uuid4())
+        with pytest.raises(ValidationError) as exc_info:
+            schema.load({"record_id": record_id, "q": "a" * 201})
+        assert "q" in exc_info.value.messages
+
+    def test_missing_record_id_raises_validation_error(self):
+        schema = SearchWithinRequestSchema()
+        with pytest.raises(ValidationError) as exc_info:
+            schema.load({"q": "hello"})
+        assert "record_id" in exc_info.value.messages
+
+    def test_invalid_record_id_format_raises_validation_error(self):
+        schema = SearchWithinRequestSchema()
+        with pytest.raises(ValidationError) as exc_info:
+            schema.load({"record_id": "not-a-uuid", "q": "hello"})
+        assert "record_id" in exc_info.value.messages
+
+    def test_unknown_fields_excluded(self):
+        schema = SearchWithinRequestSchema()
+        record_id = str(uuid.uuid4())
+        data = schema.load(
+            {"record_id": record_id, "q": "test", "extra": "ignored"}
+        )
+        assert "extra" not in data

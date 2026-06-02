@@ -13,6 +13,7 @@ from flask import (
     render_template,
     request,
     session,
+    stream_with_context,
     url_for,
 )
 from jinja2.exceptions import TemplateNotFound
@@ -66,6 +67,7 @@ from app.main.util.render_utils import (
     get_file_extension,
     get_file_puid,
     get_pdf_from_s3,
+    search_within_pdf,
 )
 from app.main.util.request_validation_utils import validate_request
 from app.main.util.schemas import (
@@ -81,6 +83,7 @@ from app.main.util.schemas import (
     SearchRequestSchema,
     SearchResultsSummaryRequestSchema,
     SearchTransferringBodyRequestSchema,
+    SearchWithinRequestSchema,
 )
 from app.main.util.search_utils import (
     build_search_results_summary_query,
@@ -1024,6 +1027,110 @@ def get_page_thumbnail(record_id: uuid.UUID, page_number: int):
             f"Failed to extract page {page_number} as thumbnail: {e}"
         )
         abort(500)
+
+
+@bp.route("/record/<uuid:record_id>/pdf", methods=["GET"])
+@access_token_sign_in_required
+@log_page_view
+@validate_request(RecordRequestSchema, location="path")
+def get_record_pdf(record_id: uuid.UUID):
+    file = db.session.get(File, record_id)
+    if file is None:
+        abort(404)
+
+    validate_body_user_groups_or_404(file.consignment.series.body.Name)
+
+    puid = get_file_puid(file)
+
+    if puid in CONVERTIBLE_PUIDS:
+        bucket = current_app.config["ACCESS_COPY_BUCKET"]
+    else:
+        bucket = current_app.config["RECORD_BUCKET_NAME"]
+
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+
+    s3 = boto3.client("s3")
+    try:
+        s3_object = s3.get_object(Bucket=bucket, Key=key)
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "404":
+            abort(404)
+        current_app.app_logger.error(f"Failed to fetch PDF from S3: {e}")
+        abort(500)
+
+    def generate():
+        for chunk in s3_object["Body"].iter_chunks(chunk_size=65536):
+            yield chunk
+
+    headers = {"Content-Disposition": "inline"}
+    content_length = s3_object.get("ContentLength")
+    if content_length is not None:
+        headers["Content-Length"] = str(content_length)
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="application/pdf",
+        headers=headers,
+    )
+
+
+@bp.route("/record/<uuid:record_id>/search", methods=["GET"])
+@access_token_sign_in_required
+@log_page_view
+@validate_request(SearchWithinRequestSchema, location="combined")
+def search_within_record(record_id: uuid.UUID):
+    q = request.args.get("q", "").strip()
+
+    file = db.session.get(File, record_id)
+    if file is None:
+        abort(404)
+
+    validate_body_user_groups_or_404(file.consignment.series.body.Name)
+
+    puid = get_file_puid(file)
+
+    supported_puids = (
+        current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS"]
+        | CONVERTIBLE_PUIDS
+    )
+    if puid not in supported_puids:
+        abort(400)
+
+    if puid in CONVERTIBLE_PUIDS:
+        bucket = current_app.config["ACCESS_COPY_BUCKET"]
+    else:
+        bucket = current_app.config["RECORD_BUCKET_NAME"]
+
+    key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
+    search_url = url_for(
+        "main.search_within_record", record_id=record_id, _external=True
+    )
+    manifest_url = url_for(
+        "main.generate_manifest", record_id=record_id, _external=True
+    )
+
+    if not q:
+        return jsonify(
+            {
+                "@context": [
+                    "http://iiif.io/api/presentation/2/context.json",
+                    "http://iiif.io/api/search/1/context.json",
+                ],
+                "@id": search_url,
+                "@type": "sc:AnnotationList",
+                "within": {"@type": "sc:Layer", "total": 0},
+                "resources": [],
+                "hits": [],
+            }
+        )
+
+    return search_within_pdf(
+        query=q,
+        search_url=search_url,
+        manifest_url=manifest_url,
+        bucket=bucket,
+        key=key,
+    )
 
 
 @bp.route("/signed-out", methods=["GET"])

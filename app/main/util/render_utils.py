@@ -5,7 +5,7 @@ from typing import List
 import boto3
 import pymupdf
 from botocore.exceptions import ClientError
-from flask import Response, current_app, jsonify
+from flask import Response, current_app, jsonify, url_for
 from PIL import Image
 
 from app.main.db.models import File
@@ -247,9 +247,6 @@ def generate_pdf_manifest(
 
             page_number = page_num + 1
 
-            # Generate URLs for this page
-            from flask import url_for
-
             page_image_url = url_for(
                 "main.get_page_image",
                 record_id=record_id,
@@ -296,6 +293,14 @@ def generate_pdf_manifest(
                 }
             )
 
+    pdf_url = url_for(
+        "main.get_record_pdf", record_id=record_id, _external=True
+    )
+
+    search_url = url_for(
+        "main.search_within_record", record_id=record_id, _external=True
+    )
+
     manifest = {
         "@context": "https://iiif.io/api/presentation/3/context.json",
         "@type": "sc:Manifest",
@@ -303,6 +308,19 @@ def generate_pdf_manifest(
         "label": {"en": [file_name]},
         "description": f"Manifest for {file_name}",
         "viewingDirection": "left-to-right",
+        "service": {
+            "@context": "http://iiif.io/api/search/1/context.json",
+            "@id": search_url,
+            "profile": "http://iiif.io/api/search/1/search",
+            "label": "Search within this record",
+        },
+        "rendering": [
+            {
+                "@id": pdf_url,
+                "@type": "dctypes:Text",
+                "format": "application/pdf",
+            }
+        ],
         "sequences": [
             {
                 "@type": "sc:Sequence",
@@ -389,6 +407,90 @@ def generate_image_manifest(
     response = jsonify(manifest)
 
     return response
+
+
+def search_within_pdf(
+    query: str,
+    search_url: str,
+    manifest_url: str,
+    bucket: str,
+    key: str,
+) -> Response:
+    """
+    Search for text within a PDF and return a IIIF Content Search API v1 response.
+
+    Args:
+        query: The search term.
+        search_url: The search service base URL (used in the response @id).
+        manifest_url: The manifest URL (used to construct canvas @id values).
+        bucket: S3 bucket name.
+        key: S3 object key.
+
+    Returns:
+        Flask JSON response containing a IIIF sc:AnnotationList.
+    """
+    DPI = 150
+    SCALE = DPI / 72
+
+    pdf_bytes = get_pdf_from_s3(bucket, key)
+
+    resources = []
+    hits = []
+    annotation_count = 0
+
+    with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
+        for page_num in range(pdf_document.page_count):
+            page = pdf_document.load_page(page_num)
+            rects = page.search_for(query)
+            canvas_id = f"{manifest_url}/canvas/{page_num + 1}"
+
+            for rect in rects:
+                annotation_count += 1
+                annotation_id = f"{search_url}/annotation/{annotation_count}"
+
+                x = int(rect.x0 * SCALE)
+                y = int(rect.y0 * SCALE)
+                w = int((rect.x1 - rect.x0) * SCALE)
+                h = int((rect.y1 - rect.y0) * SCALE)
+
+                matched_text = page.get_textbox(rect).strip() or query
+
+                resources.append(
+                    {
+                        "@id": annotation_id,
+                        "@type": "oa:Annotation",
+                        "motivation": "sc:painting",
+                        "resource": {
+                            "@type": "cnt:ContentAsText",
+                            "chars": matched_text,
+                        },
+                        "on": f"{canvas_id}#xywh={x},{y},{w},{h}",
+                    }
+                )
+                hits.append(
+                    {
+                        "@type": "search:Hit",
+                        "annotations": [annotation_id],
+                        "match": matched_text,
+                    }
+                )
+
+    result = {
+        "@context": [
+            "http://iiif.io/api/presentation/2/context.json",
+            "http://iiif.io/api/search/1/context.json",
+        ],
+        "@id": f"{search_url}?q={query}",
+        "@type": "sc:AnnotationList",
+        "within": {
+            "@type": "sc:Layer",
+            "total": annotation_count,
+        },
+        "resources": resources,
+        "hits": hits,
+    }
+
+    return jsonify(result)
 
 
 def get_pdf_from_s3(bucket: str, key: str) -> bytes:

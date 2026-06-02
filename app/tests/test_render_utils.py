@@ -1,5 +1,6 @@
 from unittest.mock import Mock, patch
 
+import pymupdf
 from flask import Flask
 
 from app.main.util.render_utils import (
@@ -11,7 +12,17 @@ from app.main.util.render_utils import (
     get_download_filename,
     get_file_extension,
     get_file_puid,
+    search_within_pdf,
 )
+
+
+def _make_pdf_with_text(text: str) -> bytes:
+    doc = pymupdf.open()
+    page = doc.new_page()
+    page.insert_text((50, 100), text)
+    pdf_bytes = doc.tobytes()
+    doc.close()
+    return pdf_bytes
 
 
 def test_get_file_extension_with_ffid_extension():
@@ -196,3 +207,35 @@ def test_extract_single_page_as_thumbnail_invalid_page():
         assert False, "Expected ValueError"
     except ValueError as e:
         assert "Invalid page number" in str(e)
+
+
+@patch("app.main.util.render_utils.get_pdf_from_s3")
+def test_search_within_pdf_returns_annotations_for_matches(
+    mock_get_pdf_from_s3,
+):
+    mock_get_pdf_from_s3.return_value = _make_pdf_with_text("hello world")
+
+    app = Flask(__name__)
+    with app.app_context():
+        response = search_within_pdf(
+            query="hello",
+            search_url="http://localhost/record/abc/search",
+            manifest_url="http://localhost/record/abc/manifest",
+            bucket="test-bucket",
+            key="test/key",
+        )
+
+    data = response.get_json()
+    assert data["@type"] == "sc:AnnotationList"
+    assert data["within"]["total"] >= 1
+    assert len(data["resources"]) >= 1
+    assert len(data["hits"]) >= 1
+
+    resource = data["resources"][0]
+    assert resource["@type"] == "oa:Annotation"
+    assert "#xywh=" in resource["on"]
+    assert resource["resource"]["chars"] == "hello"
+
+    hit = data["hits"][0]
+    assert hit["@type"] == "search:Hit"
+    assert hit["match"] == "hello"

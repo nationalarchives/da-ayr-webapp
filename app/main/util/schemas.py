@@ -134,3 +134,15 @@ class PageImageRequestSchema(Schema):
 
     class Meta:
         unknown = EXCLUDE
+
+
+class SearchWithinRequestSchema(Schema):
+    """Schema for search-within-record parameters."""
+
+    record_id = UUIDField(required=True)
+    q = fields.String(
+        allow_none=True, load_default="", validate=validate.Length(max=200)
+    )
+
+    class Meta:
+        unknown = EXCLUDE
