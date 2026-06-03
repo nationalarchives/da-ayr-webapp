@@ -83,7 +83,10 @@ def test_callback_falls_back_to_userinfo_when_introspect_groups_missing(
         "groups": ["/ayr_user_type/view_all"],
     }
 
-    response = client.get("/callback?code=valid_code")
+    with client.session_transaction() as sess:
+        sess["oauth_state"] = "valid_state"
+
+    response = client.get("/callback?code=valid_code&state=valid_state")
 
     assert response.status_code == 302
     assert response.headers["Location"] == url_for("main.browse")
@@ -115,7 +118,10 @@ def test_callback_falls_back_to_access_token_claims_when_userinfo_unavailable(
         "userinfo not available"
     )
 
-    response = client.get("/callback?code=valid_code")
+    with client.session_transaction() as sess:
+        sess["oauth_state"] = "valid_state"
+
+    response = client.get("/callback?code=valid_code&state=valid_state")
 
     assert response.status_code == 302
     assert response.headers["Location"] == url_for("main.browse")
