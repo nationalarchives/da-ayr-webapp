@@ -1,7 +1,8 @@
 from functools import wraps
 
+import jwt
 import keycloak
-from flask import flash, g, redirect, session, url_for
+from flask import current_app, flash, g, redirect, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
 from app.main.flask_config_helpers import (
@@ -60,13 +61,13 @@ def access_token_sign_in_required(view_func):
             decoded_access_token = keycloak_openid.introspect(
                 session["access_token"]
             )
-
-            session["user_groups"] = decoded_access_token["groups"]
-            ayr_user = AYRUser(session.get("user_groups"))
-            if ayr_user.is_all_access_user:
-                session["user_type"] = "all_access_user"
-            else:
-                session["user_type"] = "standard_user"
+            user_groups = _resolve_user_groups_with_fallbacks(
+                keycloak_openid=keycloak_openid,
+                access_token=session["access_token"],
+                decoded_access_token=decoded_access_token,
+            )
+            session["user_groups"] = user_groups
+            _set_user_type(session.get("user_groups"))
 
         ayr_user = AYRUser(session["user_groups"])
 
@@ -110,3 +111,47 @@ def _validate_or_refresh_tokens(access_token, refresh_token):
 
 class InvalidAccessToken(Exception):
     pass
+
+
+def _resolve_user_groups_with_fallbacks(
+    keycloak_openid, access_token, decoded_access_token
+):
+    user_groups = decoded_access_token.get("groups")
+    if user_groups is None:
+        current_app.app_logger.warning(
+            "Groups missing from introspection response during refresh; trying userinfo fallback"
+        )
+        try:
+            userinfo_claims = keycloak_openid.userinfo(access_token)
+            user_groups = userinfo_claims.get("groups", [])
+        except Exception as exception:
+            current_app.app_logger.warning(
+                f"Failed to fetch userinfo claims during refresh: {exception}"
+            )
+            user_groups = []
+
+    if not user_groups:
+        current_app.app_logger.warning(
+            "Groups unavailable from introspection/userinfo during refresh; trying access token claim fallback"
+        )
+        try:
+            token_claims = jwt.decode(
+                access_token,
+                options={"verify_signature": False},
+                algorithms=["RS256", "HS256"],
+            )
+            user_groups = token_claims.get("groups", user_groups)
+        except Exception as exception:
+            current_app.app_logger.warning(
+                f"Failed to decode access token claims during refresh: {exception}"
+            )
+
+    return user_groups
+
+
+def _set_user_type(user_groups):
+    ayr_user = AYRUser(user_groups)
+    if ayr_user.is_all_access_user:
+        session["user_type"] = "all_access_user"
+    else:
+        session["user_type"] = "standard_user"

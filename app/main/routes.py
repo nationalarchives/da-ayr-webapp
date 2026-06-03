@@ -1,6 +1,7 @@
 import uuid
 
 import boto3
+import jwt
 from botocore.exceptions import ClientError
 from flask import (
     Response,
@@ -155,10 +156,16 @@ def callback():
         current_app.app_logger.error(f"Failed to introspect access token: {e}")
         return redirect(url_for("main.sign_in"))
 
+    user_groups, user_id = _resolve_user_claims_with_fallbacks(
+        keycloak_openid=keycloak_openid,
+        access_token=access_token_response["access_token"],
+        decoded_access_token=decoded_access_token,
+    )
+
     session["access_token"] = access_token_response["access_token"]
     session["refresh_token"] = access_token_response["refresh_token"]
-    session["user_groups"] = decoded_access_token["groups"]
-    session["user_id"] = decoded_access_token["sub"]
+    session["user_groups"] = user_groups
+    session["user_id"] = user_id
     ayr_user = AYRUser(session.get("user_groups"))
     if ayr_user.is_all_access_user:
         session["user_type"] = "all_access_user"
@@ -166,6 +173,51 @@ def callback():
         session["user_type"] = "standard_user"
 
     return redirect(url_for("main.browse"))
+
+
+def _resolve_user_claims_with_fallbacks(
+    keycloak_openid, access_token, decoded_access_token
+):
+    userinfo_claims = {}
+    token_claims = {}
+
+    user_groups = decoded_access_token.get("groups")
+    if user_groups is None:
+        current_app.app_logger.warning(
+            "Groups missing from introspection response; trying userinfo fallback"
+        )
+        try:
+            userinfo_claims = keycloak_openid.userinfo(access_token)
+        except Exception as exception:
+            current_app.app_logger.warning(
+                f"Failed to fetch userinfo claims: {exception}"
+            )
+            userinfo_claims = {}
+        user_groups = userinfo_claims.get("groups", [])
+
+    if not user_groups:
+        current_app.app_logger.warning(
+            "Groups unavailable from introspection/userinfo; trying access token claim fallback"
+        )
+        try:
+            token_claims = jwt.decode(
+                access_token,
+                options={"verify_signature": False},
+                algorithms=["RS256", "HS256"],
+            )
+        except Exception as exception:
+            current_app.app_logger.warning(
+                f"Failed to decode access token claims: {exception}"
+            )
+            token_claims = {}
+        user_groups = token_claims.get("groups", user_groups)
+
+    user_id = (
+        decoded_access_token.get("sub")
+        or userinfo_claims.get("sub")
+        or token_claims.get("sub")
+    )
+    return user_groups, user_id
 
 
 @bp.route("/accessibility", methods=["GET"])
