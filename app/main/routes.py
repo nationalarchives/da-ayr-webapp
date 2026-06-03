@@ -244,11 +244,7 @@ def _resolve_user_claims_with_fallbacks(
 
 
 def _decode_verified_token_claims(keycloak_openid, access_token):
-    return keycloak_openid.decode_token(
-        access_token,
-        key=keycloak_openid.public_key(),
-        options={"verify_aud": False},
-    )
+    return keycloak_openid.decode_token(access_token)
 
 
 @bp.route("/accessibility", methods=["GET"])
