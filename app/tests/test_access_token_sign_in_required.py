@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-import jwt
 import keycloak
 import pytest
 from flask import Flask, render_template, url_for
@@ -332,14 +331,7 @@ class TestAccessTokenSignInRequiredDecorator:
                 "/ayr_user_type/view_all",
                 "/transferring_body_user/foo",
             ]
-            refreshed_access_token = jwt.encode(
-                {
-                    "sub": "test_all_access_user",
-                    "groups": valid_groups,
-                },
-                key="test-key",
-                algorithm="HS256",
-            )
+            refreshed_access_token = "active_access_token"
 
             def mock_introspect(token):
                 if token == "inactive_access_token":
@@ -356,6 +348,10 @@ class TestAccessTokenSignInRequiredDecorator:
             mock_keycloak.return_value.userinfo.side_effect = Exception(
                 "userinfo not available"
             )
+            mock_keycloak.return_value.decode_token.return_value = {
+                "sub": "test_all_access_user",
+                "groups": valid_groups,
+            }
 
             response = client.get(view_name)
 

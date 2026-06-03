@@ -3,7 +3,6 @@ import secrets
 import uuid
 
 import boto3
-import jwt
 from botocore.exceptions import ClientError
 from flask import (
     Response,
@@ -225,10 +224,9 @@ def _resolve_user_claims_with_fallbacks(
             "Groups unavailable from introspection/userinfo; trying access token claim fallback"
         )
         try:
-            token_claims = jwt.decode(
-                access_token,
-                options={"verify_signature": False},
-                algorithms=["RS256", "HS256"],
+            token_claims = _decode_verified_token_claims(
+                keycloak_openid=keycloak_openid,
+                access_token=access_token,
             )
         except Exception as exception:
             current_app.app_logger.warning(
@@ -243,6 +241,14 @@ def _resolve_user_claims_with_fallbacks(
         or token_claims.get("sub")
     )
     return user_groups, user_id
+
+
+def _decode_verified_token_claims(keycloak_openid, access_token):
+    return keycloak_openid.decode_token(
+        access_token,
+        key=keycloak_openid.public_key(),
+        options={"verify_aud": False},
+    )
 
 
 @bp.route("/accessibility", methods=["GET"])

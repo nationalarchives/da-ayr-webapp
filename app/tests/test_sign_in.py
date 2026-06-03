@@ -101,11 +101,12 @@ def test_callback_falls_back_to_userinfo_when_introspect_groups_missing(
 def test_callback_falls_back_to_access_token_claims_when_userinfo_unavailable(
     mock_keycloak, client
 ):
+    fallback_claims = {
+        "sub": "test_all_access_user",
+        "groups": ["/ayr_user_type/view_all"],
+    }
     access_token = jwt.encode(
-        {
-            "sub": "test_all_access_user",
-            "groups": ["/ayr_user_type/view_all"],
-        },
+        fallback_claims,
         key="test-key",
         algorithm="HS256",
     )
@@ -117,6 +118,7 @@ def test_callback_falls_back_to_access_token_claims_when_userinfo_unavailable(
     mock_keycloak.return_value.userinfo.side_effect = Exception(
         "userinfo not available"
     )
+    mock_keycloak.return_value.decode_token.return_value = fallback_claims
 
     with client.session_transaction() as sess:
         sess["oauth_state"] = "valid_state"

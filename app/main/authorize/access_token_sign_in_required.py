@@ -1,6 +1,5 @@
 from functools import wraps
 
-import jwt
 import keycloak
 from flask import current_app, flash, g, redirect, session, url_for
 
@@ -135,10 +134,9 @@ def _resolve_user_groups_with_fallbacks(
             "Groups unavailable from introspection/userinfo during refresh; trying access token claim fallback"
         )
         try:
-            token_claims = jwt.decode(
-                access_token,
-                options={"verify_signature": False},
-                algorithms=["RS256", "HS256"],
+            token_claims = _decode_verified_token_claims(
+                keycloak_openid=keycloak_openid,
+                access_token=access_token,
             )
             user_groups = token_claims.get("groups", user_groups)
         except Exception as exception:
@@ -155,3 +153,11 @@ def _set_user_type(user_groups):
         session["user_type"] = "all_access_user"
     else:
         session["user_type"] = "standard_user"
+
+
+def _decode_verified_token_claims(keycloak_openid, access_token):
+    return keycloak_openid.decode_token(
+        access_token,
+        key=keycloak_openid.public_key(),
+        options={"verify_aud": False},
+    )
