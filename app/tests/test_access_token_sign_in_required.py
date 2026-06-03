@@ -344,6 +344,7 @@ class TestAccessTokenSignInRequiredDecorator:
                     return {"active": False}
                 elif token == refreshed_access_token:
                     return {"active": True}
+                return {"active": False}
 
             mock_keycloak.return_value.introspect.side_effect = mock_introspect
             mock_keycloak.return_value.refresh_token.return_value = {
