@@ -34,7 +34,7 @@ services:
       start_period: 60s
 
   opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards@sha256:9fe2cbf1d82c3f66a0860ed140415692ce55de4711ed7877ab738e5da1a357c0 # opensearch-dashboards:latest with digest for immutability
+    image: opensearchproject/opensearch-dashboards@sha256:1ddd64e3a07fd98bc20ccf5174760b51795630a602b81102b37d1e9ee82cb7a9 # opensearch-dashboards:latest with digest for immutability
     container_name: opensearch-dashboards
     ports:
       - 5601:5601
@@ -102,7 +102,7 @@ services:
       "
 
   postgres:
-    image: postgres@sha256:f7ce845ee6873dd84be93c9828fe0d1fab0f9707dc9ac569694657398b290bce # postgres:18.0 with digest for immutability
+    image: postgres@sha256:8ff36f3c66371cba71d20ceedccfc3de9669a68737607888c4ef0af93abe8e39 # postgres:18.0 with digest for immutability
     env_file:
       - .docker.env
     volumes:
@@ -117,7 +117,7 @@ services:
       - keycloak_network
 
   webapp_postgres:
-    image: postgres@sha256:f7ce845ee6873dd84be93c9828fe0d1fab0f9707dc9ac569694657398b290bce # postgres:18.0 with digest for immutability
+    image: postgres@sha256:8ff36f3c66371cba71d20ceedccfc3de9669a68737607888c4ef0af93abe8e39 # postgres:18.0 with digest for immutability
     env_file:
       - .docker.env
     user: postgres

@@ -56,7 +56,6 @@ def all_consignments_index(secret_string, db_secret_string):
 
 
 def single_consignment_index(secret_string, db_secret_string):
-
     raw_sns_message = os.getenv("SNS_MESSAGE")
     logger.info(f"Message Received: {raw_sns_message}")
     if not raw_sns_message:
@@ -82,7 +81,6 @@ def single_consignment_index(secret_string, db_secret_string):
 
 
 def consignment_indexer():
-
     secret_id = os.getenv("SECRET_ID")
     db_secret_id = os.getenv("DB_SECRET_ID")
     if not secret_id or not db_secret_id:

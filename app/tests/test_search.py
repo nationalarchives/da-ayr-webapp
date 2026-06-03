@@ -430,6 +430,59 @@ class TestSearchResultsSummary:
         assert table_cell_values == expected_cell_values
 
     @patch("app.main.util.search_utils.OpenSearch")
+    def test_search_results_summary_links_to_transferring_body_results(
+        self,
+        mock_search_client,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        """
+        Given an all access user on the search results summary page
+        When summary results are returned for a transferring body
+        Then the summary row links to that transferring body's search results with the same query
+        """
+        transferring_body_id = "11111111-1111-1111-1111-111111111111"
+        mock_search_client.return_value = MockOpenSearch(
+            search_return_value={
+                "hits": {"total": {"value": 16}, "hits": []},
+                "aggregations": {
+                    "aggregate_by_transferring_body": {
+                        "buckets": [
+                            {
+                                "doc_count": 16,
+                                "key": transferring_body_id,
+                                "top_transferring_body_hits": {
+                                    "hits": {
+                                        "hits": [
+                                            {
+                                                "_source": {
+                                                    "transferring_body": "Testing A"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                },
+            }
+        )
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}", data={"query": "a"})
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        link = soup.find(
+            "a",
+            href=lambda href: href
+            and f"/search/transferring_body/{transferring_body_id}" in href,
+        )
+        assert link is not None
+        assert "query=a" in link["href"]
+
+    @patch("app.main.util.search_utils.OpenSearch")
     def test_search_results_summary_breadcrumbs(
         self,
         mock_search_client,
@@ -1351,7 +1404,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         if href_term2:
             parsed = urlparse(href_term2)
@@ -1360,7 +1415,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         assert (
             anchor_clear["href"]
@@ -1426,7 +1483,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         if href_term2:
             parsed = urlparse(href_term2)
@@ -1435,7 +1494,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         assert (
             anchor_clear["href"]
@@ -1507,7 +1568,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         if href_term2:
             parsed = urlparse(href_term2)
@@ -1516,7 +1579,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         if href_term3:
             parsed = urlparse(href_term3)
@@ -1525,7 +1590,9 @@ class TestSearchTransferringBody:
             assert (
                 "query" in query_params
                 and query_params["query"][0] == expected_query
-            ), f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            ), (
+                f"Expected query={expected_query}, got query={query_params.get('query', [''])[0]}"
+            )
 
         assert (
             anchor_clear["href"]
@@ -1710,7 +1777,6 @@ class TestSearchTransferringBody:
         expected_cell_values,
         expected_sort_select_value,
     ):
-
         mock_search_client.return_value = MockOpenSearch(
             search_return_value=mock_open_search_return
         )

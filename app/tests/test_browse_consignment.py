@@ -433,3 +433,40 @@ class TestConsignment:
         response = client.get(f"{self.route_url}/{consignment.ConsignmentId}")
 
         assert response.status_code == 404
+
+    def test_browse_consignment_clear_filters_link_resets_filters_and_keeps_sort(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a user on browse consignment with filters and sort applied
+        When the page is rendered
+        Then clear filters should keep sort and remove applied filter params.
+        """
+        consignment_id = browse_consignment_files[0].consignment.ConsignmentId
+        mock_standard_user(
+            client, browse_consignment_files[0].consignment.series.body.Name
+        )
+
+        query_params = (
+            "sort=file_name-asc&record_status=all"
+            "&date_filter_field=date_last_modified"
+            "&date_from_day=01&date_from_month=01&date_from_year=2024"
+            "&date_to_day=31&date_to_month=12&date_to_year=2024"
+        )
+        response = client.get(
+            f"{self.route_url}/{consignment_id}?{query_params}"
+        )
+
+        assert response.status_code == 200
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        clear_filters_link = soup.find("a", string="Clear filters", href=True)
+
+        assert clear_filters_link
+        assert (
+            clear_filters_link["href"]
+            == f"/browse/consignment/{consignment_id}?sort=file_name-asc#browse-records"
+        )

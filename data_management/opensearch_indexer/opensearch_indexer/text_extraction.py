@@ -141,7 +141,6 @@ def extract_text_in_memory(
 
 
 def add_text_content(file: Dict, file_stream: bytes) -> Dict:
-
     file_puid = file["file_puid"] if file["file_puid"] else None
     file_id = file["file_id"]
 

@@ -37,8 +37,8 @@ def _build_db_url(db_secret_string: Dict[str, Any]) -> str:
     token = get_iam_connection(db_secret_string)
     return (
         "postgresql+pg8000://"
-        f'{db_secret_string["username"]}:{quote_plus(token)}'
-        f'@{db_secret_string["proxy"]}:{db_secret_string["port"]}/{db_secret_string["dbname"]}'
+        f"{db_secret_string['username']}:{quote_plus(token)}"
+        f"@{db_secret_string['proxy']}:{db_secret_string['port']}/{db_secret_string['dbname']}"
     )
 
 

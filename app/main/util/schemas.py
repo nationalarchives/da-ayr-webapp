@@ -28,6 +28,11 @@ class CallbackRequestSchema(Schema):
         load_default=None,
         validate=validate.Length(min=1, max=500),
     )
+    state = fields.String(
+        allow_none=True,
+        load_default=None,
+        validate=validate.Length(min=1, max=500),
+    )
 
     class Meta:
         unknown = EXCLUDE
@@ -126,6 +131,18 @@ class PageImageRequestSchema(Schema):
 
     record_id = UUIDField(required=True)
     page_number = fields.Integer(required=True, validate=validate.Range(min=1))
+
+    class Meta:
+        unknown = EXCLUDE
+
+
+class SearchWithinRequestSchema(Schema):
+    """Schema for search-within-record parameters."""
+
+    record_id = UUIDField(required=True)
+    q = fields.String(
+        allow_none=True, load_default="", validate=validate.Length(max=200)
+    )
 
     class Meta:
         unknown = EXCLUDE

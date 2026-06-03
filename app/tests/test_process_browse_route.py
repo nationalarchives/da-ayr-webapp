@@ -5,7 +5,6 @@ from app.main.process_routes.browse_route import process_browse_request
 
 
 class TestProcessBrowseRoute:
-
     def test_browse_filter_no_results(self, client: FlaskClient):
         mock_validated_data = {
             "date_from_day": None,

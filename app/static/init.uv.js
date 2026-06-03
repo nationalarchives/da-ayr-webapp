@@ -10,26 +10,29 @@ function initUniversalViewer() {
   const uv = UV.init("uv", data);
   uv.on("configure", function ({ config, cb }) {
     config.modules.centerPanel.options = {
-      usePdfJs: false,
+      usePdfJs: true,
     };
     config.modules.footerPanel.options = {
       downloadEnabled: false,
       embedEnabled: false,
-      fullscreenEnabled: false,
+      fullscreenEnabled: true,
       moreInfoEnabled: false,
+      shareEnabled: false,
+    };
+    config.modules.pdfHeaderPanel = config.modules.pdfHeaderPanel || {};
+    config.modules.pdfHeaderPanel.options = {
+      centerOptionsEnabled: true,
+      downloadEnabled: false,
       shareEnabled: false,
     };
     cb({
       options: {
-        footerPanelEnabled: false,
+        footerPanelEnabled: true,
         leftPanelEnabled: true,
         rightPanelEnabled: false,
         headerPanelEnabled: true,
-      },
-      pdfHeaderPanel: {
-        options: {
-          centerOptionsEnabled: false,
-        },
+        preserveViewport: true,
+        zoomToSearchResultEnabled: false,
       },
     });
   });

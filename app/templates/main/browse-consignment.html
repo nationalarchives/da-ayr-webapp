@@ -100,7 +100,7 @@
                                     </td>
                                 {% endif %}
                                 <td class="govuk-table__cell">
-                                    <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green{% elif record['closure_type'] == 'Closed' %}govuk-tag govuk-tag--red{% elif record['closure_type'] is none %}{% endif %}">
+                                    <strong class="{% if record['closure_type'] == 'Open' %}govuk-tag govuk-tag--green {% else %}govuk-tag govuk-tag--red {% endif %}">
                                         {{ record['closure_type'] }}
                                     </strong>
                                 </td>

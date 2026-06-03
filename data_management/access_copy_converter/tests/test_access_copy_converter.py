@@ -404,7 +404,6 @@ class TestProcessConsignment:
     def test_process_consignment_continues_on_conversion_failure(
         self, monkeypatch, sqlite_conn
     ):
-
         s3_client = boto3.client("s3", region_name="eu-west-2")
         for bucket in ["source-bucket", "dest-bucket"]:
             s3_client.create_bucket(

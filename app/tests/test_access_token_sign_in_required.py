@@ -429,6 +429,8 @@ def test_expected_unprotected_routes_decorated_by_access_token_sign_in_required(
         "main.generate_manifest",
         "main.get_page_image",
         "main.get_page_thumbnail",
+        "main.get_record_pdf",
+        "main.search_within_record",
     ]
     expected_unprotected_routes = [
         "static",

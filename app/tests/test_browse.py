@@ -147,3 +147,33 @@ class TestBrowse:
 
         assert b"Search for digital records" in response.data
         assert b"Browse records 27" in response.data
+
+    def test_browse_filter_sort_and_choose_transferring_body_contract(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given an all access user with browse fixtures
+        When they apply transferring body and date filters with sort order
+        Then results are filtered/sorted and include a selectable transferring body link
+        """
+        mock_all_access_user(client)
+
+        response = client.get(
+            "/browse?sort=transferring_body-desc&transferring_body_filter=first_body"
+            "&date_from_day=01&date_from_month=01&date_from_year=2023"
+        )
+
+        assert response.status_code == 200
+        verify_browse_view_header_row(response.data)
+        verify_desktop_data_rows(
+            response.data,
+            [["'first_body', 'first_series', '07/02/2023', '3', '2'"]],
+        )
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        decompose_desktop_invisible_elements(soup)
+        body_link = soup.find(
+            "a",
+            href=f"{self.transferring_body_route_url}/{browse_files[0].consignment.series.body.BodyId}",
+        )
+        assert body_link is not None

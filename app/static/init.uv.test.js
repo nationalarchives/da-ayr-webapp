@@ -110,46 +110,44 @@ describe("tests for init.uv.js", () => {
   });
 
   it("should configure UV viewer with correct options", () => {
+    const cbMock = jest.fn();
+    const config = { modules: { centerPanel: {}, footerPanel: {} } };
+
     window.UV = {
       init: jest.fn(() => ({
-        on: (event, handler) => {
+        on: jest.fn((event, handler) => {
           if (event === "configure") {
-            const config = { modules: { centerPanel: {}, footerPanel: {} } };
-            const cb = jest.fn();
-            handler({ config, cb });
-            // centerPanel.options
-            expect(config.modules.centerPanel.options.usePdfJs).toBe(true);
-            // footerPanel.options
-            expect(config.modules.footerPanel.options.downloadEnabled).toBe(
-              false,
-            );
-            expect(config.modules.footerPanel.options.embedEnabled).toBe(false);
-            expect(config.modules.footerPanel.options.fullscreenEnabled).toBe(
-              false,
-            );
-            expect(config.modules.footerPanel.options.moreInfoEnabled).toBe(
-              false,
-            );
-            expect(config.modules.footerPanel.options.shareEnabled).toBe(false);
-            // callback options
-            expect(cb).toHaveBeenCalledWith(
-              expect.objectContaining({
-                options: expect.objectContaining({
-                  footerPanelEnabled: false,
-                  leftPanelEnabled: true,
-                  rightPanelEnabled: false,
-                  headerPanelEnabled: true,
-                }),
-                pdfHeaderPanel: expect.objectContaining({
-                  options: expect.objectContaining({
-                    centerOptionsEnabled: false,
-                  }),
-                }),
-              }),
-            );
+            handler({ config, cb: cbMock });
           }
-        },
+        }),
       })),
     };
+
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+
+    expect(config.modules.centerPanel.options.usePdfJs).toBe(true);
+
+    expect(config.modules.footerPanel.options.downloadEnabled).toBe(false);
+    expect(config.modules.footerPanel.options.embedEnabled).toBe(false);
+    expect(config.modules.footerPanel.options.fullscreenEnabled).toBe(true);
+    expect(config.modules.footerPanel.options.moreInfoEnabled).toBe(false);
+    expect(config.modules.footerPanel.options.shareEnabled).toBe(false);
+
+    expect(config.modules.pdfHeaderPanel.options.centerOptionsEnabled).toBe(
+      true,
+    );
+    expect(config.modules.pdfHeaderPanel.options.downloadEnabled).toBe(false);
+    expect(config.modules.pdfHeaderPanel.options.shareEnabled).toBe(false);
+
+    expect(cbMock).toHaveBeenCalledWith({
+      options: {
+        footerPanelEnabled: true,
+        leftPanelEnabled: true,
+        rightPanelEnabled: false,
+        headerPanelEnabled: true,
+        preserveViewport: true,
+        zoomToSearchResultEnabled: false,
+      },
+    });
   });
 });

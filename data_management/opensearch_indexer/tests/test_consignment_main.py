@@ -519,7 +519,6 @@ def test_all_consignments_index_raises_error_after_collecting_failures(
         with patch(
             "opensearch_indexer.index_consignment.bulk_index_consignment.bulk_index_files_in_opensearch"
         ) as mock_bulk:
-
             # First consignment succeeds, second fails
             mock_bulk.side_effect = [None, Exception("Error")]
 
@@ -597,7 +596,6 @@ def test_main_raises_exception_when_missing_env_vars(monkeypatch):
 
 @mock_aws
 def test_invalid_indexer_type_raises_value_error(monkeypatch):
-
     secret_name = "test_vars"  # pragma: allowlist secret
     db_secret_name = "test_db_vars"  # pragma: allowlist secret
 
