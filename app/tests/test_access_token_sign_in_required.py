@@ -286,6 +286,8 @@ class TestAccessTokenSignInRequiredDecorator:
                     return {"active": False}
                 elif token == "active_access_token":
                     return {"active": True}
+                else:
+                    return {"active": False}
 
             mock_keycloak.return_value.introspect.side_effect = mock_introspect
 
