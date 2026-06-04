@@ -133,11 +133,9 @@ describe("tests for init.uv.js", () => {
     expect(config.modules.footerPanel.options.moreInfoEnabled).toBe(false);
     expect(config.modules.footerPanel.options.shareEnabled).toBe(false);
 
-    expect(config.modules.pdfHeaderPanel.options.centerOptionsEnabled).toBe(
-      true,
-    );
-    expect(config.modules.pdfHeaderPanel.options.downloadEnabled).toBe(false);
-    expect(config.modules.pdfHeaderPanel.options.shareEnabled).toBe(false);
+    expect(
+      config.modules.searchFooterPanel.options.positionMarkerEnabled,
+    ).toBe(false);
 
     expect(cbMock).toHaveBeenCalledWith({
       options: {

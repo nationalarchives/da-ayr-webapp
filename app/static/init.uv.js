@@ -19,11 +19,9 @@ function initUniversalViewer() {
       moreInfoEnabled: false,
       shareEnabled: false,
     };
-    config.modules.pdfHeaderPanel = config.modules.pdfHeaderPanel || {};
-    config.modules.pdfHeaderPanel.options = {
-      centerOptionsEnabled: true,
-      downloadEnabled: false,
-      shareEnabled: false,
+    config.modules.searchFooterPanel = config.modules.searchFooterPanel || {};
+    config.modules.searchFooterPanel.options = {
+      positionMarkerEnabled: false,
     };
     cb({
       options: {
