@@ -219,6 +219,13 @@ class TestRoutes:
                                 },
                             ],
                             "label": "Page 1",
+                            "thumbnail": {
+                                "@id": f"http://localhost/record/{file.FileId}/page/1",
+                                "@type": "dctypes:Image",
+                                "format": "image/jpeg",
+                                "height": 416,
+                                "width": 416,
+                            },
                             "width": 416,
                         },
                     ],

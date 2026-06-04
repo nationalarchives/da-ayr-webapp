@@ -217,6 +217,13 @@ def generate_pdf_manifest(
                     "label": f"Page {page_number}",
                     "width": width,
                     "height": height,
+                    "thumbnail": {
+                        "@id": page_image_url,
+                        "@type": "dctypes:Image",
+                        "format": "image/jpeg",
+                        "width": width,
+                        "height": height,
+                    },
                     "images": [
                         {
                             "@type": "oa:Annotation",
