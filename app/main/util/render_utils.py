@@ -214,7 +214,7 @@ def generate_pdf_manifest(
                 {
                     "@type": "sc:Canvas",
                     "@id": canvas_id,
-                    "label": f"Page {page_number}",
+                    "label": {"en": [str(page_number)]},
                     "width": width,
                     "height": height,
                     "thumbnail": {

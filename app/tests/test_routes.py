@@ -218,7 +218,7 @@ class TestRoutes:
                                     },
                                 },
                             ],
-                            "label": "Page 1",
+                            "label": {"en": ["1"]},
                             "thumbnail": {
                                 "@id": f"http://localhost/record/{file.FileId}/page/1",
                                 "@type": "dctypes:Image",
