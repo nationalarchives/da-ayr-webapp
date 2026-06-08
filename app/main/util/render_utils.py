@@ -30,6 +30,7 @@ def _open_pdf(pdf_bytes: bytes):
             except RuntimeError:
                 pass
 
+
 from app.main.db.models import File
 
 
