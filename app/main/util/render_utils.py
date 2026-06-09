@@ -9,6 +9,8 @@ from botocore.exceptions import ClientError
 from flask import Response, current_app, jsonify, url_for
 from PIL import Image
 
+from app.main.db.models import File
+
 
 @contextlib.contextmanager
 def _open_pdf(pdf_bytes: bytes):
@@ -29,9 +31,6 @@ def _open_pdf(pdf_bytes: bytes):
                 current_app.logger.debug("MuPDF: %s", messages)
             except RuntimeError:
                 pass  # current_app raises RuntimeError outside app context, debug logging is not critical
-
-
-from app.main.db.models import File
 
 
 def generate_breadcrumb_values(file):
