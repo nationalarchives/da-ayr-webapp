@@ -28,7 +28,7 @@ def _open_pdf(pdf_bytes: bytes):
             try:
                 current_app.logger.debug("MuPDF: %s", messages)
             except RuntimeError:
-                pass
+                pass  # current_app raises RuntimeError outside app context, debug logging is not critical
 
 
 from app.main.db.models import File
