@@ -284,7 +284,7 @@ def test_get_pagination_info(mock_calculate_total_pages, mock_get_pagination):
     assert total_records == 100
     assert pagination == {
         "next": 2,
-        "pages": [1, 2, "ellipses", 10],
+        "pages": [1, 2, "ellipsis", 10],
         "previous": None,
     }
 

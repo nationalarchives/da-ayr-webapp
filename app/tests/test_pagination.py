@@ -87,13 +87,13 @@ class TestPaginationUtilities:
             (
                 1,
                 100,
-                {"previous": None, "next": 2, "pages": [1, 2, "ellipses", 100]},
+                {"previous": None, "next": 2, "pages": [1, 2, "ellipsis", 100]},
             ),
             # if current page is 2 out of 100 outcome is 1 2 3 ... 100
             (
                 2,
                 100,
-                {"previous": 1, "next": 3, "pages": [1, 2, 3, "ellipses", 100]},
+                {"previous": 1, "next": 3, "pages": [1, 2, 3, "ellipsis", 100]},
             ),
             # if current page is 3 out of 100 outcome is 1 2 3 4 ... 100
             (
@@ -102,7 +102,7 @@ class TestPaginationUtilities:
                 {
                     "previous": 2,
                     "next": 4,
-                    "pages": [1, 2, 3, 4, "ellipses", 100],
+                    "pages": [1, 2, 3, 4, "ellipsis", 100],
                 },
             ),
             # if current page is 4 out of 100 outcome is 1 ... 3 4 5 ... 100
@@ -112,7 +112,7 @@ class TestPaginationUtilities:
                 {
                     "previous": 3,
                     "next": 5,
-                    "pages": [1, "ellipses", 3, 4, 5, "ellipses", 100],
+                    "pages": [1, "ellipsis", 3, 4, 5, "ellipsis", 100],
                 },
             ),
             # if current page is 100 out of 100 outcome is 1 ... 99 100
@@ -122,7 +122,7 @@ class TestPaginationUtilities:
                 {
                     "previous": 99,
                     "next": None,
-                    "pages": [1, "ellipses", 99, 100],
+                    "pages": [1, "ellipsis", 99, 100],
                 },
             ),
             # if current page is 99 out of 100 outcome is 1 ... 98 99 100
@@ -132,7 +132,7 @@ class TestPaginationUtilities:
                 {
                     "previous": 98,
                     "next": 100,
-                    "pages": [1, "ellipses", 98, 99, 100],
+                    "pages": [1, "ellipsis", 98, 99, 100],
                 },
             ),
             # if current page is 98 out of 100 outcome is 1 ... 97 98 99 100
@@ -142,7 +142,7 @@ class TestPaginationUtilities:
                 {
                     "previous": 97,
                     "next": 99,
-                    "pages": [1, "ellipses", 97, 98, 99, 100],
+                    "pages": [1, "ellipsis", 97, 98, 99, 100],
                 },
             ),
             # if current page is 97 out of 100 outcome is 1 ... 96 97 98 ... 100
@@ -152,7 +152,7 @@ class TestPaginationUtilities:
                 {
                     "previous": 96,
                     "next": 98,
-                    "pages": [1, "ellipses", 96, 97, 98, "ellipses", 100],
+                    "pages": [1, "ellipsis", 96, 97, 98, "ellipsis", 100],
                 },
             ),
             # edge case where there are 5 pages and current is 3, all pages should be visible
