@@ -476,8 +476,10 @@ class TestSearchResultsSummary:
         soup = BeautifulSoup(response.data, "html.parser")
         link = soup.find(
             "a",
-            href=lambda href: href
-            and f"/search/transferring_body/{transferring_body_id}" in href,
+            href=lambda href: (
+                href
+                and f"/search/transferring_body/{transferring_body_id}" in href
+            ),
         )
         assert link is not None
         assert "query=a" in link["href"]
