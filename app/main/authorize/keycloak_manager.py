@@ -20,3 +20,7 @@ def get_user_transferring_body_keycloak_groups(groups: List[str]) -> List[str]:
         if len(transferring_body) > 0:
             users_transferring_bodies.append(transferring_body)
     return users_transferring_bodies
+
+
+def decode_verified_token_claims(keycloak_openid, access_token):
+    return keycloak_openid.decode_token(access_token)

@@ -25,6 +25,7 @@ from app.main.authorize.access_token_sign_in_required import (
     access_token_sign_in_required,
 )
 from app.main.authorize.ayr_user import AYRUser
+from app.main.authorize.keycloak_manager import decode_verified_token_claims
 from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
 )
@@ -224,7 +225,7 @@ def _resolve_user_claims_with_fallbacks(
             "Groups unavailable from introspection/userinfo; trying access token claim fallback"
         )
         try:
-            token_claims = _decode_verified_token_claims(
+            token_claims = decode_verified_token_claims(
                 keycloak_openid=keycloak_openid,
                 access_token=access_token,
             )
@@ -241,10 +242,6 @@ def _resolve_user_claims_with_fallbacks(
         or token_claims.get("sub")
     )
     return user_groups, user_id
-
-
-def _decode_verified_token_claims(keycloak_openid, access_token):
-    return keycloak_openid.decode_token(access_token)
 
 
 @bp.route("/accessibility", methods=["GET"])

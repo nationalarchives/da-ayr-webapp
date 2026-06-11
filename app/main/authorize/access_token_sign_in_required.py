@@ -4,6 +4,7 @@ import keycloak
 from flask import current_app, flash, g, redirect, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
+from app.main.authorize.keycloak_manager import decode_verified_token_claims
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
@@ -134,7 +135,7 @@ def _resolve_user_groups_with_fallbacks(
             "Groups unavailable from introspection/userinfo during refresh; trying access token claim fallback"
         )
         try:
-            token_claims = _decode_verified_token_claims(
+            token_claims = decode_verified_token_claims(
                 keycloak_openid=keycloak_openid,
                 access_token=access_token,
             )
@@ -153,7 +154,3 @@ def _set_user_type(user_groups):
         session["user_type"] = "all_access_user"
     else:
         session["user_type"] = "standard_user"
-
-
-def _decode_verified_token_claims(keycloak_openid, access_token):
-    return keycloak_openid.decode_token(access_token)

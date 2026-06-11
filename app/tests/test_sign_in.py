@@ -135,6 +135,36 @@ def test_callback_falls_back_to_access_token_claims_when_userinfo_unavailable(
 
 
 @patch("app.main.routes.get_keycloak_instance_from_flask_config")
+def test_callback_redirects_to_index_when_all_group_fallbacks_unavailable(
+    mock_keycloak, client
+):
+    mock_keycloak.return_value.token.return_value = {
+        "access_token": "valid_access_token",
+        "refresh_token": "valid_refresh_token",
+    }
+    mock_keycloak.return_value.introspect.return_value = {}
+    mock_keycloak.return_value.userinfo.side_effect = Exception(
+        "userinfo not available"
+    )
+    mock_keycloak.return_value.decode_token.side_effect = Exception(
+        "decode not available"
+    )
+
+    with client.session_transaction() as sess:
+        sess["oauth_state"] = "valid_state"
+
+    response = client.get("/callback?code=valid_code&state=valid_state")
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == url_for("main.browse")
+
+    with client.session_transaction() as sess:
+        assert sess["user_groups"] == []
+        assert sess["user_type"] == "standard_user"
+        assert sess["user_id"] is None
+
+
+@patch("app.main.routes.get_keycloak_instance_from_flask_config")
 def test_callback_missing_code(mock_keycloak, client):
     response = client.get("/callback")
 
