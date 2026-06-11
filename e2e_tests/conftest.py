@@ -4,8 +4,7 @@ import uuid
 
 import keycloak
 import pytest
-from playwright.sync_api import Page
-from playwright.sync_api import expect
+from playwright.sync_api import Page, expect
 
 
 def pytest_configure(config):
@@ -96,35 +95,14 @@ def create_user_page(
         # WebKit can occasionally fail first sign-in submit in local Keycloak;
         # retry to handle transient auth-page timing/state issues.
         for attempt in range(3):
-            if page.locator("label:has-text('Email address')").count() > 0:
-                username_input = page.get_by_label("Email address").first
-            elif page.locator("label:has-text('Email')").count() > 0:
-                username_input = page.get_by_label("Email").first
-            elif page.locator("label:has-text('Username or email')").count() > 0:
-                username_input = page.get_by_label("Username or email").first
-            else:
-                username_input = page.locator(
-                    "input[name='username'], input[name='email'], input#username"
-                ).first
+            username_input = _get_username_input_or_none(page)
+            if username_input is None:
+                page.goto("/sign-in")
+                page.wait_for_timeout(1000)
+                continue
 
-                if page.locator(
-                    "input[name='username'], input[name='email'], input#username"
-                ).count() == 0:
-                    page.goto("/sign-in")
-                    page.wait_for_timeout(1000)
-                    continue
-
-            if page.get_by_role("textbox", name="Password").count() > 0:
-                password_input = page.get_by_role("textbox", name="Password").first
-            else:
-                password_input = page.locator("input[type='password']").first
-
-            if page.get_by_role("button", name="Sign in").count() > 0:
-                submit_button = page.get_by_role("button", name="Sign in").first
-            else:
-                submit_button = page.locator(
-                    "button[type='submit'], input[type='submit']"
-                ).first
+            password_input = _get_password_input(page)
+            submit_button = _get_submit_button(page)
 
             username_input.fill(username)
             password_input.fill(password)
@@ -143,6 +121,34 @@ def create_user_page(
         return page
 
     return _create_user_page
+
+
+def _get_username_input_or_none(page: Page):
+    if page.locator("label:has-text('Email address')").count() > 0:
+        return page.get_by_label("Email address").first
+    if page.locator("label:has-text('Email')").count() > 0:
+        return page.get_by_label("Email").first
+    if page.locator("label:has-text('Username or email')").count() > 0:
+        return page.get_by_label("Username or email").first
+
+    username_inputs = page.locator(
+        "input[name='username'], input[name='email'], input#username"
+    )
+    if username_inputs.count() == 0:
+        return None
+    return username_inputs.first
+
+
+def _get_password_input(page: Page):
+    if page.get_by_role("textbox", name="Password").count() > 0:
+        return page.get_by_role("textbox", name="Password").first
+    return page.locator("input[type='password']").first
+
+
+def _get_submit_button(page: Page):
+    if page.get_by_role("button", name="Sign in").count() > 0:
+        return page.get_by_role("button", name="Sign in").first
+    return page.locator("button[type='submit'], input[type='submit']").first
 
 
 def get_keycloak_token(keycloak_openid):
