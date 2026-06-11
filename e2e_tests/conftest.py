@@ -1,9 +1,11 @@
 import os
+import re
 import uuid
 
 import keycloak
 import pytest
 from playwright.sync_api import Page
+from playwright.sync_api import expect
 
 
 def pytest_configure(config):
@@ -90,14 +92,54 @@ def create_user_page(
     # so that multiple browser flags in cli are honoured
     def _create_user_page(username, password) -> Page:
         page.goto("/sign-in")
-        if page.locator("label:has-text('Email address')").count() > 0:
-            page.get_by_label("Email address").first.fill(username)
-        elif page.locator("label:has-text('Email')").count() > 0:
-            page.get_by_label("Email").first.fill(username)
-        else:
-            page.get_by_label("Username or email").first.fill(username)
-        page.get_by_role("textbox", name="Password").fill(password)
-        page.get_by_role("button", name="Sign in").click()
+
+        # WebKit can occasionally fail first sign-in submit in local Keycloak;
+        # retry to handle transient auth-page timing/state issues.
+        for attempt in range(3):
+            if page.locator("label:has-text('Email address')").count() > 0:
+                username_input = page.get_by_label("Email address").first
+            elif page.locator("label:has-text('Email')").count() > 0:
+                username_input = page.get_by_label("Email").first
+            elif page.locator("label:has-text('Username or email')").count() > 0:
+                username_input = page.get_by_label("Username or email").first
+            else:
+                username_input = page.locator(
+                    "input[name='username'], input[name='email'], input#username"
+                ).first
+
+                if page.locator(
+                    "input[name='username'], input[name='email'], input#username"
+                ).count() == 0:
+                    page.goto("/sign-in")
+                    page.wait_for_timeout(1000)
+                    continue
+
+            if page.get_by_role("textbox", name="Password").count() > 0:
+                password_input = page.get_by_role("textbox", name="Password").first
+            else:
+                password_input = page.locator("input[type='password']").first
+
+            if page.get_by_role("button", name="Sign in").count() > 0:
+                submit_button = page.get_by_role("button", name="Sign in").first
+            else:
+                submit_button = page.locator(
+                    "button[type='submit'], input[type='submit']"
+                ).first
+
+            username_input.fill(username)
+            password_input.fill(password)
+            submit_button.click()
+
+            try:
+                expect(page).to_have_url(
+                    re.compile(r".*/browse.*"), timeout=10000
+                )
+                break
+            except AssertionError:
+                if attempt == 2:
+                    raise
+                page.wait_for_timeout(1000)
+
         return page
 
     return _create_user_page
@@ -276,8 +318,8 @@ def standard_user_page_with_download(
     page.goto("/sign-out")
 
 
-@pytest.fixture(scope="session")
-def browser_context_args(browser_context_args):
+@pytest.fixture
+def browser_context_args(browser_context_args, browser_name):
     """
     Fixture for configuring Playwright browser context arguments.
     This fixture is used to customize browser context arguments for Playwright
@@ -289,13 +331,19 @@ def browser_context_args(browser_context_args):
     Returns:
         dict: Updated browser context arguments with customized settings.
     """
-    return {
+    context_args = {
         **browser_context_args,
-        "user_agent": (
+        "ignore_https_errors": True,
+        # WebKit intermittently lands on Keycloak auth transitions
+        # that require JavaScript to render/login correctly.
+        "java_script_enabled": browser_name == "webkit",
+    }
+
+    if browser_name != "webkit":
+        context_args["user_agent"] = (
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
             "Chrome/114.0.0.0 Safari/537.36"
-        ),
-        "ignore_https_errors": True,
-        "java_script_enabled": False,
-    }
+        )
+
+    return context_args

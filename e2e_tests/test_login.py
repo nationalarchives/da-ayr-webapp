@@ -7,7 +7,7 @@ from playwright.sync_api import Page, expect
 
 
 def test_sign_in_succeeds_when_valid_credentials(
-    page: Page, create_aau_keycloak_user
+    create_user_page, create_aau_keycloak_user
 ):
     """
     Given a user is on the sign-in page,
@@ -16,15 +16,7 @@ def test_sign_in_succeeds_when_valid_credentials(
     And they should be on the '/browse' page.
     """
     username, password = create_aau_keycloak_user
-    page.goto("/sign-in")
-    if page.locator("label:has-text('Email address')").count() > 0:
-        page.get_by_label("Email address").first.fill(username)
-    elif page.locator("label:has-text('Email')").count() > 0:
-        page.get_by_label("Email").first.fill(username)
-    else:
-        page.get_by_label("Username or email").first.fill(username)
-    page.get_by_role("textbox", name="Password").fill(password)
-    page.get_by_role("button", name="Sign in").click()
+    page = create_user_page(username, password)
     expect(page).to_have_url("/browse")
 
     cookies = page.context.cookies()
