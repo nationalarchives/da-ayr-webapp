@@ -28,24 +28,31 @@ def create_mock_s3_bucket_with_object(bucket_name, file):
 
 
 def expected_download_html_with_citeable_reference(
-    file_id, file_name_download, file_name
+    jinja_env, file_id, file_name_download, file_name
 ):
-    return f"""
+    return jinja_env.from_string("""
+        {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
         <div class="rights-container">
             <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-            <a href="/download/{file_id}"
-                class="govuk-button govuk-button__download--record"
-                data-module="govuk-button"
-                aria-label="Download record {file_name}">Download record</a>
+            {{ govukButton({
+                'text': 'Download record',
+                'href': '/download/' ~ file_id,
+                'classes': 'govuk-button__download--record',
+                'attributes': {'aria-label': 'Download record ' ~ file_name}
+            }) }}
             <p class="govuk-body govuk-body--download-filename">
                 The downloaded record will be named<br>
-                <strong>{file_name_download}</strong>
+                <strong>{{ file_name_download }}</strong>
             </p>
             <p class="govuk-body govuk-body--terms-of-use">
                 Refer to <a href="/terms-of-use" class="govuk-link govuk-link--ayr">Terms of use.</a>
             </p>
         </div>
-        """
+    """).render(
+        file_id=file_id,
+        file_name_download=file_name_download,
+        file_name=file_name,
+    )
 
 
 def expected_download_html_without_citeable_reference(
