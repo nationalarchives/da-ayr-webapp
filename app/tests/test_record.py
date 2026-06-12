@@ -419,7 +419,7 @@ class TestRecord:
 
     @mock_aws
     def test_record_standard_user_with_perms_can_download_record_with_citeable_reference(
-        self, app, client: FlaskClient, mock_standard_user
+        self, app, client: FlaskClient, mock_standard_user, jinja_env
     ):
         """
         Given a File in the database
@@ -447,7 +447,7 @@ class TestRecord:
         html = response.data.decode()
 
         expected_download_html = expected_download_html_with_citeable_reference(
-            file.FileId, download_filename, file.FileName
+            jinja_env, file.FileId, download_filename, file.FileName
         )
 
         assert_contains_html(
