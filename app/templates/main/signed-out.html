@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
+{% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 {% block pageTitle %}Signed-out page – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block beforeContent %}{{ super() }}{% endblock %}
 {% block content %}
@@ -9,10 +10,11 @@
                 <div class="govuk-grid-column-two-thirds">
                     <h1 class="govuk-heading-l">You have signed out</h1>
                     <p class="govuk-body-l">Thank you for using Access Your Records.</p>
-                    <a href="/sign-in"
-                       role="button"
-                       class="govuk-button govuk-button--sign-in-again"
-                       data-module="govuk-button">Sign in</a>
+                    {{ govukButton({
+                    'text': "Sign in",
+                    'href': "/sign-in",
+                    'classes': "govuk-button--sign-in-again"
+                    }) }}
                 </div>
             </div>
         </main>

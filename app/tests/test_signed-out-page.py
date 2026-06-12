@@ -1,7 +1,7 @@
 from app.tests.assertions import assert_contains_html
 
 
-def test_signed_out_page(client):
+def test_signed_out_page(client, jinja_env):
     response = client.get("/signed-out")
 
     assert response.status_code == 200
@@ -16,10 +16,14 @@ def test_signed_out_page(client):
         in response.data
     )
 
-    expected_button_html = (
-        '<a href="/sign-in" role="button" class="govuk-button govuk-button--sign-in-again" '
-        'data-module="govuk-button">Sign in</a>'
-    )
+    expected_button_html = jinja_env.from_string("""
+        {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
+        {{ govukButton({
+            'text': "Sign in",
+            'href': "/sign-in",
+            'classes': "govuk-button--sign-in-again"
+        }) }}
+    """).render()
     assert_contains_html(
         expected_button_html,
         html,
