@@ -388,7 +388,7 @@ class TestRecord:
         assert banner is None
 
     def test_record_standard_user_with_perms_can_download_record_without_citeable_reference(
-        self, app, client: FlaskClient, mock_standard_user
+        self, app, client: FlaskClient, mock_standard_user, jinja_env
     ):
         """
         Given a File in the database
