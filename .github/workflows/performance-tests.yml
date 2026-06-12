@@ -1,0 +1,177 @@
+name: Run Performance Tests
+
+permissions:
+  contents: read
+  packages: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      users:
+        description: "Number of concurrent users"
+        required: false
+        default: "20"
+      spawn_rate:
+        description: "Users spawned per second"
+        required: false
+        default: "2"
+      run_time:
+        description: "Locust run time (for example 3m, 5m, 1h)"
+        required: false
+        default: "3m"
+
+concurrency:
+  group: performance-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_webapp_image:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+
+    - name: Log in to GHCR for Docker cache
+      uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build webapp image tar with cache
+      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+      with:
+        push: false
+        tags: "da-ayr-beta-webapp:latest"
+        cache-from: |
+          type=gha,scope=webapp
+          type=registry,ref=ghcr.io/nationalarchives/da-ayr-webapp-cache-webapp:main
+        cache-to: type=gha,scope=webapp,mode=max
+        outputs: type=docker,dest=/tmp/da-ayr-beta-webapp-image.tar
+
+    - name: Upload webapp image artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: da-ayr-beta-webapp-image
+        path: /tmp/da-ayr-beta-webapp-image.tar
+        retention-days: 1
+
+  performance_tests:
+    needs: build_webapp_image
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+
+    - name: Download webapp image artifact
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: da-ayr-beta-webapp-image
+        path: /tmp
+
+    - name: Load webapp image
+      run: docker load --input /tmp/da-ayr-beta-webapp-image.tar
+
+    - name: Verify webapp image is available locally
+      run: docker image inspect da-ayr-beta-webapp:latest > /dev/null
+
+    - name: Set up Docker Compose
+      uses: docker/setup-compose-action@8cccb8c14b6500aaffebff1aa49c502c34d2e5e6 # v2.1.0
+      with:
+        version: v2.40.3
+
+    - name: Generate Keycloak TLS certs
+      run: ./local_services/generate-keycloak-certs.sh
+
+    - name: Start Docker Compose with CI-specific configuration
+      run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build webapp minio-init socat-localhost || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
+
+    - name: Set up Python
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+      with:
+        python-version: 3.11
+
+    - name: Install Locust
+      run: pip install locust
+
+    - name: Set up performance test environment
+      env:
+        KEYCLOAK_AUTH_URL_VALUE: ${{ vars.KEYCLOAK_AUTH_URL || 'http://127.0.0.1:8080/realms/tdr/protocol/openid-connect/token' }}
+      run: | # pragma: allowlist secret
+        cat > .env.performance << EOF
+        CERT_PATH=False
+        AYR_AAU_USER_USERNAME=testuser
+        AYR_AAU_USER_PASSWORD=password123
+        KEYCLOAK_AUTH_URL=$KEYCLOAK_AUTH_URL_VALUE
+        KEYCLOAK_CLIENT_ID=ayr-beta
+        KEYCLOAK_CLIENT_SECRET=test-client-secret
+        EOF
+
+    - name: Run Locust headless
+      env:
+        USERS: ${{ github.event.inputs.users || '20' }}
+        SPAWN_RATE: ${{ github.event.inputs.spawn_rate || '2' }}
+        RUN_TIME: ${{ github.event.inputs.run_time || '3m' }}
+      run: |
+        mkdir -p performance_tests/results
+        set -a
+        source .env.performance
+        set +a
+
+        if ! [[ "$USERS" =~ ^[0-9]+$ ]]; then
+          echo "Invalid users input: $USERS"
+          exit 1
+        fi
+
+        if ! [[ "$SPAWN_RATE" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+          echo "Invalid spawn_rate input: $SPAWN_RATE"
+          exit 1
+        fi
+
+        if ! [[ "$RUN_TIME" =~ ^[0-9]+[smhd]$ ]]; then
+          echo "Invalid run_time input: $RUN_TIME"
+          exit 1
+        fi
+
+        locust \
+          -f performance_tests/locustfile.py \
+          --headless \
+          --host=https://127.0.0.1:5000 \
+          --users "$USERS" \
+          --spawn-rate "$SPAWN_RATE" \
+          --autostart \
+          --run-time "$RUN_TIME" \
+          --autoquit 10 \
+          --exit-code-on-error 1 \
+          --only-summary \
+          --csv performance_tests/results/locust \
+          --html performance_tests/results/locust.html
+
+    - name: Upload performance test artifacts
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      if: always()
+      with:
+        name: locust-performance-results
+        path: performance_tests/results/
+        retention-days: 7
+
+    - name: Check logs after test failure
+      if: failure()
+      run: cd local_services && docker compose -f docker-compose.ci.yml logs
+
+    - name: Stop services
+      if: always()
+      run: |
+        cd local_services
+        docker compose -f docker-compose.ci.yml down -v
+        docker system prune -f
