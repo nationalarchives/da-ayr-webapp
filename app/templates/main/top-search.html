@@ -1,4 +1,4 @@
-{% from 'macros/buttons.html' import govuk_button %}
+{% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 {% set search_areas = [
     {
         "value": "everywhere",
@@ -50,10 +50,10 @@
                            type="text"
                            value="{{ (filters['query'] if filters['query'] else '') | replace('+', ', ') }}"
                            aria-label="Enter search query for digital records" />
-                    {{ govuk_button(
-                    "Search",
-                    button_id="search-submit",
-                    ) }}
+                    {{ govukButton({
+                    'text': "Search",
+                    'button_id': "search-submit",
+                    }) }}
                 </div>
             </fieldset>
         </form>
