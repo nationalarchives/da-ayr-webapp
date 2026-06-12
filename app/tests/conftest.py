@@ -1207,18 +1207,16 @@ def record_files():
 
 @pytest.fixture
 def jinja_env():
-    # Use os directly if imported at the top
-    node_modules_path = os.path.join(
-        os.getcwd(), "node_modules", "govuk-frontend", "dist"
-    )
-
-    # Define the environment directly
     env = Environment(
         loader=ChoiceLoader(
             [
                 PackageLoader("app", "templates"),
                 PackageLoader("govuk_frontend_jinja", "templates"),
-                FileSystemLoader(node_modules_path),
+                FileSystemLoader(
+                    os.path.join(
+                        os.getcwd(), "node_modules", "govuk-frontend", "dist"
+                    )
+                ),
             ]
         ),
         autoescape=select_autoescape(["html", "xml"]),
