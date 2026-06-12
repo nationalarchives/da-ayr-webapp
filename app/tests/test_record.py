@@ -416,7 +416,7 @@ class TestRecord:
         html = response.data.decode()
         expected_download_html = (
             expected_download_html_without_citeable_reference(
-                file.FileId, file.FileName
+                jinja_env, file.FileId, file.FileName
             )
         )
 
