@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from flask.testing import FlaskClient
+from jinja2 import Environment, PackageLoader, select_autoescape
 from testing.postgresql import PostgresqlFactory
 
 from app import create_app
@@ -1195,3 +1196,12 @@ def record_files():
         file_5_metadata,
         file_6_metadata,
     ]
+
+
+@pytest.fixture
+def jinja_env():
+    env = Environment(
+        loader=PackageLoader("app", "templates"),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
+    return env
