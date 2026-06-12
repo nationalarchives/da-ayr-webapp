@@ -18,6 +18,7 @@ jobs:
     outputs:
       run_e2e: ${{ steps.filter.outputs.e2e }}
       run_accessibility: ${{ steps.filter.outputs.accessibility }}
+      run_mds_smoke: ${{ steps.filter.outputs.mds_smoke }}
 
     steps:
     - name: Checkout code
@@ -47,6 +48,15 @@ jobs:
             - 'Dockerfile'
             - 'main_app.py'
             - 'package*.json'
+            - '.github/workflows/ci-tests.yml'
+          mds_smoke:
+            - 'app/**'
+            - 'configs/**'
+            - 'local_services/mds_data_generator/**'
+            - 'local_services/import/**'
+            - 'local_services/docker-compose.ci.yml'
+            - 'Dockerfile'
+            - 'main_app.py'
             - '.github/workflows/ci-tests.yml'
 
   build_webapp_image:
@@ -184,7 +194,7 @@ jobs:
           -v "$(pwd)/e2e_tests":/e2e_tests e2e_tests:latest
 
     - name: Run MDS importer smoke test
-      if: github.event_name == 'merge_group'
+      if: github.event_name == 'merge_group' || needs.changes.outputs.run_mds_smoke == 'true'
       run: |
         docker compose -f local_services/docker-compose.ci.yml \
           exec -T \
