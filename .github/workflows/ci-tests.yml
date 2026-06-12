@@ -61,7 +61,7 @@ jobs:
 
   build_webapp_image:
     needs: changes
-    if: github.event_name == 'merge_group' || needs.changes.outputs.run_e2e == 'true' || needs.changes.outputs.run_accessibility == 'true'
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group' || needs.changes.outputs.run_e2e == 'true' || needs.changes.outputs.run_accessibility == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -103,7 +103,7 @@ jobs:
     needs:
     - changes
     - build_webapp_image
-    if: github.event_name == 'merge_group' || needs.changes.outputs.run_e2e == 'true'
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -153,7 +153,7 @@ jobs:
 
     - name: Set up E2E test environment
       env:
-        E2E_TEST_FILTER_VALUE: ${{ github.event_name == 'pull_request' && 'navigation_journeys' || '.' }}
+        E2E_TEST_FILTER_VALUE: ${{ github.event_name == 'pull_request' && (needs.changes.outputs.run_e2e == 'true' && '.' || 'navigation_journeys') || '.' }}
       run: | # pragma: allowlist secret
         cat > .env.e2e_tests << EOF
         AYR_AAU_USER_USERNAME=testuser
