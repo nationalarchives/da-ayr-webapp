@@ -48,7 +48,7 @@ repos:
         pass_filenames: false
 
 - repo: https://github.com/thibaudcolas/pre-commit-stylelint
-  rev: v16.26.1
+  rev: v17.13.0
   hooks:
     - id: stylelint
       additional_dependencies:
