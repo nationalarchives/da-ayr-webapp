@@ -484,7 +484,9 @@ class TestRecord:
         html = response.data.decode()
         soup = BeautifulSoup(html, "html.parser")
 
-        button = soup.find("a", string="Download record")
+        button = soup.find(
+            "a", string=lambda text: text and "Download record" in text
+        )
         assert button is not None, (
             "Download button should be visible for a user with download permissions"
         )
@@ -518,7 +520,9 @@ class TestRecord:
         html = response.data.decode()
 
         soup = BeautifulSoup(html, "html.parser")
-        button = soup.find("a", string="Download record")
+        button = soup.find(
+            "a", string=lambda text: text and "Download record" in text
+        )
 
         assert button is None
 
