@@ -8,6 +8,7 @@ from jinja2 import (
     Environment,
     FileSystemLoader,
     PackageLoader,
+    PrefixLoader,
     select_autoescape,
 )
 from testing.postgresql import PostgresqlFactory
@@ -1212,6 +1213,13 @@ def jinja_env():
             [
                 PackageLoader("app", "templates"),
                 PackageLoader("govuk_frontend_jinja", "templates"),
+                PrefixLoader(
+                    {
+                        "govuk_frontend_jinja": PackageLoader(
+                            "govuk_frontend_jinja", "templates"
+                        )
+                    }
+                ),
                 FileSystemLoader(
                     os.path.join(
                         os.getcwd(), "node_modules", "govuk-frontend", "dist"
