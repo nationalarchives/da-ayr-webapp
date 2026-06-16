@@ -115,7 +115,9 @@
                            list="transferring_bodies"
                            autocomplete="off">
                     <datalist id="transferring_bodies">
-                        {% for body in transferring_bodies %}<option value="{{ body }}" />{% endfor %}
+                        {% for body in transferring_bodies %}
+                            <option value="{{ body }}" />
+                        {% endfor %}
                     </datalist>
                 </div>
                 <div class="govuk-form-group">
