@@ -27,10 +27,7 @@ def _open_pdf(pdf_bytes: bytes):
         pymupdf.TOOLS.mupdf_display_errors(True)
         pymupdf.TOOLS.mupdf_display_warnings(True)
         if messages:
-            try:
-                current_app.logger.debug("MuPDF: %s", messages)
-            except RuntimeError:
-                pass  # current_app raises RuntimeError outside app context, debug logging is not critical
+            current_app.logger.debug("MuPDF: %s", messages)
 
 
 def generate_breadcrumb_values(file):
