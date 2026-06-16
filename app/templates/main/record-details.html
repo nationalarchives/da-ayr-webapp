@@ -1,4 +1,5 @@
 {%- from 'govuk_frontend_jinja/components/summary-list/macro.html' import govukSummaryList -%}
+{% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 <div class="govuk-tabs__panel govuk-tabs__panel--hidden govuk-tabs__panel__record-details"
      id="record-details">
     <div class="govuk-grid-row">
@@ -62,10 +63,12 @@
             {% if can_download_records %}
                 <div class="rights-container">
                     <h3 class="govuk-heading-m govuk-heading-m__rights-header">Rights to access</h3>
-                    <a href="{{ url_for('main.download_record', record_id=record['file_id']) }}"
-                       class="govuk-button govuk-button__download--record"
-                       data-module="govuk-button"
-                       aria-label="Download record {{ record['file_name'] }}">Download record</a>
+                    {{ govukButton({
+                    'text': "Download record",
+                    'href': url_for('main.download_record', record_id=record['file_id']),
+                    'classes': "govuk-button__download--record",
+                    'attributes': {'aria-label': "Download record " ~ record['file_name']}
+                    }) }}
                     {% if download_filename %}
                         <p class="govuk-body govuk-body--download-filename">
                             The downloaded record will be named

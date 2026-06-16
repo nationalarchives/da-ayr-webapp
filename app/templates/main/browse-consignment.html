@@ -1,4 +1,4 @@
-{% from 'macros/buttons.html' import govuk_button %}
+{% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 {% set breadcrumbs = {
     "everything":"All records available",
     "body": [breadcrumb_values[0]["transferring_body_id"], breadcrumb_values[1]["transferring_body"]],
@@ -210,10 +210,10 @@
                                         {% include "date-filters.html" %}
                                     {% endwith %}
                                     <div class="filters-form__buttons">
-                                        {{ govuk_button(
-                                        "Apply filters",
-                                        classes="govuk-button__browse-all-filters-form-apply-button"
-                                        ) }}
+                                        {{ govukButton({
+                                        'text': "Apply filters",
+                                        'classes': "govuk-button__browse-all-filters-form-apply-button",
+                                        }) }}
                                         <a class="govuk-link govuk-link--consignment-filter"
                                            href="{{ url_for('main.browse_consignment',_id = query_string_parameters['_id'], sort=query_string_parameters.get('sort'), _anchor='browse-records') }}">Clear filters</a>
                                     </div>

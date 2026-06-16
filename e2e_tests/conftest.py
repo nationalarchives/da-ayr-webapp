@@ -3,6 +3,7 @@ import uuid
 
 import keycloak
 import pytest
+from jinja2 import Environment, PackageLoader, select_autoescape
 from playwright.sync_api import Page
 
 
@@ -299,3 +300,12 @@ def browser_context_args(browser_context_args):
         "ignore_https_errors": True,
         "java_script_enabled": False,
     }
+
+
+@pytest.fixture
+def jinja_env():
+    env = Environment(
+        loader=PackageLoader("app", "templates"),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
+    return env

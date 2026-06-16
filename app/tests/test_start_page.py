@@ -1,7 +1,7 @@
 from app.tests.assertions import assert_contains_html
 
 
-def test_start_page(client):
+def test_start_page(client, jinja_env):
     response = client.get("/")
 
     assert response.status_code == 200
@@ -17,15 +17,15 @@ def test_start_page(client):
         in response.data
     )
 
-    expected_button_html = (
-        '<a class="govuk-button govuk-button--start" data-module="govuk-button" '
-        'draggable="false" href="/sign-in" role="button">Start now'
-        '<svg aria-hidden="true" class="govuk-button__start-icon" '
-        'focusable="false" height="19" viewbox="0 0 33 40" width="17.5" xmlns="http://www.w3.org/2000/svg">'
-        '<path d="M0 0h13l20 20-20 20H0l20-20z" fill="currentColor"></path>'
-        "</svg>"
-        "</a>"
-    )
+    expected_button_html = jinja_env.from_string("""
+    {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
+    {{ govukButton({
+        'text': 'Start now',
+        'href': '/sign-in',
+        'isStartButton': true,
+        'classes': 'govuk-button--start'
+    }) }}
+""").render()
     assert_contains_html(
-        expected_button_html, html, "a", {"class": "govuk-button"}
+        expected_button_html, html, "a", {"class": "govuk-button--start"}
     )

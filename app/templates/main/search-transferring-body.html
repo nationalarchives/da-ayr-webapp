@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from 'macros/buttons.html' import govuk_button %}
+{% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 {% block pageTitle %}Search results – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
 {% set breadcrumbs = {} %}
@@ -57,10 +57,10 @@
                                             <option value="{{ value }}" {% if value == sort %}selected{% endif %}>{{ key }}</option>
                                         {% endfor %}
                                     </select>
-                                    {{ govuk_button(
-                                    "Apply",
-                                    classes="govuk-button__sort-container-update-button"
-                                    ) }}
+                                    {{ govukButton({
+                                    'text': "Apply",
+                                    'classes': "govuk-button__sort-container-update-button",
+                                    }) }}
                                 </div>
                                 <form>
                                     <div class="filter-group__checkboxes">
@@ -73,10 +73,10 @@
                                                    {% if open_all %}checked{% endif %}>
                                             <label class="govuk-label govuk-checkboxes__label" for="contact">Expand all results</label>
                                         </div>
-                                        {{ govuk_button(
-                                        "Apply",
-                                        classes="govuk-button__sort-container-update-button"
-                                        ) }}
+                                        {{ govukButton({
+                                        'text': "Apply",
+                                        'classes': "govuk-button__sort-container-update-button",
+                                        }) }}
                                     </div>
                                 </form>
                             </div>
@@ -273,10 +273,10 @@
                                         {% if key != 'page' and key != 'search_filter' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}
                                     {% endfor %}
                                     <div class="search-form__buttons">
-                                        {{ govuk_button(
-                                        "Apply terms",
-                                        classes="govuk-button__search-filters-form-apply-button"
-                                        ) }}
+                                        {{ govukButton({
+                                        'text': "Apply terms",
+                                        'classes': "govuk-button__search-filters-form-apply-button",
+                                        }) }}
                                         <a class="govuk-link govuk-link--transferring-filter"
                                            href="{% if session['user_type'] == 'all_access_user' %}{{ url_for('main.browse', _anchor='browse-records') }}{% else %}{{ url_for('main.browse_transferring_body', _id = query_string_parameters['_id'], _anchor='browse-records') }}{% endif %}">Clear all terms</a>
                                     </div>

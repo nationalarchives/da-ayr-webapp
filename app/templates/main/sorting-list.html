@@ -1,4 +1,4 @@
-{% from 'macros/buttons.html' import govuk_button %}
+{% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 <div class="browse__sort-container">
     <label class="govuk-label" for="sort">Sort by</label>
     <select class="govuk-select govuk-select__sort-container-select"
@@ -15,8 +15,8 @@
             {% endif %}
         {% endfor %}
     </select>
-    {{ govuk_button(
-    "Apply",
-    classes="govuk-button__sort-container-update-button"
-    ) }}
+    {{ govukButton({
+    'text': "Apply",
+    'classes': "govuk-button__sort-container-update-button",
+    }) }}
 </div>
