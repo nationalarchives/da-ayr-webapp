@@ -102,7 +102,7 @@ services:
       "
 
   postgres:
-    image: postgres@sha256:8ff36f3c66371cba71d20ceedccfc3de9669a68737607888c4ef0af93abe8e39 # postgres:18.0 with digest for immutability
+    image: postgres@sha256:29ee7bb30d804447dc9a91fd0d74322ae1dc3a4072cc6346f70a5ed6e783b565 # postgres:18.0 with digest for immutability
     env_file:
       - .docker.env
     volumes:
@@ -117,7 +117,7 @@ services:
       - keycloak_network
 
   webapp_postgres:
-    image: postgres@sha256:8ff36f3c66371cba71d20ceedccfc3de9669a68737607888c4ef0af93abe8e39 # postgres:18.0 with digest for immutability
+    image: postgres@sha256:29ee7bb30d804447dc9a91fd0d74322ae1dc3a4072cc6346f70a5ed6e783b565 # postgres:18.0 with digest for immutability
     env_file:
       - .docker.env
     user: postgres
@@ -137,7 +137,7 @@ services:
     command: ["postgres"]
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.6.1
+    image: quay.io/keycloak/keycloak:26.6.3
     env_file:
       - .docker.env
     command: start-dev --import-realm --spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true

@@ -2,7 +2,7 @@ def get_pagination(current_page: int, total_pages: int) -> dict | None:
     """
     Generate pagination details for a given page within a total number of pages based on GDS rules.
 
-    This function creates a pagination structure that includes page numbers, ellipses for skipped ranges,
+    This function creates a pagination structure that includes page numbers, ellipsis for skipped ranges,
     and information about previous and next pages, based on the current page and total page count.
 
     Parameters:
@@ -20,7 +20,7 @@ def get_pagination(current_page: int, total_pages: int) -> dict | None:
         pages.append(1)
 
     if current_page > 3:
-        pages.append("ellipses")
+        pages.append("ellipsis")
 
     if current_page - 1 > 1:
         pages.append(current_page - 1)
@@ -31,7 +31,7 @@ def get_pagination(current_page: int, total_pages: int) -> dict | None:
         pages.append(current_page + 1)
 
     if current_page < total_pages - 2:
-        pages.append("ellipses")
+        pages.append("ellipsis")
 
     if current_page < total_pages - 1:
         pages.append(total_pages)
