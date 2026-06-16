@@ -92,31 +92,23 @@ def create_user_page(
     def _create_user_page(username, password) -> Page:
         page.goto("/sign-in")
 
-        # WebKit can occasionally fail first sign-in submit in local Keycloak;
-        # retry to handle transient auth-page timing/state issues.
-        for attempt in range(3):
-            username_input = _get_username_input_or_none(page)
-            if username_input is None:
-                page.goto("/sign-in")
-                page.wait_for_timeout(1000)
-                continue
+        expect(page.locator("input[type='password']")).to_be_visible(
+            timeout=10000
+        )
 
-            password_input = _get_password_input(page)
-            submit_button = _get_submit_button(page)
+        username_input = _get_username_input_or_none(page)
+        if username_input is None:
+            raise AssertionError(
+                "Could not find username/email input on sign-in page"
+            )
 
-            username_input.fill(username)
-            password_input.fill(password)
-            submit_button.click()
+        password_input = _get_password_input(page)
+        submit_button = _get_submit_button(page)
 
-            try:
-                expect(page).to_have_url(
-                    re.compile(r".*/browse.*"), timeout=10000
-                )
-                break
-            except AssertionError:
-                if attempt == 2:
-                    raise
-                page.wait_for_timeout(1000)
+        username_input.fill(username)
+        password_input.fill(password)
+        submit_button.click()
+        expect(page).to_have_url(re.compile(r".*/browse.*"), timeout=10000)
 
         return page
 
