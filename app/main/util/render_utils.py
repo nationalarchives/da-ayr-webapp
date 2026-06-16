@@ -1,6 +1,7 @@
 import base64
 import contextlib
 import io
+import logging
 from typing import List
 
 import boto3
@@ -11,6 +12,8 @@ from PIL import Image
 
 from app.main.db.models import File
 
+logger = logging.getLogger(__name__)
+
 
 @contextlib.contextmanager
 def _open_pdf(pdf_bytes: bytes):
@@ -18,16 +21,18 @@ def _open_pdf(pdf_bytes: bytes):
     pymupdf.TOOLS.mupdf_display_errors(False)
     pymupdf.TOOLS.mupdf_display_warnings(False)
     try:
-        with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as doc:
+        try:
+            doc = pymupdf.open("pdf", io.BytesIO(pdf_bytes))
+        except Exception as e:
+            raise ValueError(f"Failed to open PDF: {e}") from e
+        with doc:
             yield doc
-    except Exception as e:
-        raise ValueError(f"Failed to open PDF: {e}") from e
     finally:
         messages = pymupdf.TOOLS.mupdf_warnings(reset=True)
         pymupdf.TOOLS.mupdf_display_errors(True)
         pymupdf.TOOLS.mupdf_display_warnings(True)
         if messages:
-            current_app.logger.debug("MuPDF: %s", messages)
+            logger.debug("MuPDF: %s", messages)
 
 
 def generate_breadcrumb_values(file):
