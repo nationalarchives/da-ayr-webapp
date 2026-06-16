@@ -15,6 +15,10 @@ from app.main.db.models import File
 logger = logging.getLogger(__name__)
 
 
+class PDFOpenError(Exception):
+    """Raised when a PDF cannot be opened/parsed by MuPDF."""
+
+
 @contextlib.contextmanager
 def _open_pdf(pdf_bytes: bytes):
     """Open a PDF with MuPDF stderr suppressed; log any collected messages at DEBUG."""
@@ -23,8 +27,8 @@ def _open_pdf(pdf_bytes: bytes):
     try:
         try:
             doc = pymupdf.open("pdf", io.BytesIO(pdf_bytes))
-        except Exception as e:
-            raise ValueError(f"Failed to open PDF: {e}") from e
+        except pymupdf.FileDataError as e:
+            raise PDFOpenError(f"Failed to open PDF: {e}") from e
         with doc:
             yield doc
     finally:

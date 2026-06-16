@@ -6,6 +6,7 @@ import pytest
 from flask import Flask
 
 from app.main.util.render_utils import (
+    PDFOpenError,
     _open_pdf,
     create_presigned_url,
     extract_pdf_pages_as_images,
@@ -276,15 +277,15 @@ def test_open_pdf_clean_pdf_logs_nothing(caplog):
     assert _mupdf_messages(caplog.records) == []
 
 
-def test_open_pdf_empty_bytes_raises_value_error():
-    """Genuine open failures are normalised to ValueError."""
-    with pytest.raises(ValueError, match="Failed to open PDF"):
+def test_open_pdf_empty_bytes_raises_pdf_open_error():
+    """Genuine open failures are normalised to PDFOpenError."""
+    with pytest.raises(PDFOpenError, match="Failed to open PDF"):
         with _open_pdf(b""):
             pass
 
 
-def test_open_pdf_garbage_raises_value_error():
-    with pytest.raises(ValueError, match="Failed to open PDF"):
+def test_open_pdf_garbage_raises_pdf_open_error():
+    with pytest.raises(PDFOpenError, match="Failed to open PDF"):
         with _open_pdf(b"this is not a pdf"):
             pass
 
@@ -314,7 +315,7 @@ def test_open_pdf_restores_mupdf_display_flags_on_failure():
     pymupdf.TOOLS.mupdf_display_errors(True)
     pymupdf.TOOLS.mupdf_display_warnings(True)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(PDFOpenError):
         with _open_pdf(b""):
             pass
 
