@@ -4,19 +4,20 @@ WORKDIR /docker_app
 
 # Install system dependencies including Node.js (cached layer)
 RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
-    openssl \
-    tesseract-ocr \
-    antiword \
-    unrtf \
-    libreoffice \
-    nodejs \
-    npm \
+    gcc=4:14.2.0-1 \
+    libpq-dev=17.10-0+deb13u1 \
+    openssl=3.5.6-1~deb13u2 \
+    tesseract-ocr=5.5.0-1+b1 \
+    antiword=0.37-17 \
+    unrtf=0.21.10-clean-1+b1 \
+    libreoffice=4:25.2.3-2+deb13u5 \
+    nodejs=20.19.2+dfsg-1+deb13u2 \
+    npm=9.2.0~ds1-3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry (cached layer)
-RUN pip install poetry==2.4.1
+ENV POETRY_VIRTUALENVS_CREATE=false
+RUN pip install --no-cache-dir poetry==2.4.1
 
 # Copy Python dependency files first for better caching
 COPY pyproject.toml poetry.lock /docker_app/
