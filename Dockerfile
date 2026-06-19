@@ -3,7 +3,7 @@ FROM python:3.13-slim@sha256:c33f0bc4364a6881bed1ec0cc2665e6c53c87a43e774aaeab88
 WORKDIR /docker_app
 
 # Install system dependencies including Node.js (cached layer)
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc=4:14.2.0-1 \
     libpq-dev=17.10-0+deb13u1 \
     openssl=3.5.6-1~deb13u2 \
