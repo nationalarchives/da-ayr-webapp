@@ -1,10 +1,10 @@
 import os
+import re
 import uuid
 
 import keycloak
 import pytest
-from jinja2 import Environment, PackageLoader, select_autoescape
-from playwright.sync_api import Page
+from playwright.sync_api import Page, expect
 
 
 def pytest_configure(config):
@@ -91,17 +91,56 @@ def create_user_page(
     # so that multiple browser flags in cli are honoured
     def _create_user_page(username, password) -> Page:
         page.goto("/sign-in")
-        if page.locator("label:has-text('Email address')").count() > 0:
-            page.get_by_label("Email address").first.fill(username)
-        elif page.locator("label:has-text('Email')").count() > 0:
-            page.get_by_label("Email").first.fill(username)
-        else:
-            page.get_by_label("Username or email").first.fill(username)
-        page.get_by_role("textbox", name="Password").fill(password)
-        page.get_by_role("button", name="Sign in").click()
+
+        expect(page.locator("input[type='password']")).to_be_visible(
+            timeout=10000
+        )
+
+        username_input = _get_username_input_or_none(page)
+        if username_input is None:
+            raise AssertionError(
+                "Could not find username/email input on sign-in page"
+            )
+
+        password_input = _get_password_input(page)
+        submit_button = _get_submit_button(page)
+
+        username_input.fill(username)
+        password_input.fill(password)
+        submit_button.click()
+        expect(page).to_have_url(re.compile(r".*/browse.*"), timeout=10000)
+
         return page
 
     return _create_user_page
+
+
+def _get_username_input_or_none(page: Page):
+    if page.locator("label:has-text('Email address')").count() > 0:
+        return page.get_by_label("Email address").first
+    if page.locator("label:has-text('Email')").count() > 0:
+        return page.get_by_label("Email").first
+    if page.locator("label:has-text('Username or email')").count() > 0:
+        return page.get_by_label("Username or email").first
+
+    username_inputs = page.locator(
+        "input[name='username'], input[name='email'], input#username"
+    )
+    if username_inputs.count() == 0:
+        return None
+    return username_inputs.first
+
+
+def _get_password_input(page: Page):
+    if page.get_by_role("textbox", name="Password").count() > 0:
+        return page.get_by_role("textbox", name="Password").first
+    return page.locator("input[type='password']").first
+
+
+def _get_submit_button(page: Page):
+    if page.get_by_role("button", name="Sign in").count() > 0:
+        return page.get_by_role("button", name="Sign in").first
+    return page.locator("button[type='submit'], input[type='submit']").first
 
 
 def get_keycloak_token(keycloak_openid):
@@ -277,8 +316,8 @@ def standard_user_page_with_download(
     page.goto("/sign-out")
 
 
-@pytest.fixture(scope="session")
-def browser_context_args(browser_context_args):
+@pytest.fixture
+def browser_context_args(browser_context_args, browser_name):
     """
     Fixture for configuring Playwright browser context arguments.
     This fixture is used to customize browser context arguments for Playwright
@@ -290,22 +329,19 @@ def browser_context_args(browser_context_args):
     Returns:
         dict: Updated browser context arguments with customized settings.
     """
-    return {
+    context_args = {
         **browser_context_args,
-        "user_agent": (
+        "ignore_https_errors": True,
+        # WebKit intermittently lands on Keycloak auth transitions
+        # that require JavaScript to render/login correctly.
+        "java_script_enabled": browser_name == "webkit",
+    }
+
+    if browser_name != "webkit":
+        context_args["user_agent"] = (
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
             "Chrome/114.0.0.0 Safari/537.36"
-        ),
-        "ignore_https_errors": True,
-        "java_script_enabled": False,
-    }
+        )
 
-
-@pytest.fixture
-def jinja_env():
-    env = Environment(
-        loader=PackageLoader("app", "templates"),
-        autoescape=select_autoescape(["html", "xml"]),
-    )
-    return env
+    return context_args
