@@ -427,6 +427,7 @@
           "config": {
             "full.path": "true",
             "id.token.claim": "true",
+            "introspection.token.claim": "true",
             "access.token.claim": "true",
             "claim.name": "groups",
             "userinfo.token.claim": "true",
@@ -617,6 +618,7 @@
             "userinfo.token.claim": "true",
             "user.attribute": "foo",
             "id.token.claim": "true",
+            "introspection.token.claim": "true",
             "access.token.claim": "true",
             "claim.name": "groups",
             "jsonType.label": "String"

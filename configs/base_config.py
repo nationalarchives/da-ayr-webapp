@@ -55,6 +55,7 @@ CONVERTIBLE_PUIDS = {
 class BaseConfig(object):
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = "Lax"
     DEPARTMENT_NAME = "The National Archives"
     DEPARTMENT_URL = "https://www.nationalarchives.gov.uk/"
     SERVICE_NAME = "AYR – Access Your Records"

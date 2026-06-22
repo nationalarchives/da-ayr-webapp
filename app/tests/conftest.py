@@ -1,7 +1,16 @@
+import os
 from unittest.mock import patch
 
 import pytest
 from flask.testing import FlaskClient
+from jinja2 import (
+    ChoiceLoader,
+    Environment,
+    FileSystemLoader,
+    PackageLoader,
+    PrefixLoader,
+    select_autoescape,
+)
 from testing.postgresql import PostgresqlFactory
 
 from app import create_app
@@ -1195,3 +1204,29 @@ def record_files():
         file_5_metadata,
         file_6_metadata,
     ]
+
+
+@pytest.fixture
+def jinja_env():
+    env = Environment(
+        loader=ChoiceLoader(
+            [
+                PackageLoader("app", "templates"),
+                PackageLoader("govuk_frontend_jinja", "templates"),
+                PrefixLoader(
+                    {
+                        "govuk_frontend_jinja": PackageLoader(
+                            "govuk_frontend_jinja", "templates"
+                        )
+                    }
+                ),
+                FileSystemLoader(
+                    os.path.join(
+                        os.getcwd(), "node_modules", "govuk-frontend", "dist"
+                    )
+                ),
+            ]
+        ),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
+    return env

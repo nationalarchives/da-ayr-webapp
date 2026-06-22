@@ -37,7 +37,7 @@ class TestRecord:
         aau_user_page_with_download.goto(f"{self.route_url}/{record_id}")
 
         button = aau_user_page_with_download.get_by_role(
-            "link", name="Download record"
+            "button", name="Download record"
         )
 
         expect(button).to_be_visible()
@@ -76,7 +76,7 @@ class TestRecord:
             standard_user_page_with_download.expect_download() as download_record
         ):
             standard_user_page_with_download.get_by_role(
-                "link", name="Download record"
+                "button", name="Download record"
             ).click()
         download = download_record.value
         assert "file-a2.txt" == download.suggested_filename

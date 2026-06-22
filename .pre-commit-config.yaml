@@ -14,7 +14,7 @@ repos:
     -   id: check-merge-conflict
 
 - repo: https://github.com/Riverside-Healthcare/djLint
-  rev: v1.36.4
+  rev: v1.39.2
   hooks:
     - id: djlint-reformat
       args: ["--no-function-formatting"]
@@ -27,7 +27,7 @@ repos:
         args: ['--baseline', '.secrets.baseline']
 
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.15
+    rev: v0.15.17
     hooks:
     -   id: ruff
         args: [--fix]
@@ -48,7 +48,7 @@ repos:
         pass_filenames: false
 
 - repo: https://github.com/thibaudcolas/pre-commit-stylelint
-  rev: v16.26.1
+  rev: v17.13.0
   hooks:
     - id: stylelint
       additional_dependencies:
