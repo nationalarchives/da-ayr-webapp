@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
+import pymupdf
 from flask.testing import FlaskClient
 from moto import mock_aws
 
-from app.main.util.render_utils import PDFOpenError
 from app.tests.factories import FileFactory
 from app.tests.test_routes import create_mock_s3_bucket_with_object
 from configs.base_config import CONVERTIBLE_PUIDS
@@ -70,7 +70,9 @@ class TestPageImageRoutes:
         """A PDF that cannot be opened is a server-side data error (500),
         not a 400 invalid page number error."""
         mock_all_access_user(client)
-        mock_extract.side_effect = PDFOpenError("Failed to open PDF: broken")
+        mock_extract.side_effect = pymupdf.FileDataError(
+            "Failed to open PDF: broken"
+        )
 
         file = FileFactory(
             ffid_metadata__PUID="fmt/18",
@@ -93,7 +95,9 @@ class TestPageImageRoutes:
     ):
         """A PDF that cannot be opened returns 500 for the thumbnail route."""
         mock_all_access_user(client)
-        mock_extract.side_effect = PDFOpenError("Failed to open PDF: broken")
+        mock_extract.side_effect = pymupdf.FileDataError(
+            "Failed to open PDF: broken"
+        )
 
         file = FileFactory(
             ffid_metadata__PUID="fmt/18",

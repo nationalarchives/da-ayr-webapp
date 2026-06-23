@@ -56,7 +56,6 @@ from app.main.util.pagination import (
     paginate,
 )
 from app.main.util.render_utils import (
-    PDFOpenError,
     create_presigned_url,
     create_presigned_url_for_access_copy,
     extract_single_page_as_image,
@@ -963,11 +962,6 @@ def get_page_image(record_id: uuid.UUID, page_number: int):
     except ValueError as e:
         current_app.app_logger.error(f"Invalid page number {page_number}: {e}")
         abort(400)
-    except PDFOpenError as e:
-        current_app.app_logger.error(
-            f"Failed to open PDF for page {page_number}: {e}"
-        )
-        abort(500)
     except Exception as e:
         current_app.app_logger.error(
             f"Failed to extract page {page_number} as image: {e}"
@@ -1028,11 +1022,6 @@ def get_page_thumbnail(record_id: uuid.UUID, page_number: int):
             f"Invalid page number {page_number} for thumbnail: {e}"
         )
         abort(400)
-    except PDFOpenError as e:
-        current_app.app_logger.error(
-            f"Failed to open PDF for page {page_number} thumbnail: {e}"
-        )
-        abort(500)
     except Exception as e:
         current_app.app_logger.error(
             f"Failed to extract page {page_number} as thumbnail: {e}"
