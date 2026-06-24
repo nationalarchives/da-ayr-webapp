@@ -1,9 +1,12 @@
+import logging
 from unittest.mock import Mock, patch
 
 import pymupdf
+import pytest
 from flask import Flask
 
 from app.main.util.render_utils import (
+    _open_pdf,
     create_presigned_url,
     extract_pdf_pages_as_images,
     extract_single_page_as_image,
@@ -14,6 +17,8 @@ from app.main.util.render_utils import (
     get_file_puid,
     search_within_pdf,
 )
+
+RENDER_UTILS_LOGGER = "app.main.util.render_utils"
 
 
 def _make_pdf_with_text(text: str) -> bytes:
@@ -167,21 +172,21 @@ def test_extract_single_page_as_image_second_page():
 
 def test_extract_single_page_as_image_invalid_page_zero():
     """Test that page number 0 raises ValueError."""
-    try:
+    with pytest.raises(ValueError) as exc_info:
         extract_single_page_as_image(MINIMAL_VALID_PDF_TWO_PAGES, 0)
-        assert False, "Expected ValueError"
-    except ValueError as e:
-        assert "Invalid page number" in str(e)
+    message = str(exc_info.value)
+    assert message.startswith("Invalid page number")
+    assert "Failed to open PDF" not in message
 
 
 def test_extract_single_page_as_image_invalid_page_too_high():
     """Test that page number beyond PDF page count raises ValueError."""
-    try:
+    with pytest.raises(ValueError) as exc_info:
         extract_single_page_as_image(MINIMAL_VALID_PDF_TWO_PAGES, 99)
-        assert False, "Expected ValueError"
-    except ValueError as e:
-        assert "Invalid page number" in str(e)
-        assert "2 pages" in str(e)
+    message = str(exc_info.value)
+    assert message.startswith("Invalid page number")
+    assert "2 pages" in message
+    assert "Failed to open PDF" not in message
 
 
 # Tests for extract_single_page_as_thumbnail
@@ -239,3 +244,79 @@ def test_search_within_pdf_returns_annotations_for_matches(
     hit = data["hits"][0]
     assert hit["@type"] == "search:Hit"
     assert hit["match"] == "hello"
+
+
+def _mupdf_messages(records):
+    return [r.message for r in records if r.message.startswith("MuPDF:")]
+
+
+def test_open_pdf_logs_recoverable_messages_at_debug(caplog):
+    """A repairable PDF opens fine and its MuPDF messages are logged at DEBUG."""
+    with caplog.at_level(logging.DEBUG, logger=RENDER_UTILS_LOGGER):
+        with _open_pdf(MINIMAL_VALID_PDF_TWO_PAGES) as doc:
+            assert doc.page_count == 2
+
+    messages = _mupdf_messages(caplog.records)
+    assert messages, "expected MuPDF repair messages to be logged"
+    assert "repairing PDF document" in messages[0]
+    assert all(
+        r.levelno == logging.DEBUG
+        for r in caplog.records
+        if r.message.startswith("MuPDF:")
+    )
+
+
+def test_open_pdf_clean_pdf_logs_nothing(caplog):
+    """A well formed PDF produces no MuPDF messages, so nothing is logged."""
+    clean_pdf = _make_pdf_with_text("hello")
+    with caplog.at_level(logging.DEBUG, logger=RENDER_UTILS_LOGGER):
+        with _open_pdf(clean_pdf) as doc:
+            assert doc.page_count == 1
+
+    assert _mupdf_messages(caplog.records) == []
+
+
+def test_open_pdf_empty_bytes_raises_file_data_error():
+    """Genuine open failures propagate as pymupdf.FileDataError."""
+    with pytest.raises(pymupdf.FileDataError):
+        with _open_pdf(b""):
+            pass
+
+
+def test_open_pdf_garbage_raises_file_data_error():
+    with pytest.raises(pymupdf.FileDataError):
+        with _open_pdf(b"this is not a pdf"):
+            pass
+
+
+def test_open_pdf_propagates_body_exceptions_untouched():
+    """Errors raised inside the with body must keep their type and message."""
+    with pytest.raises(KeyError, match="unrelated"):
+        with _open_pdf(MINIMAL_VALID_PDF_TWO_PAGES):
+            raise KeyError("unrelated")
+
+
+def test_open_pdf_restores_mupdf_display_flags():
+    """The context manager re-enables MuPDF stderr display on exit."""
+    pymupdf.TOOLS.mupdf_display_errors(True)
+    pymupdf.TOOLS.mupdf_display_warnings(True)
+
+    with _open_pdf(MINIMAL_VALID_PDF_TWO_PAGES):
+        assert pymupdf.TOOLS.mupdf_display_errors() is False
+        assert pymupdf.TOOLS.mupdf_display_warnings() is False
+
+    assert pymupdf.TOOLS.mupdf_display_errors() is True
+    assert pymupdf.TOOLS.mupdf_display_warnings() is True
+
+
+def test_open_pdf_restores_mupdf_display_flags_on_failure():
+    """Flags are restored even when opening fails."""
+    pymupdf.TOOLS.mupdf_display_errors(True)
+    pymupdf.TOOLS.mupdf_display_warnings(True)
+
+    with pytest.raises(pymupdf.FileDataError):
+        with _open_pdf(b""):
+            pass
+
+    assert pymupdf.TOOLS.mupdf_display_errors() is True
+    assert pymupdf.TOOLS.mupdf_display_warnings() is True

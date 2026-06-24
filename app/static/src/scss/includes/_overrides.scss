@@ -1,3 +1,5 @@
+@use "variables" as *;
+
 legend {
   padding-inline: 0;
 }
@@ -26,5 +28,14 @@ a {
     &--search {
       margin-bottom: 0;
     }
+  }
+}
+
+.govuk-table a,
+.govuk-table__cell a {
+  &:hover,
+  &:visited:hover {
+    color: $colour-link-hover;
+    text-decoration-thickness: 3px;
   }
 }

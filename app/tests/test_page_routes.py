@@ -1,3 +1,6 @@
+from unittest.mock import patch
+
+import pymupdf
 from flask.testing import FlaskClient
 from moto import mock_aws
 
@@ -58,6 +61,57 @@ class TestPageImageRoutes:
         response = client.get(f"/record/{file.FileId}/page/99")
 
         assert response.status_code == 400
+
+    @mock_aws
+    @patch("app.main.routes.extract_single_page_as_image")
+    def test_get_page_image_pdf_open_error_returns_500(
+        self, mock_extract, app, client: FlaskClient, mock_all_access_user
+    ):
+        """A PDF that cannot be opened is a server-side data error (500),
+        not a 400 invalid page number error."""
+        mock_all_access_user(client)
+        mock_extract.side_effect = pymupdf.FileDataError(
+            "Failed to open PDF: broken"
+        )
+
+        file = FileFactory(
+            ffid_metadata__PUID="fmt/18",
+            ffid_metadata__Extension="pdf",
+            FileName="test.pdf",
+        )
+
+        bucket_name = "test-bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        response = client.get(f"/record/{file.FileId}/page/1")
+
+        assert response.status_code == 500
+
+    @mock_aws
+    @patch("app.main.routes.extract_single_page_as_thumbnail")
+    def test_get_page_thumbnail_pdf_open_error_returns_500(
+        self, mock_extract, app, client: FlaskClient, mock_all_access_user
+    ):
+        """A PDF that cannot be opened returns 500 for the thumbnail route."""
+        mock_all_access_user(client)
+        mock_extract.side_effect = pymupdf.FileDataError(
+            "Failed to open PDF: broken"
+        )
+
+        file = FileFactory(
+            ffid_metadata__PUID="fmt/18",
+            ffid_metadata__Extension="pdf",
+            FileName="test.pdf",
+        )
+
+        bucket_name = "test-bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+
+        response = client.get(f"/record/{file.FileId}/page/1/thumbnail")
+
+        assert response.status_code == 500
 
     @mock_aws
     def test_get_page_image_file_not_found(
