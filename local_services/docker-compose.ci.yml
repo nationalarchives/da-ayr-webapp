@@ -239,6 +239,7 @@ services:
       context: ..
       dockerfile: Dockerfile
     container_name: webapp
+    user: root
     command: >
       sh -c "
         echo 'Building CSS files...' &&
