@@ -1,5 +1,7 @@
 import base64
+import contextlib
 import io
+import logging
 from typing import List
 
 import boto3
@@ -9,6 +11,24 @@ from flask import Response, current_app, jsonify, url_for
 from PIL import Image
 
 from app.main.db.models import File
+
+logger = logging.getLogger(__name__)
+
+
+@contextlib.contextmanager
+def _open_pdf(pdf_bytes: bytes):
+    """Open a PDF with MuPDF stderr suppressed; log any collected messages at DEBUG."""
+    pymupdf.TOOLS.mupdf_display_errors(False)
+    pymupdf.TOOLS.mupdf_display_warnings(False)
+    try:
+        with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as doc:
+            yield doc
+    finally:
+        messages = pymupdf.TOOLS.mupdf_warnings(reset=True)
+        pymupdf.TOOLS.mupdf_display_errors(True)
+        pymupdf.TOOLS.mupdf_display_warnings(True)
+        if messages:
+            logger.debug("MuPDF: %s", messages)
 
 
 def generate_breadcrumb_values(file):
@@ -68,7 +88,7 @@ def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
     """Extract PDF pages as images and return page info with base64 thumbnails."""
     DPI = 150  # Output DPI for rendering
 
-    with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
+    with _open_pdf(pdf_bytes) as pdf_document:
         page_data = []
 
         for page_num in range(pdf_document.page_count):
@@ -139,7 +159,7 @@ def extract_single_page_as_image(
     """
     DPI = 150
 
-    with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
+    with _open_pdf(pdf_bytes) as pdf_document:
         if page_number < 1 or page_number > pdf_document.page_count:
             raise ValueError(
                 f"Invalid page number: {page_number}. PDF has {pdf_document.page_count} pages."
@@ -232,7 +252,7 @@ def generate_pdf_manifest(
 
     canvas_items = []
 
-    with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
+    with _open_pdf(pdf_bytes) as pdf_document:
         page_count = pdf_document.page_count
         current_app.logger.info(f"PDF has {page_count} pages")
 
@@ -438,7 +458,7 @@ def search_within_pdf(
     hits = []
     annotation_count = 0
 
-    with pymupdf.open("pdf", io.BytesIO(pdf_bytes)) as pdf_document:
+    with _open_pdf(pdf_bytes) as pdf_document:
         for page_num in range(pdf_document.page_count):
             page = pdf_document.load_page(page_num)
             rects = page.search_for(query)
