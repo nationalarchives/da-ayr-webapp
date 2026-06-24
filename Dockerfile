@@ -50,9 +50,7 @@ ENV PYTHONUNBUFFERED=1
 
 RUN openssl req -x509 -newkey rsa:2048 -nodes -out /docker_app/cert.pem -keyout /docker_app/key.pem -days 365 -subj '/C=GB/ST=Test/L=Test/O=Test/CN=localhost'
 
-RUN useradd --create-home --uid 1000 appuser \
-    && chown -R appuser:appuser /docker_app
-USER appuser
+USER root
 
 EXPOSE 5000
 
