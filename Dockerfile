@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssl=3.5.6-1~deb13u2 \
     tesseract-ocr=5.5.0-1+b1 \
     antiword=0.37-17 \
-    unrtf=0.21.10-clean-1+b1 \
+    unrtf=0.21.10-clean-1 \
     libreoffice=4:25.2.3-2+deb13u5 \
     nodejs=20.19.2+dfsg-1+deb13u2 \
     npm=9.2.0~ds1-3 \
