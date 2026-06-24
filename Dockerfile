@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssl=3.5.6-1~deb13u2 \
     tesseract-ocr=5.5.0-1+b1 \
     antiword=0.37-17 \
-    unrtf \
+    unrtf=0.21.10-clean-1+b1 \
     libreoffice=4:25.2.3-2+deb13u5 \
     nodejs=20.19.2+dfsg-1+deb13u2 \
     npm=9.2.0~ds1-3 \
@@ -50,6 +50,15 @@ ENV PYTHONUNBUFFERED=1
 
 RUN openssl req -x509 -newkey rsa:2048 -nodes -out /docker_app/cert.pem -keyout /docker_app/key.pem -days 365 -subj '/C=GB/ST=Test/L=Test/O=Test/CN=localhost'
 
+RUN useradd --create-home --uid 1000 appuser \
+    && chown -R appuser:appuser /docker_app
+USER appuser
+
 EXPOSE 5000
+
+# Hit the unauthenticated index over the dev server's self-signed HTTPS.
+# Uses Python (curl/wget are not in python:slim) and skips cert verification.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+    CMD ["python", "-c", "import ssl, urllib.request; urllib.request.urlopen('https://localhost:5000/', context=ssl._create_unverified_context(), timeout=4)"]
 
 CMD ["poetry", "run", "flask", "run", "--host=0.0.0.0", "--port=5000", "--debug"]
