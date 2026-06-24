@@ -10,6 +10,7 @@
                 <a data-testid="pagination-link"
                    class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
                    href="{% if id != None -%} {{ url_for(view_name, _id=id, page=current_page-1, **filtered_params) }} {%- else -%} {{ url_for(view_name, page=current_page-1, **filtered_params) }} {%- endif %}#tbl_result"
+                   aria-label="Previous, Search results page {{ current_page - 1 }} of {{ pagination.pages|length }}"
                    rel="prev">
                     <svg class="govuk-pagination__icon govuk-pagination__icon--prev"
                          xmlns="http://www.w3.org/2000/svg"
@@ -26,7 +27,7 @@
                 </a>
             </div>
         {% endif %}
-        <ul class="govuk-pagination__list">
+        <ul class="govuk-pagination__list" aria-label="Pagination">
             {% for page in pagination.pages %}
                 <li class="govuk-pagination__item {% if page == current_page %}govuk-pagination__item--current{% endif %} {% if page == 'ellipsis' %}govuk-pagination__item--ellipsis{% endif %} ">
                     {% if page == 'ellipsis' %}
@@ -35,7 +36,7 @@
                         <a data-testid="pagination-link"
                            class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
                            href="{% if id != None -%} {{ url_for(view_name, _id=id , page=page, **filtered_params) }} {%- else -%} {{ url_for(view_name, page=page, **filtered_params) }} {%- endif %}#tbl_result"
-                           aria-label="Page {{ page }}">{{ page }}</a>
+                           aria-label="Search results page {{ page }} of {{ pagination.pages|length }}">{{ page }}</a>
                     {% endif %}
                 </li>
             {% endfor %}
@@ -45,6 +46,7 @@
                 <a data-testid="pagination-link"
                    class="govuk-link govuk-link__no-visited-color govuk-pagination__link"
                    href="{% if id != None -%} {{ url_for(view_name, _id=id , page=current_page+1, **filtered_params) }} {%- else -%} {{ url_for(view_name, page=current_page+1, **filtered_params) }}{%- endif %}#tbl_result"
+                   aria-label="Next, Search results page {{ current_page + 1 }} of {{ pagination.pages|length }}"
                    rel="next">
                     <span data-testid="pagination-link-title"
                           class="govuk-pagination__link-title">Next<span class="govuk-visually-hidden">page</span></span>
