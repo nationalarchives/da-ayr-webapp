@@ -39,3 +39,7 @@ a {
     text-decoration-thickness: 3px;
   }
 }
+
+.govuk-radios__label::before {
+  background-color: $colour-radio-input;
+}
