@@ -125,7 +125,7 @@ class TestPaginationTemplate:
 
             assert "govuk-pagination__item--ellipsis" in rendered
             assert "..." in rendered
-            assert 'aria-label="Page 5"' in rendered
+            assert 'aria-label="Search results page 5 of 7"' in rendered
 
     def test_template_renders_nothing_when_no_pagination(self, app):
         """Test template renders empty when pagination is None."""
