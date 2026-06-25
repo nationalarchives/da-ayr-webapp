@@ -1,28 +1,28 @@
-# Python 3.13-slim
-FROM python@sha256:d49c1ff87eb98eac346fc250f52925f726eb913c43a92854246dd03c9692ad67
+FROM python:3.13-slim@sha256:c33f0bc4364a6881bed1ec0cc2665e6c53c87a43e774aaeab88e6f17af105e4f
 
 WORKDIR /docker_app
 
 # Install system dependencies including Node.js (cached layer)
-RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
-    openssl \
-    tesseract-ocr \
-    antiword \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc=4:14.2.0-1 \
+    libpq-dev=17.10-0+deb13u1 \
+    openssl=3.5.6-1~deb13u2 \
+    tesseract-ocr=5.5.0-1+b1 \
+    antiword=0.37-17 \
     unrtf \
-    libreoffice \
-    nodejs \
-    npm \
+    libreoffice=4:25.2.3-2+deb13u5 \
+    nodejs=20.19.2+dfsg-1+deb13u2 \
+    npm=9.2.0~ds1-3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry (cached layer)
-RUN pip install poetry==2.4.1
+ENV POETRY_VIRTUALENVS_CREATE=false
+RUN pip install --no-cache-dir poetry==2.4.1
 
 # Copy Python dependency files first for better caching
 COPY pyproject.toml poetry.lock /docker_app/
 RUN poetry config virtualenvs.create false && \
-    poetry install --no-root --no-cache
+    poetry install --no-root --no-cache --without dev
 
 # Copy Node.js dependency files and install
 COPY package*.json /docker_app/
@@ -50,6 +50,13 @@ ENV PYTHONUNBUFFERED=1
 
 RUN openssl req -x509 -newkey rsa:2048 -nodes -out /docker_app/cert.pem -keyout /docker_app/key.pem -days 365 -subj '/C=GB/ST=Test/L=Test/O=Test/CN=localhost'
 
+USER root
+
 EXPOSE 5000
+
+# Hit the unauthenticated index over the dev server's self-signed HTTPS.
+# Uses Python (curl/wget are not in python:slim) and skips cert verification.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+    CMD ["python", "-c", "import ssl, urllib.request; urllib.request.urlopen('https://localhost:5000/', context=ssl._create_unverified_context(), timeout=4)"]
 
 CMD ["poetry", "run", "flask", "run", "--host=0.0.0.0", "--port=5000", "--debug"]
