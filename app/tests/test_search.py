@@ -976,7 +976,7 @@ class TestSearchTransferringBody:
         )
 
         assert response.status_code == 200
-        assert b'aria-label="Search results page 2 of 3"' in response.data
+        assert b'aria-label="Search results page 2 of 5"' in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
 
