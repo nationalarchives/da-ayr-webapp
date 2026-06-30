@@ -143,7 +143,7 @@ jobs:
     - name: Set up Docker Compose
       uses: docker/setup-compose-action@16feee727cbdc83b6a014e6cc26fec4a79bcf30c # v2.2.0
       with:
-        version: v5.1.4
+        version: v5.2.0
 
     - name: Generate Keycloak TLS certs
       run: ./local_services/generate-keycloak-certs.sh
@@ -267,7 +267,7 @@ jobs:
     - name: Set up Docker Compose
       uses: docker/setup-compose-action@16feee727cbdc83b6a014e6cc26fec4a79bcf30c # v2.2.0
       with:
-        version: v5.1.4
+        version: v5.2.0
 
     - name: Generate Keycloak TLS certs
       run: ./local_services/generate-keycloak-certs.sh
