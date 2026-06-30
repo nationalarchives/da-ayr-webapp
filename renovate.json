@@ -1,16 +1,36 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>nationalarchives/renovate-config",
-    "github>nationalarchives/renovate-config:github-actions",
-    "github>nationalarchives/renovate-config:python-packages",
-    "github>nationalarchives/renovate-config:pre-commit"
+    "config:best-practices"
   ],
+  "minimumReleaseAge": "7 days",
+  "vulnerabilityAlerts": {
+    "minimumReleaseAge": "0 days",
+    "labels": ["security"]
+  },
   "packageRules": [
     {
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "pinDigest",
+        "digest",
+        "lockFileMaintenance",
+        "rollback",
+        "bump",
+        "replacement"
+      ],
+      "automerge": true
+    },
+    {
       "description": "Pin Python to 3.13 in GitHub Actions workflows; project requires >=3.13,<3.14",
-      "matchManagers": ["github-actions"],
-      "matchDepNames": ["python"],
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchDepNames": [
+        "python"
+      ],
       "enabled": false
     }
   ]
