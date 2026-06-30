@@ -1,6 +1,6 @@
 services:
   opensearch-node1:
-    image: opensearchproject/opensearch:3.7.0
+    image: opensearchproject/opensearch:3.7.0@sha256:123e6591a47b1d54686890551bdb35739c85193ecded381219fc9e059e18128f
     container_name: opensearch-node1
     environment:
       - discovery.type=single-node
@@ -51,7 +51,7 @@ services:
   opensearch-restore:
     env_file:
       - .docker.env
-    image: curlimages/curl:latest
+    image: curlimages/curl:latest@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
     environment:
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
     depends_on:
@@ -137,7 +137,7 @@ services:
     command: ["postgres"]
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.6.3
+    image: quay.io/keycloak/keycloak:26.6.3@sha256:9b0330756022422149aa6502eb2def8cd47c6e1b000c7c65cdb13e7c0133e992
     env_file:
       - .docker.env
     command: start-dev --import-realm --spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true
@@ -179,7 +179,7 @@ services:
   minio:
     env_file:
       - .docker.env
-    image: quay.io/minio/minio
+    image: quay.io/minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
     container_name: minio
     ports:
       - "9000:9000"
@@ -204,7 +204,7 @@ services:
   minio-init:
     env_file:
       - .docker.env
-    image: minio/mc:latest
+    image: minio/mc:latest@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
     depends_on:
       minio:
         condition: service_healthy
@@ -225,7 +225,7 @@ services:
       "
 
   socat-localhost:
-    image: alpine/socat
+    image: alpine/socat@sha256:b991911ea370c3b6409ade77746b81eb97bf715d87f7dde2a45832d6bee34872
     command: tcp-listen:9000,fork,reuseaddr tcp-connect:minio:9000
     network_mode: service:webapp
     depends_on:
