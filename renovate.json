@@ -32,6 +32,16 @@
         "python"
       ],
       "enabled": false
+    },
+    {
+      "matchPackageNames": [
+        "playwright",
+        "pytest-playwright",
+        "mcr.microsoft.com/playwright/python"
+      ],
+      "minimumReleaseAgeBehaviour": "timestamp-optional",
+      "groupName": "Playwright",
+      "groupSlug": "playwright-group"
     }
   ]
 }
