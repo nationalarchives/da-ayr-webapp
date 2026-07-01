@@ -34,11 +34,16 @@
       "enabled": false
     },
     {
+      "description": "Keep Playwright runtime and Python deps in lockstep for e2e to avoid CI breakage on partial upgrades",
+      "matchFileNames": [
+        "e2e_tests/dockerfile",
+        "e2e_tests/requirements.txt"
+      ],
       "matchPackageNames": [
         "playwright",
-        "pytest-playwright",
         "mcr.microsoft.com/playwright/python"
       ],
+      "minimumGroupSize": 2,
       "minimumReleaseAgeBehaviour": "timestamp-optional",
       "groupName": "Playwright",
       "groupSlug": "playwright-group"
