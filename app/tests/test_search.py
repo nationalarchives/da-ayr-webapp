@@ -882,10 +882,10 @@ class TestSearchTransferringBody:
         assert b"Records found 15" in response.data
 
         # check pagination
-        assert b'aria-label="Page 1"' in response.data
-        assert b'aria-label="Page 2"' in response.data
-        assert b'aria-label="Page 3"' in response.data
-        assert b'aria-label="Page 4"' not in response.data
+        assert b'aria-label="Search results page 1 of 3"' in response.data
+        assert b'aria-label="Search results page 2 of 3"' in response.data
+        assert b'aria-label="Search results page 3 of 3"' in response.data
+        assert b'aria-label="Search results page 4 of 3"' not in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
 
@@ -930,7 +930,7 @@ class TestSearchTransferringBody:
         )
 
         assert response.status_code == 200
-        assert b'aria-label="Page 1"' in response.data
+        assert b'aria-label="Search results page 1 of 3"' in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
 
@@ -976,7 +976,7 @@ class TestSearchTransferringBody:
         )
 
         assert response.status_code == 200
-        assert b'aria-label="Page 2"' in response.data
+        assert b'aria-label="Search results page 2 of 5"' in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
 
@@ -1027,7 +1027,7 @@ class TestSearchTransferringBody:
         )
 
         assert response.status_code == 200
-        assert b'aria-label="Page 3"' in response.data
+        assert b'aria-label="Search results page 3 of 3"' in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
 
