@@ -73,7 +73,7 @@ class BrowseConsignmentRequestSchema(PaginationSchema, BrowseFilterSchema):
 
 
 class BrowseRecordsRequestSchema(PaginationSchema):
-    """Flattened browse records request validation schema."""
+    """Browse records request validation schema."""
 
     class Meta:
         unknown = EXCLUDE
