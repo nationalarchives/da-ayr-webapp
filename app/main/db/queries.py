@@ -255,6 +255,143 @@ def build_browse_consignment_query(
     return query
 
 
+def build_browse_records_query(
+    accessible_transferring_body_names=None, sorting_orders=None
+):
+    """
+    Build a records query spanning all accessible bodies.
+
+    """
+    select = db.session.query(
+        Body.BodyId.label("transferring_body_id"),
+        Body.Name.label("transferring_body"),
+        Series.SeriesId.label("series_id"),
+        Series.Name.label("series"),
+        Consignment.ConsignmentId.label("consignment_id"),
+        Consignment.ConsignmentReference.label("consignment_reference"),
+        File.FileId.label("file_id"),
+        File.FileName.label("file_name"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "date_last_modified",
+                    func.cast(FileMetadata.Value, DATE),
+                ),
+                else_=None,
+            )
+        ).label("date_last_modified"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "end_date",
+                    func.cast(FileMetadata.Value, DATE),
+                ),
+                else_=None,
+            )
+        ).label("end_date"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "closure_type",
+                    FileMetadata.Value,
+                ),
+                else_=None,
+            )
+        ).label("closure_type"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "opening_date",
+                    func.cast(FileMetadata.Value, DATE),
+                ),
+                else_=None,
+            )
+        ).label("opening_date"),
+        func.coalesce(
+            func.max(
+                db.case(
+                    (
+                        FileMetadata.PropertyName == "end_date",
+                        func.cast(FileMetadata.Value, DATE),
+                    ),
+                    else_=None,
+                )
+            ),
+            func.max(
+                db.case(
+                    (
+                        FileMetadata.PropertyName == "date_last_modified",
+                        func.cast(FileMetadata.Value, DATE),
+                    ),
+                    else_=None,
+                )
+            ),
+        ).label("sort_date"),
+    )
+
+    query_filters = [func.lower(File.FileType) == "file"]
+    if accessible_transferring_body_names is not None:
+        if len(accessible_transferring_body_names) == 0:
+            query_filters.append(Body.Name == "")
+        else:
+            query_filters.append(
+                Body.Name.in_(accessible_transferring_body_names)
+            )
+
+    sub_query = (
+        select.join(File.consignment)
+        .join(Consignment.series)
+        .join(Series.body)
+        .join(FileMetadata, File.FileId == FileMetadata.FileId, isouter=True)
+        .filter(*query_filters)
+        .group_by(
+            Body.BodyId,
+            Series.SeriesId,
+            Consignment.ConsignmentId,
+            File.FileId,
+        )
+    ).subquery()
+
+    query = db.session.query(
+        sub_query.c.transferring_body_id,
+        sub_query.c.transferring_body,
+        sub_query.c.series_id,
+        sub_query.c.series,
+        sub_query.c.consignment_id,
+        sub_query.c.consignment_reference,
+        sub_query.c.file_id,
+        sub_query.c.file_name,
+        func.to_char(
+            sub_query.c.date_last_modified,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("date_last_modified"),
+        func.to_char(
+            sub_query.c.end_date,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("end_date"),
+        sub_query.c.closure_type,
+        func.to_char(
+            sub_query.c.opening_date,
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("opening_date"),
+        func.to_char(
+            func.coalesce(sub_query.c.end_date, sub_query.c.date_last_modified),
+            current_app.config["DEFAULT_DATE_FORMAT"],
+        ).label("date_of_record"),
+    )
+
+    if sorting_orders:
+        query = _build_sorting_orders(query, sub_query, sorting_orders)
+    else:
+        query = query.order_by(
+            desc(sub_query.c.sort_date),
+            sub_query.c.file_name,
+            sub_query.c.file_id,
+        )
+
+    return query
+
+
 def _build_browse_filters(query, sub_query, filters):
     transferring_body = filters.get("transferring_body")
     if transferring_body:

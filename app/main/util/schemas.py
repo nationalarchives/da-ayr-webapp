@@ -72,6 +72,13 @@ class BrowseConsignmentRequestSchema(PaginationSchema, BrowseFilterSchema):
         unknown = EXCLUDE
 
 
+class BrowseRecordsRequestSchema(PaginationSchema):
+    """Flattened browse records request validation schema."""
+
+    class Meta:
+        unknown = EXCLUDE
+
+
 class SearchRequestSchema(SearchQuerySchema):
     """General search request validation schema."""
 

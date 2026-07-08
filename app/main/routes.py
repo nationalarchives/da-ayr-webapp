@@ -31,6 +31,7 @@ from app.main.authorize.permissions_helpers import (
 )
 from app.main.db.models import Body, Consignment, File, Series, db
 from app.main.db.queries import (
+    build_flattened_browse_records_query,
     build_browse_consignment_query,
     build_browse_query,
     build_browse_series_query,
@@ -72,6 +73,7 @@ from app.main.util.render_utils import (
 )
 from app.main.util.request_validation_utils import validate_request
 from app.main.util.schemas import (
+    BrowseRecordsRequestSchema,
     BrowseConsignmentRequestSchema,
     BrowseRequestSchema,
     BrowseSeriesRequestSchema,
@@ -580,6 +582,50 @@ def browse_consignment(_id: uuid.UUID):
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
         query_string_parameters=request.validated_args,
+    )
+
+
+@bp.route("/browse/records", methods=["GET"])
+@access_token_sign_in_required
+@log_page_view
+@validate_request(BrowseRecordsRequestSchema, location="combined")
+def browse_records():
+    validated_data = request.validated_data
+    page = validated_data.get("page") or 1
+    per_page = 10
+    default_page = 1
+
+    ayr_user = AYRUser(session.get("user_groups"))
+
+    if ayr_user.is_standard_user:
+        body = ayr_user.transferring_body
+        accessible_body_names = [body.Name] if body else []
+    elif ayr_user.is_all_access_user:
+        accessible_body_names = None
+    else:
+        abort(403)
+
+    query = build_flattened_browse_records_query(
+        accessible_transferring_body_names=accessible_body_names
+    )
+
+    try:
+        paginated_results = query.paginate(page=page, per_page=per_page)
+    except NotFound:
+        return redirect_if_page_invalid(
+            page, default_page, "main.browse_records"
+        )
+
+    results = [dict(row._mapping) for row in paginated_results.items]
+
+    return jsonify(
+        {
+            "page": page,
+            "per_page": per_page,
+            "total_records": paginated_results.total,
+            "total_pages": paginated_results.pages,
+            "results": results,
+        }
     )
 
 
