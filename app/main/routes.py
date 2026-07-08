@@ -31,7 +31,7 @@ from app.main.authorize.permissions_helpers import (
 )
 from app.main.db.models import Body, Consignment, File, Series, db
 from app.main.db.queries import (
-    build_flattened_browse_records_query,
+    build_browse_records_query,
     build_browse_consignment_query,
     build_browse_query,
     build_browse_series_query,
@@ -605,7 +605,7 @@ def browse_records():
     else:
         abort(403)
 
-    query = build_flattened_browse_records_query(
+    query = build_browse_records_query(
         accessible_transferring_body_names=accessible_body_names
     )
 
