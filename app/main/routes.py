@@ -31,9 +31,9 @@ from app.main.authorize.permissions_helpers import (
 )
 from app.main.db.models import Body, Consignment, File, Series, db
 from app.main.db.queries import (
-    build_browse_records_query,
     build_browse_consignment_query,
     build_browse_query,
+    build_browse_records_query,
     build_browse_series_query,
     get_file_metadata,
 )
@@ -73,8 +73,8 @@ from app.main.util.render_utils import (
 )
 from app.main.util.request_validation_utils import validate_request
 from app.main.util.schemas import (
-    BrowseRecordsRequestSchema,
     BrowseConsignmentRequestSchema,
+    BrowseRecordsRequestSchema,
     BrowseRequestSchema,
     BrowseSeriesRequestSchema,
     BrowseTransferringBodyRequestSchema,
