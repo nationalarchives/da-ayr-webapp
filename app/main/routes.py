@@ -594,6 +594,7 @@ def browse_records():
     page = validated_data.get("page") or 1
     per_page = 10
     default_page = 1
+    form = SearchForm()
 
     ayr_user = AYRUser(session.get("user_groups"))
 
@@ -616,16 +617,19 @@ def browse_records():
             page, default_page, "main.browse_records"
         )
 
-    results = [dict(row._mapping) for row in paginated_results.items]
+    pagination = get_pagination(page, paginated_results.pages)
 
-    return jsonify(
-        {
-            "page": page,
-            "per_page": per_page,
-            "total_records": paginated_results.total,
-            "total_pages": paginated_results.pages,
-            "results": results,
-        }
+    return render_template(
+        "browse-records.html",
+        form=form,
+        filters={"query": ""},
+        search_area="everywhere",
+        current_page=page,
+        per_page=per_page,
+        results=paginated_results,
+        pagination=pagination,
+        num_records_found=paginated_results.total,
+        query_string_parameters=request.validated_args,
     )
 
 
