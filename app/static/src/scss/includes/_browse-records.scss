@@ -1,0 +1,49 @@
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.govuk-main-wrapper {
+  flex: 1;
+}
+
+.govuk-table {
+  width: 100%;
+  margin-bottom: 30px;
+  border-collapse: collapse;
+}
+
+.govuk-table__row {
+  border-bottom: none !important;
+}
+
+.govuk-table__cell,
+.govuk-table__header {
+  padding: 10px 20px 10px 0;
+  border-bottom: 1px solid #b1b4b6;
+}
+
+.govuk-table__cell--right-align {
+  text-align: right;
+}
+
+.records-page-wrapper {
+  .govuk-table__cell:nth-child(1) {
+    width: 45%;
+    word-wrap: break-word;
+  }
+
+  .govuk-table__cell:nth-child(2) {
+    width: 20%;
+  }
+
+  .govuk-table__cell:nth-child(3) {
+    width: 15%;
+  }
+
+  .govuk-table__cell:nth-child(4) {
+    width: 20%;
+  }
+}
