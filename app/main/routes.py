@@ -617,6 +617,13 @@ def browse_records():
             page, default_page, "main.browse_records"
         )
 
+    results = []
+    for record in paginated_results.items:
+        record_data = dict(record._mapping)
+        record_metadata = get_file_metadata(record_data["file_id"])
+        record_data["file_metadata"] = record_metadata
+        results.append(record_data)
+
     pagination = get_pagination(page, paginated_results.pages)
 
     return render_template(
@@ -626,7 +633,7 @@ def browse_records():
         search_area="everywhere",
         current_page=page,
         per_page=per_page,
-        results=paginated_results,
+        results=results,
         pagination=pagination,
         num_records_found=paginated_results.total,
         query_string_parameters=request.validated_args,
