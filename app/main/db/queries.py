@@ -271,6 +271,7 @@ def build_browse_records_query(
         Consignment.ConsignmentReference.label("consignment_reference"),
         File.FileId.label("file_id"),
         File.FileName.label("file_name"),
+        File.FilePath.label("file_path"),
         func.max(
             db.case(
                 (
@@ -348,6 +349,7 @@ def build_browse_records_query(
             Body.BodyId,
             Series.SeriesId,
             Consignment.ConsignmentId,
+            File.FilePath,
             File.FileId,
         )
     ).subquery()
@@ -361,6 +363,7 @@ def build_browse_records_query(
         sub_query.c.consignment_reference,
         sub_query.c.file_id,
         sub_query.c.file_name,
+        sub_query.c.file_path,
         func.to_char(
             sub_query.c.date_last_modified,
             current_app.config["DEFAULT_DATE_FORMAT"],

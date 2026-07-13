@@ -6,7 +6,7 @@
     <div class="govuk-grid-row browse__page desktop mobile">
         {{ super() }}
         {% include "top-search.html" %}
-        {% if results %}
+        {% if results or browse_type == "records" %}
             <!-- TABLE -->
             <div class="govuk-grid-column-full govuk-grid-column-full__page_container">
                 <div class="browse-details">
@@ -14,7 +14,11 @@
                         id="browse-records"
                         aria-live="polite">
                         {% if num_records_found > 0 %}
-                            Browse records {{ num_records_found | format_number_with_commas }}
+                            {% if browse_type == "records" %}
+                                {{ num_records_found | format_number_with_commas }} records
+                            {% else %}
+                                Browse records {{ num_records_found | format_number_with_commas }}
+                            {% endif %}
                         {% else %}
                             No results found
                         {% endif %}
@@ -28,6 +32,8 @@
                         {% include "browse-series.html" %}
                     {% elif browse_type == "consignment" %}
                         {% include "browse-consignment.html" %}
+                    {% elif browse_type == "records" %}
+                        {% include "browse-records.html" %}
                     {% endif %}
                 </div>
             </div>

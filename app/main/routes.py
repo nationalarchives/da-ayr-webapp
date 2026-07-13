@@ -592,7 +592,7 @@ def browse_consignment(_id: uuid.UUID):
 def browse_records():
     validated_data = request.validated_data
     page = validated_data.get("page") or 1
-    per_page = 10
+    per_page = 5
     default_page = 1
     form = SearchForm()
 
@@ -617,18 +617,17 @@ def browse_records():
             page, default_page, "main.browse_records"
         )
 
-    results = []
-    for record in paginated_results.items:
-        record_data = dict(record._mapping)
-        record_metadata = get_file_metadata(record_data["file_id"])
-        record_data["file_metadata"] = record_metadata
-        results.append(record_data)
+    results = [dict(record._mapping) for record in paginated_results.items]
 
     pagination = get_pagination(page, paginated_results.pages)
 
+    query_string_parameters = request.validated_args.copy()
+    query_string_parameters.pop("per_page", None)
+
     return render_template(
-        "browse-records.html",
+        "browse.html",
         form=form,
+        browse_type="records",
         filters={"query": ""},
         search_area="everywhere",
         current_page=page,
@@ -636,7 +635,7 @@ def browse_records():
         results=results,
         pagination=pagination,
         num_records_found=paginated_results.total,
-        query_string_parameters=request.validated_args,
+        query_string_parameters=query_string_parameters,
     )
 
 
