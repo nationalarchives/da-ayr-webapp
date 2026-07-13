@@ -621,9 +621,6 @@ def browse_records():
 
     pagination = get_pagination(page, paginated_results.pages)
 
-    query_string_parameters = request.validated_args.copy()
-    query_string_parameters.pop("per_page", None)
-
     return render_template(
         "browse.html",
         form=form,
@@ -635,7 +632,7 @@ def browse_records():
         results=results,
         pagination=pagination,
         num_records_found=paginated_results.total,
-        query_string_parameters=query_string_parameters,
+        query_string_parameters=request.validated_args,
     )
 
 

@@ -14,7 +14,7 @@
   .govuk-table__cell,
   .govuk-table__header {
     padding: 10px 20px 10px 0;
-    border-bottom: 1px solid $colour-border-normal;
+    border-bottom: none !important;
   }
 
   .govuk-table--right-align,
@@ -54,5 +54,13 @@
 
   .govuk-table__cell:nth-child(4) {
     width: 15%;
+  }
+
+  .govuk-table__body .govuk-table__row:first-child .govuk-table__cell {
+    border-top: 1px solid $colour-border-normal;
+  }
+
+  .govuk-table__body .govuk-table__row:last-child .govuk-table__cell {
+    border-bottom: 1px solid $colour-border-normal !important;
   }
 }

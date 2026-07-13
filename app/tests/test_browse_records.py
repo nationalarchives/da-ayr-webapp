@@ -14,7 +14,7 @@ def verify_browse_records_view_header_row(data, expected_first_header):
         expected_first_header,
         "Series",
         "Status",
-        "Record opening",
+        "Opening date",
     ]
 
     assert [

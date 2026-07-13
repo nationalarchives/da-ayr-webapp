@@ -12,7 +12,7 @@
                         <th scope="col"
                             class="govuk-table__header govuk-table--invisible-on-mobile">Series</th>
                         <th scope="col" class="govuk-table__header">Status</th>
-                        <th scope="col" class="govuk-table__header govuk-table--right-align">Record opening</th>
+                        <th scope="col" class="govuk-table__header govuk-table--right-align">Opening date</th>
                     </tr>
                 </thead>
                 <tbody class="govuk-table__body">
@@ -21,7 +21,7 @@
                             <td class="govuk-table__cell">
                                 <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
                                 <p class="govuk-body-s govuk-!-margin-0"><time datetime="{{ record['date_of_record'] | format_date_iso }}">{{ record['date_of_record'] }}</time> – <span>last modified</span></p>
-                                <p class="govuk-body-s govuk-!-margin-0">{{ record["file_path"] | replace('/', ' > ') if record["file_path"] else "-" }}</p>
+                                <p class="govuk-body-s govuk-!-margin-0">{{ record["file_path"].split('/')[:-1] | join(' > ') if record["file_path"] else "" }}</p>
                                 <p class="govuk-body-s govuk-!-margin-0">consignment {{ record["consignment_reference"] }} on {{ record["date_of_record"] or "-" }}</p>
                             </td>
                             <td class="govuk-table__cell govuk-table--invisible-on-mobile">{{ record["series"] }}</td>
@@ -35,7 +35,6 @@
                                 {% if record["opening_date"] %}
                                     <time datetime="{{ record["opening_date"] | format_date_iso }}">{{ record["opening_date"] }}</time>
                                 {% else %}
-                                    –
                                 {% endif %}
                             </td>
                         </tr>

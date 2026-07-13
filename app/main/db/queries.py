@@ -255,9 +255,7 @@ def build_browse_consignment_query(
     return query
 
 
-def build_browse_records_query(
-    accessible_transferring_body_names=None, sorting_orders=None
-):
+def build_browse_records_query(accessible_transferring_body_names=None):
     """
     Build a records query spanning all accessible bodies.
 
@@ -332,12 +330,7 @@ def build_browse_records_query(
 
     query_filters = [func.lower(File.FileType) == "file"]
     if accessible_transferring_body_names is not None:
-        if len(accessible_transferring_body_names) == 0:
-            query_filters.append(Body.Name == "")
-        else:
-            query_filters.append(
-                Body.Name.in_(accessible_transferring_body_names)
-            )
+        query_filters.append(Body.Name.in_(accessible_transferring_body_names))
 
     sub_query = (
         select.join(File.consignment)
@@ -383,14 +376,11 @@ def build_browse_records_query(
         ).label("date_of_record"),
     )
 
-    if sorting_orders:
-        query = _build_sorting_orders(query, sub_query, sorting_orders)
-    else:
-        query = query.order_by(
-            desc(sub_query.c.sort_date),
-            sub_query.c.file_name,
-            sub_query.c.file_id,
-        )
+    query = query.order_by(
+        desc(sub_query.c.sort_date),
+        sub_query.c.file_name,
+        sub_query.c.file_id,
+    )
 
     return query
 

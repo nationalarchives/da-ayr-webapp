@@ -125,6 +125,21 @@ class TestBrowseRecords:
 
         assert results == []
 
+    def test_build_browse_records_query_no_results_for_empty_access_list(
+        self, client: FlaskClient
+    ):
+        """
+        Given an explicit empty list of accessible body names
+        When build_browse_records_query is called
+        Then it returns no rows
+        """
+        query = build_browse_records_query(
+            accessible_transferring_body_names=[]
+        )
+        results = query.all()
+
+        assert results == []
+
     def test_build_browse_records_query_all_access_user_sees_all_rows(
         self, client: FlaskClient, browse_files
     ):
