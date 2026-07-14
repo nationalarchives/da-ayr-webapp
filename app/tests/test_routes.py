@@ -144,99 +144,89 @@ class TestRoutes:
         response = client.get("/terms-of-use")
         assert response.status_code == 200
 
-    @mock_aws
-    @patch("app.main.routes.create_presigned_url")
-    @patch("app.main.routes.boto3.client")
     def test_route_generate_pdf_manifest(
         self,
-        mock_boto_client,
-        mock_create_presigned_url,
         app,
         client: FlaskClient,
         mock_all_access_user,
     ):
-        mock_create_presigned_url.return_value = (
-            "https://presigned-url.com/download.pdf"
-        )
-
-        # Mock S3 get_object to return valid PDF bytes
-        s3_mock = mock_boto_client.return_value
-        s3_mock.get_object.return_value = {"Body": BytesIO(MINIMAL_VALID_PDF)}
-
         mock_all_access_user(client)
         file = FileFactory(ffid_metadata__PUID="fmt/276", FileName="test.pdf")
-        bucket_name = "test-bucket"
-        app.config["RECORD_BUCKET_NAME"] = bucket_name
-        create_mock_s3_bucket_with_object(bucket_name, file)
 
         response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
         assert response.status_code == 200
 
+        manifest_url = f"http://localhost/record/{file.FileId}/manifest"
+        canvas_id = f"{manifest_url}/canvas/1"
+        pdf_url = f"http://localhost/record/{file.FileId}/pdf"
+
         expected_pdf_manifest = {
             "@context": "https://iiif.io/api/presentation/3/context.json",
-            "@id": f"http://localhost/record/{file.FileId}/manifest",
-            "@type": "sc:Manifest",
-            "description": "Manifest for test.pdf",
+            "id": manifest_url,
+            "type": "Manifest",
             "label": {
                 "en": [
                     "test.pdf",
                 ],
             },
-            "service": {
-                "@context": "http://iiif.io/api/search/1/context.json",
-                "@id": f"http://localhost/record/{file.FileId}/search",
-                "label": "Search within this record",
-                "profile": "http://iiif.io/api/search/1/search",
+            "summary": {
+                "en": [
+                    "Manifest for test.pdf",
+                ],
             },
+            "service": [
+                {
+                    "@context": "http://iiif.io/api/search/1/context.json",
+                    "@id": f"http://localhost/record/{file.FileId}/search",
+                    "label": "Search within this record",
+                    "profile": "http://iiif.io/api/search/1/search",
+                }
+            ],
             "rendering": [
                 {
-                    "@id": f"http://localhost/record/{file.FileId}/pdf",
-                    "@type": "dctypes:Text",
+                    "id": pdf_url,
+                    "type": "Text",
+                    "label": {
+                        "en": [
+                            "test.pdf",
+                        ],
+                    },
                     "format": "application/pdf",
                 }
             ],
-            "sequences": [
+            "items": [
                 {
-                    "@id": f"http://localhost/record/{file.FileId}/manifest/sequence/1",
-                    "@type": "sc:Sequence",
-                    "canvases": [
+                    "id": canvas_id,
+                    "type": "Canvas",
+                    "label": {
+                        "en": [
+                            "test.pdf",
+                        ],
+                    },
+                    "items": [
                         {
-                            "@id": f"http://localhost/record/{file.FileId}/manifest/canvas/1",
-                            "@type": "sc:Canvas",
-                            "height": 416,
-                            "images": [
+                            "id": f"{canvas_id}/annotationpage/1",
+                            "type": "AnnotationPage",
+                            "items": [
                                 {
-                                    "@type": "oa:Annotation",
-                                    "motivation": "sc:painting",
-                                    "on": f"http://localhost/record/{file.FileId}/manifest/canvas/1",  # noqa
-                                    "resource": {
-                                        "@id": f"http://localhost/record/{file.FileId}/page/1",
-                                        "@type": "dctypes:Image",
-                                        "format": "image/jpeg",
-                                        "height": 416,
-                                        "width": 416,
+                                    "id": f"{canvas_id}/annotation/1",
+                                    "type": "Annotation",
+                                    "motivation": "painting",
+                                    "body": {
+                                        "id": pdf_url,
+                                        "type": "Text",
+                                        "format": "application/pdf",
                                     },
-                                },
+                                    "target": canvas_id,
+                                }
                             ],
-                            "label": "Page 1",
-                            "thumbnail": {
-                                "@id": f"http://localhost/record/{file.FileId}/page/1/thumbnail",
-                                "@type": "dctypes:Image",
-                                "format": "image/jpeg",
-                                "height": 200,
-                                "width": 150,
-                            },
-                            "width": 416,
-                        },
+                        }
                     ],
-                    "label": "Sequence 1",
                 },
             ],
-            "viewingDirection": "left-to-right",
         }
 
         actual_manifest = json.loads(response.text)
-        assert response.status_code == 200
         assert actual_manifest == expected_pdf_manifest
 
     @mock_aws

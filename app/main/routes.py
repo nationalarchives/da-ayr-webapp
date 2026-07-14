@@ -989,8 +989,6 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         return generate_pdf_manifest(
             file_name,
             manifest_url,
-            bucket=current_app.config["RECORD_BUCKET_NAME"],
-            key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
             record_id=str(record_id),
         )
     elif puid in current_app.config["UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS"]:
@@ -1006,8 +1004,6 @@ def generate_manifest(record_id: uuid.UUID) -> Response:
         return generate_pdf_manifest(
             file.FileName,
             manifest_url,
-            bucket=current_app.config["ACCESS_COPY_BUCKET"],
-            key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
             record_id=str(record_id),
         )
 

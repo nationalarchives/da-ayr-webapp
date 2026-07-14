@@ -226,18 +226,21 @@ def create_presigned_url_for_access_copy(file: File) -> str:
 def generate_pdf_manifest(
     file_name: str,
     manifest_url: str,
-    bucket: str = None,
-    key: str = None,
-    record_id: str = None,
+    record_id: str,
 ) -> Response:
     """
-    Generate an IIIF manifest for a PDF file with URLs to page images.
+    Generate an IIIF Presentation 3 manifest for a PDF file.
+
+    The single canvas is painted with the PDF itself (format
+    "application/pdf"), which makes Universal Viewer select its PDF
+    extension and render the document client-side with PDF.js (preserving
+    the text layer for search), instead of the OpenSeadragon image
+    extension which fetches server-rasterised JPEGs page by page.
 
     Args:
         file_name (str): The display name of the file.
         manifest_url (str): The manifest's own URL.
-        file_obj (Any, optional): The File object for S3 access.
-        record_id (str, optional): The record UUID for generating image URLs.
+        record_id (str): The record UUID for generating the PDF URL.
 
     Returns:
         Response: Flask JSON response containing the IIIF manifest.
@@ -245,73 +248,6 @@ def generate_pdf_manifest(
     current_app.logger.info(
         f"Generating PDF manifest for {file_name}, record_id: {record_id}"
     )
-
-    # Read PDF to get page count and dimensions
-    pdf_bytes = get_pdf_from_s3(bucket, key)
-    current_app.logger.info(f"PDF bytes length: {len(pdf_bytes)}")
-
-    canvas_items = []
-
-    with _open_pdf(pdf_bytes) as pdf_document:
-        page_count = pdf_document.page_count
-        current_app.logger.info(f"PDF has {page_count} pages")
-
-        for page_num in range(page_count):
-            page = pdf_document.load_page(page_num)
-            rect = page.rect
-
-            # Calculate dimensions at 150 DPI
-            DPI = 150
-            width = int(rect.width * DPI / 72)
-            height = int(rect.height * DPI / 72)
-
-            page_number = page_num + 1
-
-            page_image_url = url_for(
-                "main.get_page_image",
-                record_id=record_id,
-                page_number=page_number,
-                _external=True,
-            )
-
-            thumbnail_url = url_for(
-                "main.get_page_thumbnail",
-                record_id=record_id,
-                page_number=page_number,
-                _external=True,
-            )
-
-            canvas_id = f"{manifest_url}/canvas/{page_number}"
-            canvas_items.append(
-                {
-                    "@type": "sc:Canvas",
-                    "@id": canvas_id,
-                    "label": f"Page {page_number}",
-                    "width": width,
-                    "height": height,
-                    "thumbnail": {
-                        "@id": thumbnail_url,
-                        "@type": "dctypes:Image",
-                        "format": "image/jpeg",
-                        "width": 150,
-                        "height": 200,
-                    },
-                    "images": [
-                        {
-                            "@type": "oa:Annotation",
-                            "motivation": "sc:painting",
-                            "resource": {
-                                "@id": page_image_url,
-                                "@type": "dctypes:Image",
-                                "format": "image/jpeg",
-                                "width": width,
-                                "height": height,
-                            },
-                            "on": canvas_id,
-                        }
-                    ],
-                }
-            )
 
     pdf_url = url_for(
         "main.get_record_pdf", record_id=record_id, _external=True
@@ -321,39 +257,57 @@ def generate_pdf_manifest(
         "main.search_within_record", record_id=record_id, _external=True
     )
 
+    canvas_id = f"{manifest_url}/canvas/1"
+
     manifest = {
         "@context": "https://iiif.io/api/presentation/3/context.json",
-        "@type": "sc:Manifest",
-        "@id": manifest_url,
+        "id": manifest_url,
+        "type": "Manifest",
         "label": {"en": [file_name]},
-        "description": f"Manifest for {file_name}",
-        "viewingDirection": "left-to-right",
-        "service": {
-            "@context": "http://iiif.io/api/search/1/context.json",
-            "@id": search_url,
-            "profile": "http://iiif.io/api/search/1/search",
-            "label": "Search within this record",
-        },
+        "summary": {"en": [f"Manifest for {file_name}"]},
+        "service": [
+            {
+                "@context": "http://iiif.io/api/search/1/context.json",
+                "@id": search_url,
+                "profile": "http://iiif.io/api/search/1/search",
+                "label": "Search within this record",
+            }
+        ],
         "rendering": [
             {
-                "@id": pdf_url,
-                "@type": "dctypes:Text",
+                "id": pdf_url,
+                "type": "Text",
+                "label": {"en": [file_name]},
                 "format": "application/pdf",
             }
         ],
-        "sequences": [
+        "items": [
             {
-                "@type": "sc:Sequence",
-                "@id": f"{manifest_url}/sequence/1",
-                "label": "Sequence 1",
-                "canvases": canvas_items,
+                "id": canvas_id,
+                "type": "Canvas",
+                "label": {"en": [file_name]},
+                "items": [
+                    {
+                        "id": f"{canvas_id}/annotationpage/1",
+                        "type": "AnnotationPage",
+                        "items": [
+                            {
+                                "id": f"{canvas_id}/annotation/1",
+                                "type": "Annotation",
+                                "motivation": "painting",
+                                "body": {
+                                    "id": pdf_url,
+                                    "type": "Text",
+                                    "format": "application/pdf",
+                                },
+                                "target": canvas_id,
+                            }
+                        ],
+                    }
+                ],
             }
         ],
     }
-
-    current_app.logger.info(
-        f"Generated PDF manifest with {len(canvas_items)} canvases for {file_name}"
-    )
 
     response = jsonify(manifest)
 

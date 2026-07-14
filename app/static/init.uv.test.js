@@ -111,7 +111,7 @@ describe("tests for init.uv.js", () => {
 
   it("should configure UV viewer with correct options", () => {
     const cbMock = jest.fn();
-    const config = { modules: { centerPanel: {}, footerPanel: {} } };
+    const config = { modules: { footerPanel: {} } };
 
     window.UV = {
       init: jest.fn(() => ({
@@ -125,7 +125,7 @@ describe("tests for init.uv.js", () => {
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
 
-    expect(config.modules.centerPanel.options.usePdfJs).toBe(true);
+    expect(config.modules.pdfCenterPanel.options.usePdfJs).toBe(true);
 
     expect(config.modules.footerPanel.options.downloadEnabled).toBe(false);
     expect(config.modules.footerPanel.options.embedEnabled).toBe(false);

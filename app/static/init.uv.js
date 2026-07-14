@@ -9,7 +9,9 @@ function initUniversalViewer() {
 
   const uv = UV.init("uv", data);
   uv.on("configure", function ({ config, cb }) {
-    config.modules.centerPanel.options = {
+    config.modules.pdfCenterPanel = config.modules.pdfCenterPanel || {};
+    config.modules.pdfCenterPanel.options = {
+      ...(config.modules.pdfCenterPanel.options || {}),
       usePdfJs: true,
     };
     config.modules.footerPanel.options = {
