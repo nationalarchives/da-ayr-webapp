@@ -80,7 +80,7 @@ services:
       - opensearch-net
 
   postgres:
-    image: postgres:18.4@sha256:22c89fe0d0f507606260237fd55e51f6137f58b2d5bcf6152242b96d9fe8f9a4
+    image: postgres:18.4@sha256:b913fd5699b8bd23fa4b06d72ecdd939fad43b80fb8651bac06caa0e6d135cac
     volumes:
       - kc_postgres_data:/var/lib/postgresql/data
     environment:
@@ -93,7 +93,7 @@ services:
       - keycloak_network
 
   webapp_postgres:
-    image: postgres:18.4@sha256:22c89fe0d0f507606260237fd55e51f6137f58b2d5bcf6152242b96d9fe8f9a4
+    image: postgres:18.4@sha256:b913fd5699b8bd23fa4b06d72ecdd939fad43b80fb8651bac06caa0e6d135cac
     user: postgres
     volumes:
       - webapp_postgres_data:/var/lib/postgresql/data
