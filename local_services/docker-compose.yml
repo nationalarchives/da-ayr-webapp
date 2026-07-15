@@ -1,7 +1,7 @@
 ---
 services:
   opensearch-node1:
-    image: opensearchproject/opensearch:3.7.0@sha256:123e6591a47b1d54686890551bdb35739c85193ecded381219fc9e059e18128f
+    image: opensearchproject/opensearch:3.7.0@sha256:44ba7ea58a319adf61c33ab16873f9ef5dbb30b291a832d375172f0b2d24e3c9
     container_name: opensearch-node1
     environment:
       - cluster.name=opensearch-cluster
@@ -36,7 +36,7 @@ services:
       - opensearch-net
 
   opensearch-node2:
-    image: opensearchproject/opensearch:3.7.0@sha256:123e6591a47b1d54686890551bdb35739c85193ecded381219fc9e059e18128f
+    image: opensearchproject/opensearch:3.7.0@sha256:44ba7ea58a319adf61c33ab16873f9ef5dbb30b291a832d375172f0b2d24e3c9
     container_name: opensearch-node2
     environment:
       - cluster.name=opensearch-cluster
