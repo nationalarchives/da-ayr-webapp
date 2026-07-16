@@ -13,7 +13,6 @@ from flask import (
     render_template,
     request,
     session,
-    stream_with_context,
     url_for,
 )
 from jinja2.exceptions import TemplateNotFound
@@ -1031,27 +1030,32 @@ def get_record_pdf(record_id: uuid.UUID):
 
     s3 = boto3.client("s3")
     try:
-        s3_object = s3.get_object(Bucket=bucket, Key=key)
+        s3.head_object(Bucket=bucket, Key=key)
     except ClientError as e:
         if e.response["Error"]["Code"] == "404":
             abort(404)
         current_app.app_logger.error(f"Failed to fetch PDF from S3: {e}")
         abort(500)
 
-    def generate():
-        for chunk in s3_object["Body"].iter_chunks(chunk_size=65536):
-            yield chunk
+    # Responses are capped at 6MB, so redirect the viewer to a
+    # short-lived presigned S3 URL instead. pdf.js requests this route URL,
+    # so every fetch re-authenticates and gets a fresh signature
+    try:
+        presigned_url = s3.generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": bucket,
+                "Key": key,
+                "ResponseContentType": "application/pdf",
+                "ResponseContentDisposition": "inline",
+            },
+            ExpiresIn=60,
+        )
+    except Exception as e:
+        current_app.app_logger.error(f"Failed to generate presigned URL: {e}")
+        abort(500)
 
-    headers = {"Content-Disposition": "inline"}
-    content_length = s3_object.get("ContentLength")
-    if content_length is not None:
-        headers["Content-Length"] = str(content_length)
-
-    return Response(
-        stream_with_context(generate()),
-        mimetype="application/pdf",
-        headers=headers,
-    )
+    return redirect(presigned_url)
 
 
 @bp.route("/record/<uuid:record_id>/search", methods=["GET"])
