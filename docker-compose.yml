@@ -50,7 +50,7 @@ services:
 
   opensearch-restore:
     env_file:
-      - local_services/.docker.env
+      - .docker.env
     image: curlimages/curl:latest@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
     environment:
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
@@ -98,7 +98,7 @@ services:
   postgres:
     image: postgres@sha256:22c89fe0d0f507606260237fd55e51f6137f58b2d5bcf6152242b96d9fe8f9a4
     env_file:
-      - local_services/.docker.env
+      - .docker.env
     volumes:
       - kc_postgres_data:/var/lib/postgresql
     environment:
@@ -113,7 +113,7 @@ services:
   webapp_postgres:
     image: postgres@sha256:22c89fe0d0f507606260237fd55e51f6137f58b2d5bcf6152242b96d9fe8f9a4
     env_file:
-      - local_services/.docker.env
+      - .docker.env
     user: postgres
     volumes:
       - webapp_postgres_data:/var/lib/postgresql
@@ -133,7 +133,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.6.4@sha256:0aae0de7fca85525f727d3354df17896092de8bb26ae4c12d89c77e5df8cbce4
     env_file:
-      - local_services/.docker.env
+      - .docker.env
     command: start-dev --import-realm --spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true
     environment:
       KC_HOSTNAME: localhost
@@ -172,7 +172,7 @@ services:
 
   minio:
     env_file:
-      - local_services/.docker.env
+      - .docker.env
     image: quay.io/minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
     container_name: minio
     ports:
@@ -197,7 +197,7 @@ services:
 
   minio-init:
     env_file:
-      - local_services/.docker.env
+      - .docker.env
     image: minio/mc:latest@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
     depends_on:
       minio:
@@ -227,7 +227,7 @@ services:
 
   webapp:
     env_file:
-      - local_services/.docker.env
+      - .docker.env
     image: da-ayr-beta-webapp:latest
     build:
       context: .

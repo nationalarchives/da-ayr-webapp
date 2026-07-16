@@ -1,4 +1,4 @@
-ENV_FILE = local_services/.docker.env
+ENV_FILE = .docker.env
 WEBAPP_POSTGRES_CA = local_services/webapp_postgres_certs/root-ca.pem
 OPENSEARCH_CA = local_services/opensearch_certs/root-ca.pem
 KEYCLOAK_CERT = local_services/keycloak_certs/cert.pem
@@ -8,7 +8,7 @@ COMPOSE = docker compose --env-file $(ENV_FILE) -f docker-compose.yml
 .PHONY: setup start stop clean unit test pre-commit e2e build-e2e-tests run-e2e-tests
 
 $(ENV_FILE):
-	cp local_services/.env.template $(ENV_FILE)
+	cp .docker.env.template $(ENV_FILE)
 
 $(WEBAPP_POSTGRES_CA):
 	cd local_services/webapp_postgres_certs && sh ./generate_webapp_postgres_certs.sh
