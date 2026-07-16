@@ -1,6 +1,6 @@
 services:
   opensearch-node1:
-    image: opensearchproject/opensearch:3.7.0@sha256:123e6591a47b1d54686890551bdb35739c85193ecded381219fc9e059e18128f
+    image: opensearchproject/opensearch:3.7.0@sha256:44ba7ea58a319adf61c33ab16873f9ef5dbb30b291a832d375172f0b2d24e3c9
     container_name: opensearch-node1
     environment:
       - discovery.type=single-node
@@ -34,7 +34,7 @@ services:
       start_period: 60s
 
   opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards@sha256:ad707f8c85abe5164b10a3277ebc3e7ff2a7034f72898ae0be7371133770151d
+    image: opensearchproject/opensearch-dashboards@sha256:1c9e0a50472123bd2cde615ffb7157ef436db794e082dba09e42c3a6d3ce91a3 # opensearch-dashboards:latest with digest for immutability
     container_name: opensearch-dashboards
     ports:
       - 5601:5601
@@ -96,7 +96,7 @@ services:
       "
 
   postgres:
-    image: postgres@sha256:22c89fe0d0f507606260237fd55e51f6137f58b2d5bcf6152242b96d9fe8f9a4
+    image: postgres@sha256:c2d42a104eb6b37b286a2d9c5cf83f349de4d6516d513d00a2bd9610e2c2e5e4 # postgres:18.0 with digest for immutability
     env_file:
       - .docker.env
     volumes:
@@ -111,7 +111,7 @@ services:
       - keycloak_network
 
   webapp_postgres:
-    image: postgres@sha256:22c89fe0d0f507606260237fd55e51f6137f58b2d5bcf6152242b96d9fe8f9a4
+    image: postgres@sha256:c2d42a104eb6b37b286a2d9c5cf83f349de4d6516d513d00a2bd9610e2c2e5e4 # postgres:18.0 with digest for immutability
     env_file:
       - .docker.env
     user: postgres
