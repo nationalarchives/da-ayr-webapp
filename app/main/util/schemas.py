@@ -72,12 +72,12 @@ class BrowseConsignmentRequestSchema(PaginationSchema, BrowseFilterSchema):
         unknown = EXCLUDE
 
 
-class BrowseRecordsRequestSchema(Schema):
+class BrowseRecordsRequestSchema(PaginationSchema):
     """Browse records request validation schema."""
 
-    page = fields.Integer(
+    per_page = fields.Integer(
         allow_none=True,
-        load_default=1,
+        load_default=5,
         validate=validate.Range(min=1),
     )
 

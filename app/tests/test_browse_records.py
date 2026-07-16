@@ -1,3 +1,4 @@
+import pytest
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
@@ -50,8 +51,10 @@ class TestBrowseRecords:
         )
 
         soup = BeautifulSoup(response.data, "html.parser")
-        rows = soup.select("tbody.govuk-table__body tr.govuk-table__row")
-        assert len(rows) == 5
+        record_links = soup.select(
+            "tbody.govuk-table__body td[colspan='4'] > a[href^='/record/']"
+        )
+        assert len(record_links) == 5
 
     def test_browse_records_for_standard_user_only_shows_accessible_body(
         self, client: FlaskClient, mock_standard_user, browse_files
@@ -73,8 +76,10 @@ class TestBrowseRecords:
         assert b"fourth_file.docx" not in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
-        rows = soup.select("tbody.govuk-table__body tr.govuk-table__row")
-        assert len(rows) == 3
+        record_links = soup.select(
+            "tbody.govuk-table__body td[colspan='4'] > a[href^='/record/']"
+        )
+        assert len(record_links) == 3
 
     def test_browse_records_second_page_shows_expected_range_and_links(
         self, client: FlaskClient, mock_all_access_user, browse_files
@@ -102,6 +107,40 @@ class TestBrowseRecords:
         assert next_link is not None
         assert "page=1" in previous_link["href"]
         assert "page=3" in next_link["href"]
+
+    @pytest.mark.parametrize(
+        "per_page, expected_header, expected_count",
+        [
+            (10, "Showing 1\u201310 of 27", 10),
+            (20, "Showing 1\u201320 of 27", 20),
+        ],
+    )
+    def test_browse_records_per_page_query_updates_page_size(
+        self,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_files,
+        per_page,
+        expected_header,
+        expected_count,
+    ):
+        """
+        Given browse records supports per_page query input
+        When per_page is requested from the frontend
+        Then the first page size and range text match per_page
+        """
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}?per_page={per_page}")
+
+        assert response.status_code == 200
+        verify_browse_records_view_header_row(response.data, expected_header)
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        record_links = soup.select(
+            "tbody.govuk-table__body td[colspan='4'] > a[href^='/record/']"
+        )
+        assert len(record_links) == expected_count
 
     def test_browse_records_invalid_page_redirects_to_first_page(
         self, client: FlaskClient, mock_all_access_user, browse_files

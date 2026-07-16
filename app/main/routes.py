@@ -592,7 +592,7 @@ def browse_consignment(_id: uuid.UUID):
 def browse_records():
     validated_data = request.validated_data
     page = validated_data.get("page") or 1
-    per_page = 5
+    per_page = validated_data.get("per_page") or 5
     default_page = 1
     form = SearchForm()
 

@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr=5.5.0-1+b1 \
     antiword=0.37-17 \
     unrtf \
-    libreoffice=4:25.2.3-2+deb13u5 \
+    libreoffice \
     nodejs=20.19.2+dfsg-1+deb13u2 \
     npm=9.2.0~ds1-3 \
     && rm -rf /var/lib/apt/lists/*

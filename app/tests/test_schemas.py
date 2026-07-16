@@ -266,6 +266,7 @@ class TestBrowseRecordsRequestSchema:
         data = schema.load({})
 
         assert data["page"] == 1
+        assert data["per_page"] == 5
 
     def test_valid_page(self):
         schema = BrowseRecordsRequestSchema()
@@ -280,12 +281,19 @@ class TestBrowseRecordsRequestSchema:
             schema.load({"page": 0})
         assert "page" in exc_info.value.messages
 
-    def test_per_page_is_ignored(self):
+    def test_per_page_is_accepted(self):
         schema = BrowseRecordsRequestSchema()
-        data = schema.load({"page": 2, "per_page": 5})
+        data = schema.load({"page": 2, "per_page": 10})
 
         assert data["page"] == 2
-        assert "per_page" not in data
+        assert data["per_page"] == 10
+
+    def test_per_page_invalid_value(self):
+        schema = BrowseRecordsRequestSchema()
+
+        with pytest.raises(ValidationError) as exc_info:
+            schema.load({"per_page": 0})
+        assert "per_page" in exc_info.value.messages
 
 
 class TestSearchRequestSchema:

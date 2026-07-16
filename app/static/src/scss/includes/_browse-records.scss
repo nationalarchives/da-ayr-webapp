@@ -17,50 +17,82 @@
     border-bottom: none !important;
   }
 
-  .govuk-table--right-align,
-  .govuk-table__cell--right-align {
+  .govuk-table__head .govuk-table__header {
+    border-bottom: 1px solid $colour-border-normal !important;
+  }
+
+  .govuk-table--right-align {
     text-align: right;
   }
 
-  .govuk-table__cell:nth-child(1) {
-    > * {
-      padding-top: 5px;
-    }
-    width: 55%;
-    word-wrap: break-word;
-
-    a {
-      display: block;
-    }
-
-    span {
-      font-size: 14px;
-      color: #484949;
-    }
-
-    :nth-child(4) {
-      font-size: 14px;
-      color: #484949;
-    }
+  .browse-records__last-modified-text,
+  .browse-records__consignment-text {
+    color: $secondary-text-colour;
   }
 
-  .govuk-table__cell:nth-child(2) {
-    width: 20%;
-  }
+  .browse-records__path-separator {
+    font-size: 0.75rem;
+    color: $secondary-text-colour;
 
-  .govuk-table__cell:nth-child(3) {
-    width: 10%;
-  }
-
-  .govuk-table__cell:nth-child(4) {
-    width: 15%;
-  }
-
-  .govuk-table__body .govuk-table__row:first-child .govuk-table__cell {
-    border-top: 1px solid $colour-border-normal;
+    &::before {
+      content: "\276f";
+    }
   }
 
   .govuk-table__body .govuk-table__row:last-child .govuk-table__cell {
     border-bottom: 1px solid $colour-border-normal !important;
+  }
+
+  .browse-records__row--title-gap .browse-records__title-cell {
+    padding-top: 15px !important;
+  }
+
+  .browse-records__title-cell,
+  .browse-records__meta-cell--date,
+  .browse-records__meta-cell--series,
+  .browse-records__meta-cell--status,
+  .browse-records__meta-cell--opening-date,
+  .browse-records__path-cell,
+  .browse-records__consignment-cell {
+    border: none !important;
+  }
+
+  .browse-records__title-cell {
+    padding-bottom: 5px !important;
+  }
+
+  .browse-records__meta-cell--date,
+  .browse-records__meta-cell--series,
+  .browse-records__meta-cell--status,
+  .browse-records__meta-cell--opening-date,
+  .browse-records__path-cell {
+    padding-top: 0 !important;
+    padding-bottom: 5px !important;
+  }
+
+  .browse-records__consignment-cell {
+    padding-top: 0 !important;
+    padding-bottom: 15px !important;
+  }
+
+  .browse-records__file-link {
+    display: block;
+    font-size: 18px;
+  }
+
+  .browse-records__meta-cell--date {
+    width: 55%;
+  }
+
+  .browse-records__meta-cell--series {
+    width: 20%;
+  }
+
+  .browse-records__meta-cell--status {
+    width: 10%;
+  }
+
+  .browse-records__meta-cell--opening-date {
+    width: 15%;
   }
 }
