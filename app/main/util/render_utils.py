@@ -1,8 +1,6 @@
-import base64
 import contextlib
 import io
 import logging
-from typing import List
 
 import boto3
 import pymupdf
@@ -82,129 +80,6 @@ def create_presigned_url(file: File) -> str:
     )
 
     return presigned_url
-
-
-def extract_pdf_pages_as_images(pdf_bytes: bytes) -> List[dict]:
-    """Extract PDF pages as images and return page info with base64 thumbnails."""
-    DPI = 150  # Output DPI for rendering
-
-    with _open_pdf(pdf_bytes) as pdf_document:
-        page_data = []
-
-        for page_num in range(pdf_document.page_count):
-            page = pdf_document.load_page(page_num)
-            mat = pymupdf.Matrix(DPI / 72, DPI / 72)
-            pix = page.get_pixmap(matrix=mat)
-            img_bytes = pix.tobytes("png")
-
-            # Convert to PIL Image for thumbnail processing
-            page_image = Image.open(io.BytesIO(img_bytes))
-
-            # Create thumbnail (150x200 pixels)
-            thumbnail = page_image.copy()
-            thumbnail.thumbnail((150, 200), Image.Resampling.LANCZOS)
-
-            # Convert thumbnail to base64 data URL
-            thumbnail_buffer = io.BytesIO()
-            thumbnail.save(thumbnail_buffer, format="JPEG", quality=70)
-            thumbnail_base64 = base64.b64encode(
-                thumbnail_buffer.getvalue()
-            ).decode()
-            thumbnail_data_url = f"data:image/jpeg;base64,{thumbnail_base64}"
-
-            # Convert full page to base64 data URL
-            page_buffer = io.BytesIO()
-            page_image.save(page_buffer, format="JPEG", quality=75)
-            page_base64 = base64.b64encode(page_buffer.getvalue()).decode()
-            page_data_url = f"data:image/jpeg;base64,{page_base64}"
-
-            current_app.logger.debug(
-                f"Page {page_num + 1}: thumbnail={len(thumbnail_base64)} chars, full={len(page_base64)} chars"
-            )
-
-            page_data.append(
-                {
-                    "page_number": page_num + 1,
-                    "width": page_image.width,
-                    "height": page_image.height,
-                    "thumbnail_url": thumbnail_data_url,
-                    "page_image_url": page_data_url,
-                }
-            )
-
-            # Clean up resources
-            page_image.close()
-            thumbnail.close()
-            pix = None
-
-        return page_data
-
-
-def extract_single_page_as_image(
-    pdf_bytes: bytes, page_number: int, thumbnail: bool = False
-) -> bytes:
-    """
-    Extract a single page from PDF as JPEG bytes.
-
-    Args:
-        pdf_bytes: The PDF file bytes
-        page_number: 1-indexed page number
-        thumbnail: If True, return thumbnail size (150x200)
-
-    Returns:
-        JPEG image bytes
-
-    Raises:
-        ValueError: If page_number is invalid
-    """
-    DPI = 150
-
-    with _open_pdf(pdf_bytes) as pdf_document:
-        if page_number < 1 or page_number > pdf_document.page_count:
-            raise ValueError(
-                f"Invalid page number: {page_number}. PDF has {pdf_document.page_count} pages."
-            )
-
-        # Load page (convert 1-indexed to 0-indexed)
-        page = pdf_document.load_page(page_number - 1)
-        mat = pymupdf.Matrix(DPI / 72, DPI / 72)
-        pix = page.get_pixmap(matrix=mat)
-        img_bytes = pix.tobytes("png")
-
-        # Convert to PIL Image
-        page_image = Image.open(io.BytesIO(img_bytes))
-
-        if thumbnail:
-            page_image.thumbnail((150, 200), Image.Resampling.LANCZOS)
-            quality = 70
-        else:
-            quality = 75
-
-        # Convert to JPEG
-        output_buffer = io.BytesIO()
-        page_image.save(output_buffer, format="JPEG", quality=quality)
-
-        # Clean up
-        page_image.close()
-        pix = None
-
-        return output_buffer.getvalue()
-
-
-def extract_single_page_as_thumbnail(
-    pdf_bytes: bytes, page_number: int
-) -> bytes:
-    """
-    Extract a single page from PDF as a thumbnail JPEG.
-
-    Args:
-        pdf_bytes: The PDF file bytes
-        page_number: 1-indexed page number
-
-    Returns:
-        JPEG thumbnail bytes (150x200 max)
-    """
-    return extract_single_page_as_image(pdf_bytes, page_number, thumbnail=True)
 
 
 def create_presigned_url_for_access_copy(file: File) -> str:
