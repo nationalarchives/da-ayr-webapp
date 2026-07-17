@@ -15,6 +15,7 @@ function initUniversalViewer() {
       usePdfJs: true,
     };
     config.modules.footerPanel.options = {
+      ...(config.modules.footerPanel.options || {}),
       downloadEnabled: false,
       embedEnabled: false,
       fullscreenEnabled: true,
@@ -38,26 +39,49 @@ function initUniversalViewer() {
       },
     });
   });
+  uv.on("pdfExtension.pdfLoaded", function () {
+    fitPdfToWidth();
+  });
+}
+
+// Universal Viewer's PDF.js panel always renders at a fixed 0.7 scale and
+// has no fit-to-width, so pages open partly zoomed out. Its scale is only
+// reachable through the zoom buttons (+0.5 per click), so once the PDF has
+// loaded, click zoom-in until the page width approximately fills the
+// container (which scrolls vertically via overflow: auto).
+const UV_PDF_INITIAL_SCALE = 0.7;
+const UV_PDF_ZOOM_STEP = 0.5;
+const UV_PDF_FIT_MAX_ATTEMPTS = 20;
+
+function fitPdfToWidth(attempt = 0) {
+  const container = document.querySelector("#uv .pdfContainer");
+  const canvas = container && container.querySelector("canvas");
+  if (!container || !canvas || !canvas.width || !container.clientWidth) {
+    // The first render may not have finished when pdfLoaded fires
+    if (attempt < UV_PDF_FIT_MAX_ATTEMPTS) {
+      setTimeout(function () {
+        fitPdfToWidth(attempt + 1);
+      }, 250);
+    }
+    return;
+  }
+  const pageWidthAtFullScale = canvas.width / UV_PDF_INITIAL_SCALE;
+  const targetScale = (container.clientWidth * 0.95) / pageWidthAtFullScale;
+  const clicks = Math.floor(
+    (targetScale - UV_PDF_INITIAL_SCALE) / UV_PDF_ZOOM_STEP,
+  );
+  const zoomInButton = document.querySelector("#uv button.zoomIn");
+  for (let i = 0; zoomInButton && i < clicks; i++) {
+    zoomInButton.click();
+  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
   initUniversalViewer();
 });
 
-// Automatically zooms into the first page thumbnail after a sec delay
-const defaultZoom = function () {
-  setTimeout(function () {
-    let firstPage = document.getElementById("thumb-0");
-    if (firstPage) {
-      let thumbDiv = firstPage.querySelector("div.thumb");
-      thumbDiv.click();
-    }
-  }, 1000);
-};
-
 document.querySelectorAll(".govuk-tabs__tab").forEach((tab) => {
   tab.addEventListener("click", function (event) {
-    defaultZoom();
     if (this.getAttribute("href") === "#record-view") {
       setTimeout(initUniversalViewer, 0);
     }
@@ -114,5 +138,4 @@ document.addEventListener("DOMContentLoaded", function () {
       button.setAttribute("role", "button");
     }
   });
-  defaultZoom();
 });

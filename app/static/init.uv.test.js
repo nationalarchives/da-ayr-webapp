@@ -71,20 +71,6 @@ describe("tests for init.uv.js", () => {
     }, 10);
   });
 
-  it("should zoom to first page thumbnail on tab click", () => {
-    document.body.innerHTML += `
-      <div class="govuk-tabs__tab" href="#record-view"></div>
-      <div id="thumb-0"><div class="thumb"></div></div>
-    `;
-    const thumbDiv = document.querySelector("#thumb-0 .thumb");
-    const clickSpy = jest.spyOn(thumbDiv, "click");
-    require("./init.uv.js");
-    document.querySelector(".govuk-tabs__tab").click();
-    setTimeout(() => {
-      expect(clickSpy).toHaveBeenCalled();
-    }, 1000);
-  });
-
   it("should re-initialize UniversalViewer on #record-view tab click", () => {
     document.body.innerHTML += `
       <div class="govuk-tabs__tab" href="#record-view"></div>
@@ -109,9 +95,45 @@ describe("tests for init.uv.js", () => {
     }, 10);
   });
 
+  it("should fit the PDF to the container width when the PDF loads", () => {
+    let pdfLoadedHandler;
+    window.UV = {
+      init: jest.fn(() => ({
+        on: jest.fn((event, handler) => {
+          if (event === "pdfExtension.pdfLoaded") {
+            pdfLoadedHandler = handler;
+          }
+        }),
+      })),
+    };
+    document.getElementById("uv").innerHTML = `
+      <div class="pdfContainer"><canvas width="280"></canvas></div>
+      <button class="btn zoomIn"></button>
+    `;
+    const container = document.querySelector("#uv .pdfContainer");
+    // jsdom has no layout, so give the container a width
+    Object.defineProperty(container, "clientWidth", { value: 800 });
+    const zoomInButton = document.querySelector("#uv button.zoomIn");
+    const clickSpy = jest.spyOn(zoomInButton, "click");
+
+    require("./init.uv.js");
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    pdfLoadedHandler();
+
+    // canvas is 280px at UV's initial 0.7 scale -> 400px at scale 1.
+    // target scale = (800 * 0.95) / 400 = 1.9 -> 2 zoom-in clicks of +0.5
+    expect(clickSpy).toHaveBeenCalledTimes(2);
+  });
+
   it("should configure UV viewer with correct options", () => {
     const cbMock = jest.fn();
-    const config = { modules: { footerPanel: {} } };
+    const config = {
+      modules: {
+        footerPanel: {
+          options: { downloadEnabled: true, minimiseButtons: true },
+        },
+      },
+    };
 
     window.UV = {
       init: jest.fn(() => ({
@@ -132,6 +154,7 @@ describe("tests for init.uv.js", () => {
     expect(config.modules.footerPanel.options.fullscreenEnabled).toBe(true);
     expect(config.modules.footerPanel.options.moreInfoEnabled).toBe(false);
     expect(config.modules.footerPanel.options.shareEnabled).toBe(false);
+    expect(config.modules.footerPanel.options.minimiseButtons).toBe(true);
 
     expect(config.modules.pdfHeaderPanel.options.centerOptionsEnabled).toBe(
       true,
