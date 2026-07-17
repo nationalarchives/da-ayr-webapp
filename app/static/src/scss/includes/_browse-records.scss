@@ -44,6 +44,10 @@
     position: relative;
     top: 4px;
     color: $secondary-text-colour;
+
+    &::before {
+      content: "\22EF";
+    }
   }
 
   .govuk-table__body .govuk-table__row:last-child .govuk-table__cell {

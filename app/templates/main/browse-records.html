@@ -50,7 +50,7 @@
                                     {% if record["file_path"] %}
                                         {% set path_parts = record["file_path"].split('/')[:-1] %}
                                         {% if record["file_path"] | length > 60 and path_parts | length > 1 %}
-                                            {{ path_parts[0] }} <span class="browse-records__path-condensed-separator" aria-hidden="true">&ctdot;</span> {{ path_parts[-1] }}
+                                            {{ path_parts[0] }} <span class="browse-records__path-condensed-separator" aria-hidden="true"></span> {{ path_parts[-1] }}
                                         {% else %}
                                             {% for path_part in path_parts %}
                                                 {{ path_part }}
