@@ -17,7 +17,7 @@
                 </thead>
                 <tbody class="govuk-table__body">
                     {% for record in results %}
-                        <tr class="govuk-table__row{% if not loop.first %} browse-records__row--title-gap{% endif %}">
+                        <tr class="govuk-table__row browse-records__row--title-gap">
                             <td colspan="4" class="govuk-table__cell browse-records__title-cell">
                                 <a href="{{ url_for('main.record', record_id=record['file_id']) }}"
                                    class="browse-records__file-link">{{ record["file_name"] }}</a>
@@ -48,12 +48,17 @@
                             <td colspan="4" class="govuk-table__cell browse-records__path-cell">
                                 <p class="govuk-body-s govuk-!-margin-0">
                                     {% if record["file_path"] %}
-                                        {% for path_part in record["file_path"].split('/')[:-1] %}
-                                            {{ path_part }}
-                                            {% if not loop.last %}
-                                                <span class="browse-records__path-separator" aria-hidden="true"></span>
-                                            {% endif %}
-                                        {% endfor %}
+                                        {% set path_parts = record["file_path"].split('/')[:-1] %}
+                                        {% if record["file_path"] | length > 60 and path_parts | length > 1 %}
+                                            {{ path_parts[0] }} <span class="browse-records__path-condensed-separator" aria-hidden="true">&ctdot;</span> {{ path_parts[-1] }}
+                                        {% else %}
+                                            {% for path_part in path_parts %}
+                                                {{ path_part }}
+                                                {% if not loop.last %}
+                                                    <span class="browse-records__path-separator" aria-hidden="true"></span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
                                     {% endif %}
                                 </p>
                             </td>
