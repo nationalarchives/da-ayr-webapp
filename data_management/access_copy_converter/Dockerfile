@@ -1,5 +1,5 @@
 # Python 3.13-slim
-FROM python@sha256:09b29c360b84742bf98eba40b214f7f6b4b53286bb2c8a8b5b1afa188a8d9c0e
+FROM python@sha256:311ea5bb79f1a238ee9e38f8d5f09cb3b4b244575cf49e27cf365ea7e60f11d4
 
 # Install system dependencies including LibreOffice
 RUN apt-get update && apt-get -y upgrade && apt-get install -y \
