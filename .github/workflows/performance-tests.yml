@@ -91,10 +91,10 @@ jobs:
         version: v5.3.1
 
     - name: Generate Keycloak TLS certs
-      run: ./local_services/generate-keycloak-certs.sh
+      run: sh ./local_services/generate-keycloak-certs.sh
 
     - name: Start Docker Compose with CI-specific configuration
-      run: cd local_services && docker compose -f docker-compose.ci.yml --env-file .docker.env up -d --wait --no-build webapp minio-init socat-localhost || exit $(docker compose ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
+      run: docker compose -f docker-compose.yml --env-file .docker.env up -d --wait --no-build webapp minio-init socat-localhost || exit $(docker compose -f docker-compose.yml --env-file .docker.env ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Set up Python
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
@@ -167,11 +167,10 @@ jobs:
 
     - name: Check logs after test failure
       if: failure()
-      run: cd local_services && docker compose -f docker-compose.ci.yml logs
+      run: docker compose -f docker-compose.yml --env-file .docker.env logs
 
     - name: Stop services
       if: always()
       run: |
-        cd local_services
-        docker compose -f docker-compose.ci.yml down -v
+        docker compose -f docker-compose.yml --env-file .docker.env down -v
         docker system prune -f

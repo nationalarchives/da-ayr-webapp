@@ -20,7 +20,7 @@ services:
         hard: 65536
     volumes:
       - opensearch-data1:/usr/share/opensearch/data
-      - ./snapshots:/mnt/snapshots
+      - ./local_services/snapshots:/mnt/snapshots
     ports:
       - 9200:9200
       - 9600:9600
@@ -42,7 +42,7 @@ services:
       - "5601"
     environment:
       OPENSEARCH_HOSTS: '["http://opensearch-node1:9200"]'
-      DISABLE_SECURITY_DASHBOARDS_PLUGIN: 'true'
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"
     networks:
       - opensearch-net
     depends_on:
@@ -60,12 +60,11 @@ services:
     networks:
       - opensearch-net
     volumes:
-      - ./snapshots:/mnt/snapshots
+      - ./local_services/snapshots:/mnt/snapshots
     command: |
       sh -c "
         echo 'Waiting for OpenSearch to be ready...'
 
-        # Wait for OpenSearch to be fully ready
         until curl -s http://opensearch-node1:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'; do
           echo 'Waiting for OpenSearch cluster...'
           sleep 5
@@ -73,30 +72,25 @@ services:
 
         echo 'OpenSearch is ready. Starting restore process...'
 
-        # Register the snapshot repository (no auth needed)
         curl -s -X PUT 'http://opensearch-node1:9200/_snapshot/my-fs-repository' -H 'Content-Type: application/json' -d '{\"type\": \"fs\", \"settings\": {\"location\": \"/mnt/snapshots\"}}'
 
         echo 'Repository registered.'
 
-        # Delete existing documents index if it exists
         curl -s -X DELETE 'http://opensearch-node1:9200/documents' || echo 'No existing index to delete'
 
         echo 'Existing index cleared.'
 
-        # Restore from snapshot (no auth needed)
-        restore_response=\$$(curl -s -X POST 'http://opensearch-node1:9200/_snapshot/my-fs-repository/1/_restore' -H 'Content-Type: application/json' -d '{\"indices\": \"documents\", \"include_global_state\": false}')
-        echo \"Restore response: \$$restore_response\"
+        restore_response=$$(curl -s -X POST 'http://opensearch-node1:9200/_snapshot/my-fs-repository/1/_restore' -H 'Content-Type: application/json' -d '{\"indices\": \"documents\", \"include_global_state\": false}')
+        echo \"Restore response: $$restore_response\"
 
-        # Wait for restore to complete
         echo 'Waiting for restore to complete...'
         until curl -s 'http://opensearch-node1:9200/documents/_search?size=0' | grep -q '\"total\"'; do
           echo 'Waiting for documents to be available...'
           sleep 2
         done
 
-        # Verify the restore was successful
-        doc_count=\$$(curl -s 'http://opensearch-node1:9200/documents/_count' | grep -o '\"count\":[0-9]*' | cut -d':' -f2)
-        echo \"Restore completed successfully. Document count: \$$doc_count\"
+        doc_count=$$(curl -s 'http://opensearch-node1:9200/documents/_count' | grep -o '\"count\":[0-9]*' | cut -d':' -f2)
+        echo \"Restore completed successfully. Document count: $$doc_count\"
 
         exit 0
       "
@@ -123,8 +117,8 @@ services:
     user: postgres
     volumes:
       - webapp_postgres_data:/var/lib/postgresql
-      - ./dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
-      - ./postgres-init.sh:/docker-entrypoint-initdb.d/postgres-init.sh
+      - ./local_services/dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
+      - ./local_services/postgres-init.sh:/docker-entrypoint-initdb.d/postgres-init.sh
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -159,8 +153,8 @@ services:
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       WEBAPP_HOST_PORT: ${WEBAPP_HOST_PORT:-5000}
     volumes:
-      - ./import:/opt/keycloak/data/import
-      - ./keycloak_certs:/opt/keycloak/conf/tls:ro
+      - ./local_services/import:/opt/keycloak/data/import
+      - ./local_services/keycloak_certs:/opt/keycloak/conf/tls:ro
     ports:
       - 8080:8080
       - 8443:8443
@@ -210,7 +204,7 @@ services:
         condition: service_healthy
     restart: "no"
     volumes:
-      - ./files:/tmp/files:ro
+      - ./local_services/files:/tmp/files:ro
     networks:
       - minio_network
     entrypoint: >
@@ -236,24 +230,31 @@ services:
       - .docker.env
     image: da-ayr-beta-webapp:latest
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     container_name: webapp
     command: >
       sh -c "
-        echo 'Building CSS files...' &&
-        npm run build &&
-        poetry run flask run --host=0.0.0.0 --port=${WEBAPP_HOST_PORT:-5000} --debug
+        if [ ! -f cert.pem ] || [ ! -f key.pem ]; then
+          openssl req -x509 -newkey rsa:2048 -nodes -out cert.pem -keyout key.pem -days 365 -subj '/C=GB/ST=Test/L=Test/O=Test/CN=localhost';
+        fi
+        if [ ! -f app/static/govuk-frontend.min.js ]; then
+          sh ./build.sh
+        fi
+        npm run dev -- --poll &
+        python -m flask run --host=0.0.0.0 --port=${WEBAPP_HOST_PORT:-5000} --debug
       "
     ports:
       - "${WEBAPP_HOST_PORT:-5000}:${WEBAPP_HOST_PORT:-5000}"
     volumes:
+      - .:/docker_app
+      - /docker_app/node_modules
       # Mount source code for hot reloading directly
-      - ../app:/docker_app/app
+      - ./app:/docker_app/app
       # Mount certificates
-      - ./minio_certs:/docker_app/local_services/minio_certs
-      - ./opensearch_certs:/docker_app/local_services/opensearch_certs
-      - ./webapp_postgres_certs:/docker_app/local_services/webapp_postgres_certs
+      - ./local_services/minio_certs:/docker_app/local_services/minio_certs
+      - ./local_services/opensearch_certs:/docker_app/local_services/opensearch_certs
+      - ./local_services/webapp_postgres_certs:/docker_app/local_services/webapp_postgres_certs
     networks:
       - default
       - keycloak_network

@@ -27,21 +27,16 @@ RUN poetry config virtualenvs.create false && \
 # Copy Node.js dependency files and install
 COPY package*.json /docker_app/
 RUN npm ci
-COPY app/static/src/scss /docker_app/app/static/src/scss
-# Build CSS files before copying the rest of the app as
-# we won't update them as often as other source files
-RUN npm run build
 
-# Preserve CSS files as copying app directory will overwrite them
-RUN cp -r /docker_app/app/static/src/css /tmp/css_backup
+COPY build.sh /docker_app/build.sh
 COPY app/ /docker_app/app
+RUN chmod +x /docker_app/build.sh && /docker_app/build.sh && npm run build
+
 COPY configs/ /docker_app/configs
 COPY main_app.py .flaskenv /docker_app/
 COPY local_services/mds_data_generator/ /docker_app/local_services/mds_data_generator/
 COPY data_management/opensearch_indexer/requirements.txt /tmp/indexer-requirements.txt
 RUN pip install --no-cache-dir -r /tmp/indexer-requirements.txt
-# Restore the built CSS files
-RUN cp -r /tmp/css_backup /docker_app/app/static/src/css
 
 
 ENV FLASK_ENV=development
