@@ -219,7 +219,7 @@ services:
       "
 
   socat-localhost:
-    image: alpine/socat@sha256:d85531a29ef5ba99dfb4717485c239307e2902d522a1bc010992a2728c92cfad
+    image: alpine/socat@sha256:4e625a62c9ea40ccbce93b9a4fcc6b41740a9f308389c216f34c88ce3abb275b
     command: tcp-listen:9000,fork,reuseaddr tcp-connect:minio:9000
     network_mode: service:webapp
     depends_on:
