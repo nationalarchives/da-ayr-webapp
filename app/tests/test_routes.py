@@ -778,6 +778,30 @@ class TestRoutes:
         assert response.status_code == 500
 
     @mock_aws
+    @patch("app.main.routes.boto3.client")
+    def test_get_record_pdf_presigned_url_generation_failure_returns_500(
+        self,
+        mock_boto_client,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+        caplog,
+    ):
+        mock_all_access_user(client)
+        file = FileFactory(ffid_metadata__PUID="fmt/276", FileName="test.pdf")
+        app.config["RECORD_BUCKET_NAME"] = "test-bucket"
+
+        s3_mock = mock_boto_client.return_value
+        s3_mock.generate_presigned_url.side_effect = Exception(
+            "Error in presigned URL generation"
+        )
+
+        response = client.get(f"/record/{file.FileId}/pdf")
+
+        assert response.status_code == 500
+        assert "Failed to generate presigned URL" in caplog.text
+
+    @mock_aws
     def test_get_record_pdf_convertible_puid_uses_access_copy_bucket(
         self,
         app,
