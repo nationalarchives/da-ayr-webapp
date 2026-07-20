@@ -237,8 +237,6 @@ class BaseConfig(object):
             self.FLASKS3_CDN_DOMAIN,
             self.S3_BUCKET_URL,
             self.ACCESS_COPY_BUCKET_URL,
-            # Universal Viewer's PDF.js worker is a blob wrapper that
-            # importScripts() the pdf.js worker from cdnjs
             "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
         ]
 
@@ -247,7 +245,6 @@ class BaseConfig(object):
         return [
             SELF,
             "https://cdn.jsdelivr.net/npm/universalviewer@4.2.0/",
-            # Universal Viewer loads pdf.js from cdnjs when usePdfJs is on
             "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
         ]
 
