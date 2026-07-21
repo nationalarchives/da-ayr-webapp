@@ -42,6 +42,22 @@
       padding-bottom: 5px;
     }
 
+    .browse-records__meta-cell--date {
+      width: 55%;
+    }
+
+    .browse-records__meta-cell--series {
+      width: 20%;
+    }
+
+    .browse-records__meta-cell--status {
+      width: 10%;
+    }
+
+    .browse-records__meta-cell--opening-date {
+      width: 15%;
+    }
+
     .browse-record-row__row--meta .browse-records__meta-cell--date,
     .browse-record-row__row--meta .browse-records__meta-cell--series,
     .browse-record-row__row--meta .browse-records__meta-cell--status,
@@ -59,22 +75,6 @@
     .browse-records__file-link {
       display: block;
       font-size: 18px;
-    }
-
-    .browse-records__meta-cell--date {
-      width: 55%;
-    }
-
-    .browse-records__meta-cell--series {
-      width: 20%;
-    }
-
-    .browse-records__meta-cell--status {
-      width: 10%;
-    }
-
-    .browse-records__meta-cell--opening-date {
-      width: 15%;
     }
   }
 }
