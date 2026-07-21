@@ -9,11 +9,12 @@
                    aria-label="Browse records table">
                 <thead class="govuk-table__head">
                     <tr class="govuk-table__row">
-                        <th scope="col" class="govuk-table__header">Showing {{ start_index }}–{{ end_index }} of {{ num_records_found | format_number_with_commas }}</th>
+                        <th scope="col" class="govuk-table__header browse-records__header-cell">Showing {{ start_index }}–{{ end_index }} of {{ num_records_found | format_number_with_commas }}</th>
                         <th scope="col"
-                            class="govuk-table__header govuk-table--invisible-on-mobile">Series</th>
-                        <th scope="col" class="govuk-table__header">Status</th>
-                        <th scope="col" class="govuk-table__header govuk-table--right-align">Opening date</th>
+                            class="govuk-table__header browse-records__header-cell govuk-table--invisible-on-mobile">Series</th>
+                        <th scope="col" class="govuk-table__header browse-records__header-cell">Status</th>
+                        <th scope="col"
+                            class="govuk-table__header browse-records__header-cell browse-records__header-cell--right govuk-table--right-align">Opening date</th>
                     </tr>
                 </thead>
                 <tbody class="govuk-table__body">
