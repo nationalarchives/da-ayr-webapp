@@ -1,109 +1,34 @@
 @use "variables" as *;
 
 .records-page-wrapper {
-  .govuk-table {
+  .browse-records__table {
     width: 100%;
     margin-bottom: 30px;
     border-collapse: collapse;
   }
 
-  .govuk-table__row {
-    border-bottom: none !important;
+  .browse-records__table .browse-record-row__row {
+    border-bottom: none;
   }
 
-  .govuk-table__cell,
-  .govuk-table__header {
+  .browse-records__table .govuk-table__cell,
+  .browse-records__table .govuk-table__header {
     padding: 10px 20px 10px 0;
-    border-bottom: none !important;
+    border-bottom: none;
   }
 
-  .govuk-table__head .govuk-table__header {
-    border-bottom: 1px solid $colour-border-normal !important;
+  .browse-records__table .govuk-table__head .govuk-table__header {
+    border-bottom: 1px solid $colour-border-normal;
   }
 
-  .govuk-table--right-align {
+  .browse-records__table .govuk-table--right-align {
     text-align: right;
   }
 
-  .browse-records__last-modified-text,
-  .browse-records__consignment-text {
-    color: $secondary-text-colour;
-  }
-
-  .browse-records__path-separator {
-    font-size: 0.75rem;
-    color: $secondary-text-colour;
-
-    &::before {
-      content: "\276f";
-    }
-  }
-
-  .browse-records__path-condensed-separator {
-    display: inline-block;
-    position: relative;
-    top: 4px;
-    color: $secondary-text-colour;
-
-    &::before {
-      content: "\22EF";
-    }
-  }
-
-  .govuk-table__body .govuk-table__row:last-child .govuk-table__cell {
-    border-bottom: 1px solid $colour-border-normal !important;
-  }
-
-  .browse-records__title-cell,
-  .browse-records__meta-cell--date,
-  .browse-records__meta-cell--series,
-  .browse-records__meta-cell--status,
-  .browse-records__meta-cell--opening-date,
-  .browse-records__path-cell,
-  .browse-records__consignment-cell {
-    border: none !important;
-  }
-
-  .browse-records__title-cell {
-    padding-bottom: 5px !important;
-  }
-
-  .browse-records__row--title-gap .browse-records__title-cell {
-    padding-top: 15px !important;
-  }
-
-  .browse-records__meta-cell--date,
-  .browse-records__meta-cell--series,
-  .browse-records__meta-cell--status,
-  .browse-records__meta-cell--opening-date,
-  .browse-records__path-cell {
-    padding-top: 0 !important;
-    padding-bottom: 5px !important;
-  }
-
-  .browse-records__consignment-cell {
-    padding-top: 0 !important;
-    padding-bottom: 15px !important;
-  }
-
-  .browse-records__file-link {
-    display: block;
-    font-size: 18px;
-  }
-
-  .browse-records__meta-cell--date {
-    width: 55%;
-  }
-
-  .browse-records__meta-cell--series {
-    width: 20%;
-  }
-
-  .browse-records__meta-cell--status {
-    width: 10%;
-  }
-
-  .browse-records__meta-cell--opening-date {
-    width: 15%;
+  .browse-records__table
+    .govuk-table__body
+    .browse-record-row__row:last-child
+    .govuk-table__cell {
+    border-bottom: 1px solid $colour-border-normal;
   }
 }

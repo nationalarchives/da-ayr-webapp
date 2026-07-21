@@ -1,9 +1,10 @@
 <div class="browse-layout records-page-wrapper">
     {% if num_records_found > 0 %}
+        {% set number_of_columns = 4 %}
         {% set start_index = ((current_page - 1) * per_page) + 1 %}
         {% set end_index = [current_page * per_page, num_records_found] | min %}
         <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
-            <table class="govuk-table browse-grid__table"
+            <table class="govuk-table browse-grid__table browse-records__table"
                    id="tbl_result"
                    aria-label="Browse records table">
                 <thead class="govuk-table__head">
@@ -17,60 +18,7 @@
                 </thead>
                 <tbody class="govuk-table__body">
                     {% for record in results %}
-                        <tr class="govuk-table__row browse-records__row--title-gap">
-                            <td colspan="4" class="govuk-table__cell browse-records__title-cell">
-                                <a href="{{ url_for('main.record', record_id=record['file_id']) }}"
-                                   class="browse-records__file-link">{{ record["file_name"] }}</a>
-                            </td>
-                        </tr>
-                        <tr class="govuk-table__row">
-                            <td class="govuk-table__cell browse-records__meta-cell--date">
-                                <p class="govuk-body-s govuk-!-margin-0">
-                                    <time datetime="{{ record['date_of_record'] | format_date_iso }}">{{ record['date_of_record'] }}</time> – <span class="browse-records__last-modified-text">last modified</span>
-                                </p>
-                            </td>
-                            <td class="govuk-table__cell govuk-table--invisible-on-mobile browse-records__meta-cell--series">
-                                <a href="{{ url_for('main.browse_series', _id=record['series_id']) }}">{{ record["series"] }}</a>
-                            </td>
-                            <td class="govuk-table__cell browse-records__meta-cell--status">
-                                {% set closure_type = record["closure_type"] %}
-                                <strong class="{% if closure_type == 'Open' %}govuk-tag govuk-tag--green{% else %}govuk-tag govuk-tag--red{% endif %}">
-                                    {{ closure_type if closure_type else "Unknown" }}
-                                </strong>
-                            </td>
-                            <td class="govuk-table__cell govuk-table--right-align browse-records__meta-cell--opening-date">
-                                {% if record["opening_date"] %}
-                                    <time datetime="{{ record["opening_date"] | format_date_iso }}">{{ record["opening_date"] }}</time>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        <tr class="govuk-table__row">
-                            <td colspan="4" class="govuk-table__cell browse-records__path-cell">
-                                <p class="govuk-body-s govuk-!-margin-0">
-                                    {% if record["file_path"] %}
-                                        {% set path_parts = record["file_path"].split('/')[:-1] %}
-                                        {% if record["file_path"] | length > 60 and path_parts | length > 1 %}
-                                            {{ path_parts[0] }} <span class="browse-records__path-condensed-separator" aria-hidden="true"></span> {{ path_parts[-1] }}
-                                        {% else %}
-                                            {% for path_part in path_parts %}
-                                                {{ path_part }}
-                                                {% if not loop.last %}
-                                                    <span class="browse-records__path-separator" aria-hidden="true"></span>
-                                                {% endif %}
-                                            {% endfor %}
-                                        {% endif %}
-                                    {% endif %}
-                                </p>
-                            </td>
-                        </tr>
-                        <tr class="govuk-table__row">
-                            <td colspan="4"
-                                class="govuk-table__cell browse-records__consignment-cell">
-                                <p class="govuk-body-s govuk-!-margin-0 browse-records__consignment-text">
-                                    consignment {{ record["consignment_reference"] }} on {{ record["date_of_record"] or "-" }}
-                                </p>
-                            </td>
-                        </tr>
+                        {% include "components/browse-record-row.html" %}
                     {% endfor %}
                 </tbody>
             </table>

@@ -1,0 +1,80 @@
+@use "../variables" as *;
+
+.records-page-wrapper {
+  .browse-records__table {
+    .browse-records__last-modified-text,
+    .browse-records__consignment-text {
+      color: $secondary-text-colour;
+    }
+
+    .browse-records__path-separator {
+      font-size: 0.75rem;
+      color: $secondary-text-colour;
+
+      &::before {
+        content: "\276f";
+      }
+    }
+
+    .browse-records__path-condensed-separator {
+      display: inline-block;
+      position: relative;
+      top: 4px;
+      color: $secondary-text-colour;
+
+      &::before {
+        content: "\22EF";
+      }
+    }
+
+    .browse-records__title-cell,
+    .browse-records__meta-cell--date,
+    .browse-records__meta-cell--series,
+    .browse-records__meta-cell--status,
+    .browse-records__meta-cell--opening-date,
+    .browse-records__path-cell,
+    .browse-records__consignment-cell {
+      border: none;
+    }
+
+    .browse-record-row__row--title .browse-records__title-cell {
+      padding-top: 15px;
+      padding-bottom: 5px;
+    }
+
+    .browse-record-row__row--meta .browse-records__meta-cell--date,
+    .browse-record-row__row--meta .browse-records__meta-cell--series,
+    .browse-record-row__row--meta .browse-records__meta-cell--status,
+    .browse-record-row__row--meta .browse-records__meta-cell--opening-date,
+    .browse-record-row__row--path .browse-records__path-cell {
+      padding-top: 0;
+      padding-bottom: 5px;
+    }
+
+    .browse-record-row__row--consignment .browse-records__consignment-cell {
+      padding-top: 0;
+      padding-bottom: 15px;
+    }
+
+    .browse-records__file-link {
+      display: block;
+      font-size: 18px;
+    }
+
+    .browse-records__meta-cell--date {
+      width: 55%;
+    }
+
+    .browse-records__meta-cell--series {
+      width: 20%;
+    }
+
+    .browse-records__meta-cell--status {
+      width: 10%;
+    }
+
+    .browse-records__meta-cell--opening-date {
+      width: 15%;
+    }
+  }
+}
