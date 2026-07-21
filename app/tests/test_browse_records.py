@@ -42,7 +42,7 @@ class TestBrowseRecords:
 
         assert response.status_code == 200
         assert b"Search for digital records" in response.data
-        assert b"27 records" in response.data
+        assert b"Browse records 27" in response.data
         assert b"last modified" in response.data
         assert b"consignment" in response.data
 
@@ -69,7 +69,7 @@ class TestBrowseRecords:
         response = client.get(self.route_url)
 
         assert response.status_code == 200
-        assert b"3 records" in response.data
+        assert b"Browse records 3" in response.data
         assert b"first_file.txt" in response.data
         assert b"second_file.pdf" in response.data
         assert b"third_file.doc" in response.data
