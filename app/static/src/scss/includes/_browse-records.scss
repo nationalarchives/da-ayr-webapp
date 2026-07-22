@@ -1,6 +1,15 @@
 @use "variables" as *;
 
 .records-page-wrapper {
+  .browse-records__series-filter-example {
+    font-weight: 400;
+    color: $secondary-text-colour;
+  }
+
+  .browse-records__filter-count {
+    color: $colour-link-default;
+  }
+
   .browse-records__table {
     width: 100%;
     margin-bottom: 30px;
