@@ -1,0 +1,44 @@
+@use "variables" as *;
+
+.records-page-wrapper {
+  .browse-records__table {
+    width: 100%;
+    margin-bottom: 30px;
+    border-collapse: collapse;
+
+    a {
+      &:hover,
+      &:visited:hover {
+        color: $colour-link-hover;
+        text-decoration-thickness: 3px;
+      }
+    }
+  }
+
+  .browse-records__table .browse-record-row__row {
+    border-bottom: none;
+  }
+
+  .browse-records__table,
+  .browse-record-row__cell,
+  .browse-records__table .browse-records__header-cell {
+    padding: 10px 20px 10px 0;
+    border-bottom: none;
+  }
+
+  .browse-records__table .browse-records__header-cell {
+    border-bottom: 1px solid $colour-border-normal;
+  }
+
+  .browse-records__table .browse-record-row__cell--right,
+  .browse-records__table .browse-records__header-cell--right {
+    text-align: right;
+  }
+
+  .browse-records__table
+    .govuk-table__body
+    .browse-record-row__row:last-child
+    .browse-record-row__cell {
+    border-bottom: 1px solid $colour-border-normal;
+  }
+}

@@ -6,7 +6,7 @@
     <div class="govuk-grid-row browse__page desktop mobile">
         {{ super() }}
         {% include "top-search.html" %}
-        {% if results %}
+        {% if results or browse_type == "records" %}
             <!-- TABLE -->
             <div class="govuk-grid-column-full govuk-grid-column-full__page_container">
                 <div class="browse-details">
@@ -28,6 +28,8 @@
                         {% include "browse-series.html" %}
                     {% elif browse_type == "consignment" %}
                         {% include "browse-consignment.html" %}
+                    {% elif browse_type == "records" %}
+                        {% include "browse-records.html" %}
                     {% endif %}
                 </div>
             </div>

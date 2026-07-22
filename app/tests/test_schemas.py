@@ -5,6 +5,7 @@ from marshmallow import ValidationError
 
 from app.main.util.schemas import (
     BrowseConsignmentRequestSchema,
+    BrowseRecordsRequestSchema,
     BrowseRequestSchema,
     BrowseSeriesRequestSchema,
     BrowseTransferringBodyRequestSchema,
@@ -255,6 +256,44 @@ class TestBrowseConsignmentRequestSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.load({})
         assert "_id" in exc_info.value.messages
+
+
+class TestBrowseRecordsRequestSchema:
+    """Tests for BrowseRecordsRequestSchema."""
+
+    def test_defaults_applied(self):
+        schema = BrowseRecordsRequestSchema()
+        data = schema.load({})
+
+        assert data["page"] == 1
+        assert data["per_page"] == 5
+
+    def test_valid_page(self):
+        schema = BrowseRecordsRequestSchema()
+        data = schema.load({"page": 2})
+
+        assert data["page"] == 2
+
+    def test_invalid_page_value(self):
+        schema = BrowseRecordsRequestSchema()
+
+        with pytest.raises(ValidationError) as exc_info:
+            schema.load({"page": 0})
+        assert "page" in exc_info.value.messages
+
+    def test_per_page_is_accepted(self):
+        schema = BrowseRecordsRequestSchema()
+        data = schema.load({"page": 2, "per_page": 10})
+
+        assert data["page"] == 2
+        assert data["per_page"] == 10
+
+    def test_per_page_invalid_value(self):
+        schema = BrowseRecordsRequestSchema()
+
+        with pytest.raises(ValidationError) as exc_info:
+            schema.load({"per_page": 0})
+        assert "per_page" in exc_info.value.messages
 
 
 class TestSearchRequestSchema:
