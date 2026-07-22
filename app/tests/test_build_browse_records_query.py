@@ -154,3 +154,66 @@ class TestBrowseRecords:
         results = query.all()
 
         assert len(results) == len(browse_files)
+
+    def test_build_browse_records_query_filters_by_series(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a series filter
+        When build_browse_records_query is executed
+        Then only records matching the series are returned
+        """
+        body_name = browse_consignment_files[0].consignment.series.body.Name
+        series_name = browse_consignment_files[0].consignment.series.Name
+
+        mock_standard_user(client, body_name)
+
+        query = build_browse_records_query(
+            accessible_transferring_body_names=[body_name],
+            filters={"series": series_name},
+        )
+        results = query.all()
+
+        assert len(results) == len(browse_consignment_files)
+        assert all(result[3] == series_name for result in results)
+
+    def test_build_browse_records_query_filters_by_transfer_date_range(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a transfer date range
+        When build_browse_records_query is executed
+        Then only records within that date range are returned
+        """
+        body_name = browse_consignment_files[0].consignment.series.body.Name
+
+        mock_standard_user(client, body_name)
+
+        query = build_browse_records_query(
+            accessible_transferring_body_names=[body_name],
+            filters={"date_from": "2023-04-01", "date_to": "2023-05-31"},
+        )
+        results = query.all()
+
+        assert len(results) == 2
+        assert [result[7] for result in results] == [
+            "fifth_file.doc",
+            "fourth_file.xls",
+        ]
+
+    def test_build_browse_records_query_filters_by_consignment_reference(
+        self, client: FlaskClient, browse_files
+    ):
+        """
+        Given a consignment reference filter
+        When build_browse_records_query is executed
+        Then only records matching that consignment reference are returned
+        """
+        query = build_browse_records_query(
+            accessible_transferring_body_names=None,
+            filters={"consignment_reference": "TDR-2023-TH3"},
+        )
+        results = query.all()
+
+        assert len(results) == 3
+        assert all(result[5] == "TDR-2023-TH3" for result in results)

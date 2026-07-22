@@ -255,7 +255,11 @@ def build_browse_consignment_query(
     return query
 
 
-def build_browse_records_query(accessible_transferring_body_names=None):
+def build_browse_records_query(
+    accessible_transferring_body_names=None,
+    filters=None,
+    sorting_orders=None,
+):
     """
     Build a records query spanning all accessible bodies.
 
@@ -376,11 +380,59 @@ def build_browse_records_query(accessible_transferring_body_names=None):
         ).label("date_of_record"),
     )
 
-    query = query.order_by(
-        desc(sub_query.c.sort_date),
-        sub_query.c.file_name,
-        sub_query.c.file_id,
-    )
+    if filters:
+        transferring_body = filters.get("transferring_body")
+        if transferring_body:
+            filter_value = str(f"%{transferring_body}%").lower()
+            query = query.filter(
+                func.lower(sub_query.c.transferring_body).like(filter_value)
+            )
+
+        series = filters.get("series")
+        if series:
+            filter_value = str(f"%{series}%").lower()
+            query = query.filter(
+                func.lower(sub_query.c.series).like(filter_value)
+            )
+
+        consignment_reference = filters.get("consignment_reference")
+        if consignment_reference:
+            filter_value = str(f"%{consignment_reference}%").lower()
+            query = query.filter(
+                func.lower(sub_query.c.consignment_reference).like(filter_value)
+            )
+
+        date_filter = _build_date_range_filter(
+            sub_query.c.sort_date,
+            filters.get("date_from"),
+            filters.get("date_to"),
+        )
+        if date_filter is not None:
+            query = query.filter(date_filter)
+
+    if sorting_orders:
+        if "date_of_record" in sorting_orders:
+            sort_field = sub_query.c.sort_date
+            if sorting_orders["date_of_record"] == "desc":
+                query = query.order_by(
+                    desc(sort_field),
+                    sub_query.c.file_name,
+                    sub_query.c.file_id,
+                )
+            else:
+                query = query.order_by(
+                    sort_field,
+                    sub_query.c.file_name,
+                    sub_query.c.file_id,
+                )
+        else:
+            query = _build_sorting_orders(query, sub_query, sorting_orders)
+    else:
+        query = query.order_by(
+            desc(sub_query.c.sort_date),
+            sub_query.c.file_name,
+            sub_query.c.file_id,
+        )
 
     return query
 
