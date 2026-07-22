@@ -1,0 +1,37 @@
+{% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
+<div class="sort-list-records">
+    <div class="sort-list-records-js">
+        <select class="record-select--sort-left" id="sort-js" name="per_page">
+            {% for key, value in dict.items() %}
+                {% set list = value.split('-') %}
+                {% if list | length > 1 %}
+                    <option value="{{ value }}"
+                            {% if sorting_orders[list[0]] %} {% if sorting_orders[list[0]] == list[1] %}selected{% endif %}
+                            {% endif %}>{{ key }}</option>
+                {% else %}
+                    <option value="{{ value }}">{{ key }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>
+    <noscript>
+        <div class="sort-list-records-no-js">
+            <select class="record-select--sort-right" id="sort-no-js" name="per_page">
+                {% for key, value in dict.items() %}
+                    {% set list = value.split('-') %}
+                    {% if list | length > 1 %}
+                        <option value="{{ value }}"
+                                {% if sorting_orders[list[0]] %} {% if sorting_orders[list[0]] == list[1] %}selected{% endif %}
+                                {% endif %}>{{ key }}</option>
+                    {% else %}
+                        <option value="{{ value }}">{{ key }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+            {{ govukButton({
+            'text': "Apply",
+            'classes': "govuk-button--secondary"
+            }) }}
+        </div>
+    </noscript>
+</div>

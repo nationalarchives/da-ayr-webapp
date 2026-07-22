@@ -1,0 +1,85 @@
+@use "variables" as *;
+
+.records-page-wrapper {
+  .govuk-table {
+    width: 100%;
+    margin-bottom: 30px;
+    border-collapse: collapse;
+  }
+
+  .sort-list-records {
+    display: flex;
+    align-items: center;
+
+    /* JS-Enabled Version */
+    .sort-list-records-js {
+      margin-left: 14rem;
+
+      .record-select--sort-left {
+        display: block;
+        width: auto;
+        border: none;
+        background-color: transparent;
+        box-shadow: none;
+        font-size: 1rem;
+        padding: 0 16px 0 40px;
+        cursor: pointer;
+
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("/assets/image/accordion-chevron.svg");
+        background-repeat: no-repeat;
+        background-position: right 0.5rem center;
+        background-size: 10px 6px;
+
+        &:hover {
+          background-image: url("/assets/image/accordion-chevron-hover.svg");
+        }
+
+        &:focus {
+          outline: none;
+          box-shadow: none;
+        }
+      }
+    }
+
+    /* Non-JS Version */
+    .sort-list-records-no-js {
+      margin-left: 1rem;
+      display: flex;
+      align-items: center;
+
+      .record-select--sort-right {
+        width: auto;
+        border: none;
+        background-color: transparent;
+        box-shadow: none;
+        font-size: 1rem;
+        padding: 0 16px 0 5px;
+        cursor: pointer;
+
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("/assets/image/accordion-chevron.svg");
+        background-repeat: no-repeat;
+        background-position: right 0.5rem center;
+        background-size: 10px 6px;
+
+        &:hover {
+          background-image: url("/assets/image/accordion-chevron-hover.svg");
+        }
+
+        &:focus {
+          outline: none;
+          box-shadow: none;
+        }
+      }
+
+      .govuk-button {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
