@@ -44,14 +44,18 @@ function initUniversalViewer() {
   });
 }
 
-// Universal Viewer's PDF.js panel always renders at a fixed 0.7 scale and
-// has no fit-to-width, so pages open partly zoomed out. Its scale is only
-// reachable through the zoom buttons (+0.5 per click), so once the PDF has
-// loaded, click zoom-in until the page width approximately fills the
-// container (which scrolls vertically via overflow: auto).
-const UV_PDF_INITIAL_SCALE = 0.7;
-const UV_PDF_ZOOM_STEP = 0.5;
+// Universal Viewer's PDF.js panel always renders partly zoomed out and has
+// no fit-to-width, so once the PDF has loaded, click zoom-in until the page
+// width approximately fills the container (which scrolls vertically via
+// overflow: auto). The zoom button's per-click scale change isn't a fixed,
+// predictable amount across all documents (e.g. pdf.js caps the rendered
+// canvas resolution for some page sizes), so rather than pre-computing a
+// click count from an assumed scale/step, re-measure the actual canvas
+// width after every click and stop once it reaches the target.
+const UV_PDF_FIT_TARGET_RATIO = 0.95;
+const UV_PDF_FIT_TOLERANCE = 0.02;
 const UV_PDF_FIT_MAX_ATTEMPTS = 20;
+const UV_PDF_FIT_MAX_CLICKS = 20;
 
 function fitPdfToWidth(attempt = 0) {
   const container = document.querySelector("#uv .pdfContainer");
@@ -65,15 +69,34 @@ function fitPdfToWidth(attempt = 0) {
     }
     return;
   }
-  const pageWidthAtFullScale = canvas.width / UV_PDF_INITIAL_SCALE;
-  const targetScale = (container.clientWidth * 0.95) / pageWidthAtFullScale;
-  const clicks = Math.floor(
-    (targetScale - UV_PDF_INITIAL_SCALE) / UV_PDF_ZOOM_STEP,
-  );
-  const zoomInButton = document.querySelector("#uv button.zoomIn");
-  for (let i = 0; zoomInButton && i < clicks; i++) {
-    zoomInButton.click();
+  zoomPdfTowardsTargetWidth();
+}
+
+function zoomPdfTowardsTargetWidth(clicks = 0) {
+  const container = document.querySelector("#uv .pdfContainer");
+  const canvas = container && container.querySelector("canvas");
+  if (!container || !canvas || !canvas.width || !container.clientWidth) {
+    return;
   }
+
+  const targetWidth = container.clientWidth * UV_PDF_FIT_TARGET_RATIO;
+  const isCloseToTarget =
+    canvas.width >= targetWidth * (1 - UV_PDF_FIT_TOLERANCE);
+  if (isCloseToTarget || clicks >= UV_PDF_FIT_MAX_CLICKS) {
+    return;
+  }
+
+  const zoomInButton = document.querySelector("#uv button.zoomIn");
+  if (!zoomInButton) {
+    return;
+  }
+  zoomInButton.click();
+
+  // Let pdf.js finish re-rendering the page at the new scale before
+  // measuring again, otherwise we'd read the pre-click canvas size.
+  setTimeout(function () {
+    zoomPdfTowardsTargetWidth(clicks + 1);
+  }, 250);
 }
 
 document.addEventListener("DOMContentLoaded", function () {

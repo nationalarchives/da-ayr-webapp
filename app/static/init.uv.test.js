@@ -95,7 +95,8 @@ describe("tests for init.uv.js", () => {
     }, 10);
   });
 
-  it("should fit the PDF to the container width when the PDF loads", () => {
+  it("should fit the PDF to the container width, re-measuring after each zoom click", () => {
+    jest.useFakeTimers();
     let pdfLoadedHandler;
     window.UV = {
       init: jest.fn(() => ({
@@ -113,16 +114,55 @@ describe("tests for init.uv.js", () => {
     const container = document.querySelector("#uv .pdfContainer");
     // jsdom has no layout, so give the container a width
     Object.defineProperty(container, "clientWidth", { value: 800 });
+    const canvas = container.querySelector("canvas");
+    const zoomInButton = document.querySelector("#uv button.zoomIn");
+
+    const clickSpy = jest
+      .spyOn(zoomInButton, "click")
+      .mockImplementation(() => {
+        canvas.width += 200;
+      });
+
+    require("./init.uv.js");
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    pdfLoadedHandler();
+    jest.runAllTimers();
+
+    expect(clickSpy).toHaveBeenCalledTimes(3);
+    expect(canvas.width).toBe(880);
+
+    jest.useRealTimers();
+  });
+
+  it("should stop clicking zoom-in after the maximum number of attempts", () => {
+    jest.useFakeTimers();
+    let pdfLoadedHandler;
+    window.UV = {
+      init: jest.fn(() => ({
+        on: jest.fn((event, handler) => {
+          if (event === "pdfExtension.pdfLoaded") {
+            pdfLoadedHandler = handler;
+          }
+        }),
+      })),
+    };
+    document.getElementById("uv").innerHTML = `
+      <div class="pdfContainer"><canvas width="10"></canvas></div>
+      <button class="btn zoomIn"></button>
+    `;
+    const container = document.querySelector("#uv .pdfContainer");
+    Object.defineProperty(container, "clientWidth", { value: 800 });
     const zoomInButton = document.querySelector("#uv button.zoomIn");
     const clickSpy = jest.spyOn(zoomInButton, "click");
 
     require("./init.uv.js");
     document.dispatchEvent(new Event("DOMContentLoaded"));
     pdfLoadedHandler();
+    jest.runAllTimers();
 
-    // canvas is 280px at UV's initial 0.7 scale -> 400px at scale 1.
-    // target scale = (800 * 0.95) / 400 = 1.9 -> 2 zoom-in clicks of +0.5
-    expect(clickSpy).toHaveBeenCalledTimes(2);
+    expect(clickSpy).toHaveBeenCalledTimes(20);
+
+    jest.useRealTimers();
   });
 
   it("should configure UV viewer with correct options", () => {
