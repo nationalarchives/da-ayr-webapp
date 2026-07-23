@@ -1,22 +1,11 @@
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
-<div class="sort-list-records">
-    <div class="sort-list-records-js">
-        <select class="record-select--sort-left" id="sort-js" name="per_page">
-            {% for key, value in dict.items() %}
-                {% set list = value.split('-') %}
-                {% if list | length > 1 %}
-                    <option value="{{ value }}"
-                            {% if sorting_orders[list[0]] %} {% if sorting_orders[list[0]] == list[1] %}selected{% endif %}
-                            {% endif %}>{{ key }}</option>
-                {% else %}
-                    <option value="{{ value }}">{{ key }}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
-    </div>
-    <noscript>
-        <div class="sort-list-records-no-js">
-            <select class="record-select--sort-right" id="sort-no-js" name="per_page">
+<form id="records-form"
+      action="{{ url_for('main.browse_records', _anchor='records') }}"
+      method="get"
+      class="sort-list-records-form">
+    <div class="sort-list-records-left-wrapper">
+        <div class="sort-list-records-js">
+            <select class="record-select--sort-left" id="sort-js" name="per_page">
                 {% for key, value in dict.items() %}
                     {% set list = value.split('-') %}
                     {% if list | length > 1 %}
@@ -28,10 +17,32 @@
                     {% endif %}
                 {% endfor %}
             </select>
-            {{ govukButton({
-            'text': "Apply",
-            'classes': "govuk-button--secondary"
-            }) }}
         </div>
-    </noscript>
-</div>
+    </div>
+</form>
+<noscript>
+    <form action="{{ url_for('main.browse_records', _anchor='records') }}"
+          method="get"
+          class="sort-list-records-no-js-form">
+        <div class="sort-list-records-right-wrapper">
+            <div class="sort-list-records-no-js">
+                <select class="record-select--sort-right" id="sort-no-js" name="per_page">
+                    {% for key, value in dict.items() %}
+                        {% set list = value.split('-') %}
+                        {% if list | length > 1 %}
+                            <option value="{{ value }}"
+                                    {% if sorting_orders[list[0]] %} {% if sorting_orders[list[0]] == list[1] %}selected{% endif %}
+                                    {% endif %}>{{ key }}</option>
+                        {% else %}
+                            <option value="{{ value }}"
+                                    {% if request.args.get('per_page') == value %}selected{% endif %}>{{ key }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <button type="submit"
+                        class="govuk-button govuk-button--secondary"
+                        data-module="govuk-button">Apply</button>
+            </div>
+        </div>
+    </form>
+</noscript>
