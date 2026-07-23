@@ -14,11 +14,7 @@ def get_accessible_body_names(ayr_user: AYRUser):
     abort(403)
 
 
-def build_browse_records_filter_data(
-    validated_data,
-    accessible_body_names,
-    filters,
-):
+def get_selected_filters(validated_data):
     selected_transferring_body = (
         validated_data.get("transferring_body_filter") or ""
     ).strip()
@@ -26,7 +22,20 @@ def build_browse_records_filter_data(
     selected_consignment = (
         validated_data.get("consignment_reference") or ""
     ).strip()
+    selected_record_status = (validated_data.get("record_status") or "").strip()
+    selected_date_filter_field = (
+        validated_data.get("date_filter_field") or ""
+    ).strip()
+    return (
+        selected_transferring_body,
+        selected_series,
+        selected_consignment,
+        selected_record_status,
+        selected_date_filter_field,
+    )
 
+
+def get_options_rows(accessible_body_names):
     options_query = (
         db.session.query(
             Body.Name.label("transferring_body"),
@@ -42,72 +51,147 @@ def build_browse_records_filter_data(
         options_query = options_query.filter(
             Body.Name.in_(accessible_body_names)
         )
-    options_rows = options_query.distinct().all()
+    return options_query.distinct().all()
+
+
+def autofill_selected_filters(
+    selected_transferring_body,
+    selected_series,
+    selected_consignment,
+    options_rows,
+):
+    if selected_series and not selected_transferring_body:
+        selected_series_lower = selected_series.lower()
+        matching_transferring_bodies = sorted(
+            {
+                row.transferring_body
+                for row in options_rows
+                if row.transferring_body
+                and (row.series or "").lower() == selected_series_lower
+            }
+        )
+        if len(matching_transferring_bodies) == 1:
+            selected_transferring_body = matching_transferring_bodies[0]
 
     if selected_consignment and (
         not selected_transferring_body or not selected_series
     ):
+        selected_consignment_lower = selected_consignment.lower()
         matching_rows = [
             row
             for row in options_rows
             if row.consignment_reference
-            and row.consignment_reference.lower()
-            == selected_consignment.lower()
+            and row.consignment_reference.lower() == selected_consignment_lower
         ]
-        matching_transferring_bodies = sorted(
-            {
-                row.transferring_body
-                for row in matching_rows
-                if row.transferring_body
-            }
-        )
-        matching_series = sorted(
-            {row.series for row in matching_rows if row.series}
-        )
 
-        if (
-            len(matching_transferring_bodies) == 1
-            and not selected_transferring_body
-        ):
-            selected_transferring_body = matching_transferring_bodies[0]
-        if len(matching_series) == 1 and not selected_series:
-            selected_series = matching_series[0]
+        if not selected_transferring_body:
+            matching_transferring_bodies = sorted(
+                {
+                    row.transferring_body
+                    for row in matching_rows
+                    if row.transferring_body
+                }
+            )
+            if len(matching_transferring_bodies) == 1:
+                selected_transferring_body = matching_transferring_bodies[0]
 
-    def matches_selection(candidate: str | None, selected_value: str) -> bool:
-        if not selected_value:
-            return True
-        return (candidate or "").lower() == selected_value.lower()
+        if not selected_series:
+            matching_series = sorted(
+                {row.series for row in matching_rows if row.series}
+            )
+            if len(matching_series) == 1:
+                selected_series = matching_series[0]
 
-    transferring_bodies = sorted(
+    return selected_transferring_body, selected_series
+
+
+def build_transferring_body_options(options_rows):
+    return sorted(
         {row.transferring_body for row in options_rows if row.transferring_body}
     )
-    series_options = sorted(
-        {
-            row.series
-            for row in options_rows
-            if row.series
-            and matches_selection(
-                row.transferring_body, selected_transferring_body
-            )
-        }
-    )
-    consignment_options = sorted(
-        {
-            row.consignment_reference
-            for row in options_rows
-            if row.consignment_reference
-            and matches_selection(
-                row.transferring_body, selected_transferring_body
-            )
-            and matches_selection(row.series, selected_series)
-        }
-    )
 
+
+def apply_selected_filters(
+    filters,
+    selected_transferring_body,
+    selected_series,
+    selected_consignment,
+    selected_record_status,
+    selected_date_filter_field,
+):
     if selected_transferring_body:
         filters["transferring_body"] = selected_transferring_body
     if selected_series:
         filters["series"] = selected_series
     if selected_consignment:
         filters["consignment_reference"] = selected_consignment
+    if selected_record_status:
+        filters["record_status"] = selected_record_status
+    if selected_date_filter_field:
+        filters["date_filter_field"] = selected_date_filter_field
 
-    return transferring_bodies, series_options, consignment_options
+
+def build_browse_records_filter_data(
+    validated_data,
+    accessible_body_names,
+    filters,
+):
+    (
+        selected_transferring_body,
+        selected_series,
+        selected_consignment,
+        selected_record_status,
+        selected_date_filter_field,
+    ) = get_selected_filters(validated_data)
+    options_rows = get_options_rows(accessible_body_names)
+
+    selected_transferring_body, selected_series = autofill_selected_filters(
+        selected_transferring_body,
+        selected_series,
+        selected_consignment,
+        options_rows,
+    )
+
+    transferring_bodies = build_transferring_body_options(options_rows)
+
+    apply_selected_filters(
+        filters,
+        selected_transferring_body,
+        selected_series,
+        selected_consignment,
+        selected_record_status,
+        selected_date_filter_field,
+    )
+
+    return transferring_bodies
+
+
+def count_selected_filters(validated_data, from_date, to_date):
+    filter_count = 0
+
+    if (validated_data.get("transferring_body_filter") or "").strip():
+        filter_count += 1
+    if (validated_data.get("series_filter") or "").strip():
+        filter_count += 1
+    if (validated_data.get("consignment_reference") or "").strip():
+        filter_count += 1
+
+    selected_record_status = (validated_data.get("record_status") or "").strip()
+    if selected_record_status and selected_record_status.lower() != "all":
+        filter_count += 1
+
+    selected_date_filter_field = (
+        validated_data.get("date_filter_field") or ""
+    ).strip()
+    if (
+        selected_date_filter_field
+        and selected_date_filter_field.lower() != "transferred"
+    ):
+        filter_count += 1
+
+    if from_date:
+        filter_count += 1
+    if to_date:
+        filter_count += 1
+
+    return filter_count

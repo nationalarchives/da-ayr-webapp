@@ -14,12 +14,18 @@
                         id="browse-records"
                         aria-live="polite">
                         {% if num_records_found > 0 %}
-                            Browse records {{ num_records_found | format_number_with_commas }}
+                            {% if browse_type == "records" %}
+                                {{ num_records_found | format_number_with_commas }} Records
+                            {% else %}
+                                Browse records {{ num_records_found | format_number_with_commas }}
+                            {% endif %}
                         {% else %}
                             No results found
                         {% endif %}
                     </h2>
-                    <p class="govuk-body browse__body">You are viewing</p>
+                    {% if browse_type != "records" %}
+                        <p class="govuk-body browse__body">You are viewing</p>
+                    {% endif %}
                     {% if browse_type == "browse" %}
                         {% include "browse-all.html" %}
                     {% elif browse_type == "transferring_body" %}

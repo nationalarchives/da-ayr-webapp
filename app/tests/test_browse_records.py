@@ -45,7 +45,8 @@ class TestBrowseRecords:
         """
         Given an all-access user
         When they visit browse records
-        Then they see the records table with key record details and first page pagination
+        Then they see the records table with key record details
+        and first page pagination
         """
         mock_all_access_user(client)
 
@@ -53,7 +54,7 @@ class TestBrowseRecords:
 
         assert response.status_code == 200
         assert b"Search for digital records" in response.data
-        assert b"Browse records 27" in response.data
+        assert b"27 Records" in response.data
         assert b"last modified" in response.data
         assert b"consignment" in response.data
         verify_filters_heading(response.data, "Filters (0)")
@@ -81,7 +82,7 @@ class TestBrowseRecords:
         response = client.get(self.route_url)
 
         assert response.status_code == 200
-        assert b"Browse records 3" in response.data
+        assert b"3 Records" in response.data
         assert b"first_file.txt" in response.data
         assert b"second_file.pdf" in response.data
         assert b"third_file.doc" in response.data
@@ -135,13 +136,13 @@ class TestBrowseRecords:
         )
 
         assert response.status_code == 200
-        assert b"Browse records 3" in response.data
+        assert b"3 Records" in response.data
         assert b"fourth_file.docx" in response.data
         assert b"fifth_file.docx" in response.data
         assert b"sixth_file.ppt" in response.data
         assert b"first_file.txt" not in response.data
         assert b'value="TDR-2023-TH3"' in response.data
-        verify_filters_heading(response.data, "Filters (0)")
+        verify_filters_heading(response.data, "Filters (1)")
 
         soup = BeautifulSoup(response.data, "html.parser")
         transferring_body_filter = soup.find(
@@ -158,6 +159,30 @@ class TestBrowseRecords:
             "tbody.govuk-table__body td[colspan='4'] > a[href^='/record/']"
         )
         assert len(record_links) == 3
+
+    def test_browse_records_series_filter_backfills_transferring_body(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given a series filter that maps to a single transferring body
+        When browse records is requested with that series
+        Then the transferring body filter is auto-populated
+        """
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}?series_filter=second_series")
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        transferring_body_filter = soup.find(
+            "input", id="transferring_body_filter"
+        )
+        series_filter = soup.find("input", id="series_filter")
+
+        assert transferring_body_filter is not None
+        assert series_filter is not None
+        assert transferring_body_filter.get("value") == "second_body"
+        assert series_filter.get("value") == "second_series"
 
     def test_browse_records_series_filter_has_no_datalist(
         self, client: FlaskClient, mock_all_access_user, browse_files
@@ -179,6 +204,91 @@ class TestBrowseRecords:
         assert series_filter is not None
         assert series_filter.get("list") is None
         assert series_datalist is None
+
+    def test_browse_records_status_and_date_radio_defaults(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given the browse records page
+        When filters render
+        Then status defaults to all and dates defaults to transferred
+        """
+        mock_all_access_user(client)
+
+        response = client.get(self.route_url)
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+
+        status_all = soup.find("input", id="recordStatus-all")
+        status_open = soup.find("input", id="recordStatus-open")
+        status_closed = soup.find("input", id="recordStatus-closed")
+        transferred_date = soup.find("input", id="transferred_date")
+
+        assert status_all is not None
+        assert status_open is not None
+        assert status_closed is not None
+        assert transferred_date is not None
+        assert status_all.has_attr("checked")
+        assert not status_open.has_attr("checked")
+        assert not status_closed.has_attr("checked")
+        assert transferred_date.has_attr("checked")
+
+    def test_browse_records_status_filter_open_selection_persists(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given the open status filter
+        When browse records is requested
+        Then the open status option is selected
+        and any visible status tags are open
+        """
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}?record_status=open")
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+
+        status_all = soup.find("input", id="recordStatus-all")
+        status_open = soup.find("input", id="recordStatus-open")
+        status_closed = soup.find("input", id="recordStatus-closed")
+
+        assert status_all is not None
+        assert status_open is not None
+        assert status_closed is not None
+        assert not status_all.has_attr("checked")
+        assert status_open.has_attr("checked")
+        assert not status_closed.has_attr("checked")
+
+        status_tags = soup.select(
+            "td.browse-records__meta-cell--status strong.govuk-tag"
+        )
+        assert all(
+            tag.get_text(strip=True) in ["Open", "Unknown"]
+            for tag in status_tags
+        )
+
+    def test_browse_records_date_filter_field_selection_persists(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given an opening date filter field selection
+        When browse records is requested
+        Then opening date radio remains selected
+        """
+        mock_all_access_user(client)
+
+        response = client.get(
+            f"{self.route_url}?date_filter_field=opening_date"
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        opening_date = soup.find("input", id="opening_date")
+
+        assert opening_date is not None
+        assert opening_date.has_attr("checked")
 
     def test_browse_records_consignment_filter_has_no_datalist(
         self, client: FlaskClient, mock_all_access_user, browse_files

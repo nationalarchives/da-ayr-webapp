@@ -5,7 +5,7 @@ KEYCLOAK_CERT = local_services/keycloak_certs/cert.pem
 
 COMPOSE = docker compose --env-file $(ENV_FILE) -f docker-compose.yml
 
-.PHONY: setup start stop clean unit test pre-commit e2e build-e2e-tests run-e2e-tests
+.PHONY: setup start stop clean unit test pre-commit e2e build-e2e-tests run-e2e-tests update-snapshots
 
 $(ENV_FILE):
 	cp .docker.env.template $(ENV_FILE)

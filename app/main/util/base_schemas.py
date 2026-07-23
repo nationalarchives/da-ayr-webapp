@@ -133,12 +133,14 @@ class BrowseFilterSchema(DateFilterSchema):
     date_filter_field = fields.String(
         allow_none=True,
         load_default="",
-        validate=validate.OneOf(["date_last_modified", "opening_date", ""]),
+        validate=validate.OneOf(
+            ["date_last_modified", "opening_date", "transferred", ""]
+        ),
     )
     record_status = fields.String(
         allow_none=True,
         load_default="all",
-        validate=validate.OneOf(["all", "open", "closed"]),
+        validate=validate.OneOf(["all", "open", "closed", "close"]),
     )
     sort = fields.String(
         allow_none=True,

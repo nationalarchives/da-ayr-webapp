@@ -43,6 +43,7 @@ from app.main.flask_config_helpers import (
 from app.main.middlewares.log_page_view import log_page_view
 from app.main.util.browse_records_utils import (
     build_browse_records_filter_data,
+    count_selected_filters,
     get_accessible_body_names,
 )
 from app.main.util.date_filters_validator import validate_date_filters
@@ -625,13 +626,12 @@ def browse_records():
     ayr_user = AYRUser(session.get("user_groups"))
     accessible_body_names = get_accessible_body_names(ayr_user)
 
-    transferring_bodies, series_options, consignment_options = (
-        build_browse_records_filter_data(
-            validated_data,
-            accessible_body_names,
-            filters,
-        )
+    transferring_bodies = build_browse_records_filter_data(
+        validated_data,
+        accessible_body_names,
+        filters,
     )
+    filter_count = count_selected_filters(validated_data, from_date, to_date)
 
     query = build_browse_records_query(
         accessible_transferring_body_names=accessible_body_names,
@@ -662,10 +662,8 @@ def browse_records():
         date_error_fields=date_error_fields,
         date_filters=date_filters,
         sorting_orders=sorting_orders,
-        filter_count=0,
+        filter_count=filter_count,
         transferring_bodies=transferring_bodies,
-        series_options=series_options,
-        consignment_options=consignment_options,
         results=results,
         pagination=pagination,
         num_records_found=paginated_results.total,

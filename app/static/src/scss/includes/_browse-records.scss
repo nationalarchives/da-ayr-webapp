@@ -50,4 +50,20 @@
     .browse-record-row__cell {
     border-bottom: 1px solid $colour-border-normal;
   }
+
+  .browse-records__radio-group {
+    margin-bottom: 0;
+  }
+
+  .browse-records__radio-group .govuk-radios__item {
+    margin-bottom: 0;
+  }
+
+  .browse-records__radio-group .govuk-radios__item:last-child {
+    margin-bottom: 0;
+  }
+
+  .browse-records__radio-options {
+    padding-bottom: 0;
+  }
 }
