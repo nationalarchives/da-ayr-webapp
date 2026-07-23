@@ -10,6 +10,7 @@
   .sort-list-records-left-wrapper {
     display: flex;
     justify-content: start;
+    margin-bottom: 16px;
 
     /* JS-Enabled Version */
     .sort-list-records-js {
@@ -50,6 +51,7 @@
     display: flex;
     justify-content: flex-end;
     width: 100%;
+    margin-bottom: 16px;
 
     .sort-list-records-no-js {
       display: flex;
