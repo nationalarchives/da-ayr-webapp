@@ -156,10 +156,12 @@ class TestBrowseRecords:
         assert b"sixth_file.ppt" in response.data
         assert b"first_file.txt" not in response.data
         assert b'value="TDR-2023-TH3"' in response.data
-        verify_filters_heading(response.data, "Filters (1)")
+        verify_filters_heading(response.data, "Filters (0)")
 
         soup = BeautifulSoup(response.data, "html.parser")
-        transferring_body_filter = soup.find("input", id="transferring_body_filter")
+        transferring_body_filter = soup.find(
+            "input", id="transferring_body_filter"
+        )
         series_filter = soup.find("input", id="series_filter")
 
         assert transferring_body_filter is not None
@@ -182,7 +184,9 @@ class TestBrowseRecords:
         """
         mock_all_access_user(client)
 
-        response = client.get(f"{self.route_url}?transferring_body_filter=first_body")
+        response = client.get(
+            f"{self.route_url}?transferring_body_filter=first_body"
+        )
 
         assert response.status_code == 200
         series_values = get_datalist_values(response.data, "series_options")

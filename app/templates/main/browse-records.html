@@ -47,9 +47,7 @@
                            value="{% if filters['transferring_body'] %}{{ filters['transferring_body'] }}{% endif %}"
                            autocomplete="off">
                     <datalist id="transferring_bodies">
-                        {% for body in transferring_bodies %}
-                            <option value="{{ body }}" />
-                        {% endfor %}
+                        {% for body in transferring_bodies %}<option value="{{ body }}" />{% endfor %}
                     </datalist>
                 </div>
                 <div class="govuk-form-group">
@@ -61,9 +59,7 @@
                            value="{% if filters['series'] %}{{ filters['series'] }}{% endif %}"
                            type="text">
                     <datalist id="series_options">
-                        {% for series in series_options %}
-                            <option value="{{ series }}" />
-                        {% endfor %}
+                        {% for series in series_options %}<option value="{{ series }}" />{% endfor %}
                     </datalist>
                 </div>
                 <div class="govuk-form-group">
@@ -75,9 +71,7 @@
                            value="{% if filters['consignment_reference'] %}{{ filters['consignment_reference'] }}{% endif %}"
                            type="text">
                     <datalist id="consignment_options">
-                        {% for consignment in consignment_options %}
-                            <option value="{{ consignment }}" />
-                        {% endfor %}
+                        {% for consignment in consignment_options %}<option value="{{ consignment }}" />{% endfor %}
                     </datalist>
                 </div>
                 {% include "date-filters.html" %}

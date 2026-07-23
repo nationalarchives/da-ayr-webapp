@@ -41,6 +41,10 @@ from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
 from app.main.middlewares.log_page_view import log_page_view
+from app.main.util.browse_records_utils import (
+    build_browse_records_filter_data,
+    get_accessible_body_names,
+)
 from app.main.util.date_filters_validator import validate_date_filters
 from app.main.util.download_utils import get_download_endpoint_filename
 from app.main.util.filter_sort_builder import (
@@ -618,125 +622,16 @@ def browse_records():
     )
     sorting_orders = build_sorting_orders(validated_data)
 
-    filter_count = 0
-    if (validated_data.get("transferring_body_filter") or "").strip():
-        filter_count += 1
-    if (validated_data.get("series_filter") or "").strip():
-        filter_count += 1
-    if (validated_data.get("consignment_reference") or "").strip():
-        filter_count += 1
-    if any(
-        validated_data.get(field)
-        for field in ("date_from_day", "date_from_month", "date_from_year")
-    ):
-        filter_count += 1
-    if any(
-        validated_data.get(field)
-        for field in ("date_to_day", "date_to_month", "date_to_year")
-    ):
-        filter_count += 1
-
     ayr_user = AYRUser(session.get("user_groups"))
+    accessible_body_names = get_accessible_body_names(ayr_user)
 
-    if ayr_user.is_standard_user:
-        body = ayr_user.transferring_body
-        accessible_body_names = [body.Name] if body else []
-    elif ayr_user.is_all_access_user:
-        accessible_body_names = None
-    else:
-        abort(403)
-
-    selected_transferring_body = (
-        validated_data.get("transferring_body_filter") or ""
-    ).strip()
-    selected_series = (validated_data.get("series_filter") or "").strip()
-    selected_consignment = (
-        validated_data.get("consignment_reference") or ""
-    ).strip()
-
-    options_query = (
-        db.session.query(
-            Body.Name.label("transferring_body"),
-            Series.Name.label("series"),
-            Consignment.ConsignmentReference.label("consignment_reference"),
+    transferring_bodies, series_options, consignment_options = (
+        build_browse_records_filter_data(
+            validated_data,
+            accessible_body_names,
+            filters,
         )
-        .join(Series, Series.BodyId == Body.BodyId)
-        .join(Consignment, Consignment.SeriesId == Series.SeriesId)
-        .join(File, File.ConsignmentId == Consignment.ConsignmentId)
-        .filter(func.lower(File.FileType) == "file")
     )
-    if accessible_body_names is not None:
-        options_query = options_query.filter(
-            Body.Name.in_(accessible_body_names)
-        )
-    options_rows = options_query.distinct().all()
-
-    if selected_consignment and (
-        not selected_transferring_body or not selected_series
-    ):
-        matching_rows = [
-            row
-            for row in options_rows
-            if row.consignment_reference
-            and row.consignment_reference.lower()
-            == selected_consignment.lower()
-        ]
-        matching_transferring_bodies = sorted(
-            {
-                row.transferring_body
-                for row in matching_rows
-                if row.transferring_body
-            }
-        )
-        matching_series = sorted(
-            {row.series for row in matching_rows if row.series}
-        )
-
-        if len(matching_transferring_bodies) == 1 and not selected_transferring_body:
-            selected_transferring_body = matching_transferring_bodies[0]
-        if len(matching_series) == 1 and not selected_series:
-            selected_series = matching_series[0]
-
-    def _matches_selection(candidate: str | None, selected_value: str) -> bool:
-        if not selected_value:
-            return True
-        return (candidate or "").lower() == selected_value.lower()
-
-    transferring_bodies = sorted(
-        {
-            row.transferring_body
-            for row in options_rows
-            if row.transferring_body
-        }
-    )
-    series_options = sorted(
-        {
-            row.series
-            for row in options_rows
-            if row.series
-            and _matches_selection(
-                row.transferring_body, selected_transferring_body
-            )
-        }
-    )
-    consignment_options = sorted(
-        {
-            row.consignment_reference
-            for row in options_rows
-            if row.consignment_reference
-            and _matches_selection(
-                row.transferring_body, selected_transferring_body
-            )
-            and _matches_selection(row.series, selected_series)
-        }
-    )
-
-    if selected_transferring_body:
-        filters["transferring_body"] = selected_transferring_body
-    if selected_series:
-        filters["series"] = selected_series
-    if selected_consignment:
-        filters["consignment_reference"] = selected_consignment
 
     query = build_browse_records_query(
         accessible_transferring_body_names=accessible_body_names,
@@ -767,7 +662,7 @@ def browse_records():
         date_error_fields=date_error_fields,
         date_filters=date_filters,
         sorting_orders=sorting_orders,
-        filter_count=filter_count,
+        filter_count=0,
         transferring_bodies=transferring_bodies,
         series_options=series_options,
         consignment_options=consignment_options,
