@@ -34,21 +34,6 @@ def verify_filters_heading(data, expected_heading):
     assert " ".join(heading.get_text(separator=" ").split()) == expected_heading
 
 
-def get_datalist_values(data, datalist_id):
-    """
-    Return all option values from a datalist.
-    """
-    soup = BeautifulSoup(data, "html.parser")
-    datalist = soup.find("datalist", id=datalist_id)
-
-    assert datalist is not None
-    return [
-        option.get("value")
-        for option in datalist.find_all("option")
-        if option.get("value")
-    ]
-
-
 class TestBrowseRecords:
     @property
     def route_url(self):
@@ -174,46 +159,47 @@ class TestBrowseRecords:
         )
         assert len(record_links) == 3
 
-    def test_browse_records_transferring_body_selection_limits_series_options(
+    def test_browse_records_series_filter_has_no_datalist(
         self, client: FlaskClient, mock_all_access_user, browse_files
     ):
         """
-        Given a transferring body filter
-        When browse records is requested
-        Then only series for that transferring body are offered
+        Given the browse records page
+        When the series filter is rendered
+        Then it is a plain text input without a datalist
         """
         mock_all_access_user(client)
 
-        response = client.get(
-            f"{self.route_url}?transferring_body_filter=first_body"
-        )
+        response = client.get(self.route_url)
 
         assert response.status_code == 200
-        series_values = get_datalist_values(response.data, "series_options")
+        soup = BeautifulSoup(response.data, "html.parser")
+        series_filter = soup.find("input", id="series_filter")
+        series_datalist = soup.find("datalist", id="series_options")
 
-        assert "first_series" in series_values
-        assert "second_series" not in series_values
+        assert series_filter is not None
+        assert series_filter.get("list") is None
+        assert series_datalist is None
 
-    def test_browse_records_series_selection_limits_consignment_options(
+    def test_browse_records_consignment_filter_has_no_datalist(
         self, client: FlaskClient, mock_all_access_user, browse_files
     ):
         """
-        Given a series filter
-        When browse records is requested
-        Then only consignments for that series are offered
+        Given the browse records page
+        When the consignment filter is rendered
+        Then it is a plain text input without a datalist
         """
         mock_all_access_user(client)
 
-        response = client.get(f"{self.route_url}?series_filter=second_series")
+        response = client.get(self.route_url)
 
         assert response.status_code == 200
-        consignment_values = get_datalist_values(
-            response.data, "consignment_options"
-        )
+        soup = BeautifulSoup(response.data, "html.parser")
+        consignment_filter = soup.find("input", id="consignment_reference")
+        consignment_datalist = soup.find("datalist", id="consignment_options")
 
-        assert "TDR-2023-TH3" in consignment_values
-        assert "TDR-2023-FO4" in consignment_values
-        assert "TDR-2023-FI1" not in consignment_values
+        assert consignment_filter is not None
+        assert consignment_filter.get("list") is None
+        assert consignment_datalist is None
 
     @pytest.mark.parametrize(
         "per_page, expected_header, expected_count",

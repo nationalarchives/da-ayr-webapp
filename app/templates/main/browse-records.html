@@ -1,4 +1,3 @@
-{% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 <div class="browse-layout records-page-wrapper">
     {% if num_records_found > 0 %}
         {% set number_of_columns = 4 %}
@@ -29,62 +28,5 @@
             {% endwith %}
         </div>
     {% endif %}
-    <form action="{{ url_for('main.browse_records', _anchor='browse-records') }}"
-          method="get">
-        <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
-            <div class="browse-all-filter-container">
-                <div class="browse-filter__header">
-                    <h2 class="govuk-heading-m govuk-heading-m--browse-all-filter-title">Filters <span class="browse-records__filter-count">({{ filter_count }})</span></h2>
-                </div>
-                <div class="govuk-form-group">
-                    <label class="govuk-label govuk-label__filter"
-                           for="transferring_body_filter">Transferring body</label>
-                    <input class="govuk-input"
-                           id="transferring_body_filter"
-                           name="transferring_body_filter"
-                           type="text"
-                           list="transferring_bodies"
-                           value="{% if filters['transferring_body'] %}{{ filters['transferring_body'] }}{% endif %}"
-                           autocomplete="off">
-                    <datalist id="transferring_bodies">
-                        {% for body in transferring_bodies %}<option value="{{ body }}" />{% endfor %}
-                    </datalist>
-                </div>
-                <div class="govuk-form-group">
-                    <label class="govuk-label govuk-label__filter" for="series_filter">Series <span class="browse-records__series-filter-example">– e.g. HO 405</span></label>
-                    <input class="govuk-input govuk-!-width-full"
-                           id="series_filter"
-                           name="series_filter"
-                           list="series_options"
-                           value="{% if filters['series'] %}{{ filters['series'] }}{% endif %}"
-                           type="text">
-                    <datalist id="series_options">
-                        {% for series in series_options %}<option value="{{ series }}" />{% endfor %}
-                    </datalist>
-                </div>
-                <div class="govuk-form-group">
-                    <label class="govuk-label govuk-label__filter" for="consignment_reference">Consignment <span class="browse-records__series-filter-example">- e.g. AYR-2026-KSJ2</span></label>
-                    <input class="govuk-input govuk-!-width-full"
-                           id="consignment_reference"
-                           name="consignment_reference"
-                           list="consignment_options"
-                           value="{% if filters['consignment_reference'] %}{{ filters['consignment_reference'] }}{% endif %}"
-                           type="text">
-                    <datalist id="consignment_options">
-                        {% for consignment in consignment_options %}<option value="{{ consignment }}" />{% endfor %}
-                    </datalist>
-                </div>
-                {% include "date-filters.html" %}
-                <div class="filters-form__buttons">
-                    {{ govukButton({
-                    'text': "Apply filters",
-                    'classes': "govuk-button__browse-all-filters-form-apply-button",
-                    'type': "submit"
-                    }) }}
-                    <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-all-filter"
-                       href="{{ url_for('main.browse_records', sort=query_string_parameters.get('sort'), _anchor='browse-records') }}">Clear filters</a>
-                </div>
-            </div>
-        </div>
-    </form>
+    {% include "components/browse-records-filters-form.html" %}
 </div>
