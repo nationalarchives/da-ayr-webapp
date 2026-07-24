@@ -1,0 +1,93 @@
+@use "variables" as *;
+
+.records-page-wrapper {
+  .govuk-table {
+    width: 100%;
+    margin-bottom: 30px;
+    border-collapse: collapse;
+  }
+
+  .sort-list-records-left-wrapper {
+    display: flex;
+    justify-content: start;
+    margin-bottom: 16px;
+
+    /* JS-Enabled Version */
+    .sort-list-records-js {
+      margin-left: 23%;
+
+      .record-select--sort-left {
+        display: none;
+        width: auto;
+        border: none;
+        background-color: transparent;
+        box-shadow: none;
+        font-size: 1rem;
+        padding: 0 24px 0 15px;
+        cursor: pointer;
+
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("/assets/image/accordion-chevron.svg");
+        background-repeat: no-repeat;
+        background-position: right 0.5rem center;
+        background-size: 10px 6px;
+
+        &:hover {
+          background-image: url("/assets/image/accordion-chevron-hover.svg");
+        }
+
+        &:focus {
+          outline: none;
+          box-shadow: none;
+        }
+      }
+    }
+  }
+
+  /* Non-JS Version */
+  .sort-list-records-right-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    margin-bottom: 16px;
+
+    .sort-list-records-no-js {
+      display: flex;
+      align-items: center;
+      margin-right: 35%;
+
+      .record-select--sort-right {
+        width: auto;
+        border: none;
+        background-color: transparent;
+        box-shadow: none;
+        font-size: 1rem;
+        padding: 0 23px 0 12px;
+        cursor: pointer;
+
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("/assets/image/accordion-chevron.svg");
+        background-repeat: no-repeat;
+        background-position: right 0.5rem center;
+        background-size: 10px 6px;
+
+        &:hover {
+          background-image: url("/assets/image/accordion-chevron-hover.svg");
+        }
+
+        &:focus {
+          outline: none;
+          box-shadow: none;
+        }
+      }
+
+      .govuk-button {
+        margin-bottom: 0;
+      }
+    }
+  }
+}

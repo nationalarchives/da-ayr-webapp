@@ -112,6 +112,24 @@
     <script nonce="{{ cspNonce }}" type="module">
         import { initAll } from "{{ url_for('static', filename='govuk-frontend.min.js') }}"
         initAll()
+        document.addEventListener("DOMContentLoaded", function() {
+        const leftSortSelect = document.querySelector('.record-select--sort-left');
+        const rightSortSelect = document.querySelector('.record-select--sort-right');
+        const form = document.getElementById('records-form');
+
+        // Show the left select element when JS is enabled
+        if (leftSortSelect) {
+            leftSortSelect.style.display = 'block';
+        }
+
+
+        // Handle auto-submit for the left dropdown using its class
+        if (leftSortSelect && form) {
+            leftSortSelect.addEventListener('change', function(e) {
+                form.submit();
+            });
+        }
+    });
     </script>
     <!--<![endif]-->
 {% endblock %}
