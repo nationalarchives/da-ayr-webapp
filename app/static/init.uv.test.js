@@ -110,17 +110,24 @@ describe("tests for init.uv.js", () => {
     document.getElementById("uv").innerHTML = `
       <div class="pdfContainer"><canvas width="280"></canvas></div>
       <button class="btn zoomIn"></button>
+      <button class="btn zoomOut"></button>
     `;
     const container = document.querySelector("#uv .pdfContainer");
     // jsdom has no layout, so give the container a width
     Object.defineProperty(container, "clientWidth", { value: 800 });
     const canvas = container.querySelector("canvas");
     const zoomInButton = document.querySelector("#uv button.zoomIn");
+    const zoomOutButton = document.querySelector("#uv button.zoomOut");
 
-    const clickSpy = jest
+    const zoomInSpy = jest
       .spyOn(zoomInButton, "click")
       .mockImplementation(() => {
         canvas.width += 200;
+      });
+    const zoomOutSpy = jest
+      .spyOn(zoomOutButton, "click")
+      .mockImplementation(() => {
+        canvas.width -= 200;
       });
 
     require("./init.uv.js");
@@ -129,9 +136,11 @@ describe("tests for init.uv.js", () => {
     jest.runAllTimers();
 
     // Target is 800 * 0.8 = 640. Clicks land on 480, then 680, which
-    // clears the target, so it stops there - no zoom-out correction.
-    expect(clickSpy).toHaveBeenCalledTimes(2);
-    expect(canvas.width).toBe(680);
+    // clears the target, so the zoom-in loop stops there and takes a
+    // single zoom-out step back to settle on 480.
+    expect(zoomInSpy).toHaveBeenCalledTimes(2);
+    expect(zoomOutSpy).toHaveBeenCalledTimes(1);
+    expect(canvas.width).toBe(480);
 
     jest.useRealTimers();
   });

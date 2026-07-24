@@ -81,6 +81,11 @@ function zoomPdfTowardsTargetWidth(clicks = 0) {
 
   const targetWidth = container.clientWidth * UV_PDF_FIT_TARGET_RATIO;
   if (canvas.width >= targetWidth || clicks >= UV_PDF_FIT_MAX_CLICKS) {
+    // Settle one step back from wherever the zoom-in loop landed.
+    const zoomOutButton = document.querySelector("#uv button.zoomOut");
+    if (zoomOutButton) {
+      zoomOutButton.click();
+    }
     return;
   }
 
