@@ -6,7 +6,7 @@
             <div class="browse-filter__header">
                 <h2 class="govuk-heading-m govuk-heading-m--browse-all-filter-title">Filters <span class="browse-records__filter-count">({{ filter_count }})</span></h2>
             </div>
-            <div class="govuk-form-group">
+            <div class="browse-records__form-group">
                 <label class="govuk-label govuk-label__filter"
                        for="transferring_body_filter">Transferring body</label>
                 <input class="govuk-input"
@@ -20,7 +20,7 @@
                     {% for body in transferring_bodies %}<option value="{{ body }}" />{% endfor %}
                 </datalist>
             </div>
-            <div class="govuk-form-group">
+            <div class="browse-records__form-group">
                 <label class="govuk-label govuk-label__filter" for="series_filter">Series <span class="browse-records__series-filter-example">– e.g. HO 405</span></label>
                 <input class="govuk-input govuk-!-width-full"
                        id="series_filter"
@@ -28,7 +28,7 @@
                        value="{% if filters['series'] %}{{ filters['series'] }}{% endif %}"
                        type="text">
             </div>
-            <div class="govuk-form-group">
+            <div class="browse-records__form-group">
                 <label class="govuk-label govuk-label__filter" for="consignment_reference">Consignment <span class="browse-records__series-filter-example">- e.g. AYR-2026-KSJ2</span></label>
                 <input class="govuk-input govuk-!-width-full"
                        id="consignment_reference"
@@ -36,7 +36,7 @@
                        value="{% if filters['consignment_reference'] %}{{ filters['consignment_reference'] }}{% endif %}"
                        type="text">
             </div>
-            <div class="govuk-form-group browse-records__radio-group">
+            <div class="browse-records__form-group browse-records__radio-group">
                 <fieldset class="govuk-fieldset govuk-fieldset--record-status">
                     <legend class="govuk-!-margin-0 govuk-!-padding-0">
                         <h3 class="govuk-heading-s govuk-heading-s--consignment-filter">Status</h3>
@@ -77,7 +77,7 @@
                     </div>
                 </fieldset>
             </div>
-            <div class="govuk-form-group browse-records__radio-group">
+            <div class="browse-records__form-group browse-records__radio-group">
                 <fieldset class="govuk-fieldset">
                     <legend class="govuk-!-margin-0 govuk-!-padding-0">
                         <h3 class="govuk-heading-s govuk-heading-s--consignment-filter">Dates</h3>

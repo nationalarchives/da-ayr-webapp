@@ -2,7 +2,7 @@
     <div class="{% if date_validation_errors %}{% if date_validation_errors.get('date_from') %}govuk-form-group--error{% endif %}{% endif %}">
         <fieldset class="govuk-fieldset govuk-fieldset--date-from" role="group">
             <legend aria-label="{% if view_type=='consignment' %}Record date from{% else %}Date consignment transferred from{% endif %}">
-                <label class="govuk-label govuk-label__filter-date">From date</label>
+                <label class="govuk-label govuk-label__filter-date">From</label>
             </legend>
             {% if date_validation_errors %}
                 {% if date_validation_errors.get('date_from') %}
@@ -57,7 +57,7 @@
     <div class="{% if date_validation_errors %} {% if date_validation_errors.get('date_to') %}govuk-form-group--error{% endif %}{% endif %}">
         <fieldset class="govuk-fieldset govuk-fieldset--date-to" role="group">
             <legend aria-label="{% if view_type=='consignment' %}Record date to{% else %}Date consignment transferred to{% endif %}">
-                <label class="govuk-label govuk-label__filter-date">To date</label>
+                <label class="govuk-label govuk-label__filter-date">To</label>
             </legend>
             {% if date_validation_errors %}
                 {% if date_validation_errors.get('date_to') %}
