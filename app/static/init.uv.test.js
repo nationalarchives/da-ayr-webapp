@@ -137,10 +137,11 @@ describe("tests for init.uv.js", () => {
 
     // Target is 800 * 0.95 = 760. Clicks land on 480, 680, 880 - the last
     // click overshoots (880 is further from 760 than 680 was), so it's
-    // reverted with a single zoom-out click, settling back on 680.
+    // reverted with a zoom-out click back to 680, then backed off one
+    // further step (another zoom-out) to settle comfortably below target.
     expect(zoomInSpy).toHaveBeenCalledTimes(3);
-    expect(zoomOutSpy).toHaveBeenCalledTimes(1);
-    expect(canvas.width).toBe(680);
+    expect(zoomOutSpy).toHaveBeenCalledTimes(2);
+    expect(canvas.width).toBe(480);
 
     jest.useRealTimers();
   });

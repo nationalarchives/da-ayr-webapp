@@ -91,11 +91,9 @@ function zoomPdfTowardsTargetWidth(clicks = 0, previousWidth = null) {
       Math.abs(previousWidth - targetWidth) <
         Math.abs(canvas.width - targetWidth);
     if (overshotPastPrevious) {
-      const zoomOutButton = document.querySelector("#uv button.zoomOut");
-      if (zoomOutButton) {
-        zoomOutButton.click();
-      }
+      clickZoomOut();
     }
+    clickZoomOut();
     return;
   }
 
@@ -103,6 +101,7 @@ function zoomPdfTowardsTargetWidth(clicks = 0, previousWidth = null) {
     canvas.width >= targetWidth - tolerance ||
     clicks >= UV_PDF_FIT_MAX_CLICKS
   ) {
+    clickZoomOut();
     return;
   }
 
@@ -118,6 +117,13 @@ function zoomPdfTowardsTargetWidth(clicks = 0, previousWidth = null) {
   setTimeout(function () {
     zoomPdfTowardsTargetWidth(clicks + 1, widthBeforeClick);
   }, 250);
+}
+
+function clickZoomOut() {
+  const zoomOutButton = document.querySelector("#uv button.zoomOut");
+  if (zoomOutButton) {
+    zoomOutButton.click();
+  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
