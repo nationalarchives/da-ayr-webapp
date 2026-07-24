@@ -72,7 +72,7 @@ function fitPdfToWidth(attempt = 0) {
   zoomPdfTowardsTargetWidth();
 }
 
-function zoomPdfTowardsTargetWidth(clicks = 0) {
+function zoomPdfTowardsTargetWidth(clicks = 0, previousWidth = null) {
   const container = document.querySelector("#uv .pdfContainer");
   const canvas = container && container.querySelector("canvas");
   if (!container || !canvas || !canvas.width || !container.clientWidth) {
@@ -80,9 +80,29 @@ function zoomPdfTowardsTargetWidth(clicks = 0) {
   }
 
   const targetWidth = container.clientWidth * UV_PDF_FIT_TARGET_RATIO;
-  const isCloseToTarget =
-    canvas.width >= targetWidth * (1 - UV_PDF_FIT_TOLERANCE);
-  if (isCloseToTarget || clicks >= UV_PDF_FIT_MAX_CLICKS) {
+  const tolerance = targetWidth * UV_PDF_FIT_TOLERANCE;
+
+  if (canvas.width > targetWidth + tolerance) {
+    // This click overshot the target. The zoom step isn't fine-grained
+    // enough to land exactly on it, so keep whichever of this click and
+    // the previous one measured closer to the target width.
+    const overshotPastPrevious =
+      previousWidth !== null &&
+      Math.abs(previousWidth - targetWidth) <
+        Math.abs(canvas.width - targetWidth);
+    if (overshotPastPrevious) {
+      const zoomOutButton = document.querySelector("#uv button.zoomOut");
+      if (zoomOutButton) {
+        zoomOutButton.click();
+      }
+    }
+    return;
+  }
+
+  if (
+    canvas.width >= targetWidth - tolerance ||
+    clicks >= UV_PDF_FIT_MAX_CLICKS
+  ) {
     return;
   }
 
@@ -90,12 +110,13 @@ function zoomPdfTowardsTargetWidth(clicks = 0) {
   if (!zoomInButton) {
     return;
   }
+  const widthBeforeClick = canvas.width;
   zoomInButton.click();
 
   // Let pdf.js finish re-rendering the page at the new scale before
   // measuring again, otherwise we'd read the pre-click canvas size.
   setTimeout(function () {
-    zoomPdfTowardsTargetWidth(clicks + 1);
+    zoomPdfTowardsTargetWidth(clicks + 1, widthBeforeClick);
   }, 250);
 }
 
