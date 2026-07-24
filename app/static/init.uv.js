@@ -54,6 +54,7 @@ function initUniversalViewer() {
 // width after every click and stop once it reaches the target. The target
 // is under 100% of the container
 const UV_PDF_FIT_TARGET_RATIO = 0.8;
+const UV_PDF_FIT_TOLERANCE = 0.1;
 const UV_PDF_FIT_MAX_ATTEMPTS = 20;
 const UV_PDF_FIT_MAX_CLICKS = 20;
 
@@ -69,36 +70,46 @@ function fitPdfToWidth(attempt = 0) {
     }
     return;
   }
-  zoomPdfTowardsTargetWidth();
+
+  const targetWidth = container.clientWidth * UV_PDF_FIT_TARGET_RATIO;
+  const tolerance = targetWidth * UV_PDF_FIT_TOLERANCE;
+  if (canvas.width < targetWidth - tolerance) {
+    zoomPdfTowardsTargetWidth("zoomIn", targetWidth, tolerance);
+  } else if (canvas.width > targetWidth + tolerance) {
+    zoomPdfTowardsTargetWidth("zoomOut", targetWidth, tolerance);
+  }
 }
 
-function zoomPdfTowardsTargetWidth(clicks = 0) {
+function zoomPdfTowardsTargetWidth(
+  direction,
+  targetWidth,
+  tolerance,
+  clicks = 0,
+) {
   const container = document.querySelector("#uv .pdfContainer");
   const canvas = container && container.querySelector("canvas");
   if (!container || !canvas || !canvas.width || !container.clientWidth) {
     return;
   }
 
-  const targetWidth = container.clientWidth * UV_PDF_FIT_TARGET_RATIO;
-  if (canvas.width >= targetWidth || clicks >= UV_PDF_FIT_MAX_CLICKS) {
-    // Settle one step back from wherever the zoom-in loop landed.
-    const zoomOutButton = document.querySelector("#uv button.zoomOut");
-    if (zoomOutButton) {
-      zoomOutButton.click();
-    }
+  const withinTarget =
+    direction === "zoomIn"
+      ? canvas.width >= targetWidth - tolerance
+      : canvas.width <= targetWidth + tolerance;
+  if (withinTarget || clicks >= UV_PDF_FIT_MAX_CLICKS) {
     return;
   }
 
-  const zoomInButton = document.querySelector("#uv button.zoomIn");
-  if (!zoomInButton) {
+  const button = document.querySelector(`#uv button.${direction}`);
+  if (!button) {
     return;
   }
-  zoomInButton.click();
+  button.click();
 
   // Let pdf.js finish re-rendering the page at the new scale before
   // measuring again, otherwise we'd read the pre-click canvas size.
   setTimeout(function () {
-    zoomPdfTowardsTargetWidth(clicks + 1);
+    zoomPdfTowardsTargetWidth(direction, targetWidth, tolerance, clicks + 1);
   }, 250);
 }
 

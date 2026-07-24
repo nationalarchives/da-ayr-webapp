@@ -95,7 +95,7 @@ describe("tests for init.uv.js", () => {
     }, 10);
   });
 
-  it("should fit the PDF to the container width, re-measuring after each zoom click", () => {
+  it("should zoom in towards the container width when the PDF loads too small, re-measuring after each click", () => {
     jest.useFakeTimers();
     let pdfLoadedHandler;
     window.UV = {
@@ -124,6 +124,48 @@ describe("tests for init.uv.js", () => {
       .mockImplementation(() => {
         canvas.width += 200;
       });
+    const zoomOutSpy = jest.spyOn(zoomOutButton, "click");
+
+    require("./init.uv.js");
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    pdfLoadedHandler();
+    jest.runAllTimers();
+
+    // Target is 800 * 0.8 = 640, tolerance +/-64. Clicks land on 480, then
+    // 680, which clears the tolerance band, so it stops there. The
+    // direction is fixed to zoom-in for the whole fit, so zoom-out is
+    // never touched (no in-then-out flicker).
+    expect(zoomInSpy).toHaveBeenCalledTimes(2);
+    expect(zoomOutSpy).not.toHaveBeenCalled();
+    expect(canvas.width).toBe(680);
+
+    jest.useRealTimers();
+  });
+
+  it("should zoom out towards the container width when the PDF loads too large, never zooming in", () => {
+    jest.useFakeTimers();
+    let pdfLoadedHandler;
+    window.UV = {
+      init: jest.fn(() => ({
+        on: jest.fn((event, handler) => {
+          if (event === "pdfExtension.pdfLoaded") {
+            pdfLoadedHandler = handler;
+          }
+        }),
+      })),
+    };
+    document.getElementById("uv").innerHTML = `
+      <div class="pdfContainer"><canvas width="1000"></canvas></div>
+      <button class="btn zoomIn"></button>
+      <button class="btn zoomOut"></button>
+    `;
+    const container = document.querySelector("#uv .pdfContainer");
+    Object.defineProperty(container, "clientWidth", { value: 800 });
+    const canvas = container.querySelector("canvas");
+    const zoomInButton = document.querySelector("#uv button.zoomIn");
+    const zoomOutButton = document.querySelector("#uv button.zoomOut");
+
+    const zoomInSpy = jest.spyOn(zoomInButton, "click");
     const zoomOutSpy = jest
       .spyOn(zoomOutButton, "click")
       .mockImplementation(() => {
@@ -135,12 +177,12 @@ describe("tests for init.uv.js", () => {
     pdfLoadedHandler();
     jest.runAllTimers();
 
-    // Target is 800 * 0.8 = 640. Clicks land on 480, then 680, which
-    // clears the target, so the zoom-in loop stops there and takes a
-    // single zoom-out step back to settle on 480.
-    expect(zoomInSpy).toHaveBeenCalledTimes(2);
-    expect(zoomOutSpy).toHaveBeenCalledTimes(1);
-    expect(canvas.width).toBe(480);
+    // Target is 800 * 0.8 = 640, tolerance +/-64. Clicks land on 800, then
+    // 600, which clears the tolerance band, so it stops there. Zoom-in is
+    // never touched.
+    expect(zoomOutSpy).toHaveBeenCalledTimes(2);
+    expect(zoomInSpy).not.toHaveBeenCalled();
+    expect(canvas.width).toBe(600);
 
     jest.useRealTimers();
   });
