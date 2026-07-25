@@ -2397,14 +2397,14 @@ files = [
 
 [[package]]
 name = "pip-tools"
-version = "7.5.3"
+version = "7.6.0"
 description = "pip-tools keeps your pinned dependencies fresh."
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "pip_tools-7.5.3-py3-none-any.whl", hash = "sha256:3aac0c473240ae90db7213c033401f345b05197293ccbdd2704e52e7a783785e"},
-    {file = "pip_tools-7.5.3.tar.gz", hash = "sha256:8fa364779ebc010cbfe17cb9de404457ac733e100840423f28f6955de7742d41"},
+    {file = "pip_tools-7.6.0-py3-none-any.whl", hash = "sha256:4bd99155b6d8de358a214b0865e1a2855a453570c1a83d40f7b564870b8657be"},
+    {file = "pip_tools-7.6.0.tar.gz", hash = "sha256:c1c59f7844df4866fa9542d3f50d1f44be537ac0027cb50b2563d6a992853981"},
 ]
 
 [package.dependencies]
@@ -2417,7 +2417,7 @@ wheel = "*"
 
 [package.extras]
 coverage = ["covdefaults", "pytest-cov"]
-testing = ["flit_core (>=2,<4)", "poetry_core (>=1.0.0)", "pytest (>=7.2.0)", "pytest-rerunfailures", "pytest-xdist", "tomli-w"]
+testing = ["flit_core (>=2,<4)", "poetry_core (>=1.0.0)", "pytest (>=7.2.0)", "pytest-mock (>=3.15.1)", "pytest-rerunfailures", "pytest-xdist", "tomli-w"]
 
 [[package]]
 name = "pixelmatch"
@@ -4269,4 +4269,4 @@ test = ["pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<3.14"
-content-hash = "4053327ff487b0158cf2f0804cab13f9ce5ac6d5153c7b23e1645f32327a7a4b"
+content-hash = "52b73e29e6b185853af2ca65cc8f8628de866aa5d63497a0a6a905a8e3c8a027"
