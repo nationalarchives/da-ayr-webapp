@@ -498,22 +498,21 @@ class TestBrowseRecords:
         assert b"No records found" in response.data
         verify_scope_text(response.data, "All available records")
 
+    @pytest.mark.parametrize("body_name", ["first_body", "second_body"])
     def test_browse_records_scope_text_changes_for_different_accounts(
-        self, client: FlaskClient, mock_standard_user, browse_files
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_files,
+        body_name,
     ):
         """
         Given different standard user accounts
         When browse records is requested
         Then transferring body scope text reflects each account
         """
-        mock_standard_user(client, "first_body")
-        first_response = client.get(self.route_url)
+        mock_standard_user(client, body_name)
+        response = client.get(self.route_url)
 
-        assert first_response.status_code == 200
-        verify_scope_text(first_response.data, "first_body")
-
-        mock_standard_user(client, "second_body")
-        second_response = client.get(self.route_url)
-
-        assert second_response.status_code == 200
-        verify_scope_text(second_response.data, "second_body")
+        assert response.status_code == 200
+        verify_scope_text(response.data, body_name)
