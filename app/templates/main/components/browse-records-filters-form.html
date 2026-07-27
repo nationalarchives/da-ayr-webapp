@@ -1,6 +1,11 @@
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 <form action="{{ url_for('main.browse_records', _anchor='browse-records') }}"
       method="get">
+    {% if query_string_parameters.get('per_page') %}
+        <input type="hidden"
+               name="per_page"
+               value="{{ query_string_parameters.get('per_page') }}">
+    {% endif %}
     <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
         <div class="browse-all-filter-container">
             <div class="browse-filter__header">
@@ -8,7 +13,10 @@
             </div>
             <div class="browse-records__form-group">
                 <label class="govuk-label govuk-label__filter"
-                       for="transferring_body_filter">Transferring body</label>
+                       for="transferring_body_filter">
+                    Transferring body
+                    {% if not is_standard_user %} <span class="browse-records__series-filter-example">– e.g. Land registry</span>{% endif %}
+                </label>
                 <input class="govuk-input"
                        id="transferring_body_filter"
                        name="transferring_body_filter"
@@ -29,7 +37,7 @@
                        type="text">
             </div>
             <div class="browse-records__form-group">
-                <label class="govuk-label govuk-label__filter" for="consignment_reference">Consignment <span class="browse-records__series-filter-example">- e.g. AYR-2026-KSJ2</span></label>
+                <label class="govuk-label govuk-label__filter" for="consignment_reference">Consignment <span class="browse-records__series-filter-example">– e.g. AYR-2026-KSJ2</span></label>
                 <input class="govuk-input govuk-!-width-full"
                        id="consignment_reference"
                        name="consignment_reference"
@@ -90,7 +98,7 @@
                                    name="date_filter_field"
                                    type="radio"
                                    value="date_last_modified"
-                                   {% if filters.get('date_filter_field')=='date_last_modified' %}checked{% endif %}>
+                                   {% if filters.get('date_filter_field')=='date_last_modified' or not filters.get('date_filter_field') %}checked{% endif %}>
                             <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                    for="date_last_modified">Last modified</label>
                         </div>
@@ -110,7 +118,7 @@
                                    name="date_filter_field"
                                    type="radio"
                                    value="transferred"
-                                   {% if filters.get('date_filter_field')=='transferred' or not filters.get('date_filter_field') %}checked{% endif %}>
+                                   {% if filters.get('date_filter_field')=='transferred' %}checked{% endif %}>
                             <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                    for="transferred_date">Transferred</label>
                         </div>
@@ -125,7 +133,7 @@
                 'type': "submit"
                 }) }}
                 <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-all-filter"
-                   href="{{ url_for('main.browse_records', sort=query_string_parameters.get('sort'), _anchor='browse-records') }}">Clear filters</a>
+                   href="{{ url_for('main.browse_records', sort=query_string_parameters.get('sort'), per_page=query_string_parameters.get('per_page'), _anchor='browse-records') }}">Clear filters</a>
             </div>
         </div>
     </div>

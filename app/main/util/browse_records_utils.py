@@ -35,6 +35,17 @@ def get_selected_filters(validated_data):
     )
 
 
+def prefill_transferring_body_for_single_scope(
+    selected_transferring_body,
+    accessible_body_names,
+):
+    if selected_transferring_body:
+        return selected_transferring_body
+    if accessible_body_names and len(accessible_body_names) == 1:
+        return accessible_body_names[0]
+    return selected_transferring_body
+
+
 def get_options_rows(accessible_body_names):
     options_query = (
         db.session.query(
@@ -143,6 +154,12 @@ def build_browse_records_filter_data(
         selected_record_status,
         selected_date_filter_field,
     ) = get_selected_filters(validated_data)
+
+    selected_transferring_body = prefill_transferring_body_for_single_scope(
+        selected_transferring_body,
+        accessible_body_names,
+    )
+
     options_rows = get_options_rows(accessible_body_names)
 
     selected_transferring_body, selected_series = autofill_selected_filters(
@@ -166,26 +183,34 @@ def build_browse_records_filter_data(
     return transferring_bodies
 
 
-def count_selected_filters(validated_data, from_date, to_date):
+def count_selected_filters(
+    filters,
+    from_date,
+    to_date,
+    is_standard_user,
+):
     filter_count = 0
 
-    if (validated_data.get("transferring_body_filter") or "").strip():
+    selected_transferring_body = (
+        filters.get("transferring_body") or ""
+    ).strip()
+    if selected_transferring_body and not is_standard_user:
         filter_count += 1
-    if (validated_data.get("series_filter") or "").strip():
+    if (filters.get("series") or "").strip():
         filter_count += 1
-    if (validated_data.get("consignment_reference") or "").strip():
+    if (filters.get("consignment_reference") or "").strip():
         filter_count += 1
 
-    selected_record_status = (validated_data.get("record_status") or "").strip()
+    selected_record_status = (filters.get("record_status") or "").strip()
     if selected_record_status and selected_record_status.lower() != "all":
         filter_count += 1
 
     selected_date_filter_field = (
-        validated_data.get("date_filter_field") or ""
+        filters.get("date_filter_field") or ""
     ).strip()
     if (
         selected_date_filter_field
-        and selected_date_filter_field.lower() != "transferred"
+        and selected_date_filter_field.lower() != "date_last_modified"
     ):
         filter_count += 1
 

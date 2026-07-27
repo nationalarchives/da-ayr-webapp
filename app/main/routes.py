@@ -631,7 +631,12 @@ def browse_records():
         accessible_body_names,
         filters,
     )
-    filter_count = count_selected_filters(validated_data, from_date, to_date)
+    filter_count = count_selected_filters(
+        filters,
+        from_date,
+        to_date,
+        ayr_user.is_standard_user,
+    )
 
     query = build_browse_records_query(
         accessible_transferring_body_names=accessible_body_names,
@@ -654,6 +659,7 @@ def browse_records():
         "browse.html",
         form=form,
         browse_type="records",
+        is_standard_user=ayr_user.is_standard_user,
         filters=filters,
         search_area="everywhere",
         current_page=page,

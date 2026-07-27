@@ -744,6 +744,26 @@
       }
     },
     {
+      "username": "standarduser",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Standard",
+      "lastName": "User",
+      "email": "standarduser@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password123",
+          "temporary": false
+        }
+      ],
+      "groups": [
+        "/ayr_user_type/view_dept",
+        "/transferring_body_user/Testing A"
+      ],
+      "realmRoles": ["offline_access", "uma_authorization"]
+    },
+    {
       "username": "service-account-ayr-beta",
       "enabled": true,
       "serviceAccountClientId": "ayr-beta",

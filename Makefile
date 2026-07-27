@@ -39,7 +39,8 @@ build-e2e-tests:
 	docker build -t e2e_tests ./e2e_tests
 
 run-e2e-tests:
-	docker run --rm --env-file .env.e2e_tests --network=host -v "$(PWD)/e2e_tests":/e2e_tests -e BROWSERS=chromium e2e_tests
+	docker run --rm --env-file .env.e2e_tests --network=host -v "$(PWD)/e2e_tests":/e2e_tests -e BROWSERS=chromium,firefox,webkit e2e_tests
+
 
 e2e: build-e2e-tests run-e2e-tests
 

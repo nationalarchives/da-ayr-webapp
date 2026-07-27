@@ -57,6 +57,7 @@ class TestBrowseRecords:
         assert b"27 Records" in response.data
         assert b"last modified" in response.data
         assert b"consignment" in response.data
+        assert b"Land registry" in response.data
         verify_filters_heading(response.data, "Filters (0)")
 
         verify_browse_records_view_header_row(
@@ -87,11 +88,18 @@ class TestBrowseRecords:
         assert b"second_file.pdf" in response.data
         assert b"third_file.doc" in response.data
         assert b"fourth_file.docx" not in response.data
+        assert b"Land registry" not in response.data
+        verify_filters_heading(response.data, "Filters (0)")
 
         soup = BeautifulSoup(response.data, "html.parser")
+        transferring_body_filter = soup.find(
+            "input", id="transferring_body_filter"
+        )
         record_links = soup.select(
             "tbody.govuk-table__body td[colspan='4'] > a[href^='/record/']"
         )
+        assert transferring_body_filter is not None
+        assert transferring_body_filter.get("value") == "first_body"
         assert len(record_links) == 3
 
     def test_browse_records_second_page_shows_expected_range_and_links(
@@ -121,6 +129,23 @@ class TestBrowseRecords:
         assert "page=1" in previous_link["href"]
         assert "page=3" in next_link["href"]
 
+    def test_browse_records_standard_user_transferring_body_does_not_count(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given a standard user with one accessible transferring body
+        When they explicitly submit that transferring body filter
+        Then it does not contribute to the filter count
+        """
+        mock_standard_user(client, "first_body")
+
+        response = client.get(
+            f"{self.route_url}?transferring_body_filter=first_body"
+        )
+
+        assert response.status_code == 200
+        verify_filters_heading(response.data, "Filters (0)")
+
     def test_browse_records_consignment_filter_limits_results(
         self, client: FlaskClient, mock_all_access_user, browse_files
     ):
@@ -142,7 +167,7 @@ class TestBrowseRecords:
         assert b"sixth_file.ppt" in response.data
         assert b"first_file.txt" not in response.data
         assert b'value="TDR-2023-TH3"' in response.data
-        verify_filters_heading(response.data, "Filters (1)")
+        verify_filters_heading(response.data, "Filters (3)")
 
         soup = BeautifulSoup(response.data, "html.parser")
         transferring_body_filter = soup.find(
@@ -211,7 +236,7 @@ class TestBrowseRecords:
         """
         Given the browse records page
         When filters render
-        Then status defaults to all and dates defaults to transferred
+        Then status defaults to all and dates defaults to last modified
         """
         mock_all_access_user(client)
 
@@ -223,16 +248,19 @@ class TestBrowseRecords:
         status_all = soup.find("input", id="recordStatus-all")
         status_open = soup.find("input", id="recordStatus-open")
         status_closed = soup.find("input", id="recordStatus-closed")
+        last_modified_date = soup.find("input", id="date_last_modified")
         transferred_date = soup.find("input", id="transferred_date")
 
         assert status_all is not None
         assert status_open is not None
         assert status_closed is not None
+        assert last_modified_date is not None
         assert transferred_date is not None
         assert status_all.has_attr("checked")
         assert not status_open.has_attr("checked")
         assert not status_closed.has_attr("checked")
-        assert transferred_date.has_attr("checked")
+        assert last_modified_date.has_attr("checked")
+        assert not transferred_date.has_attr("checked")
 
     def test_browse_records_status_filter_open_selection_persists(
         self, client: FlaskClient, mock_all_access_user, browse_files
@@ -359,3 +387,82 @@ class TestBrowseRecords:
 
         assert response.status_code == 302
         assert "page=1" in response.headers["Location"]
+
+    def test_browse_records_per_page_persists_in_filter_controls(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given records-per-page is explicitly selected
+        When browse records filters are rendered
+        Then per_page is preserved in filter form submits and clear-filters link
+        """
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}?per_page=20")
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+
+        filters_form = soup.find(
+            "form", action="/browse/records#browse-records"
+        )
+        assert filters_form is not None
+
+        hidden_per_page = filters_form.find(
+            "input",
+            {"type": "hidden", "name": "per_page", "value": "20"},
+        )
+        clear_filters_link = filters_form.find("a", string="Clear filters")
+
+        assert hidden_per_page is not None
+        assert clear_filters_link is not None
+        assert "per_page=20" in clear_filters_link.get("href", "")
+
+    def test_browse_records_filters_and_sort_persist_in_per_page_controls(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given browse records has active filters and sort
+        When per-page controls are rendered
+        Then they preserve active query params except page and per_page
+        """
+        mock_all_access_user(client)
+
+        response = client.get(
+            f"{self.route_url}?consignment_reference=TDR-2023-TH3&sort=file_name-desc&page=1&per_page=10"
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+
+        per_page_forms = soup.select(
+            "form.sort-list-records-form, form.sort-list-records-no-js-form"
+        )
+        assert len(per_page_forms) == 2
+
+        for form in per_page_forms:
+            hidden_consignment = form.find(
+                "input",
+                {
+                    "type": "hidden",
+                    "name": "consignment_reference",
+                    "value": "TDR-2023-TH3",
+                },
+            )
+            hidden_sort = form.find(
+                "input",
+                {
+                    "type": "hidden",
+                    "name": "sort",
+                    "value": "file_name-desc",
+                },
+            )
+            hidden_page = form.find("input", {"type": "hidden", "name": "page"})
+            hidden_per_page = form.find(
+                "input", {"type": "hidden", "name": "per_page"}
+            )
+
+            assert hidden_consignment is not None
+            assert hidden_sort is not None
+            assert hidden_page is None
+            assert hidden_per_page is None
