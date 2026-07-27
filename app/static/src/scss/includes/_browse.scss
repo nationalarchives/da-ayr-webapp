@@ -113,6 +113,11 @@
     font-size: 1rem;
   }
 
+  &__scope-text {
+    display: inline-block;
+    margin-bottom: 0;
+  }
+
   &__records-found__text {
     margin-bottom: 1rem;
   }

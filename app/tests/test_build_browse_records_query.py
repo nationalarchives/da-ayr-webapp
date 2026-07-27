@@ -217,3 +217,127 @@ class TestBrowseRecords:
 
         assert len(results) == 3
         assert all(result[5] == "TDR-2023-TH3" for result in results)
+
+    def test_build_browse_records_query_sorts_date_of_record_desc(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given an explicit descending date-of-record sort order
+        When build_browse_records_query is executed
+        Then records are returned in descending date order
+        """
+        body_name = browse_consignment_files[0].consignment.series.body.Name
+
+        mock_standard_user(client, body_name)
+
+        query = build_browse_records_query(
+            accessible_transferring_body_names=[body_name],
+            sorting_orders={"date_of_record": "desc"},
+        )
+        results = query.all()
+
+        assert [result[7] for result in results] == [
+            "fifth_file.doc",
+            "fourth_file.xls",
+            "third_file.docx",
+            "first_file.docx",
+            "second_file.ppt",
+        ]
+
+    def test_build_browse_records_query_sorts_date_of_record_asc(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given an explicit ascending date-of-record sort order
+        When build_browse_records_query is executed
+        Then records are returned in ascending date order
+        """
+        body_name = browse_consignment_files[0].consignment.series.body.Name
+
+        mock_standard_user(client, body_name)
+
+        query = build_browse_records_query(
+            accessible_transferring_body_names=[body_name],
+            sorting_orders={"date_of_record": "asc"},
+        )
+        results = query.all()
+
+        assert [result[7] for result in results] == [
+            "second_file.ppt",
+            "first_file.docx",
+            "third_file.docx",
+            "fourth_file.xls",
+            "fifth_file.doc",
+        ]
+
+    def test_build_browse_records_query_filters_by_record_status_close(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given the record status filter value close
+        When build_browse_records_query is executed
+        Then close is treated as closed and only closed records are returned
+        """
+        body_name = browse_consignment_files[0].consignment.series.body.Name
+
+        mock_standard_user(client, body_name)
+
+        query = build_browse_records_query(
+            accessible_transferring_body_names=[body_name],
+            filters={"record_status": "close"},
+        )
+        results = query.all()
+
+        assert len(results) == 3
+        assert all(result[11] == "Closed" for result in results)
+
+    def test_build_browse_records_query_filters_by_last_modified_date_range(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a last-modified date filter field and date range
+        When build_browse_records_query is executed
+        Then records are filtered using date_last_modified
+        """
+        body_name = browse_consignment_files[0].consignment.series.body.Name
+
+        mock_standard_user(client, body_name)
+
+        query = build_browse_records_query(
+            accessible_transferring_body_names=[body_name],
+            filters={
+                "date_filter_field": "date_last_modified",
+                "date_from": "2023-04-01",
+                "date_to": "2023-05-31",
+            },
+        )
+        results = query.all()
+
+        assert [result[7] for result in results] == [
+            "fifth_file.doc",
+            "fourth_file.xls",
+        ]
+
+    def test_build_browse_records_query_filters_by_transferred_date_range(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a transferred date filter field and date range
+        When build_browse_records_query is executed
+        Then records are filtered using end_date
+        """
+        body_name = browse_consignment_files[0].consignment.series.body.Name
+
+        mock_standard_user(client, body_name)
+
+        query = build_browse_records_query(
+            accessible_transferring_body_names=[body_name],
+            filters={
+                "date_filter_field": "transferred",
+                "date_from": "2023-04-01",
+                "date_to": "2023-05-31",
+            },
+        )
+        results = query.all()
+
+        assert results == []

@@ -5,7 +5,7 @@ KEYCLOAK_CERT = local_services/keycloak_certs/cert.pem
 
 COMPOSE = docker compose --env-file $(ENV_FILE) -f docker-compose.yml
 
-.PHONY: setup start stop clean unit test pre-commit e2e build-e2e-tests run-e2e-tests update-snapshots
+.PHONY: setup start stop clean unit test pre-commit e2e build-e2e-tests run-e2e-tests
 
 $(ENV_FILE):
 	cp .docker.env.template $(ENV_FILE)
@@ -40,7 +40,6 @@ build-e2e-tests:
 
 run-e2e-tests:
 	docker run --rm --env-file .env.e2e_tests --network=host -v "$(PWD)/e2e_tests":/e2e_tests -e BROWSERS=chromium,firefox,webkit e2e_tests
-
 
 e2e: build-e2e-tests run-e2e-tests
 

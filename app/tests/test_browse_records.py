@@ -34,6 +34,17 @@ def verify_filters_heading(data, expected_heading):
     assert " ".join(heading.get_text(separator=" ").split()) == expected_heading
 
 
+def verify_scope_text(data, expected_text):
+    """
+    Check the scope text above records count against expected value.
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    scope_text = soup.find("span", class_="browse__scope-text")
+
+    assert scope_text is not None
+    assert " ".join(scope_text.get_text(separator=" ").split()) == expected_text
+
+
 class TestBrowseRecords:
     @property
     def route_url(self):
@@ -54,11 +65,12 @@ class TestBrowseRecords:
 
         assert response.status_code == 200
         assert b"Search for digital records" in response.data
-        assert b"27 Records" in response.data
+        assert b"27 records" in response.data
         assert b"last modified" in response.data
         assert b"consignment" in response.data
         assert b"Land registry" in response.data
         verify_filters_heading(response.data, "Filters (0)")
+        verify_scope_text(response.data, "All available records")
 
         verify_browse_records_view_header_row(
             response.data, "Showing 1\u20135 of 27"
@@ -83,13 +95,14 @@ class TestBrowseRecords:
         response = client.get(self.route_url)
 
         assert response.status_code == 200
-        assert b"3 Records" in response.data
+        assert b"3 records" in response.data
         assert b"first_file.txt" in response.data
         assert b"second_file.pdf" in response.data
         assert b"third_file.doc" in response.data
         assert b"fourth_file.docx" not in response.data
         assert b"Land registry" not in response.data
         verify_filters_heading(response.data, "Filters (0)")
+        verify_scope_text(response.data, "first_body")
 
         soup = BeautifulSoup(response.data, "html.parser")
         transferring_body_filter = soup.find(
@@ -118,6 +131,7 @@ class TestBrowseRecords:
         verify_browse_records_view_header_row(
             response.data, "Showing 6\u201310 of 27"
         )
+        verify_scope_text(response.data, "All available records")
 
         soup = BeautifulSoup(response.data, "html.parser")
 
@@ -161,13 +175,14 @@ class TestBrowseRecords:
         )
 
         assert response.status_code == 200
-        assert b"3 Records" in response.data
+        assert b"3 records found" in response.data
         assert b"fourth_file.docx" in response.data
         assert b"fifth_file.docx" in response.data
         assert b"sixth_file.ppt" in response.data
         assert b"first_file.txt" not in response.data
         assert b'value="TDR-2023-TH3"' in response.data
         verify_filters_heading(response.data, "Filters (3)")
+        verify_scope_text(response.data, "All available records")
 
         soup = BeautifulSoup(response.data, "html.parser")
         transferring_body_filter = soup.find(
@@ -466,3 +481,39 @@ class TestBrowseRecords:
             assert hidden_sort is not None
             assert hidden_page is None
             assert hidden_per_page is None
+
+    def test_browse_records_no_results_for_nonsensical_filter(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given a nonsensical filter term
+        When browse records is requested
+        Then no records found is displayed
+        """
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}?series_filter=zzzzzzzzzzzzzz")
+
+        assert response.status_code == 200
+        assert b"No records found" in response.data
+        verify_scope_text(response.data, "All available records")
+
+    def test_browse_records_scope_text_changes_for_different_accounts(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given different standard user accounts
+        When browse records is requested
+        Then transferring body scope text reflects each account
+        """
+        mock_standard_user(client, "first_body")
+        first_response = client.get(self.route_url)
+
+        assert first_response.status_code == 200
+        verify_scope_text(first_response.data, "first_body")
+
+        mock_standard_user(client, "second_body")
+        second_response = client.get(self.route_url)
+
+        assert second_response.status_code == 200
+        verify_scope_text(second_response.data, "second_body")
