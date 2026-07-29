@@ -70,4 +70,20 @@
   .browse-records__form-group {
     margin-bottom: 15px;
   }
+
+  .browse-records__header-container {
+    p.govuk-body {
+      margin-bottom: 0;
+    }
+  }
+
+  .browse-records__heading {
+    font-family: $font-family-gds;
+    font-size: 2.25rem;
+    line-height: 1.1;
+    -webkit-font-smoothing: antialiased;
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-top: 0;
+  }
 }

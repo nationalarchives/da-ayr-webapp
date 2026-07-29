@@ -656,7 +656,7 @@ def browse_records():
     pagination = get_pagination(page, paginated_results.pages)
 
     return render_template(
-        "browse.html",
+        "browse-records.html",
         form=form,
         browse_type="records",
         is_standard_user=ayr_user.is_standard_user,

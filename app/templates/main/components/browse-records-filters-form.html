@@ -86,7 +86,7 @@
                 </fieldset>
             </div>
             <div class="browse-records__form-group browse-records__radio-group">
-                <fieldset class="govuk-fieldset">
+                <fieldset class="govuk-fieldset govuk-fieldset--record-date">
                     <legend class="govuk-!-margin-0 govuk-!-padding-0">
                         <h3 class="govuk-heading-s govuk-heading-s--consignment-filter">Dates</h3>
                     </legend>
@@ -125,7 +125,7 @@
                     </div>
                 </fieldset>
             </div>
-            {% include "date-filters.html" %}
+            <div class="browse-records-filters__date-container">{% include "date-filters.html" %}</div>
             <div class="filters-form__buttons">
                 {{ govukButton({
                 'text': "Apply filters",
