@@ -78,7 +78,7 @@ def autofill_selected_filters(
                 row.transferring_body
                 for row in options_rows
                 if row.transferring_body
-                and (row.series or "").lower() == selected_series_lower
+                and selected_series_lower in (row.series or "").lower()
             }
         )
         if len(matching_transferring_bodies) == 1:
