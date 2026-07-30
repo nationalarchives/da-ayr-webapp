@@ -114,18 +114,24 @@
         initAll()
         document.addEventListener("DOMContentLoaded", function() {
         const leftSortSelect = document.querySelector('.record-select--sort-left');
-        const rightSortSelect = document.querySelector('.record-select--sort-right');
+        const recordsSortSelect = document.querySelector('.js-records-sort-select');
         const form = document.getElementById('records-form');
 
         // Show the left select element when JS is enabled
         if (leftSortSelect) {
-            leftSortSelect.style.display = 'block';
+            leftSortSelect.style.display = 'inline-block';
         }
 
 
         // Handle auto-submit for the left dropdown using its class
         if (leftSortSelect && form) {
             leftSortSelect.addEventListener('change', function(e) {
+                form.submit();
+            });
+        }
+
+        if (recordsSortSelect && form) {
+            recordsSortSelect.addEventListener('change', function() {
                 form.submit();
             });
         }

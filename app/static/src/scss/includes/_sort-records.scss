@@ -1,6 +1,14 @@
 @use "variables" as *;
 
 .records-page-wrapper {
+  .sort-list-records-form {
+    display: none;
+  }
+
+  .js-enabled & .sort-list-records-form {
+    display: block;
+  }
+
   .govuk-table {
     width: 100%;
     margin-bottom: 30px;
@@ -14,8 +22,6 @@
 
     /* JS-Enabled Version */
     .sort-list-records-js {
-      margin-left: 23%;
-
       .record-select--sort-left {
         display: none;
         width: auto;
@@ -47,47 +53,66 @@
   }
 
   /* Non-JS Version */
-  .sort-list-records-right-wrapper {
+  .sort-list-records-no-js {
     display: flex;
-    justify-content: flex-end;
-    width: 100%;
+    justify-content: space-between;
     margin-bottom: 16px;
 
-    .sort-list-records-no-js {
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-right: 35%;
+
+    .sort-list-records-no-js--sort-control {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+
+      .govuk-label {
+        margin-bottom: 0.25rem;
+      }
+
+      .sort-list-records-no-js--sort-action {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+    }
+
+    .sort-list-records-no-js--per-page {
       display: flex;
       align-items: center;
-      margin-right: 35%;
+      gap: 0.5rem;
+    }
 
-      .record-select--sort-right {
-        width: auto;
-        border: none;
-        background-color: transparent;
+    .record-select--sort-right {
+      width: auto;
+      border: none;
+      background-color: transparent;
+      box-shadow: none;
+      font-size: 1rem;
+      padding: 0 23px 0 12px;
+      cursor: pointer;
+
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("/assets/image/accordion-chevron.svg");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      background-size: 10px 6px;
+
+      &:hover {
+        background-image: url("/assets/image/accordion-chevron-hover.svg");
+      }
+
+      &:focus {
+        outline: none;
         box-shadow: none;
-        font-size: 1rem;
-        padding: 0 23px 0 12px;
-        cursor: pointer;
-
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        background-image: url("/assets/image/accordion-chevron.svg");
-        background-repeat: no-repeat;
-        background-position: right 0.5rem center;
-        background-size: 10px 6px;
-
-        &:hover {
-          background-image: url("/assets/image/accordion-chevron-hover.svg");
-        }
-
-        &:focus {
-          outline: none;
-          box-shadow: none;
-        }
       }
+    }
 
-      .govuk-button {
-        margin-bottom: 0;
-      }
+    .govuk-button {
+      margin-bottom: 0;
     }
   }
 }
