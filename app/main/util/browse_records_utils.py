@@ -92,7 +92,7 @@ def autofill_selected_filters(
             row
             for row in options_rows
             if row.consignment_reference
-            and row.consignment_reference.lower() == selected_consignment_lower
+            and selected_consignment_lower in row.consignment_reference.lower()
         ]
 
         if not selected_transferring_body:
