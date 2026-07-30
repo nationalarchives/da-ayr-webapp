@@ -46,7 +46,33 @@ def prefill_transferring_body_for_single_scope(
     return selected_transferring_body
 
 
-def get_options_rows(accessible_body_names):
+def get_transferring_body_options(accessible_body_names):
+    transferring_body_query = (
+        db.session.query(Body.Name.label("transferring_body"))
+        .join(Series, Series.BodyId == Body.BodyId)
+        .join(Consignment, Consignment.SeriesId == Series.SeriesId)
+        .join(File, File.ConsignmentId == Consignment.ConsignmentId)
+        .filter(func.lower(File.FileType) == "file")
+    )
+    if accessible_body_names is not None:
+        transferring_body_query = transferring_body_query.filter(
+            Body.Name.in_(accessible_body_names)
+        )
+
+    return sorted(
+        {
+            row.transferring_body
+            for row in transferring_body_query.distinct().all()
+            if row.transferring_body
+        }
+    )
+
+
+def get_autofill_options_rows(
+    accessible_body_names,
+    selected_series,
+    selected_consignment,
+):
     options_query = (
         db.session.query(
             Body.Name.label("transferring_body"),
@@ -62,6 +88,19 @@ def get_options_rows(accessible_body_names):
         options_query = options_query.filter(
             Body.Name.in_(accessible_body_names)
         )
+
+    if selected_series:
+        options_query = options_query.filter(
+            func.lower(Series.Name).like(f"%{selected_series.lower()}%")
+        )
+
+    if selected_consignment:
+        options_query = options_query.filter(
+            func.lower(Consignment.ConsignmentReference).like(
+                f"%{selected_consignment.lower()}%"
+            )
+        )
+
     return options_query.distinct().all()
 
 
@@ -116,12 +155,6 @@ def autofill_selected_filters(
     return selected_transferring_body, selected_series
 
 
-def build_transferring_body_options(options_rows):
-    return sorted(
-        {row.transferring_body for row in options_rows if row.transferring_body}
-    )
-
-
 def apply_selected_filters(
     filters,
     selected_transferring_body,
@@ -160,16 +193,23 @@ def build_browse_records_filter_data(
         accessible_body_names,
     )
 
-    options_rows = get_options_rows(accessible_body_names)
+    transferring_bodies = get_transferring_body_options(accessible_body_names)
 
-    selected_transferring_body, selected_series = autofill_selected_filters(
-        selected_transferring_body,
-        selected_series,
-        selected_consignment,
-        options_rows,
-    )
+    if not selected_transferring_body and (
+        selected_series or selected_consignment
+    ):
+        options_rows = get_autofill_options_rows(
+            accessible_body_names,
+            selected_series,
+            selected_consignment,
+        )
 
-    transferring_bodies = build_transferring_body_options(options_rows)
+        selected_transferring_body, selected_series = autofill_selected_filters(
+            selected_transferring_body,
+            selected_series,
+            selected_consignment,
+            options_rows,
+        )
 
     apply_selected_filters(
         filters,

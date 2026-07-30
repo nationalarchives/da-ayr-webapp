@@ -9,6 +9,7 @@
         <div class="govuk-grid-column-full govuk-grid-column-full__page_container">
             <div class="browse-details">
                 {% set sort_records = {"Records per page 5": "5", "Records per page 10": "10", "Records per page 20": "20"} %}
+                {% set records_has_active_filters = (filter_count | default(0)) > 0 %}
                 <div class="browse-layout records-page-wrapper">
                     <div class="browse-records__header-container">
                         {% set records_scope_text = "All available records" %}

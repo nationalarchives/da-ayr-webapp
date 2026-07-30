@@ -78,7 +78,7 @@
                                    name="record_status"
                                    type="radio"
                                    value="closed"
-                                   {% if filters.get('record_status')=='closed' or filters.get('record_status')=='close' %}checked{% endif %}>
+                                   {% if filters.get('record_status')=='closed' %}checked{% endif %}>
                             <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                    for="recordStatus-closed">Close</label>
                         </div>

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
@@ -223,6 +225,52 @@ class TestBrowseRecords:
         assert series_filter is not None
         assert transferring_body_filter.get("value") == "second_body"
         assert series_filter.get("value") == "second_series"
+
+    @patch("app.main.util.browse_records_utils.get_autofill_options_rows")
+    def test_browse_records_skips_autofill_query_on_initial_load(
+        self,
+        mock_get_autofill_options_rows,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_files,
+    ):
+        """
+        Given no series or consignment filter in the request
+        When browse records is requested
+        Then the targeted autofill options query is not executed
+        """
+        mock_all_access_user(client)
+        mock_get_autofill_options_rows.return_value = []
+
+        response = client.get(self.route_url)
+
+        assert response.status_code == 200
+        mock_get_autofill_options_rows.assert_not_called()
+
+    @patch("app.main.util.browse_records_utils.get_autofill_options_rows")
+    def test_browse_records_uses_targeted_autofill_query_for_series_filter(
+        self,
+        mock_get_autofill_options_rows,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_files,
+    ):
+        """
+        Given a series filter without an explicit transferring body
+        When browse records is requested
+        Then the targeted autofill options query executes with the series value
+        """
+        mock_all_access_user(client)
+        mock_get_autofill_options_rows.return_value = []
+
+        response = client.get(f"{self.route_url}?series_filter=second_series")
+
+        assert response.status_code == 200
+        mock_get_autofill_options_rows.assert_called_once_with(
+            None,
+            "second_series",
+            "",
+        )
 
     def test_browse_records_series_filter_has_no_datalist(
         self, client: FlaskClient, mock_all_access_user, browse_files
