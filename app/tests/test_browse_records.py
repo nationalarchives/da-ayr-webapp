@@ -70,7 +70,7 @@ class TestBrowseRecords:
         assert b"27 records" in response.data
         assert b"last modified" in response.data
         assert b"consignment" in response.data
-        assert b"Land registry" in response.data
+        assert b"Land Registry" in response.data
         verify_filters_heading(response.data, "Filters (0)")
         verify_scope_text(response.data, "All available records")
 
@@ -102,7 +102,7 @@ class TestBrowseRecords:
         assert b"second_file.pdf" in response.data
         assert b"third_file.doc" in response.data
         assert b"fourth_file.docx" not in response.data
-        assert b"Land registry" not in response.data
+        assert b"Land Registry" not in response.data
         verify_filters_heading(response.data, "Filters (0)")
         verify_scope_text(response.data, "first_body")
 

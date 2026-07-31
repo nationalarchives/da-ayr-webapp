@@ -12,7 +12,11 @@
     {% endfor %}
     <div class="sort-list-records-left-wrapper">
         <div class="sort-list-records-js">
-            <select class="record-select--sort-left" id="sort-js" name="per_page">
+            <label class="govuk-label browse-records__label--left" for="sort-js">Records per page</label>
+            <select class="record-select--sort-left"
+                    id="sort-js"
+                    name="per_page"
+                    aria-label="Records per page {{ request.args.get('per_page', '5') }}">
                 {% for key, value in dict.items() %}
                     {% set list = value.split('-') %}
                     {% if list | length > 1 %}
@@ -37,7 +41,11 @@
         {% endfor %}
         <div class="sort-list-records-right-wrapper">
             <div class="sort-list-records-no-js">
-                <select class="record-select--sort-right" id="sort-no-js" name="per_page">
+                <label class="govuk-label browse-records__label--right" for="sort-no-js">Records per page</label>
+                <select class="record-select--sort-right"
+                        id="sort-no-js"
+                        name="per_page"
+                        aria-label="Records per page {{ request.args.get('per_page', '5') }}">
                     {% for key, value in dict.items() %}
                         {% set list = value.split('-') %}
                         {% if list | length > 1 %}

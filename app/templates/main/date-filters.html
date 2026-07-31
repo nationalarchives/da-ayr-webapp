@@ -6,7 +6,7 @@
             </legend>
             {% if date_validation_errors %}
                 {% if date_validation_errors.get('date_from') %}
-                    <p class="govuk-error-message">{{ date_validation_errors['date_from'][0] }}</p>
+                    <p class="govuk-error-message browse-records__error-message">{{ date_validation_errors['date_from'][0] }}</p>
                 {% endif %}
             {% endif %}
             <div class="govuk-date-input govuk-date-input--browse-all-date-from">
@@ -61,7 +61,7 @@
             </legend>
             {% if date_validation_errors %}
                 {% if date_validation_errors.get('date_to') %}
-                    <p class="govuk-error-message">{{ date_validation_errors['date_to'][0] }}</p>
+                    <p class="govuk-error-message browse-records__error-message">{{ date_validation_errors['date_to'][0] }}</p>
                 {% endif %}
             {% endif %}
             <div class="govuk-date-input govuk-date-input--browse-all-date-to">
