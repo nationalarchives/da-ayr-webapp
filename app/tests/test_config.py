@@ -89,10 +89,12 @@ def test_local_env_vars_config_initialized(monkeypatch):
         "test_flasks3_cdn_domain",
         "https://test_record_bucket_name.s3.amazonaws.com",
         "https://test_access_copy_bucket.s3.amazonaws.com",
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
     ]
     assert config.CSP_SCRIPT_SRC_ELEM == [
         "'self'",
         "https://cdn.jsdelivr.net/npm/universalviewer@4.2.0/",
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
     ]
     assert config.CSP_STYLE_SRC == ["'self'", "test_flasks3_cdn_domain"]
     assert (
@@ -331,10 +333,12 @@ def test_aws_secrets_manager_config_initialized(monkeypatch):
         "test_flasks3_cdn_domain",
         "https://test_record_bucket_name.s3.amazonaws.com",
         "https://test_access_copy_bucket.s3.amazonaws.com",
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
     ]
     assert config.CSP_SCRIPT_SRC_ELEM == [
         "'self'",
         "https://cdn.jsdelivr.net/npm/universalviewer@4.2.0/",
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
     ]
     assert config.CSP_STYLE_SRC == ["'self'", "test_flasks3_cdn_domain"]
     assert (

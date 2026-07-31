@@ -237,6 +237,7 @@ class BaseConfig(object):
             self.FLASKS3_CDN_DOMAIN,
             self.S3_BUCKET_URL,
             self.ACCESS_COPY_BUCKET_URL,
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
         ]
 
     @property
@@ -244,6 +245,7 @@ class BaseConfig(object):
         return [
             SELF,
             "https://cdn.jsdelivr.net/npm/universalviewer@4.2.0/",
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
         ]
 
     @property
