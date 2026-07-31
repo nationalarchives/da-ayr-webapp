@@ -272,6 +272,82 @@ class TestBrowseRecords:
             "",
         )
 
+    @patch("app.main.util.browse_records_utils.get_transferring_body_options")
+    def test_browse_records_queries_transferring_body_options_once_for_all_access_user(
+        self,
+        mock_get_transferring_body_options,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_files,
+    ):
+        """
+        Given an all-access user
+        When browse records is requested
+        Then transferring body options are queried exactly once
+        """
+        mock_all_access_user(client)
+        mock_get_transferring_body_options.return_value = [
+            "first_body",
+            "second_body",
+        ]
+
+        response = client.get(self.route_url)
+
+        assert response.status_code == 200
+        mock_get_transferring_body_options.assert_called_once_with(None)
+
+    @patch("app.main.util.browse_records_utils.get_autofill_options_rows")
+    @patch("app.main.util.browse_records_utils.get_transferring_body_options")
+    def test_browse_records_series_filter_uses_expected_filter_queries_once_each(
+        self,
+        mock_get_transferring_body_options,
+        mock_get_autofill_options_rows,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_files,
+    ):
+        """
+        Given an all-access user with series filter only
+        When browse records is requested
+        Then transferring body options and autofill options queries each run once
+        """
+        mock_all_access_user(client)
+        mock_get_transferring_body_options.return_value = [
+            "first_body",
+            "second_body",
+        ]
+        mock_get_autofill_options_rows.return_value = []
+
+        response = client.get(f"{self.route_url}?series_filter=second_series")
+
+        assert response.status_code == 200
+        mock_get_transferring_body_options.assert_called_once_with(None)
+        mock_get_autofill_options_rows.assert_called_once_with(
+            None,
+            "second_series",
+            "",
+        )
+
+    @patch("app.main.util.browse_records_utils.get_transferring_body_options")
+    def test_browse_records_standard_user_skips_transferring_body_options_query(
+        self,
+        mock_get_transferring_body_options,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_files,
+    ):
+        """
+        Given a standard user with a single scope
+        When browse records is requested
+        Then transferring body options query is skipped
+        """
+        mock_standard_user(client, "first_body")
+
+        response = client.get(self.route_url)
+
+        assert response.status_code == 200
+        mock_get_transferring_body_options.assert_not_called()
+
     def test_browse_records_series_filter_has_no_datalist(
         self, client: FlaskClient, mock_all_access_user, browse_files
     ):

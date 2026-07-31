@@ -620,6 +620,7 @@ def browse_records():
         validated_data,
         date_from=from_date,
         date_to=to_date,
+        include_hierarchical_filters=False,
     )
     sorting_orders = build_sorting_orders(validated_data)
 

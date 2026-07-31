@@ -193,7 +193,12 @@ def build_browse_records_filter_data(
         accessible_body_names,
     )
 
-    transferring_bodies = get_transferring_body_options(accessible_body_names)
+    if accessible_body_names and len(accessible_body_names) == 1:
+        transferring_bodies = accessible_body_names
+    else:
+        transferring_bodies = get_transferring_body_options(
+            accessible_body_names
+        )
 
     if not selected_transferring_body and (
         selected_series or selected_consignment
