@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
@@ -68,7 +70,7 @@ class TestBrowseRecords:
         assert b"27 records" in response.data
         assert b"last modified" in response.data
         assert b"consignment" in response.data
-        assert b"Land registry" in response.data
+        assert b"Land Registry" in response.data
         verify_filters_heading(response.data, "Filters (0)")
         verify_scope_text(response.data, "All available records")
 
@@ -100,7 +102,7 @@ class TestBrowseRecords:
         assert b"second_file.pdf" in response.data
         assert b"third_file.doc" in response.data
         assert b"fourth_file.docx" not in response.data
-        assert b"Land registry" not in response.data
+        assert b"Land Registry" not in response.data
         verify_filters_heading(response.data, "Filters (0)")
         verify_scope_text(response.data, "first_body")
 
@@ -223,6 +225,128 @@ class TestBrowseRecords:
         assert series_filter is not None
         assert transferring_body_filter.get("value") == "second_body"
         assert series_filter.get("value") == "second_series"
+
+    @patch("app.main.util.browse_records_utils.get_autofill_options_rows")
+    def test_browse_records_skips_autofill_query_on_initial_load(
+        self,
+        mock_get_autofill_options_rows,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_files,
+    ):
+        """
+        Given no series or consignment filter in the request
+        When browse records is requested
+        Then the targeted autofill options query is not executed
+        """
+        mock_all_access_user(client)
+        mock_get_autofill_options_rows.return_value = []
+
+        response = client.get(self.route_url)
+
+        assert response.status_code == 200
+        mock_get_autofill_options_rows.assert_not_called()
+
+    @patch("app.main.util.browse_records_utils.get_autofill_options_rows")
+    def test_browse_records_uses_targeted_autofill_query_for_series_filter(
+        self,
+        mock_get_autofill_options_rows,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_files,
+    ):
+        """
+        Given a series filter without an explicit transferring body
+        When browse records is requested
+        Then the targeted autofill options query executes with the series value
+        """
+        mock_all_access_user(client)
+        mock_get_autofill_options_rows.return_value = []
+
+        response = client.get(f"{self.route_url}?series_filter=second_series")
+
+        assert response.status_code == 200
+        mock_get_autofill_options_rows.assert_called_once_with(
+            None,
+            "second_series",
+            "",
+        )
+
+    @patch("app.main.util.browse_records_utils.get_transferring_body_options")
+    def test_browse_records_queries_transferring_body_options_once_for_all_access_user(
+        self,
+        mock_get_transferring_body_options,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_files,
+    ):
+        """
+        Given an all-access user
+        When browse records is requested
+        Then transferring body options are queried exactly once
+        """
+        mock_all_access_user(client)
+        mock_get_transferring_body_options.return_value = [
+            "first_body",
+            "second_body",
+        ]
+
+        response = client.get(self.route_url)
+
+        assert response.status_code == 200
+        mock_get_transferring_body_options.assert_called_once_with(None)
+
+    @patch("app.main.util.browse_records_utils.get_autofill_options_rows")
+    @patch("app.main.util.browse_records_utils.get_transferring_body_options")
+    def test_browse_records_series_filter_uses_expected_filter_queries_once_each(
+        self,
+        mock_get_transferring_body_options,
+        mock_get_autofill_options_rows,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_files,
+    ):
+        """
+        Given an all-access user with series filter only
+        When browse records is requested
+        Then transferring body options and autofill options queries each run once
+        """
+        mock_all_access_user(client)
+        mock_get_transferring_body_options.return_value = [
+            "first_body",
+            "second_body",
+        ]
+        mock_get_autofill_options_rows.return_value = []
+
+        response = client.get(f"{self.route_url}?series_filter=second_series")
+
+        assert response.status_code == 200
+        mock_get_transferring_body_options.assert_called_once_with(None)
+        mock_get_autofill_options_rows.assert_called_once_with(
+            None,
+            "second_series",
+            "",
+        )
+
+    @patch("app.main.util.browse_records_utils.get_transferring_body_options")
+    def test_browse_records_standard_user_skips_transferring_body_options_query(
+        self,
+        mock_get_transferring_body_options,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_files,
+    ):
+        """
+        Given a standard user with a single scope
+        When browse records is requested
+        Then transferring body options query is skipped
+        """
+        mock_standard_user(client, "first_body")
+
+        response = client.get(self.route_url)
+
+        assert response.status_code == 200
+        mock_get_transferring_body_options.assert_not_called()
 
     def test_browse_records_series_filter_has_no_datalist(
         self, client: FlaskClient, mock_all_access_user, browse_files

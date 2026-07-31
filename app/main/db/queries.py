@@ -413,26 +413,24 @@ def build_browse_records_query(
 def _build_browse_records_filters(query, sub_query, filters):
     transferring_body = filters.get("transferring_body")
     if transferring_body:
-        filter_value = str(f"%{transferring_body}%").lower()
+        filter_value = f"%{transferring_body}%".lower()
         query = query.filter(
             func.lower(sub_query.c.transferring_body).like(filter_value)
         )
 
     series = filters.get("series")
     if series:
-        filter_value = str(f"%{series}%").lower()
+        filter_value = f"%{series}%".lower()
         query = query.filter(func.lower(sub_query.c.series).like(filter_value))
 
     consignment_reference = filters.get("consignment_reference")
     if consignment_reference:
-        filter_value = str(f"%{consignment_reference}%").lower()
+        filter_value = f"%{consignment_reference}%".lower()
         query = query.filter(
             func.lower(sub_query.c.consignment_reference).like(filter_value)
         )
 
     record_status = (filters.get("record_status") or "").lower()
-    if record_status == "close":
-        record_status = "closed"
     if record_status and record_status != "all":
         query = query.filter(
             func.lower(sub_query.c.closure_type) == record_status
@@ -462,14 +460,14 @@ def _build_browse_records_filters(query, sub_query, filters):
 def _build_browse_filters(query, sub_query, filters):
     transferring_body = filters.get("transferring_body")
     if transferring_body:
-        filter_value = str(f"%{transferring_body}%").lower()
+        filter_value = f"%{transferring_body}%".lower()
         query = query.filter(
             func.lower(sub_query.c.transferring_body).like(filter_value)
         )
 
     series = filters.get("series")
     if series:
-        filter_value = str(f"%{series}%").lower()
+        filter_value = f"%{series}%".lower()
         query = query.filter(func.lower(sub_query.c.series).like(filter_value))
 
     date_filter = _build_date_range_filter(

@@ -6,14 +6,14 @@
 {% set _ = preserved_params.pop('sort', None) %}
 {% set selected_sort = request.args.get('sort', 'date_of_record-desc') %}
 {% set records_sort_options = {
-    "Modified date - newest": "date_of_record-desc",
-    "Modified date - oldest": "date_of_record-asc",
-    "File name - A to Z": "file_name-asc",
-    "File name - Z to A": "file_name-desc",
-    "Record opening date - sooner": "opening_date-asc",
-    "Record opening date - later": "opening_date-desc",
-    "Series - A to Z": "series-asc",
-    "Series - Z to A": "series-desc"
+    "Modified date – newest": "date_of_record-desc",
+    "Modified date – oldest": "date_of_record-asc",
+    "File name – A to Z": "file_name-asc",
+    "File name – Z to A": "file_name-desc",
+    "Record opening date – sooner": "opening_date-asc",
+    "Record opening date – later": "opening_date-desc",
+    "Series – A to Z": "series-asc",
+    "Series – Z to A": "series-desc"
 } %}
 {% macro render_preserved_params(params) %}
     {% for key, value in params.items() %}
@@ -43,6 +43,7 @@
             <select class="govuk-select govuk-select__sort-container-select js-records-sort-select"
                     id="sort-records-js"
                     name="sort">{{ render_sort_options(records_sort_options, selected_sort) }}</select>
+            <label class="govuk-label browse-records__label--left" for="sort-js">Records per page</label>
             <select class="record-select--sort-left" id="sort-js" name="per_page">{{ render_per_page_options(dict) }}</select>
         </div>
     </div>
@@ -73,6 +74,7 @@
               class="sort-list-records-no-js--per-page">
             {{ render_preserved_params(preserved_params) }}
             <input type="hidden" name="sort" value="{{ selected_sort }}">
+            <label class="govuk-label browse-records__label--left" for="sort-js">Records per page</label>
             <select class="record-select--sort-right" id="sort-no-js" name="per_page">{{ render_per_page_options(dict) }}</select>
             <button type="submit"
                     class="govuk-button govuk-button--secondary"

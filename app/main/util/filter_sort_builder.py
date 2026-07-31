@@ -1,7 +1,12 @@
-def build_filters(args, date_from, date_to):
+def build_filters(
+    args,
+    date_from,
+    date_to,
+    include_hierarchical_filters=True,
+):
     filters = {}
     filter_items = []
-    if args:
+    if args and include_hierarchical_filters:
         transferring_body = args["transferring_body_filter"]
 
         if transferring_body and transferring_body != "all":

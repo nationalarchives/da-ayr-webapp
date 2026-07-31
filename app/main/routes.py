@@ -620,6 +620,7 @@ def browse_records():
         validated_data,
         date_from=from_date,
         date_to=to_date,
+        include_hierarchical_filters=False,
     )
     sorting_orders = build_sorting_orders(validated_data)
 
@@ -656,7 +657,7 @@ def browse_records():
     pagination = get_pagination(page, paginated_results.pages)
 
     return render_template(
-        "browse.html",
+        "browse-records.html",
         form=form,
         browse_type="records",
         is_standard_user=ayr_user.is_standard_user,

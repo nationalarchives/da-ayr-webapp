@@ -15,7 +15,7 @@
                 <label class="govuk-label govuk-label__filter"
                        for="transferring_body_filter">
                     Transferring body
-                    {% if not is_standard_user %} <span class="browse-records__series-filter-example">– e.g. Land registry</span>{% endif %}
+                    {% if not is_standard_user %} <span class="browse-records__series-filter-example">– e.g. Land Registry</span>{% endif %}
                 </label>
                 <input class="govuk-input"
                        id="transferring_body_filter"
@@ -78,7 +78,7 @@
                                    name="record_status"
                                    type="radio"
                                    value="closed"
-                                   {% if filters.get('record_status')=='closed' or filters.get('record_status')=='close' %}checked{% endif %}>
+                                   {% if filters.get('record_status')=='closed' %}checked{% endif %}>
                             <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
                                    for="recordStatus-closed">Close</label>
                         </div>
@@ -86,7 +86,7 @@
                 </fieldset>
             </div>
             <div class="browse-records__form-group browse-records__radio-group">
-                <fieldset class="govuk-fieldset">
+                <fieldset class="govuk-fieldset govuk-fieldset--record-date">
                     <legend class="govuk-!-margin-0 govuk-!-padding-0">
                         <h3 class="govuk-heading-s govuk-heading-s--consignment-filter">Dates</h3>
                     </legend>
@@ -125,7 +125,7 @@
                     </div>
                 </fieldset>
             </div>
-            {% include "date-filters.html" %}
+            <div class="browse-records-filters__date-container">{% include "date-filters.html" %}</div>
             <div class="filters-form__buttons">
                 {{ govukButton({
                 'text': "Apply filters",

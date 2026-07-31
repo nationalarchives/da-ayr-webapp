@@ -270,13 +270,13 @@ class TestBrowseRecords:
             "fifth_file.doc",
         ]
 
-    def test_build_browse_records_query_filters_by_record_status_close(
+    def test_build_browse_records_query_filters_by_record_status_closed(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
-        Given the record status filter value close
+        Given the record status filter value closed
         When build_browse_records_query is executed
-        Then close is treated as closed and only closed records are returned
+        Then only closed records are returned
         """
         body_name = browse_consignment_files[0].consignment.series.body.Name
 
@@ -284,7 +284,7 @@ class TestBrowseRecords:
 
         query = build_browse_records_query(
             accessible_transferring_body_names=[body_name],
-            filters={"record_status": "close"},
+            filters={"record_status": "closed"},
         )
         results = query.all()
 
