@@ -40,6 +40,11 @@ from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
 from app.main.middlewares.log_page_view import log_page_view
+from app.main.util.browse_records_utils import (
+    build_browse_records_filter_data,
+    count_selected_filters,
+    get_accessible_body_names,
+)
 from app.main.util.date_filters_validator import validate_date_filters
 from app.main.util.download_utils import get_download_endpoint_filename
 from app.main.util.filter_sort_builder import (
@@ -591,18 +596,48 @@ def browse_records():
     default_page = 1
     form = SearchForm()
 
-    ayr_user = AYRUser(session.get("user_groups"))
+    date_validation_errors = []
+    from_date = None
+    to_date = None
+    date_filters = {}
+    date_error_fields = []
 
-    if ayr_user.is_standard_user:
-        body = ayr_user.transferring_body
-        accessible_body_names = [body.Name] if body else []
-    elif ayr_user.is_all_access_user:
-        accessible_body_names = None
-    else:
-        abort(403)
+    if len(validated_data) > 0:
+        (
+            date_validation_errors,
+            from_date,
+            to_date,
+            date_filters,
+            date_error_fields,
+        ) = validate_date_filters(validated_data)
+
+    filters = build_filters(
+        validated_data,
+        date_from=from_date,
+        date_to=to_date,
+        include_hierarchical_filters=False,
+    )
+    sorting_orders = build_sorting_orders(validated_data)
+
+    ayr_user = AYRUser(session.get("user_groups"))
+    accessible_body_names = get_accessible_body_names(ayr_user)
+
+    transferring_bodies = build_browse_records_filter_data(
+        validated_data,
+        accessible_body_names,
+        filters,
+    )
+    filter_count = count_selected_filters(
+        filters,
+        from_date,
+        to_date,
+        ayr_user.is_standard_user,
+    )
 
     query = build_browse_records_query(
-        accessible_transferring_body_names=accessible_body_names
+        accessible_transferring_body_names=accessible_body_names,
+        filters=filters,
+        sorting_orders=sorting_orders,
     )
 
     try:
@@ -617,13 +652,20 @@ def browse_records():
     pagination = get_pagination(page, paginated_results.pages)
 
     return render_template(
-        "browse.html",
+        "browse-records.html",
         form=form,
         browse_type="records",
-        filters={"query": ""},
+        is_standard_user=ayr_user.is_standard_user,
+        filters=filters,
         search_area="everywhere",
         current_page=page,
         per_page=per_page,
+        date_validation_errors=date_validation_errors,
+        date_error_fields=date_error_fields,
+        date_filters=date_filters,
+        sorting_orders=sorting_orders,
+        filter_count=filter_count,
+        transferring_bodies=transferring_bodies,
         results=results,
         pagination=pagination,
         num_records_found=paginated_results.total,

@@ -1,6 +1,19 @@
 @use "variables" as *;
 
 .records-page-wrapper {
+  .browse-records__series-filter-example {
+    font-weight: 400;
+    color: $secondary-text-colour;
+  }
+
+  .browse-records__filter-count {
+    color: $colour-link-default;
+  }
+
+  .browse-records__error-message {
+    font-size: 1.1rem;
+  }
+
   .browse-records__table {
     width: 100%;
     margin-bottom: 30px;
@@ -40,5 +53,41 @@
     .browse-record-row__row:last-child
     .browse-record-row__cell {
     border-bottom: 1px solid $colour-border-normal;
+  }
+
+  .browse-records__radio-group {
+    margin-bottom: 0;
+  }
+
+  .browse-records__radio-group .govuk-radios__item {
+    margin-bottom: 0;
+  }
+
+  .browse-records__radio-group .govuk-radios__item:last-child {
+    margin-bottom: 0;
+  }
+
+  .browse-records__radio-options {
+    padding-bottom: 0;
+  }
+
+  .browse-records__form-group {
+    margin-bottom: 15px;
+  }
+
+  .browse-records__header-container {
+    p.govuk-body {
+      margin-bottom: 0;
+    }
+  }
+
+  .browse-records__heading {
+    font-family: $font-family-gds;
+    font-size: 2.25rem;
+    line-height: 1.1;
+    -webkit-font-smoothing: antialiased;
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-top: 0;
   }
 }

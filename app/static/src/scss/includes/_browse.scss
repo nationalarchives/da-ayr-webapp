@@ -27,10 +27,6 @@
       float: right;
     }
   }
-
-  .browse-all-filter-container {
-    min-width: 0 !important;
-  }
 }
 
 .govuk {
@@ -111,6 +107,11 @@
   &__body {
     margin-bottom: 0;
     font-size: 1rem;
+  }
+
+  &__scope-text {
+    display: inline-block;
+    margin-bottom: 0;
   }
 
   &__records-found__text {
