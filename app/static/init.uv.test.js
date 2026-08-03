@@ -71,20 +71,6 @@ describe("tests for init.uv.js", () => {
     }, 10);
   });
 
-  it("should zoom to first page thumbnail on tab click", () => {
-    document.body.innerHTML += `
-      <div class="govuk-tabs__tab" href="#record-view"></div>
-      <div id="thumb-0"><div class="thumb"></div></div>
-    `;
-    const thumbDiv = document.querySelector("#thumb-0 .thumb");
-    const clickSpy = jest.spyOn(thumbDiv, "click");
-    require("./init.uv.js");
-    document.querySelector(".govuk-tabs__tab").click();
-    setTimeout(() => {
-      expect(clickSpy).toHaveBeenCalled();
-    }, 1000);
-  });
-
   it("should re-initialize UniversalViewer on #record-view tab click", () => {
     document.body.innerHTML += `
       <div class="govuk-tabs__tab" href="#record-view"></div>
@@ -109,9 +95,138 @@ describe("tests for init.uv.js", () => {
     }, 10);
   });
 
+  it("should zoom in towards the container width when the PDF loads too small, re-measuring after each click", () => {
+    jest.useFakeTimers();
+    let pdfLoadedHandler;
+    window.UV = {
+      init: jest.fn(() => ({
+        on: jest.fn((event, handler) => {
+          if (event === "pdfExtension.pdfLoaded") {
+            pdfLoadedHandler = handler;
+          }
+        }),
+      })),
+    };
+    document.getElementById("uv").innerHTML = `
+      <div class="pdfContainer"><canvas width="280"></canvas></div>
+      <button class="btn zoomIn"></button>
+      <button class="btn zoomOut"></button>
+    `;
+    const container = document.querySelector("#uv .pdfContainer");
+    // jsdom has no layout, so give the container a width
+    Object.defineProperty(container, "clientWidth", { value: 800 });
+    const canvas = container.querySelector("canvas");
+    const zoomInButton = document.querySelector("#uv button.zoomIn");
+    const zoomOutButton = document.querySelector("#uv button.zoomOut");
+
+    const zoomInSpy = jest
+      .spyOn(zoomInButton, "click")
+      .mockImplementation(() => {
+        canvas.width += 200;
+      });
+    const zoomOutSpy = jest.spyOn(zoomOutButton, "click");
+
+    require("./init.uv.js");
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    pdfLoadedHandler();
+    jest.runAllTimers();
+
+    // Target is 800 * 0.8 = 640, tolerance +/-64. Clicks land on 480, then
+    // 680, which clears the tolerance band, so it stops there. The
+    // direction is fixed to zoom-in for the whole fit, so zoom-out is
+    // never touched (no in-then-out flicker).
+    expect(zoomInSpy).toHaveBeenCalledTimes(2);
+    expect(zoomOutSpy).not.toHaveBeenCalled();
+    expect(canvas.width).toBe(680);
+
+    jest.useRealTimers();
+  });
+
+  it("should zoom out towards the container width when the PDF loads too large, never zooming in", () => {
+    jest.useFakeTimers();
+    let pdfLoadedHandler;
+    window.UV = {
+      init: jest.fn(() => ({
+        on: jest.fn((event, handler) => {
+          if (event === "pdfExtension.pdfLoaded") {
+            pdfLoadedHandler = handler;
+          }
+        }),
+      })),
+    };
+    document.getElementById("uv").innerHTML = `
+      <div class="pdfContainer"><canvas width="1000"></canvas></div>
+      <button class="btn zoomIn"></button>
+      <button class="btn zoomOut"></button>
+    `;
+    const container = document.querySelector("#uv .pdfContainer");
+    Object.defineProperty(container, "clientWidth", { value: 800 });
+    const canvas = container.querySelector("canvas");
+    const zoomInButton = document.querySelector("#uv button.zoomIn");
+    const zoomOutButton = document.querySelector("#uv button.zoomOut");
+
+    const zoomInSpy = jest.spyOn(zoomInButton, "click");
+    const zoomOutSpy = jest
+      .spyOn(zoomOutButton, "click")
+      .mockImplementation(() => {
+        canvas.width -= 200;
+      });
+
+    require("./init.uv.js");
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    pdfLoadedHandler();
+    jest.runAllTimers();
+
+    // Target is 800 * 0.8 = 640, tolerance +/-64. Clicks land on 800, then
+    // 600, which clears the tolerance band, so it stops there. Zoom-in is
+    // never touched.
+    expect(zoomOutSpy).toHaveBeenCalledTimes(2);
+    expect(zoomInSpy).not.toHaveBeenCalled();
+    expect(canvas.width).toBe(600);
+
+    jest.useRealTimers();
+  });
+
+  it("should stop clicking zoom-in after the maximum number of attempts", () => {
+    jest.useFakeTimers();
+    let pdfLoadedHandler;
+    window.UV = {
+      init: jest.fn(() => ({
+        on: jest.fn((event, handler) => {
+          if (event === "pdfExtension.pdfLoaded") {
+            pdfLoadedHandler = handler;
+          }
+        }),
+      })),
+    };
+    document.getElementById("uv").innerHTML = `
+      <div class="pdfContainer"><canvas width="10"></canvas></div>
+      <button class="btn zoomIn"></button>
+    `;
+    const container = document.querySelector("#uv .pdfContainer");
+    Object.defineProperty(container, "clientWidth", { value: 800 });
+    const zoomInButton = document.querySelector("#uv button.zoomIn");
+    const clickSpy = jest.spyOn(zoomInButton, "click");
+
+    require("./init.uv.js");
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    pdfLoadedHandler();
+    jest.runAllTimers();
+
+    expect(clickSpy).toHaveBeenCalledTimes(20);
+
+    jest.useRealTimers();
+  });
+
   it("should configure UV viewer with correct options", () => {
     const cbMock = jest.fn();
-    const config = { modules: { centerPanel: {}, footerPanel: {} } };
+    const config = {
+      modules: {
+        footerPanel: {
+          options: { downloadEnabled: true, minimiseButtons: true },
+        },
+      },
+    };
 
     window.UV = {
       init: jest.fn(() => ({
@@ -125,13 +240,14 @@ describe("tests for init.uv.js", () => {
 
     document.dispatchEvent(new Event("DOMContentLoaded"));
 
-    expect(config.modules.centerPanel.options.usePdfJs).toBe(true);
+    expect(config.modules.pdfCenterPanel.options.usePdfJs).toBe(true);
 
     expect(config.modules.footerPanel.options.downloadEnabled).toBe(false);
     expect(config.modules.footerPanel.options.embedEnabled).toBe(false);
     expect(config.modules.footerPanel.options.fullscreenEnabled).toBe(true);
     expect(config.modules.footerPanel.options.moreInfoEnabled).toBe(false);
     expect(config.modules.footerPanel.options.shareEnabled).toBe(false);
+    expect(config.modules.footerPanel.options.minimiseButtons).toBe(true);
 
     expect(config.modules.pdfHeaderPanel.options.centerOptionsEnabled).toBe(
       true,
