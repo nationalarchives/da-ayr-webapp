@@ -597,15 +597,11 @@ class TestBrowseRecords:
                 },
             )
             sort_select = form.find("select", {"name": "sort"})
-            selected_sort_option = (
-                sort_select.find("option", selected=True)
-                if sort_select is not None
-                else None
-            )
             hidden_page = form.find("input", {"type": "hidden", "name": "page"})
 
             assert hidden_consignment is not None
             assert sort_select is not None
+            selected_sort_option = sort_select.find("option", selected=True)
             assert selected_sort_option is not None
             assert selected_sort_option.get("value") == "file_name-desc"
             assert hidden_page is None
