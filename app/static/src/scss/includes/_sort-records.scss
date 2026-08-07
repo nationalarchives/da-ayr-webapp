@@ -28,7 +28,7 @@
       .sort-list-records__select.js-records-sort-select {
         width: auto;
         text-align: left;
-        border: 2px solid #0b0c0c;
+        border: 2px solid $colour-link-normal;
         background-color: #fff;
         font-family: $font-family-gds;
         font-size: 1.1875rem;
@@ -59,7 +59,7 @@
         &:focus-visible {
           outline: 3px solid #fd0;
           outline-offset: 0;
-          box-shadow: inset 0 0 0 2px #0b0c0c;
+          box-shadow: inset 0 0 0 2px $colour-link-normal;
         }
       }
 
@@ -108,7 +108,7 @@
         &:focus-visible {
           outline: 3px solid #fd0;
           outline-offset: 0;
-          box-shadow: inset 0 0 0 2px #0b0c0c;
+          box-shadow: inset 0 0 0 2px $colour-link-normal;
         }
       }
     }
@@ -145,7 +145,7 @@
     .sort-list-records__select.no-js-records-sort-select {
       width: auto;
       text-align: left;
-      border: 2px solid #0b0c0c;
+      border: 2px solid $colour-link-normal;
       background-color: #fff;
       font-family: $font-family-gds;
       font-size: 1.1875rem;
@@ -175,7 +175,7 @@
       &:focus-visible {
         outline: 3px solid #fd0;
         outline-offset: 0;
-        box-shadow: inset 0 0 0 2px #0b0c0c;
+        box-shadow: inset 0 0 0 2px $colour-link-normal;
       }
     }
 
@@ -223,7 +223,7 @@
       &:focus-visible {
         outline: 3px solid #fd0;
         outline-offset: 0;
-        box-shadow: inset 0 0 0 2px #0b0c0c;
+        box-shadow: inset 0 0 0 2px $colour-link-normal;
       }
     }
 
