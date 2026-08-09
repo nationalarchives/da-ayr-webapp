@@ -14,7 +14,7 @@
   "license": "MIT",
   "devDependencies": {
     "@lhci/cli": "0.15.1",
-    "@storybook/html-vite": "10.5.6",
+    "@storybook/html-vite": "10.5.7",
     "@testing-library/jest-dom": "7.0.0",
     "chokidar-cli": "3.0.0",
     "concurrently": "10.0.4",
