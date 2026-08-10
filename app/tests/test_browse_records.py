@@ -162,6 +162,36 @@ class TestBrowseRecords:
         assert response.status_code == 200
         verify_filters_heading(response.data, "Filters (0)")
 
+    def test_browse_records_standard_user_consignment_filter_backfills_series(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given a standard user with a consignment filter
+        When browse records is requested
+        Then the matching series value is auto-populated
+        """
+        mock_standard_user(client, "first_body")
+
+        response = client.get(
+            f"{self.route_url}?consignment_reference=TDR-2023-FI1"
+        )
+
+        assert response.status_code == 200
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        transferring_body_filter = soup.find(
+            "input", id="transferring_body_filter"
+        )
+        series_filter = soup.find("input", id="series_filter")
+        consignment_filter = soup.find("input", id="consignment_reference")
+
+        assert transferring_body_filter is not None
+        assert series_filter is not None
+        assert consignment_filter is not None
+        assert transferring_body_filter.get("value") == "first_body"
+        assert series_filter.get("value") == "first_series"
+        assert consignment_filter.get("value") == "TDR-2023-FI1"
+
     def test_browse_records_consignment_filter_limits_results(
         self, client: FlaskClient, mock_all_access_user, browse_files
     ):

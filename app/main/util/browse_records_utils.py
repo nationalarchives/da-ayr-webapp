@@ -39,8 +39,6 @@ def prefill_transferring_body_for_single_scope(
     selected_transferring_body,
     accessible_body_names,
 ):
-    if selected_transferring_body:
-        return selected_transferring_body
     if accessible_body_names and len(accessible_body_names) == 1:
         return accessible_body_names[0]
     return selected_transferring_body
@@ -200,9 +198,14 @@ def build_browse_records_filter_data(
             accessible_body_names
         )
 
-    if not selected_transferring_body and (
-        selected_series or selected_consignment
-    ):
+    should_autofill_from_series = (
+        selected_series and not selected_transferring_body
+    )
+    should_autofill_from_consignment = (
+        selected_consignment and not selected_series
+    )
+
+    if should_autofill_from_series or should_autofill_from_consignment:
         options_rows = get_autofill_options_rows(
             accessible_body_names,
             selected_series,
