@@ -35,7 +35,7 @@
   .browse-records__table,
   .browse-record-row__cell,
   .browse-records__table .browse-records__header-cell {
-    padding: 10px 20px 10px 0;
+    padding: 6px 20px 6px 0;
     border-bottom: none;
   }
 
@@ -46,6 +46,12 @@
   .browse-records__table .browse-record-row__cell--right,
   .browse-records__table .browse-records__header-cell--right {
     text-align: right;
+  }
+
+  .browse-records__table,
+  .browse-record-row__cell,
+  .browse-records__table .browse-records__meta-cell--date {
+    padding: 5px;
   }
 
   .browse-records__table

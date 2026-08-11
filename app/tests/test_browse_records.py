@@ -563,7 +563,8 @@ class TestBrowseRecords:
         """
         Given browse records has active filters and sort
         When per-page controls are rendered
-        Then they preserve active query params except page and per_page
+        Then sort and per-page controls preserve active query params
+        and submit only their own value changes
         """
         mock_all_access_user(client)
 
@@ -574,12 +575,19 @@ class TestBrowseRecords:
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
 
-        per_page_forms = soup.select(
-            "form.sort-list-records-form, form.sort-list-records-no-js-form"
+        js_form = soup.select_one("form.sort-list-records-form")
+        noscript_sort_form = soup.select_one(
+            "form.sort-list-records-no-js-form"
         )
-        assert len(per_page_forms) == 2
+        noscript_per_page_form = soup.select_one(
+            "form.sort-list-records-no-js__per-page"
+        )
 
-        for form in per_page_forms:
+        assert js_form is not None
+        assert noscript_sort_form is not None
+        assert noscript_per_page_form is not None
+
+        for form in [js_form, noscript_sort_form]:
             hidden_consignment = form.find(
                 "input",
                 {
@@ -588,23 +596,58 @@ class TestBrowseRecords:
                     "value": "TDR-2023-TH3",
                 },
             )
-            hidden_sort = form.find(
-                "input",
-                {
-                    "type": "hidden",
-                    "name": "sort",
-                    "value": "file_name-desc",
-                },
-            )
+            sort_select = form.find("select", {"name": "sort"})
             hidden_page = form.find("input", {"type": "hidden", "name": "page"})
-            hidden_per_page = form.find(
-                "input", {"type": "hidden", "name": "per_page"}
-            )
 
             assert hidden_consignment is not None
-            assert hidden_sort is not None
+            assert sort_select is not None
+            selected_sort_option = sort_select.find("option", selected=True)
+            assert selected_sort_option is not None
+            assert selected_sort_option.get("value") == "file_name-desc"
             assert hidden_page is None
-            assert hidden_per_page is None
+
+        assert (
+            js_form.find("input", {"type": "hidden", "name": "per_page"})
+            is None
+        )
+
+        noscript_sort_hidden_per_page = noscript_sort_form.find(
+            "input",
+            {
+                "type": "hidden",
+                "name": "per_page",
+                "value": "10",
+            },
+        )
+        assert noscript_sort_hidden_per_page is not None
+
+        noscript_per_page_hidden_consignment = noscript_per_page_form.find(
+            "input",
+            {
+                "type": "hidden",
+                "name": "consignment_reference",
+                "value": "TDR-2023-TH3",
+            },
+        )
+        noscript_per_page_hidden_sort = noscript_per_page_form.find(
+            "input",
+            {
+                "type": "hidden",
+                "name": "sort",
+                "value": "file_name-desc",
+            },
+        )
+        noscript_per_page_select = noscript_per_page_form.find(
+            "select", {"name": "per_page"}
+        )
+        noscript_per_page_sort_select = noscript_per_page_form.find(
+            "select", {"name": "sort"}
+        )
+
+        assert noscript_per_page_hidden_consignment is not None
+        assert noscript_per_page_hidden_sort is not None
+        assert noscript_per_page_select is not None
+        assert noscript_per_page_sort_select is None
 
     def test_browse_records_no_results_for_nonsensical_filter(
         self, client: FlaskClient, mock_all_access_user, browse_files

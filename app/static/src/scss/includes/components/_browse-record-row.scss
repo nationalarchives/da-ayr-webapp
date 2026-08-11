@@ -69,7 +69,12 @@
 
     .browse-record-row__row--consignment .browse-records__consignment-cell {
       padding-top: 0;
-      padding-bottom: 15px;
+      padding-bottom: 25px;
+    }
+
+    .browse-record-row__row--consignment
+      .browse-records__transferring-body-cell {
+      line-height: 1.15;
     }
 
     .browse-records__file-link {

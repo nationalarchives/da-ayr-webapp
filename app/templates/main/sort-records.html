@@ -3,65 +3,82 @@
 {% set _ = preserved_params.pop('per_page', None) %}
 {% set _ = preserved_params.pop('page', None) %}
 {% set _ = preserved_params.pop('_id', None) %}
+{% set _ = preserved_params.pop('sort', None) %}
+{% set selected_sort = request.args.get('sort', 'date_of_record-desc') %}
+{% set records_sort_options = {
+    "Modified date – newest": "date_of_record-desc",
+    "Modified date – oldest": "date_of_record-asc",
+    "File name – A to Z": "file_name-asc",
+    "File name – Z to A": "file_name-desc",
+    "Record opening date – sooner": "opening_date-asc",
+    "Record opening date – later": "opening_date-desc",
+    "Series – A to Z": "series-asc",
+    "Series – Z to A": "series-desc"
+} %}
+{% macro render_preserved_params(params) %}
+    {% for key, value in params.items() %}
+        <input type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+{% endmacro %}
+{% macro render_per_page_options(options) %}
+    {% for key, value in options.items() %}
+        <option value="{{ value }}"
+                {% if request.args.get('per_page') == value %}selected{% endif %}>{{ key }}</option>
+    {% endfor %}
+{% endmacro %}
+{% macro render_sort_options(options, selected_value) %}
+    {% for key, value in options.items() %}
+        <option value="{{ value }}"
+                {% if selected_value == value %}selected{% endif %}>{{ key }}</option>
+    {% endfor %}
+{% endmacro %}
 <form id="records-form"
       action="{{ url_for('main.browse_records', _anchor='records') }}"
       method="get"
       class="sort-list-records-form">
-    {% for key, value in preserved_params.items() %}
-        <input type="hidden" name="{{ key }}" value="{{ value }}">
-    {% endfor %}
+    {{ render_preserved_params(preserved_params) }}
     <div class="sort-list-records-left-wrapper">
         <div class="sort-list-records-js">
-            <label class="govuk-label browse-records__label--left" for="sort-js">Records per page</label>
-            <select class="record-select--sort-left"
-                    id="sort-js"
-                    name="per_page"
-                    aria-label="Records per page {{ request.args.get('per_page', '5') }}">
-                {% for key, value in dict.items() %}
-                    {% set list = value.split('-') %}
-                    {% if list | length > 1 %}
-                        <option value="{{ value }}"
-                                {% if sorting_orders[list[0]] %} {% if sorting_orders[list[0]] == list[1] %}selected{% endif %}
-                                {% endif %}>{{ key }}</option>
-                    {% else %}
-                        <option value="{{ value }}"
-                                {% if request.args.get('per_page') == value %}selected{% endif %}>{{ key }}</option>
-                    {% endif %}
-                {% endfor %}
-            </select>
+            <label class="govuk-label govuk-visually-hidden" for="sort-records-js">Sort records</label>
+            <select class="sort-list-records__select js-records-sort-select"
+                    id="sort-records-js"
+                    name="sort">{{ render_sort_options(records_sort_options, selected_sort) }}</select>
+            <label class="browse-records__label--left" for="sort-js">Records per page</label>
+            <select class="record-select--sort-left" id="sort-js" name="per_page">{{ render_per_page_options(dict) }}</select>
         </div>
     </div>
 </form>
 <noscript>
-    <form action="{{ url_for('main.browse_records', _anchor='records') }}"
-          method="get"
-          class="sort-list-records-no-js-form">
-        {% for key, value in preserved_params.items() %}
-            <input type="hidden" name="{{ key }}" value="{{ value }}">
-        {% endfor %}
-        <div class="sort-list-records-right-wrapper">
-            <div class="sort-list-records-no-js">
-                <label class="govuk-label browse-records__label--right" for="sort-no-js">Records per page</label>
-                <select class="record-select--sort-right"
-                        id="sort-no-js"
-                        name="per_page"
-                        aria-label="Records per page {{ request.args.get('per_page', '5') }}">
-                    {% for key, value in dict.items() %}
-                        {% set list = value.split('-') %}
-                        {% if list | length > 1 %}
-                            <option value="{{ value }}"
-                                    {% if sorting_orders[list[0]] %} {% if sorting_orders[list[0]] == list[1] %}selected{% endif %}
-                                    {% endif %}>{{ key }}</option>
-                        {% else %}
-                            <option value="{{ value }}"
-                                    {% if request.args.get('per_page') == value %}selected{% endif %}>{{ key }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
+    <div class="sort-list-records-no-js">
+        <form action="{{ url_for('main.browse_records', _anchor='records') }}"
+              method="get"
+              class="sort-list-records-no-js-form sort-list-records-no-js__sort-control">
+            {{ render_preserved_params(preserved_params) }}
+            {% if request.args.get('per_page') %}
+                <input type="hidden"
+                       name="per_page"
+                       value="{{ request.args.get('per_page') }}">
+            {% endif %}
+            <label class="govuk-label govuk-visually-hidden" for="sort-records-no-js">Sort records</label>
+            <div class="sort-list-records-no-js__sort-action">
+                <select class="sort-list-records__select no-js-records-sort-select"
+                        id="sort-records-no-js"
+                        name="sort">{{ render_sort_options(records_sort_options, selected_sort) }}</select>
                 <button type="submit"
                         class="govuk-button govuk-button--secondary"
-                        data-module="govuk-button">Apply</button>
+                        data-module="govuk-button">Sort</button>
             </div>
-        </div>
-    </form>
+        </form>
+        <form action="{{ url_for('main.browse_records', _anchor='records') }}"
+              method="get"
+              class="sort-list-records-no-js__per-page">
+            {{ render_preserved_params(preserved_params) }}
+            <input type="hidden" name="sort" value="{{ selected_sort }}">
+            <label class="browse-records__label--right" for="sort-no-js">Records per page</label>
+            <select class="record-select--sort-right" id="sort-no-js" name="per_page">{{ render_per_page_options(dict) }}</select>
+            <button type="submit"
+                    class="govuk-button govuk-button--secondary"
+                    data-module="govuk-button">Apply</button>
+        </form>
+    </div>
 </noscript>

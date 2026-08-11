@@ -12,7 +12,14 @@
         </p>
     </td>
     <td class="govuk-table__cell govuk-table--invisible-on-mobile browse-records__meta-cell--series">
-        <a href="{{ url_for('main.browse_series', _id=record['series_id']) }}">{{ record["series"] }}</a>
+        {% set series_params = query_string_parameters.copy() if query_string_parameters else {} %}
+        {% set _ = series_params.pop('transferring_body_filter', None) %}
+        {% set _ = series_params.update({'series_filter': record['series'], 'page': 1}) %}
+        {% set combined_params = {} %}
+        {% for k, v in series_params.items() %}
+            {% set _ = combined_params.update({k | string: v}) %}
+        {% endfor %}
+        <a href="{{ url_for('main.browse_records', **combined_params) }}">{{ record["series"] }}</a>
     </td>
     <td class="govuk-table__cell browse-record-row__cell browse-records__meta-cell--status">
         {% set closure_type = record["closure_type"] %}
@@ -25,6 +32,23 @@
             <time datetime="{{ record["opening_date"] | format_date_iso }}">{{ record["opening_date"] }}</time>
         {% endif %}
     </td>
+</tr>
+{% if not is_standard_user %}
+    <tr class="govuk-table__row browse-record-row__row browse-record-row__row--transferring-body">
+        <td colspan="{{ number_of_columns }}"
+            class="govuk-table__cell browse-record-row__cell browse-records__transferring-body-cell">
+            <p class="govuk-body-s govuk-!-margin-0">
+                {% set body_params = query_string_parameters.copy() if query_string_parameters else {} %}
+                {% set _ = body_params.pop('series_filter', None) %}
+                {% set _ = body_params.update({'transferring_body_filter': record['transferring_body'], 'page': 1}) %}
+                {% set combined_params = {} %}
+                {% for k, v in body_params.items() %}
+                    {% set _ = combined_params.update({k | string: v}) %}
+                {% endfor %}
+                <a href="{{ url_for('main.browse_records', **combined_params) }}">{{ record["transferring_body"] }}</a>
+            </p>
+        </td>
+    {% endif %}
 </tr>
 <tr class="govuk-table__row browse-record-row__row browse-record-row__row--path">
     <td colspan="{{ number_of_columns }}"
