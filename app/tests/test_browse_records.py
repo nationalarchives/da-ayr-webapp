@@ -580,7 +580,7 @@ class TestBrowseRecords:
             "form.sort-list-records-no-js-form"
         )
         noscript_per_page_form = soup.select_one(
-            "form.sort-list-records-no-js--per-page"
+            "form.sort-list-records-no-js__per-page"
         )
 
         assert js_form is not None

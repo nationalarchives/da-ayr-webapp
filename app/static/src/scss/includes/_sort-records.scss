@@ -124,19 +124,19 @@
     gap: 0.5rem;
     margin-right: 35%;
 
-    .sort-list-records-no-js--sort-control {
+    .sort-list-records-no-js__sort-control {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
 
-      .sort-list-records-no-js--sort-action {
+      .sort-list-records-no-js__sort-action {
         display: flex;
         align-items: center;
         gap: 0.5rem;
       }
     }
 
-    .sort-list-records-no-js--per-page {
+    .sort-list-records-no-js__per-page {
       display: flex;
       align-items: center;
       gap: 0.5rem;

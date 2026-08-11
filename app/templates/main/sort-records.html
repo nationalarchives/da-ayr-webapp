@@ -52,7 +52,7 @@
     <div class="sort-list-records-no-js">
         <form action="{{ url_for('main.browse_records', _anchor='records') }}"
               method="get"
-              class="sort-list-records-no-js-form sort-list-records-no-js--sort-control">
+              class="sort-list-records-no-js-form sort-list-records-no-js__sort-control">
             {{ render_preserved_params(preserved_params) }}
             {% if request.args.get('per_page') %}
                 <input type="hidden"
@@ -60,7 +60,7 @@
                        value="{{ request.args.get('per_page') }}">
             {% endif %}
             <label class="govuk-label govuk-visually-hidden" for="sort-records-no-js">Sort records</label>
-            <div class="sort-list-records-no-js--sort-action">
+            <div class="sort-list-records-no-js__sort-action">
                 <select class="sort-list-records__select no-js-records-sort-select"
                         id="sort-records-no-js"
                         name="sort">{{ render_sort_options(records_sort_options, selected_sort) }}</select>
@@ -71,7 +71,7 @@
         </form>
         <form action="{{ url_for('main.browse_records', _anchor='records') }}"
               method="get"
-              class="sort-list-records-no-js--per-page">
+              class="sort-list-records-no-js__per-page">
             {{ render_preserved_params(preserved_params) }}
             <input type="hidden" name="sort" value="{{ selected_sort }}">
             <label class="browse-records__label--right" for="sort-no-js">Records per page</label>
