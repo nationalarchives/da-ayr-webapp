@@ -410,6 +410,266 @@ def build_browse_records_query(
     return query
 
 
+def _build_base_query_filters(accessible_transferring_body_names, filters):
+    query_filters = [func.lower(File.FileType) == "file"]
+    if accessible_transferring_body_names is not None:
+        query_filters.append(Body.Name.in_(accessible_transferring_body_names))
+
+    if not filters:
+        return query_filters
+
+    if filters.get("transferring_body"):
+        query_filters.append(
+            func.lower(Body.Name).like(
+                f"%{filters['transferring_body'].lower()}%"
+            )
+        )
+    if filters.get("series"):
+        query_filters.append(
+            func.lower(Series.Name).like(f"%{filters['series'].lower()}%")
+        )
+    if filters.get("consignment_reference"):
+        query_filters.append(
+            func.lower(Consignment.ConsignmentReference).like(
+                f"%{filters['consignment_reference'].lower()}%"
+            )
+        )
+
+    record_status = (filters.get("record_status") or "").lower()
+    if record_status and record_status != "all":
+        closure_sub = db.session.query(FileMetadata.FileId).filter(
+            FileMetadata.PropertyName == "closure_type",
+            func.lower(FileMetadata.Value) == record_status,
+        )
+        query_filters.append(File.FileId.in_(closure_sub))
+
+    date_from = filters.get("date_from")
+    date_to = filters.get("date_to")
+    if date_from or date_to:
+        query_filters.extend(
+            _build_date_file_id_filters(
+                filters.get("date_filter_field"), date_from, date_to
+            )
+        )
+
+    return query_filters
+
+
+def _build_date_file_id_filters(date_filter_field, date_from, date_to):
+    prop_map = {
+        "date_last_modified": "date_last_modified",
+        "opening_date": "opening_date",
+        "transferred": "end_date",
+    }
+    prop = prop_map.get((date_filter_field or "").lower())
+    if prop:
+        date_sub = db.session.query(FileMetadata.FileId).filter(
+            FileMetadata.PropertyName == prop
+        )
+        if date_from:
+            date_sub = date_sub.filter(
+                func.to_char(func.cast(FileMetadata.Value, DATE), "YYYY-MM-DD")
+                >= date_from
+            )
+        if date_to:
+            date_sub = date_sub.filter(
+                func.to_char(func.cast(FileMetadata.Value, DATE), "YYYY-MM-DD")
+                <= date_to
+            )
+        return [File.FileId.in_(date_sub)]
+
+    # sort_date = COALESCE(end_date, date_last_modified)
+    sort_date_col = func.coalesce(
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "end_date",
+                    func.cast(FileMetadata.Value, DATE),
+                ),
+                else_=None,
+            )
+        ),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "date_last_modified",
+                    func.cast(FileMetadata.Value, DATE),
+                ),
+                else_=None,
+            )
+        ),
+    )
+    having_conds = []
+    if date_from:
+        having_conds.append(
+            func.to_char(sort_date_col, "YYYY-MM-DD") >= date_from
+        )
+    if date_to:
+        having_conds.append(
+            func.to_char(sort_date_col, "YYYY-MM-DD") <= date_to
+        )
+    sort_date_ids = (
+        db.session.query(FileMetadata.FileId)
+        .group_by(FileMetadata.FileId)
+        .having(and_(*having_conds))
+    )
+    return [File.FileId.in_(sort_date_ids)]
+
+
+def _apply_base_query_sort(query, sorting_orders):
+    if not sorting_orders:
+        return query.order_by(File.FileName, File.FileId)
+
+    if "date_of_record" in sorting_orders:
+        sort_sq = (
+            db.session.query(
+                FileMetadata.FileId.label("fid"),
+                func.coalesce(
+                    func.max(
+                        db.case(
+                            (
+                                FileMetadata.PropertyName == "end_date",
+                                func.cast(FileMetadata.Value, DATE),
+                            ),
+                            else_=None,
+                        )
+                    ),
+                    func.max(
+                        db.case(
+                            (
+                                FileMetadata.PropertyName
+                                == "date_last_modified",
+                                func.cast(FileMetadata.Value, DATE),
+                            ),
+                            else_=None,
+                        )
+                    ),
+                ).label("sort_date"),
+            ).group_by(FileMetadata.FileId)
+        ).subquery()
+        query = query.outerjoin(sort_sq, File.FileId == sort_sq.c.fid)
+        if sorting_orders["date_of_record"] == "desc":
+            return query.order_by(
+                desc(sort_sq.c.sort_date), File.FileName, File.FileId
+            )
+        return query.order_by(sort_sq.c.sort_date, File.FileName, File.FileId)
+
+    if "opening_date" in sorting_orders:
+        opening_sq = (
+            db.session.query(
+                FileMetadata.FileId.label("fid"),
+                func.max(
+                    db.case(
+                        (
+                            FileMetadata.PropertyName == "opening_date",
+                            func.cast(FileMetadata.Value, DATE),
+                        ),
+                        else_=None,
+                    )
+                ).label("opening_date"),
+            ).group_by(FileMetadata.FileId)
+        ).subquery()
+        query = query.outerjoin(opening_sq, File.FileId == opening_sq.c.fid)
+        if sorting_orders["opening_date"] == "desc":
+            return query.order_by(
+                desc(opening_sq.c.opening_date), File.FileName, File.FileId
+            )
+        return query.order_by(
+            opening_sq.c.opening_date, File.FileName, File.FileId
+        )
+
+    col_map = {
+        "file_name": File.FileName,
+        "series": Series.Name,
+    }
+    for field, order in sorting_orders.items():
+        col = col_map.get(field)
+        if col is not None:
+            query = query.order_by(desc(col) if order == "desc" else col)
+    return query
+
+
+def build_browse_records_base_query(
+    accessible_transferring_body_names=None,
+    filters=None,
+    sorting_orders=None,
+):
+    """
+    Stage-1 query: File/hierarchy only, no FileMetadata join in the main select.
+    Pair with get_browse_records_metadata_for_files for the two-stage fetch.
+    """
+    query_filters = _build_base_query_filters(
+        accessible_transferring_body_names, filters
+    )
+
+    query = (
+        db.session.query(
+            Body.BodyId.label("transferring_body_id"),
+            Body.Name.label("transferring_body"),
+            Series.SeriesId.label("series_id"),
+            Series.Name.label("series"),
+            Consignment.ConsignmentId.label("consignment_id"),
+            Consignment.ConsignmentReference.label("consignment_reference"),
+            File.FileId.label("file_id"),
+            File.FileName.label("file_name"),
+            File.FilePath.label("file_path"),
+        )
+        .join(File.consignment)
+        .join(Consignment.series)
+        .join(Series.body)
+        .filter(*query_filters)
+    )
+
+    return _apply_base_query_sort(query, sorting_orders)
+
+
+def get_browse_records_metadata_for_files(file_ids):
+    """
+    Stage-2 query: fetch and pivot the 4 browse metadata properties for a
+    small set of file IDs. Reads only the rows needed for the current page.
+    """
+    if not file_ids:
+        return {}
+
+    properties = (
+        "date_last_modified",
+        "end_date",
+        "closure_type",
+        "opening_date",
+    )
+    date_properties = ("date_last_modified", "end_date", "opening_date")
+
+    rows = (
+        db.session.query(
+            FileMetadata.FileId,
+            FileMetadata.PropertyName,
+            db.case(
+                (
+                    FileMetadata.PropertyName.in_(date_properties),
+                    func.to_char(
+                        func.cast(FileMetadata.Value, DATE),
+                        current_app.config["DEFAULT_DATE_FORMAT"],
+                    ),
+                ),
+                else_=FileMetadata.Value,
+            ).label("value"),
+        )
+        .filter(
+            FileMetadata.FileId.in_(file_ids),
+            FileMetadata.PropertyName.in_(properties),
+        )
+        .all()
+    )
+
+    result = {}
+    for file_id, prop, value in rows:
+        if file_id not in result:
+            result[file_id] = {}
+        result[file_id][prop] = value
+
+    return result
+
+
 def _build_browse_records_filters(query, sub_query, filters):
     transferring_body = filters.get("transferring_body")
     if transferring_body:
