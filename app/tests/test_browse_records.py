@@ -162,13 +162,13 @@ class TestBrowseRecords:
         assert response.status_code == 200
         verify_filters_heading(response.data, "Filters (0)")
 
-    def test_browse_records_standard_user_consignment_filter_backfills_series(
+    def test_browse_records_standard_user_consignment_filter_without_series_backfills_and_applies_series(
         self, client: FlaskClient, mock_standard_user, browse_files
     ):
         """
-        Given a standard user with a consignment filter
+        Given a standard user with a consignment filter and no series filter
         When browse records is requested
-        Then the matching series value is auto-populated
+        Then the matching series value is auto-populated and applied
         """
         mock_standard_user(client, "first_body")
 
@@ -191,6 +191,7 @@ class TestBrowseRecords:
         assert transferring_body_filter.get("value") == "first_body"
         assert series_filter.get("value") == "first_series"
         assert consignment_filter.get("value") == "TDR-2023-FI1"
+        verify_filters_heading(response.data, "Filters (2)")
 
     def test_browse_records_consignment_filter_limits_results(
         self, client: FlaskClient, mock_all_access_user, browse_files
