@@ -233,6 +233,46 @@ class TestBrowseRecords:
         )
         assert len(record_links) == 3
 
+    def test_browse_records_all_access_consignment_filter_autofills_transferring_body_and_series(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given an all-access user with no transferring body or series filter selected
+        When they filter by consignment only
+        Then transferring body and series are auto-populated from the match
+        """
+        mock_all_access_user(client)
+
+        initial_response = client.get(self.route_url)
+
+        assert initial_response.status_code == 200
+        initial_soup = BeautifulSoup(initial_response.data, "html.parser")
+        initial_transferring_body_filter = initial_soup.find(
+            "input", id="transferring_body_filter"
+        )
+        initial_series_filter = initial_soup.find("input", id="series_filter")
+
+        assert initial_transferring_body_filter is not None
+        assert initial_series_filter is not None
+        assert not initial_transferring_body_filter.get("value")
+        assert not initial_series_filter.get("value")
+
+        filtered_response = client.get(
+            f"{self.route_url}?consignment_reference=TDR-2023-TH3"
+        )
+
+        assert filtered_response.status_code == 200
+        filtered_soup = BeautifulSoup(filtered_response.data, "html.parser")
+        filtered_transferring_body_filter = filtered_soup.find(
+            "input", id="transferring_body_filter"
+        )
+        filtered_series_filter = filtered_soup.find("input", id="series_filter")
+
+        assert filtered_transferring_body_filter is not None
+        assert filtered_series_filter is not None
+        assert filtered_transferring_body_filter.get("value") == "second_body"
+        assert filtered_series_filter.get("value") == "second_series"
+
     def test_browse_records_series_filter_backfills_transferring_body(
         self, client: FlaskClient, mock_all_access_user, browse_files
     ):
