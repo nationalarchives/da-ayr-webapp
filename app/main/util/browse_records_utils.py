@@ -202,8 +202,6 @@ def build_browse_records_filter_data(
         selected_series and not selected_transferring_body
     )
     should_autofill_from_consignment = (
-    selected_consignment and not selected_series and not selected_transferring_body
-)
         selected_consignment and not selected_series
     )
 
