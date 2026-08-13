@@ -15,7 +15,7 @@
   "devDependencies": {
     "@lhci/cli": "0.15.1",
     "@storybook/html-vite": "10.5.7",
-    "@testing-library/jest-dom": "7.0.0",
+    "@testing-library/jest-dom": "7.0.1",
     "chokidar-cli": "3.0.0",
     "concurrently": "10.0.4",
     "jest": "30.4.2",
