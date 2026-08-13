@@ -4,9 +4,10 @@
 
 @mixin stacked-breadcrumbs {
   margin-right: 0.625em;
-  padding-right: 0.9784em;
   margin-left: 0;
+  padding-right: 0.9784em;
   padding-left: 0;
+
   float: none;
 
   &::before {
@@ -15,26 +16,32 @@
 
   &::after {
     content: "";
-    display: block;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 0;
+
     width: 0.4375em;
     height: 0.4375em;
     margin: auto 0;
-    -webkit-transform: rotate(45deg);
-    -ms-transform: rotate(45deg);
-    transform: rotate(45deg);
+
+    display: block;
+
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+
     border: solid;
     border-width: 1px 1px 0 0;
     border-color: #505a5f;
+
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
   }
 
   &:last-child {
     display: block;
-    word-break: break-all;
+
     line-height: 1.7rem;
+    word-break: break-all;
 
     &::after {
       content: none;
@@ -49,8 +56,10 @@
     &:last-child span {
       @include signposting-text.signposting-text;
       color: black;
-      -webkit-text-fill-color: black;
+
       cursor: default;
+
+      -webkit-text-fill-color: black;
     }
   }
 
@@ -69,37 +78,42 @@
   }
 
   &__link--record {
+    margin-top: 0;
+
     color: $colour-link-default;
     font-size: 1rem;
     font-weight: 400;
-    margin-top: 0;
 
     &--series {
-      white-space: nowrap;
       color: $colour-link-default;
+      white-space: nowrap;
 
       &:visited {
         color: $colour-link-default;
+
         -webkit-text-fill-color: $colour-link-default;
       }
     }
 
     &--transferring-body {
       flex-wrap: wrap;
+
       color: $colour-link-default;
 
       &:visited {
         color: $colour-link-default;
+
         -webkit-text-fill-color: $colour-link-default;
       }
     }
 
     &--consignment {
-      white-space: nowrap;
       color: $colour-link-default;
+      white-space: nowrap;
 
       &:visited {
         color: $colour-link-default;
+
         -webkit-text-fill-color: $colour-link-default;
       }
     }

@@ -11,6 +11,7 @@
 
 .mobileFooterPanel {
   background: white;
+
   border: white;
 }
 
@@ -27,17 +28,18 @@
 .govuk-width-container {
   &--desktop-record {
     display: flex;
-    justify-content: center;
     align-items: flex-start;
+    justify-content: center;
   }
 }
 
 .govuk-main-wrapper {
   &--record-view {
+    margin-top: 0;
     padding-top: 0;
+
     display: flex;
     flex-direction: column;
-    margin-top: 0;
   }
 }
 
@@ -60,10 +62,12 @@
   }
 
   &__download--record {
-    align-self: center;
-    justify-content: center;
-    margin-bottom: 0.8rem;
     width: auto;
+    margin-bottom: 0.8rem;
+
+    align-self: center;
+
+    justify-content: center;
   }
 }
 
@@ -81,10 +85,11 @@
 
 .govuk-heading-m {
   &__rights-header {
-    display: flex;
-    justify-content: center;
     margin-top: 0.6rem;
     margin-bottom: 0.5rem;
+
+    display: flex;
+    justify-content: center;
   }
 
   &__record-details {
@@ -109,15 +114,17 @@
 .govuk-summary-list {
   &--record {
     table-layout: auto;
+
     border-top: 1px solid $colour-border-normal;
   }
 
   &__key--record-table {
-    white-space: nowrap;
     width: 0;
-    text-align: left;
-    font-size: 1rem;
     margin-left: 0;
+
+    font-size: 1rem;
+    text-align: left;
+    white-space: nowrap;
   }
 
   &__value--record {
@@ -136,40 +143,46 @@
 }
 
 .rights-container {
-  background-color: $colour-container-normal;
   margin-top: 1.8rem;
+
   display: flex;
   flex-direction: column;
   justify-content: center;
+
+  background-color: $colour-container-normal;
 }
 
 .record-container {
-  background-color: $colour-container-normal;
-  display: block;
   margin-top: 1.25rem;
   padding: 1rem;
+
+  display: block;
+
+  background-color: $colour-container-normal;
 }
 
 .govuk-body {
   &--download-filename {
-    text-align: center;
+    color: black;
     font-size: 0.9rem;
     font-weight: 200;
-    color: black;
+    text-align: center;
   }
 
   &--terms-of-use {
     align-self: center;
+
     justify-content: center;
+
+    color: black;
     font-size: 0.9rem;
     font-weight: 200;
-    color: black;
   }
 
   &__record-arrangement-list {
-    font-size: 0.9rem;
-    font-family: arial, sans-serif;
     color: black;
+    font-family: arial, sans-serif;
+    font-size: 0.9rem;
 
     &:last-child {
       font-weight: bold;
@@ -180,13 +193,15 @@
 .govuk-link {
   &--ayr {
     color: black;
-    -webkit-text-fill-color: black;
     font-size: 0.9rem;
+
+    -webkit-text-fill-color: black;
 
     a {
       color: black;
-      -webkit-text-fill-color: black;
       font-size: 0.9rem;
+
+      -webkit-text-fill-color: black;
     }
 
     &:visited {
@@ -208,32 +223,34 @@
 .govuk-tag {
   &--red {
     font-size: 1rem;
-    text-transform: capitalize;
     font-weight: 400;
     letter-spacing: 0;
+    text-transform: capitalize;
   }
 
   &--green {
     font-size: 1rem;
-    text-transform: capitalize;
     font-weight: 400;
     letter-spacing: 0;
+    text-transform: capitalize;
   }
 }
 
 .record-container .record-arrangement-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-
   --ball-size: 13px;
   --border-width: 3px;
   --colour: #{$colour-timeline-normal};
+  margin: 0;
+  padding: 0;
+
+  list-style-type: none;
 }
 
 .record-container .record-arrangement-list li {
-  position: relative;
   padding: 0 0 20px calc(var(--ball-size) + 1rem);
+
+  position: relative;
+
   font-family: Arial, sans-serif;
   font-size: 1rem;
   line-height: 1.2rem;
@@ -243,25 +260,33 @@
 
 .record-container .record-arrangement-list li::before {
   content: " ";
-  display: block;
-  position: absolute;
+
   width: var(--ball-size);
   height: var(--ball-size);
-  left: 0;
+
+  display: block;
+
+  position: absolute;
   top: 0;
-  border-radius: 100%;
-  border: var(--border-width) solid $colour-timeline-normal;
+  left: 0;
   z-index: 2;
+
+  border: var(--border-width) solid $colour-timeline-normal;
+  border-radius: 100%;
 }
 
 .record-container .record-arrangement-list li::after {
   content: " ";
-  display: block;
-  position: absolute;
+
   width: var(--border-width);
-  left: calc((var(--ball-size) / 2) + (var(--border-width) / 2));
+
+  display: block;
+
+  position: absolute;
   top: calc(var(--ball-size) + var(--border-width));
   bottom: calc(var(--border-width) * -1);
+  left: calc((var(--ball-size) / 2) + (var(--border-width) / 2));
+
   background-color: $colour-timeline-normal;
 }
 
@@ -278,8 +303,9 @@
 }
 
 .govuk-tabs__panel__record-details {
-  display: flow-root;
   padding: 1rem !important;
+
+  display: flow-root;
 }
 
 .govuk-tabs__panel {
@@ -303,27 +329,31 @@
 
 .mode {
   width: 3rem;
+
   font-size: 1rem;
 }
 
 .uv {
   .mainPanel {
-    margin-left: 0 !important;
     margin-right: 0 !important;
+    margin-left: 0 !important;
     padding-top: 0 !important;
+
     background-color: #0b0c0c !important;
   }
 
   .mainPanel .leftPanel {
-    border-right: 2px solid white;
     background-color: #0b0c0c !important;
+
+    border-right: 2px solid white;
   }
 
   .centerOptions {
     .total {
+      margin: 6px 0 0 5px !important;
+
       font-size: 1rem !important;
       font-style: 500 !important;
-      margin: 6px 0 0 5px !important;
     }
 
     .searchText {
@@ -332,10 +362,11 @@
     }
 
     .go {
-      font-size: 1rem !important;
-      font-weight: bold !important;
       height: 30px !important;
       padding: 0 5px !important;
+
+      font-size: 1rem !important;
+      font-weight: bold !important;
     }
   }
 
@@ -357,7 +388,9 @@
 
   .btn-primary {
     color: #00703c;
+
     background-color: #00703c !important;
+
     border-color: #00703c !important;
   }
 
@@ -432,17 +465,20 @@
 
     &-column-two-thirds {
       &--record-table {
+        width: 100% !important;
+
         display: flex;
         flex-direction: column;
-        width: 100% !important;
+
         order: 4;
       }
     }
 
     &-column-full__page-nav {
-      order: 2;
       margin-bottom: 0.5rem;
       padding-left: 2rem;
+
+      order: 2;
     }
 
     &-row {
@@ -454,8 +490,9 @@
   }
 
   .record-page {
-    display: flex;
     margin-top: -2rem;
+
+    display: flex;
   }
 
   .govuk-summary-list {
@@ -466,11 +503,12 @@
     }
 
     &__key--record-table {
-      white-space: nowrap;
       width: 0;
-      text-align: left;
-      font-size: 1rem;
       margin-left: 0;
+
+      font-size: 1rem;
+      text-align: left;
+      white-space: nowrap;
     }
 
     &__value--record {
@@ -499,18 +537,23 @@
   }
 
   .rights-container {
-    display: flex;
-    order: 3;
     margin-top: 1rem;
     margin-bottom: 2rem;
+
+    display: flex;
+
+    order: 3;
   }
 
   .record-container {
+    padding: 0.5rem;
+
     display: flex;
     flex-direction: column;
-    order: 5;
+
     white-space: nowrap;
-    padding: 0.5rem;
+
+    order: 5;
   }
 
   .mobile__search__container-block {
@@ -519,19 +562,22 @@
 
   .govuk-heading-m__record-arrangement-mobile {
     margin-left: 20px;
+
     white-space: nowrap;
   }
 
   .govuk-link {
     &--ayr {
       color: black;
-      -webkit-text-fill-color: black;
       font-size: 0.9rem;
+
+      -webkit-text-fill-color: black;
 
       a {
         color: black;
-        -webkit-text-fill-color: black;
         font-size: 0.9rem;
+
+        -webkit-text-fill-color: black;
       }
 
       &:visited {
@@ -552,23 +598,28 @@
 @media (400px <= width <= $breakpoint-small) {
   .govuk-grid-column-two-thirds {
     &--record-table {
+      width: 100% !important;
+
       display: flex;
       flex-direction: column;
-      width: 100% !important;
+
       order: 4;
     }
   }
 
   .record-page {
-    display: flex;
     margin-top: -2rem;
+
+    display: flex;
   }
 
   .record-container {
     display: flex;
     flex-direction: column;
-    order: 5;
+
     white-space: nowrap;
+
+    order: 5;
   }
 
   .mobile-record {
@@ -593,26 +644,31 @@
   .govuk-summary-list {
     &__row {
       &--record {
-        display: table;
         width: 100% !important;
-        table-layout: fixed;
-        border-collapse: collapse;
         margin-bottom: 10px;
+
+        display: table;
+
+        table-layout: fixed;
+
+        border-collapse: collapse;
       }
     }
 
     &__key--record-table {
-      white-space: nowrap;
       width: 0;
-      text-align: left;
-      font-size: 1rem;
       margin-left: 0;
+
+      font-size: 1rem;
+      text-align: left;
+      white-space: nowrap;
     }
 
     &__value--record {
+      display: table-cell;
+
       font-size: 1rem;
       text-align: left;
-      display: table-cell;
     }
   }
 
