@@ -1,7 +1,7 @@
 ---
 services:
   opensearch-node1:
-    image: opensearchproject/opensearch:3.7.0@sha256:44ba7ea58a319adf61c33ab16873f9ef5dbb30b291a832d375172f0b2d24e3c9
+    image: opensearchproject/opensearch:3.8.0@sha256:bcc1797519726ceb6d651d4a3e60b7c30da91793914a8dfe75fd441d4f641509
     container_name: opensearch-node1
     environment:
       - cluster.name=opensearch-cluster
@@ -36,7 +36,7 @@ services:
       - opensearch-net
 
   opensearch-node2:
-    image: opensearchproject/opensearch:3.7.0@sha256:44ba7ea58a319adf61c33ab16873f9ef5dbb30b291a832d375172f0b2d24e3c9
+    image: opensearchproject/opensearch:3.8.0@sha256:bcc1797519726ceb6d651d4a3e60b7c30da91793914a8dfe75fd441d4f641509
     container_name: opensearch-node2
     environment:
       - cluster.name=opensearch-cluster
@@ -80,7 +80,7 @@ services:
       - opensearch-net
 
   postgres:
-    image: postgres:18.4@sha256:3a82e1f56c8f0f5616a11103ac3d47e632c3938698946a7ad26da0df1334744a
+    image: postgres:18.4@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636
     volumes:
       - kc_postgres_data:/var/lib/postgresql/data
     environment:
@@ -93,7 +93,7 @@ services:
       - keycloak_network
 
   webapp_postgres:
-    image: postgres:18.4@sha256:3a82e1f56c8f0f5616a11103ac3d47e632c3938698946a7ad26da0df1334744a
+    image: postgres:18.4@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636
     user: postgres
     volumes:
       - webapp_postgres_data:/var/lib/postgresql/data

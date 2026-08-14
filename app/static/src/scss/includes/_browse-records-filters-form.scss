@@ -1,0 +1,80 @@
+@use "variables" as *;
+
+.browse-all-filter-container {
+  background-color: $colour-container-normal;
+  padding: 0.5rem;
+  min-width: 100%;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+}
+
+.browse-filter__header {
+  display: flex;
+}
+
+.browse-records {
+  &__form-group {
+    margin: 0.5rem 0;
+  }
+
+  &__series-filter-example {
+    font-weight: normal;
+    font-size: 0.9rem;
+    color: #505a5f;
+  }
+
+  &__filter-count {
+    font-weight: normal;
+  }
+
+  &__radio-group {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.filters-form {
+  float: right;
+  font-size: 1rem;
+
+  &__buttons {
+    align-items: center;
+    margin-top: 1rem;
+  }
+}
+
+.govuk-fieldset {
+  &--record-status {
+    margin-bottom: -0.5rem; /* Adjusted margin bottom for status filter */
+    margin-top: 0;
+  }
+
+  &--record-date {
+    margin-bottom: -0.5rem;
+    margin-top: 0;
+  }
+}
+
+.govuk-heading-m {
+  &--browse-all-filter-title {
+    margin-bottom: 10px;
+  }
+}
+
+.govuk-radios {
+  &__label--consignment {
+    padding: 5px 10px;
+    font-size: 1rem;
+    max-width: 100%;
+  }
+
+  &--small {
+    padding: 0 0 10px;
+  }
+}
+
+.govuk-link {
+  &--browse-all-filter {
+    margin-left: 1rem;
+  }
+}

@@ -62,6 +62,67 @@ For convenience a shell script has been provided to download and extract the GOV
 ./build.sh
 ```
 
+## Design Systems and Components
+
+This service uses established government and TNA design systems wherever possible.
+
+We do not reinvent UI patterns that already exist and have been researched, tested, and made accessible.
+
+### Sources of truth
+
+We rely on:
+
+- [GOV.UK Design System](https://design-system.service.gov.uk/) for styles, components, patterns, and accessibility guidance
+- [The National Archives Design System](https://design-system.nationalarchives.gov.uk/) for TNA-branded components and patterns
+- [TNA Frontend](https://nationalarchives.github.io/tna-frontend-docs/) for the technical implementation, including Jinja templates
+
+These sources are the authority for what components exist and how they should behave.
+
+### Component decision hierarchy
+
+Before creating or modifying a UI component:
+
+1. Use a GOV.UK Design System component if one exists.
+2. Otherwise, use a TNA Design System component.
+3. Only create a service-specific component as a last resort.
+
+Creating new components must be justified and documented. Preference should be given to contributing upstream where possible.
+
+### Our implementation choices
+
+This service is built using:
+
+- Server-rendered HTML
+- Jinja templates and macros
+- Progressive enhancement
+- Minimal, optional JavaScript
+
+We follow the principles set out in the [GOV.UK Service Manual for progressive enhancement](https://www.gov.uk/service-manual/technology/using-progressive-enhancement).
+
+Client-side frameworks and single-page application architecture are not our default approach.
+
+### What we deliberately do not do
+
+- Duplicate GOV.UK or TNA components locally
+- Reimplement components in JavaScript frameworks
+- Make JavaScript a dependency for core user journeys
+
+### Repo-specific UI conventions (this repo only)
+
+For extending or modifying components, follow the GOV.UK Design System guidance first:
+
+- [Extending and modifying components (GOV.UK Design System)](https://design-system.service.gov.uk/get-started/extending-and-modifying-components/)
+
+Local convention: keep class prefixes distinct so custom styles are easy to identify and maintain.
+
+- Treat `govuk-` as reserved for GOV.UK Design System classes and macros.
+- Treat `tna-` as reserved for TNA Design System and TNA Frontend classes and macros.
+- For AYR-specific classes, use an `ayr-` prefix (or a feature-scoped prefix based on the same idea) so custom code is clearly distinguishable from upstream design system code.
+
+If local needs conflict with the GOV.UK guidance, treat that as an explicit design decision and document the reason in the pull request.
+
+These conventions help avoid ambiguity when maintaining templates, reviewing pull requests, and deciding what should be contributed upstream.
+
 ### CSS / SCSS
 
 We have the `app/static/src/scss/main.scss` file in the repo which we include all scss via partial scss files.

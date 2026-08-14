@@ -255,7 +255,11 @@ def build_browse_consignment_query(
     return query
 
 
-def build_browse_records_query(accessible_transferring_body_names=None):
+def build_browse_records_query(
+    accessible_transferring_body_names=None,
+    filters=None,
+    sorting_orders=None,
+):
     """
     Build a records query spanning all accessible bodies.
 
@@ -376,11 +380,79 @@ def build_browse_records_query(accessible_transferring_body_names=None):
         ).label("date_of_record"),
     )
 
-    query = query.order_by(
-        desc(sub_query.c.sort_date),
-        sub_query.c.file_name,
-        sub_query.c.file_id,
+    if filters:
+        query = _build_browse_records_filters(query, sub_query, filters)
+
+    if sorting_orders:
+        if "date_of_record" in sorting_orders:
+            sort_field = sub_query.c.sort_date
+            if sorting_orders["date_of_record"] == "desc":
+                query = query.order_by(
+                    desc(sort_field),
+                    sub_query.c.file_name,
+                    sub_query.c.file_id,
+                )
+            else:
+                query = query.order_by(
+                    sort_field,
+                    sub_query.c.file_name,
+                    sub_query.c.file_id,
+                )
+        else:
+            query = _build_sorting_orders(query, sub_query, sorting_orders)
+    else:
+        query = query.order_by(
+            desc(sub_query.c.sort_date),
+            sub_query.c.file_name,
+            sub_query.c.file_id,
+        )
+
+    return query
+
+
+def _build_browse_records_filters(query, sub_query, filters):
+    transferring_body = filters.get("transferring_body")
+    if transferring_body:
+        filter_value = f"%{transferring_body}%".lower()
+        query = query.filter(
+            func.lower(sub_query.c.transferring_body).like(filter_value)
+        )
+
+    series = filters.get("series")
+    if series:
+        filter_value = f"%{series}%".lower()
+        query = query.filter(func.lower(sub_query.c.series).like(filter_value))
+
+    consignment_reference = filters.get("consignment_reference")
+    if consignment_reference:
+        filter_value = f"%{consignment_reference}%".lower()
+        query = query.filter(
+            func.lower(sub_query.c.consignment_reference).like(filter_value)
+        )
+
+    record_status = (filters.get("record_status") or "").lower()
+    if record_status and record_status != "all":
+        query = query.filter(
+            func.lower(sub_query.c.closure_type) == record_status
+        )
+
+    date_filter_field = (filters.get("date_filter_field") or "").lower()
+    if date_filter_field == "date_last_modified":
+        date_filter_column = sub_query.c.date_last_modified
+    elif date_filter_field == "opening_date":
+        date_filter_column = sub_query.c.opening_date
+    elif date_filter_field == "transferred":
+        date_filter_column = sub_query.c.end_date
+    else:
+        date_filter_column = sub_query.c.sort_date
+
+    date_filter = _build_date_range_filter(
+        date_filter_column,
+        filters.get("date_from"),
+        filters.get("date_to"),
     )
+    if date_filter is not None:
+        query = query.filter(date_filter)
 
     return query
 
@@ -388,14 +460,14 @@ def build_browse_records_query(accessible_transferring_body_names=None):
 def _build_browse_filters(query, sub_query, filters):
     transferring_body = filters.get("transferring_body")
     if transferring_body:
-        filter_value = str(f"%{transferring_body}%").lower()
+        filter_value = f"%{transferring_body}%".lower()
         query = query.filter(
             func.lower(sub_query.c.transferring_body).like(filter_value)
         )
 
     series = filters.get("series")
     if series:
-        filter_value = str(f"%{series}%").lower()
+        filter_value = f"%{series}%".lower()
         query = query.filter(func.lower(sub_query.c.series).like(filter_value))
 
     date_filter = _build_date_range_filter(
@@ -412,7 +484,8 @@ def _build_browse_filters(query, sub_query, filters):
 def _build_sorting_orders(query, sub_query, sorting_orders):
     for field, order in sorting_orders.items():
         if field == "date_of_record":
-            # Use end_date if available, otherwise fall back to date_last_modified
+            # Use end_date if available, otherwise
+            # fall back to date_last_modified.
             column = func.coalesce(
                 sub_query.c.end_date, sub_query.c.date_last_modified
             )

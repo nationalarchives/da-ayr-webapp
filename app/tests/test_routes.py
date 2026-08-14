@@ -144,99 +144,89 @@ class TestRoutes:
         response = client.get("/terms-of-use")
         assert response.status_code == 200
 
-    @mock_aws
-    @patch("app.main.routes.create_presigned_url")
-    @patch("app.main.routes.boto3.client")
     def test_route_generate_pdf_manifest(
         self,
-        mock_boto_client,
-        mock_create_presigned_url,
         app,
         client: FlaskClient,
         mock_all_access_user,
     ):
-        mock_create_presigned_url.return_value = (
-            "https://presigned-url.com/download.pdf"
-        )
-
-        # Mock S3 get_object to return valid PDF bytes
-        s3_mock = mock_boto_client.return_value
-        s3_mock.get_object.return_value = {"Body": BytesIO(MINIMAL_VALID_PDF)}
-
         mock_all_access_user(client)
         file = FileFactory(ffid_metadata__PUID="fmt/276", FileName="test.pdf")
-        bucket_name = "test-bucket"
-        app.config["RECORD_BUCKET_NAME"] = bucket_name
-        create_mock_s3_bucket_with_object(bucket_name, file)
 
         response = client.get(f"{self.record_route_url}/{file.FileId}/manifest")
         assert response.status_code == 200
 
+        manifest_url = f"http://localhost/record/{file.FileId}/manifest"
+        canvas_id = f"{manifest_url}/canvas/1"
+        pdf_url = f"http://localhost/record/{file.FileId}/pdf"
+
         expected_pdf_manifest = {
             "@context": "https://iiif.io/api/presentation/3/context.json",
-            "@id": f"http://localhost/record/{file.FileId}/manifest",
-            "@type": "sc:Manifest",
-            "description": "Manifest for test.pdf",
+            "id": manifest_url,
+            "type": "Manifest",
             "label": {
                 "en": [
                     "test.pdf",
                 ],
             },
-            "service": {
-                "@context": "http://iiif.io/api/search/1/context.json",
-                "@id": f"http://localhost/record/{file.FileId}/search",
-                "label": "Search within this record",
-                "profile": "http://iiif.io/api/search/1/search",
+            "summary": {
+                "en": [
+                    "Manifest for test.pdf",
+                ],
             },
+            "service": [
+                {
+                    "@context": "http://iiif.io/api/search/1/context.json",
+                    "@id": f"http://localhost/record/{file.FileId}/search",
+                    "label": "Search within this record",
+                    "profile": "http://iiif.io/api/search/1/search",
+                }
+            ],
             "rendering": [
                 {
-                    "@id": f"http://localhost/record/{file.FileId}/pdf",
-                    "@type": "dctypes:Text",
+                    "id": pdf_url,
+                    "type": "Text",
+                    "label": {
+                        "en": [
+                            "test.pdf",
+                        ],
+                    },
                     "format": "application/pdf",
                 }
             ],
-            "sequences": [
+            "items": [
                 {
-                    "@id": f"http://localhost/record/{file.FileId}/manifest/sequence/1",
-                    "@type": "sc:Sequence",
-                    "canvases": [
+                    "id": canvas_id,
+                    "type": "Canvas",
+                    "label": {
+                        "en": [
+                            "test.pdf",
+                        ],
+                    },
+                    "items": [
                         {
-                            "@id": f"http://localhost/record/{file.FileId}/manifest/canvas/1",
-                            "@type": "sc:Canvas",
-                            "height": 416,
-                            "images": [
+                            "id": f"{canvas_id}/annotationpage/1",
+                            "type": "AnnotationPage",
+                            "items": [
                                 {
-                                    "@type": "oa:Annotation",
-                                    "motivation": "sc:painting",
-                                    "on": f"http://localhost/record/{file.FileId}/manifest/canvas/1",  # noqa
-                                    "resource": {
-                                        "@id": f"http://localhost/record/{file.FileId}/page/1",
-                                        "@type": "dctypes:Image",
-                                        "format": "image/jpeg",
-                                        "height": 416,
-                                        "width": 416,
+                                    "id": f"{canvas_id}/annotation/1",
+                                    "type": "Annotation",
+                                    "motivation": "painting",
+                                    "body": {
+                                        "id": pdf_url,
+                                        "type": "Text",
+                                        "format": "application/pdf",
                                     },
-                                },
+                                    "target": canvas_id,
+                                }
                             ],
-                            "label": "Page 1",
-                            "thumbnail": {
-                                "@id": f"http://localhost/record/{file.FileId}/page/1/thumbnail",
-                                "@type": "dctypes:Image",
-                                "format": "image/jpeg",
-                                "height": 200,
-                                "width": 150,
-                            },
-                            "width": 416,
-                        },
+                        }
                     ],
-                    "label": "Sequence 1",
                 },
             ],
-            "viewingDirection": "left-to-right",
         }
 
         actual_manifest = json.loads(response.text)
-        assert response.status_code == 200
         assert actual_manifest == expected_pdf_manifest
 
     @mock_aws
@@ -706,38 +696,28 @@ class TestRoutes:
         )
 
     @mock_aws
-    @patch("app.main.routes.boto3.client")
-    def test_get_record_pdf_returns_pdf_content(
+    def test_get_record_pdf_redirects_to_presigned_url(
         self,
-        mock_boto_client,
         app,
         client: FlaskClient,
         mock_all_access_user,
     ):
-        from unittest.mock import MagicMock
-
         mock_all_access_user(client)
         file = FileFactory(ffid_metadata__PUID="fmt/276", FileName="test.pdf")
         bucket_name = "test-bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_object(bucket_name, file)
 
-        body_mock = MagicMock()
-        body_mock.iter_chunks.return_value = iter([MINIMAL_VALID_PDF])
-        s3_mock = mock_boto_client.return_value
-        s3_mock.get_object.return_value = {
-            "Body": body_mock,
-            "ContentLength": len(MINIMAL_VALID_PDF),
-        }
-
         response = client.get(f"/record/{file.FileId}/pdf")
 
-        assert response.status_code == 200
-        assert response.content_type == "application/pdf"
-        assert response.headers.get("Content-Disposition") == "inline"
-        assert response.headers.get("Content-Length") == str(
-            len(MINIMAL_VALID_PDF)
+        assert response.status_code == 302
+        location = response.headers["Location"]
+        assert bucket_name in location
+        assert (
+            f"{file.consignment.ConsignmentReference}/{file.FileId}" in location
         )
+        assert "response-content-type=application%2Fpdf" in location
+        assert "response-content-disposition=inline" in location
 
     @mock_aws
     @patch("app.main.routes.boto3.client")
@@ -768,8 +748,8 @@ class TestRoutes:
         app.config["RECORD_BUCKET_NAME"] = "test-bucket"
 
         s3_mock = mock_boto_client.return_value
-        s3_mock.get_object.side_effect = ClientError(
-            {"Error": {"Code": "404", "Message": "Not Found"}}, "GetObject"
+        s3_mock.head_object.side_effect = ClientError(
+            {"Error": {"Code": "404", "Message": "Not Found"}}, "HeadObject"
         )
 
         response = client.get(f"/record/{file.FileId}/pdf")
@@ -789,8 +769,9 @@ class TestRoutes:
         app.config["RECORD_BUCKET_NAME"] = "test-bucket"
 
         s3_mock = mock_boto_client.return_value
-        s3_mock.get_object.side_effect = ClientError(
-            {"Error": {"Code": "500", "Message": "Internal Error"}}, "GetObject"
+        s3_mock.head_object.side_effect = ClientError(
+            {"Error": {"Code": "500", "Message": "Internal Error"}},
+            "HeadObject",
         )
 
         response = client.get(f"/record/{file.FileId}/pdf")
@@ -798,31 +779,48 @@ class TestRoutes:
 
     @mock_aws
     @patch("app.main.routes.boto3.client")
-    def test_get_record_pdf_convertible_puid_uses_access_copy_bucket(
+    def test_get_record_pdf_presigned_url_generation_failure_returns_500(
         self,
         mock_boto_client,
         app,
         client: FlaskClient,
         mock_all_access_user,
+        caplog,
     ):
-        from unittest.mock import MagicMock
+        mock_all_access_user(client)
+        file = FileFactory(ffid_metadata__PUID="fmt/276", FileName="test.pdf")
+        app.config["RECORD_BUCKET_NAME"] = "test-bucket"
 
+        s3_mock = mock_boto_client.return_value
+        s3_mock.generate_presigned_url.side_effect = Exception(
+            "Error in presigned URL generation"
+        )
+
+        response = client.get(f"/record/{file.FileId}/pdf")
+
+        assert response.status_code == 500
+        assert "Failed to generate presigned URL" in caplog.text
+
+    @mock_aws
+    def test_get_record_pdf_convertible_puid_uses_access_copy_bucket(
+        self,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
         mock_all_access_user(client)
         file = FileFactory(
             ffid_metadata__PUID="fmt/40", ffid_metadata__Extension="xls"
         )
         access_bucket = "access-copy-bucket"
         app.config["ACCESS_COPY_BUCKET"] = access_bucket
-
-        body_mock = MagicMock()
-        body_mock.iter_chunks.return_value = iter([MINIMAL_VALID_PDF])
-        s3_mock = mock_boto_client.return_value
-        s3_mock.get_object.return_value = {"Body": body_mock}
+        create_mock_s3_bucket_with_object(access_bucket, file)
 
         response = client.get(f"/record/{file.FileId}/pdf")
 
-        assert response.status_code == 200
-        s3_mock.get_object.assert_called_once_with(
-            Bucket=access_bucket,
-            Key=f"{file.consignment.ConsignmentReference}/{file.FileId}",
+        assert response.status_code == 302
+        location = response.headers["Location"]
+        assert access_bucket in location
+        assert (
+            f"{file.consignment.ConsignmentReference}/{file.FileId}" in location
         )

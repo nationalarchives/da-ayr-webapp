@@ -295,6 +295,26 @@ class TestBrowseRecordsRequestSchema:
             schema.load({"per_page": 0})
         assert "per_page" in exc_info.value.messages
 
+    def test_browse_filters_are_accepted(self):
+        schema = BrowseRecordsRequestSchema()
+        data = schema.load(
+            {
+                "transferring_body_filter": "Cabinet Office",
+                "series_filter": "CAB 128",
+                "date_from_day": 1,
+                "date_from_month": 1,
+                "date_from_year": 2023,
+                "date_to_day": 31,
+                "date_to_month": 12,
+                "date_to_year": 2023,
+            }
+        )
+
+        assert data["transferring_body_filter"] == "Cabinet Office"
+        assert data["series_filter"] == "CAB 128"
+        assert data["date_from_year"] == 2023
+        assert data["date_to_year"] == 2023
+
 
 class TestSearchRequestSchema:
     """Tests for SearchRequestSchema."""

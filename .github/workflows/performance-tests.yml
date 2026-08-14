@@ -38,7 +38,7 @@ jobs:
       uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
     - name: Log in to GHCR for Docker cache
-      uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4
+      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
@@ -88,7 +88,7 @@ jobs:
     - name: Set up Docker Compose
       uses: docker/setup-compose-action@4eb059ff7f16592f9c84d5ca339c53cb7c5064e2 # v2.3.0
       with:
-        version: v5.3.1
+        version: v5.4.0
 
     - name: Generate Keycloak TLS certs
       run: sh ./local_services/generate-keycloak-certs.sh

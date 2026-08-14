@@ -72,7 +72,7 @@ class BrowseConsignmentRequestSchema(PaginationSchema, BrowseFilterSchema):
         unknown = EXCLUDE
 
 
-class BrowseRecordsRequestSchema(PaginationSchema):
+class BrowseRecordsRequestSchema(PaginationSchema, BrowseFilterSchema):
     """Browse records request validation schema."""
 
     per_page = fields.Integer(
@@ -134,16 +134,6 @@ class GenerateManifestRequestSchema(Schema):
     """Schema for manifest generation parameters."""
 
     record_id = UUIDField(required=True)
-
-    class Meta:
-        unknown = EXCLUDE
-
-
-class PageImageRequestSchema(Schema):
-    """Schema for page image request parameters."""
-
-    record_id = UUIDField(required=True)
-    page_number = fields.Integer(required=True, validate=validate.Range(min=1))
 
     class Meta:
         unknown = EXCLUDE
