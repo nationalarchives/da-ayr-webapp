@@ -10,10 +10,19 @@ class MockMutationObserver {
 }
 global.MutationObserver = MockMutationObserver;
 
+class MockResizeObserver {
+  constructor(callback) {}
+  observe(target) {}
+  disconnect() {}
+}
+global.ResizeObserver = MockResizeObserver;
+
 function setupDOM(options = {}) {
   document.body.innerHTML = `
-    <script id="init-uv" manifest_url="test-manifest"></script>
-    <div id="uv"></div>
+    <div id="viewer">
+      <script id="init-uv" manifest_url="test-manifest" search_url="test-search-url"></script>
+      <div id="uv"></div>
+    </div>
   `;
   window.UV = {
     init: jest.fn(() => ({ on: jest.fn() })),
@@ -264,6 +273,218 @@ describe("tests for init.uv.js", () => {
         preserveViewport: true,
         zoomToSearchResultEnabled: false,
       },
+    });
+  });
+
+  describe("search within record", () => {
+    // Microtask-only flush (no setTimeout/setImmediate) so we don't wake
+    // dangling real timers left running by unrelated tests in this file.
+    const flushPromises = async () => {
+      for (let i = 0; i < 6; i++) {
+        await Promise.resolve();
+      }
+    };
+
+    function setupSearchableUv() {
+      document.getElementById("uv").innerHTML = `
+        <div class="pdfContainer"><canvas width="800"></canvas></div>
+        <input class="searchText" />
+        <button class="go"></button>
+      `;
+      const container = document.querySelector("#uv .pdfContainer");
+      Object.defineProperty(container, "clientWidth", {
+        value: 800,
+        configurable: true,
+      });
+      const canvas = container.querySelector("canvas");
+      Object.defineProperty(canvas, "clientWidth", {
+        value: 1000,
+        configurable: true,
+      });
+      Object.defineProperty(canvas, "clientHeight", {
+        value: 2000,
+        configurable: true,
+      });
+      return { container, canvas };
+    }
+
+    function initWithHandlers() {
+      let pdfLoadedHandler;
+      let pageIndexChangeHandler;
+      window.UV = {
+        init: jest.fn(() => ({
+          on: jest.fn((event, handler) => {
+            if (event === "pdfExtension.pdfLoaded") {
+              pdfLoadedHandler = handler;
+            }
+            if (event === "pdfExtension.pageIndexChange") {
+              pageIndexChangeHandler = handler;
+            }
+          }),
+        })),
+      };
+      require("./init.uv.js");
+      document.dispatchEvent(new Event("DOMContentLoaded"));
+      return {
+        pdfLoaded: () => pdfLoadedHandler(),
+        pageIndexChange: (n) => pageIndexChangeHandler(n),
+      };
+    }
+
+    it("creates a search bar next to the viewer when search_url is present", () => {
+      initWithHandlers();
+      expect(document.getElementById("uv-search")).not.toBeNull();
+      expect(document.getElementById("uv-search-input")).not.toBeNull();
+      expect(document.getElementById("uv-search-prev").disabled).toBe(true);
+      expect(document.getElementById("uv-search-next").disabled).toBe(true);
+    });
+
+    it("fetches hits, shows the count, and highlights the first hit on the current page", async () => {
+      setupSearchableUv();
+      const { pdfLoaded } = initWithHandlers();
+      pdfLoaded();
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          json: () =>
+            Promise.resolve({
+              hits: [
+                {
+                  page: 1,
+                  rect: { x: 0.1, y: 0.2, w: 0.3, h: 0.05 },
+                  text: "foo",
+                },
+                {
+                  page: 2,
+                  rect: { x: 0, y: 0, w: 0.1, h: 0.05 },
+                  text: "foo",
+                },
+              ],
+            }),
+        }),
+      );
+
+      document.getElementById("uv-search-input").value = "foo";
+      document.getElementById("uv-search-submit").click();
+      await flushPromises();
+
+      expect(global.fetch).toHaveBeenCalledWith("test-search-url?q=foo");
+      expect(document.getElementById("uv-search-count").textContent).toBe(
+        "1 of 2",
+      );
+      expect(document.getElementById("uv-search-prev").disabled).toBe(false);
+      expect(document.getElementById("uv-search-next").disabled).toBe(false);
+
+      const highlight = document.querySelector(".uv-search-highlight");
+      expect(highlight).not.toBeNull();
+      expect(highlight.style.left).toBe("100px");
+      expect(highlight.style.top).toBe("400px");
+      expect(highlight.style.width).toBe("300px");
+      expect(highlight.style.height).toBe("100px");
+      expect(highlight.classList.contains("uv-search-highlight--active")).toBe(
+        true,
+      );
+    });
+
+    it("drives UV's page-number field and waits for pageIndexChange when a hit is on another page", async () => {
+      setupSearchableUv();
+      const { pdfLoaded, pageIndexChange } = initWithHandlers();
+      pdfLoaded();
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          json: () =>
+            Promise.resolve({
+              hits: [
+                { page: 3, rect: { x: 0, y: 0, w: 0.1, h: 0.1 }, text: "x" },
+              ],
+            }),
+        }),
+      );
+
+      const goButton = document.querySelector("#uv button.go");
+      const goSpy = jest.spyOn(goButton, "click");
+
+      document.getElementById("uv-search-input").value = "x";
+      document.getElementById("uv-search-submit").click();
+      await flushPromises();
+
+      expect(document.querySelector("#uv input.searchText").value).toBe("3");
+      expect(goSpy).toHaveBeenCalledTimes(1);
+      // UV hasn't confirmed the page actually rendered yet
+      expect(document.querySelector(".uv-search-highlight")).toBeNull();
+
+      pageIndexChange(3);
+      expect(document.querySelector(".uv-search-highlight")).not.toBeNull();
+    });
+
+    it("wraps prev/next navigation across both ends of the hit list", async () => {
+      setupSearchableUv();
+      const { pdfLoaded } = initWithHandlers();
+      pdfLoaded();
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          json: () =>
+            Promise.resolve({
+              hits: [
+                { page: 1, rect: { x: 0, y: 0, w: 0.1, h: 0.1 }, text: "a" },
+                {
+                  page: 1,
+                  rect: { x: 0, y: 0.2, w: 0.1, h: 0.1 },
+                  text: "a",
+                },
+              ],
+            }),
+        }),
+      );
+
+      document.getElementById("uv-search-input").value = "a";
+      document.getElementById("uv-search-submit").click();
+      await flushPromises();
+
+      expect(document.getElementById("uv-search-count").textContent).toBe(
+        "1 of 2",
+      );
+
+      document.getElementById("uv-search-prev").click();
+      expect(document.getElementById("uv-search-count").textContent).toBe(
+        "2 of 2",
+      );
+
+      document.getElementById("uv-search-next").click();
+      expect(document.getElementById("uv-search-count").textContent).toBe(
+        "1 of 2",
+      );
+    });
+
+    it("clears highlights and resets the count when a new PDF loads", async () => {
+      setupSearchableUv();
+      const { pdfLoaded } = initWithHandlers();
+      pdfLoaded();
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          json: () =>
+            Promise.resolve({
+              hits: [
+                { page: 1, rect: { x: 0, y: 0, w: 0.1, h: 0.1 }, text: "a" },
+              ],
+            }),
+        }),
+      );
+
+      document.getElementById("uv-search-input").value = "a";
+      document.getElementById("uv-search-submit").click();
+      await flushPromises();
+
+      expect(document.querySelector(".uv-search-highlight")).not.toBeNull();
+
+      pdfLoaded();
+
+      expect(document.querySelector(".uv-search-highlight")).toBeNull();
+      expect(document.getElementById("uv-search-count").textContent).toBe("");
+      expect(document.getElementById("uv-search-prev").disabled).toBe(true);
     });
   });
 });

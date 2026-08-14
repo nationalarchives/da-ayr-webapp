@@ -14,7 +14,7 @@
                 </object>
             </noscript>
             <div id="uv" class="uv"></div>
-            <script id="init-uv" nonce="{{ csp_nonce() }}" manifest_url="{{ manifest_url }}" type="text/javascript" src="{{ url_for('static', filename='init.uv.js') }}">
+            <script id="init-uv" nonce="{{ csp_nonce() }}" manifest_url="{{ manifest_url }}"{% if search_url %} search_url="{{ search_url }}"{% endif %} type="text/javascript" src="{{ url_for('static', filename='init.uv.js') }}">
             </script>
         </div>
     {% elif access_copy_failed %}

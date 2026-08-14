@@ -919,6 +919,17 @@ def record(record_id: uuid.UUID):
     manifest_url = url_for(
         "main.generate_manifest", record_id=record_id, _external=True
     )
+    searchable_puids = (
+        current_app.config["UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS"]
+        | CONVERTIBLE_PUIDS
+    )
+    search_url = (
+        url_for(
+            "main.search_within_record", record_id=record_id, _external=True
+        )
+        if puid in searchable_puids
+        else None
+    )
     access_copy_failed = False
     if not can_render_file and puid in CONVERTIBLE_PUIDS:
         try:
@@ -948,6 +959,7 @@ def record(record_id: uuid.UUID):
         can_render_file=can_render_file,
         access_copy_failed=access_copy_failed,
         manifest_url=manifest_url,
+        search_url=search_url,
         file_extension=file_extension,
         presigned_url=presigned_url,
         supported_render_puids=current_app.config["SUPPORTED_RENDER_PUIDS"],
@@ -1128,35 +1140,11 @@ def search_within_record(record_id: uuid.UUID):
         bucket = current_app.config["RECORD_BUCKET_NAME"]
 
     key = f"{file.consignment.ConsignmentReference}/{file.FileId}"
-    search_url = url_for(
-        "main.search_within_record", record_id=record_id, _external=True
-    )
-    manifest_url = url_for(
-        "main.generate_manifest", record_id=record_id, _external=True
-    )
 
     if not q:
-        return jsonify(
-            {
-                "@context": [
-                    "http://iiif.io/api/presentation/2/context.json",
-                    "http://iiif.io/api/search/1/context.json",
-                ],
-                "@id": search_url,
-                "@type": "sc:AnnotationList",
-                "within": {"@type": "sc:Layer", "total": 0},
-                "resources": [],
-                "hits": [],
-            }
-        )
+        return jsonify({"total": 0, "hits": []})
 
-    return search_within_pdf(
-        query=q,
-        search_url=search_url,
-        manifest_url=manifest_url,
-        bucket=bucket,
-        key=key,
-    )
+    return search_within_pdf(query=q, bucket=bucket, key=key)
 
 
 @bp.route("/signed-out", methods=["GET"])

@@ -1,3 +1,5 @@
+@use "variables" as *;
+
 .uv-iiif-extension-host.uv-openseadragon-extension
   .centerPanel
   .content
@@ -23,5 +25,47 @@
   div.btn:focus {
     outline: none;
     border: 2px solid #005fcc;
+  }
+}
+
+#uv-search {
+  margin-bottom: 15px;
+
+  .govuk-label {
+    margin-bottom: 5px;
+  }
+
+  .uv-search-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  #uv-search-input {
+    @media screen and (width >= $breakpoint-small) {
+      max-width: 300px;
+    }
+    margin-bottom: 0;
+  }
+
+  .govuk-button {
+    margin-bottom: 0;
+  }
+
+  #uv-search-count {
+    font-size: 16px;
+  }
+}
+
+.uv-search-highlight {
+  position: absolute;
+  background-color: #1d70b8;
+  opacity: 0.25;
+  pointer-events: none;
+
+  &--active {
+    background-color: #fd0;
+    opacity: 0.5;
   }
 }

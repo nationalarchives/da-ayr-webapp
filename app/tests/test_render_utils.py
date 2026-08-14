@@ -121,7 +121,7 @@ MINIMAL_VALID_PDF_TWO_PAGES = (
 
 
 @patch("app.main.util.render_utils.get_pdf_from_s3")
-def test_search_within_pdf_returns_annotations_for_matches(
+def test_search_within_pdf_returns_hits_for_matches(
     mock_get_pdf_from_s3,
 ):
     mock_get_pdf_from_s3.return_value = _make_pdf_with_text("hello world")
@@ -130,26 +130,37 @@ def test_search_within_pdf_returns_annotations_for_matches(
     with app.app_context():
         response = search_within_pdf(
             query="hello",
-            search_url="http://localhost/record/abc/search",
-            manifest_url="http://localhost/record/abc/manifest",
             bucket="test-bucket",
             key="test/key",
         )
 
     data = response.get_json()
-    assert data["@type"] == "sc:AnnotationList"
-    assert data["within"]["total"] >= 1
-    assert len(data["resources"]) >= 1
-    assert len(data["hits"]) >= 1
-
-    resource = data["resources"][0]
-    assert resource["@type"] == "oa:Annotation"
-    assert "#xywh=" in resource["on"]
-    assert resource["resource"]["chars"] == "hello"
+    assert data["total"] >= 1
+    assert len(data["hits"]) == data["total"]
 
     hit = data["hits"][0]
-    assert hit["@type"] == "search:Hit"
-    assert hit["match"] == "hello"
+    assert hit["page"] == 1
+    assert hit["text"] == "hello"
+    for key in ("x", "y", "w", "h"):
+        assert 0 <= hit["rect"][key] <= 1
+
+
+@patch("app.main.util.render_utils.get_pdf_from_s3")
+def test_search_within_pdf_returns_no_hits_for_no_matches(
+    mock_get_pdf_from_s3,
+):
+    mock_get_pdf_from_s3.return_value = _make_pdf_with_text("hello world")
+
+    app = Flask(__name__)
+    with app.app_context():
+        response = search_within_pdf(
+            query="not in the document",
+            bucket="test-bucket",
+            key="test/key",
+        )
+
+    data = response.get_json()
+    assert data == {"total": 0, "hits": []}
 
 
 def _mupdf_messages(records):

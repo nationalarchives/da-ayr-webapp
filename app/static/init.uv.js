@@ -1,5 +1,15 @@
 const script = document.getElementById("init-uv");
 const manifest_url = script.getAttribute("manifest_url");
+const search_url = script.getAttribute("search_url");
+
+let currentPdfPageIndex = 1;
+let pendingPageChangeCallback = null;
+
+const searchState = {
+  hits: [],
+  currentIndex: -1,
+  searched: false,
+};
 
 function initUniversalViewer() {
   const data = {
@@ -40,8 +50,22 @@ function initUniversalViewer() {
     });
   });
   uv.on("pdfExtension.pdfLoaded", function () {
+    currentPdfPageIndex = 1;
+    resetSearch();
     fitPdfToWidth();
   });
+  uv.on("pdfExtension.pageIndexChange", function (pageIndex) {
+    currentPdfPageIndex = pageIndex;
+    if (pendingPageChangeCallback) {
+      const cb = pendingPageChangeCallback;
+      pendingPageChangeCallback = null;
+      cb();
+    } else {
+      drawHighlights();
+    }
+  });
+
+  initSearchBar();
 }
 
 // Universal Viewer's PDF.js panel always renders at a fixed scale with no
@@ -111,6 +135,199 @@ function zoomPdfTowardsTargetWidth(
   setTimeout(function () {
     zoomPdfTowardsTargetWidth(direction, targetWidth, tolerance, clicks + 1);
   }, 250);
+}
+
+function initSearchBar() {
+  if (!search_url) {
+    return;
+  }
+
+  const viewerContainer = document.getElementById("viewer");
+  if (!viewerContainer || document.getElementById("uv-search")) {
+    return;
+  }
+
+  const bar = document.createElement("div");
+  bar.id = "uv-search";
+  bar.innerHTML = `
+    <label for="uv-search-input" class="govuk-label govuk-label--s">Search within record</label>
+    <div class="uv-search-controls">
+      <input type="text" id="uv-search-input" class="govuk-input" />
+      <button type="button" id="uv-search-submit" class="govuk-button" data-module="govuk-button">Search</button>
+      <span id="uv-search-count" aria-live="polite"></span>
+      <button type="button" id="uv-search-prev" class="govuk-button govuk-button--secondary" data-module="govuk-button" disabled>Previous</button>
+      <button type="button" id="uv-search-next" class="govuk-button govuk-button--secondary" data-module="govuk-button" disabled>Next</button>
+    </div>
+  `;
+  viewerContainer.insertBefore(bar, viewerContainer.firstChild);
+
+  document
+    .getElementById("uv-search-submit")
+    .addEventListener("click", runSearch);
+  document
+    .getElementById("uv-search-input")
+    .addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        runSearch();
+      }
+    });
+  document
+    .getElementById("uv-search-prev")
+    .addEventListener("click", function () {
+      goToHit(searchState.currentIndex - 1);
+    });
+  document
+    .getElementById("uv-search-next")
+    .addEventListener("click", function () {
+      goToHit(searchState.currentIndex + 1);
+    });
+
+  window.addEventListener("resize", drawHighlights);
+}
+
+function resetSearch() {
+  searchState.hits = [];
+  searchState.currentIndex = -1;
+  searchState.searched = false;
+  clearHighlights();
+  updateSearchStatus();
+}
+
+function runSearch() {
+  const input = document.getElementById("uv-search-input");
+  const query = input ? input.value.trim() : "";
+
+  resetSearch();
+
+  if (!query || !search_url) {
+    return;
+  }
+
+  fetch(`${search_url}?q=${encodeURIComponent(query)}`)
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (data) {
+      searchState.hits = (data && data.hits) || [];
+      searchState.searched = true;
+      updateSearchStatus();
+      if (searchState.hits.length > 0) {
+        goToHit(0);
+      }
+    });
+}
+
+function updateSearchStatus() {
+  const countEl = document.getElementById("uv-search-count");
+  if (countEl) {
+    if (!searchState.searched) {
+      countEl.textContent = "";
+    } else if (searchState.hits.length === 0) {
+      countEl.textContent = "No results";
+    } else {
+      countEl.textContent = `${searchState.currentIndex + 1} of ${searchState.hits.length}`;
+    }
+  }
+
+  const hasHits = searchState.hits.length > 0;
+  const prevBtn = document.getElementById("uv-search-prev");
+  const nextBtn = document.getElementById("uv-search-next");
+  if (prevBtn) {
+    prevBtn.disabled = !hasHits;
+  }
+  if (nextBtn) {
+    nextBtn.disabled = !hasHits;
+  }
+}
+
+function goToHit(index) {
+  const hits = searchState.hits;
+  if (hits.length === 0) {
+    return;
+  }
+
+  searchState.currentIndex =
+    ((index % hits.length) + hits.length) % hits.length;
+  updateSearchStatus();
+
+  const hit = hits[searchState.currentIndex];
+  navigateToPage(hit.page, drawHighlights);
+}
+
+function navigateToPage(pageNumber, onDone) {
+  if (currentPdfPageIndex === pageNumber) {
+    onDone();
+    return;
+  }
+
+  const input = document.querySelector("#uv input.searchText");
+  const button = document.querySelector("#uv button.go");
+  if (!input || !button) {
+    return;
+  }
+
+  pendingPageChangeCallback = onDone;
+  input.value = pageNumber;
+  button.click();
+}
+
+function clearHighlights() {
+  document.querySelectorAll(".uv-search-highlight").forEach(function (el) {
+    el.remove();
+  });
+}
+
+function drawHighlights() {
+  clearHighlights();
+
+  const container = document.querySelector("#uv .pdfContainer");
+  const canvas = container && container.querySelector("canvas");
+  if (!container || !canvas) {
+    return;
+  }
+
+  if (getComputedStyle(container).position === "static") {
+    container.style.position = "relative";
+  }
+
+  observeCanvasResize(canvas);
+
+  searchState.hits.forEach(function (hit, index) {
+    if (hit.page !== currentPdfPageIndex) {
+      return;
+    }
+
+    const box = document.createElement("div");
+    box.className =
+      "uv-search-highlight" +
+      (index === searchState.currentIndex
+        ? " uv-search-highlight--active"
+        : "");
+
+    box.style.left = `${canvas.offsetLeft + hit.rect.x * canvas.clientWidth}px`;
+    box.style.top = `${canvas.offsetTop + hit.rect.y * canvas.clientHeight}px`;
+    box.style.width = `${hit.rect.w * canvas.clientWidth}px`;
+    box.style.height = `${hit.rect.h * canvas.clientHeight}px`;
+    container.appendChild(box);
+  });
+}
+
+let highlightResizeObserver = null;
+let observedCanvas = null;
+
+function observeCanvasResize(canvas) {
+  if (observedCanvas === canvas) {
+    return;
+  }
+  if (highlightResizeObserver) {
+    highlightResizeObserver.disconnect();
+  }
+  observedCanvas = canvas;
+  highlightResizeObserver = new ResizeObserver(function () {
+    drawHighlights();
+  });
+  highlightResizeObserver.observe(canvas);
 }
 
 document.addEventListener("DOMContentLoaded", function () {
