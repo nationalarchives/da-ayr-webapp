@@ -19,7 +19,8 @@ jobs:
     steps:
       - name: Trigger Application Deployment in da-ayr-terraform private repo
         run: |
-          curl -L \
+          set -euo pipefail
+          curl --fail-with-body -sS -L \
           -X POST \
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer ${{ secrets.PAT }}" \
