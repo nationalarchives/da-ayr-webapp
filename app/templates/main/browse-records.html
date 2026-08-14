@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
+{% from 'main/components/sort-records.html' import sort_records %}
 {% block pageTitle %}Browse records – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block content %}
     <div class="govuk-grid-row browse__page desktop mobile">
@@ -8,7 +9,7 @@
         {% include "top-search.html" %}
         <div class="govuk-grid-column-full govuk-grid-column-full__page_container">
             <div class="browse-details">
-                {% set sort_records = {"5": "5", "10": "10", "20": "20"} %}
+                {% set per_page_options = {"5": "5", "10": "10", "20": "20"} %}
                 {% set records_has_active_filters = (filter_count | default(0)) > 0 %}
                 <div class="browse-layout records-page-wrapper">
                     <div class="browse-records__header-container">
@@ -44,9 +45,12 @@
                         {% set start_index = ((current_page - 1) * per_page) + 1 %}
                         {% set end_index = [current_page * per_page, num_records_found] | min %}
                         <!-- SORT -->
-                        {% with dict = sort_records %}
-                            {% include "sort-records.html" %}
-                        {% endwith %}
+                        {% set preserved_params = query_string_parameters.copy() %}
+                        {% set _ = preserved_params.pop('per_page', None) %}
+                        {% set _ = preserved_params.pop('page', None) %}
+                        {% set _ = preserved_params.pop('_id', None) %}
+                        {% set _ = preserved_params.pop('sort', None) %}
+                        {{ sort_records(preserved_params, per_page_options, records_sort_options, selected_sort) }}
                         <!-- TABLE -->
                         <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
                             <table class="govuk-table browse-grid__table browse-records__table"
