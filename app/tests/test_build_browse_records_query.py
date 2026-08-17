@@ -341,3 +341,62 @@ class TestBrowseRecords:
         results = query.all()
 
         assert results == []
+
+    def test_build_browse_records_query_filters_by_transferring_body(
+        self, client: FlaskClient, browse_files
+    ):
+        """
+        Given a transferring body filter
+        When build_browse_records_query is executed
+        Then only records matching that transferring body are returned
+        """
+        query = build_browse_records_query(
+            accessible_transferring_body_names=None,
+            filters={"transferring_body": "second_body"},
+        )
+        results = query.all()
+
+        assert len(results) == 7
+        assert all(result[1] == "second_body" for result in results)
+
+    def test_build_browse_records_query_filters_by_opening_date_range(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given an opening date filter field and date range
+        When build_browse_records_query is executed
+        Then records are filtered using opening_date
+        """
+        body_name = browse_consignment_files[0].consignment.series.body.Name
+
+        mock_standard_user(client, body_name)
+
+        query = build_browse_records_query(
+            accessible_transferring_body_names=[body_name],
+            filters={
+                "date_filter_field": "opening_date",
+                "date_from": "2060-01-01",
+                "date_to": "2080-12-31",
+            },
+        )
+        results = query.all()
+
+        assert [result[7] for result in results] == ["fourth_file.xls"]
+
+    def test_build_browse_records_query_sorts_by_series_then_file_name(
+        self, client: FlaskClient, browse_files
+    ):
+        """
+        Given non-date sorting orders for series and file name
+        When build_browse_records_query is executed
+        Then records are sorted via generic sorting order helper
+        """
+        query = build_browse_records_query(
+            accessible_transferring_body_names=None,
+            sorting_orders={"series": "desc", "file_name": "asc"},
+        )
+        results = query.all()
+
+        series_values = [result[3] for result in results]
+
+        assert series_values == sorted(series_values, reverse=True)
