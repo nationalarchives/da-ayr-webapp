@@ -4372,4 +4372,4 @@ test = ["pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<3.14"
-content-hash = "04d5b47744130e5bf59833505b035694621a2aa87a459326c9f4223918692b9d"
+content-hash = "3bc4721b3e172cde06cbe3dbae2244b2bf3e808bc8319ce09d2cbc0d85e56e07"
