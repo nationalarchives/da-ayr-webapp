@@ -1,0 +1,8 @@
+{% macro render_preserved_params(params, excluded_keys=None) %}
+    {% set excluded_keys = excluded_keys or [] %}
+    {% for key, value in params.items() %}
+        {% if key not in excluded_keys %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
