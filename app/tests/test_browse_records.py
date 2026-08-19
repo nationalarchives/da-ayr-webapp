@@ -162,6 +162,37 @@ class TestBrowseRecords:
         assert response.status_code == 200
         verify_filters_heading(response.data, "Filters (0)")
 
+    def test_browse_records_standard_user_consignment_filter_without_series_backfills_and_applies_series(
+        self, client: FlaskClient, mock_standard_user, browse_files
+    ):
+        """
+        Given a standard user with a consignment filter and no series filter
+        When browse records is requested
+        Then the matching series value is auto-populated and applied
+        """
+        mock_standard_user(client, "first_body")
+
+        response = client.get(
+            f"{self.route_url}?consignment_reference=TDR-2023-FI1"
+        )
+
+        assert response.status_code == 200
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        transferring_body_filter = soup.find(
+            "input", id="transferring_body_filter"
+        )
+        series_filter = soup.find("input", id="series_filter")
+        consignment_filter = soup.find("input", id="consignment_reference")
+
+        assert transferring_body_filter is not None
+        assert series_filter is not None
+        assert consignment_filter is not None
+        assert transferring_body_filter.get("value") == "first_body"
+        assert series_filter.get("value") == "first_series"
+        assert consignment_filter.get("value") == "TDR-2023-FI1"
+        verify_filters_heading(response.data, "Filters (2)")
+
     def test_browse_records_consignment_filter_limits_results(
         self, client: FlaskClient, mock_all_access_user, browse_files
     ):
@@ -201,6 +232,46 @@ class TestBrowseRecords:
             "tbody.govuk-table__body td[colspan='4'] > a[href^='/record/']"
         )
         assert len(record_links) == 3
+
+    def test_browse_records_all_access_consignment_filter_autofills_transferring_body_and_series(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given an all-access user with no transferring body or series filter selected
+        When they filter by consignment only
+        Then transferring body and series are auto-populated from the match
+        """
+        mock_all_access_user(client)
+
+        initial_response = client.get(self.route_url)
+
+        assert initial_response.status_code == 200
+        initial_soup = BeautifulSoup(initial_response.data, "html.parser")
+        initial_transferring_body_filter = initial_soup.find(
+            "input", id="transferring_body_filter"
+        )
+        initial_series_filter = initial_soup.find("input", id="series_filter")
+
+        assert initial_transferring_body_filter is not None
+        assert initial_series_filter is not None
+        assert not initial_transferring_body_filter.get("value")
+        assert not initial_series_filter.get("value")
+
+        filtered_response = client.get(
+            f"{self.route_url}?consignment_reference=TDR-2023-TH3"
+        )
+
+        assert filtered_response.status_code == 200
+        filtered_soup = BeautifulSoup(filtered_response.data, "html.parser")
+        filtered_transferring_body_filter = filtered_soup.find(
+            "input", id="transferring_body_filter"
+        )
+        filtered_series_filter = filtered_soup.find("input", id="series_filter")
+
+        assert filtered_transferring_body_filter is not None
+        assert filtered_series_filter is not None
+        assert filtered_transferring_body_filter.get("value") == "second_body"
+        assert filtered_series_filter.get("value") == "second_series"
 
     def test_browse_records_series_filter_backfills_transferring_body(
         self, client: FlaskClient, mock_all_access_user, browse_files

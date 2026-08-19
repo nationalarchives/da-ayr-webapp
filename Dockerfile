@@ -5,7 +5,7 @@ WORKDIR /docker_app
 # Install system dependencies including Node.js (cached layer)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc=4:14.2.0-1 \
-    libpq-dev=17.10-0+deb13u1 \
+    libpq-dev \
     openssl=3.5.6-1~deb13u2 \
     tesseract-ocr=5.5.0-1+b1 \
     antiword=0.37-17 \
