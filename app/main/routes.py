@@ -650,7 +650,7 @@ def browse_records():
     try:
         total = count_query.count()
         total_pages = calculate_total_pages(total, per_page)
-        if page > total_pages > 0:
+        if page > 1 and page > total_pages:
             return redirect_if_page_invalid(
                 page, default_page, "main.browse_records"
             )
@@ -661,7 +661,7 @@ def browse_records():
             page, default_page, "main.browse_records"
         )
 
-    # Stage 2: fetch metadata only for the 5 files on this page
+    # Stage 2: fetch metadata only for the files on this page
     file_ids = [row.file_id for row in page_items]
     metadata_map = get_browse_records_metadata_for_files(file_ids)
 

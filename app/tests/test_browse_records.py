@@ -665,6 +665,24 @@ class TestBrowseRecords:
         assert b"No records found" in response.data
         verify_scope_text(response.data, "All available records")
 
+    def test_browse_records_invalid_page_redirects_when_no_results(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given a filter that returns zero records
+        When page > 1 is requested
+        Then the user is redirected to page 1
+        """
+        mock_all_access_user(client)
+
+        response = client.get(
+            f"{self.route_url}?series_filter=zzzzzzzzzzzzzz&page=2"
+        )
+
+        assert response.status_code == 302
+        assert "page=1" in response.headers["Location"]
+        assert "series_filter=zzzzzzzzzzzzzz" in response.headers["Location"]
+
     @pytest.mark.parametrize("body_name", ["first_body", "second_body"])
     def test_browse_records_scope_text_changes_for_different_accounts(
         self,

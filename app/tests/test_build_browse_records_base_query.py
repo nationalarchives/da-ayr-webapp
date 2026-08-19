@@ -12,7 +12,7 @@ class TestBrowseRecordsBaseQuery:
         """
         Given a body name the user can access
         When build_browse_records_base_query is called and executed
-        Then it returns flattened records for that body ordered by file_name
+        Then it returns flattened records for that body ordered by date_of_record desc
         """
         body_name = browse_consignment_files[0].consignment.series.body.Name
 
@@ -46,31 +46,9 @@ class TestBrowseRecordsBaseQuery:
                 series.Name,
                 consignment.ConsignmentId,
                 consignment.ConsignmentReference,
-                browse_consignment_files[0].FileId,
-                "first_file.docx",
-                browse_consignment_files[0].FilePath,
-            ),
-            (
-                body.BodyId,
-                body.Name,
-                series.SeriesId,
-                series.Name,
-                consignment.ConsignmentId,
-                consignment.ConsignmentReference,
                 browse_consignment_files[3].FileId,
                 "fourth_file.xls",
                 browse_consignment_files[3].FilePath,
-            ),
-            (
-                body.BodyId,
-                body.Name,
-                series.SeriesId,
-                series.Name,
-                consignment.ConsignmentId,
-                consignment.ConsignmentReference,
-                browse_consignment_files[1].FileId,
-                "second_file.ppt",
-                browse_consignment_files[1].FilePath,
             ),
             (
                 body.BodyId,
@@ -83,9 +61,54 @@ class TestBrowseRecordsBaseQuery:
                 "third_file.docx",
                 browse_consignment_files[2].FilePath,
             ),
+            (
+                body.BodyId,
+                body.Name,
+                series.SeriesId,
+                series.Name,
+                consignment.ConsignmentId,
+                consignment.ConsignmentReference,
+                browse_consignment_files[0].FileId,
+                "first_file.docx",
+                browse_consignment_files[0].FilePath,
+            ),
+            (
+                body.BodyId,
+                body.Name,
+                series.SeriesId,
+                series.Name,
+                consignment.ConsignmentId,
+                consignment.ConsignmentReference,
+                browse_consignment_files[1].FileId,
+                "second_file.ppt",
+                browse_consignment_files[1].FilePath,
+            ),
         ]
 
         assert results == expected_results
+
+    def test_build_browse_records_base_query_none_sorting_orders_has_no_order_by(
+        self, client, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given sorting_orders is None (count-query usage)
+        When build_browse_records_base_query is executed
+        Then no ORDER BY clause is added
+        """
+        body_name = browse_consignment_files[0].consignment.series.body.Name
+
+        mock_standard_user(client, body_name)
+
+        query = build_browse_records_base_query(
+            accessible_transferring_body_names=[body_name],
+            sorting_orders=None,
+        )
+
+        sql = str(
+            query.statement.compile(compile_kwargs={"literal_binds": True})
+        )
+
+        assert "ORDER BY" not in sql.upper()
 
     def test_build_browse_records_base_query_sorts_by_opening_date_asc(
         self, client, mock_standard_user, browse_consignment_files
@@ -267,9 +290,9 @@ class TestBrowseRecordsBaseQuery:
         results = query.all()
 
         assert [result[7] for result in results] == [
-            "first_file.docx",
             "fourth_file.xls",
             "third_file.docx",
+            "first_file.docx",
         ]
 
     def test_build_browse_records_base_query_filters_by_last_modified_date_range(
