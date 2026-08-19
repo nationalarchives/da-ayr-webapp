@@ -1,6 +1,6 @@
 FROM public.ecr.aws/lambda/python:3.12
 
-ARG DROID_VERSION=6.9.13
+ARG DROID_VERSION=droid-6.9.13
 
 # Install Java for DROID, plus unzip to unpack the downloaded release
 RUN dnf install -y java-21-amazon-corretto-headless unzip && dnf clean all
