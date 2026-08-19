@@ -50,18 +50,7 @@
                         {% set _ = preserved_params.pop('page', None) %}
                         {% set _ = preserved_params.pop('_id', None) %}
                         {% set _ = preserved_params.pop('sort', None) %}
-                        {% set sort_options = {
-                            "Modified date – newest": "date_of_record-desc",
-                            "Modified date – oldest": "date_of_record-asc",
-                            "File name – A to Z": "file_name-asc",
-                            "File name – Z to A": "file_name-desc",
-                            "Record opening date – sooner": "opening_date-asc",
-                            "Record opening date – later": "opening_date-desc",
-                            "Series – A to Z": "series-asc",
-                            "Series – Z to A": "series-desc"
-                        } %}
-                        {% set selected_sort = request.args.get('sort', 'date_of_record-desc') %}
-                        {{ sort_records(preserved_params, per_page_options, sort_options, selected_sort) }}
+                        {{ sort_records(preserved_params, per_page_options, records_sort_options, selected_sort) }}
                         <!-- TABLE -->
                         <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
                             <table class="govuk-table browse-grid__table browse-records__table"

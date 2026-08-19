@@ -13,6 +13,17 @@
     {% endfor %}
 {% endmacro %}
 {% macro sort_records(preserved_params, per_page_options, sort_options, selected_sort) %}
+    {% set selected_sort = request.args.get('sort', 'date_of_record-desc') %}
+    {% set records_sort_options = {
+        "Modified date – newest": "date_of_record-desc",
+        "Modified date – oldest": "date_of_record-asc",
+        "File name – A to Z": "file_name-asc",
+        "File name – Z to A": "file_name-desc",
+        "Record opening date – sooner": "opening_date-asc",
+        "Record opening date – later": "opening_date-desc",
+        "Series – A to Z": "series-asc",
+        "Series – Z to A": "series-desc"
+    } %}
     <form id="records-form"
           action="{{ url_for('main.browse_records', _anchor='records') }}"
           method="get"
@@ -23,7 +34,7 @@
                 <label class="govuk-label govuk-visually-hidden" for="sort-records-js">Sort records</label>
                 <select class="sort-list-records__select js-records-sort-select"
                         id="sort-records-js"
-                        name="sort">{{ render_sort_options(sort_options, selected_sort) }}</select>
+                        name="sort">{{ render_sort_options(records_sort_options, selected_sort) }}</select>
                 <label class="browse-records__label--left" for="sort-js">Records per page</label>
                 <select class="record-select--sort-left" id="sort-js" name="per_page">{{ render_per_page_options(per_page_options) }}</select>
             </div>
@@ -44,7 +55,7 @@
                 <div class="sort-list-records-no-js__sort-action">
                     <select class="sort-list-records__select no-js-records-sort-select"
                             id="sort-records-no-js"
-                            name="sort">{{ render_sort_options(sort_options, selected_sort) }}</select>
+                            name="sort">{{ render_sort_options(records_sort_options, selected_sort) }}</select>
                     <button type="submit"
                             class="govuk-button govuk-button--secondary"
                             data-module="govuk-button">Sort</button>
