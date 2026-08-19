@@ -13,6 +13,11 @@ RUN mkdir -p /opt/droid && \
     unzip -q /tmp/droid.zip -d /opt/droid && \
     rm /tmp/droid.zip
 
+
+RUN pip install --no-cache-dir --upgrade pip
+
+RUN rm -f /usr/local/bin/aws-lambda-rie
+
 # Copy Lambda handler
 COPY handler.py ${LAMBDA_TASK_ROOT}/handler.py
 
