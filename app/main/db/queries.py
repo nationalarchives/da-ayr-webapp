@@ -1,7 +1,10 @@
 import uuid
+from typing import Any, Optional
 
 from flask import current_app
 from sqlalchemy import DATE, and_, desc, func
+from sqlalchemy.orm import Query
+from sqlalchemy.sql.elements import ColumnElement
 
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
 
@@ -361,9 +364,11 @@ def _build_date_file_id_filters(date_filter_field, date_from, date_to):
     return [File.FileId.in_(sort_date_ids)]
 
 
-def _apply_base_query_sort(query, sorting_orders):
+def _apply_base_query_sort(
+    query: Query, sorting_orders: Optional[dict[str, str]]
+) -> Query:
     if not sorting_orders:
-        sorting_orders = {"date_of_record": "desc"}
+        return query
 
     if "date_of_record" in sorting_orders:
         sort_sq = (
@@ -435,9 +440,9 @@ def _apply_base_query_sort(query, sorting_orders):
 
 
 def build_browse_records_base_query(
-    accessible_transferring_body_names=None,
-    filters=None,
-    sorting_orders=None,
+    accessible_transferring_body_names: Optional[list[str]] = None,
+    filters: Optional[dict[str, Any]] = None,
+    sorting_orders: Optional[dict[str, str]] = None,
 ):
     """
     Stage-1 query: File/hierarchy only, no FileMetadata join in the main select.
@@ -468,7 +473,7 @@ def build_browse_records_base_query(
     return _apply_base_query_sort(query, sorting_orders)
 
 
-def get_browse_records_metadata_for_files(file_ids):
+def get_browse_records_metadata_for_files(file_ids: list[uuid.UUID]):
     """
     Stage-2 query: fetch and pivot the 4 browse metadata properties for a
     small set of file IDs. Reads only the rows needed for the current page.
@@ -820,7 +825,9 @@ def _get_file_metadata_query(file_id: uuid.UUID):
     return query
 
 
-def _build_date_range_filter(date_field, date_from, date_to):
+def _build_date_range_filter(
+    date_field: ColumnElement, date_from: Optional[str], date_to: Optional[str]
+) -> Optional[ColumnElement]:
     date_filter = None
     if date_from and date_to:
         date_filter = and_(

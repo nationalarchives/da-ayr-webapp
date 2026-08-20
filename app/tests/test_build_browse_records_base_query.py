@@ -12,7 +12,7 @@ class TestBrowseRecordsBaseQuery:
         """
         Given a body name the user can access
         When build_browse_records_base_query is called and executed
-        Then it returns flattened records for that body ordered by date_of_record desc
+        Then it returns flattened records for that body
         """
         body_name = browse_consignment_files[0].consignment.series.body.Name
 
@@ -27,7 +27,7 @@ class TestBrowseRecordsBaseQuery:
         series = browse_consignment_files[0].consignment.series
         consignment = browse_consignment_files[0].consignment
 
-        expected_results = [
+        expected_results = {
             (
                 body.BodyId,
                 body.Name,
@@ -83,17 +83,18 @@ class TestBrowseRecordsBaseQuery:
                 "second_file.ppt",
                 browse_consignment_files[1].FilePath,
             ),
-        ]
+        }
 
-        assert results == expected_results
+        assert len(results) == len(expected_results)
+        assert set(results) == expected_results
 
-    def test_build_browse_records_base_query_none_sorting_orders_uses_default_sort(
+    def test_build_browse_records_base_query_none_sorting_orders_leaves_query_unsorted(
         self, client, mock_standard_user, browse_consignment_files
     ):
         """
         Given sorting_orders is None
         When build_browse_records_base_query is executed
-        Then the default date_of_record descending sort is applied
+        Then the helper leaves ordering to the caller
         """
         body_name = browse_consignment_files[0].consignment.series.body.Name
 
@@ -108,7 +109,7 @@ class TestBrowseRecordsBaseQuery:
             query.statement.compile(compile_kwargs={"literal_binds": True})
         )
 
-        assert "ORDER BY" in sql.upper()
+        assert "ORDER BY" not in sql.upper()
 
     def test_build_browse_records_base_query_sorts_by_opening_date_asc(
         self, client, mock_standard_user, browse_consignment_files
@@ -289,10 +290,10 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert [result[7] for result in results] == [
+        assert sorted(result[7] for result in results) == [
+            "first_file.docx",
             "fourth_file.xls",
             "third_file.docx",
-            "first_file.docx",
         ]
 
     def test_build_browse_records_base_query_filters_by_last_modified_date_range(
@@ -317,7 +318,7 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert [result[7] for result in results] == [
+        assert sorted(result[7] for result in results) == [
             "fifth_file.doc",
             "fourth_file.xls",
         ]
@@ -364,7 +365,7 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert [result[7] for result in results] == [
+        assert sorted(result[7] for result in results) == [
             "fifth_file.doc",
             "fourth_file.xls",
         ]
