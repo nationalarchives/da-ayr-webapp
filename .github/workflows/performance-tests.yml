@@ -174,3 +174,26 @@ jobs:
       run: |
         docker compose -f docker-compose.yml --env-file .docker.env down -v
         docker system prune -f
+
+  slack-alerts:
+    needs:
+      - build_webapp_image
+      - performance_tests
+    if: ${{ always() && (needs.build_webapp_image.result == 'failure' || needs.performance_tests.result == 'failure') && (github.ref_name == 'main' || startsWith(github.ref_name, 'release/') || startsWith(github.ref, 'refs/tags/')) }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Send Slack notification
+        uses: ./.github/actions/slack-failed-workflow-notification
+        with:
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          workflow_name: ${{ github.workflow }}
+          target_ref: ${{ github.ref_name }}
+          actor: ${{ github.triggering_actor || github.actor }}
+          run_url: ${{ format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
+          repo_name: ${{ github.repository }}
