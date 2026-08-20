@@ -2,13 +2,39 @@ FROM public.ecr.aws/lambda/python:3.12
 
 ARG DROID_VERSION=6.9.13
 
-# Pinned patched versions for CVEs in DROID's bundled dependencies.
+# Pinned patched versions for CVEs in DROID's bundled dependencies, sourced
+# from the full Wiz/ECR scan export (not partial terminal output — get a
+# full CSV/JSON export each time this needs re-checking, since DROID's
+# lib/ folder has ~40 jars and partial scan snippets miss things).
 # DROID's own release doesn't refresh these on its own schedule, so we
-# override the vulnerable jars after unpacking. Re-check filenames and
-# versions against each scan and against any future DROID_VERSION bump.
-ARG NETTY_CODEC_HTTP_VERSION=4.1.136.Final
-ARG HTTPCORE5_H2_VERSION=5.4.3
-ARG CXF_VERSION=4.2.3
+# override the vulnerable jars after unpacking. Re-check against each
+# scan and against any future DROID_VERSION bump.
+#
+# Format: "mavenGroupId:artifactId:newVersion". Versions are the final
+# target the pristine 6.9.13 zip needs to reach (not intermediate
+# versions from a previously-patched image's scan).
+ARG DROID_JAR_PATCHES="\
+io.netty:netty-codec:4.1.136.Final \
+io.netty:netty-codec-http:4.1.137.Final \
+io.netty:netty-codec-http2:4.1.136.Final \
+org.apache.httpcomponents.core5:httpcore5:5.4.3 \
+org.apache.httpcomponents.core5:httpcore5-h2:5.4.3 \
+org.apache.httpcomponents.client5:httpclient5:5.6.3 \
+org.apache.logging.log4j:log4j-api:2.26.1 \
+com.fasterxml.jackson.core:jackson-databind:2.22.1 \
+org.bouncycastle:bcprov-jdk15to18:1.84 \
+org.bouncycastle:bcprov-jdk15on:1.79 \
+org.eclipse.angus:angus-mail:2.0.4 \
+org.apache.cxf:cxf-core:4.2.3 \
+org.apache.cxf:cxf-rt-bindings-soap:4.2.3 \
+org.apache.cxf:cxf-rt-bindings-xml:4.2.3 \
+org.apache.cxf:cxf-rt-databinding-jaxb:4.2.3 \
+org.apache.cxf:cxf-rt-frontend-jaxws:4.2.3 \
+org.apache.cxf:cxf-rt-frontend-simple:4.2.3 \
+org.apache.cxf:cxf-rt-transports-http:4.2.3 \
+org.apache.cxf:cxf-rt-ws-addr:4.2.3 \
+org.apache.cxf:cxf-rt-ws-policy:4.2.3 \
+"
 
 # Install Java for DROID, plus unzip to unpack the downloaded release
 RUN dnf install -y java-21-amazon-corretto-headless unzip && dnf clean all
@@ -21,28 +47,24 @@ RUN mkdir -p /opt/droid && \
     unzip -q /tmp/droid.zip -d /opt/droid && \
     rm /tmp/droid.zip
 
-# Patch vulnerable transitive dependencies bundled inside DROID's lib/ folder
-# (confirmed via the 6.9.13 release zip: netty-codec-http-4.1.135.Final.jar,
-# httpcore5-h2-5.4.jar, and 9 cxf-*-4.2.2.jar modules)
-RUN rm -f /opt/droid/lib/netty-codec-http-*.jar && \
-    curl -fL -o /opt/droid/lib/netty-codec-http-${NETTY_CODEC_HTTP_VERSION}.jar \
-      "https://repo1.maven.org/maven2/io/netty/netty-codec-http/${NETTY_CODEC_HTTP_VERSION}/netty-codec-http-${NETTY_CODEC_HTTP_VERSION}.jar" && \
-    rm -f /opt/droid/lib/httpcore5-h2-*.jar && \
-    curl -fL -o /opt/droid/lib/httpcore5-h2-${HTTPCORE5_H2_VERSION}.jar \
-      "https://repo1.maven.org/maven2/org/apache/httpcomponents/core5/httpcore5-h2/${HTTPCORE5_H2_VERSION}/httpcore5-h2-${HTTPCORE5_H2_VERSION}.jar" && \
-    for module in core rt-bindings-soap rt-bindings-xml rt-databinding-jaxb \
-                  rt-frontend-jaxws rt-frontend-simple rt-transports-http \
-                  rt-ws-addr rt-ws-policy; do \
-      rm -f /opt/droid/lib/cxf-${module}-*.jar && \
-      curl -fL -o /opt/droid/lib/cxf-${module}-${CXF_VERSION}.jar \
-        "https://repo1.maven.org/maven2/org/apache/cxf/cxf-${module}/${CXF_VERSION}/cxf-${module}-${CXF_VERSION}.jar"; \
+# Patch vulnerable dependencies bundled inside DROID's lib/ folder.
+# The glob anchors on "artifactId-<digit>" so overlapping names
+# (netty-codec / netty-codec-http / netty-codec-http2,
+#  httpcore5 / httpcore5-h2) can't cross-match each other.
+RUN for entry in $DROID_JAR_PATCHES; do \
+      group_id=$(echo "$entry" | cut -d: -f1); \
+      artifact_id=$(echo "$entry" | cut -d: -f2); \
+      new_version=$(echo "$entry" | cut -d: -f3); \
+      group_path=$(echo "$group_id" | tr '.' '/'); \
+      rm -f /opt/droid/lib/${artifact_id}-[0-9]*.jar && \
+      curl -fL -o /opt/droid/lib/${artifact_id}-${new_version}.jar \
+        "https://repo1.maven.org/maven2/${group_path}/${artifact_id}/${new_version}/${artifact_id}-${new_version}.jar"; \
     done
 
 # Base image fixes: upgrade pip, drop aws-lambda-rie (local-testing-only
 # binary, not used in real Lambda execution, so safe to remove for a
 # deployed image)
 RUN pip install --no-cache-dir --upgrade pip
-
 RUN rm -f /usr/local/bin/aws-lambda-rie
 
 # Copy Lambda handler
