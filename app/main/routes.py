@@ -640,11 +640,9 @@ def browse_records():
         filters=filters,
         sorting_orders=sorting_orders,
     )
-    # Count on the same filters without the sort join — sort doesn't affect count
     count_query = build_browse_records_base_query(
         accessible_transferring_body_names=accessible_body_names,
         filters=filters,
-        sorting_orders=None,
     )
 
     try:

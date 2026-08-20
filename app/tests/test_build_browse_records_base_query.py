@@ -87,13 +87,13 @@ class TestBrowseRecordsBaseQuery:
 
         assert results == expected_results
 
-    def test_build_browse_records_base_query_none_sorting_orders_has_no_order_by(
+    def test_build_browse_records_base_query_none_sorting_orders_uses_default_sort(
         self, client, mock_standard_user, browse_consignment_files
     ):
         """
-        Given sorting_orders is None (count-query usage)
+        Given sorting_orders is None
         When build_browse_records_base_query is executed
-        Then no ORDER BY clause is added
+        Then the default date_of_record descending sort is applied
         """
         body_name = browse_consignment_files[0].consignment.series.body.Name
 
@@ -108,7 +108,7 @@ class TestBrowseRecordsBaseQuery:
             query.statement.compile(compile_kwargs={"literal_binds": True})
         )
 
-        assert "ORDER BY" not in sql.upper()
+        assert "ORDER BY" in sql.upper()
 
     def test_build_browse_records_base_query_sorts_by_opening_date_asc(
         self, client, mock_standard_user, browse_consignment_files

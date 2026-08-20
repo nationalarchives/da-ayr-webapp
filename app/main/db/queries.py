@@ -362,9 +362,6 @@ def _build_date_file_id_filters(date_filter_field, date_from, date_to):
 
 
 def _apply_base_query_sort(query, sorting_orders):
-    if sorting_orders is None:
-        return query
-
     if not sorting_orders:
         sorting_orders = {"date_of_record": "desc"}
 
@@ -437,13 +434,10 @@ def _apply_base_query_sort(query, sorting_orders):
     return query
 
 
-_DEFAULT_SORTING_ORDERS = object()
-
-
 def build_browse_records_base_query(
     accessible_transferring_body_names=None,
     filters=None,
-    sorting_orders=_DEFAULT_SORTING_ORDERS,
+    sorting_orders=None,
 ):
     """
     Stage-1 query: File/hierarchy only, no FileMetadata join in the main select.
@@ -470,9 +464,6 @@ def build_browse_records_base_query(
         .join(Series.body)
         .filter(*query_filters)
     )
-
-    if sorting_orders is _DEFAULT_SORTING_ORDERS:
-        sorting_orders = {}
 
     return _apply_base_query_sort(query, sorting_orders)
 
