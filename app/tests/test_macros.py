@@ -1,13 +1,22 @@
 import pytest
 from bs4 import BeautifulSoup
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import (
+    Environment,
+    FileSystemLoader,
+    StrictUndefined,
+    select_autoescape,
+)
 
 
 class TestBanners:
     @property
     def template(self):
         """Dynamically load and return the Jinja2 template."""
-        env = Environment(loader=FileSystemLoader("app/templates"))
+        env = Environment(
+            loader=FileSystemLoader("app/templates"),
+            undefined=StrictUndefined,
+            autoescape=select_autoescape(["html", "xml"]),
+        )
         return env.get_template("main/macros/banners.html")
 
     @property
