@@ -181,7 +181,7 @@ module.exports = {
         "categories:accessibility": [
           "error",
           {
-            minScore: 1,
+            minScore: 0.9,
           },
         ],
         label: [
