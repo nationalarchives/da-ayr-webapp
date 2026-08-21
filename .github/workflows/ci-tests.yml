@@ -321,6 +321,92 @@ jobs:
         set +a
         npm run lighthouse:ci
 
+    - name: Fail on Lighthouse accessibility audit failures
+      run: |
+        node <<'NODE'
+        const fs = require('node:fs');
+        const path = require('node:path');
+        const lighthouseConfig = require('./node_modules/lighthouse/core/config/default-config.js').default;
+
+        const accessibilityAuditIds = new Set(
+          lighthouseConfig.categories.accessibility.auditRefs.map((ref) => ref.id),
+        );
+
+        const reportDirs = ['.lighthouseci', '.accessibilityci'];
+        const reportFiles = reportDirs.flatMap((dir) => {
+          if (!fs.existsSync(dir)) return [];
+          return fs
+            .readdirSync(dir)
+            .filter((name) => name.endsWith('.report.json'))
+            .map((name) => path.join(dir, name));
+        });
+
+        if (reportFiles.length === 0) {
+          console.error(
+            'No Lighthouse report JSON files found in .lighthouseci or .accessibilityci',
+          );
+          process.exit(1);
+        }
+
+        const failures = [];
+
+        for (const reportFile of reportFiles) {
+          const report = JSON.parse(fs.readFileSync(reportFile, 'utf8'));
+          const audits = report.audits || {};
+          const url = report.finalDisplayedUrl || report.finalUrl || reportFile;
+
+          for (const auditId of accessibilityAuditIds) {
+            const audit = audits[auditId];
+            if (!audit) continue;
+
+            const mode = audit.scoreDisplayMode;
+            const score = audit.score;
+
+            if (
+              mode === 'notApplicable' ||
+              mode === 'manual' ||
+              mode === 'informative'
+            ) {
+              continue;
+            }
+
+            if (mode === 'error') {
+              failures.push({
+                url,
+                auditId,
+                score: 'error',
+                title: audit.title,
+              });
+              continue;
+            }
+
+            if (typeof score === 'number' && score < 1) {
+              failures.push({
+                url,
+                auditId,
+                score,
+                title: audit.title,
+              });
+            }
+          }
+        }
+
+        if (failures.length > 0) {
+          console.error(`Found ${failures.length} failed accessibility audits:`);
+          for (const failure of failures.slice(0, 25)) {
+            console.error(
+              `- ${failure.url} :: ${failure.auditId} (${failure.score}) - ${failure.title}`,
+            );
+          }
+          if (failures.length > 25) {
+            console.error(`...and ${failures.length - 25} more`);
+          }
+          process.exit(1);
+        }
+
+        console.log('No failed Lighthouse accessibility audits detected.');
+        NODE
+
     - name: Upload Accessibility artifacts
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       if: always()
