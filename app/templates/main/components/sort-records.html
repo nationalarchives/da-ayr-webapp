@@ -36,9 +36,7 @@
                   class="sort-list-records-no-js-form sort-list-records-no-js__sort-control">
                 {{ render_preserved_params(preserved_params) }}
                 {% if selected_per_page %}
-                    <input type="hidden"
-                           name="per_page"
-                           value="{{ selected_per_page }}">
+                    <input type="hidden" name="per_page" value="{{ selected_per_page }}">
                 {% endif %}
                 <label class="govuk-label govuk-visually-hidden" for="sort-records-no-js">Sort records</label>
                 <div class="sort-list-records-no-js__sort-action">
