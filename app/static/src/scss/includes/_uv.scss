@@ -30,6 +30,7 @@
 
 #uv-search {
   margin-bottom: 15px;
+  padding: 15px 20px;
 
   .govuk-label {
     margin-bottom: 5px;
@@ -40,11 +41,12 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 10px;
+    margin-bottom: 10px;
   }
 
   #uv-search-input {
     @media screen and (width >= $breakpoint-small) {
-      max-width: 300px;
+      max-width: 420px;
     }
     margin-bottom: 0;
   }
@@ -53,8 +55,37 @@
     margin-bottom: 0;
   }
 
+  .uv-search-results {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .uv-search-nav {
+    color: #1d70b8;
+    text-decoration: underline;
+
+    &:hover {
+      color: #003078;
+    }
+
+    &:not([href]) {
+      color: #0b0c0c;
+      text-decoration: none;
+      cursor: default;
+    }
+  }
+
   #uv-search-count {
     font-size: 16px;
+  }
+
+  #uv-search-no-results {
+    margin-bottom: 0;
   }
 }
 

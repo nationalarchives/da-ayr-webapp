@@ -331,12 +331,12 @@ describe("tests for init.uv.js", () => {
       };
     }
 
-    it("creates a search bar next to the viewer when search_url is present", () => {
+    it("creates a search bar next to the viewer when search_url is present, with prev/next hidden until a search is made", () => {
       initWithHandlers();
       expect(document.getElementById("uv-search")).not.toBeNull();
       expect(document.getElementById("uv-search-input")).not.toBeNull();
-      expect(document.getElementById("uv-search-prev").disabled).toBe(true);
-      expect(document.getElementById("uv-search-next").disabled).toBe(true);
+      expect(document.getElementById("uv-search-results").hidden).toBe(true);
+      expect(document.getElementById("uv-search-no-results").hidden).toBe(true);
     });
 
     it("fetches hits, shows the count, and highlights the first hit on the current page", async () => {
@@ -369,11 +369,17 @@ describe("tests for init.uv.js", () => {
       await flushPromises();
 
       expect(global.fetch).toHaveBeenCalledWith("test-search-url?q=foo");
+      expect(document.getElementById("uv-search-results").hidden).toBe(false);
       expect(document.getElementById("uv-search-count").textContent).toBe(
         "1 of 2",
       );
-      expect(document.getElementById("uv-search-prev").disabled).toBe(false);
-      expect(document.getElementById("uv-search-next").disabled).toBe(false);
+      // First result: previous is disabled (no href, plain text), next is a link
+      expect(
+        document.getElementById("uv-search-prev").hasAttribute("href"),
+      ).toBe(false);
+      expect(
+        document.getElementById("uv-search-next").hasAttribute("href"),
+      ).toBe(true);
 
       const highlight = document.querySelector(".uv-search-highlight");
       expect(highlight).not.toBeNull();
@@ -418,7 +424,7 @@ describe("tests for init.uv.js", () => {
       expect(document.querySelector(".uv-search-highlight")).not.toBeNull();
     });
 
-    it("wraps prev/next navigation across both ends of the hit list", async () => {
+    it("navigates forward/backward between hits and disables prev/next as plain text at each end", async () => {
       setupSearchableUv();
       const { pdfLoaded } = initWithHandlers();
       pdfLoaded();
@@ -443,19 +449,53 @@ describe("tests for init.uv.js", () => {
       document.getElementById("uv-search-submit").click();
       await flushPromises();
 
+      const prev = document.getElementById("uv-search-prev");
+      const next = document.getElementById("uv-search-next");
+
       expect(document.getElementById("uv-search-count").textContent).toBe(
         "1 of 2",
       );
+      expect(prev.hasAttribute("href")).toBe(false);
+      expect(next.hasAttribute("href")).toBe(true);
 
-      document.getElementById("uv-search-prev").click();
+      next.click();
+      expect(document.getElementById("uv-search-count").textContent).toBe(
+        "2 of 2",
+      );
+      expect(prev.hasAttribute("href")).toBe(true);
+      expect(next.hasAttribute("href")).toBe(false);
+
+      // Clicking next again does nothing further, it's plain text, not a link
+      next.click();
       expect(document.getElementById("uv-search-count").textContent).toBe(
         "2 of 2",
       );
 
-      document.getElementById("uv-search-next").click();
+      prev.click();
       expect(document.getElementById("uv-search-count").textContent).toBe(
         "1 of 2",
       );
+    });
+
+    it("shows a no-results message and hides prev/next when the search has no hits", async () => {
+      setupSearchableUv();
+      const { pdfLoaded } = initWithHandlers();
+      pdfLoaded();
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          json: () => Promise.resolve({ hits: [] }),
+        }),
+      );
+
+      document.getElementById("uv-search-input").value = "nomatch";
+      document.getElementById("uv-search-submit").click();
+      await flushPromises();
+
+      expect(document.getElementById("uv-search-results").hidden).toBe(true);
+      const noResults = document.getElementById("uv-search-no-results");
+      expect(noResults.hidden).toBe(false);
+      expect(noResults.textContent).toBe("No results found");
     });
 
     it("clears highlights and resets the count when a new PDF loads", async () => {
@@ -484,7 +524,8 @@ describe("tests for init.uv.js", () => {
 
       expect(document.querySelector(".uv-search-highlight")).toBeNull();
       expect(document.getElementById("uv-search-count").textContent).toBe("");
-      expect(document.getElementById("uv-search-prev").disabled).toBe(true);
+      expect(document.getElementById("uv-search-results").hidden).toBe(true);
+      expect(document.getElementById("uv-search-no-results").hidden).toBe(true);
     });
   });
 });

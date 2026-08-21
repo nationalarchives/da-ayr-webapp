@@ -154,10 +154,13 @@ function initSearchBar() {
     <div class="uv-search-controls">
       <input type="text" id="uv-search-input" class="govuk-input" />
       <button type="button" id="uv-search-submit" class="govuk-button" data-module="govuk-button">Search</button>
-      <span id="uv-search-count" aria-live="polite"></span>
-      <button type="button" id="uv-search-prev" class="govuk-button govuk-button--secondary" data-module="govuk-button" disabled>Previous</button>
-      <button type="button" id="uv-search-next" class="govuk-button govuk-button--secondary" data-module="govuk-button" disabled>Next</button>
     </div>
+    <div id="uv-search-results" class="uv-search-results" hidden>
+      <a href="#" id="uv-search-prev" class="uv-search-nav">Previous</a>
+      <span id="uv-search-count" aria-live="polite"></span>
+      <a href="#" id="uv-search-next" class="uv-search-nav">Next</a>
+    </div>
+    <p id="uv-search-no-results" class="govuk-body" hidden>No results found</p>
   `;
   viewerContainer.insertBefore(bar, viewerContainer.firstChild);
 
@@ -174,12 +177,20 @@ function initSearchBar() {
     });
   document
     .getElementById("uv-search-prev")
-    .addEventListener("click", function () {
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+      if (!this.hasAttribute("href")) {
+        return;
+      }
       goToHit(searchState.currentIndex - 1);
     });
   document
     .getElementById("uv-search-next")
-    .addEventListener("click", function () {
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+      if (!this.hasAttribute("href")) {
+        return;
+      }
       goToHit(searchState.currentIndex + 1);
     });
 
@@ -219,25 +230,50 @@ function runSearch() {
 }
 
 function updateSearchStatus() {
+  const resultsEl = document.getElementById("uv-search-results");
+  const noResultsEl = document.getElementById("uv-search-no-results");
   const countEl = document.getElementById("uv-search-count");
-  if (countEl) {
-    if (!searchState.searched) {
-      countEl.textContent = "";
-    } else if (searchState.hits.length === 0) {
-      countEl.textContent = "No results";
-    } else {
-      countEl.textContent = `${searchState.currentIndex + 1} of ${searchState.hits.length}`;
-    }
+  const prevLink = document.getElementById("uv-search-prev");
+  const nextLink = document.getElementById("uv-search-next");
+
+  if (!searchState.searched) {
+    if (resultsEl) resultsEl.hidden = true;
+    if (noResultsEl) noResultsEl.hidden = true;
+    if (countEl) countEl.textContent = "";
+    return;
   }
 
   const hasHits = searchState.hits.length > 0;
-  const prevBtn = document.getElementById("uv-search-prev");
-  const nextBtn = document.getElementById("uv-search-next");
-  if (prevBtn) {
-    prevBtn.disabled = !hasHits;
+
+  if (!hasHits) {
+    if (resultsEl) resultsEl.hidden = true;
+    if (noResultsEl) noResultsEl.hidden = false;
+    return;
   }
-  if (nextBtn) {
-    nextBtn.disabled = !hasHits;
+
+  if (noResultsEl) noResultsEl.hidden = true;
+  if (resultsEl) resultsEl.hidden = false;
+  if (countEl) {
+    countEl.textContent = `${searchState.currentIndex + 1} of ${searchState.hits.length}`;
+  }
+
+  setNavLinkState(prevLink, searchState.currentIndex > 0);
+  setNavLinkState(
+    nextLink,
+    searchState.currentIndex < searchState.hits.length - 1,
+  );
+}
+
+function setNavLinkState(link, enabled) {
+  if (!link) {
+    return;
+  }
+  if (enabled) {
+    link.setAttribute("href", "#");
+    link.classList.remove("uv-search-nav--disabled");
+  } else {
+    link.removeAttribute("href");
+    link.classList.add("uv-search-nav--disabled");
   }
 }
 
@@ -247,8 +283,7 @@ function goToHit(index) {
     return;
   }
 
-  searchState.currentIndex =
-    ((index % hits.length) + hits.length) % hits.length;
+  searchState.currentIndex = Math.max(0, Math.min(index, hits.length - 1));
   updateSearchStatus();
 
   const hit = hits[searchState.currentIndex];
