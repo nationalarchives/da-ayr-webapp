@@ -1,0 +1,84 @@
+name: Slack failed workflow notification
+description: Send a Slack alert for a failed workflow on main or a release ref
+
+inputs:
+  slack_webhook_url:
+    description: Slack incoming webhook URL
+    required: true
+  workflow_name:
+    description: Name of the failed workflow
+    required: true
+  target_ref:
+    description: Branch or tag that triggered the workflow
+    required: true
+  actor:
+    description: User who triggered the workflow
+    required: true
+  run_url:
+    description: URL to the workflow run
+    required: true
+  repo_name:
+    description: Repository containing the workflow
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Build Slack payload
+      id: build-payload
+      shell: bash
+      env:
+        CHANNEL: da-ayr-alerts
+        WORKFLOW_NAME: ${{ inputs.workflow_name }}
+        TARGET_REF: ${{ inputs.target_ref }}
+        ACTOR: ${{ inputs.actor }}
+        RUN_URL: ${{ inputs.run_url }}
+        REPO_NAME: ${{ inputs.repo_name }}
+      run: |
+        set -euo pipefail
+
+        PAYLOAD=$(jq -n \
+          --arg channel "$CHANNEL" \
+          --arg workflow "$WORKFLOW_NAME" \
+          --arg target_ref "$TARGET_REF" \
+          --arg actor "$ACTOR" \
+          --arg url "$RUN_URL" \
+          --arg repo "$REPO_NAME" \
+          '{
+            channel: ("#" + $channel),
+            text: (
+              "GitHub Actions failure on main/release tag\n" +
+              ":x: Workflow *" + $workflow + "* failed in *" + $repo + "*\n" +
+              "Ref: " + $target_ref + "\n" +
+              "Triggered by: " + $actor + "\n" +
+              "*<" + $url + "|Open workflow run>*"
+            )
+          }')
+        {
+          echo "payload<<PAYLOAD_EOF"
+          echo "$PAYLOAD"
+          echo "PAYLOAD_EOF"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Send Slack notification
+      shell: bash
+      env:
+        SLACK_WEBHOOK_URL: ${{ inputs.slack_webhook_url }}
+        PAYLOAD: ${{ steps.build-payload.outputs.payload }}
+      run: |
+        set -euo pipefail
+
+        HTTP_STATUS=$(curl -sS -L \
+          -o /dev/null \
+          -w "%{http_code}" \
+          -X POST \
+          -H "Content-Type: application/json" \
+          --data "$PAYLOAD" \
+          "$SLACK_WEBHOOK_URL")
+
+        if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
+          echo "Slack notification failed with HTTP status: $HTTP_STATUS"
+          exit 1
+        fi
+
+        echo "Slack notification sent (HTTP $HTTP_STATUS)"

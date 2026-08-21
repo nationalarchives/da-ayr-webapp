@@ -1,4 +1,5 @@
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
+{% from 'macros/forms.html' import render_preserved_params %}
 {% set preserved_params = query_string_parameters.copy() %}
 {% set _ = preserved_params.pop('per_page', None) %}
 {% set _ = preserved_params.pop('page', None) %}
@@ -15,11 +16,6 @@
     "Series – A to Z": "series-asc",
     "Series – Z to A": "series-desc"
 } %}
-{% macro render_preserved_params(params) %}
-    {% for key, value in params.items() %}
-        <input type="hidden" name="{{ key }}" value="{{ value }}">
-    {% endfor %}
-{% endmacro %}
 {% macro render_per_page_options(options) %}
     {% for key, value in options.items() %}
         <option value="{{ value }}"

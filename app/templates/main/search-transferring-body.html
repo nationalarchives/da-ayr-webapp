@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
+{% from 'macros/forms.html' import render_preserved_params %}
 {% block pageTitle %}Search results – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
 {% set breadcrumbs = {} %}
@@ -269,9 +270,7 @@
                                                name="search_filter"
                                                type="text">
                                     </div>
-                                    {% for key, value in query_string_parameters.items() %}
-                                        {% if key != 'page' and key != 'search_filter' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}
-                                    {% endfor %}
+                                    {{ render_preserved_params(query_string_parameters, ['page', 'search_filter']) }}
                                     <div class="search-form__buttons">
                                         {{ govukButton({
                                         'text': "Apply terms",
