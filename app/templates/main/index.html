@@ -10,6 +10,7 @@
                 <div class="govuk-grid-column-two-thirds">
                     <h1 class="govuk-heading-l govuk-heading-l--start">Access your records</h1>
                     <p class="govuk-body govuk-body--start">Use this service to access digital records at The National Archives.</p>
+                    <img src="{{ url_for('static', filename='image/the-national-archives-logo.svg') }}">
                     {{ govukButton({
                     'text': "Start now",
                     'href': url_for("main.sign_in"),
