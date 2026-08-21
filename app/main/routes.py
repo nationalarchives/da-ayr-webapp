@@ -638,7 +638,7 @@ def browse_records():
     data_query = build_browse_records_base_query(
         accessible_transferring_body_names=accessible_body_names,
         filters=filters,
-        sorting_orders=sorting_orders,
+        sorting_orders=sorting_orders or {"date_of_record": "desc"},
     )
     count_query = build_browse_records_base_query(
         accessible_transferring_body_names=accessible_body_names,
