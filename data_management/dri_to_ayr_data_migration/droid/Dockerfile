@@ -2,17 +2,8 @@ FROM public.ecr.aws/lambda/python:3.12
 
 ARG DROID_VERSION=6.9.13
 
-# Pinned patched versions for CVEs in DROID's bundled dependencies, sourced
-# from the full Wiz/ECR scan export (not partial terminal output — get a
-# full CSV/JSON export each time this needs re-checking, since DROID's
-# lib/ folder has ~40 jars and partial scan snippets miss things).
 # DROID's own release doesn't refresh these on its own schedule, so we
-# override the vulnerable jars after unpacking. Re-check against each
-# scan and against any future DROID_VERSION bump.
-#
-# Format: "mavenGroupId:artifactId:newVersion". Versions are the final
-# target the pristine 6.9.13 zip needs to reach (not intermediate
-# versions from a previously-patched image's scan).
+# override the vulnerable jars after unpacking.
 ARG DROID_JAR_PATCHES="\
 io.netty:netty-codec:4.1.136.Final \
 io.netty:netty-codec-http:4.1.137.Final \
@@ -61,9 +52,7 @@ RUN for entry in $DROID_JAR_PATCHES; do \
         "https://repo1.maven.org/maven2/${group_path}/${artifact_id}/${new_version}/${artifact_id}-${new_version}.jar"; \
     done
 
-# Base image fixes: upgrade pip, drop aws-lambda-rie (local-testing-only
-# binary, not used in real Lambda execution, so safe to remove for a
-# deployed image)
+
 RUN pip install --no-cache-dir --upgrade pip
 RUN rm -f /usr/local/bin/aws-lambda-rie
 
