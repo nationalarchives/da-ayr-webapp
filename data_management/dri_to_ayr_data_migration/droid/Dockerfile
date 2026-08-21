@@ -2,6 +2,31 @@ FROM public.ecr.aws/lambda/python:3.12
 
 ARG DROID_VERSION=6.9.13
 
+# DROID's own release doesn't refresh these on its own schedule, so we
+# override the vulnerable jars after unpacking.
+ARG DROID_JAR_PATCHES="\
+io.netty:netty-codec:4.1.136.Final \
+io.netty:netty-codec-http:4.1.137.Final \
+io.netty:netty-codec-http2:4.1.136.Final \
+org.apache.httpcomponents.core5:httpcore5:5.4.3 \
+org.apache.httpcomponents.core5:httpcore5-h2:5.4.3 \
+org.apache.httpcomponents.client5:httpclient5:5.6.3 \
+org.apache.logging.log4j:log4j-api:2.26.1 \
+com.fasterxml.jackson.core:jackson-databind:2.22.1 \
+org.bouncycastle:bcprov-jdk15to18:1.84 \
+org.bouncycastle:bcprov-jdk15on:1.79 \
+org.eclipse.angus:angus-mail:2.0.4 \
+org.apache.cxf:cxf-core:4.2.3 \
+org.apache.cxf:cxf-rt-bindings-soap:4.2.3 \
+org.apache.cxf:cxf-rt-bindings-xml:4.2.3 \
+org.apache.cxf:cxf-rt-databinding-jaxb:4.2.3 \
+org.apache.cxf:cxf-rt-frontend-jaxws:4.2.3 \
+org.apache.cxf:cxf-rt-frontend-simple:4.2.3 \
+org.apache.cxf:cxf-rt-transports-http:4.2.3 \
+org.apache.cxf:cxf-rt-ws-addr:4.2.3 \
+org.apache.cxf:cxf-rt-ws-policy:4.2.3 \
+"
+
 # Install Java for DROID, plus unzip to unpack the downloaded release
 RUN dnf install -y java-21-amazon-corretto-headless unzip && dnf clean all
 
@@ -12,6 +37,24 @@ RUN mkdir -p /opt/droid && \
       "https://github.com/digital-preservation/droid/releases/download/${DROID_VERSION}/droid-binary-${DROID_VERSION}-bin.zip" && \
     unzip -q /tmp/droid.zip -d /opt/droid && \
     rm /tmp/droid.zip
+
+# Patch vulnerable dependencies bundled inside DROID's lib/ folder.
+# The glob anchors on "artifactId-<digit>" so overlapping names
+# (netty-codec / netty-codec-http / netty-codec-http2,
+#  httpcore5 / httpcore5-h2) can't cross-match each other.
+RUN for entry in $DROID_JAR_PATCHES; do \
+      group_id=$(echo "$entry" | cut -d: -f1); \
+      artifact_id=$(echo "$entry" | cut -d: -f2); \
+      new_version=$(echo "$entry" | cut -d: -f3); \
+      group_path=$(echo "$group_id" | tr '.' '/'); \
+      rm -f /opt/droid/lib/${artifact_id}-[0-9]*.jar && \
+      curl -fL -o /opt/droid/lib/${artifact_id}-${new_version}.jar \
+        "https://repo1.maven.org/maven2/${group_path}/${artifact_id}/${new_version}/${artifact_id}-${new_version}.jar"; \
+    done
+
+
+RUN pip install --no-cache-dir --upgrade pip
+RUN rm -f /usr/local/bin/aws-lambda-rie
 
 # Copy Lambda handler
 COPY handler.py ${LAMBDA_TASK_ROOT}/handler.py
