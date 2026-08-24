@@ -42,6 +42,10 @@ const staticUrls = [
 
 const browseLandingUrls = [`${BASE_URL}/browse`];
 
+const browseRecordsRouteUrls = [
+  `${BASE_URL}/browse/records?sort=file_name-asc&per_page=10`,
+];
+
 const transferringBodyUrls = transferringBodyIds.map(
   (id) => `${BASE_URL}/browse/transferring_body/${id}`,
 );
@@ -134,6 +138,7 @@ const recordViewUrls = recordIds.map(
 const prSmokeUrls = [
   ...staticUrls,
   ...browseLandingUrls.slice(0, 1),
+  ...browseRecordsRouteUrls.slice(0, 1),
   ...transferringBodyUrls.slice(0, 1),
   ...seriesUrls.slice(0, 1),
   ...consignmentUrls.slice(0, 1),
@@ -146,6 +151,7 @@ const prSmokeUrls = [
 const allUrls = [
   ...staticUrls,
   ...browseLandingUrls,
+  ...browseRecordsRouteUrls,
   ...transferringBodyUrls,
   ...seriesUrls,
   ...consignmentUrls,

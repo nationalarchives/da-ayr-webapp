@@ -38,6 +38,7 @@ module.exports = {
 
     // pages that require authentication
     `${base_url}/browse`,
+    `${base_url}/browse/records?sort=file_name-asc&per_page=10`,
     `${base_url}/browse/series/1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7`,
     `${base_url}/browse/consignment/b4a8379c-0767-4a9b-8537-181aed23e837`,
     `${base_url}/record/100251bb-5b93-48a9-953f-ad5bd9abfbdc`,
