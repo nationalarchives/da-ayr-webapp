@@ -6,6 +6,7 @@
   &--ayr-content {
     position: sticky;
     top: 1rem;
+
     @media screen and (width <= $breakpoint-medium) {
       position: static;
     }
@@ -22,7 +23,9 @@
   margin: 0 0 3rem;
   padding: 1rem;
   padding-bottom: 0.5rem;
+
   overflow: auto;
+
   background-color: $colour-container-normal;
 }
 

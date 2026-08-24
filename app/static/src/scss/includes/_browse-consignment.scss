@@ -3,11 +3,13 @@
 
 .consignment-filter {
   &-container {
-    background-color: $colour-container-normal;
-    padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
+    padding: 0.5rem;
+
     display: inline-block;
+
+    background-color: $colour-container-normal;
   }
 
   &__header {
@@ -15,14 +17,16 @@
   }
 
   &__icon {
-    justify-content: space-between;
     width: 2rem;
     margin-left: auto;
+
+    justify-content: space-between;
   }
 
   &-from-dates {
-    display: inline-flex;
     margin-bottom: 15px;
+
+    display: inline-flex;
   }
 
   &-to-dates {
@@ -31,12 +35,14 @@
 
   &-container--file-type {
     min-width: 100%;
+
     display: inline-flex;
   }
 }
 
 .filters-form {
   float: right;
+
   font-size: 1rem;
 
   &__group {
@@ -44,8 +50,8 @@
   }
 
   &__title {
-    font-weight: 700;
     font-size: 1.5rem;
+    font-weight: 700;
   }
 
   &__transferring-body-group {
@@ -76,56 +82,66 @@
   }
 
   &__series__container {
-    background-color: $colour-container-normal;
-    padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
+    padding: 0.5rem;
+
+    background-color: $colour-container-normal;
   }
 
   &__consignment-ref__container {
-    background-color: $colour-container-normal;
-    padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
+    padding: 0.5rem;
+
+    background-color: $colour-container-normal;
   }
 
   &__date__container {
-    background-color: $colour-container-normal;
-    padding: 0.5rem;
     min-width: 100%;
+    padding: 0.5rem;
+
+    background-color: $colour-container-normal;
   }
 
   &__series--input {
-    flex-grow: 1;
     width: 100%;
+
+    flex-grow: 1;
   }
 
   &__consignment-ref--input {
-    flex-grow: 1;
     width: 100%;
+
+    flex-grow: 1;
   }
 
   &__clear--button {
     margin-right: 1rem;
+
     font-size: 1rem;
   }
 
   &__date--button {
-    align-self: flex-end;
     margin-right: 0.5rem;
+
+    align-self: flex-end;
   }
 
   &__body-date {
     max-width: 2.4rem;
+
     font-size: 1rem;
   }
 
   &__filetype__container {
-    background-color: $colour-container-normal;
-    padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
+    padding: 0.5rem;
+
     display: inline-flex;
+
+    background-color: $colour-container-normal;
   }
 }
 
@@ -133,30 +149,35 @@
   &--file-type {
     margin-bottom: 0;
     padding-top: 0;
+
     font-size: 1rem;
   }
 
   &--consignment-filter {
-    font-size: 1rem;
-    padding-top: 0.3rem;
     margin-bottom: 0.3rem;
+    padding-top: 0.3rem;
+
+    font-size: 1rem;
   }
 }
 
 .govuk-body {
   &--file-type {
+    margin-bottom: 0;
+
+    color: black;
     font-size: 0.8rem;
     white-space: nowrap;
-    color: black;
-    margin-bottom: 0;
   }
 
   &--consignment-date {
-    display: inline;
-    font-size: 1rem;
-    white-space: nowrap;
     margin-top: 2rem;
     margin-right: 0.6rem;
+
+    display: inline;
+
+    font-size: 1rem;
+    white-space: nowrap;
   }
 }
 
@@ -170,30 +191,31 @@
   }
 
   &__consignment-form-group {
-    display: inline-block;
     margin-bottom: 0;
+
+    display: inline-block;
   }
 }
 
 .govuk-link {
   &--consignment-filter {
-    margin-left: 1rem;
     margin-bottom: 0.6rem;
+    margin-left: 1rem;
   }
 }
 
 .govuk-button {
   &__consignment-filters-form-apply-button {
-    margin-left: 0;
-    margin-bottom: 10px;
     margin-top: 0;
+    margin-bottom: 10px;
+    margin-left: 0;
   }
 }
 
 .govuk-fieldset {
   &--record-status {
-    margin-bottom: 0;
     margin-top: 0;
+    margin-bottom: 0;
   }
 }
 
@@ -205,9 +227,10 @@
 
 .govuk-radios {
   &__label--consignment {
-    padding: 5px 10px 1 1px !important;
-    font-size: 1rem;
     max-width: 100%;
+    padding: 5px 10px 1 1px !important;
+
+    font-size: 1rem;
   }
 
   &--small {
@@ -224,6 +247,7 @@
 .govuk-date-input {
   &--consignment-date-to {
     margin-left: 0;
+
     display: inline-flex;
   }
 
@@ -241,8 +265,9 @@
   }
 
   .browse-all-filter-from-dates {
-    display: inline-flex;
     margin-right: 2.2rem;
+
+    display: inline-flex;
   }
 
   .browse-all-filter-to-dates {
@@ -250,9 +275,10 @@
   }
 
   .filters-form__buttons {
-    align-items: center;
     width: auto;
+
     display: flex;
+    align-items: center;
   }
 }
 
