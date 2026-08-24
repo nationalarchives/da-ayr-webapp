@@ -150,7 +150,7 @@ function initSearchBar() {
   const bar = document.createElement("div");
   bar.id = "uv-search";
   bar.innerHTML = `
-    <label for="uv-search-input" class="govuk-label govuk-label--s">Search within record</label>
+    <label for="uv-search-input" class="govuk-label govuk-label--s uv-search-label">Search within record</label>
     <div class="uv-search-controls">
       <input type="text" id="uv-search-input" class="govuk-input" />
       <button type="button" id="uv-search-submit" class="govuk-button" data-module="govuk-button">Search</button>
