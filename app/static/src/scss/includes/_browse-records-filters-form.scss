@@ -1,11 +1,13 @@
 @use "variables" as *;
 
 .browse-all-filter-container {
-  background-color: $colour-container-normal;
-  padding: 0.5rem;
   min-width: 100%;
   margin-bottom: 0.5rem;
+  padding: 0.5rem;
+
   display: inline-block;
+
+  background-color: $colour-container-normal;
 }
 
 .browse-filter__header {
@@ -18,9 +20,9 @@
   }
 
   &__series-filter-example {
-    font-weight: normal;
-    font-size: 0.9rem;
     color: #505a5f;
+    font-size: 0.9rem;
+    font-weight: normal;
   }
 
   &__filter-count {
@@ -35,23 +37,25 @@
 
 .filters-form {
   float: right;
+
   font-size: 1rem;
 
   &__buttons {
-    align-items: center;
     margin-top: 1rem;
+
+    align-items: center;
   }
 }
 
 .govuk-fieldset {
   &--record-status {
-    margin-bottom: -0.5rem; /* Adjusted margin bottom for status filter */
     margin-top: 0;
+    margin-bottom: -0.5rem; /* Adjusted margin bottom for status filter */
   }
 
   &--record-date {
-    margin-bottom: -0.5rem;
     margin-top: 0;
+    margin-bottom: -0.5rem;
   }
 }
 
@@ -63,9 +67,10 @@
 
 .govuk-radios {
   &__label--consignment {
-    padding: 5px 10px;
-    font-size: 1rem;
     max-width: 100%;
+    padding: 5px 10px;
+
+    font-size: 1rem;
   }
 
   &--small {
