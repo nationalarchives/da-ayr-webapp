@@ -154,8 +154,9 @@ class TestRoutes:
 
         latest_report_link = soup.find(
             "a",
-            href=lambda href: href
-            and "accessibility_audit_report_2025.pdf" in href,
+            href=lambda href: (
+                href and "accessibility_audit_report_2025.pdf" in href
+            ),
         )
         assert latest_report_link is not None
 
