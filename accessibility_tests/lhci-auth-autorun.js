@@ -4,10 +4,7 @@ const { spawnSync } = require("node:child_process");
 const { launch } = require("chrome-launcher");
 const puppeteer = require("puppeteer-core");
 
-const REQUIRED_ENV_VARS = [
-  "AYR_AAU_USER_USERNAME",
-  "AYR_AAU_USER_PASSWORD",
-];
+const REQUIRED_ENV_VARS = ["AYR_AAU_USER_USERNAME", "AYR_AAU_USER_PASSWORD"];
 
 const BASE_URL = process.env.LHCI_BASE_URL || "https://localhost:5000";
 
@@ -158,7 +155,9 @@ function getCookieHeaderForUrl(cookies, url) {
     );
   }
 
-  return matchingCookies.map((cookie) => `${cookie.name}=${cookie.value}`).join("; ");
+  return matchingCookies
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join("; ");
 }
 
 async function loginAndGetSessionCookieHeader() {
