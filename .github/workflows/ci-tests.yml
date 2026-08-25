@@ -167,7 +167,6 @@ jobs:
         KEYCLOAK_CLIENT_ID=ayr-beta
         KEYCLOAK_REALM_NAME=tdr
         KEYCLOAK_CLIENT_SECRET=test-client-secret
-        UPDATE_SNAPSHOTS=false
         GIT_REF=main
         BROWSERS=chromium
         TEST_FILTER=$E2E_TEST_FILTER_VALUE
