@@ -86,9 +86,7 @@ const PROTECTED_ROUTE_PREFIXES = [
 ];
 
 function isProtectedRoute(pathname) {
-  return PROTECTED_ROUTE_PREFIXES.some((prefix) =>
-    pathname.startsWith(prefix),
-  );
+  return PROTECTED_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
 function getLhrFilePaths(dir) {
