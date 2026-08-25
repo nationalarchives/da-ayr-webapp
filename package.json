@@ -14,14 +14,16 @@
   "license": "MIT",
   "devDependencies": {
     "@lhci/cli": "0.15.1",
-    "@storybook/html-vite": "10.5.8",
+    "@nationalarchives/eslint-config": "0.1.8",
+    "@nationalarchives/stylelint-config": "0.1.4",
+    "@storybook/html-vite": "10.5.10",
     "@testing-library/jest-dom": "7.0.1",
     "chokidar-cli": "3.0.0",
     "concurrently": "10.0.5",
     "jest": "30.4.2",
     "jest-environment-jsdom": "30.4.1",
     "prettier": "3.9.6",
-    "sass": "1.102.0",
+    "sass": "1.103.1",
     "stylelint": "17.14.1",
     "stylelint-config-standard-scss": "17.0.0",
     "stylelint-selector-bem-pattern": "5.0.0"

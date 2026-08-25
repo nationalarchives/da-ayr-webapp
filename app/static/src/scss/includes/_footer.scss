@@ -17,6 +17,7 @@
 
   &__meta {
     margin: 0;
+
     align-items: center;
     gap: 40px;
 
@@ -26,19 +27,22 @@
   }
 
   &__meta-item {
-    display: block;
     margin: 0;
+
+    display: block;
   }
 
   &__inline-list-item {
     margin-bottom: 10px;
 
     @include on-mobile {
-      display: block;
       margin-right: 0;
       margin-bottom: 0;
-      text-align: center;
       padding: 15px;
+
+      display: block;
+
+      text-align: center;
     }
   }
 
@@ -63,14 +67,15 @@
   &__licence-logo {
     @include on-mobile {
       margin: 0 auto 10px;
+
       display: block;
     }
   }
 
   &__licence-description {
     @include on-mobile {
-      text-align: center;
       line-height: 1.3rem;
+      text-align: center;
     }
   }
 }

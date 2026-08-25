@@ -2,8 +2,8 @@
 
 .records-page-wrapper {
   .browse-records__series-filter-example {
-    font-weight: 400;
     color: $secondary-text-colour;
+    font-weight: 400;
   }
 
   .browse-records__filter-count {
@@ -17,6 +17,7 @@
   .browse-records__table {
     width: 100%;
     margin-bottom: 30px;
+
     border-collapse: collapse;
 
     a {
@@ -36,6 +37,7 @@
   .browse-record-row__cell,
   .browse-records__table .browse-records__header-cell {
     padding: 6px 20px 6px 0;
+
     border-bottom: none;
   }
 
@@ -88,12 +90,14 @@
   }
 
   .browse-records__heading {
-    font-family: $font-family-gds;
-    font-size: 2.25rem;
-    line-height: 1.1;
-    -webkit-font-smoothing: antialiased;
     margin-top: 0;
     margin-bottom: 15px;
     padding-top: 0;
+
+    font-family: $font-family-gds;
+    font-size: 2.25rem;
+    line-height: 1.1;
+
+    -webkit-font-smoothing: antialiased;
   }
 }

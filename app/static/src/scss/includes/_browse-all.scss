@@ -3,11 +3,13 @@
 
 .browse-all-filter {
   &-container {
-    background-color: $colour-container-normal;
-    padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
+    padding: 0.5rem;
+
     display: inline-block;
+
+    background-color: $colour-container-normal;
   }
 
   &__header {
@@ -15,9 +17,10 @@
   }
 
   &__icon {
-    justify-content: space-between;
     width: 2rem;
     margin-left: auto;
+
+    justify-content: space-between;
   }
 
   &-from-dates {
@@ -31,6 +34,7 @@
 
 .filters-form {
   float: right;
+
   font-size: 1rem;
 
   &__group {
@@ -38,8 +42,8 @@
   }
 
   &__title {
-    font-weight: 700;
     font-size: 1.5rem;
+    font-weight: 700;
   }
 
   &__transferring-body-group {
@@ -70,56 +74,66 @@
   }
 
   &__series__container {
-    background-color: $colour-container-normal;
-    padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
+    padding: 0.5rem;
+
+    background-color: $colour-container-normal;
   }
 
   &__browse-all-ref__container {
-    background-color: $colour-container-normal;
-    padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
+    padding: 0.5rem;
+
+    background-color: $colour-container-normal;
   }
 
   &__date__container {
-    background-color: $colour-container-normal;
-    padding: 0.5rem;
     min-width: 100%;
+    padding: 0.5rem;
+
+    background-color: $colour-container-normal;
   }
 
   &__series--input {
-    flex-grow: 1;
     width: 100%;
+
+    flex-grow: 1;
   }
 
   &__browse-all-ref--input {
-    flex-grow: 1;
     width: 100%;
+
+    flex-grow: 1;
   }
 
   &__clear--button {
     margin-right: 1rem;
+
     font-size: 1rem;
   }
 
   &__date--button {
-    align-self: flex-end;
     margin-right: 0.5rem;
+
+    align-self: flex-end;
   }
 
   &__body-date {
     max-width: 2.4rem;
+
     font-size: 1rem;
   }
 
   &__filetype__container {
-    background-color: $colour-container-normal;
-    padding: 0.5rem;
     min-width: 100%;
     margin-bottom: 0.5rem;
+    padding: 0.5rem;
+
     display: inline-flex;
+
+    background-color: $colour-container-normal;
   }
 }
 
@@ -128,30 +142,35 @@
     &--series {
       margin-bottom: 0;
       padding-top: 0;
+
       font-size: 1rem;
     }
 
     &--browse-all-filter {
-      font-size: 1rem;
-      padding-top: 0.3rem;
       margin-bottom: 0.3rem;
+      padding-top: 0.3rem;
+
+      font-size: 1rem;
     }
   }
 
   &-body {
     &--series {
+      margin-bottom: 0;
+
+      color: black;
       font-size: 0.8rem;
       white-space: nowrap;
-      color: black;
-      margin-bottom: 0;
     }
 
     &--browse-all-date {
-      display: inline;
-      font-size: 1rem;
-      white-space: nowrap;
       margin-top: 2rem;
       margin-right: 0.6rem;
+
+      display: inline;
+
+      font-size: 1rem;
+      white-space: nowrap;
     }
 
     &--browse-all-signpost {
@@ -170,30 +189,31 @@
     }
 
     &__browse-all-form-group {
-      display: inline-block;
       margin-bottom: 0;
+
+      display: inline-block;
     }
   }
 
   &-link {
     &--browse-all-filter {
-      margin-left: 1rem;
       margin-bottom: 0.6rem;
+      margin-left: 1rem;
     }
   }
 
   &-button {
     &__browse-all-filters-form-apply-button {
-      margin-left: 0;
-      margin-bottom: 10px;
       margin-top: 0;
+      margin-bottom: 10px;
+      margin-left: 0;
     }
   }
 
   &-fieldset {
     &--record-status {
-      margin-bottom: 0;
       margin-top: 0;
+      margin-bottom: 0;
     }
   }
 
@@ -206,6 +226,7 @@
   &-radios {
     &__label--browse-all {
       padding: 5px 10px 1 1px !important;
+
       font-size: 1rem;
     }
 
@@ -233,6 +254,7 @@
   &-table__cell {
     &--ayr a {
       color: $colour-link-default;
+
       -webkit-text-fill-color: $colour-link-default;
     }
   }
