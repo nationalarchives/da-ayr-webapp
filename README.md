@@ -868,7 +868,7 @@ The following ENV Vars are required (same Keycloak auth inputs as performance te
 3. Ensure npm dependencies are installed with `npm install`
 4. Run Lighthouse CI with `npm run lighthouse:ci`
 
-The `lighthouse:ci` script fetches a Keycloak bearer token and passes it to Lighthouse as an Authorization header before running all URLs defined in `lighthouserc.js`.
+The `lighthouse:ci` script signs into AYR via Keycloak in a headless browser, extracts the authenticated session cookies, and passes them to Lighthouse for the URLs defined in `lighthouserc.js`.
 
 
 ### Storybook

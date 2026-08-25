@@ -1,55 +1,23 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
+const { launch } = require("chrome-launcher");
+const puppeteer = require("puppeteer-core");
 
 const REQUIRED_ENV_VARS = [
-  "KEYCLOAK_AUTH_URL",
-  "KEYCLOAK_CLIENT_ID",
-  "KEYCLOAK_CLIENT_SECRET",
   "AYR_AAU_USER_USERNAME",
   "AYR_AAU_USER_PASSWORD",
 ];
+
+const BASE_URL = process.env.LHCI_BASE_URL || "https://localhost:5000";
 
 function getMissingEnvVars() {
   return REQUIRED_ENV_VARS.filter((name) => !process.env[name]);
 }
 
-async function fetchAccessToken() {
-  const payload = new URLSearchParams({
-    client_id: process.env.KEYCLOAK_CLIENT_ID,
-    client_secret: process.env.KEYCLOAK_CLIENT_SECRET,
-    username: process.env.AYR_AAU_USER_USERNAME,
-    password: process.env.AYR_AAU_USER_PASSWORD,
-    grant_type: "password",
-  });
-
-  const response = await fetch(process.env.KEYCLOAK_AUTH_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: payload,
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(
-      `Keycloak auth failed (${response.status}): ${body.slice(0, 500)}`,
-    );
-  }
-
-  const json = await response.json();
-
-  if (!json.access_token) {
-    throw new Error("Keycloak response did not contain access_token");
-  }
-
-  return json.access_token;
-}
-
-function runLhciWithToken(accessToken) {
+function runLhciWithSessionCookie(sessionCookieHeader) {
   const extraHeaders = JSON.stringify({
-    Authorization: `Bearer ${accessToken}`,
+    Cookie: sessionCookieHeader,
   });
 
   const result = spawnSync(
@@ -164,6 +132,89 @@ function validateProtectedRoutesWereScanned() {
   }
 }
 
+function getCookieHeaderForUrl(cookies, url) {
+  const parsedUrl = new URL(url);
+  const hostname = parsedUrl.hostname;
+  const isHttps = parsedUrl.protocol === "https:";
+  const pathName = parsedUrl.pathname || "/";
+
+  const matchingCookies = cookies.filter((cookie) => {
+    const domain = (cookie.domain || "").replace(/^\./, "");
+    const domainMatches =
+      domain.length === 0 ||
+      hostname === domain ||
+      hostname.endsWith(`.${domain}`);
+
+    const cookiePath = cookie.path || "/";
+    const pathMatches = pathName.startsWith(cookiePath);
+    const secureMatches = !cookie.secure || isHttps;
+
+    return domainMatches && pathMatches && secureMatches;
+  });
+
+  if (matchingCookies.length === 0) {
+    throw new Error(
+      "No cookies found for Lighthouse base URL after login; cannot run authenticated Lighthouse.",
+    );
+  }
+
+  return matchingCookies.map((cookie) => `${cookie.name}=${cookie.value}`).join("; ");
+}
+
+async function loginAndGetSessionCookieHeader() {
+  const chrome = await launch({
+    chromeFlags: [
+      "--headless=new",
+      "--no-sandbox",
+      "--ignore-certificate-errors",
+      "--allow-insecure-localhost",
+    ],
+  });
+
+  let browser;
+  try {
+    browser = await puppeteer.connect({
+      browserURL: `http://127.0.0.1:${chrome.port}`,
+      defaultViewport: {
+        width: 1280,
+        height: 1080,
+      },
+    });
+
+    const page = await browser.newPage();
+
+    await page.goto(`${BASE_URL}/sign-in`, {
+      waitUntil: "networkidle2",
+      timeout: 60000,
+    });
+
+    await page.waitForSelector("#username", { timeout: 60000 });
+    await page.waitForSelector("#password", { timeout: 60000 });
+
+    await page.type("#username", process.env.AYR_AAU_USER_USERNAME);
+    await page.type("#password", process.env.AYR_AAU_USER_PASSWORD);
+
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: "networkidle2", timeout: 60000 }),
+      page.click('button[type="submit"]'),
+    ]);
+
+    await page.waitForFunction(
+      (baseUrl) => window.location.href.startsWith(`${baseUrl}/browse`),
+      { timeout: 60000 },
+      BASE_URL,
+    );
+
+    const cookies = await browser.cookies(BASE_URL);
+    return getCookieHeaderForUrl(cookies, BASE_URL);
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
+    await chrome.kill();
+  }
+}
+
 (async () => {
   const missing = getMissingEnvVars();
 
@@ -176,8 +227,8 @@ function validateProtectedRoutesWereScanned() {
     process.exit(1);
   }
 
-  const token = await fetchAccessToken();
-  runLhciWithToken(token);
+  const sessionCookieHeader = await loginAndGetSessionCookieHeader();
+  runLhciWithSessionCookie(sessionCookieHeader);
 })().catch((error) => {
   console.error(error.message || error);
   process.exit(1);
