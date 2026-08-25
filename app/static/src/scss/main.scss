@@ -29,7 +29,6 @@
 @use "includes/pagination";
 @use "includes/record";
 @use "includes/signed-out";
-@use "includes/sort-records";
 @use "includes/breadcrumbs";
 @use "includes/search";
 @use "includes/table";
@@ -44,3 +43,4 @@
 @use "includes/components/alert-banner";
 @use "includes/components/belly-band";
 @use "includes/components/browse-record-row";
+@use "includes/components/sort-records";
