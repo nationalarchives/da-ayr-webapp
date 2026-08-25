@@ -140,7 +140,6 @@ def test_search_within_pdf_returns_hits_for_matches(
 
     hit = data["hits"][0]
     assert hit["page"] == 1
-    assert hit["text"] == "hello"
     for key in ("x", "y", "w", "h"):
         assert 0 <= hit["rect"][key] <= 1
 

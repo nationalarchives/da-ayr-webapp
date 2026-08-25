@@ -267,7 +267,7 @@ def search_within_pdf(
         key: S3 object key.
 
     Returns:
-        Flask JSON response: {"total": int, "hits": [{"page", "rect", "text"}]}.
+        Flask JSON response: {"total": int, "hits": [{"page", "rect"}]}.
     """
     pdf_bytes = get_pdf_from_s3(bucket, key)
 
@@ -280,8 +280,6 @@ def search_within_pdf(
             page_height = page.rect.height
 
             for rect in page.search_for(query):
-                matched_text = page.get_textbox(rect).strip() or query
-
                 hits.append(
                     {
                         "page": page_num + 1,
@@ -291,7 +289,6 @@ def search_within_pdf(
                             "w": (rect.x1 - rect.x0) / page_width,
                             "h": (rect.y1 - rect.y0) / page_height,
                         },
-                        "text": matched_text,
                     }
                 )
 
