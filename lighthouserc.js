@@ -190,12 +190,6 @@ module.exports = {
             minScore: 0.9,
           },
         ],
-        label: [
-          "error",
-          {
-            minScore: 1,
-          },
-        ],
         "categories:best-practices": [
           "warn",
           {

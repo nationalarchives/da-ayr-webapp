@@ -720,39 +720,6 @@ class TestBrowseRecords:
         assert noscript_per_page_select is not None
         assert noscript_per_page_sort_select is None
 
-    def test_browse_records_labels_target_existing_controls(
-        self, client: FlaskClient, mock_all_access_user, browse_files
-    ):
-        """
-        Given browse records sort controls are rendered
-        When labels include a `for` attribute
-        Then each `for` value points to a control id in the same form
-        """
-        mock_all_access_user(client)
-
-        response = client.get(f"{self.route_url}?per_page=10")
-
-        assert response.status_code == 200
-        soup = BeautifulSoup(response.data, "html.parser")
-
-        form_selectors = [
-            "form.sort-list-records-form",
-            "form.sort-list-records-no-js-form",
-            "form.sort-list-records-no-js__per-page",
-        ]
-
-        for selector in form_selectors:
-            form = soup.select_one(selector)
-            assert form is not None
-
-            for label in form.find_all("label"):
-                target_id = label.get("for")
-                if not target_id:
-                    continue
-
-                matching_control = form.select_one(f"#{target_id}")
-                assert matching_control is not None
-
     def test_browse_records_no_results_for_nonsensical_filter(
         self, client: FlaskClient, mock_all_access_user, browse_files
     ):

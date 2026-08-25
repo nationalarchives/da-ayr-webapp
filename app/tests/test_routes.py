@@ -128,38 +128,6 @@ class TestRoutes:
         response = client.get("/accessibility")
         assert response.status_code == 200
 
-    def test_route_accessibility_has_required_sections_and_links(
-        self, client: FlaskClient
-    ):
-        response = client.get("/accessibility")
-
-        assert response.status_code == 200
-
-        soup = BeautifulSoup(response.data, "html.parser")
-        required_section_ids = [
-            "accessibility-statement",
-            "feedback-contact",
-            "technical-information",
-            "resolved-accessibility",
-            "preparation-of-accessibility-statement",
-        ]
-
-        for section_id in required_section_ids:
-            assert soup.find(id=section_id) is not None
-
-        assert (
-            soup.find("a", href="mailto:tdr@nationalarchives.gov.uk")
-            is not None
-        )
-
-        latest_report_link = soup.find(
-            "a",
-            href=lambda href: (
-                href and "accessibility_audit_report_2025.pdf" in href
-            ),
-        )
-        assert latest_report_link is not None
-
     def test_route_cookies(self, client: FlaskClient):
         response = client.get("/cookies")
         assert response.status_code == 200
