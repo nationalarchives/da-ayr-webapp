@@ -279,6 +279,13 @@ def search_within_pdf(
             page_width = page.rect.width
             page_height = page.rect.height
 
+            if not page_width or not page_height:
+                logger.warning(
+                    "Skipping search on page %d: page has zero width or height",
+                    page_num + 1,
+                )
+                continue
+
             for rect in page.search_for(query):
                 hits.append(
                     {
