@@ -68,7 +68,7 @@
   }
 
   .uv-search-nav {
-    color: #1d70b8;
+    color: $colour-link-default;
     text-decoration: underline;
 
     &:hover {
@@ -76,7 +76,7 @@
     }
 
     &:not([href]) {
-      color: #0b0c0c;
+      color: $colour-link-normal;
       text-decoration: none;
       cursor: default;
     }
@@ -99,11 +99,14 @@
 
 .uv-search-highlight {
   position: absolute;
-  background-color: #1d70b8;
+  background-color: $colour-link-default;
   opacity: 0.25;
   pointer-events: none;
 
   &--active {
+    // Not a variable: matches govuk's focus yellow, but that token isn't
+    // exposed to this file's scope without adding a new entry to
+    // _variables.scss for a single one-off use.
     background-color: #fd0;
     opacity: 0.5;
   }
