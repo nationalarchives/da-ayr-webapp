@@ -2,37 +2,44 @@
 
 .govuk-button {
   &--start {
-    position: relative;
-    padding: 8px 10px 7px 7px;
-    text-align: center;
-    border: 2px solid transparent;
-
-    margin-left: 3px;
-    font-weight: 700;
-    display: inline-flex;
-    justify-content: center;
     min-height: auto;
     margin-top: 20px;
     margin-bottom: 30px;
+
+    margin-left: 3px;
+    padding: 8px 10px 7px 7px;
+
+    display: inline-flex;
+    justify-content: center;
+
+    position: relative;
+
+    font-weight: 700;
+    text-align: center;
+
+    border: 2px solid transparent;
   }
 }
 
 p.govuk-body {
   &--start {
     margin-bottom: -40px;
+
     display: inline-block;
   }
 }
 
 .govuk-heading {
   &-l--start {
-    margin-bottom: 30px;
     margin-top: -40px;
+    margin-bottom: 30px;
+
     font-weight: 700;
   }
 
   &-m--start {
     margin-bottom: 20px;
+
     font-weight: 700;
   }
 }

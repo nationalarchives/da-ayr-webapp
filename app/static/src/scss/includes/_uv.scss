@@ -3,6 +3,7 @@
   .content
   .annotationRect {
   background-color: #1d70b8;
+
   opacity: 0.25;
 }
 
@@ -17,11 +18,12 @@
 
   .centerOptions {
     width: fit-content;
+
     top: -1px;
   }
 
   div.btn:focus {
-    outline: none;
     border: 2px solid #005fcc;
+    outline: none;
   }
 }

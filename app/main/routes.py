@@ -32,8 +32,9 @@ from app.main.db.models import Body, Consignment, File, Series, db
 from app.main.db.queries import (
     build_browse_consignment_query,
     build_browse_query,
-    build_browse_records_query,
+    build_browse_records_base_query,
     build_browse_series_query,
+    get_browse_records_metadata_for_files,
     get_file_metadata,
 )
 from app.main.flask_config_helpers import (
@@ -634,22 +635,59 @@ def browse_records():
         ayr_user.is_standard_user,
     )
 
-    query = build_browse_records_query(
+    data_query = build_browse_records_base_query(
         accessible_transferring_body_names=accessible_body_names,
         filters=filters,
-        sorting_orders=sorting_orders,
+        sorting_orders=sorting_orders or {"date_of_record": "desc"},
+    )
+    count_query = build_browse_records_base_query(
+        accessible_transferring_body_names=accessible_body_names,
+        filters=filters,
     )
 
     try:
-        paginated_results = query.paginate(page=page, per_page=per_page)
+        total = count_query.count()
+        total_pages = calculate_total_pages(total, per_page)
+        if page > 1 and page > total_pages:
+            return redirect_if_page_invalid(
+                page, default_page, "main.browse_records"
+            )
+        offset = (page - 1) * per_page
+        page_items = data_query.offset(offset).limit(per_page).all()
     except NotFound:
         return redirect_if_page_invalid(
             page, default_page, "main.browse_records"
         )
 
-    results = [dict(record._mapping) for record in paginated_results.items]
+    # Stage 2: fetch metadata only for the files on this page
+    file_ids = [row.file_id for row in page_items]
+    metadata_map = get_browse_records_metadata_for_files(file_ids)
 
-    pagination = get_pagination(page, paginated_results.pages)
+    results = []
+    for row in page_items:
+        meta = metadata_map.get(row.file_id, {})
+        date_last_modified = meta.get("date_last_modified")
+        end_date = meta.get("end_date")
+        results.append(
+            {
+                "transferring_body_id": row.transferring_body_id,
+                "transferring_body": row.transferring_body,
+                "series_id": row.series_id,
+                "series": row.series,
+                "consignment_id": row.consignment_id,
+                "consignment_reference": row.consignment_reference,
+                "file_id": row.file_id,
+                "file_name": row.file_name,
+                "file_path": row.file_path,
+                "date_last_modified": date_last_modified,
+                "end_date": end_date,
+                "closure_type": meta.get("closure_type"),
+                "opening_date": meta.get("opening_date"),
+                "date_of_record": end_date or date_last_modified,
+            }
+        )
+
+    pagination = get_pagination(page, total_pages)
 
     return render_template(
         "browse-records.html",
@@ -668,7 +706,7 @@ def browse_records():
         transferring_bodies=transferring_bodies,
         results=results,
         pagination=pagination,
-        num_records_found=paginated_results.total,
+        num_records_found=total,
         query_string_parameters=request.validated_args,
     )
 

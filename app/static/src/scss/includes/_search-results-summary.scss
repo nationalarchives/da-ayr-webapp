@@ -4,8 +4,8 @@
 
 .govuk-table__header {
   &--results-summary {
-    font-weight: bold;
     font-size: 1rem;
+    font-weight: bold;
 
     &:last-child {
       text-align: right;
@@ -33,8 +33,8 @@
   }
 
   &--record-results {
-    font-weight: bold;
     font-size: 1rem;
+    font-weight: bold;
     text-align: right;
   }
 }
@@ -46,9 +46,9 @@
 }
 
 .govuk-summary-list-long-word {
-  word-break: break-word;
+  word-break: break-word; /* stylelint-disable-line declaration-property-value-keyword-no-deprecated */
 }
 
 .govuk-summary-list-short-word {
-  word-break: normal;
+  word-break: normal; /* stylelint-disable-line declaration-property-value-keyword-no-deprecated */
 }

@@ -3,6 +3,7 @@
 .banner__container {
   display: flex;
   justify-content: space-between;
+
   border-bottom: none;
 }
 
@@ -13,6 +14,7 @@
 @media screen and (width <= $breakpoint-medium) {
   .sign-out {
     margin: 0.5rem 0;
+
     align-self: flex-end;
   }
 
