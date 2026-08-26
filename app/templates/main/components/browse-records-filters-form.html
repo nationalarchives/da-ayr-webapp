@@ -13,7 +13,7 @@
             </div>
             <div class="browse-records__form-group">
                 <label class="govuk-label govuk-label__filter"
-                       for="transferring_body_filter">
+                       for="wrong-transferring_body_filter">
                     Transferring body
                     {% if not is_standard_user %} <span class="browse-records__series-filter-example">– e.g. Land Registry</span>{% endif %}
                 </label>
@@ -29,7 +29,7 @@
                 </datalist>
             </div>
             <div class="browse-records__form-group">
-                <label class="govuk-label govuk-label__filter" for="series_filter">Series <span class="browse-records__series-filter-example">– e.g. HO 405</span></label>
+                <label class="govuk-label govuk-label__filter" for="wrong-series_filter">Series <span class="browse-records__series-filter-example">– e.g. HO 405</span></label>
                 <input class="govuk-input govuk-!-width-full"
                        id="series_filter"
                        name="series_filter"
@@ -41,6 +41,7 @@
                 <input class="govuk-input govuk-!-width-full"
                        id="consignment_reference"
                        name="consignment_reference"
+                       aria-label="Wrong filter name"
                        value="{% if filters['consignment_reference'] %}{{ filters['consignment_reference'] }}{% endif %}"
                        type="text">
             </div>
