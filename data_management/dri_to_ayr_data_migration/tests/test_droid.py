@@ -5,7 +5,6 @@ from unittest import mock
 
 import pytest
 
-# droid.handler reads these at import time, so set them before importing it.
 os.environ.setdefault("AWS_DEFAULT_REGION", "eu-west-2")
 os.environ.setdefault("AWS_EC2_METADATA_DISABLED", "true")
 os.environ.setdefault("AWS_ACCESS_KEY_ID", "test")
