@@ -39,11 +39,12 @@
   }
 
   .uv-search-controls {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
     margin-bottom: 10px;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
   }
 
   #uv-search-input {
@@ -78,6 +79,7 @@
     &:not([href]) {
       color: $colour-link-normal;
       text-decoration: none;
+
       cursor: default;
     }
   }
@@ -99,15 +101,16 @@
 
 .uv-search-highlight {
   position: absolute;
+
   background-color: $colour-link-default;
+
   opacity: 0.25;
+
   pointer-events: none;
 
   &--active {
-    // Not a variable: matches govuk's focus yellow, but that token isn't
-    // exposed to this file's scope without adding a new entry to
-    // _variables.scss for a single one-off use.
     background-color: #fd0;
+
     opacity: 0.5;
   }
 }
