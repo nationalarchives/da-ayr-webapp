@@ -20,11 +20,11 @@
         {{ render_preserved_params(preserved_params) }}
         <div class="sort-list-records-left-wrapper">
             <div class="sort-list-records-js">
-                <label class="govuk-label govuk-visually-hidden" for="wrong-sort-records-js">Sort records</label>
+                <label class="govuk-label govuk-visually-hidden" for="sort-records-js">Sort records</label>
                 <select class="sort-list-records__select js-records-sort-select"
                         id="sort-records-js"
                         name="sort">{{ render_sort_options(sort_options, selected_sort) }}</select>
-                <label class="browse-records__label--left" for="wrong-sort-js">Records per page</label>
+                <label class="browse-records__label--left" for="sort-js">Records per page</label>
                 <select class="record-select--sort-left" id="sort-js" name="per_page">{{ render_per_page_options(per_page_options, selected_per_page) }}</select>
             </div>
         </div>
