@@ -57,6 +57,32 @@ services:
     depends_on:
       - postgres
 
+  dri_to_ayr_data_migration_tests:
+    build:
+      context: ./data_management/dri_to_ayr_data_migration
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - ./test_results:/test_results
+    working_dir: /app
+    entrypoint: ""
+    command:
+    - sh
+    - -c
+    - |
+        set -e
+
+        apt-get update
+
+        echo 'Installing Python test dependencies...'
+        pip install -r data_management/access_copy_converter/requirements-dev.txt
+
+        pytest \
+          --cov=data_management/dri_to_ayr_data_migration \
+          --cov-report=xml:/test_results/dri_to_ayr_data_migration_coverage.xml \
+          --cov-report=term-missing \
+          -vvs data_management/dri_to_ayr_data_migration/tests
+
   postgres:
     image: postgres@sha256:3a82e1f56c8f0f5616a11103ac3d47e632c3938698946a7ad26da0df1334744a # postgres:18.0 with digest for immutability
     environment:

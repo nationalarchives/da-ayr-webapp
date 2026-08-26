@@ -76,85 +76,24 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     files_skipped = 0
 
     for consignment_reference, group_records in consignment_groups.items():
-        expected_file_count = len(group_records)
-
-        existing_consignment = get_consignment_tracking_item(
+        result = process_consignment_group(
             run_id=run_id,
+            series=series,
             consignment_reference=consignment_reference,
+            group_records=group_records,
         )
 
-        if existing_consignment:
-            consignment_status = get_ddb_string(existing_consignment, "status")
-            logger.info(
-                "Existing consignment found run_id=%s consignment=%s status=%s",
-                run_id,
-                consignment_reference,
-                consignment_status,
-            )
+        worker_messages_sent += result["workerMessagesSent"]
+        files_skipped += result["filesSkipped"]
 
-            if consignment_status in CONSIGNMENT_STATUSES_SKIP_WORKER:
-                logger.info(
-                    "Skipping worker messages for consignment=%s because status=%s",
-                    consignment_reference,
-                    consignment_status,
-                )
-                consignments_skipped.append(
-                    {
-                        "consignmentReference": consignment_reference,
-                        "status": consignment_status,
-                    }
-                )
-                continue
-        else:
-            put_consignment_tracking_item(
-                run_id=run_id,
-                series=series,
-                consignment_reference=consignment_reference,
-                expected_file_count=expected_file_count,
-            )
-
-        for record in group_records:
-            file_id = require_file_id(record)
-
-            existing_file = get_file_tracking_item(
-                run_id=run_id,
-                consignment_reference=consignment_reference,
-                file_id=file_id,
-            )
-
-            if existing_file:
-                file_status = get_ddb_string(existing_file, "status")
-                if file_status in FILE_STATUSES_SKIP_WORKER:
-                    logger.info(
-                        "Skipping worker message for file=%s consignment=%s because status=%s",
-                        file_id,
-                        consignment_reference,
-                        file_status,
-                    )
-                    files_skipped += 1
-                    continue
-            else:
-                put_file_tracking_item(
-                    run_id=run_id,
-                    series=series,
-                    consignment_reference=consignment_reference,
-                    record=record,
-                    file_id=file_id,
-                )
-
-            send_worker_message(
-                run_id=run_id,
-                series=series,
-                reference=require_text(record, "reference"),
-                consignment_reference=consignment_reference,
-                file_id=file_id,
-            )
-            worker_messages_sent += 1
+        if result["consignmentSkipped"]:
+            consignments_skipped.append(result["consignmentSkipped"])
 
     return {
         "status": "started",
         "runId": run_id,
         "series": series,
+        "maxFilesPerFakeConsignment": MAX_FILES_PER_FAKE_CONSIGNMENT,
         "recordCount": len(records),
         "consignmentCount": len(consignment_groups),
         "workerMessagesSent": worker_messages_sent,
@@ -170,6 +109,120 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     }
 
 
+def process_consignment_group(
+    run_id: str,
+    series: str,
+    consignment_reference: str,
+    group_records: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Create/check consignment tracking and send worker messages for its records."""
+    existing_consignment = get_consignment_tracking_item(
+        run_id=run_id,
+        consignment_reference=consignment_reference,
+    )
+
+    if existing_consignment:
+        consignment_status = get_ddb_string(existing_consignment, "status")
+        logger.info(
+            "Existing consignment found run_id=%s consignment=%s status=%s",
+            run_id,
+            consignment_reference,
+            consignment_status,
+        )
+
+        if consignment_status in CONSIGNMENT_STATUSES_SKIP_WORKER:
+            logger.info(
+                "Skipping worker messages for consignment=%s because status=%s",
+                consignment_reference,
+                consignment_status,
+            )
+            return {
+                "workerMessagesSent": 0,
+                "filesSkipped": 0,
+                "consignmentSkipped": {
+                    "consignmentReference": consignment_reference,
+                    "status": consignment_status,
+                },
+            }
+    else:
+        put_consignment_tracking_item(
+            run_id=run_id,
+            series=series,
+            consignment_reference=consignment_reference,
+            expected_file_count=len(group_records),
+        )
+
+    worker_messages_sent = 0
+    files_skipped = 0
+
+    for record in group_records:
+        result = process_record(
+            run_id=run_id,
+            series=series,
+            consignment_reference=consignment_reference,
+            record=record,
+        )
+        worker_messages_sent += result["workerMessageSent"]
+        files_skipped += result["fileSkipped"]
+
+    return {
+        "workerMessagesSent": worker_messages_sent,
+        "filesSkipped": files_skipped,
+        "consignmentSkipped": None,
+    }
+
+
+def process_record(
+    run_id: str,
+    series: str,
+    consignment_reference: str,
+    record: dict[str, Any],
+) -> dict[str, int]:
+    """Create/check file tracking and send a worker message if needed."""
+    file_id = require_file_id(record)
+
+    existing_file = get_file_tracking_item(
+        run_id=run_id,
+        consignment_reference=consignment_reference,
+        file_id=file_id,
+    )
+
+    if existing_file:
+        file_status = get_ddb_string(existing_file, "status")
+        if file_status in FILE_STATUSES_SKIP_WORKER:
+            logger.info(
+                "Skipping worker message for file=%s consignment=%s because status=%s",
+                file_id,
+                consignment_reference,
+                file_status,
+            )
+            return {
+                "workerMessageSent": 0,
+                "fileSkipped": 1,
+            }
+    else:
+        put_file_tracking_item(
+            run_id=run_id,
+            series=series,
+            consignment_reference=consignment_reference,
+            record=record,
+            file_id=file_id,
+        )
+
+    send_worker_message(
+        run_id=run_id,
+        series=series,
+        reference=require_text(record, "reference"),
+        consignment_reference=consignment_reference,
+        file_id=file_id,
+    )
+
+    return {
+        "workerMessageSent": 1,
+        "fileSkipped": 0,
+    }
+
+
 def group_records_by_consignment(
     records: list[dict[str, Any]],
     series: str,
@@ -179,7 +232,7 @@ def group_records_by_consignment(
 
     Real consignments use tdrConsignmentId and can contain any number of files.
     Fake consignments are chunked so each fake consignment contains no more than
-    MAX_FILES_PER_FAKE_CONSIGNMENT files.
+    MAX_FILES_PER_FAKE_CONSIGNMENT records.
     """
     consignment_groups: dict[str, list[dict[str, Any]]] = {}
     fake_consignment_records: list[dict[str, Any]] = []
@@ -296,10 +349,10 @@ def read_json_record(key: str) -> dict[str, Any]:
 def require_file_id(record: dict[str, Any]) -> str:
     try:
         file_id = record["digitalFiles"][0]["fileId"]
-    except (KeyError, IndexError, TypeError):
+    except (KeyError, IndexError, TypeError) as exc:
         raise ValueError(
             f"Missing digitalFiles[].fileId for reference={record.get('reference')}"
-        )
+        ) from exc
 
     if isinstance(file_id, str) and file_id.strip():
         return file_id.strip()
