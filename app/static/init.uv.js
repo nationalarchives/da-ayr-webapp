@@ -9,6 +9,7 @@ const searchState = {
   hits: [],
   currentIndex: -1,
   searched: false,
+  fetchInProgress: false,
 };
 
 function initUniversalViewer() {
@@ -161,6 +162,9 @@ function initSearchBar() {
       <a href="#" id="uv-search-next" class="uv-search-nav">Next</a>
     </div>
     <p id="uv-search-no-results" class="govuk-body" hidden>No results found</p>
+    <p id="uv-search-error" class="govuk-error-message" aria-live="polite" hidden>
+      <span class="govuk-visually-hidden">Error:</span> There was a problem searching this record. Please try again.
+    </p>
   `;
   viewerContainer.insertBefore(bar, viewerContainer.firstChild);
 
@@ -202,10 +206,37 @@ function resetSearch() {
   searchState.currentIndex = -1;
   searchState.searched = false;
   clearHighlights();
+  hideSearchError();
   updateSearchStatus();
 }
 
+function hideSearchError() {
+  const errorEl = document.getElementById("uv-search-error");
+  if (errorEl) {
+    errorEl.hidden = true;
+  }
+}
+
+function showSearchError() {
+  const resultsEl = document.getElementById("uv-search-results");
+  const noResultsEl = document.getElementById("uv-search-no-results");
+  const errorEl = document.getElementById("uv-search-error");
+  if (resultsEl) {
+    resultsEl.hidden = true;
+  }
+  if (noResultsEl) {
+    noResultsEl.hidden = true;
+  }
+  if (errorEl) {
+    errorEl.hidden = false;
+  }
+}
+
 function runSearch() {
+  if (searchState.fetchInProgress) {
+    return;
+  }
+
   const input = document.getElementById("uv-search-input");
   const query = input ? input.value.trim() : "";
 
@@ -215,8 +246,17 @@ function runSearch() {
     return;
   }
 
+  const submitButton = document.getElementById("uv-search-submit");
+  searchState.fetchInProgress = true;
+  if (submitButton) {
+    submitButton.disabled = true;
+  }
+
   fetch(`${search_url}?q=${encodeURIComponent(query)}`)
     .then(function (response) {
+      if (!response.ok) {
+        throw new Error(`Search request failed with status ${response.status}`);
+      }
       return response.json();
     })
     .then(function (data) {
@@ -225,6 +265,15 @@ function runSearch() {
       updateSearchStatus();
       if (searchState.hits.length > 0) {
         goToHit(0);
+      }
+    })
+    .catch(function () {
+      showSearchError();
+    })
+    .finally(function () {
+      searchState.fetchInProgress = false;
+      if (submitButton) {
+        submitButton.disabled = false;
       }
     });
 }

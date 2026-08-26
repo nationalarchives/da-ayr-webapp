@@ -346,6 +346,7 @@ describe("tests for init.uv.js", () => {
 
       global.fetch = jest.fn(() =>
         Promise.resolve({
+          ok: true,
           json: () =>
             Promise.resolve({
               hits: [
@@ -392,6 +393,57 @@ describe("tests for init.uv.js", () => {
       );
     });
 
+    it("disables the search button while a fetch is in progress and re-enables it after", async () => {
+      setupSearchableUv();
+      const { pdfLoaded } = initWithHandlers();
+      pdfLoaded();
+
+      let resolveFetch;
+      global.fetch = jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveFetch = resolve;
+          }),
+      );
+
+      const submitButton = document.getElementById("uv-search-submit");
+      document.getElementById("uv-search-input").value = "foo";
+      submitButton.click();
+      await flushPromises();
+
+      expect(submitButton.disabled).toBe(true);
+
+      resolveFetch({ ok: true, json: () => Promise.resolve({ hits: [] }) });
+      await flushPromises();
+
+      expect(submitButton.disabled).toBe(false);
+    });
+
+    it("ignores a second search trigger while a fetch is already in progress", async () => {
+      setupSearchableUv();
+      const { pdfLoaded } = initWithHandlers();
+      pdfLoaded();
+
+      let resolveFetch;
+      global.fetch = jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveFetch = resolve;
+          }),
+      );
+
+      document.getElementById("uv-search-input").value = "foo";
+      const submitButton = document.getElementById("uv-search-submit");
+      submitButton.click();
+      submitButton.click();
+      await flushPromises();
+
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+
+      resolveFetch({ ok: true, json: () => Promise.resolve({ hits: [] }) });
+      await flushPromises();
+    });
+
     it("drives UV's page-number field and waits for pageIndexChange when a hit is on another page", async () => {
       setupSearchableUv();
       const { pdfLoaded, pageIndexChange } = initWithHandlers();
@@ -399,6 +451,7 @@ describe("tests for init.uv.js", () => {
 
       global.fetch = jest.fn(() =>
         Promise.resolve({
+          ok: true,
           json: () =>
             Promise.resolve({
               hits: [
@@ -431,6 +484,7 @@ describe("tests for init.uv.js", () => {
 
       global.fetch = jest.fn(() =>
         Promise.resolve({
+          ok: true,
           json: () =>
             Promise.resolve({
               hits: [
@@ -484,6 +538,7 @@ describe("tests for init.uv.js", () => {
 
       global.fetch = jest.fn(() =>
         Promise.resolve({
+          ok: true,
           json: () => Promise.resolve({ hits: [] }),
         }),
       );
@@ -498,6 +553,81 @@ describe("tests for init.uv.js", () => {
       expect(noResults.textContent).toBe("No results found");
     });
 
+    it("shows an error message and hides results when the search API returns a non-OK status", async () => {
+      setupSearchableUv();
+      const { pdfLoaded } = initWithHandlers();
+      pdfLoaded();
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: false,
+          status: 500,
+          json: () => Promise.resolve({}),
+        }),
+      );
+
+      document.getElementById("uv-search-input").value = "foo";
+      document.getElementById("uv-search-submit").click();
+      await flushPromises();
+
+      expect(document.getElementById("uv-search-results").hidden).toBe(true);
+      expect(document.getElementById("uv-search-no-results").hidden).toBe(true);
+      const errorEl = document.getElementById("uv-search-error");
+      expect(errorEl.hidden).toBe(false);
+      expect(errorEl.textContent).toContain(
+        "There was a problem searching this record",
+      );
+    });
+
+    it("shows an error message when the search request fails outright (network error)", async () => {
+      setupSearchableUv();
+      const { pdfLoaded } = initWithHandlers();
+      pdfLoaded();
+
+      global.fetch = jest.fn(() => Promise.reject(new Error("network down")));
+
+      document.getElementById("uv-search-input").value = "foo";
+      document.getElementById("uv-search-submit").click();
+      await flushPromises();
+
+      expect(document.getElementById("uv-search-error").hidden).toBe(false);
+    });
+
+    it("clears a previous error message when a new search is run", async () => {
+      setupSearchableUv();
+      const { pdfLoaded } = initWithHandlers();
+      pdfLoaded();
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: false,
+          status: 500,
+          json: () => Promise.resolve({}),
+        }),
+      );
+      document.getElementById("uv-search-input").value = "foo";
+      document.getElementById("uv-search-submit").click();
+      await flushPromises();
+      expect(document.getElementById("uv-search-error").hidden).toBe(false);
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              hits: [
+                { page: 1, rect: { x: 0, y: 0, w: 0.1, h: 0.1 }, text: "a" },
+              ],
+            }),
+        }),
+      );
+      document.getElementById("uv-search-input").value = "a";
+      document.getElementById("uv-search-submit").click();
+      await flushPromises();
+
+      expect(document.getElementById("uv-search-error").hidden).toBe(true);
+    });
+
     it("clears highlights and resets the count when a new PDF loads", async () => {
       setupSearchableUv();
       const { pdfLoaded } = initWithHandlers();
@@ -505,6 +635,7 @@ describe("tests for init.uv.js", () => {
 
       global.fetch = jest.fn(() =>
         Promise.resolve({
+          ok: true,
           json: () =>
             Promise.resolve({
               hits: [

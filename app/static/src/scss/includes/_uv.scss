@@ -89,6 +89,12 @@
   #uv-search-no-results {
     margin-bottom: 0;
   }
+
+  // govuk-frontend's .govuk-error-message sets display: block, which has
+  // the same specificity as the [hidden] attribute's UA display: none
+  #uv-search-error[hidden] {
+    display: none;
+  }
 }
 
 .uv-search-highlight {
