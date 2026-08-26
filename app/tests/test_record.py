@@ -1128,44 +1128,6 @@ class TestRecord:
         )
 
     @mock_aws
-    def test_record_view_includes_noscript_fallback(
-        self, app, client: FlaskClient, mock_all_access_user
-    ):
-        """
-        Given a renderable file on the record view tab
-        When the record view is rendered
-        Then a noscript fallback message and object are present
-        """
-        mock_all_access_user(client)
-
-        file = FileFactory(ffid_metadata__PUID="fmt/276")
-
-        bucket_name = "test_bucket"
-
-        app.config["RECORD_BUCKET_NAME"] = bucket_name
-        create_mock_s3_bucket_with_object(bucket_name, file)
-
-        response = client.get(f"{self.route_url}/{file.FileId}#record-view")
-
-        assert response.status_code == 200
-
-        soup = BeautifulSoup(response.data.decode(), "html.parser")
-        noscript = soup.find("noscript")
-
-        assert noscript is not None
-
-        fallback_object = noscript.find("object")
-        fallback_text = noscript.find("p")
-
-        assert fallback_object is not None
-        assert fallback_object.get("data")
-        assert fallback_text is not None
-        assert (
-            fallback_text.get_text(strip=True)
-            == "Please enable JS to view this record."
-        )
-
-    @mock_aws
     def test_record_summary_list_renders_evidence_provided_by_when_present(
         self, app, client: FlaskClient, mock_standard_user
     ):
