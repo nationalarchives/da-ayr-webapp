@@ -199,7 +199,7 @@ module.exports = {
         "categories:seo": [
           "warn",
           {
-            minScore: 0.90,
+            minScore: 0.9,
           },
         ],
       },
