@@ -59,7 +59,7 @@ services:
 
   dri_to_ayr_data_migration_tests:
     build:
-      context: ./data_management/dri_to_ayr_data_migration
+      context: ./data_management/dri_to_ayr_data_migration/tests
       dockerfile: Dockerfile
     volumes:
       - .:/app
@@ -75,7 +75,7 @@ services:
         apt-get update
 
         echo 'Installing Python test dependencies...'
-        pip install -r data_management/access_copy_converter/requirements-dev.txt
+        pip install -r data_management/data_management/dri_to_ayr_data_migration/requirements-dev.txt
 
         pytest \
           --cov=data_management/dri_to_ayr_data_migration \
