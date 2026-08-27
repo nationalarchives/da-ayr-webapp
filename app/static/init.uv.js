@@ -143,34 +143,11 @@ function initSearchBar() {
     return;
   }
 
-  const viewerContainer = document.getElementById("viewer");
-  if (!viewerContainer || document.getElementById("uv-search")) {
+  const bar = document.getElementById("uv-search");
+  if (!bar || bar.dataset.listenersAttached) {
     return;
   }
-
-  const bar = document.createElement("div");
-  bar.id = "uv-search";
-  bar.innerHTML = `
-    <search>
-      <form id="uv-search-form">
-        <label for="uv-search-input" class="govuk-label govuk-label--s uv-search-label">Search within record</label>
-        <div class="uv-search-controls">
-          <input type="text" id="uv-search-input" class="govuk-input" />
-          <button type="submit" id="uv-search-submit" class="govuk-button" data-module="govuk-button">Search</button>
-        </div>
-      </form>
-    </search>
-    <div id="uv-search-results" class="uv-search-results" hidden>
-      <a href="#" id="uv-search-prev" class="uv-search-nav">Previous</a>
-      <span id="uv-search-count" aria-live="polite"></span>
-      <a href="#" id="uv-search-next" class="uv-search-nav">Next</a>
-    </div>
-    <p id="uv-search-no-results" class="govuk-body" hidden>No results found</p>
-    <p id="uv-search-error" class="govuk-error-message" aria-live="polite" hidden>
-      <span class="govuk-visually-hidden">Error:</span> There was a problem searching this record. Please try again.
-    </p>
-  `;
-  viewerContainer.insertBefore(bar, viewerContainer.firstChild);
+  bar.dataset.listenersAttached = "true";
 
   document
     .getElementById("uv-search-form")

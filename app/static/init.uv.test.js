@@ -17,10 +17,34 @@ class MockResizeObserver {
 }
 global.ResizeObserver = MockResizeObserver;
 
+const SEARCH_BAR_HTML = `
+  <div id="uv-search">
+    <search>
+      <form id="uv-search-form">
+        <label for="uv-search-input" class="govuk-label govuk-label--s uv-search-label">Search within record</label>
+        <div class="uv-search-controls">
+          <input type="text" id="uv-search-input" class="govuk-input" />
+          <button type="submit" id="uv-search-submit" class="govuk-button" data-module="govuk-button">Search</button>
+        </div>
+      </form>
+    </search>
+    <div id="uv-search-results" class="uv-search-results" hidden>
+      <a href="#" id="uv-search-prev" class="uv-search-nav">Previous</a>
+      <span id="uv-search-count" aria-live="polite"></span>
+      <a href="#" id="uv-search-next" class="uv-search-nav">Next</a>
+    </div>
+    <p id="uv-search-no-results" class="govuk-body" hidden>No results found</p>
+    <p id="uv-search-error" class="govuk-error-message" aria-live="polite" hidden>
+      <span class="govuk-visually-hidden">Error:</span> There was a problem searching this record. Please try again.
+    </p>
+  </div>
+`;
+
 function setupDOM(options = {}) {
   document.body.innerHTML = `
     <div id="viewer">
       <script id="init-uv" manifest_url="test-manifest" search_url="test-search-url"></script>
+      ${SEARCH_BAR_HTML}
       <div id="uv"></div>
     </div>
   `;
@@ -353,6 +377,27 @@ describe("tests for init.uv.js", () => {
       );
       expect(form.contains(submitButton)).toBe(true);
       expect(submitButton.getAttribute("type")).toBe("submit");
+    });
+
+    it("does not attach duplicate search listeners when initSearchBar runs again (e.g. re-init on tab switch)", async () => {
+      setupSearchableUv();
+      const { pdfLoaded } = initWithHandlers();
+      pdfLoaded();
+
+      document.dispatchEvent(new Event("DOMContentLoaded"));
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ hits: [] }),
+        }),
+      );
+
+      document.getElementById("uv-search-input").value = "foo";
+      document.getElementById("uv-search-submit").click();
+      await flushPromises();
+
+      expect(global.fetch).toHaveBeenCalledTimes(1);
     });
 
     it("runs a search when the form is submitted", async () => {
