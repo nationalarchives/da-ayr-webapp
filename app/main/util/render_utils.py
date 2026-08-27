@@ -128,10 +128,6 @@ def generate_pdf_manifest(
         "main.get_record_pdf", record_id=record_id, _external=True
     )
 
-    search_url = url_for(
-        "main.search_within_record", record_id=record_id, _external=True
-    )
-
     canvas_id = f"{manifest_url}/canvas/1"
 
     manifest = {
@@ -140,14 +136,6 @@ def generate_pdf_manifest(
         "type": "Manifest",
         "label": {"en": [file_name]},
         "summary": {"en": [f"Manifest for {file_name}"]},
-        "service": [
-            {
-                "@context": "http://iiif.io/api/search/1/context.json",
-                "@id": search_url,
-                "profile": "http://iiif.io/api/search/1/search",
-                "label": "Search within this record",
-            }
-        ],
         "rendering": [
             {
                 "id": pdf_url,
@@ -260,86 +248,58 @@ def generate_image_manifest(
 
 def search_within_pdf(
     query: str,
-    search_url: str,
-    manifest_url: str,
     bucket: str,
     key: str,
 ) -> Response:
     """
-    Search for text within a PDF and return a IIIF Content Search API v1 response.
+    Search for text within a PDF.
+
+    The manifest paints one canvas with the whole PDF (see
+    generate_pdf_manifest), so there's no per-page canvas to target and no
+    generic IIIF client using this, it's called directly by our own
+    search overlay in init.uv.js. Rects are normalised so the frontend can
+    position highlights from whatever size it's currently rendering the
+    page at, without knowing PDF.js's live zoom scale.
 
     Args:
         query: The search term.
-        search_url: The search service base URL (used in the response @id).
-        manifest_url: The manifest URL (used to construct canvas @id values).
         bucket: S3 bucket name.
         key: S3 object key.
 
     Returns:
-        Flask JSON response containing a IIIF sc:AnnotationList.
+        Flask JSON response: {"total": int, "hits": [{"page", "rect"}]}.
     """
-    DPI = 150
-    SCALE = DPI / 72
-
     pdf_bytes = get_pdf_from_s3(bucket, key)
 
-    resources = []
     hits = []
-    annotation_count = 0
 
     with _open_pdf(pdf_bytes) as pdf_document:
         for page_num in range(pdf_document.page_count):
             page = pdf_document.load_page(page_num)
-            rects = page.search_for(query)
-            canvas_id = f"{manifest_url}/canvas/{page_num + 1}"
+            page_width = page.rect.width
+            page_height = page.rect.height
 
-            for rect in rects:
-                annotation_count += 1
-                annotation_id = f"{search_url}/annotation/{annotation_count}"
-
-                x = int(rect.x0 * SCALE)
-                y = int(rect.y0 * SCALE)
-                w = int((rect.x1 - rect.x0) * SCALE)
-                h = int((rect.y1 - rect.y0) * SCALE)
-
-                matched_text = page.get_textbox(rect).strip() or query
-
-                resources.append(
-                    {
-                        "@id": annotation_id,
-                        "@type": "oa:Annotation",
-                        "motivation": "sc:painting",
-                        "resource": {
-                            "@type": "cnt:ContentAsText",
-                            "chars": matched_text,
-                        },
-                        "on": f"{canvas_id}#xywh={x},{y},{w},{h}",
-                    }
+            if not page_width or not page_height:
+                logger.warning(
+                    "Skipping search on page %d: page has zero width or height",
+                    page_num + 1,
                 )
+                continue
+
+            for rect in page.search_for(query):
                 hits.append(
                     {
-                        "@type": "search:Hit",
-                        "annotations": [annotation_id],
-                        "match": matched_text,
+                        "page": page_num + 1,
+                        "rect": {
+                            "x": rect.x0 / page_width,
+                            "y": rect.y0 / page_height,
+                            "w": (rect.x1 - rect.x0) / page_width,
+                            "h": (rect.y1 - rect.y0) / page_height,
+                        },
                     }
                 )
 
-    result = {
-        "@context": [
-            "http://iiif.io/api/presentation/2/context.json",
-            "http://iiif.io/api/search/1/context.json",
-        ],
-        "@id": f"{search_url}?q={query}",
-        "@type": "sc:AnnotationList",
-        "within": {
-            "@type": "sc:Layer",
-            "total": annotation_count,
-        },
-        "resources": resources,
-        "hits": hits,
-    }
-
-    return jsonify(result)
+    return jsonify({"total": len(hits), "hits": hits})
 
 
 def get_pdf_from_s3(bucket: str, key: str) -> bytes:

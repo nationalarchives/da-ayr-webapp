@@ -344,8 +344,6 @@
 
   .mainPanel .leftPanel {
     background-color: #0b0c0c !important;
-
-    border-right: 2px solid white;
   }
 
   .centerOptions {
@@ -411,7 +409,8 @@
   text-align: center;
 }
 
-.uv-icon-settings {
+.uv-icon-settings,
+.uv-icon-more-info {
   display: none !important;
 }
 
