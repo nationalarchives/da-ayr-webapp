@@ -71,6 +71,10 @@ jobs:
       run: |
         docker compose -f docker-compose.test.yml run --rm access_copy_converter_tests
 
+    - name: Run DRI to AYR Data Migration Tests
+      run: |
+        docker compose -f docker-compose.test.yml run --rm dri_to_ayr_data_migration_tests
+
     - name: Copy OpenSearch Indexer coverage file from shared volume
       run: |
         cp ./test_results/opensearch_indexer_coverage.xml ./opensearch_indexer_coverage.xml || echo "OpenSearch Indexer coverage file not found"
@@ -94,6 +98,19 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: ${{ github.repository }}
         flags: access_copy_converter
+
+    - name: Copy DRI to AYR Data Migration coverage file from shared volume
+      run: |
+        cp ./test_results/dri_to_ayr_data_migration_coverage.xml ./dri_to_ayr_data_migration_coverage.xml || echo "DRI to AYR Data Migration coverage file not found"
+
+    - name: Upload DRI to AYR Data Migration coverage to Codecov
+      uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2
+      with:
+        files: ./dri_to_ayr_data_migration_coverage.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: ${{ github.repository }}
+        flags: dri_to_ayr_data_migration
+
 
   slack-alerts:
     needs:
