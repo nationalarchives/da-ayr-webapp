@@ -92,8 +92,11 @@
     margin-bottom: 0;
   }
 
-  // govuk-frontend's .govuk-error-message sets display: block, which has
-  // the same specificity as the [hidden] attribute's UA display: none
+  // Without this, the error message showed on page load before any
+  // search happened. govuk-frontend's .govuk-error-message class has the
+  // same specificity as the browser's built-in [hidden] rule, and loads
+  // first, so it was winning. This more specific selector forces hidden
+  // to win instead.
   #uv-search-error[hidden] {
     display: none;
   }
