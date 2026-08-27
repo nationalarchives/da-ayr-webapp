@@ -26,6 +26,7 @@
                         name="sort">{{ render_sort_options(sort_options, selected_sort) }}</select>
                 <label class="browse-records__label--left" for="sort-js">Records per page</label>
                 <select class="record-select--sort-left" id="sort-js" name="per_page">{{ render_per_page_options(per_page_options, selected_per_page) }}</select>
+                <button type="submit" class="govuk-visually-hidden">Apply sort and records per page</button>
             </div>
         </div>
     </form>

@@ -40,11 +40,12 @@
     </head>
     <body class="govuk-template__body {%- if bodyClasses %}{{ bodyClasses }}{% endif %}"
           {%- for attribute, value in bodyAttributes %}{{ attribute }}="{{ value }}"{% endfor %}>
+        <div id="top"></div>
         <script {%- if cspNonce %} nonce="{{ cspNonce }}"{% endif %}>document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');</script>
         {% block bodyStart %}{% endblock %}
         {% block skipLink %}
             {{ govukSkipLink({
-            'href': '#main-content',
+            'href': '#main-wrapper',
             'text': 'Skip to main content'
             }) }}
         {% endblock %}
