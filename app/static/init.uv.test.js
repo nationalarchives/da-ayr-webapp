@@ -10,8 +10,11 @@ class MockMutationObserver {
 }
 global.MutationObserver = MockMutationObserver;
 
+let lastResizeObserverCallback = null;
 class MockResizeObserver {
-  constructor(callback) {}
+  constructor(callback) {
+    lastResizeObserverCallback = callback;
+  }
   observe(target) {}
   disconnect() {}
 }
@@ -744,6 +747,95 @@ describe("tests for init.uv.js", () => {
       expect(document.getElementById("uv-search-count").textContent).toBe("");
       expect(document.getElementById("uv-search-results").hidden).toBe(true);
       expect(document.getElementById("uv-search-no-results").hidden).toBe(true);
+    });
+
+    it("debounces highlight redraws on rapid window resize, redrawing once after the burst settles", async () => {
+      jest.useFakeTimers();
+      setupSearchableUv();
+      const { pdfLoaded } = initWithHandlers();
+      pdfLoaded();
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              hits: [
+                { page: 1, rect: { x: 0, y: 0, w: 0.1, h: 0.1 }, text: "a" },
+              ],
+            }),
+        }),
+      );
+      document.getElementById("uv-search-input").value = "a";
+      document.getElementById("uv-search-submit").click();
+      for (let i = 0; i < 6; i++) await Promise.resolve();
+
+      const highlightBefore = document.querySelector(".uv-search-highlight");
+      expect(highlightBefore).not.toBeNull();
+
+      // Simulate a burst of resize events like a drag-resize produces
+      for (let i = 0; i < 20; i++) {
+        window.dispatchEvent(new Event("resize"));
+      }
+
+      // No redraw yet - still the exact same node, not cleared and
+      // recreated on every single event
+      expect(document.querySelector(".uv-search-highlight")).toBe(
+        highlightBefore,
+      );
+
+      jest.advanceTimersByTime(99);
+      expect(document.querySelector(".uv-search-highlight")).toBe(
+        highlightBefore,
+      );
+
+      jest.advanceTimersByTime(1);
+      const highlightAfter = document.querySelector(".uv-search-highlight");
+      expect(highlightAfter).not.toBeNull();
+      expect(highlightAfter).not.toBe(highlightBefore);
+
+      jest.useRealTimers();
+    });
+
+    it("debounces highlight redraws on rapid canvas ResizeObserver callbacks (e.g. PDF.js re-rendering at a new zoom level)", async () => {
+      jest.useFakeTimers();
+      setupSearchableUv();
+      const { pdfLoaded } = initWithHandlers();
+      pdfLoaded();
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              hits: [
+                { page: 1, rect: { x: 0, y: 0, w: 0.1, h: 0.1 }, text: "a" },
+              ],
+            }),
+        }),
+      );
+      document.getElementById("uv-search-input").value = "a";
+      document.getElementById("uv-search-submit").click();
+      for (let i = 0; i < 6; i++) await Promise.resolve();
+
+      const highlightBefore = document.querySelector(".uv-search-highlight");
+      expect(highlightBefore).not.toBeNull();
+      expect(lastResizeObserverCallback).toEqual(expect.any(Function));
+
+      for (let i = 0; i < 20; i++) {
+        lastResizeObserverCallback();
+      }
+
+      expect(document.querySelector(".uv-search-highlight")).toBe(
+        highlightBefore,
+      );
+
+      jest.advanceTimersByTime(100);
+      const highlightAfter = document.querySelector(".uv-search-highlight");
+      expect(highlightAfter).not.toBeNull();
+      expect(highlightAfter).not.toBe(highlightBefore);
+
+      jest.useRealTimers();
     });
   });
 });

@@ -174,7 +174,7 @@ function initSearchBar() {
       goToHit(searchState.currentIndex + 1);
     });
 
-  window.addEventListener("resize", drawHighlights);
+  window.addEventListener("resize", scheduleHighlightsRedraw);
 }
 
 function resetSearch() {
@@ -373,6 +373,17 @@ function drawHighlights() {
   });
 }
 
+const HIGHLIGHTS_REDRAW_DEBOUNCE_MS = 100;
+let highlightsRedrawTimeout;
+
+function scheduleHighlightsRedraw() {
+  clearTimeout(highlightsRedrawTimeout);
+  highlightsRedrawTimeout = setTimeout(
+    drawHighlights,
+    HIGHLIGHTS_REDRAW_DEBOUNCE_MS,
+  );
+}
+
 let highlightResizeObserver = null;
 let observedCanvas = null;
 
@@ -385,7 +396,7 @@ function observeCanvasResize(canvas) {
   }
   observedCanvas = canvas;
   highlightResizeObserver = new ResizeObserver(function () {
-    drawHighlights();
+    scheduleHighlightsRedraw();
   });
   highlightResizeObserver.observe(canvas);
 }
