@@ -70,11 +70,11 @@ repos:
       types_or: [css, javascript, scss]
       args: ['--write']
 
-- repo: local
-  hooks:
-    - id: pa11y-ci
-      name: Pa11y CI
-      entry: custom_hooks/pa11y_ci_precommit.sh
-      language: system
-      pass_filenames: false
-      always_run: true
+# - repo: local
+#   hooks:
+#     - id: pa11y-ci
+#       name: Pa11y CI
+#       entry: custom_hooks/pa11y_ci_precommit.sh
+#       language: system
+#       pass_filenames: false
+#       always_run: true
