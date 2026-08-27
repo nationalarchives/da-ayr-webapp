@@ -60,9 +60,10 @@
             <div class="govuk-grid-row govuk-grid-row--record-view mobile-record-layout">
                 <div class="govuk-grid-row govuk-grid-row-record">
                     <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
+                        {% set preserved_params = request.args.copy() %}
                         {{ govukBackLink({
                         'text': "Back",
-                        'href': url_for('main.browse_records')
+                        'href': url_for('main.browse_records', **preserved_params)
                         }) }}
                         <p class="govuk-body govuk-!-margin-bottom-0">
                             <span class="record-page__scope-text">{{ record["transferring_body"] }}</span>
