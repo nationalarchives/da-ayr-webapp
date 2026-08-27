@@ -151,11 +151,15 @@ function initSearchBar() {
   const bar = document.createElement("div");
   bar.id = "uv-search";
   bar.innerHTML = `
-    <label for="uv-search-input" class="govuk-label govuk-label--s uv-search-label">Search within record</label>
-    <div class="uv-search-controls">
-      <input type="text" id="uv-search-input" class="govuk-input" />
-      <button type="button" id="uv-search-submit" class="govuk-button" data-module="govuk-button">Search</button>
-    </div>
+    <search>
+      <form id="uv-search-form">
+        <label for="uv-search-input" class="govuk-label govuk-label--s uv-search-label">Search within record</label>
+        <div class="uv-search-controls">
+          <input type="text" id="uv-search-input" class="govuk-input" />
+          <button type="submit" id="uv-search-submit" class="govuk-button" data-module="govuk-button">Search</button>
+        </div>
+      </form>
+    </search>
     <div id="uv-search-results" class="uv-search-results" hidden>
       <a href="#" id="uv-search-prev" class="uv-search-nav">Previous</a>
       <span id="uv-search-count" aria-live="polite"></span>
@@ -169,15 +173,10 @@ function initSearchBar() {
   viewerContainer.insertBefore(bar, viewerContainer.firstChild);
 
   document
-    .getElementById("uv-search-submit")
-    .addEventListener("click", runSearch);
-  document
-    .getElementById("uv-search-input")
-    .addEventListener("keydown", function (event) {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        runSearch();
-      }
+    .getElementById("uv-search-form")
+    .addEventListener("submit", function (event) {
+      event.preventDefault();
+      runSearch();
     });
   document
     .getElementById("uv-search-prev")

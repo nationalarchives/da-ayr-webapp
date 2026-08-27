@@ -339,6 +339,48 @@ describe("tests for init.uv.js", () => {
       expect(document.getElementById("uv-search-no-results").hidden).toBe(true);
     });
 
+    it("wraps the search input in a <search><form> with a submit-type button, for pressing Enter to submit", () => {
+      initWithHandlers();
+
+      const search = document.querySelector("#uv-search > search");
+      const form = document.getElementById("uv-search-form");
+      const submitButton = document.getElementById("uv-search-submit");
+
+      expect(search).not.toBeNull();
+      expect(search.contains(form)).toBe(true);
+      expect(form.contains(document.getElementById("uv-search-input"))).toBe(
+        true,
+      );
+      expect(form.contains(submitButton)).toBe(true);
+      expect(submitButton.getAttribute("type")).toBe("submit");
+    });
+
+    it("runs a search when the form is submitted", async () => {
+      setupSearchableUv();
+      const { pdfLoaded } = initWithHandlers();
+      pdfLoaded();
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ hits: [] }),
+        }),
+      );
+
+      document.getElementById("uv-search-input").value = "foo";
+      const form = document.getElementById("uv-search-form");
+      const submitEvent = new Event("submit", {
+        bubbles: true,
+        cancelable: true,
+      });
+      form.dispatchEvent(submitEvent);
+      await flushPromises();
+
+      expect(global.fetch).toHaveBeenCalledWith("test-search-url?q=foo");
+      // The default form submission must not happen
+      expect(submitEvent.defaultPrevented).toBe(true);
+    });
+
     it("fetches hits, shows the count, and highlights the first hit on the current page", async () => {
       setupSearchableUv();
       const { pdfLoaded } = initWithHandlers();
