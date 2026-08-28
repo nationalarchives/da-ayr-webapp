@@ -47,6 +47,7 @@ jobs:
           accessibility:
             - 'app/**'
             - 'configs/**'
+            - 'accessibility_tests/**'
             - 'local_services/**'
             - 'lighthouserc.js'
             - 'docker-compose.yml'

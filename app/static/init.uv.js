@@ -1,5 +1,16 @@
 const script = document.getElementById("init-uv");
 const manifest_url = script.getAttribute("manifest_url");
+const search_url = script.getAttribute("search_url");
+
+let currentPdfPageIndex = 1;
+let pendingPageChangeCallback = null;
+
+const searchState = {
+  hits: [],
+  currentIndex: -1,
+  searched: false,
+  fetchInProgress: false,
+};
 
 function initUniversalViewer() {
   const data = {
@@ -40,8 +51,22 @@ function initUniversalViewer() {
     });
   });
   uv.on("pdfExtension.pdfLoaded", function () {
+    currentPdfPageIndex = 1;
+    resetSearch();
     fitPdfToWidth();
   });
+  uv.on("pdfExtension.pageIndexChange", function (pageIndex) {
+    currentPdfPageIndex = pageIndex;
+    if (pendingPageChangeCallback) {
+      const cb = pendingPageChangeCallback;
+      pendingPageChangeCallback = null;
+      cb();
+    } else {
+      drawHighlights();
+    }
+  });
+
+  initSearchBar();
 }
 
 // Universal Viewer's PDF.js panel always renders at a fixed scale with no
@@ -111,6 +136,269 @@ function zoomPdfTowardsTargetWidth(
   setTimeout(function () {
     zoomPdfTowardsTargetWidth(direction, targetWidth, tolerance, clicks + 1);
   }, 250);
+}
+
+function initSearchBar() {
+  if (!search_url) {
+    return;
+  }
+
+  const bar = document.getElementById("uv-search");
+  if (!bar || bar.dataset.listenersAttached) {
+    return;
+  }
+  bar.dataset.listenersAttached = "true";
+
+  document
+    .getElementById("uv-search-form")
+    .addEventListener("submit", function (event) {
+      event.preventDefault();
+      runSearch();
+    });
+  document
+    .getElementById("uv-search-prev")
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+      if (!this.hasAttribute("href")) {
+        return;
+      }
+      goToHit(searchState.currentIndex - 1);
+    });
+  document
+    .getElementById("uv-search-next")
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+      if (!this.hasAttribute("href")) {
+        return;
+      }
+      goToHit(searchState.currentIndex + 1);
+    });
+
+  window.addEventListener("resize", scheduleHighlightsRedraw);
+}
+
+function resetSearch() {
+  searchState.hits = [];
+  searchState.currentIndex = -1;
+  searchState.searched = false;
+  clearHighlights();
+  hideSearchError();
+  updateSearchStatus();
+}
+
+function hideSearchError() {
+  const errorEl = document.getElementById("uv-search-error");
+  if (errorEl) {
+    errorEl.hidden = true;
+  }
+}
+
+function showSearchError() {
+  const resultsEl = document.getElementById("uv-search-results");
+  const noResultsEl = document.getElementById("uv-search-no-results");
+  const errorEl = document.getElementById("uv-search-error");
+  if (resultsEl) {
+    resultsEl.hidden = true;
+  }
+  if (noResultsEl) {
+    noResultsEl.hidden = true;
+  }
+  if (errorEl) {
+    errorEl.hidden = false;
+  }
+}
+
+function runSearch() {
+  if (searchState.fetchInProgress) {
+    return;
+  }
+
+  const input = document.getElementById("uv-search-input");
+  const query = input ? input.value.trim() : "";
+
+  resetSearch();
+
+  if (!query || !search_url) {
+    return;
+  }
+
+  const submitButton = document.getElementById("uv-search-submit");
+  searchState.fetchInProgress = true;
+  if (submitButton) {
+    submitButton.disabled = true;
+  }
+
+  fetch(`${search_url}?q=${encodeURIComponent(query)}`)
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error(`Search request failed with status ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(function (data) {
+      searchState.hits = (data && data.hits) || [];
+      searchState.searched = true;
+      updateSearchStatus();
+      if (searchState.hits.length > 0) {
+        goToHit(0);
+      }
+    })
+    .catch(function () {
+      showSearchError();
+    })
+    .finally(function () {
+      searchState.fetchInProgress = false;
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
+    });
+}
+
+function updateSearchStatus() {
+  const resultsEl = document.getElementById("uv-search-results");
+  const noResultsEl = document.getElementById("uv-search-no-results");
+  const countEl = document.getElementById("uv-search-count");
+  const prevLink = document.getElementById("uv-search-prev");
+  const nextLink = document.getElementById("uv-search-next");
+
+  if (!searchState.searched) {
+    if (resultsEl) resultsEl.hidden = true;
+    if (noResultsEl) noResultsEl.hidden = true;
+    if (countEl) countEl.textContent = "";
+    return;
+  }
+
+  const hasHits = searchState.hits.length > 0;
+
+  if (!hasHits) {
+    if (resultsEl) resultsEl.hidden = true;
+    if (noResultsEl) noResultsEl.hidden = false;
+    return;
+  }
+
+  if (noResultsEl) noResultsEl.hidden = true;
+  if (resultsEl) resultsEl.hidden = false;
+  if (countEl) {
+    countEl.textContent = `${searchState.currentIndex + 1} of ${searchState.hits.length}`;
+  }
+
+  setNavLinkState(prevLink, searchState.currentIndex > 0);
+  setNavLinkState(
+    nextLink,
+    searchState.currentIndex < searchState.hits.length - 1,
+  );
+}
+
+function setNavLinkState(link, enabled) {
+  if (!link) {
+    return;
+  }
+  if (enabled) {
+    link.setAttribute("href", "#");
+    link.classList.remove("uv-search-nav--disabled");
+  } else {
+    link.removeAttribute("href");
+    link.classList.add("uv-search-nav--disabled");
+  }
+}
+
+function goToHit(index) {
+  const hits = searchState.hits;
+  if (hits.length === 0) {
+    return;
+  }
+
+  searchState.currentIndex = Math.max(0, Math.min(index, hits.length - 1));
+  updateSearchStatus();
+
+  const hit = hits[searchState.currentIndex];
+  navigateToPage(hit.page, drawHighlights);
+}
+
+function navigateToPage(pageNumber, onDone) {
+  if (currentPdfPageIndex === pageNumber) {
+    onDone();
+    return;
+  }
+
+  const input = document.querySelector("#uv input.searchText");
+  const button = document.querySelector("#uv button.go");
+  if (!input || !button) {
+    return;
+  }
+
+  pendingPageChangeCallback = onDone;
+  input.value = pageNumber;
+  button.click();
+}
+
+function clearHighlights() {
+  document.querySelectorAll(".uv-search-highlight").forEach(function (el) {
+    el.remove();
+  });
+}
+
+function drawHighlights() {
+  clearHighlights();
+
+  const container = document.querySelector("#uv .pdfContainer");
+  const canvas = container && container.querySelector("canvas");
+  if (!container || !canvas) {
+    return;
+  }
+
+  if (getComputedStyle(container).position === "static") {
+    container.style.position = "relative";
+  }
+
+  observeCanvasResize(canvas);
+
+  searchState.hits.forEach(function (hit, index) {
+    if (hit.page !== currentPdfPageIndex) {
+      return;
+    }
+
+    const box = document.createElement("div");
+    box.className =
+      "uv-search-highlight" +
+      (index === searchState.currentIndex
+        ? " uv-search-highlight--active"
+        : "");
+
+    box.style.left = `${canvas.offsetLeft + hit.rect.x * canvas.clientWidth}px`;
+    box.style.top = `${canvas.offsetTop + hit.rect.y * canvas.clientHeight}px`;
+    box.style.width = `${hit.rect.w * canvas.clientWidth}px`;
+    box.style.height = `${hit.rect.h * canvas.clientHeight}px`;
+    container.appendChild(box);
+  });
+}
+
+const HIGHLIGHTS_REDRAW_DEBOUNCE_MS = 100;
+let highlightsRedrawTimeout;
+
+function scheduleHighlightsRedraw() {
+  clearTimeout(highlightsRedrawTimeout);
+  highlightsRedrawTimeout = setTimeout(
+    drawHighlights,
+    HIGHLIGHTS_REDRAW_DEBOUNCE_MS,
+  );
+}
+
+let highlightResizeObserver = null;
+let observedCanvas = null;
+
+function observeCanvasResize(canvas) {
+  if (observedCanvas === canvas) {
+    return;
+  }
+  if (highlightResizeObserver) {
+    highlightResizeObserver.disconnect();
+  }
+  observedCanvas = canvas;
+  highlightResizeObserver = new ResizeObserver(function () {
+    scheduleHighlightsRedraw();
+  });
+  highlightResizeObserver.observe(canvas);
 }
 
 document.addEventListener("DOMContentLoaded", function () {
