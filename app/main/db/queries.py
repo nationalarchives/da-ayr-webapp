@@ -266,21 +266,17 @@ def _build_base_query_filters(accessible_transferring_body_names, filters):
     if not filters:
         return query_filters
 
-    if filters.get("transferring_body"):
+    transferring_body = (filters.get("transferring_body") or "").strip()
+    if transferring_body:
+        query_filters.append(func.lower(Body.Name) == transferring_body.lower())
+    series = (filters.get("series") or "").strip()
+    if series:
+        query_filters.append(func.lower(Series.Name) == series.lower())
+    consignment_reference = (filters.get("consignment_reference") or "").strip()
+    if consignment_reference:
         query_filters.append(
-            func.lower(Body.Name).like(
-                f"%{filters['transferring_body'].lower()}%"
-            )
-        )
-    if filters.get("series"):
-        query_filters.append(
-            func.lower(Series.Name).like(f"%{filters['series'].lower()}%")
-        )
-    if filters.get("consignment_reference"):
-        query_filters.append(
-            func.lower(Consignment.ConsignmentReference).like(
-                f"%{filters['consignment_reference'].lower()}%"
-            )
+            func.lower(Consignment.ConsignmentReference)
+            == consignment_reference.lower()
         )
 
     record_status = (filters.get("record_status") or "").lower()
@@ -521,17 +517,16 @@ def get_browse_records_metadata_for_files(file_ids: list[uuid.UUID]):
 
 
 def _build_browse_filters(query, sub_query, filters):
-    transferring_body = filters.get("transferring_body")
+    transferring_body = (filters.get("transferring_body") or "").strip()
     if transferring_body:
-        filter_value = f"%{transferring_body}%".lower()
         query = query.filter(
-            func.lower(sub_query.c.transferring_body).like(filter_value)
+            func.lower(sub_query.c.transferring_body)
+            == transferring_body.lower()
         )
 
-    series = filters.get("series")
+    series = (filters.get("series") or "").strip()
     if series:
-        filter_value = f"%{series}%".lower()
-        query = query.filter(func.lower(sub_query.c.series).like(filter_value))
+        query = query.filter(func.lower(sub_query.c.series) == series.lower())
 
     date_filter = _build_date_range_filter(
         sub_query.c.last_record_transferred,

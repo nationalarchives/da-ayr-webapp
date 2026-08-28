@@ -233,6 +233,63 @@ class TestBrowseRecords:
         )
         assert len(record_links) == 3
 
+    def test_browse_records_consignment_filter_requires_exact_match(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given an all-access user with a partial consignment reference filter
+        When browse records is requested
+        Then no records are returned because matching is exact
+        """
+        mock_all_access_user(client)
+
+        response = client.get(
+            f"{self.route_url}?consignment_reference=TDR-2023-TH"
+        )
+
+        assert response.status_code == 200
+        assert b"No records found" in response.data
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        transferring_body_filter = soup.find(
+            "input", id="transferring_body_filter"
+        )
+        series_filter = soup.find("input", id="series_filter")
+        consignment_filter = soup.find("input", id="consignment_reference")
+
+        assert transferring_body_filter is not None
+        assert series_filter is not None
+        assert consignment_filter is not None
+        assert transferring_body_filter.get("value") == ""
+        assert series_filter.get("value") == ""
+        assert consignment_filter.get("value") == "TDR-2023-TH"
+
+    def test_browse_records_series_filter_requires_exact_match(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given an all-access user with a partial series filter
+        When browse records is requested
+        Then no records are returned because matching is exact
+        """
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}?series_filter=second")
+
+        assert response.status_code == 200
+        assert b"No records found" in response.data
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        transferring_body_filter = soup.find(
+            "input", id="transferring_body_filter"
+        )
+        series_filter = soup.find("input", id="series_filter")
+
+        assert transferring_body_filter is not None
+        assert series_filter is not None
+        assert transferring_body_filter.get("value") == ""
+        assert series_filter.get("value") == "second"
+
     def test_browse_records_all_access_consignment_filter_autofills_transferring_body_and_series(
         self, client: FlaskClient, mock_all_access_user, browse_files
     ):
