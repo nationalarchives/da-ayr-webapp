@@ -387,6 +387,54 @@ class TestBrowseRecordsBaseQuery:
         assert len(results) == 7
         assert all(result[1] == "second_body" for result in results)
 
+    def test_build_browse_records_base_query_transferring_body_requires_exact_match(
+        self, client, browse_files
+    ):
+        """
+        Given a partial transferring body filter
+        When build_browse_records_base_query is executed
+        Then no rows are returned because matching is exact
+        """
+        query = build_browse_records_base_query(
+            accessible_transferring_body_names=None,
+            filters={"transferring_body": "second"},
+        )
+        results = query.all()
+
+        assert results == []
+
+    def test_build_browse_records_base_query_series_requires_exact_match(
+        self, client, browse_files
+    ):
+        """
+        Given a partial series filter
+        When build_browse_records_base_query is executed
+        Then no rows are returned because matching is exact
+        """
+        query = build_browse_records_base_query(
+            accessible_transferring_body_names=None,
+            filters={"series": "second"},
+        )
+        results = query.all()
+
+        assert results == []
+
+    def test_build_browse_records_base_query_consignment_requires_exact_match(
+        self, client, browse_files
+    ):
+        """
+        Given a partial consignment reference filter
+        When build_browse_records_base_query is executed
+        Then no rows are returned because matching is exact
+        """
+        query = build_browse_records_base_query(
+            accessible_transferring_body_names=None,
+            filters={"consignment_reference": "TDR-2023-TH"},
+        )
+        results = query.all()
+
+        assert results == []
+
 
 class TestBrowseRecordsMetadataQuery:
     def test_get_browse_records_metadata_for_files_empty_file_ids_returns_empty_dict(

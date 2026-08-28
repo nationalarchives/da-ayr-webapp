@@ -89,14 +89,13 @@ def get_autofill_options_rows(
 
     if selected_series:
         options_query = options_query.filter(
-            func.lower(Series.Name).like(f"%{selected_series.lower()}%")
+            func.lower(Series.Name) == selected_series.lower()
         )
 
     if selected_consignment:
         options_query = options_query.filter(
-            func.lower(Consignment.ConsignmentReference).like(
-                f"%{selected_consignment.lower()}%"
-            )
+            func.lower(Consignment.ConsignmentReference)
+            == selected_consignment.lower()
         )
 
     return options_query.distinct().all()
@@ -115,7 +114,7 @@ def autofill_selected_filters(
                 row.transferring_body
                 for row in options_rows
                 if row.transferring_body
-                and selected_series_lower in (row.series or "").lower()
+                and selected_series_lower == (row.series or "").lower()
             }
         )
         if len(matching_transferring_bodies) == 1:
@@ -129,7 +128,7 @@ def autofill_selected_filters(
             row
             for row in options_rows
             if row.consignment_reference
-            and selected_consignment_lower in row.consignment_reference.lower()
+            and selected_consignment_lower == row.consignment_reference.lower()
         ]
 
         if not selected_transferring_body:
