@@ -152,7 +152,7 @@ class TestBrowseTransferringBody:
                 ],
             ),
             (
-                "series_filter=second_series",
+                "series_filter=second",
                 [
                     ["'first_body', 'second_series', '30/03/2023', '2', '1'"],
                 ],
@@ -180,19 +180,19 @@ class TestBrowseTransferringBody:
                 ],
             ),
             (
-                "series_filter=first_series&date_from_day=01&date_from_month=10&date_from_year=2023",
+                "series_filter=first&date_from_day=01&date_from_month=10&date_from_year=2023",
                 [
                     ["'first_body', 'first_series', '14/10/2023', '1', '1'"],
                 ],
             ),
             (
-                "series_filter=second_series&date_to_day=31&date_to_month=03&date_to_year=2023",
+                "series_filter=second&date_to_day=31&date_to_month=03&date_to_year=2023",
                 [
                     ["'first_body', 'second_series', '30/03/2023', '2', '1'"],
                 ],
             ),
             (
-                "series_filter=first_series&date_from_day=01&date_from_month=07&date_from_year=2023"
+                "series_filter=first&date_from_day=01&date_from_month=07&date_from_year=2023"
                 "&date_to_day=31&date_to_month=10&date_to_year=2023",
                 [
                     ["'first_body', 'first_series', '14/10/2023', '1', '1'"],
@@ -359,7 +359,7 @@ class TestBrowseTransferringBody:
         )
 
         query_params = (
-            "sort=series-desc&series_filter=first_series"
+            "sort=series-desc&series_filter=first"
             "&date_from_day=01&date_from_month=01&date_from_year=2024"
             "&date_to_day=31&date_to_month=12&date_to_year=2024"
         )

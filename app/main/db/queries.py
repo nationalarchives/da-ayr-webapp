@@ -517,16 +517,17 @@ def get_browse_records_metadata_for_files(file_ids: list[uuid.UUID]):
 
 
 def _build_browse_filters(query, sub_query, filters):
-    transferring_body = (filters.get("transferring_body") or "").strip()
+    transferring_body = filters.get("transferring_body")
     if transferring_body:
+        filter_value = f"%{transferring_body}%".lower()
         query = query.filter(
-            func.lower(sub_query.c.transferring_body)
-            == transferring_body.lower()
+            func.lower(sub_query.c.transferring_body).like(filter_value)
         )
 
-    series = (filters.get("series") or "").strip()
+    series = filters.get("series")
     if series:
-        query = query.filter(func.lower(sub_query.c.series) == series.lower())
+        filter_value = f"%{series}%".lower()
+        query = query.filter(func.lower(sub_query.c.series).like(filter_value))
 
     date_filter = _build_date_range_filter(
         sub_query.c.last_record_transferred,
