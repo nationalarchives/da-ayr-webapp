@@ -755,6 +755,41 @@ def search_results_summary():
 
     default_page = 1
 
+    date_validation_errors = []
+    from_date = None
+    to_date = None
+    date_filters = {}
+    date_error_fields = []
+
+    if len(validated_data) > 0:
+        (
+            date_validation_errors,
+            from_date,
+            to_date,
+            date_filters,
+            date_error_fields,
+        ) = validate_date_filters(validated_data)
+
+    filters = build_filters(
+        validated_data,
+        date_from=from_date,
+        date_to=to_date,
+        include_hierarchical_filters=False,
+    )
+
+    accessible_body_names = get_accessible_body_names(ayr_user)
+    transferring_bodies = build_browse_records_filter_data(
+        validated_data,
+        accessible_body_names,
+        filters,
+    )
+    filter_count = count_selected_filters(
+        filters,
+        from_date,
+        to_date,
+        ayr_user.is_standard_user,
+    )
+
     query = validated_data["query"]
     search_area = validated_data["search_area"]
     filters = {"query": query}
@@ -808,6 +843,12 @@ def search_results_summary():
         num_records_found=num_records_found,
         query_string_parameters=request.validated_args,
         id=None,
+        is_standard_user=ayr_user.is_standard_user,
+        date_validation_errors=date_validation_errors,
+        date_error_fields=date_error_fields,
+        date_filters=date_filters,
+        filter_count=filter_count,
+        transferring_bodies=transferring_bodies,
     )
 
 

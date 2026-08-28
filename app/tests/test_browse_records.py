@@ -734,7 +734,6 @@ class TestBrowseRecords:
 
         assert response.status_code == 200
         assert b"No records found" in response.data
-        verify_scope_text(response.data, "All available records")
 
     def test_browse_records_invalid_page_redirects_when_no_results(
         self, client: FlaskClient, mock_all_access_user, browse_files

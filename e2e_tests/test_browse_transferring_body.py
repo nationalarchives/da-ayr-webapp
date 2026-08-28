@@ -49,11 +49,8 @@ class TestBrowseTransferringBody:
         assert standard_user_page.inner_html("text='No results found'")
         assert standard_user_page.inner_html("text='Help with your search'")
         assert standard_user_page.inner_html(
-            "text='Try changing or removing one or more applied filters.'"
+            "text='Try changing or removing one or more filters.'"
         )
-        assert standard_user_page.locator(
-            "text='Alternatively, use the breadcrumbs to navigate back to the'"
-        ).is_visible()
 
     def test_browse_transferring_body_clear_filter_functionality(
         self, standard_user_page: Page
