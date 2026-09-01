@@ -140,9 +140,10 @@ class TestRecord:
         expected_query_params = parse_qs(browse_query, keep_blank_values=True)
         parsed_record_href = urlparse(record_href)
 
-        assert parse_qs(
-            parsed_record_href.query, keep_blank_values=True
-        ) == expected_query_params
+        assert (
+            parse_qs(parsed_record_href.query, keep_blank_values=True)
+            == expected_query_params
+        )
 
         record_response = client.get(record_href)
 
