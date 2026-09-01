@@ -2,8 +2,10 @@ FROM public.ecr.aws/lambda/python:3.14
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-RUN dnf clean metadata && \
-    dnf update -y openssl --releasever=2023.12.20260831 && \
+RUN dnf clean all && \
+    dnf update -y \
+      openssl \
+      --releasever=2023.12.20260831 && \
     dnf clean all && \
     rm -rf /var/cache/dnf
 
