@@ -1,8 +1,9 @@
 @use "variables" as *;
 
 .govuk-table {
-  border-bottom: 1px solid #b1b4b6;
   font-size: 1rem;
+
+  border-bottom: 1px solid #b1b4b6;
 
   &__row {
     border-bottom: 1px solid $colour-border-normal;
@@ -62,8 +63,8 @@
     }
 
     &--word-break-all {
-      overflow-wrap: anywhere;
       word-break: break-all;
+      overflow-wrap: anywhere;
     }
   }
 

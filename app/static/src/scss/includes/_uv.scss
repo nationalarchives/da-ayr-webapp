@@ -1,3 +1,5 @@
+@use "variables" as *;
+
 .uv-iiif-extension-host.uv-openseadragon-extension
   .centerPanel
   .content
@@ -25,5 +27,93 @@
   div.btn:focus {
     border: 2px solid #005fcc;
     outline: none;
+  }
+}
+
+#uv-search {
+  margin-bottom: 15px;
+  padding: 15px 20px;
+
+  .uv-search-label {
+    margin-bottom: 5px;
+  }
+
+  .uv-search-controls {
+    margin-bottom: 10px;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  #uv-search-input {
+    @media screen and (width >= $breakpoint-small) {
+      max-width: 420px;
+    }
+    margin-bottom: 0;
+  }
+
+  #uv-search-submit {
+    margin-bottom: 0;
+  }
+
+  .uv-search-results {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .uv-search-nav {
+    color: $colour-link-default;
+    text-decoration: underline;
+
+    &:hover {
+      color: #003078;
+    }
+
+    &:not([href]) {
+      color: $colour-link-normal;
+      text-decoration: none;
+
+      cursor: default;
+    }
+  }
+
+  #uv-search-count {
+    font-size: 16px;
+  }
+
+  #uv-search-no-results {
+    margin-bottom: 0;
+  }
+
+  // Without this, the error message showed on page load before any
+  // search happened. govuk-frontend's .govuk-error-message class has the
+  // same specificity as the browser's built-in [hidden] rule, and loads
+  // first, so it was winning. This more specific selector forces hidden
+  // to win instead.
+  #uv-search-error[hidden] {
+    display: none;
+  }
+}
+
+.uv-search-highlight {
+  position: absolute;
+
+  background-color: $colour-link-default;
+
+  opacity: 0.25;
+
+  pointer-events: none;
+
+  &--active {
+    background-color: #fd0;
+
+    opacity: 0.5;
   }
 }
