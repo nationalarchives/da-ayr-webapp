@@ -2,7 +2,11 @@ FROM public.ecr.aws/lambda/python:3.14
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-RUN dnf update -y openssl && \
+RUN dnf update -y \
+      openssl \
+      openssl-libs \
+      openssl-fips-provider-latest \
+      openssl-snapsafe-libs && \
     dnf clean all && \
     rm -rf /var/cache/dnf
 
