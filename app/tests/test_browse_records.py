@@ -248,7 +248,7 @@ class TestBrowseRecords:
         )
 
         assert response.status_code == 200
-        assert b"No records found" in response.data
+        assert b"No results found" in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
         transferring_body_filter = soup.find(
@@ -277,7 +277,7 @@ class TestBrowseRecords:
         response = client.get(f"{self.route_url}?series_filter=second")
 
         assert response.status_code == 200
-        assert b"No records found" in response.data
+        assert b"No results found" in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
         transferring_body_filter = soup.find(
@@ -790,7 +790,7 @@ class TestBrowseRecords:
         response = client.get(f"{self.route_url}?series_filter=zzzzzzzzzzzzzz")
 
         assert response.status_code == 200
-        assert b"No records found" in response.data
+        assert b"No results found" in response.data
 
     def test_browse_records_invalid_page_redirects_when_no_results(
         self, client: FlaskClient, mock_all_access_user, browse_files

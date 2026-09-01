@@ -7,7 +7,6 @@ from bs4 import BeautifulSoup
 from flask import url_for
 from flask.testing import FlaskClient
 
-from app.tests.assertions import assert_contains_html
 from app.tests.factories import FileFactory
 from app.tests.utils import (
     decompose_desktop_invisible_elements,
@@ -265,27 +264,12 @@ class TestSearchResultsSummary:
 
         form_data = {"query": "junk"}
         response = client.get(f"{self.route_url}", data=form_data)
-        html = response.data.decode()
 
-        expected_html = """
-        <ul class="govuk-list govuk-list--bullet">
-        <li>
-        Try changing or removing one or more applied
-                    search terms.
-        </li>
-        <li>
-        Alternatively, use the breadcrumbs to navigate back to the
-        <a class="govuk-link govuk-link--no-visited-state" href="/browse">browse view</a>.
-        </li>
-        </ul>"""
         assert response.status_code == 200
         assert b"No results found" in response.data
-        assert_contains_html(
-            expected_html,
-            html,
-            "ul",
-            {"class": "govuk-list govuk-list--bullet"},
-        )
+        assert b"Try changing or removing" in response.data
+        assert b"a search query." in response.data
+        assert b"Try changing or removing one or more filters." in response.data
 
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_results_summary_shows_correct_amount_of_records(
@@ -754,27 +738,11 @@ class TestSearchTransferringBody:
             f"{self.route_url}/{transferring_body_id}", data=form_data
         )
 
-        html = response.data.decode()
-
-        expected_html = """
-        <ul class="govuk-list govuk-list--bullet">
-        <li>
-        Try changing or removing one or more applied
-                    search terms.
-        </li>
-        <li>
-        Alternatively, use the breadcrumbs to navigate back to the
-        <a class="govuk-link govuk-link--no-visited-state" href="/browse">browse view</a>.
-        </li>
-        </ul>"""
         assert response.status_code == 200
         assert b"No results found" in response.data
-        assert_contains_html(
-            expected_html,
-            html,
-            "ul",
-            {"class": "govuk-list govuk-list--bullet"},
-        )
+        assert b"Try changing or removing" in response.data
+        assert b"a search query." in response.data
+        assert b"Try changing or removing one or more filters." in response.data
 
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_results_timeout_error(
