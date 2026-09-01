@@ -4,8 +4,9 @@ WORKDIR ${LAMBDA_TASK_ROOT}
 
 RUN dnf clean all && \
     dnf update -y \
-      openssl \
-      --releasever=2023.12.20260831 && \
+      --releasever=latest \
+      openssl-fips-provider-latest \
+      openssl-snapsafe-libs && \
     dnf clean all && \
     rm -rf /var/cache/dnf
 
