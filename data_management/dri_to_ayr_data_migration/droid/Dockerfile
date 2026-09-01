@@ -65,6 +65,10 @@ RUN set -eu; \
       fi; \
       original_name=$(basename "$existing_jar"); \
       patched_jar="/opt/droid/lib/${replacement_artifact}-${new_version}.jar"; \
+      if [ "$existing_jar" = "$patched_jar" ]; then \
+        echo "JAR already patched before this step: ${existing_jar}" >&2; \
+        exit 1; \
+      fi; \
       echo "Replacing ${original_name} with $(basename "$patched_jar")"; \
       curl -fsSL -o "$patched_jar" \
         "https://repo1.maven.org/maven2/${group_path}/${replacement_artifact}/${new_version}/${replacement_artifact}-${new_version}.jar"; \
