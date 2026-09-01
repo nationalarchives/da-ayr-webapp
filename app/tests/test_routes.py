@@ -174,14 +174,6 @@ class TestRoutes:
                     "Manifest for test.pdf",
                 ],
             },
-            "service": [
-                {
-                    "@context": "http://iiif.io/api/search/1/context.json",
-                    "@id": f"http://localhost/record/{file.FileId}/search",
-                    "label": "Search within this record",
-                    "profile": "http://iiif.io/api/search/1/search",
-                }
-            ],
             "rendering": [
                 {
                     "id": pdf_url,
@@ -574,6 +566,54 @@ class TestRoutes:
         assert response.status_code == 200
         assert b"Converted access copy not available." in response.data
 
+    @mock_aws
+    @patch("app.main.routes.create_presigned_url")
+    def test_record_route_pdf_includes_search_url(
+        self,
+        mock_create_presigned_url,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        """
+        Test that the record page carries a search_url for PDF-renderable
+        records, so init.uv.js can build the search overlay.
+        """
+        mock_all_access_user(client)
+        file = FileFactory(ffid_metadata__PUID="fmt/276")
+        mock_create_presigned_url.return_value = "https://presigned-url.com"
+
+        response = client.get(f"/record/{file.FileId}")
+
+        assert response.status_code == 200
+        expected_search_url = url_for(
+            "main.search_within_record", record_id=file.FileId, _external=True
+        )
+        assert expected_search_url.encode() in response.data
+
+    @mock_aws
+    @patch("app.main.routes.create_presigned_url")
+    def test_record_route_image_omits_search_url(
+        self,
+        mock_create_presigned_url,
+        app,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        """
+        Test that the record page has no search_url for image records -
+        there is no text to search, and search_within_record 400s for
+        unsupported puids.
+        """
+        mock_all_access_user(client)
+        file = FileFactory(ffid_metadata__PUID="fmt/43", FileName="test.jpg")
+        mock_create_presigned_url.return_value = "https://presigned-url.com"
+
+        response = client.get(f"/record/{file.FileId}")
+
+        assert response.status_code == 200
+        assert b"search_url=" not in response.data
+
     def test_method_not_allowed_returns_json(self, client: FlaskClient):
         """
         Test that a POST request to a GET-only route returns 405 JSON
@@ -607,10 +647,7 @@ class TestRoutes:
         response = client.get(f"/record/{file.FileId}/search")
         assert response.status_code == 200
         body = json.loads(response.data)
-        assert body["@type"] == "sc:AnnotationList"
-        assert body["resources"] == []
-        assert body["hits"] == []
-        assert body["within"]["total"] == 0
+        assert body == {"total": 0, "hits": []}
 
     @mock_aws
     @patch("app.main.routes.boto3.client")
@@ -633,9 +670,7 @@ class TestRoutes:
         response = client.get(f"/record/{file.FileId}/search?q=hello")
         assert response.status_code == 200
         body = json.loads(response.data)
-        assert body["@type"] == "sc:AnnotationList"
-        assert "@context" in body
-        assert "resources" in body
+        assert "total" in body
         assert "hits" in body
 
     def test_search_within_record_unsupported_puid(
@@ -676,9 +711,7 @@ class TestRoutes:
     ):
         from flask import jsonify
 
-        mock_search_within_pdf.return_value = jsonify(
-            {"@type": "sc:AnnotationList", "resources": [], "hits": []}
-        )
+        mock_search_within_pdf.return_value = jsonify({"total": 0, "hits": []})
 
         mock_all_access_user(client)
         file = FileFactory(

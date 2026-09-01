@@ -421,7 +421,11 @@ a.govuk-link {
         }
 
         &.word-break {
+<<<<<<< HEAD
           overflow-wrap: break-word;
+=======
+          word-break: break-word; /* stylelint-disable-line declaration-property-value-keyword-no-deprecated */
+>>>>>>> main
         }
       }
     }
