@@ -1,4 +1,5 @@
 from datetime import datetime
+from urllib.parse import parse_qs, urlparse
 
 import boto3
 from bs4 import BeautifulSoup
@@ -80,6 +81,86 @@ class TestRecord:
     def route_url(self):
         return "/record"
 
+    @mock_aws
+    def test_record_back_link_direct_navigation_goes_to_browse_records_without_query(
+        self, app, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a user navigates directly to a record page
+        When they inspect the back link
+        Then it points to browse records with no sort or filters applied
+        """
+        file = FileFactory()
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        response = client.get(f"{self.route_url}/{file.FileId}")
+
+        assert response.status_code == 200
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        back_link = soup.select_one("a.govuk-back-link")
+
+        assert back_link is not None
+
+        parsed_back_link = urlparse(back_link["href"])
+        assert parsed_back_link.path == "/browse/records"
+        assert parsed_back_link.query == ""
+
+    def test_record_back_link_preserves_browse_records_filters_and_sort(
+        self, client: FlaskClient, mock_all_access_user, browse_files
+    ):
+        """
+        Given a user navigates to a record from browse records
+        When they inspect the back link on the record page
+        Then it keeps the previously selected browse sort and filters
+        """
+        mock_all_access_user(client)
+        browse_query = (
+            "transferring_body_filter=second_body"
+            "&series_filter=second_series"
+            "&sort=file_name-asc"
+        )
+
+        browse_response = client.get(f"/browse/records?{browse_query}")
+
+        assert browse_response.status_code == 200
+
+        browse_soup = BeautifulSoup(browse_response.data, "html.parser")
+        record_link = browse_soup.select_one(
+            "tbody.govuk-table__body td[colspan='4'] > a[href^='/record/']"
+        )
+
+        assert record_link is not None
+
+        record_href = record_link["href"]
+        expected_query_params = parse_qs(browse_query, keep_blank_values=True)
+        parsed_record_href = urlparse(record_href)
+
+        assert (
+            parse_qs(parsed_record_href.query, keep_blank_values=True)
+            == expected_query_params
+        )
+
+        record_response = client.get(record_href)
+
+        assert record_response.status_code == 200
+
+        record_soup = BeautifulSoup(record_response.data, "html.parser")
+        back_link = record_soup.select_one("a.govuk-back-link")
+
+        assert back_link is not None
+
+        parsed_back_link = urlparse(back_link["href"])
+        assert parsed_back_link.path == "/browse/records"
+        assert (
+            parse_qs(parsed_back_link.query, keep_blank_values=True)
+            == expected_query_params
+        )
+
     def test_record_invalid_id_raises_404(self, client: FlaskClient):
         """
         Given a UUID, `invalid_file_id`, not corresponding to the id
@@ -128,16 +209,14 @@ class TestRecord:
         assert button is not None
 
     @mock_aws
-    def test_record_breadcrumbs(
+    def test_record_header_and_title(
         self, app, client: FlaskClient, mock_standard_user
     ):
         """
         Given a File in the database
         When a standard user with request to view the record details page
         Then the response status code should be 200
-        And the HTML content should show the breadcrumb values as
-         All available records > transferring body > series > consignment reference > file name
-        on the page
+        And the HTML content should show the header and title values
         """
 
         file = FileFactory()
@@ -147,55 +226,23 @@ class TestRecord:
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
-        browse_all_route_url = "/browse"
-        browse_transferring_body_route_url = (
-            f"{browse_all_route_url}/transferring_body"
-        )
-        browse_series_route_url = f"{browse_all_route_url}/series"
-        browse_consignment_route_url = f"{browse_all_route_url}/consignment"
-
         response = client.get(f"{self.route_url}/{file.FileId}#record-details")
 
         assert response.status_code == 200
 
         html = response.data.decode()
 
-        expected_breadcrumbs_html = f"""
-        <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
-        <p class="govuk-body browse__body">You are viewing</p>
-
-        <div class="govuk-breadcrumbs">
-            <ol class="govuk-breadcrumbs__list">
-                <li class="govuk-breadcrumbs__list-item">
-                <a class="govuk-breadcrumbs__link--record" href="{browse_all_route_url}">All available records</a>
-                </li>
-                <li class="govuk-breadcrumbs__list-item">
-                <a class="govuk-breadcrumbs__link--record--transferring-body"
-                    href="{browse_transferring_body_route_url}/{file.consignment.series.body.BodyId}">{file.consignment.series.body.Name}</a>
-                </li>
-                <li class="govuk-breadcrumbs__list-item">
-                <a class="govuk-breadcrumbs__link--record--series"
-                    href="{browse_series_route_url}/{file.consignment.series.SeriesId}">{file.consignment.series.Name}</a>
-                </li>
-                <li class="govuk-breadcrumbs__list-item">
-                <a class="govuk-breadcrumbs__link--record--consignment"
-                    href="{browse_consignment_route_url}/{file.ConsignmentId}">{file.consignment.ConsignmentReference}</a>
-                </li>
-                <li class="govuk-breadcrumbs__list-item">
-                <span class="govuk-breadcrumbs__link govuk-breadcrumbs__link--record">{file.FileName}</span>
-                </li>
-            </ol>
-            </div>
-        </div>
-        """
+        expected_header_title_html = f"""
+                                <span class="record-page__scope-text">{file.consignment.series.body.Name}</span>
+                                </p>
+                                <h2 class="record-page__heading" id="record-heading" aria-live="polite">{file.FileName}</h2>
+                """
 
         assert_contains_html(
-            expected_breadcrumbs_html,
+            expected_header_title_html,
             html,
-            "div",
-            {
-                "class": "govuk-grid-column-full govuk-grid-column-full__page-nav"
-            },
+            "h2",
+            {"id": "record-heading"},
         )
 
     @mock_aws

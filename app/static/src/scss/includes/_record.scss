@@ -300,6 +300,26 @@
 
 .record-page {
   margin-top: -2rem;
+
+  &__scope-text {
+    padding-top: 5px;
+
+    display: inline-block;
+  }
+
+  &__heading {
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-top: 5px;
+
+    font-family: $font-family-gds;
+    font-size: 2.25rem;
+    line-height: 1.1;
+    word-break: break-all;
+    overflow-wrap: break-word;
+
+    -webkit-font-smoothing: antialiased;
+  }
 }
 
 .govuk-tabs__panel__record-details {

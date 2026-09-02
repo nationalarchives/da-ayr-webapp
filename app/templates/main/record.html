@@ -1,10 +1,3 @@
-{% set breadcrumbs = {
-    "everything":"All available records",
-    "body": [breadcrumb_values[0]["transferring_body_id"], breadcrumb_values[1]["transferring_body"]],
-    "series": [breadcrumb_values[2]["series_id"], breadcrumb_values[3]["series"]],
-    "consignment": [breadcrumb_values[4]["consignment_id"], breadcrumb_values[5]["consignment_reference"]],
-    "record": breadcrumb_values[6]['file_name']
-} %}
 {% if record['closure_type'] | lower == 'closed' or (record['closure_type'] | lower == 'open' and record['closure_start_date'] != None) %}
     {% set list_items = {
             "File name": record['file_name'],
@@ -67,11 +60,15 @@
             <div class="govuk-grid-row govuk-grid-row--record-view mobile-record-layout">
                 <div class="govuk-grid-row govuk-grid-row-record">
                     <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
-                        <p class="govuk-body browse__body">You are viewing</p>
-                        {% with dict = breadcrumbs %}
-                            {% set record_breadcrumbs = True %}
-                            {% include "breadcrumb.html" %}
-                        {% endwith %}
+                        {% set preserved_params = request.args.copy() %}
+                        {{ govukBackLink({
+                        'text': "Back",
+                        'href': url_for('main.browse_records', **preserved_params)
+                        }) }}
+                        <p class="govuk-body govuk-!-margin-bottom-0">
+                            <span class="record-page__scope-text">{{ record["transferring_body"] }}</span>
+                        </p>
+                        <h2 class="record-page__heading" id="record-heading" aria-live="polite">{{ record["file_name"] }}</h2>
                     </div>
                 </div>
                 <div class="main-content" id="main-content" role="main">
