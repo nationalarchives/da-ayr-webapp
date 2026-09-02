@@ -140,6 +140,28 @@ class TestWorkerHandler:
         assert result == {"batchItemFailures": []}
         process_message.assert_called_once_with(worker_message())
 
+    def test_lambda_handler_processes_successful_sqs_message(
+        self, handler_module, monkeypatch
+    ):
+        module = handler_module
+        process_message = Mock()
+        monkeypatch.setattr(module, "process_message", process_message)
+
+        result = module.lambda_handler(
+            {
+                "Records": [
+                    {
+                        "messageId": "message-1",
+                        "body": json.dumps(worker_message()),
+                    }
+                ]
+            },
+            None,
+        )
+
+        assert result == {"batchItemFailures": []}
+        process_message.assert_called_once_with(worker_message())
+
     def test_lambda_handler_reports_failed_sqs_message(
         self, handler_module, monkeypatch
     ):
@@ -311,27 +333,261 @@ class TestWorkerHandler:
             extension="txt",
         )
 
-    def test_get_single_digital_file_rejects_unexpected_file_id(
+    def test_invoke_droid_lambda_returns_ffid_metadata_row(
         self, handler_module
     ):
         module = handler_module
-
-        with pytest.raises(
-            ValueError, match=r"Expected digitalFiles\[0\]\.fileId"
-        ):
-            module.get_single_digital_file(make_record(), "different-file-id")
-
-    def test_get_file_extension_uses_file_name_only(self, handler_module):
-        module = handler_module
-
-        extension = module.get_file_extension(
+        payload = Mock()
+        payload.read.return_value = json.dumps(
             {
-                "fileName": "folder/example.PDF",
-                "filePath": "folder/example.txt",
+                "ffid_metadata_row": {
+                    "FileId": FILE_ID,
+                    "Extension": "txt",
+                }
             }
+        ).encode("utf-8")
+
+        module.lambda_client.invoke.return_value = {
+            "Payload": payload,
+        }
+
+        result = module.invoke_droid_lambda(
+            bucket="temp-data-bucket",
+            key=f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
+            file_id=FILE_ID,
+            extension="txt",
         )
 
-        assert extension == "pdf"
+        assert result == {
+            "FileId": FILE_ID,
+            "Extension": "txt",
+        }
+
+        module.lambda_client.invoke.assert_called_once()
+        invoke_kwargs = module.lambda_client.invoke.call_args.kwargs
+
+        assert invoke_kwargs["FunctionName"] == ENVIRONMENT["DROID_LAMBDA_NAME"]
+        assert invoke_kwargs["InvocationType"] == "RequestResponse"
+
+        request_payload = json.loads(invoke_kwargs["Payload"].decode("utf-8"))
+        assert request_payload == {
+            "bucket": "temp-data-bucket",
+            "key": f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
+            "fileId": FILE_ID,
+            "extension": "txt",
+        }
+
+    def test_invoke_droid_lambda_raises_when_lambda_reports_error(
+        self, handler_module
+    ):
+        module = handler_module
+        payload = Mock()
+        payload.read.return_value = json.dumps(
+            {
+                "errorMessage": "DROID failed",
+            }
+        ).encode("utf-8")
+
+        module.lambda_client.invoke.return_value = {
+            "FunctionError": "Unhandled",
+            "Payload": payload,
+        }
+
+        with pytest.raises(RuntimeError, match="DROID Lambda failed"):
+            module.invoke_droid_lambda(
+                bucket="temp-data-bucket",
+                key=f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
+                file_id=FILE_ID,
+                extension="txt",
+            )
+
+    def test_invoke_droid_lambda_raises_when_ffid_row_missing(
+        self, handler_module
+    ):
+        module = handler_module
+        payload = Mock()
+        payload.read.return_value = json.dumps({}).encode("utf-8")
+
+        module.lambda_client.invoke.return_value = {
+            "Payload": payload,
+        }
+
+        with pytest.raises(
+            RuntimeError, match="did not return ffid_metadata_row"
+        ):
+            module.invoke_droid_lambda(
+                bucket="temp-data-bucket",
+                key=f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
+                file_id=FILE_ID,
+                extension="txt",
+            )
+
+    def test_get_consignment_status_returns_none_when_tracking_item_missing(
+        self, handler_module
+    ):
+        module = handler_module
+        module.dynamodb.get_item.return_value = {}
+
+        result = module.get_consignment_status(
+            run_id="run-1",
+            consignment_reference=CONSIGNMENT_REFERENCE,
+        )
+
+        assert result is None
+
+    def test_get_consignment_status_returns_trimmed_status(
+        self, handler_module
+    ):
+        module = handler_module
+        module.dynamodb.get_item.return_value = {
+            "Item": {
+                "status": {"S": " STAGING "},
+            }
+        }
+
+        result = module.get_consignment_status(
+            run_id="run-1",
+            consignment_reference=CONSIGNMENT_REFERENCE,
+        )
+
+        assert result == "STAGING"
+
+    def test_is_file_already_complete_returns_false_when_tracking_item_missing(
+        self, handler_module
+    ):
+        module = handler_module
+        module.dynamodb.get_item.return_value = {}
+
+        result = module.is_file_already_complete(
+            run_id="run-1",
+            consignment_reference=CONSIGNMENT_REFERENCE,
+            file_id=FILE_ID,
+        )
+
+        assert result is False
+
+    def test_is_file_already_complete_returns_true_for_complete_file(
+        self, handler_module
+    ):
+        module = handler_module
+        module.dynamodb.get_item.return_value = {
+            "Item": {
+                "status": {"S": "COMPLETE"},
+            }
+        }
+
+        result = module.is_file_already_complete(
+            run_id="run-1",
+            consignment_reference=CONSIGNMENT_REFERENCE,
+            file_id=FILE_ID,
+        )
+
+        assert result is True
+
+    def test_mark_file_complete_does_not_increment_counter_when_file_already_complete(
+        self, handler_module, monkeypatch
+    ):
+        module = handler_module
+        send_finaliser_message = Mock()
+        monkeypatch.setattr(
+            module, "send_finaliser_message", send_finaliser_message
+        )
+
+        module.dynamodb.update_item.side_effect = ClientError(
+            {
+                "Error": {
+                    "Code": "ConditionalCheckFailedException",
+                    "Message": "Already complete",
+                }
+            },
+            "UpdateItem",
+        )
+
+        result = module.mark_file_complete_and_maybe_trigger_finaliser(
+            run_id="run-1",
+            series="LEV 2",
+            consignment_reference=CONSIGNMENT_REFERENCE,
+            file_id=FILE_ID,
+        )
+
+        assert result is False
+        assert module.dynamodb.update_item.call_count == 1
+        send_finaliser_message.assert_not_called()
+
+    def test_mark_file_complete_does_not_trigger_finaliser_until_all_files_complete(
+        self, handler_module, monkeypatch
+    ):
+        module = handler_module
+        monkeypatch.setattr(module, "utc_now_text", lambda: FIXED_NOW)
+
+        send_finaliser_message = Mock()
+        monkeypatch.setattr(
+            module, "send_finaliser_message", send_finaliser_message
+        )
+
+        module.dynamodb.update_item.side_effect = [
+            {},
+            {
+                "Attributes": {
+                    "expectedFileCount": {"N": "2"},
+                    "completedFileCount": {"N": "1"},
+                    "failedFileCount": {"N": "0"},
+                }
+            },
+        ]
+
+        result = module.mark_file_complete_and_maybe_trigger_finaliser(
+            run_id="run-1",
+            series="LEV 2",
+            consignment_reference=CONSIGNMENT_REFERENCE,
+            file_id=FILE_ID,
+        )
+
+        assert result is False
+        assert module.dynamodb.update_item.call_count == 2
+        send_finaliser_message.assert_not_called()
+
+    def test_mark_file_complete_returns_false_when_finaliser_already_triggered(
+        self, handler_module, monkeypatch
+    ):
+        module = handler_module
+        monkeypatch.setattr(module, "utc_now_text", lambda: FIXED_NOW)
+
+        send_finaliser_message = Mock()
+        monkeypatch.setattr(
+            module, "send_finaliser_message", send_finaliser_message
+        )
+
+        module.dynamodb.update_item.side_effect = [
+            {},
+            {
+                "Attributes": {
+                    "expectedFileCount": {"N": "1"},
+                    "completedFileCount": {"N": "1"},
+                    "failedFileCount": {"N": "0"},
+                }
+            },
+            ClientError(
+                {
+                    "Error": {
+                        "Code": "ConditionalCheckFailedException",
+                        "Message": "Already ready",
+                    }
+                },
+                "UpdateItem",
+            ),
+        ]
+
+        result = module.mark_file_complete_and_maybe_trigger_finaliser(
+            run_id="run-1",
+            series="LEV 2",
+            consignment_reference=CONSIGNMENT_REFERENCE,
+            file_id=FILE_ID,
+        )
+
+        assert result is False
+        assert module.dynamodb.update_item.call_count == 3
+        send_finaliser_message.assert_not_called()
 
     def test_mark_file_complete_triggers_finaliser_for_last_successful_file(
         self, handler_module, monkeypatch
@@ -370,35 +626,26 @@ class TestWorkerHandler:
             consignment_reference=CONSIGNMENT_REFERENCE,
         )
 
-    def test_mark_file_complete_does_not_increment_counter_when_file_already_complete(
-        self, handler_module, monkeypatch
+    def test_send_finaliser_message_sends_expected_sqs_message(
+        self, handler_module
     ):
         module = handler_module
-        send_finaliser_message = Mock()
-        monkeypatch.setattr(
-            module, "send_finaliser_message", send_finaliser_message
-        )
 
-        module.dynamodb.update_item.side_effect = ClientError(
-            {
-                "Error": {
-                    "Code": "ConditionalCheckFailedException",
-                    "Message": "Already complete",
-                }
-            },
-            "UpdateItem",
-        )
-
-        result = module.mark_file_complete_and_maybe_trigger_finaliser(
+        module.send_finaliser_message(
             run_id="run-1",
             series="LEV 2",
             consignment_reference=CONSIGNMENT_REFERENCE,
-            file_id=FILE_ID,
         )
 
-        assert result is False
-        assert module.dynamodb.update_item.call_count == 1
-        send_finaliser_message.assert_not_called()
+        module.sqs.send_message.assert_called_once()
+        send_kwargs = module.sqs.send_message.call_args.kwargs
+
+        assert send_kwargs["QueueUrl"] == ENVIRONMENT["FINALISER_QUEUE_URL"]
+        assert json.loads(send_kwargs["MessageBody"]) == {
+            "runId": "run-1",
+            "series": "LEV 2",
+            "consignmentReference": CONSIGNMENT_REFERENCE,
+        }
 
 
 class TestCsvConversion:
