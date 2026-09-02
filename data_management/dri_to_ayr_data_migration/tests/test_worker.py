@@ -647,6 +647,29 @@ class TestWorkerHandler:
             "consignmentReference": CONSIGNMENT_REFERENCE,
         }
 
+    def test_upload_metadata_files_uploads_files_under_staging_prefix(
+        self, handler_module, tmp_path
+    ):
+        module = handler_module
+
+        csv_file = tmp_path / "AYR-file.csv"
+        csv_file.write_text("FileId\nfile-1\n", encoding="utf-8")
+
+        nested_dir = tmp_path / "nested"
+        nested_dir.mkdir()
+
+        module.upload_metadata_files(
+            local_dir=tmp_path,
+            bucket="temp-csv-bucket",
+            prefix=f"LEV 2/ayr-mds-staging/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
+        )
+
+        module.s3.upload_file.assert_called_once_with(
+            str(csv_file),
+            "temp-csv-bucket",
+            f"LEV 2/ayr-mds-staging/{CONSIGNMENT_REFERENCE}/{FILE_ID}/AYR-file.csv",
+        )
+
 
 class TestCsvConversion:
     def test_convert_record_to_csv_writes_expected_csv_files(
