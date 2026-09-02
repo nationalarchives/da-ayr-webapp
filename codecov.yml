@@ -15,3 +15,8 @@ coverage:
         target: 85%
         flags:
           - access_copy_converter
+
+      dri_to_ayr_data_migration:
+        target: 85%
+        flags:
+          - dri_to_ayr_data_migration
