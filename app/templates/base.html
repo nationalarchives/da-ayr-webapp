@@ -4,6 +4,8 @@
 {%- from 'govuk_frontend_jinja/components/phase-banner/macro.html' import govukPhaseBanner -%}
 {% set cspNonce = csp_nonce() %}
 {% set assetPath = url_for('static', filename='').rstrip('/') %}
+{% set authenticated_view = authenticated_view | default(false, true) %}
+{% set form = form | default(none, true) %}
 {% block pageTitle %}{{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block head %}
     <meta name="description" content="{{ config['SERVICE_NAME'] }}">
@@ -50,7 +52,7 @@
     </div>
 {% endblock %}
 {% block content %}
-    {% if form and form.errors %}{{ govukErrorSummary(wtforms_errors(form) ) }}{% endif %}
+    {% if form is not none and form.errors %}{{ govukErrorSummary(wtforms_errors(form) ) }}{% endif %}
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}{{ govukNotificationBanner({'type': category, 'html': message}) }}{% endfor %}
