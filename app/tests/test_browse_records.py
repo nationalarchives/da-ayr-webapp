@@ -530,8 +530,8 @@ class TestBrowseRecords:
         """
         Given the open status filter
         When browse records is requested
-        Then the open status option is selected
-        and any visible status tags are open
+        Then the no-results panel is shown when no records match
+        and the filters/status tags are not rendered
         """
         mock_all_access_user(client)
 
@@ -544,20 +544,15 @@ class TestBrowseRecords:
         status_open = soup.find("input", id="recordStatus-open")
         status_closed = soup.find("input", id="recordStatus-closed")
 
-        assert status_all is not None
-        assert status_open is not None
-        assert status_closed is not None
-        assert not status_all.has_attr("checked")
-        assert status_open.has_attr("checked")
-        assert not status_closed.has_attr("checked")
+        assert b"No results found" in response.data
+        assert status_all is None
+        assert status_open is None
+        assert status_closed is None
 
         status_tags = soup.select(
             "td.browse-records__meta-cell--status strong.govuk-tag"
         )
-        assert all(
-            tag.get_text(strip=True) in ["Open", "Unknown"]
-            for tag in status_tags
-        )
+        assert status_tags == []
 
     def test_browse_records_date_filter_field_selection_persists(
         self, client: FlaskClient, mock_all_access_user, browse_files
