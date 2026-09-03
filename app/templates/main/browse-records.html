@@ -110,7 +110,9 @@
                             {% endwith %}
                         </div>
                     {% endif %}
-                    {% include "components/browse-records-filters-form.html" %}
+                    {% if not (num_records_found == 0 and records_has_active_filters) %}
+                        {% include "components/browse-records-filters-form.html" %}
+                    {% endif %}
                 </div>
             </div>
         </div>

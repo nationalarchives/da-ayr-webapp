@@ -257,12 +257,9 @@ class TestBrowseRecords:
         series_filter = soup.find("input", id="series_filter")
         consignment_filter = soup.find("input", id="consignment_reference")
 
-        assert transferring_body_filter is not None
-        assert series_filter is not None
-        assert consignment_filter is not None
-        assert transferring_body_filter.get("value") == ""
-        assert series_filter.get("value") == ""
-        assert consignment_filter.get("value") == "TDR-2023-TH"
+        assert transferring_body_filter is None
+        assert series_filter is None
+        assert consignment_filter is None
 
     def test_browse_records_series_filter_requires_exact_match(
         self, client: FlaskClient, mock_all_access_user, browse_files
@@ -285,10 +282,8 @@ class TestBrowseRecords:
         )
         series_filter = soup.find("input", id="series_filter")
 
-        assert transferring_body_filter is not None
-        assert series_filter is not None
-        assert transferring_body_filter.get("value") == ""
-        assert series_filter.get("value") == "second"
+        assert transferring_body_filter is None
+        assert series_filter is None
 
     def test_browse_records_all_access_consignment_filter_autofills_transferring_body_and_series(
         self, client: FlaskClient, mock_all_access_user, browse_files
