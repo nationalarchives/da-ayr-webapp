@@ -416,6 +416,59 @@ class TestAccessTokenSignInRequiredDecorator:
     @patch(
         "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
     )
+    def test_refreshed_token_keeps_cached_groups_when_fallback_claims_unavailable(
+        mock_keycloak, app
+    ):
+        view_name = "/protected_view"
+        with app.test_client() as client:
+
+            @app.route(view_name)
+            @access_token_sign_in_required
+            def protected_view():
+                return "Access granted"
+
+            valid_groups = ["/ayr_user_type/view_all"]
+
+            with client.session_transaction() as session:
+                session["access_token"] = "inactive_access_token"
+                session["refresh_token"] = "active_refresh_token"
+                session["user_groups"] = valid_groups
+                session["user_type"] = "all_access_user"
+
+            refreshed_access_token = "active_access_token"
+
+            def mock_introspect(token):
+                if token == "inactive_access_token":
+                    return {"active": False}
+                elif token == refreshed_access_token:
+                    return {"active": True}
+                return {"active": False}
+
+            mock_keycloak.return_value.introspect.side_effect = mock_introspect
+            mock_keycloak.return_value.refresh_token.return_value = {
+                "access_token": refreshed_access_token,
+                "refresh_token": "new_active_refresh_token",
+            }
+            mock_keycloak.return_value.userinfo.side_effect = Exception(
+                "userinfo not available"
+            )
+            mock_keycloak.return_value.decode_token.side_effect = Exception(
+                "decode not available"
+            )
+
+            response = client.get(view_name)
+
+            assert response.status_code == 200
+            assert response.data == b"Access granted"
+
+            with client.session_transaction() as updated_session:
+                assert updated_session["user_groups"] == valid_groups
+                assert updated_session["user_type"] == "all_access_user"
+
+    @staticmethod
+    @patch(
+        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
+    )
     def test_an_active_access_token_with_ayr_access_is_permitted(
         mock_keycloak,
         app,
