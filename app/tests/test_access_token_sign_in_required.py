@@ -552,9 +552,17 @@ class TestAccessTokenSignInRequiredDecorator:
     @patch(
         "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
     )
-    def test_refreshed_token_keeps_cached_groups_when_fallback_claims_unavailable(
+    def test_refreshed_token_denies_access_when_fallback_claims_unavailable_even_with_cached_groups(
         mock_keycloak, app
     ):
+        """
+        Given a session with cached user_groups that previously granted AYR access,
+        And every fallback source fails to produce a "groups" claim during a
+            token refresh
+        When an inactive access token is refreshed via the 'access_token_sign_in_required' decorator,
+        Then it should overwrite the session with an empty
+            groups list and deny access.
+        """
         view_name = "/protected_view"
         with app.test_client() as client:
 
@@ -563,12 +571,12 @@ class TestAccessTokenSignInRequiredDecorator:
             def protected_view():
                 return "Access granted"
 
-            valid_groups = ["/ayr_user_type/view_all"]
+            previously_valid_groups = ["/ayr_user_type/view_all"]
 
             with client.session_transaction() as session:
                 session["access_token"] = "inactive_access_token"
                 session["refresh_token"] = "active_refresh_token"
-                session["user_groups"] = valid_groups
+                session["user_groups"] = previously_valid_groups
                 session["user_type"] = "all_access_user"
 
             refreshed_access_token = "active_access_token"
@@ -594,12 +602,21 @@ class TestAccessTokenSignInRequiredDecorator:
 
             response = client.get(view_name)
 
-            assert response.status_code == 200
-            assert response.data == b"Access granted"
+            assert response.status_code == 302
+            assert response.headers["Location"] == url_for("main.index")
 
             with client.session_transaction() as updated_session:
-                assert updated_session["user_groups"] == valid_groups
-                assert updated_session["user_type"] == "all_access_user"
+                assert updated_session["user_groups"] == []
+                assert updated_session["user_groups"] != previously_valid_groups
+                assert updated_session["user_type"] == "standard_user"
+                flashed_messages = updated_session["_flashes"]
+
+            assert flashed_messages == [
+                (
+                    "message",
+                    "TNA User is logged in but does not have access to AYR. Please contact your admin.",
+                )
+            ]
 
     @staticmethod
     @patch(

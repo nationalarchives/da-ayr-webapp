@@ -66,19 +66,11 @@ def access_token_sign_in_required(view_func):
                 access_token=session["access_token"],
                 decoded_access_token=decoded_access_token,
             )
-            if groups_resolved:
-                session["user_groups"] = user_groups
-            elif "user_groups" in session:
+            if not groups_resolved:
                 current_app.app_logger.warning(
-                    "User groups refresh failed during token refresh; "
-                    "keeping previously cached user_groups for this session"
+                    "User groups could not be resolved during token refresh"
                 )
-            else:
-                session["user_groups"] = user_groups
-                current_app.app_logger.warning(
-                    "User groups refresh failed during token refresh; "
-                    "no cached user_groups exist for this session"
-                )
+            session["user_groups"] = user_groups
             _set_user_type(session.get("user_groups"))
 
         ayr_user = AYRUser(session["user_groups"])
