@@ -4,6 +4,8 @@ import pytest
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
+from app.tests.factories import FileFactory
+
 
 def verify_browse_records_view_header_row(data, expected_first_header):
     """
@@ -829,3 +831,30 @@ class TestBrowseRecords:
 
         assert response.status_code == 200
         verify_scope_text(response.data, body_name)
+
+    def test_browse_records_row_displays_dash_for_dri_consignment(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given a record with a consignment reference starting with DRI-to-AYR-
+        When the browse records page loads with that consignment filter
+        Then an em-dash is rendered instead of the raw reference prefix in the table
+        """
+        file = FileFactory(consignment__ConsignmentReference="DRI-to-AYR-9999")
+
+        mock_all_access_user(client)
+
+        response = client.get(
+            f"{self.route_url}?consignment_reference={file.consignment.ConsignmentReference}"
+        )
+
+        assert response.status_code == 200
+
+        soup = BeautifulSoup(response.data, "html.parser")
+
+        table_cells = soup.select("tbody.govuk-table__body td")
+        cell_texts = [cell.get_text(strip=True) for cell in table_cells]
+        full_table_text = " ".join(cell_texts)
+
+        assert "DRI-to-AYR-9999" not in full_table_text
+        assert "—" in full_table_text

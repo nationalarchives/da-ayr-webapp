@@ -75,7 +75,7 @@
         class="govuk-table__cell browse-record-row__cell browse-records__consignment-cell">
         <p class="govuk-body-s govuk-!-margin-0 browse-records__consignment-text">
             consignment
-            {% if record["consignment_reference"] and record["consignment_reference"].startswith("AYR-2026") %}
+            {% if record["consignment_reference"] and record["consignment_reference"].startswith("DRI-to-AYR-") %}
                 —
             {% else %}
                 {{ record["consignment_reference"] }}
