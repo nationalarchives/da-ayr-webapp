@@ -1,7 +1,12 @@
 import json
 import os
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2 import (
+    Environment,
+    FileSystemLoader,
+    StrictUndefined,
+    select_autoescape,
+)
 
 BASE_DIR = os.path.dirname(__file__)
 MACROS_DIR = os.path.join(BASE_DIR, "..", "app", "templates", "main", "macros")
@@ -43,6 +48,7 @@ def render_macros():
     env = Environment(
         loader=FileSystemLoader(MACROS_DIR),
         autoescape=select_autoescape(enabled_extensions=("html", "xml")),
+        undefined=StrictUndefined,
     )
 
     for task in MACRO_RENDER_TASKS:

@@ -3,6 +3,16 @@
 {% from "govuk_frontend_jinja/components/header/macro.html" import govukHeader -%}
 {% from "govuk_frontend_jinja/components/footer/macro.html" import govukFooter -%}
 {% from 'main/macros/banners.html' import belly_band %}
+{% set htmlClasses = htmlClasses | default('', true) %}
+{% set pageTitleLang = pageTitleLang | default('', true) %}
+{% set bodyClasses = bodyClasses | default('', true) %}
+{% set bodyAttributes = bodyAttributes | default([], true) %}
+{% set containerClasses = containerClasses | default('', true) %}
+{% set mainClasses = mainClasses | default('', true) %}
+{% set mainLang = mainLang | default('', true) %}
+{% set cspNonce = cspNonce | default('', true) %}
+{% set opengraphImageUrl = opengraphImageUrl | default('', true) %}
+{% set assetUrl = assetUrl | default('', true) %}
 <!DOCTYPE html>
 <html lang="{{ htmlLang | default('en', true) }}"
       class="govuk-template {%- if htmlClasses %}{{ htmlClasses }}{% endif %}">
@@ -35,7 +45,7 @@
         {#- OpenGraph images needs to be absolute, so we need either a URL for the image or for assetUrl to be set #}
         {% if opengraphImageUrl or assetUrl %}
             <meta property="og:image"
-                  content="{{ opengraphImageUrl | default(assetUrl + '/images/govuk-opengraph-image.png', true) }}">
+                  content="{{ opengraphImageUrl if opengraphImageUrl else assetUrl + '/images/govuk-opengraph-image.png' }}">
         {% endif %}
     </head>
     <body class="govuk-template__body {%- if bodyClasses %}{{ bodyClasses }}{% endif %}"

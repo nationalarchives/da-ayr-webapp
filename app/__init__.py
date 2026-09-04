@@ -9,7 +9,7 @@ from flask_compress import Compress
 from flask_s3 import FlaskS3
 from flask_talisman import Talisman
 from govuk_frontend_wtf.main import WTFormsHelpers
-from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
+from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader, StrictUndefined
 
 from app.logger_config import setup_logging
 from app.main.db.models import db
@@ -96,6 +96,7 @@ def create_app(config_class, local_env, database_uri=None):
 
     app.jinja_env.lstrip_blocks = True
     app.jinja_env.trim_blocks = True
+    app.jinja_env.undefined = StrictUndefined
     app.jinja_env.filters["null_to_dash"] = null_to_dash
     app.jinja_env.filters["clean_tags_and_replace_highlight_tag"] = (
         clean_tags_and_replace_highlight_tag

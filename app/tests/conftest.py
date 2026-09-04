@@ -9,6 +9,7 @@ from jinja2 import (
     FileSystemLoader,
     PackageLoader,
     PrefixLoader,
+    StrictUndefined,
     select_autoescape,
 )
 from testing.postgresql import PostgresqlFactory
@@ -1228,5 +1229,6 @@ def jinja_env():
             ]
         ),
         autoescape=select_autoescape(["html", "xml"]),
+        undefined=StrictUndefined,
     )
     return env
