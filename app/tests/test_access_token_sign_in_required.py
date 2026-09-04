@@ -259,6 +259,142 @@ class TestAccessTokenSignInRequiredDecorator:
     @patch(
         "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
     )
+    def test_refreshed_token_with_changed_keycloak_groups_revokes_previous_access(
+        mock_keycloak, app
+    ):
+        """
+        Given a session with cached user_groups that previously granted AYR access,
+        And the user's groups have since been changed in Keycloak (e.g. an admin
+            removed them from the AYR groups, so the current introspection response
+            reflects fresh, different groups rather than a fallback failure),
+        When an inactive access token is refreshed via the 'access_token_sign_in_required' decorator,
+        Then the session should be updated with the newly returned groups (not the
+            stale cached ones), and access should be revoked accordingly.
+        """
+        view_name = "/protected_view"
+        with app.test_client() as client:
+
+            @app.route(view_name)
+            @access_token_sign_in_required
+            def protected_view():
+                return "Access granted"
+
+            previously_valid_groups = ["/ayr_user_type/view_all"]
+
+            with client.session_transaction() as session:
+                session["access_token"] = "inactive_access_token"
+                session["refresh_token"] = "active_refresh_token"
+                session["user_groups"] = previously_valid_groups
+                session["user_type"] = "all_access_user"
+
+            refreshed_access_token = "active_access_token"
+            new_groups_without_ayr_access = ["/some_other_group"]
+
+            def mock_introspect(token):
+                if token == "inactive_access_token":
+                    return {"active": False}
+                elif token == refreshed_access_token:
+                    return {
+                        "active": True,
+                        "groups": new_groups_without_ayr_access,
+                    }
+                return {"active": False}
+
+            mock_keycloak.return_value.introspect.side_effect = mock_introspect
+            mock_keycloak.return_value.refresh_token.return_value = {
+                "access_token": refreshed_access_token,
+                "refresh_token": "new_active_refresh_token",
+            }
+
+            response = client.get(view_name)
+
+            assert response.status_code == 302
+            assert response.headers["Location"] == url_for("main.index")
+
+            with client.session_transaction() as updated_session:
+                assert (
+                    updated_session["user_groups"]
+                    == new_groups_without_ayr_access
+                )
+                assert updated_session["user_groups"] != previously_valid_groups
+                assert updated_session["user_type"] == "standard_user"
+                flashed_messages = updated_session["_flashes"]
+
+            assert flashed_messages == [
+                (
+                    "message",
+                    "TNA User is logged in but does not have access to AYR. Please contact your admin.",
+                )
+            ]
+
+    @staticmethod
+    @patch(
+        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
+    )
+    def test_refreshed_token_with_explicit_empty_keycloak_groups_revokes_previous_access(
+        mock_keycloak, app
+    ):
+        """
+        Given a session with cached user_groups that previously granted AYR access,
+        And the user has since been removed from every Keycloak group, so a
+            successful introspection response now explicitly returns an empty
+            groups list
+        When an inactive access token is refreshed via the 'access_token_sign_in_required' decorator,
+        Then the session should be updated to the empty groups list (not the
+            stale cached ones), and access should be revoked.
+        """
+        view_name = "/protected_view"
+        with app.test_client() as client:
+
+            @app.route(view_name)
+            @access_token_sign_in_required
+            def protected_view():
+                return "Access granted"
+
+            previously_valid_groups = ["/ayr_user_type/view_all"]
+
+            with client.session_transaction() as session:
+                session["access_token"] = "inactive_access_token"
+                session["refresh_token"] = "active_refresh_token"
+                session["user_groups"] = previously_valid_groups
+                session["user_type"] = "all_access_user"
+
+            refreshed_access_token = "active_access_token"
+
+            def mock_introspect(token):
+                if token == "inactive_access_token":
+                    return {"active": False}
+                elif token == refreshed_access_token:
+                    return {"active": True, "groups": []}
+                return {"active": False}
+
+            mock_keycloak.return_value.introspect.side_effect = mock_introspect
+            mock_keycloak.return_value.refresh_token.return_value = {
+                "access_token": refreshed_access_token,
+                "refresh_token": "new_active_refresh_token",
+            }
+
+            response = client.get(view_name)
+
+            assert response.status_code == 302
+            assert response.headers["Location"] == url_for("main.index")
+
+            with client.session_transaction() as updated_session:
+                assert updated_session["user_groups"] == []
+                assert updated_session["user_type"] == "standard_user"
+                flashed_messages = updated_session["_flashes"]
+
+            assert flashed_messages == [
+                (
+                    "message",
+                    "TNA User is logged in but does not have access to AYR. Please contact your admin.",
+                )
+            ]
+
+    @staticmethod
+    @patch(
+        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
+    )
     def test_refreshed_token_falls_back_to_userinfo_when_groups_missing(
         mock_keycloak, app
     ):
