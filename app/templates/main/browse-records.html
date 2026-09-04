@@ -29,7 +29,7 @@
                         {% if is_standard_user and filters and filters.get('transferring_body') %}
                             {% set records_scope_text = filters.get('transferring_body') %}
                         {% endif %}
-                        {% if records_scope_text %}
+                        {% if records_scope_text and num_records_found > 0 %}
                             <p class="govuk-body">
                                 <span class="browse__scope-text">{{ records_scope_text }}</span>
                             </p>
@@ -45,7 +45,28 @@
                                 {% endif %}
                             {% else %}
                                 {% if records_has_active_filters %}
-                                    No records found
+                                    <div>
+                                        <!-- BACK -->
+                                        {{ govukBackLink({
+                                        'text': "Back",
+                                        'href': url_for('main.browse_records')
+                                        }) }}
+                                    </div>
+                                    <div>No results found</div>
+                                    <div class="govuk-grid-column-two-thirds browse-grid--two-thirds">
+                                        <h2 class="govuk-heading-m govuk-!-padding-top-7">Help with your search</h2>
+                                        <ul class="govuk-list govuk-list--bullet">
+                                            <li>
+                                                Try changing or removing
+                                                {% if view_type == "search" %}
+                                                    a search query.
+                                                {% else %}
+                                                    filters.
+                                                {% endif %}
+                                            </li>
+                                            <li>Try changing or removing one or more filters.</li>
+                                        </ul>
+                                    </div>
                                 {% else %}
                                     0 records
                                 {% endif %}
@@ -89,7 +110,9 @@
                             {% endwith %}
                         </div>
                     {% endif %}
-                    {% include "components/browse-records-filters-form.html" %}
+                    {% if not (num_records_found == 0 and records_has_active_filters) %}
+                        {% include "components/browse-records-filters-form.html" %}
+                    {% endif %}
                 </div>
             </div>
         </div>

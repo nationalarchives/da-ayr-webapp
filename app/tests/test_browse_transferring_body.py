@@ -121,13 +121,10 @@ class TestBrowseTransferringBody:
         expected_html = """
         <ul class="govuk-list govuk-list--bullet">
         <li>
-        Try changing or removing one or more applied
+        Try changing or removing
                     filters.
         </li>
-        <li>
-        Alternatively, use the breadcrumbs to navigate back to the
-        <a class="govuk-link govuk-link--no-visited-state" href="/browse">browse view</a>.
-        </li>
+        <li>Try changing or removing one or more filters.</li>
         </ul>"""
         assert response.status_code == 200
         assert b"No results found" in response.data

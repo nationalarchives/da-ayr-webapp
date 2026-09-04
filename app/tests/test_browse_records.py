@@ -248,7 +248,7 @@ class TestBrowseRecords:
         )
 
         assert response.status_code == 200
-        assert b"No records found" in response.data
+        assert b"No results found" in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
         transferring_body_filter = soup.find(
@@ -257,12 +257,9 @@ class TestBrowseRecords:
         series_filter = soup.find("input", id="series_filter")
         consignment_filter = soup.find("input", id="consignment_reference")
 
-        assert transferring_body_filter is not None
-        assert series_filter is not None
-        assert consignment_filter is not None
-        assert transferring_body_filter.get("value") == ""
-        assert series_filter.get("value") == ""
-        assert consignment_filter.get("value") == "TDR-2023-TH"
+        assert transferring_body_filter is None
+        assert series_filter is None
+        assert consignment_filter is None
 
     def test_browse_records_series_filter_requires_exact_match(
         self, client: FlaskClient, mock_all_access_user, browse_files
@@ -277,7 +274,7 @@ class TestBrowseRecords:
         response = client.get(f"{self.route_url}?series_filter=second")
 
         assert response.status_code == 200
-        assert b"No records found" in response.data
+        assert b"No results found" in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
         transferring_body_filter = soup.find(
@@ -285,10 +282,8 @@ class TestBrowseRecords:
         )
         series_filter = soup.find("input", id="series_filter")
 
-        assert transferring_body_filter is not None
-        assert series_filter is not None
-        assert transferring_body_filter.get("value") == ""
-        assert series_filter.get("value") == "second"
+        assert transferring_body_filter is None
+        assert series_filter is None
 
     def test_browse_records_all_access_consignment_filter_autofills_transferring_body_and_series(
         self, client: FlaskClient, mock_all_access_user, browse_files
@@ -535,8 +530,8 @@ class TestBrowseRecords:
         """
         Given the open status filter
         When browse records is requested
-        Then the open status option is selected
-        and any visible status tags are open
+        Then the no-results panel is shown when no records match
+        and the filters/status tags are not rendered
         """
         mock_all_access_user(client)
 
@@ -549,20 +544,15 @@ class TestBrowseRecords:
         status_open = soup.find("input", id="recordStatus-open")
         status_closed = soup.find("input", id="recordStatus-closed")
 
-        assert status_all is not None
-        assert status_open is not None
-        assert status_closed is not None
-        assert not status_all.has_attr("checked")
-        assert status_open.has_attr("checked")
-        assert not status_closed.has_attr("checked")
+        assert b"No results found" in response.data
+        assert status_all is None
+        assert status_open is None
+        assert status_closed is None
 
         status_tags = soup.select(
             "td.browse-records__meta-cell--status strong.govuk-tag"
         )
-        assert all(
-            tag.get_text(strip=True) in ["Open", "Unknown"]
-            for tag in status_tags
-        )
+        assert status_tags == []
 
     def test_browse_records_date_filter_field_selection_persists(
         self, client: FlaskClient, mock_all_access_user, browse_files
@@ -790,8 +780,7 @@ class TestBrowseRecords:
         response = client.get(f"{self.route_url}?series_filter=zzzzzzzzzzzzzz")
 
         assert response.status_code == 200
-        assert b"No records found" in response.data
-        verify_scope_text(response.data, "All available records")
+        assert b"No results found" in response.data
 
     def test_browse_records_invalid_page_redirects_when_no_results(
         self, client: FlaskClient, mock_all_access_user, browse_files

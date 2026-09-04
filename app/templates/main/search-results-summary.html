@@ -1,12 +1,19 @@
 {% extends "base.html" %}
 {% block pageTitle %}Search results summary – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
+{%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
 {% block beforeContent %}{{ super() }}{% endblock %}
 {% block content %}
     <!-- SEARCH  -->
     <div class="govuk-grid-row browse__page desktop mobile">
         {{ super() }}
         {% include "top-search.html" %}
+        <!-- BACK -->
+        {% set preserved_params = request.args.copy() %}
+        {{ govukBackLink({
+        'text': "Back",
+        'href': url_for('main.browse_records', **preserved_params)
+        }) }}
         <!-- TABLE -->
         <div class="govuk-grid-column-full govuk-grid-column-full--mobile-search">
             <div class="browse-details">
@@ -28,36 +35,34 @@
                     {% endwith %}
                 {% endif %}
                 {% if num_records_found > 0 %}
-                    <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds__search-results-summary">
-                        <table class="govuk-table browse-grid__table govuk-!-margin-top-8"
-                               id="tbl_result"
-                               aria-label="Record search results">
-                            <thead class="govuk-table__head">
-                                <tr class="govuk-table__row govuk-!-font-size-16">
-                                    <th scope="col"
-                                        class="govuk-table__header govuk-table__header--results-summary">
-                                        Results found within each Transferring body
-                                    </th>
-                                    <th scope="col"
-                                        class="govuk-table__header  govuk-table__header--results-summary">
-                                        Records found
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="govuk-table__body">
-                                <div class="main-content" id="main-content" role="main">
-                                    {% for transferring_body in results %}
-                                        <tr class="govuk-table__row">
-                                            <td class="govuk-table__cell govuk-table__cell--results-summary">
-                                                {% if transferring_body["top_transferring_body_hits"]["hits"]["hits"][0]["_source"]["transferring_body"] %}
-                                                    {% set name = transferring_body["top_transferring_body_hits"]["hits"]["hits"][0]["_source"]["transferring_body"] %}
-                                                    <a href="{{ url_for('main.search_transferring_body', _id=transferring_body['key'] , query=filters['query'], search_area=search_area) }}">{{ name }}</a>
-                                                {% endif %}
-                                            </td>
-                                            <td class="govuk-table__cell govuk-body govuk-table__cell--record-results">{{ transferring_body['doc_count'] }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </div>
+                    <table class="govuk-table browse-grid__table govuk-!-margin-top-8"
+                           id="tbl_result"
+                           aria-label="Record search results">
+                        <thead class="govuk-table__head">
+                            <tr class="govuk-table__row govuk-!-font-size-16">
+                                <th scope="col"
+                                    class="govuk-table__header govuk-table__header--results-summary">
+                                    Results found within each Transferring body
+                                </th>
+                                <th scope="col"
+                                    class="govuk-table__header  govuk-table__header--results-summary">
+                                    Records found
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="govuk-table__body">
+                            <div class="main-content" id="main-content" role="main">
+                                {% for transferring_body in results %}
+                                    <tr class="govuk-table__row">
+                                        <td class="govuk-table__cell govuk-table__cell--results-summary">
+                                            {% if transferring_body["top_transferring_body_hits"]["hits"]["hits"][0]["_source"]["transferring_body"] %}
+                                                {% set name = transferring_body["top_transferring_body_hits"]["hits"]["hits"][0]["_source"]["transferring_body"] %}
+                                                <a href="{{ url_for('main.search_transferring_body', _id=transferring_body['key'] , query=filters['query'], search_area=search_area) }}">{{ name }}</a>
+                                            {% endif %}
+                                        </td>
+                                        <td class="govuk-table__cell govuk-body govuk-table__cell--record-results">{{ transferring_body['doc_count'] }}</td>
+                                    </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                         <!-- PAGINATION -->
