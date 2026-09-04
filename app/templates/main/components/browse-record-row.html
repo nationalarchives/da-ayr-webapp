@@ -75,7 +75,13 @@
     <td colspan="{{ number_of_columns }}"
         class="govuk-table__cell browse-record-row__cell browse-records__consignment-cell">
         <p class="govuk-body-s govuk-!-margin-0 browse-records__consignment-text">
-            consignment {{ record["consignment_reference"] }} on {{ record["date_of_record"] or "-" }}
+            consignment
+            {% if record["consignment_reference"] and record["consignment_reference"].startswith("DRI-to-AYR-") %}
+                —
+            {% else %}
+                {{ record["consignment_reference"] }}
+            {% endif %}
+            on {{ record["date_of_record"] or "-" }}
         </p>
     </td>
 </tr>
