@@ -1,3 +1,4 @@
+import re
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
@@ -264,14 +265,13 @@ class TestSearchResultsSummary:
 
         form_data = {"query": "junk"}
         response = client.get(f"{self.route_url}", data=form_data)
-        page_text = BeautifulSoup(response.data, "html.parser").get_text(
-            " ", strip=True
-        )
 
         assert response.status_code == 200
         assert b"No results found" in response.data
-        assert "Try changing or removing a search query." in page_text
-        assert "Try changing or removing one or more filters." in page_text
+        assert re.search(
+            rb"Try changing or removing\s+a search query\.", response.data
+        )
+        assert b"Try changing or removing one or more filters." in response.data
 
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_results_summary_shows_correct_amount_of_records(
@@ -739,14 +739,13 @@ class TestSearchTransferringBody:
         response = client.get(
             f"{self.route_url}/{transferring_body_id}", data=form_data
         )
-        page_text = BeautifulSoup(response.data, "html.parser").get_text(
-            " ", strip=True
-        )
 
         assert response.status_code == 200
         assert b"No results found" in response.data
-        assert "Try changing or removing a search query." in page_text
-        assert "Try changing or removing one or more filters." in page_text
+        assert re.search(
+            rb"Try changing or removing\s+a search query\.", response.data
+        )
+        assert b"Try changing or removing one or more filters." in response.data
 
     @patch("app.main.util.search_utils.OpenSearch")
     def test_search_results_timeout_error(
