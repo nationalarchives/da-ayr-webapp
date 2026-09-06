@@ -55,6 +55,10 @@ def test_sign_in_succeeds_when_valid_credentials(
     )
     assert set(decoded_token_dict.keys()) == {
         "aud",
+        "aud_x",  # side effect of the self-audience-scope default client scope:
+        # the token's real "aud" (issuer) can't be overwritten by the audience
+        # mapper on a refresh token, so Keycloak adds the client audience under
+        # this separate claim instead. Unused by the app.
         "exp",
         "iat",
         "jti",
