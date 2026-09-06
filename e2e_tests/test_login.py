@@ -35,6 +35,7 @@ def test_sign_in_succeeds_when_valid_credentials(
     )
 
     assert set(decoded_token_dict.keys()) == {
+        "aud",
         "exp",
         "iat",
         "auth_time",
