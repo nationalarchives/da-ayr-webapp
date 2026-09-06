@@ -2,6 +2,14 @@ FROM public.ecr.aws/lambda/python:3.12
 
 ARG DROID_VERSION=6.9.13
 
+RUN dnf clean all && \
+    dnf update -y \
+      --releasever=latest \
+      openssl-fips-provider-latest \
+      openssl-snapsafe-libs && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
+
 # DROID's own release doesn't refresh these on its own schedule, so we
 # override the vulnerable JARs after unpacking.
 ARG DROID_JAR_PATCHES="\
