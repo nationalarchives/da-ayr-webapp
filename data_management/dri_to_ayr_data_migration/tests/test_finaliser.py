@@ -345,10 +345,10 @@ class TestCsvDiscoveryAndMerge:
             }
         ]
 
-    def test_merge_staged_csvs_deduplicates_rows(
+    def test_merge_staged_csvs_deduplicates_shared_rows(
         self, mock_finaliser, monkeypatch, tmp_path
     ):
-        def fake_read_csv_from_s3(key: str):
+        def fake_read_csv_from_s3_as_list(key: str):
             file_name = Path(key).name
 
             if file_name == "AYR-body-metadata.csv":
@@ -385,25 +385,14 @@ class TestCsvDiscoveryAndMerge:
                         "Checksum": "checksum-2",
                         "CreatedDatetime": "2026-09-01T10:00:00Z",
                     },
-                    {
-                        "FileId": "file-2",
-                        "ConsignmentId": "consignment-1",
-                        "FileType": "File",
-                        "FileName": "file-2.txt",
-                        "FilePath": "",
-                        "FileReference": "002",
-                        "CiteableReference": "MIG 1/002",
-                        "ParentReference": "",
-                        "OriginalFilePath": "",
-                        "Checksum": "checksum-2",
-                        "CreatedDatetime": "2026-09-01T10:00:00Z",
-                    },
                 ]
 
             return []
 
         monkeypatch.setattr(
-            finaliser_module, "read_csv_from_s3_as_list", fake_read_csv_from_s3
+            finaliser_module,
+            "read_csv_from_s3_as_list",
+            fake_read_csv_from_s3_as_list,
         )
 
         counts = merge_staged_csvs(
@@ -429,6 +418,54 @@ class TestCsvDiscoveryAndMerge:
             "file-1",
             "file-2",
         ]
+
+    def test_merge_staged_csvs_raises_for_duplicate_file_rows(
+        self, mock_finaliser, monkeypatch, tmp_path
+    ):
+        def fake_read_csv_from_s3_as_list(_key: str):
+            return [
+                {
+                    "FileId": "file-1",
+                    "ConsignmentId": "consignment-1",
+                    "FileType": "File",
+                    "FileName": "file-1.txt",
+                    "FilePath": "",
+                    "FileReference": "001",
+                    "CiteableReference": "MIG 1/001",
+                    "ParentReference": "",
+                    "OriginalFilePath": "",
+                    "Checksum": "checksum-1",
+                    "CreatedDatetime": "2026-09-01T10:00:00Z",
+                },
+                {
+                    "FileId": "file-1",
+                    "ConsignmentId": "consignment-1",
+                    "FileType": "File",
+                    "FileName": "file-1.txt",
+                    "FilePath": "",
+                    "FileReference": "001",
+                    "CiteableReference": "MIG 1/001",
+                    "ParentReference": "",
+                    "OriginalFilePath": "",
+                    "Checksum": "checksum-1",
+                    "CreatedDatetime": "2026-09-01T10:00:00Z",
+                },
+            ]
+
+        monkeypatch.setattr(
+            finaliser_module,
+            "read_csv_from_s3_as_list",
+            fake_read_csv_from_s3_as_list,
+        )
+
+        with pytest.raises(
+            ValueError,
+            match="Duplicate row found in AYR-file.csv for FileId=file-1",
+        ):
+            merge_staged_csvs(
+                ["staging/file-1/AYR-file.csv"],
+                tmp_path,
+            )
 
     def test_create_checksum_files_writes_manifest_and_manifest_checksum(
         self, tmp_path

@@ -79,31 +79,38 @@ CHECKSUM_COLUMNS = ["file_name", "checksum_sha256"]
 CSV_DEFINITIONS = {
     "AYR-body-metadata.csv": {
         "columns": BODY_COLUMNS,
-        "dedupe_column": "Name",
+        "unique_column": "Name",
+        "skip_duplicates": True,
     },
     "AYR-series-metadata.csv": {
         "columns": SERIES_COLUMNS,
-        "dedupe_column": "Name",
+        "unique_column": "Name",
+        "skip_duplicates": True,
     },
     "AYR-consignment-metadata.csv": {
         "columns": CONSIGNMENT_COLUMNS,
-        "dedupe_column": "ConsignmentReference",
+        "unique_column": "ConsignmentReference",
+        "skip_duplicates": True,
     },
     "AYR-file.csv": {
         "columns": FILE_COLUMNS,
-        "dedupe_column": "FileId",
+        "unique_column": "FileId",
+        "skip_duplicates": False,
     },
     "AYR-file-metadata.csv": {
         "columns": FILE_METADATA_COLUMNS,
-        "dedupe_column": "MetadataId",
+        "unique_column": "MetadataId",
+        "skip_duplicates": False,
     },
     "AYR-ffid-metadata.csv": {
         "columns": FFID_METADATA_COLUMNS,
-        "dedupe_column": "FileId",
+        "unique_column": "FileId",
+        "skip_duplicates": False,
     },
     "AYR-av-metadata.csv": {
         "columns": AV_METADATA_COLUMNS,
-        "dedupe_column": "FileId",
+        "unique_column": "FileId",
+        "skip_duplicates": False,
     },
 }
 
@@ -293,29 +300,57 @@ def merge_staged_csvs(
     staged_csv_keys: list[str], output_dir: Path
 ) -> dict[str, int]:
     """
-    Merge worker-staged CSVs into the final consignment CSV package
+    Merge worker-staged CSVs into the final consignment package.
 
-    Duplicate rows are skipped using each CSV type's dedupe column
+    Shared rows are deduped. File-level duplicate rows fail the finaliser.
+    Returns row counts for logging.
     """
     rows_by_file: dict[str, list[dict[str, str]]] = {
         file_name: [] for file_name in CSV_DEFINITIONS
     }
-    seen_by_file: dict[str, set[str]] = {
-        file_name: set() for file_name in CSV_DEFINITIONS
+    seen_by_file: dict[str, dict[str, str]] = {
+        file_name: {} for file_name in CSV_DEFINITIONS
     }
 
     for key in staged_csv_keys:
         file_name = Path(key).name
         definition = CSV_DEFINITIONS[file_name]
-        dedupe_column = definition["dedupe_column"]
+        unique_column = definition["unique_column"]
 
         for row in read_csv_from_s3_as_list(key):
-            dedupe_key = row[dedupe_column]
+            unique_value = row.get(unique_column, "")
 
-            if dedupe_key in seen_by_file[file_name]:
-                continue
+            if not unique_value:
+                raise ValueError(
+                    f"Missing {unique_column} value in {file_name} row from "
+                    f"s3://{DDT_TEMP_CSV_BUCKET}/{key}"
+                )
 
-            seen_by_file[file_name].add(dedupe_key)
+            first_seen_key = seen_by_file[file_name].get(unique_value)
+
+            if first_seen_key:
+                if definition["skip_duplicates"]:
+                    logger.debug(
+                        "Skipping duplicate row in %s for %s=%s. "
+                        "First seen in s3://%s/%s, duplicate in s3://%s/%s",
+                        file_name,
+                        unique_column,
+                        unique_value,
+                        DDT_TEMP_CSV_BUCKET,
+                        first_seen_key,
+                        DDT_TEMP_CSV_BUCKET,
+                        key,
+                    )
+                    continue
+
+                raise ValueError(
+                    f"Duplicate row found in {file_name} for "
+                    f"{unique_column}={unique_value}. "
+                    f"First seen in s3://{DDT_TEMP_CSV_BUCKET}/{first_seen_key}, "
+                    f"duplicate in s3://{DDT_TEMP_CSV_BUCKET}/{key}"
+                )
+
+            seen_by_file[file_name][unique_value] = key
             rows_by_file[file_name].append(row)
 
     counts: dict[str, int] = {}
