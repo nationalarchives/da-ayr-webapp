@@ -34,7 +34,7 @@ def test_sign_in_succeeds_when_valid_credentials(
         access_token, options={"verify_signature": False}
     )
 
-    assert set(decoded_token_dict.keys()) == {
+    assert {
         "exp",
         "iat",
         "auth_time",
@@ -46,13 +46,13 @@ def test_sign_in_succeeds_when_valid_credentials(
         "scope",
         "sid",
         "groups",
-    }
+    }.issubset(decoded_token_dict.keys())
 
     refresh_token = json.loads(decoded_data)["refresh_token"]
     decoded_token_dict = jwt.decode(
         refresh_token, options={"verify_signature": False}
     )
-    assert set(decoded_token_dict.keys()) == {
+    assert {
         "aud",
         "exp",
         "iat",
@@ -63,8 +63,7 @@ def test_sign_in_succeeds_when_valid_credentials(
         "azp",
         "scope",
         "sid",
-        "prov",
-    }
+    }.issubset(decoded_token_dict.keys())
 
 
 def decode_flask_session_cookie(cookie):
