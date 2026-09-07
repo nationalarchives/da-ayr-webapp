@@ -119,11 +119,11 @@ const searchLandingUrls = [
 ];
 
 const searchResultsByTermUrls = searchTerms.map(
-  (query) => `${BASE_URL}/search_results_summary?query=${query}`,
+  (query) => `${BASE_URL}/search/results?query=${query}`,
 );
 
 const searchTransferringBodyUrls = [
-  `${BASE_URL}/search/transferring_body/8ccc8cd1-c0ee-431d-afad-70cf404ba337?query=a&sort=series-asc&search_filter=test`,
+  `${BASE_URL}/search/results/8ccc8cd1-c0ee-431d-afad-70cf404ba337?query=a&sort=series-asc&search_filter=test`,
 ];
 
 const recordIds = [

@@ -2,8 +2,14 @@
     <td colspan="{{ number_of_columns }}"
         class="govuk-table__cell browse-record-row__cell browse-records__title-cell">
         {% set record_params = query_string_parameters.copy() if query_string_parameters else {} %}
+        {% if record_back_target is defined and record_back_target %}
+            {% set _ = record_params.update({'return_to': record_back_target}) %}
+        {% endif %}
         <a href="{{ url_for('main.record', record_id=record['file_id'], **record_params) }}"
            class="browse-records__file-link">{{ record["file_name"] }}</a>
+        {% if record.get("search_result_snippet") %}
+            <p class="govuk-body-s govuk-!-margin-top-1 govuk-!-margin-bottom-0">{{ record["search_result_snippet"] }}</p>
+        {% endif %}
     </td>
 </tr>
 <tr class="govuk-table__row browse-record-row__row browse-record-row__row--meta">
@@ -49,8 +55,8 @@
                 <a href="{{ url_for('main.browse_records', **combined_params) }}">{{ record["transferring_body"] }}</a>
             </p>
         </td>
-    {% endif %}
-</tr>
+    </tr>
+{% endif %}
 <tr class="govuk-table__row browse-record-row__row browse-record-row__row--path">
     <td colspan="{{ number_of_columns }}"
         class="govuk-table__cell browse-record-row__cell browse-records__path-cell">

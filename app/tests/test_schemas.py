@@ -13,8 +13,6 @@ from app.main.util.schemas import (
     GenerateManifestRequestSchema,
     RecordRequestSchema,
     SearchRequestSchema,
-    SearchResultsSummaryRequestSchema,
-    SearchTransferringBodyRequestSchema,
     SearchWithinRequestSchema,
 )
 
@@ -332,7 +330,6 @@ class TestSearchRequestSchema:
                 "query": "test query",
                 "search_area": "metadata",
                 "sort": "file_name",
-                "open_all": "true",
                 "search_filter": "filter text",
                 "transferring_body_id": "test-id",
             }
@@ -346,12 +343,6 @@ class TestSearchRequestSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.load({"search_area": "invalid"})
         assert "search_area" in exc_info.value.messages
-
-    def test_invalid_open_all_value(self):
-        schema = SearchRequestSchema()
-        with pytest.raises(ValidationError) as exc_info:
-            schema.load({"open_all": "invalid"})
-        assert "open_all" in exc_info.value.messages
 
     def test_query_length_validation(self):
         schema = SearchRequestSchema()
@@ -370,54 +361,6 @@ class TestSearchRequestSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.load({"transferring_body_id": "x" * 201})
         assert "transferring_body_id" in exc_info.value.messages
-
-
-class TestSearchResultsSummaryRequestSchema:
-    """Tests for SearchResultsSummaryRequestSchema."""
-
-    def test_valid_summary_request(self):
-        schema = SearchResultsSummaryRequestSchema()
-        data = schema.load({"query": "test", "page": 1, "per_page": 20})
-        assert data["query"] == "test"
-        assert data["page"] == 1
-
-    def test_defaults_applied(self):
-        schema = SearchResultsSummaryRequestSchema()
-        data = schema.load({})
-        assert data["query"] == ""
-        assert data["page"] == 1
-
-
-class TestSearchTransferringBodyRequestSchema:
-    """Tests for SearchTransferringBodyRequestSchema."""
-
-    def test_valid_request_with_id(self):
-        schema = SearchTransferringBodyRequestSchema()
-        test_id = str(uuid.uuid4())
-        data = schema.load({"_id": test_id, "query": "search term"})
-        assert isinstance(data["_id"], uuid.UUID)
-        assert data["query"] == "search term"
-
-    def test_missing_consignment_id(self):
-        schema = SearchTransferringBodyRequestSchema()
-        with pytest.raises(ValidationError) as exc_info:
-            schema.load({})
-        assert "_id" in exc_info.value.messages
-
-    def test_invalid_uuid_in_id(self):
-        schema = SearchTransferringBodyRequestSchema()
-        with pytest.raises(ValidationError) as exc_info:
-            schema.load({"_id": "invalid-uuid"})
-        assert "_id" in exc_info.value.messages
-
-    def test_with_pagination(self):
-        schema = SearchTransferringBodyRequestSchema()
-        test_id = str(uuid.uuid4())
-        data = schema.load(
-            {"_id": test_id, "query": "test", "page": 3, "per_page": 10}
-        )
-        assert data["page"] == 3
-        assert data["per_page"] == 10
 
 
 class TestSearchWithinRequestSchema:
