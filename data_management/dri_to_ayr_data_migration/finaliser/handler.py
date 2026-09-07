@@ -79,31 +79,31 @@ CHECKSUM_COLUMNS = ["file_name", "checksum_sha256"]
 CSV_DEFINITIONS = {
     "AYR-body-metadata.csv": {
         "columns": BODY_COLUMNS,
-        "dedupe_columns": ["Name"],
+        "dedupe_column": "Name",
     },
     "AYR-series-metadata.csv": {
         "columns": SERIES_COLUMNS,
-        "dedupe_columns": ["Name"],
+        "dedupe_column": "Name",
     },
     "AYR-consignment-metadata.csv": {
         "columns": CONSIGNMENT_COLUMNS,
-        "dedupe_columns": ["ConsignmentReference"],
+        "dedupe_column": "ConsignmentReference",
     },
     "AYR-file.csv": {
         "columns": FILE_COLUMNS,
-        "dedupe_columns": ["FileId"],
+        "dedupe_column": "FileId",
     },
     "AYR-file-metadata.csv": {
         "columns": FILE_METADATA_COLUMNS,
-        "dedupe_columns": ["MetadataId"],
+        "dedupe_column": "MetadataId",
     },
     "AYR-ffid-metadata.csv": {
         "columns": FFID_METADATA_COLUMNS,
-        "dedupe_columns": ["FileId"],
+        "dedupe_column": "FileId",
     },
     "AYR-av-metadata.csv": {
         "columns": AV_METADATA_COLUMNS,
-        "dedupe_columns": ["FileId", "Filepath", "AV_Software"],
+        "dedupe_column": "FileId",
     },
 }
 
@@ -254,9 +254,19 @@ def list_staged_csv_keys(staging_prefix: str) -> list[str]:
             file_name = Path(key).name
 
             if not key.endswith(".csv"):
+                logger.debug(
+                    "Skipping non-CSV staged file: s3://%s/%s",
+                    DDT_TEMP_CSV_BUCKET,
+                    key,
+                )
                 continue
 
             if file_name in {CHECKSUM_CSV_NAME, CHECKSUM_TEXT_NAME}:
+                logger.debug(
+                    "Skipping staged manifest/checksum file: s3://%s/%s",
+                    DDT_TEMP_CSV_BUCKET,
+                    key,
+                )
                 continue
 
             if file_name not in CSV_DEFINITIONS:
@@ -269,26 +279,38 @@ def list_staged_csv_keys(staging_prefix: str) -> list[str]:
 
             keys.append(key)
 
+    logger.info(
+        "Found %s staged CSV file(s) under s3://%s/%s",
+        len(keys),
+        DDT_TEMP_CSV_BUCKET,
+        prefix,
+    )
+
     return sorted(keys)
 
 
 def merge_staged_csvs(
     staged_csv_keys: list[str], output_dir: Path
 ) -> dict[str, int]:
+    """
+    Merge worker-staged CSVs into the final consignment CSV package
+
+    Duplicate rows are skipped using each CSV type's dedupe column
+    """
     rows_by_file: dict[str, list[dict[str, str]]] = {
         file_name: [] for file_name in CSV_DEFINITIONS
     }
-    seen_by_file: dict[str, set[tuple[str, ...]]] = {
+    seen_by_file: dict[str, set[str]] = {
         file_name: set() for file_name in CSV_DEFINITIONS
     }
 
     for key in staged_csv_keys:
         file_name = Path(key).name
         definition = CSV_DEFINITIONS[file_name]
-        dedupe_columns = definition["dedupe_columns"]
+        dedupe_column = definition["dedupe_column"]
 
-        for row in read_csv_from_s3(key):
-            dedupe_key = tuple(row.get(column, "") for column in dedupe_columns)
+        for row in read_csv_from_s3_as_list(key):
+            dedupe_key = row[dedupe_column]
 
             if dedupe_key in seen_by_file[file_name]:
                 continue
@@ -306,7 +328,7 @@ def merge_staged_csvs(
     return counts
 
 
-def read_csv_from_s3(key: str) -> list[dict[str, str]]:
+def read_csv_from_s3_as_list(key: str) -> list[dict[str, str]]:
     logger.info("Reading staged CSV s3://%s/%s", DDT_TEMP_CSV_BUCKET, key)
 
     response = s3.get_object(Bucket=DDT_TEMP_CSV_BUCKET, Key=key)
@@ -437,7 +459,7 @@ def publish_ddt_message(message: dict[str, Any]) -> str:
     return message_id
 
 
-def start_finalising_or_skip(run_id: str, consignment_reference: str) -> str:
+def start_finalising_or_skip(run_id: str, consignment_reference: str) -> bool:
     """
     Take the finaliser lock for a consignment.
 

@@ -36,14 +36,14 @@ from finaliser.handler import (
     merge_staged_csvs,
     process_message,
     publish_ddt_message,
-    read_csv_from_s3,
+    read_csv_from_s3_as_list,
     start_finalising_or_skip,
     upload_metadata_files,
 )
 
 
 @pytest.fixture
-def finaliser(monkeypatch):
+def mock_finaliser(monkeypatch):
     monkeypatch.setattr(finaliser_module, "s3", mock.Mock())
     monkeypatch.setattr(finaliser_module, "sns", mock.Mock())
     monkeypatch.setattr(finaliser_module, "dynamodb", mock.Mock())
@@ -115,7 +115,7 @@ class TestLambdaHandler:
     """High-level finaliser handler tests"""
 
     def test_lambda_handler_supports_direct_invocation(
-        self, finaliser, monkeypatch
+        self, mock_finaliser, monkeypatch
     ):
         process_message_mock = mock.Mock()
         monkeypatch.setattr(
@@ -130,7 +130,9 @@ class TestLambdaHandler:
         assert result == {"batchItemFailures": []}
         process_message_mock.assert_called_once_with(event, context)
 
-    def test_lambda_handler_processes_sqs_message(self, finaliser, monkeypatch):
+    def test_lambda_handler_processes_sqs_message(
+        self, mock_finaliser, monkeypatch
+    ):
         process_message_mock = mock.Mock()
         monkeypatch.setattr(
             finaliser_module, "process_message", process_message_mock
@@ -147,7 +149,7 @@ class TestLambdaHandler:
         )
 
     def test_lambda_handler_returns_failed_sqs_message_id(
-        self, finaliser, monkeypatch
+        self, mock_finaliser, monkeypatch
     ):
         monkeypatch.setattr(
             finaliser_module,
@@ -173,7 +175,7 @@ class TestProcessMessage:
     """Finaliser orchestration tests"""
 
     def test_process_message_skips_when_ddt_message_already_sent(
-        self, finaliser, monkeypatch
+        self, mock_finaliser, monkeypatch
     ):
         monkeypatch.setattr(
             finaliser_module,
@@ -203,7 +205,7 @@ class TestProcessMessage:
         mark_consignment_sent_to_ddt_mock.assert_not_called()
 
     def test_process_message_merges_uploads_publishes_and_marks_sent(
-        self, finaliser, monkeypatch
+        self, mock_finaliser, monkeypatch
     ):
         monkeypatch.setattr(
             finaliser_module,
@@ -275,7 +277,7 @@ class TestProcessMessage:
         )
 
     def test_process_message_fails_when_no_staged_csv_files_found(
-        self, finaliser, monkeypatch
+        self, mock_finaliser, monkeypatch
     ):
         monkeypatch.setattr(
             finaliser_module,
@@ -294,7 +296,7 @@ class TestCsvDiscoveryAndMerge:
     """CSV listing, merging and checksum tests"""
 
     def test_list_staged_csv_keys_only_returns_expected_csv_files(
-        self, finaliser
+        self, mock_finaliser
     ):
         paginator = mock.Mock()
         paginator.paginate.return_value = [
@@ -316,7 +318,7 @@ class TestCsvDiscoveryAndMerge:
                 ]
             }
         ]
-        finaliser.s3.get_paginator.return_value = paginator
+        mock_finaliser.s3.get_paginator.return_value = paginator
 
         result = list_staged_csv_keys("MIG 1/ayr-mds-staging/TDR-1")
 
@@ -329,12 +331,12 @@ class TestCsvDiscoveryAndMerge:
             Prefix="MIG 1/ayr-mds-staging/TDR-1/",
         )
 
-    def test_read_csv_from_s3_returns_rows(self, finaliser):
-        finaliser.s3.get_object.return_value = {
+    def test_read_csv_from_s3_returns_rows(self, mock_finaliser):
+        mock_finaliser.s3.get_object.return_value = {
             "Body": BytesIO(b"FileId,FileName\nfile-1,test.txt\n")
         }
 
-        result = list(read_csv_from_s3("path/AYR-file.csv"))
+        result = read_csv_from_s3_as_list("path/AYR-file.csv")
 
         assert result == [
             {
@@ -344,7 +346,7 @@ class TestCsvDiscoveryAndMerge:
         ]
 
     def test_merge_staged_csvs_deduplicates_rows(
-        self, finaliser, monkeypatch, tmp_path
+        self, mock_finaliser, monkeypatch, tmp_path
     ):
         def fake_read_csv_from_s3(key: str):
             file_name = Path(key).name
@@ -401,7 +403,7 @@ class TestCsvDiscoveryAndMerge:
             return []
 
         monkeypatch.setattr(
-            finaliser_module, "read_csv_from_s3", fake_read_csv_from_s3
+            finaliser_module, "read_csv_from_s3_as_list", fake_read_csv_from_s3
         )
 
         counts = merge_staged_csvs(
@@ -452,7 +454,7 @@ class TestCsvDiscoveryAndMerge:
         )
 
     def test_upload_metadata_files_uploads_files_only(
-        self, finaliser, tmp_path
+        self, mock_finaliser, tmp_path
     ):
         (tmp_path / "AYR-file.csv").write_text(
             "FileId\nfile-1\n", encoding="utf-8"
@@ -464,7 +466,7 @@ class TestCsvDiscoveryAndMerge:
 
         upload_metadata_files(tmp_path, "csv-bucket", "MIG 1/ayr-mds-csv/TDR-1")
 
-        assert finaliser.s3.upload_file.call_args_list == [
+        assert mock_finaliser.s3.upload_file.call_args_list == [
             mock.call(
                 str(tmp_path / "AYR-body-metadata.csv"),
                 "csv-bucket",
@@ -482,7 +484,7 @@ class TestDdtMessage:
     """DDT prepared message tests"""
 
     def test_build_ddt_prepared_message_uses_base_keys(
-        self, finaliser, monkeypatch
+        self, mock_finaliser, monkeypatch
     ):
         monkeypatch.setattr(
             finaliser_module, "utc_now_text", lambda: "2026-09-01T10:00:00Z"
@@ -519,9 +521,11 @@ class TestDdtMessage:
         }
 
     def test_publish_ddt_message_publishes_with_message_type_attribute(
-        self, finaliser
+        self, mock_finaliser
     ):
-        finaliser.sns.publish.return_value = {"MessageId": "sns-message-id-1"}
+        mock_finaliser.sns.publish.return_value = {
+            "MessageId": "sns-message-id-1"
+        }
         message = {
             "properties": {
                 "messageType": "uk.gov.nationalarchives.da.messages.ayrmetadata.prepared",
@@ -532,7 +536,7 @@ class TestDdtMessage:
         result = publish_ddt_message(message)
 
         assert result == "sns-message-id-1"
-        finaliser.sns.publish.assert_called_once_with(
+        mock_finaliser.sns.publish.assert_called_once_with(
             TopicArn="arn:aws:sns:eu-west-2:123456789012:da-eventbus",
             Message=json.dumps(message),
             MessageAttributes={
@@ -548,7 +552,7 @@ class TestDynamoDbState:
     """DynamoDB finaliser lock and status tests"""
 
     def test_start_finalising_or_skip_marks_consignment_finalising(
-        self, finaliser, monkeypatch
+        self, mock_finaliser, monkeypatch
     ):
         monkeypatch.setattr(
             finaliser_module, "utc_now_text", lambda: "2026-09-01T10:00:00Z"
@@ -556,9 +560,9 @@ class TestDynamoDbState:
 
         result = start_finalising_or_skip("run-1", "TDR-1")
 
-        assert result
-        finaliser.dynamodb.update_item.assert_called_once()
-        update_kwargs = finaliser.dynamodb.update_item.call_args.kwargs
+        assert result is True
+        mock_finaliser.dynamodb.update_item.assert_called_once()
+        update_kwargs = mock_finaliser.dynamodb.update_item.call_args.kwargs
         assert update_kwargs["TableName"] == "tracking-table"
         assert update_kwargs["Key"] == consignment_key("run-1", "TDR-1")
         assert "#status = :ready" in update_kwargs["ConditionExpression"]
@@ -571,10 +575,12 @@ class TestDynamoDbState:
 
     def test_start_finalising_or_skip_returns_already_sent_when_status_is_sent_to_ddt(
         self,
-        finaliser,
+        mock_finaliser,
         monkeypatch,
     ):
-        finaliser.dynamodb.update_item.side_effect = conditional_check_failed()
+        mock_finaliser.dynamodb.update_item.side_effect = (
+            conditional_check_failed()
+        )
         monkeypatch.setattr(
             finaliser_module,
             "get_consignment_status",
@@ -583,14 +589,16 @@ class TestDynamoDbState:
 
         result = start_finalising_or_skip("run-1", "TDR-1")
 
-        assert not result
+        assert result is False
 
-    def test_start_finalising_or_skip_raises_when_status_is_finalising(
+    def test_start_finalising_or_skip_raises_when_status_is_finalising_raises_runtime_error(
         self,
-        finaliser,
+        mock_finaliser,
         monkeypatch,
     ):
-        finaliser.dynamodb.update_item.side_effect = conditional_check_failed()
+        mock_finaliser.dynamodb.update_item.side_effect = (
+            conditional_check_failed()
+        )
         monkeypatch.setattr(
             finaliser_module,
             "get_consignment_status",
@@ -600,8 +608,10 @@ class TestDynamoDbState:
         with pytest.raises(RuntimeError, match="already FINALISING"):
             start_finalising_or_skip("run-1", "TDR-1")
 
-    def test_get_consignment_status_reads_tracking_item(self, finaliser):
-        finaliser.dynamodb.get_item.return_value = {
+    def test_get_consignment_status_when_ready_to_finalise_returns_ready_to_finalise_and_dynamo_db__get_item_called(
+        self, mock_finaliser
+    ):
+        mock_finaliser.dynamodb.get_item.return_value = {
             "Item": {
                 "status": {"S": READY_TO_FINALISE},
             }
@@ -610,16 +620,16 @@ class TestDynamoDbState:
         result = get_consignment_status("run-1", "TDR-1")
 
         assert result == READY_TO_FINALISE
-        finaliser.dynamodb.get_item.assert_called_once_with(
+        mock_finaliser.dynamodb.get_item.assert_called_once_with(
             TableName="tracking-table",
             Key=consignment_key("run-1", "TDR-1"),
             ConsistentRead=True,
         )
 
     def test_get_consignment_status_raises_when_tracking_item_missing(
-        self, finaliser
+        self, mock_finaliser
     ):
-        finaliser.dynamodb.get_item.return_value = {}
+        mock_finaliser.dynamodb.get_item.return_value = {}
 
         with pytest.raises(
             ValueError, match="Missing consignment tracking item"
@@ -627,7 +637,7 @@ class TestDynamoDbState:
             get_consignment_status("run-1", "TDR-1")
 
     def test_mark_consignment_sent_to_ddt_updates_status(
-        self, finaliser, monkeypatch
+        self, mock_finaliser, monkeypatch
     ):
         monkeypatch.setattr(
             finaliser_module, "utc_now_text", lambda: "2026-09-01T10:00:00Z"
@@ -639,8 +649,8 @@ class TestDynamoDbState:
             ddt_sns_message_id="sns-message-id-1",
         )
 
-        finaliser.dynamodb.update_item.assert_called_once()
-        update_kwargs = finaliser.dynamodb.update_item.call_args.kwargs
+        mock_finaliser.dynamodb.update_item.assert_called_once()
+        update_kwargs = mock_finaliser.dynamodb.update_item.call_args.kwargs
         assert update_kwargs["TableName"] == "tracking-table"
         assert update_kwargs["Key"] == consignment_key("run-1", "TDR-1")
         assert update_kwargs["ConditionExpression"] == "#status = :finalising"
@@ -656,10 +666,12 @@ class TestDynamoDbState:
 
     def test_mark_consignment_sent_to_ddt_ignores_already_sent_status(
         self,
-        finaliser,
+        mock_finaliser,
         monkeypatch,
     ):
-        finaliser.dynamodb.update_item.side_effect = conditional_check_failed()
+        mock_finaliser.dynamodb.update_item.side_effect = (
+            conditional_check_failed()
+        )
         monkeypatch.setattr(
             finaliser_module,
             "get_consignment_status",
@@ -672,4 +684,4 @@ class TestDynamoDbState:
             ddt_sns_message_id="sns-message-id-1",
         )
 
-        finaliser.dynamodb.update_item.assert_called_once()
+        mock_finaliser.dynamodb.update_item.assert_called_once()
