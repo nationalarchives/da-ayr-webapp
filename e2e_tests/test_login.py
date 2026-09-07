@@ -63,6 +63,7 @@ def test_sign_in_succeeds_when_valid_credentials(
         "azp",
         "scope",
         "sid",
+        "prov",
     }
 
 
