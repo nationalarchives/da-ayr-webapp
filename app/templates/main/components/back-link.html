@@ -1,0 +1,19 @@
+{%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
+{% macro page_back_link(href=None, text="Back", fallback_endpoint='main.browse_records', preserved_params=None) -%}
+    {% set resolved_href = href %}
+    {% if preserved_params is not none %}
+        {% set return_to = preserved_params.get('return_to') %}
+        {% if return_to and return_to.startswith('/') and not return_to.startswith('//') %}
+            {% set resolved_href = return_to %}
+        {% endif %}
+    {% endif %}
+    {% if not resolved_href and fallback_endpoint %}
+        {% set fallback_params = preserved_params.copy() if preserved_params is not none else {} %}
+        {% set _ = fallback_params.pop('return_to', None) %}
+        {% set resolved_href = url_for(fallback_endpoint, **fallback_params) %}
+    {% endif %}
+    {{ govukBackLink({
+    'text': text,
+    'href': resolved_href,
+    }) }}
+{%- endmacro %}

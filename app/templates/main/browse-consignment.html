@@ -19,6 +19,9 @@
 {% with dict = breadcrumbs %}
     {% include "breadcrumb.html" %}
 {% endwith %}
+{% set record_back_params = query_string_parameters.copy() %}
+{% set _ = record_back_params.pop('_id', None) %}
+{% set record_back_target = url_for('main.browse_consignment', _id=query_string_parameters['_id'], _anchor='browse-records', **record_back_params) %}
 <div class="browse-layout">
     {% if num_records_found > 0 %}
         <!-- SORT -->
@@ -81,22 +84,22 @@
                                     <td class="govuk-table__cell govuk-table__cell--word-break-all govuk-table__cell--on-mobile--flex-layout-col">
                                         <time datetime="{{ record["date_of_record"] | format_date_iso }}">{{ record["date_of_record"] }}</time>
                                         <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-2"
-                                           href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                           href="{{ url_for('main.record', record_id=record['file_id'], return_to=record_back_target) }}">{{ record["file_name"] }}</a>
                                     </td>
                                 {% else %}
                                     <td class="govuk-table__cell govuk-table__cell govuk-table__cell--on-mobile--flex-layout-col">
                                         <time datetime="{{ record["date_of_record"] | format_date_iso }}">{{ record["date_of_record"] }}</time>
                                         <a class="govuk-table--invisible-on-desktop govuk-!-static-margin-top-2"
-                                           href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                           href="{{ url_for('main.record', record_id=record['file_id'], return_to=record_back_target) }}">{{ record["file_name"] }}</a>
                                     </td>
                                 {% endif %}
                                 {% if desktop_long_word.dlw %}
                                     <td class="govuk-table__cell govuk-table__cell--word-break-all govuk-table--invisible-on-mobile">
-                                        <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                        <a href="{{ url_for('main.record', record_id=record['file_id'], return_to=record_back_target) }}">{{ record["file_name"] }}</a>
                                     </td>
                                 {% else %}
                                     <td class="govuk-table__cell govuk-table__cell govuk-table--invisible-on-mobile">
-                                        <a href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                                        <a href="{{ url_for('main.record', record_id=record['file_id'], return_to=record_back_target) }}">{{ record["file_name"] }}</a>
                                     </td>
                                 {% endif %}
                                 <td class="govuk-table__cell">

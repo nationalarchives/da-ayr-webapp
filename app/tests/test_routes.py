@@ -302,18 +302,18 @@ class TestRoutes:
     @pytest.mark.parametrize(
         "form_data, args_data, expected_redirect_route, expected_params",
         [
-            # all access user with args data (redirect to search_results_summary)
+            # all access user with args data (redirect to search_results)
             (
                 {},
                 {"some_param": "some_value"},
-                "main.search_results_summary",
+                "main.search_results",
                 {},
             ),
             # all access user with form data and args data (args takes precedence)
             (
                 {"some_param": "form_value"},
                 {"some_param": "args_value"},
-                "main.search_results_summary",
+                "main.search_results",
                 {},
             ),
         ],
@@ -358,9 +358,9 @@ class TestRoutes:
                     "transferring_body_id": "args_value",
                     "search_area": "metadata",
                 },
-                "main.search_transferring_body",
+                "main.search_results",
                 {
-                    "_id": "args_value",
+                    "transferring_body_id": "args_value",
                     "search_area": "metadata",
                 },
             ),
@@ -368,15 +368,15 @@ class TestRoutes:
             (
                 {"transferring_body_id": "form_value"},
                 {},
-                "main.search_transferring_body",
-                {"_id": "form_value"},
+                "main.search_results",
+                {"transferring_body_id": "form_value"},
             ),
             # standard user with only args data, transferring_body_id present
             (
                 {},
                 {"transferring_body_id": "args_value"},
-                "main.search_transferring_body",
-                {"_id": "args_value"},
+                "main.search_results",
+                {"transferring_body_id": "args_value"},
             ),
         ],
     )
@@ -399,9 +399,7 @@ class TestRoutes:
         response = client.get(url, data=form_data)
         assert response.status_code == 302
 
-        redirected_url = url_for(
-            expected_redirect_route, _id=expected_params["_id"]
-        )
+        redirected_url = url_for(expected_redirect_route)
         assert redirected_url in response.headers["Location"]
 
         for key, expected_value in expected_params.items():

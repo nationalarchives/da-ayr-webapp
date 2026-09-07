@@ -17,7 +17,7 @@ class TestPagination:
         aau_user_page.locator("#search-input").click()
         aau_user_page.locator("#search-input").fill("a")
         aau_user_page.get_by_role("button", name="Search").click()
-        aau_user_page.get_by_role("link", name="Testing A").click()
+        aau_user_page.get_by_role("link", name="Testing A").first.click()
         aau_user_page.wait_for_selector(".govuk-pagination")
 
         assert (

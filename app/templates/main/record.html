@@ -50,7 +50,7 @@
         } %}
 {% endif %}
 {% extends "base.html" %}
-{%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
+{% from 'main/components/back-link.html' import page_back_link %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
 {% block pageTitle %}Record – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block content %}
@@ -61,10 +61,7 @@
                 <div class="govuk-grid-row govuk-grid-row-record">
                     <div class="govuk-grid-column-full govuk-grid-column-full__page-nav">
                         {% set preserved_params = request.args.copy() %}
-                        {{ govukBackLink({
-                        'text': "Back",
-                        'href': url_for('main.browse_records', **preserved_params)
-                        }) }}
+                        {{ page_back_link(preserved_params=preserved_params) }}
                         <p class="govuk-body govuk-!-margin-bottom-0">
                             <span class="record-page__scope-text">{{ record["transferring_body"] }}</span>
                         </p>
