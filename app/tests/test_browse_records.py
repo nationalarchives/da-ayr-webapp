@@ -857,4 +857,4 @@ class TestBrowseRecords:
         full_table_text = " ".join(cell_texts)
 
         assert "DRI-to-AYR-9999" not in full_table_text
-        assert "—" in full_table_text
+        assert "transferred" in full_table_text

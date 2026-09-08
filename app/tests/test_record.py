@@ -1196,3 +1196,33 @@ class TestRecord:
         assert summary_list is not None
 
         assert "Evidence provided by" not in summary_list.get_text(strip=True)
+
+    @mock_aws
+    def test_record_page_displays_not_applicable_for_dri_consignment(
+        self, app, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given a record with a consignment reference starting with DRI-to-AYR-
+        When the individual record page loads
+        Then "Not applicable" is rendered instead of the raw reference in the details list
+        """
+        file = FileFactory(consignment__ConsignmentReference="DRI-to-AYR-9999")
+
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+
+        summary_list = soup.find("dl", class_="govuk-summary-list--record")
+        assert summary_list is not None
+
+        table_text = summary_list.get_text()
+
+        assert "DRI-to-AYR-9999" not in table_text
+        assert "Not applicable" in table_text
