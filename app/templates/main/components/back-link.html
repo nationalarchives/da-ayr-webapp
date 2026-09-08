@@ -4,7 +4,6 @@
         {{- value -}}
     {%- endif -%}
 {%- endmacro %}
-
 {% macro page_back_link(href=None, text="Back", fallback_endpoint='main.browse_records', preserved_params=None) -%}
     {% set params = preserved_params if preserved_params is not none else {} %}
     {% set resolved_href = none %}
