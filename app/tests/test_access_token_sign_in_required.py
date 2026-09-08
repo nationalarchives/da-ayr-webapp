@@ -340,8 +340,8 @@ class TestAccessTokenSignInRequiredDecorator:
             successful introspection response now explicitly returns an empty
             groups list
         When an inactive access token is refreshed via the 'access_token_sign_in_required' decorator,
-        Then the session should be updated to the empty groups list (not the
-            stale cached ones), and access should be revoked.
+        Then the session should be cleared (not left with the stale cached
+            groups), and the user redirected to sign in.
         """
         view_name = "/protected_view"
         with app.test_client() as client:
@@ -377,19 +377,10 @@ class TestAccessTokenSignInRequiredDecorator:
             response = client.get(view_name)
 
             assert response.status_code == 302
-            assert response.headers["Location"] == url_for("main.index")
+            assert response.headers["Location"] == url_for("main.sign_in")
 
-            with client.session_transaction() as updated_session:
-                assert updated_session["user_groups"] == []
-                assert updated_session["user_type"] == "standard_user"
-                flashed_messages = updated_session["_flashes"]
-
-            assert flashed_messages == [
-                (
-                    "message",
-                    "TNA User is logged in but does not have access to AYR. Please contact your admin.",
-                )
-            ]
+            with client.session_transaction() as cleared_session:
+                assert cleared_session == {}
 
     @staticmethod
     @patch(
@@ -502,15 +493,15 @@ class TestAccessTokenSignInRequiredDecorator:
     @patch(
         "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
     )
-    def test_refreshed_token_redirects_to_index_when_token_claims_missing_groups(
+    def test_refreshed_token_redirects_to_sign_in_when_token_claims_missing_groups(
         mock_keycloak, app
     ):
         """
         Given every fallback source is reachable but none of introspection,
             userinfo or the decoded access token claims contains a "groups" key
         When an inactive access token is refreshed via the 'access_token_sign_in_required' decorator,
-        Then it should treat groups as unresolved, overwrite the session with an
-            empty groups list and deny access.
+        Then it should treat groups as unresolved, clear the session and
+            redirect to sign in.
         """
         view_name = "/protected_view"
         with app.test_client() as client:
@@ -547,17 +538,16 @@ class TestAccessTokenSignInRequiredDecorator:
             response = client.get(view_name)
 
             assert response.status_code == 302
-            assert response.headers["Location"] == url_for("main.index")
+            assert response.headers["Location"] == url_for("main.sign_in")
 
-            with client.session_transaction() as updated_session:
-                assert updated_session["user_groups"] == []
-                assert updated_session["user_type"] == "standard_user"
+            with client.session_transaction() as cleared_session:
+                assert cleared_session == {}
 
     @staticmethod
     @patch(
         "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
     )
-    def test_refreshed_token_redirects_to_index_when_fallback_claims_unavailable(
+    def test_refreshed_token_redirects_to_sign_in_when_fallback_claims_unavailable(
         mock_keycloak, app
     ):
         view_name = "/protected_view"
@@ -597,11 +587,10 @@ class TestAccessTokenSignInRequiredDecorator:
             response = client.get(view_name)
 
             assert response.status_code == 302
-            assert response.headers["Location"] == url_for("main.index")
+            assert response.headers["Location"] == url_for("main.sign_in")
 
-            with client.session_transaction() as updated_session:
-                assert updated_session["user_groups"] == []
-                assert updated_session["user_type"] == "standard_user"
+            with client.session_transaction() as cleared_session:
+                assert cleared_session == {}
 
     @staticmethod
     @patch(
@@ -615,8 +604,8 @@ class TestAccessTokenSignInRequiredDecorator:
         And every fallback source fails to produce a "groups" claim during a
             token refresh
         When an inactive access token is refreshed via the 'access_token_sign_in_required' decorator,
-        Then it should overwrite the session with an empty
-            groups list and deny access.
+        Then it should clear the session (not leave the stale cached groups)
+            and redirect to sign in.
         """
         view_name = "/protected_view"
         with app.test_client() as client:
@@ -658,20 +647,10 @@ class TestAccessTokenSignInRequiredDecorator:
             response = client.get(view_name)
 
             assert response.status_code == 302
-            assert response.headers["Location"] == url_for("main.index")
+            assert response.headers["Location"] == url_for("main.sign_in")
 
-            with client.session_transaction() as updated_session:
-                assert updated_session["user_groups"] == []
-                assert updated_session["user_groups"] != previously_valid_groups
-                assert updated_session["user_type"] == "standard_user"
-                flashed_messages = updated_session["_flashes"]
-
-            assert flashed_messages == [
-                (
-                    "message",
-                    "TNA User is logged in but does not have access to AYR. Please contact your admin.",
-                )
-            ]
+            with client.session_transaction() as cleared_session:
+                assert cleared_session == {}
 
     @staticmethod
     @patch(
