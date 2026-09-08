@@ -47,7 +47,6 @@ const PROTECTED_ROUTE_PREFIXES = [
   "/browse/consignment/",
   "/record/",
   "/search/results",
-  "/search/results/",
 ];
 
 function isProtectedRoute(pathname) {
