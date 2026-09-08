@@ -179,9 +179,9 @@ class KeycloakUser(HttpUser):
                 "/search/results?query=test&search_area=everywhere&page=1&per_page=10",  # noqa: E501
                 "/search/results?query=ab&search_area=record&search_filter=test&sort=file_name&page=1&per_page=10",  # noqa: E501
                 "/search/results?query=go&search_area=metadata&sort=file_name&page=1&per_page=10",  # noqa: E501
-                f"/search/results/{secrets.choice(transferring_body_ids)}?query={secrets.choice(search_terms)}&sort=file_name&search_area={secrets.choice(search_areas)}",  # noqa: E501
-                "/search/results/8ccc8cd1-c0ee-431d-afad-70cf404ba337?query=a&sort=series-asc&search_filter=test",  # noqa: E501
-                "/search/results/c3e3fd83-4d52-4638-a085-1f4e4e4dfa50?query=test&sort=file_name&search_area=record",  # noqa: E501
+                f"/search/results?query={secrets.choice(search_terms)}&sort=file_name&search_area={secrets.choice(search_areas)}",  # noqa: E501
+                "/search/results?query=a&sort=series-asc&search_filter=test",  # noqa: E501
+                "/search/results?query=test&sort=file_name&search_area=record",  # noqa: E501
                 f"/record/{secrets.choice(record_ids)}",
                 f"/record/{secrets.choice(record_ids)}#record-view",
             ]

@@ -598,6 +598,20 @@ class TestSearchResults:
 
         assert response.status_code == 404
 
+    def test_search_results_path_id_returns_404_for_all_access_user(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given an all-access user
+        When they access /search/results/<_id>
+        Then the route returns 404 because path-scoped results are standard-user only
+        """
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}/{uuid.uuid4()}?query=test")
+
+        assert response.status_code == 404
+
     @patch("app.main.routes.execute_search")
     @patch("app.main.routes.setup_opensearch")
     def test_search_results_ignores_path_body_id_for_standard_user(

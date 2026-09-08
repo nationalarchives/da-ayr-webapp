@@ -727,6 +727,9 @@ def search_results(_id: uuid.UUID | None = None):
     body = None
     ayr_user = AYRUser(session.get("user_groups"))
 
+    if ayr_user.is_all_access_user and _id is not None:
+        abort(404)
+
     if ayr_user.is_standard_user:
         user_body = ayr_user.transferring_body
         if user_body is None:
