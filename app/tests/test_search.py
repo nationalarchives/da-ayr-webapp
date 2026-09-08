@@ -377,6 +377,48 @@ class TestSearchResults:
             == f"/browse/transferring_body/{body.BodyId}#browse-records"
         )
 
+    def test_search_results_back_link_uses_same_origin_referrer(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given a same-origin previous page
+        When search results are rendered
+        Then the Back link targets that previous page
+        """
+        mock_all_access_user(client)
+
+        referrer = "http://localhost/browse/records?series_filter=HO+405#browse-records"
+        response = client.get(self.route_url, headers={"Referer": referrer})
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        back_link = soup.select_one("a.govuk-back-link")
+
+        assert back_link is not None
+        assert back_link["href"] == referrer
+
+    def test_search_results_back_link_ignores_external_referrer(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given an external previous page referrer
+        When search results are rendered
+        Then the Back link falls back to the safe internal route
+        """
+        mock_all_access_user(client)
+
+        response = client.get(
+            self.route_url,
+            headers={"Referer": "https://example.com/untrusted"},
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        back_link = soup.select_one("a.govuk-back-link")
+
+        assert back_link is not None
+        assert back_link["href"] == "/browse#browse-records"
+
     @patch("app.main.routes.setup_opensearch")
     def test_search_results_clear_all_terms_targets_browse_for_all_access_user(
         self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
