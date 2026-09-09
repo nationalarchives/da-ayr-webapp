@@ -80,7 +80,7 @@
             {% else %}
                 consignment {{ record["consignment_reference"] }}
             {% endif %}
-            on {{ record["date_of_record"] or "-" }}
+            on {{ record["transfer_complete_datetime"] or "-" }}
         </p>
     </td>
 </tr>

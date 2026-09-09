@@ -674,6 +674,7 @@ def browse_records():
                 "series": row.series,
                 "consignment_id": row.consignment_id,
                 "consignment_reference": row.consignment_reference,
+                "consignment_transfer_complete_date": row.consignment_transfer_complete_date,
                 "file_id": row.file_id,
                 "file_name": row.file_name,
                 "file_path": row.file_path,
