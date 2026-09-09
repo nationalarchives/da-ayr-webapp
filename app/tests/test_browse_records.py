@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import patch
 
 import pytest
@@ -832,15 +833,19 @@ class TestBrowseRecords:
         assert response.status_code == 200
         verify_scope_text(response.data, body_name)
 
-    def test_browse_records_row_displays_dash_for_dri_consignment(
+    def test_browse_records_row_displays_transferred_label_and_date(
         self, client: FlaskClient, mock_all_access_user
     ):
         """
         Given a record with a consignment reference starting with DRI-to-AYR-
         When the browse records page loads with that consignment filter
-        Then an em-dash is rendered instead of the raw reference prefix in the table
+        Then the consignment row renders a transferred label and transfer date
         """
-        file = FileFactory(consignment__ConsignmentReference="DRI-to-AYR-9999")
+        transfer_complete_datetime = datetime(2024, 5, 1, 13, 45, 0)
+        file = FileFactory(
+            consignment__ConsignmentReference="DRI-to-AYR-9999",
+            consignment__TransferCompleteDatetime=transfer_complete_datetime,
+        )
 
         mock_all_access_user(client)
 
@@ -852,9 +857,19 @@ class TestBrowseRecords:
 
         soup = BeautifulSoup(response.data, "html.parser")
 
-        table_cells = soup.select("tbody.govuk-table__body td")
-        cell_texts = [cell.get_text(strip=True) for cell in table_cells]
-        full_table_text = " ".join(cell_texts)
+        consignment_text_rows = soup.select(
+            "tr.browse-record-row__row--consignment "
+            "p.browse-records__consignment-text"
+        )
 
-        assert "DRI-to-AYR-9999" not in full_table_text
-        assert "transferred" in full_table_text
+        assert len(consignment_text_rows) == 1
+
+        consignment_row = consignment_text_rows[0]
+        row_text = " ".join(consignment_row.get_text(separator=" ").split())
+        transfer_time = consignment_row.select_one("time")
+
+        assert row_text == "transferred on 01/05/2024"
+        assert "consignment DRI-to-AYR-9999" not in row_text
+        assert transfer_time is not None
+        assert transfer_time.get("datetime") == "2024-05-01"
+        assert transfer_time.get_text(strip=True) == "01/05/2024"
