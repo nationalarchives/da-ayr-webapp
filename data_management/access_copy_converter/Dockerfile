@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libreoffice \
     libreoffice-writer \
     libreoffice-calc \
+    libreoffice-java-common \
     default-jre \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
