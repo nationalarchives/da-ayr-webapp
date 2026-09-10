@@ -87,3 +87,8 @@ RUN set -eu; \
 RUN test -x "${DROID_COMMAND}" && \
   java -version && \
   "${DROID_COMMAND}" --help >/dev/null
+
+RUN useradd --create-home --shell /usr/sbin/nologin appuser \
+    && chown -R appuser:appuser /app /opt/droid
+
+USER appuser
