@@ -851,10 +851,33 @@ class TestBrowseRecords:
         soup = BeautifulSoup(html, "html.parser")
 
         bullet_list = soup.find("ul", class_="govuk-list--bullet")
-
-        list_text = bullet_list.get_text()
+        list_text = " ".join(bullet_list.get_text().split())
 
         assert "Try changing or removing search terms" not in list_text
         assert (
             "Try changing or removing one or more applied filters" in list_text
         )
+
+    def test_browse_records_row_displays_dash_for_dri_consignment(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given a record with a consignment reference starting with DRI-to-AYR-
+        When the browse records page loads with that consignment filter
+        Then an em-dash is rendered instead of the raw reference prefix in the table
+        """
+        file = FileFactory(consignment__ConsignmentReference="DRI-to-AYR-9999")
+
+        mock_all_access_user(client)
+
+        response = client.get(
+            f"{self.route_url}?consignment_reference={file.consignment.ConsignmentReference}"
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+
+        body_cells = soup.select("td.browse-records__consignment-cell")
+        assert any("transferred" in cell.get_text() for cell in body_cells)

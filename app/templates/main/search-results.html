@@ -2,6 +2,7 @@
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 {% from 'main/components/back-link.html' import page_back_link %}
 {% from "main/components/no-results-message.html" import no_results_message %}
+{% from 'main/components/record-table.html' import render_record_table %}
 {% from 'macros/forms.html' import render_preserved_params %}
 {% block pageTitle %}Search results – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
@@ -63,9 +64,6 @@
                             <input type="hidden" name="query" value="{{ filters['query'] }}">
                             <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
                                 {% set number_of_columns = 4 %}
-                                {% set per_page_value = per_page %}
-                                {% set start_index = ((current_page - 1) * per_page_value) + 1 %}
-                                {% set end_index = [current_page * per_page_value, num_records_found] | min %}
                                 {% set browse_table_params = query_string_parameters.copy() %}
                                 {% set _ = browse_table_params.pop('query', None) %}
                                 {% set _ = browse_table_params.pop('search_area', None) %}
@@ -73,51 +71,32 @@
                                 {% set _ = browse_table_params.pop('_id', None) %}
                                 {% set record_back_target = url_for('main.search_results', _anchor='browse-records', **query_string_parameters) %}
                                 {% set is_standard_user = session['user_type'] == 'standard_user' %}
-                                <table class="govuk-table browse-grid__table browse-records__table"
-                                       id="tbl_result"
-                                       aria-label="Browse records table">
-                                    <thead class="govuk-table__head">
-                                        <tr class="govuk-table__row">
-                                            <th scope="col" class="govuk-table__header browse-records__header-cell">Showing {{ start_index }}–{{ end_index }} of {{ num_records_found | format_number_with_commas }}</th>
-                                            <th scope="col"
-                                                class="govuk-table__header browse-records__header-cell govuk-table--invisible-on-mobile">Series</th>
-                                            <th scope="col" class="govuk-table__header browse-records__header-cell">Status</th>
-                                            <th scope="col"
-                                                class="govuk-table__header browse-records__header-cell browse-records__header-cell--right govuk-table--right-align">Opening date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="govuk-table__body">
-                                        {% if results %}
-                                            {% for search_record in results %}
-                                                {% set source = search_record['_source'] %}
-                                                {% set snippet = None %}
-                                                {% if search_record.get('highlight') and search_record['highlight'].get('content') %}
-                                                    {% set snippet = search_record['highlight']['content'] | join(' ... ') | clean_tags_and_replace_highlight_tag(highlight_tag) | safe %}
-                                                {% endif %}
-                                                {% set record = {
-                                                                                                    'file_id': source.get('file_id'),
-                                                                                                    'file_name': source.get('file_name'),
-                                                                                                    'date_of_record': source.get('end_date') or source.get('date_last_modified'),
-                                                                                                    'series': source.get('series_name') or source.get('series'),
-                                                                                                    'closure_type': source.get('closure_type'),
-                                                                                                    'opening_date': source.get('opening_date'),
-                                                                                                    'transferring_body': source.get('transferring_body'),
-                                                                                                    'file_path': source.get('file_path'),
-                                                                                                    'consignment_reference': source.get('consignment_reference'),
-                                                                                                    'search_result_snippet': snippet
-                                                                                                } %}
-                                                {% with query_string_parameters=browse_table_params, number_of_columns=number_of_columns, is_standard_user=is_standard_user, record=record, record_back_target=record_back_target %}
-                                                    {% include "components/browse-record-row.html" %}
-                                                {% endwith %}
-                                            {% endfor %}
-                                        {% endif %}
-                                    </tbody>
-                                </table>
-                                <!-- PAGINATION -->
-                                {% with view_name='main.search_results', id=None %}
-                                    {% include "pagination.html" %}
-                                {% endwith %}
-                                <!-- END PAGINATION -->
+                                {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, 'main.search_results', None) %}
+                                    {% if results %}
+                                        {% for search_record in results %}
+                                            {% set source = search_record['_source'] %}
+                                            {% set snippet = None %}
+                                            {% if search_record.get('highlight') and search_record['highlight'].get('content') %}
+                                                {% set snippet = search_record['highlight']['content'] | join(' ... ') | clean_tags_and_replace_highlight_tag(highlight_tag) | safe %}
+                                            {% endif %}
+                                            {% set record = {
+                                                                                            'file_id': source.get('file_id'),
+                                                                                            'file_name': source.get('file_name'),
+                                                                                            'date_of_record': source.get('end_date') or source.get('date_last_modified'),
+                                                                                            'series': source.get('series_name') or source.get('series'),
+                                                                                            'closure_type': source.get('closure_type'),
+                                                                                            'opening_date': source.get('opening_date'),
+                                                                                            'transferring_body': source.get('transferring_body'),
+                                                                                            'file_path': source.get('file_path'),
+                                                                                            'consignment_reference': source.get('consignment_reference'),
+                                                                                            'search_result_snippet': snippet
+                                                                                        } %}
+                                            {% with query_string_parameters=browse_table_params, number_of_columns=number_of_columns, is_standard_user=is_standard_user, record=record, record_back_target=record_back_target %}
+                                                {% include "components/browse-record-row.html" %}
+                                            {% endwith %}
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endcall %}
                             </div>
                         {% endif %}
                         <!-- FILTERS -->
