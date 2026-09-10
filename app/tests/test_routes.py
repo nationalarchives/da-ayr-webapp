@@ -299,111 +299,27 @@ class TestRoutes:
             actual_manifest = json.loads(response.text)
             assert actual_manifest == expected_image_manifest
 
-    @pytest.mark.parametrize(
-        "form_data, args_data, expected_redirect_route, expected_params",
-        [
-            # all access user with args data (redirect to search_results)
-            (
-                {},
-                {"some_param": "some_value"},
-                "main.search_results",
-                {},
-            ),
-            # all access user with form data and args data (args takes precedence)
-            (
-                {"some_param": "form_value"},
-                {"some_param": "args_value"},
-                "main.search_results",
-                {},
-            ),
-        ],
-    )
-    def test_search_route_with__tb_redirect_various_cases_all_access_user(
+    def test_search_route_removed_for_all_access_user(
         app,
         client: FlaskClient,
-        form_data,
-        args_data,
-        expected_redirect_route,
-        expected_params,
         mock_all_access_user,
     ):
         mock_all_access_user(client)
 
-        query_string = "&".join(
-            [f"{key}={value}" for key, value in args_data.items()]
-        )
-        url = url_for("main.search") + "?" + query_string
+        response = client.get("/search?query=test")
 
-        response = client.get(url, data=form_data)
-        assert response.status_code == 302
+        assert response.status_code == 404
 
-        redirected_url = url_for(expected_redirect_route)
-
-        assert redirected_url in response.headers["Location"]
-
-        for key, expected_value in expected_params.items():
-            assert f"{key}={expected_value}" in response.headers["Location"]
-
-    @pytest.mark.parametrize(
-        "form_data, args_data, expected_redirect_route, expected_params",
-        [
-            # standard user with both form and args data, args has precedence for overlapping keys
-            # Note: only valid schema fields are passed through (unknown fields are filtered out)
-            (
-                {
-                    "transferring_body_id": "form_value",
-                    "query": "form_query_value",
-                },
-                {
-                    "transferring_body_id": "args_value",
-                    "search_area": "metadata",
-                },
-                "main.search_results",
-                {
-                    "transferring_body_id": "args_value",
-                    "search_area": "metadata",
-                },
-            ),
-            # standard user with only form data, no transferring_body_id in args
-            (
-                {"transferring_body_id": "form_value"},
-                {},
-                "main.search_results",
-                {"transferring_body_id": "form_value"},
-            ),
-            # standard user with only args data, transferring_body_id present
-            (
-                {},
-                {"transferring_body_id": "args_value"},
-                "main.search_results",
-                {"transferring_body_id": "args_value"},
-            ),
-        ],
-    )
-    def test_search_route_with_various_cases_standard_user(
+    def test_search_route_removed_for_standard_user(
         app,
         client: FlaskClient,
-        form_data,
-        args_data,
-        expected_redirect_route,
-        expected_params,
         mock_standard_user,
     ):
         mock_standard_user(client)
 
-        query_string = "&".join(
-            [f"{key}={value}" for key, value in args_data.items()]
-        )
-        url = url_for("main.search") + "?" + query_string
+        response = client.get("/search?query=test")
 
-        response = client.get(url, data=form_data)
-        assert response.status_code == 302
-
-        redirected_url = url_for(expected_redirect_route)
-        assert redirected_url in response.headers["Location"]
-
-        for key, expected_value in expected_params.items():
-            assert f"{key}={expected_value}" in response.headers["Location"]
+        assert response.status_code == 404
 
     @mock_aws
     @patch("app.main.routes.boto3.client")

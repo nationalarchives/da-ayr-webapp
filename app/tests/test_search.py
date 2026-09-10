@@ -5,7 +5,6 @@ from urllib.parse import parse_qs, urlparse
 
 import opensearchpy
 from bs4 import BeautifulSoup
-from flask import url_for
 from flask.testing import FlaskClient
 from werkzeug.exceptions import NotFound
 
@@ -83,35 +82,32 @@ class MockOpenSearch:
         return self.index_return_value
 
 
-class TestSearchRedirect:
+class TestSearchEndpointRemoved:
     @property
     def route_url(self):
         return "/search"
 
-    def test_search_redirects_all_access_user_to_search_results(
+    def test_search_endpoint_returns_not_found_for_all_access_user(
         self, client: FlaskClient, mock_all_access_user
     ):
         """
         Given an all-access user accessing /search
-        When they submit a query
-        Then they are redirected to canonical /search/results
+        When the endpoint has been removed
+        Then a 404 is returned
         """
         mock_all_access_user(client)
 
         response = client.get(f"{self.route_url}", data={"query": "fi"})
 
-        assert response.status_code == 302
-        assert response.headers["Location"] == url_for(
-            "main.search_results", query="fi"
-        )
+        assert response.status_code == 404
 
-    def test_search_redirects_standard_user_to_search_results(
+    def test_search_endpoint_returns_not_found_for_standard_user(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
         Given a standard user accessing /search
-        When they submit a query
-        Then they are redirected to canonical /search/results
+        When the endpoint has been removed
+        Then a 404 is returned
         """
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -119,18 +115,15 @@ class TestSearchRedirect:
 
         response = client.get(f"{self.route_url}", data={"query": "fi"})
 
-        assert response.status_code == 302
-        assert response.headers["Location"] == url_for(
-            "main.search_results", query="fi"
-        )
+        assert response.status_code == 404
 
-    def test_search_redirect_preserves_search_query_parameters(
+    def test_search_endpoint_returns_not_found_with_query_parameters(
         self, client: FlaskClient, mock_all_access_user
     ):
         """
         Given a /search request with explicit search parameters
-        When the route redirects to /search/results
-        Then the query parameters are preserved
+        When the endpoint has been removed
+        Then a 404 is returned
         """
         mock_all_access_user(client)
 
@@ -144,15 +137,7 @@ class TestSearchRedirect:
             },
         )
 
-        assert response.status_code == 302
-        parsed_url = urlparse(response.headers["Location"])
-        params = parse_qs(parsed_url.query)
-
-        assert parsed_url.path == "/search/results"
-        assert params["query"] == ["test"]
-        assert params["search_area"] == ["metadata"]
-        assert params["sort"] == ["least_matches"]
-        assert params["search_filter"] == ["extra term"]
+        assert response.status_code == 404
 
 
 class TestSearchResults:

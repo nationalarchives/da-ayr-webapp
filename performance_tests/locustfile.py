@@ -172,9 +172,9 @@ class KeycloakUser(HttpUser):
                 f"/browse?sort=transferring_body-asc&transferring_body_filter={secrets.choice(transferring_body_filters)}&series_filter={secrets.choice(series_filters)}&date_from_day={date_from_day}&date_from_month={date_from_month}&date_from_year={date_from_year}&date_to_day={date_to_day}&date_to_month={date_to_month}&date_to_year={date_to_year}#browse-records",  # noqa: E501
                 f"/browse?sort=series-asc&transferring_body_filter=&series_filter={secrets.choice(series_filters)}&date_from_year={date_from_year}&date_to_year={date_to_year}#browse-series",  # noqa: E501
                 "/browse?transferring_body_filter=&series_filter=MOCK1+123&date_from_day=01&date_from_month=01&date_from_year=2020&date_to_day=01&date_to_month=01&date_to_year=2026#browse-records",  # noqa: E501
-                "/search?query=test&search_area=everywhere&search_filter=test",
-                "/search?query=ab&search_area=record&search_filter=go",
-                "/search?query=ld&search_area=metadata&search_filter=tr",
+                "/search/results?query=test&search_area=everywhere&search_filter=test",
+                "/search/results?query=ab&search_area=record&search_filter=go",
+                "/search/results?query=ld&search_area=metadata&search_filter=tr",
                 f"/search/results?query={secrets.choice(search_terms)}",
                 "/search/results?query=test&search_area=everywhere&page=1&per_page=10",  # noqa: E501
                 "/search/results?query=ab&search_area=record&search_filter=test&sort=file_name&page=1&per_page=10",  # noqa: E501

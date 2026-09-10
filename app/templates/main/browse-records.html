@@ -3,7 +3,7 @@
 {% from "main/components/no-results-message.html" import no_results_message %}
 {% from 'main/components/back-link.html' import page_back_link %}
 {% from 'main/components/sort-records.html' import sort_records %}
-{% from 'main/components/record-table.html' import render_record_table %}
+{% from 'main/components/records-table.html' import render_record_table %}
 {% block pageTitle %}Browse records – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block content %}
     <div class="govuk-grid-row browse__page desktop mobile">
@@ -66,13 +66,11 @@
                         {% set _ = preserved_params.pop('sort', None) %}
                         {{ sort_records(preserved_params, per_page_options, records_sort_options, selected_sort, selected_per_page) }}
                         <!-- TABLE -->
-                        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
-                            {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, 'main.browse_records', None) %}
-                                {% for record in results %}
-                                    {% include "components/browse-record-row.html" %}
-                                {% endfor %}
-                            {% endcall %}
-                        </div>
+                        {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, 'main.browse_records', None) %}
+                            {% for record in results %}
+                                {% include "components/results-table-row.html" %}
+                            {% endfor %}
+                        {% endcall %}
                     {% endif %}
                     {% include "components/browse-records-filters-form.html" %}
                 </div>

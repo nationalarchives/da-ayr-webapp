@@ -114,8 +114,8 @@ const browseSeriesUrls = seriesFilters.map((seriesFilter, idx) => {
 });
 
 const searchLandingUrls = [
-  `${BASE_URL}/search?query=test&search_area=everywhere&search_filter=test`,
-  `${BASE_URL}/search?query=ab&search_area=record&search_filter=go`,
+  `${BASE_URL}/search/results?query=test&search_area=everywhere&search_filter=test`,
+  `${BASE_URL}/search/results?query=ab&search_area=record&search_filter=go`,
 ];
 
 const searchResultsByTermUrls = searchTerms.map(
