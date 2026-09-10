@@ -1,4 +1,4 @@
-FROM python:3.14-slim@sha256:83ff1d245a3d57d04152252d3ef9cb361494d0b3395abd65a5ebe91c401c8e83
+FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
 
 WORKDIR /docker_app
 
@@ -6,7 +6,7 @@ WORKDIR /docker_app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc=4:14.2.0-1 \
     libpq-dev \
-    openssl=3.5.6-1~deb13u2 \
+    openssl=3.5.7-1~deb13u2 \
     tesseract-ocr=5.5.0-1+b1 \
     antiword=0.37-17 \
     unrtf \
