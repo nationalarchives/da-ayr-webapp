@@ -1,20 +1,11 @@
 {%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
-{% macro safe_relative_return_to(value) -%}
-    {%- if value and value.startswith('/') and not value.startswith('//') -%}
-        {{- value -}}
-    {%- endif -%}
-{%- endmacro %}
 {% macro page_back_link(href=None, text="Back", fallback_endpoint='main.browse_records', preserved_params=None) -%}
     {% set params = preserved_params if preserved_params is not none else {} %}
     {% set resolved_href = none %}
-    {% set return_to = safe_relative_return_to(params.get('return_to')) | trim %}
-    {% if return_to %}
-        {% set resolved_href = return_to %}
-    {% endif %}
     {% if not resolved_href %}
         {% set referrer = request.referrer %}
         {% set is_same_origin_referrer = referrer and referrer.startswith(request.host_url) %}
-        {% if is_same_origin_referrer %}
+        {% if is_same_origin_referrer and referrer != request.url %}
             {% set resolved_href = referrer %}
         {% endif %}
     {% endif %}
@@ -23,11 +14,13 @@
     {% endif %}
     {% if not resolved_href and fallback_endpoint %}
         {% set fallback_params = params.copy() %}
-        {% set _ = fallback_params.pop('return_to', None) %}
         {% set resolved_href = url_for(fallback_endpoint, **fallback_params) %}
     {% endif %}
     {{ govukBackLink({
     'text': text,
     'href': resolved_href,
+    'attributes': {
+    'data-history-back-link': 'true'
+    }
     }) }}
 {%- endmacro %}

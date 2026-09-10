@@ -58,7 +58,6 @@
                     </div>
                     {% if num_records_found > 0 %}
                         {% set number_of_columns = 4 %}
-                        {% set record_back_target = url_for('main.browse_records', _anchor='browse-records', **query_string_parameters) %}
                         <!-- SORT -->
                         {% set preserved_params = query_string_parameters.copy() %}
                         {% set _ = preserved_params.pop('per_page', None) %}

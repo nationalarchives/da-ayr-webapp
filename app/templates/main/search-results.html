@@ -69,7 +69,6 @@
                                 {% set _ = browse_table_params.pop('search_area', None) %}
                                 {% set _ = browse_table_params.pop('sort', None) %}
                                 {% set _ = browse_table_params.pop('_id', None) %}
-                                {% set record_back_target = url_for('main.search_results', _anchor='browse-records', **query_string_parameters) %}
                                 {% set is_standard_user = session['user_type'] == 'standard_user' %}
                                 {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, 'main.search_results', None) %}
                                     {% if results %}
@@ -91,7 +90,7 @@
                                                                                             'consignment_reference': source.get('consignment_reference'),
                                                                                             'search_result_snippet': snippet
                                                                                         } %}
-                                            {% with query_string_parameters=browse_table_params, number_of_columns=number_of_columns, is_standard_user=is_standard_user, record=record, record_back_target=record_back_target %}
+                                            {% with query_string_parameters=browse_table_params, number_of_columns=number_of_columns, is_standard_user=is_standard_user, record=record %}
                                                 {% include "components/browse-record-row.html" %}
                                             {% endwith %}
                                         {% endfor %}

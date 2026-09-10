@@ -294,13 +294,13 @@ class TestSearchResults:
         assert soup.find("table", attrs={"id": "tbl_result"}) is None
 
     @patch("app.main.routes.setup_opensearch")
-    def test_search_results_record_links_include_return_to_for_current_results(
+    def test_search_results_record_links_do_not_include_navigation_query(
         self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
     ):
         """
         Given a user on a populated search results page
         When record links are rendered
-        Then each link preserves a return_to URL for the current search page state
+        Then record links only include the record path and no navigation query params
         """
         mock_all_access_user(client)
         mock_setup_opensearch.return_value = MockOpenSearch(
@@ -318,19 +318,8 @@ class TestSearchResults:
         assert record_link is not None
 
         parsed_record_href = urlparse(record_link["href"])
-        record_params = parse_qs(parsed_record_href.query)
-
-        assert "return_to" in record_params
-
-        parsed_return_to = urlparse(record_params["return_to"][0])
-        return_to_params = parse_qs(parsed_return_to.query)
-
-        assert parsed_return_to.path == self.route_url
-        assert return_to_params["query"] == ["test"]
-        assert return_to_params["search_area"] == ["metadata"]
-        assert return_to_params["sort"] == ["least_matches"]
-        assert return_to_params["page"] == ["2"]
-        assert parsed_return_to.fragment == "browse-records"
+        assert parsed_record_href.path.startswith("/record/")
+        assert parsed_record_href.query == ""
 
     def test_search_results_back_link_targets_browse_for_all_access_user(
         self, client: FlaskClient, mock_all_access_user
@@ -350,6 +339,7 @@ class TestSearchResults:
 
         assert back_link is not None
         assert back_link["href"] == "/browse#browse-records"
+        assert back_link.get("data-history-back-link") == "true"
 
     def test_search_results_back_link_targets_body_browse_for_standard_user(
         self,
