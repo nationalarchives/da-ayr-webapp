@@ -3,6 +3,7 @@ services:
     build:
       context: ./data_management/opensearch_indexer
       dockerfile: Dockerfile
+    user: root
     volumes:
       - .:/app
       - ./test_results:/test_results
@@ -31,6 +32,7 @@ services:
     build:
       context: ./data_management/access_copy_converter
       dockerfile: Dockerfile
+    user: root
     volumes:
       - .:/app
       - ./test_results:/test_results
@@ -61,6 +63,7 @@ services:
     build:
       context: ./data_management/dri_to_ayr_data_migration/tests
       dockerfile: Dockerfile
+    user: root
     volumes:
       - .:/app
       - ./test_results:/test_results

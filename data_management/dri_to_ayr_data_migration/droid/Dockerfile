@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.12
+FROM public.ecr.aws/lambda/python:3.14@sha256:5d318087bb422519012c82ddcf4f0057f5e53aed0ff79989a9da0acd53c3fa50
 
 ARG DROID_VERSION=6.9.13
 
@@ -32,7 +32,8 @@ RUN dnf install -y \
       findutils \
       java-21-amazon-corretto-headless \
       unzip && \
-    dnf clean all
+    dnf clean all && \
+    rm -rf /var/cache/dnf
 
 # Download and unpack the DROID binary distribution from GitHub releases.
 RUN mkdir -p /opt/droid && \
@@ -76,8 +77,6 @@ RUN set -eu; \
       ln -s "$(basename "$patched_jar")" \
         "/opt/droid/lib/$original_name"; \
     done
-
-RUN pip install --no-cache-dir --upgrade pip
 
 RUN rm -f /usr/local/bin/aws-lambda-rie
 

@@ -1,4 +1,4 @@
-FROM python:3.14-slim
+FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
 
 ARG DROID_VERSION=6.9.13
 
@@ -85,7 +85,10 @@ RUN set -eu; \
 
 # Fail the build if Java or DROID cannot start.
 RUN test -x "${DROID_COMMAND}" && \
-    java -version && \
-    "${DROID_COMMAND}" --help >/dev/null
+  java -version && \
+  "${DROID_COMMAND}" --help >/dev/null
 
-RUN pip install --no-cache-dir --upgrade pip
+RUN useradd --create-home --shell /usr/sbin/nologin appuser \
+    && chown -R appuser:appuser /app /opt/droid
+
+USER appuser
