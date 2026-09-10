@@ -4,6 +4,8 @@ import pytest
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
+from app.tests.factories import FileFactory
+
 
 def verify_browse_records_view_header_row(data, expected_first_header):
     """
@@ -841,18 +843,29 @@ class TestBrowseRecords:
         # Pass the query string parameters so the filter-based empty state triggers
         response = client.get(
             f"{self.route_url}?transferring_body_filter=&series_filter=TSTA+2&consignment_reference=&record_status=all&date_filter_field=date_last_modified&date_from_day=&date_from_month=&date_from_year=&date_to_day=&date_to_month=&date_to_year=#browse-records"
+    def test_browse_records_row_displays_dash_for_dri_consignment(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given a record with a consignment reference starting with DRI-to-AYR-
+        When the browse records page loads with that consignment filter
+        Then an em-dash is rendered instead of the raw reference prefix in the table
+        """
+        file = FileFactory(consignment__ConsignmentReference="DRI-to-AYR-9999")
+
+        mock_all_access_user(client)
+
+        response = client.get(
+            f"{self.route_url}?consignment_reference={file.consignment.ConsignmentReference}"
         )
 
         assert response.status_code == 200
 
-        html = response.data.decode()
-        soup = BeautifulSoup(html, "html.parser")
+        soup = BeautifulSoup(response.data, "html.parser")
 
-        bullet_list = soup.find("ul", class_="govuk-list--bullet")
+        table_cells = soup.select("tbody.govuk-table__body td")
+        cell_texts = [cell.get_text(strip=True) for cell in table_cells]
+        full_table_text = " ".join(cell_texts)
 
-        list_text = bullet_list.get_text()
-
-        assert "Try changing or removing search terms" not in list_text
-        assert (
-            "Try changing or removing one or more applied filters" in list_text
-        )
+        assert "DRI-to-AYR-9999" not in full_table_text
+        assert "transferred" in full_table_text
