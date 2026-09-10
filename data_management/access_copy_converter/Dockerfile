@@ -1,5 +1,4 @@
-# Python 3.13 slim, pinned by manifest digest.
-FROM python:3.13-slim@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285
+FROM python:3.14-slim@sha256:83ff1d245a3d57d04152252d3ef9cb361494d0b3395abd65a5ebe91c401c8e83
 
 # Install system dependencies including LibreOffice
 RUN apt-get update && apt-get install -y --no-install-recommends \
