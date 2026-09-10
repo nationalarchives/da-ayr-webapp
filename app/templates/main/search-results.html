@@ -60,7 +60,7 @@
                             <input type="hidden" name="query" value="{{ filters['query'] }}">
                             <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
                                 {% set number_of_columns = 4 %}
-                                {% set per_page_value = (query_string_parameters.get('per_page', 5) | int) %}
+                                {% set per_page_value = per_page %}
                                 {% set start_index = ((current_page - 1) * per_page_value) + 1 %}
                                 {% set end_index = [current_page * per_page_value, num_records_found] | min %}
                                 {% set browse_table_params = query_string_parameters.copy() %}
@@ -201,44 +201,37 @@
             </div>
         </div>
     </div>
-    <script nonce="{{ csp_nonce() }}">
-        document.addEventListener('DOMContentLoaded', () => {
-            const toggleButtons = document.querySelectorAll('.govuk-table__toggle-button');
-
-            const expandableRows = document.querySelectorAll('tr[data-main-row]');
-            expandableRows.forEach(row => {
-                row.classList.add('hidden');
-                row.setAttribute('aria-hidden', 'true');
-                row.setAttribute('aria-expanded', 'false');
-            });
-
-            const toggleRows = (btn, expand) => {
-            const rows = document.querySelectorAll(`tr[data-main-row="${btn.dataset.mainRow}"]`);
-            const fieldCount = document.querySelector(`span[data-main-row="${btn.dataset.mainRow}"].field-count`);
-
-            rows.forEach(row => {
-                row.classList.toggle('hidden', !expand);
-                row.setAttribute('aria-hidden', !expand);
-                row.setAttribute('aria-expanded', expand);
-            });
-
-            if (fieldCount) {
-            fieldCount.classList.toggle('hidden', expand);
-            }
-
-            btn.setAttribute('aria-expanded', expand);
-            btn.setAttribute('aria-label',
-            `${expand ? 'Collapse' : 'Expand'} rows for file ${btn.dataset.fileName}`);
-            };
-
-            document.querySelectorAll('.field-count').forEach(count => {
-                count.classList.remove('hidden');
-            });
-
-            toggleButtons.forEach(btn => {
-                btn.removeAttribute('disabled');
-                btn.onclick = () => toggleRows(btn, btn.getAttribute('aria-expanded') !== 'true');
-            });
-        });
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const toggleButtons = document.querySelectorAll('.govuk-table__toggle-button');
+    const expandableRows = document.querySelectorAll('tr[data-main-row]');
+    expandableRows.forEach(row => {
+    row.classList.add('hidden');
+    row.setAttribute('aria-hidden', 'true');
+    row.setAttribute('aria-expanded', 'false');
+    });
+    const toggleRows = (btn, expand) => {
+    const rows = document.querySelectorAll(`tr[data-main-row="${btn.dataset.mainRow}"]`);
+    const fieldCount = document.querySelector(`span[data-main-row="${btn.dataset.mainRow}"].field-count`);
+    rows.forEach(row => {
+    row.classList.toggle('hidden', !expand);
+    row.setAttribute('aria-hidden', !expand);
+    row.setAttribute('aria-expanded', expand);
+    });
+    if (fieldCount) {
+    fieldCount.classList.toggle('hidden', expand);
+    }
+    btn.setAttribute('aria-expanded', expand);
+    btn.setAttribute('aria-label',
+    `${expand ? 'Collapse' : 'Expand'} rows for file ${btn.dataset.fileName}`);
+    };
+    document.querySelectorAll('.field-count').forEach(count => {
+    count.classList.remove('hidden');
+    });
+    toggleButtons.forEach(btn => {
+    btn.removeAttribute('disabled');
+    btn.onclick = () => toggleRows(btn, btn.getAttribute('aria-expanded') !== 'true');
+    });
+    });
     </script>
 {% endblock %}
