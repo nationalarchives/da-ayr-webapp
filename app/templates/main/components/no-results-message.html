@@ -1,0 +1,14 @@
+{% macro no_results_message(view_type="search") -%}
+    <h1 class="govuk-heading-l" id="no-results" aria-live="polite">No results found</h1>
+    <div class="govuk-grid-column-two-thirds govuk-grid-column-two-thirds__search-results-summary">
+        <div class="main-content" id="main-content" role="main">
+            <h2 class="govuk-heading-m">Help with your search</h2>
+            <ul class="govuk-list govuk-list--bullet">
+                {% if view_type == "search" %}
+                    <li>Try changing or removing search terms</li>
+                {% endif %}
+                <li>Try changing or removing one or more applied filters</li>
+            </ul>
+        </div>
+    </div>
+{%- endmacro %}

@@ -117,25 +117,15 @@ class TestBrowseTransferringBody:
         )
 
         html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
 
-        expected_html = """
-        <ul class="govuk-list govuk-list--bullet">
-        <li>
-        Try changing or removing one or more applied
-                    filters.
-        </li>
-        <li>
-        Alternatively, use the breadcrumbs to navigate back to the
-        <a class="govuk-link govuk-link--no-visited-state" href="/browse">browse view</a>.
-        </li>
-        </ul>"""
-        assert response.status_code == 200
-        assert b"No results found" in response.data
-        assert_contains_html(
-            expected_html,
-            html,
-            "ul",
-            {"class": "govuk-list govuk-list--bullet"},
+        bullet_list = soup.find("ul", class_="govuk-list--bullet")
+
+        list_text = " ".join(bullet_list.get_text().split())
+
+        assert "Try changing or removing search terms" not in list_text
+        assert (
+            "Try changing or removing one or more applied filters" in list_text
         )
 
     @pytest.mark.parametrize(

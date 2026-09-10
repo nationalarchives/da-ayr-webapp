@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 {% from 'main/components/back-link.html' import page_back_link %}
+{% from "main/components/no-results-message.html" import no_results_message %}
 {% from 'macros/forms.html' import render_preserved_params %}
 {% block pageTitle %}Search results – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
@@ -27,13 +28,15 @@
                     {% set search_back_link = url_for('main.browse_transferring_body', _id=current_transferring_body_id, _anchor='browse-records') %}
                 {% endif %}
                 {{ page_back_link(search_back_link) }}
-                <h2 class="govuk-heading-l browse__records-found__text"
-                    id="browse-records"
-                    aria-live="polite">
-                    {% if num_records_found > 0 %}
+                {% if num_records_found > 0 %}
+                    <h2 class="govuk-heading-l browse__records-found__text"
+                        id="browse-records"
+                        aria-live="polite">
                         Records found {{ num_records_found | format_number_with_commas }}
                     {% else %}
-                        No results found
+                        {% with view_type = "search" %}
+                            {{ no_results_message("search") }}
+                        {% endwith %}
                     {% endif %}
                 </h2>
                 <form action="{{ url_for('main.search_results', _anchor='browse-records') }}"
@@ -116,10 +119,6 @@
                                 {% endwith %}
                                 <!-- END PAGINATION -->
                             </div>
-                        {% else %}
-                            {% with view_type = "search" %}
-                                {% include "no-results-found.html" %}
-                            {% endwith %}
                         {% endif %}
                         <!-- FILTERS -->
                         <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
