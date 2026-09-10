@@ -812,6 +812,7 @@ def search_results(_id: uuid.UUID | None = None):
     return render_template(
         "search-results.html",
         form=form,
+        per_page=per_page,
         sort=sort,
         current_page=page,
         filters=filters,
