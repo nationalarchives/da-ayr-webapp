@@ -74,12 +74,11 @@ class LambdaContext:
     aws_request_id = "aws-request-id-1"
 
 
-def finaliser_message() -> dict[str, str]:
-    return {
-        "runId": "run-1",
-        "series": "MIG 1",
-        "consignmentReference": "TDR-1",
-    }
+FINALISER_MESSAGE: dict[str, str] = {
+    "runId": "run-1",
+    "series": "MIG 1",
+    "consignmentReference": "TDR-1",
+}
 
 
 def sqs_event(
@@ -115,7 +114,7 @@ def read_csv_file(path: Path) -> list[dict[str, str]]:
 class TestLambdaHandler:
     """High-level finaliser handler tests"""
 
-    def test_lambda_handler_supports_direct_invocation(
+    def test_lambda_handler_supports_direct_invocation_of_finaliser_message(
         self, mock_finaliser, monkeypatch
     ):
         process_message_mock = mock.Mock()
@@ -123,7 +122,7 @@ class TestLambdaHandler:
             finaliser_module, "process_message", process_message_mock
         )
 
-        event = finaliser_message()
+        event = FINALISER_MESSAGE
         context = LambdaContext()
 
         result = lambda_handler(event, context)
@@ -139,15 +138,13 @@ class TestLambdaHandler:
             finaliser_module, "process_message", process_message_mock
         )
 
-        event = sqs_event(finaliser_message())
+        event = sqs_event(FINALISER_MESSAGE)
         context = LambdaContext()
 
         result = lambda_handler(event, context)
 
         assert result == {"batchItemFailures": []}
-        process_message_mock.assert_called_once_with(
-            finaliser_message(), context
-        )
+        process_message_mock.assert_called_once_with(FINALISER_MESSAGE, context)
 
     def test_lambda_handler_returns_failed_sqs_message_id(
         self, mock_finaliser, monkeypatch
@@ -159,7 +156,7 @@ class TestLambdaHandler:
         )
 
         result = lambda_handler(
-            sqs_event(finaliser_message(), message_id="sqs-message-1"),
+            sqs_event(FINALISER_MESSAGE, message_id="sqs-message-1"),
             LambdaContext(),
         )
 
@@ -204,7 +201,9 @@ class TestProcessMessage:
             mark_consignment_sent_to_ddt_mock,
         )
 
-        process_message(finaliser_message(), LambdaContext())
+        result = process_message(FINALISER_MESSAGE, LambdaContext())
+
+        assert result is None
 
         start_finalising_mock.assert_called_once_with(
             run_id="run-1",
@@ -259,7 +258,7 @@ class TestProcessMessage:
             mark_consignment_sent_to_ddt_mock,
         )
 
-        process_message(finaliser_message(), LambdaContext())
+        process_message(FINALISER_MESSAGE, LambdaContext())
 
         list_staged_csv_keys_mock.assert_called_once_with(
             "MIG 1/ayr-mds-staging/TDR-1"
@@ -307,7 +306,7 @@ class TestProcessMessage:
         )
 
         with pytest.raises(ValueError, match="No staged CSV files found"):
-            process_message(finaliser_message(), LambdaContext())
+            process_message(FINALISER_MESSAGE, LambdaContext())
 
         reset_consignment_mock.assert_called_once_with("run-1", "TDR-1")
 
@@ -351,7 +350,7 @@ class TestProcessMessage:
         )
 
         with pytest.raises(RuntimeError, match="failed to mark"):
-            process_message(finaliser_message(), LambdaContext())
+            process_message(FINALISER_MESSAGE, LambdaContext())
 
         publish_ddt_message_mock.assert_called_once_with(message)
         mark_consignment_sent_to_ddt_mock.assert_called_once_with(
