@@ -33,6 +33,7 @@ from finaliser.handler import (
     lambda_handler,
     list_staged_csv_keys,
     mark_consignment_sent_to_ddt,
+    merge_staged_csv_batches,
     merge_staged_csvs,
     process_message,
     publish_ddt_message,
@@ -177,20 +178,25 @@ class TestProcessMessage:
     def test_process_message_skips_when_ddt_message_already_sent(
         self, mock_finaliser, monkeypatch
     ):
-        monkeypatch.setattr(
-            finaliser_module,
-            "start_finalising_or_skip",
-            mock.Mock(return_value=False),
-        )
-        list_staged_csv_keys_mock = mock.Mock()
+        start_finalising_mock = mock.Mock(return_value=False)
+        prepare_final_output_mock = mock.Mock()
         publish_ddt_message_mock = mock.Mock()
         mark_consignment_sent_to_ddt_mock = mock.Mock()
 
         monkeypatch.setattr(
-            finaliser_module, "list_staged_csv_keys", list_staged_csv_keys_mock
+            finaliser_module,
+            "start_finalising_or_skip",
+            start_finalising_mock,
         )
         monkeypatch.setattr(
-            finaliser_module, "publish_ddt_message", publish_ddt_message_mock
+            finaliser_module,
+            "prepare_final_output",
+            prepare_final_output_mock,
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "publish_ddt_message",
+            publish_ddt_message_mock,
         )
         monkeypatch.setattr(
             finaliser_module,
@@ -200,32 +206,42 @@ class TestProcessMessage:
 
         process_message(finaliser_message(), LambdaContext())
 
-        list_staged_csv_keys_mock.assert_not_called()
+        start_finalising_mock.assert_called_once_with(
+            run_id="run-1",
+            consignment_reference="TDR-1",
+        )
+        prepare_final_output_mock.assert_not_called()
         publish_ddt_message_mock.assert_not_called()
         mark_consignment_sent_to_ddt_mock.assert_not_called()
 
     def test_process_message_merges_uploads_publishes_and_marks_sent(
         self, mock_finaliser, monkeypatch
     ):
-        monkeypatch.setattr(
-            finaliser_module,
-            "start_finalising_or_skip",
-            mock.Mock(return_value=True),
-        )
         list_staged_csv_keys_mock = mock.Mock(
             return_value=["MIG 1/ayr-mds-staging/TDR-1/file-1/AYR-file.csv"]
         )
         merge_staged_csvs_mock = mock.Mock(return_value={"AYR-file.csv": 1})
         create_checksum_files_mock = mock.Mock()
         upload_metadata_files_mock = mock.Mock()
-        publish_ddt_message_mock = mock.Mock(return_value="sns-message-id-1")
         mark_consignment_sent_to_ddt_mock = mock.Mock()
+        mock_finaliser.sns.publish.return_value = {
+            "MessageId": "sns-message-id-1"
+        }
 
         monkeypatch.setattr(
-            finaliser_module, "list_staged_csv_keys", list_staged_csv_keys_mock
+            finaliser_module,
+            "start_finalising_or_skip",
+            mock.Mock(return_value=True),
         )
         monkeypatch.setattr(
-            finaliser_module, "merge_staged_csvs", merge_staged_csvs_mock
+            finaliser_module,
+            "list_staged_csv_keys",
+            list_staged_csv_keys_mock,
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "merge_staged_csvs",
+            merge_staged_csvs_mock,
         )
         monkeypatch.setattr(
             finaliser_module,
@@ -238,9 +254,6 @@ class TestProcessMessage:
             upload_metadata_files_mock,
         )
         monkeypatch.setattr(
-            finaliser_module, "publish_ddt_message", publish_ddt_message_mock
-        )
-        monkeypatch.setattr(
             finaliser_module,
             "mark_consignment_sent_to_ddt",
             mark_consignment_sent_to_ddt_mock,
@@ -251,17 +264,16 @@ class TestProcessMessage:
         list_staged_csv_keys_mock.assert_called_once_with(
             "MIG 1/ayr-mds-staging/TDR-1"
         )
+        merge_staged_csvs_mock.assert_called_once()
+        create_checksum_files_mock.assert_called_once()
         upload_metadata_files_mock.assert_called_once()
-        assert (
-            upload_metadata_files_mock.call_args.kwargs["bucket"]
-            == "ddt-temp-csv-bucket"
-        )
-        assert (
-            upload_metadata_files_mock.call_args.kwargs["prefix"]
-            == "MIG 1/ayr-mds-csv/TDR-1"
+        assert upload_metadata_files_mock.call_args.kwargs["prefix"] == (
+            "MIG 1/ayr-mds-csv/TDR-1"
         )
 
-        published_message = publish_ddt_message_mock.call_args.args[0]
+        published_message = json.loads(
+            mock_finaliser.sns.publish.call_args.kwargs["Message"]
+        )
         assert published_message["parameters"] == {
             "reference": "TDR-1",
             "consignmentType": "STANDARD",
@@ -279,6 +291,7 @@ class TestProcessMessage:
     def test_process_message_fails_when_no_staged_csv_files_found(
         self, mock_finaliser, monkeypatch
     ):
+        reset_consignment_mock = mock.Mock()
         monkeypatch.setattr(
             finaliser_module,
             "start_finalising_or_skip",
@@ -287,9 +300,66 @@ class TestProcessMessage:
         monkeypatch.setattr(
             finaliser_module, "list_staged_csv_keys", mock.Mock(return_value=[])
         )
+        monkeypatch.setattr(
+            finaliser_module,
+            "reset_consignment_for_retry",
+            reset_consignment_mock,
+        )
 
         with pytest.raises(ValueError, match="No staged CSV files found"):
             process_message(finaliser_message(), LambdaContext())
+
+        reset_consignment_mock.assert_called_once_with("run-1", "TDR-1")
+
+    def test_process_message_does_not_reset_after_publishing_starts(
+        self, mock_finaliser, monkeypatch
+    ):
+        message = {
+            "properties": {"messageType": "test-message-type"},
+            "parameters": {"reference": "TDR-1"},
+        }
+        publish_ddt_message_mock = mock.Mock(return_value="sns-message-id-1")
+        mark_consignment_sent_to_ddt_mock = mock.Mock(
+            side_effect=RuntimeError("failed to mark")
+        )
+        reset_consignment_mock = mock.Mock()
+
+        monkeypatch.setattr(
+            finaliser_module,
+            "start_finalising_or_skip",
+            mock.Mock(return_value=True),
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "prepare_final_output",
+            mock.Mock(return_value=(message, "output-prefix")),
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "publish_ddt_message",
+            publish_ddt_message_mock,
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "mark_consignment_sent_to_ddt",
+            mark_consignment_sent_to_ddt_mock,
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "reset_consignment_for_retry",
+            reset_consignment_mock,
+        )
+
+        with pytest.raises(RuntimeError, match="failed to mark"):
+            process_message(finaliser_message(), LambdaContext())
+
+        publish_ddt_message_mock.assert_called_once_with(message)
+        mark_consignment_sent_to_ddt_mock.assert_called_once_with(
+            run_id="run-1",
+            consignment_reference="TDR-1",
+            ddt_sns_message_id="sns-message-id-1",
+        )
+        reset_consignment_mock.assert_not_called()
 
 
 class TestCsvDiscoveryAndMerge:
@@ -323,8 +393,8 @@ class TestCsvDiscoveryAndMerge:
         result = list_staged_csv_keys("MIG 1/ayr-mds-staging/TDR-1")
 
         assert result == [
-            "MIG 1/ayr-mds-staging/TDR-1/file-1/AYR-body-metadata.csv",
             "MIG 1/ayr-mds-staging/TDR-1/file-1/AYR-file.csv",
+            "MIG 1/ayr-mds-staging/TDR-1/file-1/AYR-body-metadata.csv",
         ]
         paginator.paginate.assert_called_once_with(
             Bucket="ddt-temp-csv-bucket",
@@ -343,6 +413,83 @@ class TestCsvDiscoveryAndMerge:
                 "FileId": "file-1",
                 "FileName": "test.txt",
             }
+        ]
+
+    def test_merge_staged_csv_batches_uses_bounded_batches_and_logs_progress(
+        self, mock_finaliser, monkeypatch
+    ):
+        submitted_batches = []
+        worker_counts = []
+
+        class ImmediateExecutor:
+            def __init__(self, max_workers):
+                worker_counts.append(max_workers)
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return None
+
+            def map(self, function, batch):
+                submitted_batches.append(list(batch))
+                return [function(key) for key in batch]
+
+        keys = [f"staging/file-{index:02}/AYR-file.csv" for index in range(14)]
+        writers_by_file = {}
+        seen_by_file = {}
+        counts = {}
+        merge_staged_rows_mock = mock.Mock()
+        log_merge_progress_mock = mock.Mock()
+
+        monkeypatch.setattr(finaliser_module, "S3_READ_WORKERS", 2)
+        monkeypatch.setattr(finaliser_module, "S3_READ_BATCH_SIZE", 6)
+        monkeypatch.setattr(
+            finaliser_module,
+            "ThreadPoolExecutor",
+            ImmediateExecutor,
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "read_csv_from_s3_as_list",
+            lambda key: [{"source": key}],
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "merge_staged_rows",
+            merge_staged_rows_mock,
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "log_merge_progress",
+            log_merge_progress_mock,
+        )
+
+        merge_staged_csv_batches(
+            keys=keys,
+            writers_by_file=writers_by_file,
+            seen_by_file=seen_by_file,
+            counts=counts,
+        )
+
+        assert worker_counts == [2]
+        assert submitted_batches == [keys[0:6], keys[6:12], keys[12:14]]
+        assert merge_staged_rows_mock.call_args_list == [
+            mock.call(
+                key=key,
+                rows=[{"source": key}],
+                writers_by_file=writers_by_file,
+                seen_by_file=seen_by_file,
+                counts=counts,
+            )
+            for key in keys
+        ]
+        assert log_merge_progress_mock.call_args_list == [
+            mock.call(3, 14),
+            mock.call(6, 14),
+            mock.call(9, 14),
+            mock.call(12, 14),
+            mock.call(14, 14),
         ]
 
     def test_merge_staged_csvs_deduplicates_shared_rows(
@@ -501,17 +648,17 @@ class TestCsvDiscoveryAndMerge:
         )
         (tmp_path / "nested").mkdir()
 
-        upload_metadata_files(tmp_path, "csv-bucket", "MIG 1/ayr-mds-csv/TDR-1")
+        upload_metadata_files(tmp_path, "MIG 1/ayr-mds-csv/TDR-1")
 
         assert mock_finaliser.s3.upload_file.call_args_list == [
             mock.call(
                 str(tmp_path / "AYR-body-metadata.csv"),
-                "csv-bucket",
+                "ddt-temp-csv-bucket",
                 "MIG 1/ayr-mds-csv/TDR-1/AYR-body-metadata.csv",
             ),
             mock.call(
                 str(tmp_path / "AYR-file.csv"),
-                "csv-bucket",
+                "ddt-temp-csv-bucket",
                 "MIG 1/ayr-mds-csv/TDR-1/AYR-file.csv",
             ),
         ]
@@ -531,11 +678,8 @@ class TestDdtMessage:
         )
 
         message = build_ddt_prepared_message(
-            reference="TDR-1",
-            s3_objects_bucket="data-bucket",
-            s3_objects_location_key="MIG 1/",
-            s3_metadata_bucket="metadata-bucket",
-            s3_metadata_file_key="MIG 1/ayr-mds-csv/",
+            series="MIG 1",
+            consignment_reference="TDR-1",
             context=LambdaContext(),
         )
 
@@ -551,15 +695,13 @@ class TestDdtMessage:
         assert message["parameters"] == {
             "reference": "TDR-1",
             "consignmentType": "STANDARD",
-            "s3ObjectsBucket": "data-bucket",
+            "s3ObjectsBucket": "ddt-temp-data-bucket",
             "s3ObjectsLocationKey": "MIG 1/",
-            "s3MetadataBucket": "metadata-bucket",
+            "s3MetadataBucket": "ddt-temp-csv-bucket",
             "s3MetadataFileKey": "MIG 1/ayr-mds-csv/",
         }
 
-    def test_publish_ddt_message_publishes_with_message_type_attribute(
-        self, mock_finaliser
-    ):
+    def test_publish_ddt_message_returns_sns_message_id(self, mock_finaliser):
         mock_finaliser.sns.publish.return_value = {
             "MessageId": "sns-message-id-1"
         }

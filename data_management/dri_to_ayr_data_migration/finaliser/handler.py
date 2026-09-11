@@ -5,12 +5,16 @@ import logging
 import os
 import tempfile
 import uuid
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import ExitStack
 from datetime import datetime, timezone
 from io import StringIO
+from math import ceil
 from pathlib import Path
 from typing import Any
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 
 BODY_COLUMNS = ["BodyId", "Name", "Description"]
@@ -122,7 +126,19 @@ SENT_TO_DDT = "SENT_TO_DDT"
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-s3 = boto3.client("s3")
+
+S3_READ_WORKERS = 30
+S3_READ_BATCH_SIZE = 300
+
+s3 = boto3.client(
+    "s3",
+    config=Config(
+        connect_timeout=5,
+        read_timeout=30,
+        retries={"max_attempts": 10, "mode": "standard"},
+        max_pool_connections=S3_READ_WORKERS,
+    ),
+)
 sns = boto3.client("sns")
 dynamodb = boto3.client("dynamodb")
 
@@ -138,21 +154,20 @@ FUNCTION_NAME = "dri-to-ayr-data-migration-lambda"
 
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """
-    SQS-triggered consignment finaliser.
+    Finalise consignments from an SQS batch or a direct invocation.
 
-    Expected SQS body:
+    Expected message/direct event:
     {
       "runId": "LEV-2-...",
       "series": "LEV 2",
       "consignmentReference": "TDR-2026-7333"
     }
     """
-    # Allow direct invocation for manually retrying a single consignment.
     if "Records" not in event:
         process_message(event, context)
         return {"batchItemFailures": []}
 
-    batch_item_failures = []
+    batch_item_failures: list[dict[str, str]] = []
 
     for record in event["Records"]:
         try:
@@ -184,6 +199,69 @@ def process_message(message: dict[str, Any], context: Any) -> None:
         )
         return
 
+    try:
+        ddt_message, final_output_prefix = prepare_final_output(
+            run_id=run_id,
+            series=series,
+            consignment_reference=consignment_reference,
+            context=context,
+        )
+    except Exception:
+        handle_pre_publish_failure(run_id, consignment_reference)
+        raise
+
+    # Do not reset FINALISING after publication starts. SNS may have accepted
+    # the message even if this invocation does not receive a response.
+    ddt_sns_message_id = publish_ddt_message(ddt_message)
+
+    mark_consignment_sent_to_ddt(
+        run_id=run_id,
+        consignment_reference=consignment_reference,
+        ddt_sns_message_id=ddt_sns_message_id,
+    )
+
+    logger.info(
+        "Finished finaliser run_id=%s series=%s consignment=%s "
+        "final_output_prefix=s3://%s/%s ddt_sns_message_id=%s",
+        run_id,
+        series,
+        consignment_reference,
+        DDT_TEMP_CSV_BUCKET,
+        final_output_prefix,
+        ddt_sns_message_id,
+    )
+
+
+def handle_pre_publish_failure(
+    run_id: str,
+    consignment_reference: str,
+) -> None:
+    """Release the finaliser lock after work fails before SNS publication."""
+    logger.warning(
+        "Finaliser failed before publishing the DDT message. "
+        "Resetting the consignment so SQS can retry it. "
+        "run_id=%s consignment=%s",
+        run_id,
+        consignment_reference,
+    )
+
+    try:
+        reset_consignment_for_retry(run_id, consignment_reference)
+    except Exception:
+        logger.exception(
+            "Could not reset consignment to READY_TO_FINALISE. "
+            "run_id=%s consignment=%s",
+            run_id,
+            consignment_reference,
+        )
+
+
+def prepare_final_output(
+    run_id: str,
+    series: str,
+    consignment_reference: str,
+    context: Any,
+) -> tuple[dict[str, Any], str]:
     staging_prefix = join_s3_key(series, STAGING_PREFIX, consignment_reference)
     final_output_prefix = join_s3_key(
         series, OUTPUT_PREFIX, consignment_reference
@@ -205,49 +283,40 @@ def process_message(message: dict[str, Any], context: Any) -> None:
             f"No staged CSV files found under s3://{DDT_TEMP_CSV_BUCKET}/{staging_prefix}"
         )
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        output_dir = Path(temp_dir) / "final-csv-output"
-        output_dir.mkdir(parents=True, exist_ok=True)
+    create_and_upload_final_metadata(
+        staged_csv_keys=staged_csv_keys,
+        final_output_prefix=final_output_prefix,
+    )
 
-        merge_counts = merge_staged_csvs(staged_csv_keys, output_dir)
+    ddt_message = build_ddt_prepared_message(
+        series=series,
+        consignment_reference=consignment_reference,
+        context=context,
+    )
+
+    return ddt_message, final_output_prefix
+
+
+def create_and_upload_final_metadata(
+    staged_csv_keys: list[str],
+    final_output_prefix: str,
+) -> None:
+    """Create the final CSV package and upload it to its output prefix."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output_dir = Path(temp_dir)
+
+        merge_counts = merge_staged_csvs(
+            staged_csv_keys=staged_csv_keys,
+            output_dir=output_dir,
+        )
         logger.info("Merged final CSV row counts: %s", merge_counts)
 
         create_checksum_files(output_dir)
 
         upload_metadata_files(
             local_dir=output_dir,
-            bucket=DDT_TEMP_CSV_BUCKET,
             prefix=final_output_prefix,
         )
-
-    ddt_message = build_ddt_prepared_message(
-        reference=consignment_reference,
-        s3_objects_bucket=DDT_TEMP_DATA_BUCKET,
-        s3_objects_location_key=ensure_trailing_slash(series),
-        s3_metadata_bucket=DDT_TEMP_CSV_BUCKET,
-        s3_metadata_file_key=ensure_trailing_slash(
-            join_s3_key(series, OUTPUT_PREFIX)
-        ),
-        context=context,
-    )
-
-    ddt_sns_message_id = publish_ddt_message(ddt_message)
-
-    mark_consignment_sent_to_ddt(
-        run_id=run_id,
-        consignment_reference=consignment_reference,
-        ddt_sns_message_id=ddt_sns_message_id,
-    )
-
-    logger.info(
-        "Finished finaliser run_id=%s series=%s consignment=%s final_output_prefix=s3://%s/%s ddt_sns_message_id=%s",
-        run_id,
-        series,
-        consignment_reference,
-        DDT_TEMP_CSV_BUCKET,
-        final_output_prefix,
-        ddt_sns_message_id,
-    )
 
 
 def list_staged_csv_keys(staging_prefix: str) -> list[str]:
@@ -258,33 +327,8 @@ def list_staged_csv_keys(staging_prefix: str) -> list[str]:
     for page in paginator.paginate(Bucket=DDT_TEMP_CSV_BUCKET, Prefix=prefix):
         for item in page.get("Contents", []):
             key = item["Key"]
-            file_name = Path(key).name
-
-            if not key.endswith(".csv"):
-                logger.debug(
-                    "Skipping non-CSV staged file: s3://%s/%s",
-                    DDT_TEMP_CSV_BUCKET,
-                    key,
-                )
-                continue
-
-            if file_name in {CHECKSUM_CSV_NAME, CHECKSUM_TEXT_NAME}:
-                logger.debug(
-                    "Skipping staged manifest/checksum file: s3://%s/%s",
-                    DDT_TEMP_CSV_BUCKET,
-                    key,
-                )
-                continue
-
-            if file_name not in CSV_DEFINITIONS:
-                logger.warning(
-                    "Ignoring unexpected staged CSV file: s3://%s/%s",
-                    DDT_TEMP_CSV_BUCKET,
-                    key,
-                )
-                continue
-
-            keys.append(key)
+            if should_merge_staged_csv(key):
+                keys.append(key)
 
     logger.info(
         "Found %s staged CSV file(s) under s3://%s/%s",
@@ -293,100 +337,204 @@ def list_staged_csv_keys(staging_prefix: str) -> list[str]:
         prefix,
     )
 
-    return sorted(keys)
+    return keys
+
+
+def should_merge_staged_csv(key: str) -> bool:
+    """Return whether a staged S3 object belongs in the final package."""
+    file_name = Path(key).name
+
+    if file_name in {CHECKSUM_CSV_NAME, CHECKSUM_TEXT_NAME}:
+        logger.debug(
+            "Skipping staged manifest/checksum file: s3://%s/%s",
+            DDT_TEMP_CSV_BUCKET,
+            key,
+        )
+        return False
+
+    if file_name not in CSV_DEFINITIONS:
+        logger.warning(
+            "Ignoring unexpected staged CSV file: s3://%s/%s",
+            DDT_TEMP_CSV_BUCKET,
+            key,
+        )
+        return False
+
+    return True
 
 
 def merge_staged_csvs(
-    staged_csv_keys: list[str], output_dir: Path
+    staged_csv_keys: list[str],
+    output_dir: Path,
 ) -> dict[str, int]:
     """
     Merge worker-staged CSVs into the final consignment package.
 
     Shared rows are deduped. File-level duplicate rows fail the finaliser.
-    Returns row counts for logging.
+    S3 objects are fetched concurrently in bounded batches, but rows are
+    merged in sorted key order so output and duplicate handling remain
+    deterministic. Rows are written directly to disk to keep memory bounded.
     """
-    rows_by_file: dict[str, list[dict[str, str]]] = {
-        file_name: [] for file_name in CSV_DEFINITIONS
-    }
+    keys = sorted(staged_csv_keys)
+    total = len(keys)
     seen_by_file: dict[str, dict[str, str]] = {
         file_name: {} for file_name in CSV_DEFINITIONS
     }
+    counts: dict[str, int] = {file_name: 0 for file_name in CSV_DEFINITIONS}
 
-    for key in staged_csv_keys:
-        file_name = Path(key).name
-        definition = CSV_DEFINITIONS[file_name]
-        unique_column = definition["unique_column"]
+    logger.info(
+        "Reading and merging %s staged CSV object(s) using %s worker(s) "
+        "and batches of %s",
+        total,
+        S3_READ_WORKERS,
+        S3_READ_BATCH_SIZE,
+    )
 
-        for row in read_csv_from_s3_as_list(key):
-            unique_value = row.get(unique_column, "")
-
-            if not unique_value:
-                raise ValueError(
-                    f"Missing {unique_column} value in {file_name} row from "
-                    f"s3://{DDT_TEMP_CSV_BUCKET}/{key}"
-                )
-
-            first_seen_key = seen_by_file[file_name].get(unique_value)
-
-            if first_seen_key:
-                if definition["skip_duplicates"]:
-                    logger.debug(
-                        "Skipping duplicate row in %s for %s=%s. "
-                        "First seen in s3://%s/%s, duplicate in s3://%s/%s",
-                        file_name,
-                        unique_column,
-                        unique_value,
-                        DDT_TEMP_CSV_BUCKET,
-                        first_seen_key,
-                        DDT_TEMP_CSV_BUCKET,
-                        key,
-                    )
-                    continue
-
-                raise ValueError(
-                    f"Duplicate row found in {file_name} for "
-                    f"{unique_column}={unique_value}. "
-                    f"First seen in s3://{DDT_TEMP_CSV_BUCKET}/{first_seen_key}, "
-                    f"duplicate in s3://{DDT_TEMP_CSV_BUCKET}/{key}"
-                )
-
-            seen_by_file[file_name][unique_value] = key
-            rows_by_file[file_name].append(row)
-
-    counts: dict[str, int] = {}
-
-    for file_name, definition in CSV_DEFINITIONS.items():
-        rows = rows_by_file[file_name]
-        write_csv(output_dir / file_name, definition["columns"], rows)
-        counts[file_name] = len(rows)
+    with ExitStack() as stack:
+        writers_by_file = open_output_csv_writers(output_dir, stack)
+        merge_staged_csv_batches(
+            keys=keys,
+            writers_by_file=writers_by_file,
+            seen_by_file=seen_by_file,
+            counts=counts,
+        )
 
     return counts
 
 
+def open_output_csv_writers(
+    output_dir: Path,
+    stack: ExitStack,
+) -> dict[str, Any]:
+    """Open every final CSV and write its header."""
+    writers: dict[str, Any] = {}
+
+    for file_name, definition in CSV_DEFINITIONS.items():
+        handle = stack.enter_context(
+            (output_dir / file_name).open(
+                "w",
+                newline="",
+                encoding="utf-8",
+            )
+        )
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=definition["columns"],
+            extrasaction="ignore",
+        )
+        writer.writeheader()
+        writers[file_name] = writer
+
+    return writers
+
+
+def merge_staged_csv_batches(
+    keys: list[str],
+    writers_by_file: dict[str, Any],
+    seen_by_file: dict[str, dict[str, str]],
+    counts: dict[str, int],
+) -> None:
+    """Fetch staged objects concurrently and merge each batch in key order."""
+    total = len(keys)
+    processed = 0
+    # Log after roughly every 20% of the staged objects are merged.
+    progress_interval = max(1, ceil(total / 5))
+    next_progress = progress_interval
+
+    with ThreadPoolExecutor(max_workers=S3_READ_WORKERS) as executor:
+        for start in range(0, total, S3_READ_BATCH_SIZE):
+            batch = keys[start : start + S3_READ_BATCH_SIZE]
+            rows_iterator = executor.map(read_csv_from_s3_as_list, batch)
+
+            for key, rows in zip(batch, rows_iterator, strict=True):
+                merge_staged_rows(
+                    key=key,
+                    rows=rows,
+                    writers_by_file=writers_by_file,
+                    seen_by_file=seen_by_file,
+                    counts=counts,
+                )
+
+                processed += 1
+
+                if processed >= next_progress or processed == total:
+                    log_merge_progress(processed, total)
+                    next_progress += progress_interval
+
+
+def log_merge_progress(processed: int, total: int) -> None:
+    logger.info(
+        "Read and merged %s/%s staged CSV object(s)",
+        processed,
+        total,
+    )
+
+
+def merge_staged_rows(
+    key: str,
+    rows: list[dict[str, str]],
+    writers_by_file: dict[str, Any],
+    seen_by_file: dict[str, dict[str, str]],
+    counts: dict[str, int],
+) -> None:
+    file_name = Path(key).name
+    definition = CSV_DEFINITIONS[file_name]
+    unique_column = definition["unique_column"]
+
+    for row in rows:
+        unique_value = row.get(unique_column, "")
+
+        if not unique_value:
+            raise ValueError(
+                f"Missing {unique_column} value in {file_name} row from "
+                f"s3://{DDT_TEMP_CSV_BUCKET}/{key}"
+            )
+
+        first_seen_key = seen_by_file[file_name].get(unique_value)
+
+        if first_seen_key:
+            if definition["skip_duplicates"]:
+                logger.debug(
+                    "Skipping duplicate row in %s for %s=%s. "
+                    "First seen in s3://%s/%s, duplicate in s3://%s/%s",
+                    file_name,
+                    unique_column,
+                    unique_value,
+                    DDT_TEMP_CSV_BUCKET,
+                    first_seen_key,
+                    DDT_TEMP_CSV_BUCKET,
+                    key,
+                )
+                continue
+
+            raise ValueError(
+                f"Duplicate row found in {file_name} for "
+                f"{unique_column}={unique_value}. "
+                f"First seen in s3://{DDT_TEMP_CSV_BUCKET}/{first_seen_key}, "
+                f"duplicate in s3://{DDT_TEMP_CSV_BUCKET}/{key}"
+            )
+
+        seen_by_file[file_name][unique_value] = key
+        writers_by_file[file_name].writerow(row)
+        counts[file_name] += 1
+
+
 def read_csv_from_s3_as_list(key: str) -> list[dict[str, str]]:
-    logger.info("Reading staged CSV s3://%s/%s", DDT_TEMP_CSV_BUCKET, key)
+    logger.debug("Reading staged CSV s3://%s/%s", DDT_TEMP_CSV_BUCKET, key)
 
     response = s3.get_object(Bucket=DDT_TEMP_CSV_BUCKET, Key=key)
-    body = response["Body"].read().decode("utf-8-sig")
+    response_body = response["Body"]
+
+    try:
+        body = response_body.read().decode("utf-8-sig")
+    finally:
+        response_body.close()
 
     if not body.strip():
         return []
 
     reader = csv.DictReader(StringIO(body))
     return [dict(row) for row in reader]
-
-
-def write_csv(
-    path: Path, columns: list[str], rows: list[dict[str, Any]]
-) -> None:
-    with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(
-            handle, fieldnames=columns, extrasaction="ignore"
-        )
-        writer.writeheader()
-        writer.writerows(rows)
-
-    logger.info("Wrote %s row(s) to %s", len(rows), path)
 
 
 def create_checksum_files(output_dir: Path) -> None:
@@ -427,28 +575,29 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def upload_metadata_files(local_dir: Path, bucket: str, prefix: str) -> None:
+def upload_metadata_files(local_dir: Path, prefix: str) -> None:
     for local_file in sorted(local_dir.iterdir()):
         if not local_file.is_file():
             continue
 
         destination_key = join_s3_key(prefix, local_file.name)
-        s3.upload_file(str(local_file), bucket, destination_key)
+        s3.upload_file(
+            str(local_file),
+            DDT_TEMP_CSV_BUCKET,
+            destination_key,
+        )
 
         logger.info(
             "Uploaded final metadata file %s to s3://%s/%s",
             local_file.name,
-            bucket,
+            DDT_TEMP_CSV_BUCKET,
             destination_key,
         )
 
 
 def build_ddt_prepared_message(
-    reference: str,
-    s3_objects_bucket: str,
-    s3_objects_location_key: str,
-    s3_metadata_bucket: str,
-    s3_metadata_file_key: str,
+    series: str,
+    consignment_reference: str,
     context: Any,
 ) -> dict[str, Any]:
     execution_id = getattr(context, "aws_request_id", None) or str(uuid.uuid4())
@@ -464,17 +613,20 @@ def build_ddt_prepared_message(
             "executionId": execution_id,
         },
         "parameters": {
-            "reference": reference,
+            "reference": consignment_reference,
             "consignmentType": "STANDARD",
-            "s3ObjectsBucket": s3_objects_bucket,
-            "s3ObjectsLocationKey": s3_objects_location_key,
-            "s3MetadataBucket": s3_metadata_bucket,
-            "s3MetadataFileKey": s3_metadata_file_key,
+            "s3ObjectsBucket": DDT_TEMP_DATA_BUCKET,
+            "s3ObjectsLocationKey": ensure_trailing_slash(series),
+            "s3MetadataBucket": DDT_TEMP_CSV_BUCKET,
+            "s3MetadataFileKey": ensure_trailing_slash(
+                join_s3_key(series, OUTPUT_PREFIX)
+            ),
         },
     }
 
 
 def publish_ddt_message(message: dict[str, Any]) -> str:
+    """Publish the DDT prepared message and return its SNS message ID."""
     response = sns.publish(
         TopicArn=DA_EVENTBUS_TOPIC_ARN,
         Message=json.dumps(message),
@@ -498,12 +650,9 @@ def start_finalising_or_skip(run_id: str, consignment_reference: str) -> bool:
     """
     Take the finaliser lock for a consignment.
 
-    Returns:
-      - STARTED when this invocation should continue finalising
-      - ALREADY_SENT_TO_DDT when the DDT message was already published
-
-    If another invocation is already finalising, raise an error so the SQS
-    message retries/DLQs instead of publishing a duplicate DDT message.
+    Return True when this invocation acquires the lock, or False when the DDT
+    message has already been sent. Raise for any other status so that SQS can
+    retry or send the message to its DLQ.
     """
     now = utc_now_text()
 
@@ -532,10 +681,7 @@ def start_finalising_or_skip(run_id: str, consignment_reference: str) -> bool:
         return True
 
     except ClientError as error:
-        if (
-            error.response.get("Error", {}).get("Code")
-            != "ConditionalCheckFailedException"
-        ):
+        if not is_conditional_check_failure(error):
             raise
 
     status = get_consignment_status(run_id, consignment_reference)
@@ -554,6 +700,59 @@ def start_finalising_or_skip(run_id: str, consignment_reference: str) -> bool:
     raise RuntimeError(
         f"Consignment is not ready to finalise. "
         f"runId={run_id} consignmentReference={consignment_reference} status={status}"
+    )
+
+
+def reset_consignment_for_retry(
+    run_id: str,
+    consignment_reference: str,
+) -> None:
+    """Release the finaliser lock after a confirmed pre-publish failure."""
+    now = utc_now_text()
+
+    try:
+        dynamodb.update_item(
+            TableName=TRACKING_TABLE_NAME,
+            Key=consignment_key(run_id, consignment_reference),
+            UpdateExpression=(
+                "SET #status = :ready, finalisingFailedAt = :now, "
+                "updatedAt = :now REMOVE finalisingStartedAt"
+            ),
+            ConditionExpression="#status = :finalising",
+            ExpressionAttributeNames={"#status": "status"},
+            ExpressionAttributeValues={
+                ":ready": {"S": READY_TO_FINALISE},
+                ":finalising": {"S": FINALISING},
+                ":now": {"S": now},
+            },
+        )
+    except ClientError as error:
+        if not is_conditional_check_failure(error):
+            raise
+
+        status = get_consignment_status(run_id, consignment_reference)
+
+        if status in {READY_TO_FINALISE, SENT_TO_DDT}:
+            logger.info(
+                "Consignment no longer needs resetting. run_id=%s "
+                "consignment=%s status=%s",
+                run_id,
+                consignment_reference,
+                status,
+            )
+            return
+
+        raise RuntimeError(
+            "Could not release finaliser lock. "
+            f"runId={run_id} consignmentReference={consignment_reference} "
+            f"status={status}"
+        )
+
+    logger.info(
+        "Reset consignment to READY_TO_FINALISE for retry. "
+        "run_id=%s consignment=%s",
+        run_id,
+        consignment_reference,
     )
 
 
@@ -602,10 +801,7 @@ def mark_consignment_sent_to_ddt(
             },
         )
     except ClientError as error:
-        if (
-            error.response.get("Error", {}).get("Code")
-            == "ConditionalCheckFailedException"
-        ):
+        if is_conditional_check_failure(error):
             status = get_consignment_status(run_id, consignment_reference)
 
             if status == SENT_TO_DDT:
@@ -619,6 +815,13 @@ def mark_consignment_sent_to_ddt(
         raise
 
 
+def is_conditional_check_failure(error: ClientError) -> bool:
+    return (
+        error.response.get("Error", {}).get("Code")
+        == "ConditionalCheckFailedException"
+    )
+
+
 def consignment_key(
     run_id: str, consignment_reference: str
 ) -> dict[str, dict[str, str]]:
@@ -629,12 +832,12 @@ def consignment_key(
 
 
 def ensure_trailing_slash(value: str) -> str:
-    value = str(value).strip()
+    value = value.strip()
     return value if value.endswith("/") else f"{value}/"
 
 
 def join_s3_key(*parts: str) -> str:
-    return "/".join(str(part).strip("/") for part in parts if part)
+    return "/".join(part.strip("/") for part in parts if part)
 
 
 def require_text(data: dict[str, Any], key: str) -> str:
