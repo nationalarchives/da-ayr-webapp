@@ -20,7 +20,7 @@
                             <span class="browse__scope-text">{{ records_scope_text }}</span>
                         </p>
                     {% endif %}
-                    <h2 class="govuk-heading-l browse__records-found__text"
+                    <h1 class="govuk-heading-l browse__records-found__text"
                         id="browse-records"
                         aria-live="polite">
                         {% if num_records_found > 0 %}
@@ -42,7 +42,7 @@
                                 {% endif %}
                             {% endif %}
                         {% endif %}
-                    </h2>
+                    </h1>
                     {% if browse_type != "records" %}
                         <p class="govuk-body browse__body">You are viewing</p>
                     {% endif %}
