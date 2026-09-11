@@ -1,5 +1,5 @@
 from datetime import datetime
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
 import boto3
 from bs4 import BeautifulSoup
@@ -116,7 +116,7 @@ class TestRecord:
         """
         Given a user navigates to a record from browse records
         When they inspect the back link on the record page
-        Then it keeps the previously selected browse sort and filters
+        Then the record URL stays clean and the back link follows the previous page
         """
         mock_all_access_user(client)
         browse_query = (
@@ -137,15 +137,13 @@ class TestRecord:
         assert record_link is not None
 
         record_href = record_link["href"]
-        expected_query_params = parse_qs(browse_query, keep_blank_values=True)
         parsed_record_href = urlparse(record_href)
+        assert parsed_record_href.path.startswith("/record/")
+        assert parsed_record_href.query == ""
 
-        assert (
-            parse_qs(parsed_record_href.query, keep_blank_values=True)
-            == expected_query_params
-        )
+        referrer = f"http://localhost/browse/records?{browse_query}"
 
-        record_response = client.get(record_href)
+        record_response = client.get(record_href, headers={"Referer": referrer})
 
         assert record_response.status_code == 200
 
@@ -153,13 +151,87 @@ class TestRecord:
         back_link = record_soup.select_one("a.govuk-back-link")
 
         assert back_link is not None
+        assert back_link["href"] == referrer
 
+    def test_record_back_link_returns_to_consignment_page_when_opened_from_consignment(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a user opens a record from browse consignment
+        When they inspect the back link on the record page
+        Then the record URL stays clean and the back link follows the previous page
+        """
+        consignment = browse_consignment_files[0].consignment
+        mock_standard_user(client, consignment.series.body.Name)
+
+        consignment_query = "sort=file_name-asc"
+        consignment_response = client.get(
+            f"/browse/consignment/{consignment.ConsignmentId}?{consignment_query}"
+        )
+
+        assert consignment_response.status_code == 200
+
+        consignment_soup = BeautifulSoup(
+            consignment_response.data, "html.parser"
+        )
+        record_link = consignment_soup.select_one("a[href^='/record/']")
+
+        assert record_link is not None
+
+        parsed_record_href = urlparse(record_link["href"])
+        assert parsed_record_href.path.startswith("/record/")
+        assert parsed_record_href.query == ""
+
+        referrer = (
+            f"http://localhost/browse/consignment/{consignment.ConsignmentId}"
+            "?sort=file_name-asc"
+        )
+
+        record_response = client.get(
+            record_link["href"], headers={"Referer": referrer}
+        )
+
+        assert record_response.status_code == 200
+
+        record_soup = BeautifulSoup(record_response.data, "html.parser")
+        back_link = record_soup.select_one("a.govuk-back-link")
+
+        assert back_link is not None
+        assert back_link["href"] == referrer
+
+    @mock_aws
+    def test_record_back_link_ignores_return_to_query_param(
+        self, app, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a record page request includes return_to in query params
+        When they inspect the back link
+        Then the back link does not trust that query parameter
+        """
+        file = FileFactory()
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        return_to = (
+            "/search/results?query=test&search_area=metadata#browse-records"
+        )
+        response = client.get(
+            f"{self.route_url}/{file.FileId}",
+            query_string={"return_to": return_to},
+        )
+
+        assert response.status_code == 200
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        back_link = soup.select_one("a.govuk-back-link")
+
+        assert back_link is not None
         parsed_back_link = urlparse(back_link["href"])
         assert parsed_back_link.path == "/browse/records"
-        assert (
-            parse_qs(parsed_back_link.query, keep_blank_values=True)
-            == expected_query_params
-        )
+        assert parsed_back_link.query == ""
 
     def test_record_invalid_id_raises_404(self, client: FlaskClient):
         """

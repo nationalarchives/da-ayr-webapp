@@ -114,16 +114,16 @@ const browseSeriesUrls = seriesFilters.map((seriesFilter, idx) => {
 });
 
 const searchLandingUrls = [
-  `${BASE_URL}/search?query=test&search_area=everywhere&search_filter=test`,
-  `${BASE_URL}/search?query=ab&search_area=record&search_filter=go`,
+  `${BASE_URL}/search/results?query=test%2Btest&search_area=everywhere`,
+  `${BASE_URL}/search/results?query=ab%2Bgo&search_area=record`,
 ];
 
 const searchResultsByTermUrls = searchTerms.map(
-  (query) => `${BASE_URL}/search_results_summary?query=${query}`,
+  (query) => `${BASE_URL}/search/results?query=${query}`,
 );
 
-const searchTransferringBodyUrls = [
-  `${BASE_URL}/search/transferring_body/8ccc8cd1-c0ee-431d-afad-70cf404ba337?query=a&sort=series-asc&search_filter=test`,
+const searchFilteredUrls = [
+  `${BASE_URL}/search/results?query=a%2Btest&sort=series-asc`,
 ];
 
 const recordIds = [
@@ -160,7 +160,7 @@ const allUrls = [
   ...browseSeriesUrls,
   ...searchLandingUrls,
   ...searchResultsByTermUrls,
-  ...searchTransferringBodyUrls,
+  ...searchFilteredUrls,
   ...recordViewUrls,
 ];
 

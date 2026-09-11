@@ -44,13 +44,8 @@ from .utils.assertions import assert_matches_snapshot
             {"width": 1280, "height": 4000},
         ),
         (
-            "/search_results_summary?query=a",
-            "search_results_summary.png",
-            {"width": 1280, "height": 4000},
-        ),
-        (
-            "/search/transferring_body/8ccc8cd1-c0ee-431d-afad-70cf404ba337?query=a&sort=series-asc&search_filter=test",
-            "search_transferring_body.png",
+            "/search/results?query=a",
+            "search_results.png",
             {"width": 1280, "height": 4000},
         ),
         (
@@ -131,13 +126,8 @@ def test_css_no_visual_regression(
             {"width": 390, "height": 5000},
         ),
         (
-            "/search_results_summary?query=a",
-            "search_results_summary_mobile.png",
-            {"width": 390, "height": 5000},
-        ),
-        (
-            "/search/transferring_body/8ccc8cd1-c0ee-431d-afad-70cf404ba337?query=a&sort=series-asc&search_filter=test",
-            "search_transferring_body_mobile.png",
+            "/search/results?query=a",
+            "search_results_mobile.png",
             {"width": 390, "height": 5000},
         ),
         (
