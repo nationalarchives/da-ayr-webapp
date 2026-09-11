@@ -114,8 +114,8 @@ const browseSeriesUrls = seriesFilters.map((seriesFilter, idx) => {
 });
 
 const searchLandingUrls = [
-  `${BASE_URL}/search/results?query=test&search_area=everywhere&search_filter=test`,
-  `${BASE_URL}/search/results?query=ab&search_area=record&search_filter=go`,
+  `${BASE_URL}/search/results?query=test%2Btest&search_area=everywhere`,
+  `${BASE_URL}/search/results?query=ab%2Bgo&search_area=record`,
 ];
 
 const searchResultsByTermUrls = searchTerms.map(
@@ -123,7 +123,7 @@ const searchResultsByTermUrls = searchTerms.map(
 );
 
 const searchFilteredUrls = [
-  `${BASE_URL}/search/results?query=a&sort=series-asc&search_filter=test`,
+  `${BASE_URL}/search/results?query=a%2Btest&sort=series-asc`,
 ];
 
 const recordIds = [
