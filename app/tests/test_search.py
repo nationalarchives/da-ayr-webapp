@@ -413,8 +413,6 @@ class TestSearchResults:
 
         response = client.get(f"{self.route_url}?query=test")
 
-        response = client.get(f"{self.route_url}?query=test")
-
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
         clear_all_link = soup.find("a", string="Clear all terms", href=True)
