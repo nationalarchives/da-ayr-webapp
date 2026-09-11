@@ -1,18 +1,37 @@
 FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
 
+# renovate: datasource=repology depName=debian_13/gcc versioning=loose
+ARG GCC_VERSION=4:14.2.0-1
+# renovate: datasource=repology depName=debian_13/libpq-dev versioning=loose
+ARG LIBPQ_DEV_VERSION=17.11-0+deb13u1
+# renovate: datasource=repology depName=debian_13/openssl versioning=loose
+ARG OPENSSL_VERSION=3.5.7-1~deb13u2
+# renovate: datasource=repology depName=debian_13/tesseract-ocr versioning=loose
+ARG TESSERACT_OCR_VERSION=5.5.0-1+b1
+# renovate: datasource=repology depName=debian_13/antiword versioning=loose
+ARG ANTIWORD_VERSION=0.37-17
+# renovate: datasource=repology depName=debian_13/unrtf versioning=loose
+ARG UNRTF_VERSION=0.21.10-clean-1
+# renovate: datasource=repology depName=debian_13/libreoffice versioning=loose
+ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u6
+# renovate: datasource=repology depName=debian_13/nodejs versioning=loose
+ARG NODEJS_VERSION=20.19.2+dfsg-1+deb13u2
+# renovate: datasource=repology depName=debian_13/npm versioning=loose
+ARG NPM_VERSION=9.2.0~ds1-3
+
 WORKDIR /docker_app
 
 # Install system dependencies including Node.js (cached layer)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc=4:14.2.0-1 \
-    libpq-dev \
-    openssl=3.5.7-1~deb13u2 \
-    tesseract-ocr=5.5.0-1+b1 \
-    antiword=0.37-17 \
-    unrtf \
-    libreoffice \
-    nodejs=20.19.2+dfsg-1+deb13u2 \
-    npm=9.2.0~ds1-3 \
+    gcc=${GCC_VERSION} \
+    libpq-dev=${LIBPQ_DEV_VERSION} \
+    openssl=${OPENSSL_VERSION} \
+    tesseract-ocr=${TESSERACT_OCR_VERSION} \
+    antiword=${ANTIWORD_VERSION} \
+    unrtf=${UNRTF_VERSION} \
+    libreoffice=${LIBREOFFICE_VERSION} \
+    nodejs=${NODEJS_VERSION} \
+    npm=${NPM_VERSION} \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry (cached layer)

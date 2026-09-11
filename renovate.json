@@ -8,6 +8,28 @@
     "minimumReleaseAge": "0 days",
     "labels": ["security"]
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update pinned Debian apt packages in Dockerfiles",
+      "managerFilePatterns": [
+        "(^|/)Dockerfile$"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>repology) depName=(?<depName>debian_13/\\S+) versioning=(?<versioning>\\S+)\\s+ARG [A-Z0-9_]+_VERSION=(?<currentValue>\\S+)"
+      ]
+    },
+    {
+      "customType": "regex",
+      "description": "Update pinned Amazon Linux dnf packages in Dockerfiles",
+      "managerFilePatterns": [
+        "(^|/)Dockerfile$"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>repology) depName=(?<depName>amazon_2023/\\S+) versioning=(?<versioning>\\S+)\\s+ARG [A-Z0-9_]+_VERSION=(?<currentValue>\\S+)"
+      ]
+    }
+  ],
   "packageRules": [
     {
       "matchUpdateTypes": [
@@ -36,7 +58,7 @@
     {
       "description": "Keep Playwright runtime and Python deps in lockstep for e2e to avoid CI breakage on partial upgrades",
       "matchFileNames": [
-        "e2e_tests/dockerfile",
+        "e2e_tests/Dockerfile",
         "e2e_tests/requirements.txt"
       ],
       "matchPackageNames": [

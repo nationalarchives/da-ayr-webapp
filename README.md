@@ -663,7 +663,7 @@ python -m pytest app/tests --cov=app --cov-report=term-missing --cov-branch -vvv
 
 This also will generate a test coverage report.
 
-For the data_management tests there is a dockerfile that sets up a local postgres instance to be used as a database.
+For the data_management tests there is a Dockerfile that sets up a local postgres instance to be used as a database.
 
 To run tests for the opensearch_indexer you can run the command:
 
@@ -739,7 +739,7 @@ In addition, we recommend that any tests that have dependencies on data, do not 
 
 Visual regression testing has been updated with improved containerisation and automation. The tests now use PNG format for better consistency and performance across different environments.
 
-In order to ensure a consistent and stable testing environment, we make use of a [Docker](https://www.docker.com/products/docker-desktop/) image (and subsequently container) that is defined in structure inside of `e2e_tests/dockerfile`.
+In order to ensure a consistent and stable testing environment, we make use of a [Docker](https://www.docker.com/products/docker-desktop/) image (and subsequently container) that is defined in structure inside of `e2e_tests/Dockerfile`.
 
 Ensure there is an .env.e2e_tests with the following values:
 

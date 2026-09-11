@@ -1,6 +1,14 @@
 FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
 
 ARG DROID_VERSION=6.9.13
+# renovate: datasource=repology depName=debian_13/ca-certificates versioning=loose
+ARG CA_CERTIFICATES_VERSION=20250419
+# renovate: datasource=repology depName=debian_13/curl versioning=loose
+ARG CURL_VERSION=8.14.1-2+deb13u4
+# renovate: datasource=repology depName=debian_13/openjdk-21-jre-headless versioning=loose
+ARG OPENJDK_21_JRE_HEADLESS_VERSION=21.0.12.1+1-1~deb13u1
+# renovate: datasource=repology depName=debian_13/unzip versioning=loose
+ARG UNZIP_VERSION=6.0-29+deb13u1
 
 ARG DROID_JAR_PATCHES="\
 io.netty:netty-codec:4.1.136.Final \
@@ -34,10 +42,10 @@ WORKDIR /app
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        ca-certificates \
-        curl \
-        openjdk-21-jre-headless \
-        unzip && \
+  ca-certificates=${CA_CERTIFICATES_VERSION} \
+  curl=${CURL_VERSION} \
+  openjdk-21-jre-headless=${OPENJDK_21_JRE_HEADLESS_VERSION} \
+  unzip=${UNZIP_VERSION} && \
     rm -rf /var/lib/apt/lists/*
 
 # Download and unpack DROID.
