@@ -1001,6 +1001,7 @@ def record(record_id: uuid.UUID):
         file_extension=file_extension,
         presigned_url=presigned_url,
         supported_render_puids=current_app.config["SUPPORTED_RENDER_PUIDS"],
+        query_string_parameters=request.validated_args,
     )
 
 

@@ -1,4 +1,4 @@
-const base_url = "https://localhost:5000";
+const base_url = `https://localhost:${process.env.WEBAPP_HOST_PORT || 5000}`;
 
 module.exports = {
   defaults: {
