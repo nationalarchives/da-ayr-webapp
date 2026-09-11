@@ -367,6 +367,128 @@ def build_dsl_search_query(
     return query_structure
 
 
+def _build_range_filter(field_name, date_from, date_to):
+    range_values = {}
+    if date_from:
+        range_values["gte"] = date_from
+    if date_to:
+        range_values["lte"] = date_to
+    if not range_values:
+        return None
+    return {"range": {field_name: range_values}}
+
+
+def _build_date_of_record_filter(date_from, date_to):
+    end_date_range = _build_range_filter("end_date", date_from, date_to)
+    last_modified_range = _build_range_filter(
+        "date_last_modified", date_from, date_to
+    )
+
+    should_clauses = []
+    if end_date_range:
+        should_clauses.append(end_date_range)
+    if last_modified_range:
+        should_clauses.append(
+            {
+                "bool": {
+                    "must_not": [{"exists": {"field": "end_date"}}],
+                    "filter": [last_modified_range],
+                }
+            }
+        )
+
+    if not should_clauses:
+        return None
+
+    return {
+        "bool": {
+            "should": should_clauses,
+            "minimum_should_match": 1,
+        }
+    }
+
+
+def build_search_filter_clauses(transferring_body_id=None, filters=None):
+    filter_clauses = []
+
+    if transferring_body_id is not None:
+        filter_clauses.append(
+            {
+                "term": {
+                    "transferring_body_id.keyword": str(transferring_body_id)
+                }
+            }
+        )
+
+    if not filters:
+        return filter_clauses
+
+    transferring_body = (filters.get("transferring_body") or "").strip()
+    if transferring_body:
+        filter_clauses.append(
+            {
+                "match_phrase": {
+                    "transferring_body": transferring_body,
+                }
+            }
+        )
+
+    series = (filters.get("series") or "").strip()
+    if series:
+        filter_clauses.append(
+            {
+                "match_phrase": {
+                    "series_name": series,
+                }
+            }
+        )
+
+    consignment_reference = (
+        (filters.get("consignment_reference") or "").strip()
+    )
+    if consignment_reference:
+        filter_clauses.append(
+            {
+                "match_phrase": {
+                    "consignment_reference": consignment_reference,
+                }
+            }
+        )
+
+    record_status = (filters.get("record_status") or "").strip().lower()
+    if record_status and record_status != "all":
+        filter_clauses.append(
+            {
+                "term": {
+                    "closure_type.keyword": record_status.capitalize(),
+                }
+            }
+        )
+
+    date_from = filters.get("date_from")
+    date_to = filters.get("date_to")
+    if date_from or date_to:
+        date_filter_field = (
+            (filters.get("date_filter_field") or "date_last_modified")
+            .strip()
+            .lower()
+        )
+        if date_filter_field == "opening_date":
+            date_filter = _build_range_filter("opening_date", date_from, date_to)
+            if date_filter:
+                filter_clauses.append(date_filter)
+        elif date_filter_field == "transferred":
+            date_filter = _build_range_filter("end_date", date_from, date_to)
+            if date_filter:
+                filter_clauses.append(date_filter)
+        else:
+            date_filter = _build_date_of_record_filter(date_from, date_to)
+            if date_filter:
+                filter_clauses.append(date_filter)
+
+    return filter_clauses
+
+
 def build_search_results_query(
     search_fields,
     highlight_tag,
@@ -374,16 +496,12 @@ def build_search_results_query(
     single_terms,
     sorting,
     transferring_body_id=None,
+    filters=None,
 ):
-    filter_clauses = []
-    if transferring_body_id is not None:
-        filter_clauses = [
-            {
-                "term": {
-                    "transferring_body_id.keyword": str(transferring_body_id)
-                }
-            }
-        ]
+    filter_clauses = build_search_filter_clauses(
+        transferring_body_id=transferring_body_id,
+        filters=filters,
+    )
     dsl_query = build_dsl_search_query(
         search_fields,
         filter_clauses,

@@ -99,6 +99,64 @@ class SearchRequestSchema(SearchQuerySchema):
 class SearchResultsRequestSchema(PaginationSchema, SearchQuerySchema):
     """Search results request validation schema."""
 
+    transferring_body_filter = fields.String(
+        allow_none=True,
+        load_default="",
+        validate=validate.Length(max=200),
+    )
+    series_filter = fields.String(
+        allow_none=True,
+        load_default="",
+        validate=validate.Length(max=200),
+    )
+    consignment_reference = fields.String(
+        allow_none=True,
+        load_default="",
+        validate=validate.Length(max=100),
+    )
+    date_filter_field = fields.String(
+        allow_none=True,
+        load_default="",
+        validate=validate.OneOf(
+            ["date_last_modified", "opening_date", "transferred", ""]
+        ),
+    )
+    record_status = fields.String(
+        allow_none=True,
+        load_default="all",
+        validate=validate.OneOf(["all", "open", "closed"]),
+    )
+    date_from_day = fields.Integer(
+        allow_none=True,
+        load_default=None,
+        validate=validate.Range(min=1, max=31),
+    )
+    date_from_month = fields.Integer(
+        allow_none=True,
+        load_default=None,
+        validate=validate.Range(min=1, max=12),
+    )
+    date_from_year = fields.Integer(
+        allow_none=True,
+        load_default=None,
+        validate=validate.Range(min=1900, max=2100),
+    )
+    date_to_day = fields.Integer(
+        allow_none=True,
+        load_default=None,
+        validate=validate.Range(min=1, max=31),
+    )
+    date_to_month = fields.Integer(
+        allow_none=True,
+        load_default=None,
+        validate=validate.Range(min=1, max=12),
+    )
+    date_to_year = fields.Integer(
+        allow_none=True,
+        load_default=None,
+        validate=validate.Range(min=1900, max=2100),
+    )
+
     class Meta:
         unknown = EXCLUDE
 

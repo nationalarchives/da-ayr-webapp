@@ -398,13 +398,13 @@ class TestSearchResults:
         assert back_link["href"] == "/browse#browse-records"
 
     @patch("app.main.routes.setup_opensearch")
-    def test_search_results_clear_all_terms_targets_browse_for_all_access_user(
+    def test_search_results_clear_filters_preserves_query_for_all_access_user(
         self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
     ):
         """
         Given an all-access user on search results
-        When Clear all terms is rendered
-        Then it links to /browse#browse-records
+        When Clear filters is rendered in the browse filters panel
+        Then it links back to search results preserving the query
         """
         mock_all_access_user(client)
         mock_setup_opensearch.return_value = MockOpenSearch(
@@ -415,13 +415,16 @@ class TestSearchResults:
 
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
-        clear_all_link = soup.find("a", string="Clear all terms", href=True)
+        clear_filters_link = soup.find("a", string="Clear filters", href=True)
 
-        assert clear_all_link is not None
-        assert clear_all_link["href"] == "/browse#browse-records"
+        assert clear_filters_link is not None
+        assert (
+            clear_filters_link["href"]
+            == "/search/results?query=test#browse-records"
+        )
 
     @patch("app.main.routes.setup_opensearch")
-    def test_search_results_clear_all_terms_targets_body_browse_for_standard_user(
+    def test_search_results_clear_filters_preserves_query_for_standard_user(
         self,
         mock_setup_opensearch,
         client: FlaskClient,
@@ -430,8 +433,8 @@ class TestSearchResults:
     ):
         """
         Given a standard user on search results
-        When Clear all terms is rendered
-        Then it links to that user's transferring body browse anchor
+        When Clear filters is rendered in the browse filters panel
+        Then it links back to search results preserving the query
         """
         body = browse_consignment_files[0].consignment.series.body
         mock_standard_user(client, body.Name)
@@ -443,13 +446,36 @@ class TestSearchResults:
 
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
-        clear_all_link = soup.find("a", string="Clear all terms", href=True)
+        clear_filters_link = soup.find("a", string="Clear filters", href=True)
 
-        assert clear_all_link is not None
+        assert clear_filters_link is not None
         assert (
-            clear_all_link["href"]
-            == f"/browse/transferring_body/{body.BodyId}#browse-records"
+            clear_filters_link["href"]
+            == "/search/results?query=test#browse-records"
         )
+
+    @patch("app.main.routes.setup_opensearch")
+    def test_search_results_uses_browse_filters_with_closed_label(
+        self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given search results use the shared browse filters component
+        When record status options are rendered
+        Then the closed option label text is "Closed"
+        """
+        mock_all_access_user(client)
+        mock_setup_opensearch.return_value = MockOpenSearch(
+            search_return_value=OS_MOCK_RESULTS
+        )
+
+        response = client.get(f"{self.route_url}?query=test")
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        closed_label = soup.find("label", attrs={"for": "recordStatus-closed"})
+
+        assert closed_label is not None
+        assert closed_label.get_text(strip=True) == "Closed"
 
     @patch("app.main.routes.execute_search")
     @patch("app.main.routes.setup_opensearch")
@@ -477,13 +503,11 @@ class TestSearchResults:
 
         assert response.status_code == 200
         _, dsl_query, _, _ = mock_execute_search.call_args[0]
-        assert dsl_query["query"]["bool"]["filter"] == [
-            {
-                "term": {
-                    "transferring_body_id.keyword": str(body.BodyId),
-                }
+        assert {
+            "term": {
+                "transferring_body_id.keyword": str(body.BodyId),
             }
-        ]
+        } in dsl_query["query"]["bool"]["filter"]
 
     def test_search_results_redirects_when_search_filter_is_added(
         self, client: FlaskClient, mock_all_access_user
@@ -660,13 +684,11 @@ class TestSearchResults:
 
         assert response.status_code == 200
         _, dsl_query, _, _ = mock_execute_search.call_args[0]
-        assert dsl_query["query"]["bool"]["filter"] == [
-            {
-                "term": {
-                    "transferring_body_id.keyword": str(body.BodyId),
-                }
+        assert {
+            "term": {
+                "transferring_body_id.keyword": str(body.BodyId),
             }
-        ]
+        } in dsl_query["query"]["bool"]["filter"]
 
     @patch("app.main.routes.get_open_search_fields_to_search_on_and_sorting")
     @patch("app.main.routes.execute_search")
@@ -732,13 +754,13 @@ class TestSearchResults:
         mock_extract_search_terms.assert_called_once_with("test")
 
     @patch("app.main.routes.setup_opensearch")
-    def test_search_results_single_term_remove_link_targets_browse(
+    def test_search_results_does_not_render_search_term_remove_link_for_all_access_user(
         self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
     ):
         """
-        Given one applied search term for an all-access user
-        When the term removal link is rendered
-        Then it points back to /browse
+        Given search results for an all-access user
+        When the browse filters panel is rendered
+        Then search-term chip removal links are not shown
         """
         mock_all_access_user(client)
         mock_setup_opensearch.return_value = MockOpenSearch(
@@ -749,19 +771,12 @@ class TestSearchResults:
 
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
-        remove_term_link = soup.find(
-            "a",
-            attrs={
-                "class": "search-term-link",
-                "aria-label": "Remove filter for 'test'",
-            },
-        )
+        remove_term_link = soup.find("a", attrs={"class": "search-term-link"})
 
-        assert remove_term_link is not None
-        assert remove_term_link["href"] == "/browse"
+        assert remove_term_link is None
 
     @patch("app.main.routes.setup_opensearch")
-    def test_search_results_single_term_remove_link_targets_transferring_body_for_standard_user(
+    def test_search_results_does_not_render_search_term_remove_link_for_standard_user(
         self,
         mock_setup_opensearch,
         client: FlaskClient,
@@ -769,9 +784,9 @@ class TestSearchResults:
         browse_consignment_files,
     ):
         """
-        Given one applied search term for a standard user
-        When the term removal link is rendered
-        Then it points back to that user's transferring body browse route
+        Given search results for a standard user
+        When the browse filters panel is rendered
+        Then search-term chip removal links are not shown
         """
         body = browse_consignment_files[0].consignment.series.body
         mock_standard_user(client, body.Name)
@@ -783,16 +798,6 @@ class TestSearchResults:
 
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
-        remove_term_link = soup.find(
-            "a",
-            attrs={
-                "class": "search-term-link",
-                "aria-label": "Remove filter for 'test'",
-            },
-        )
+        remove_term_link = soup.find("a", attrs={"class": "search-term-link"})
 
-        assert remove_term_link is not None
-        assert (
-            remove_term_link["href"]
-            == f"/browse/transferring_body/{body.BodyId}"
-        )
+        assert remove_term_link is None
