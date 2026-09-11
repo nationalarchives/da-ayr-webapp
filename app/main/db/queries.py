@@ -456,6 +456,10 @@ def build_browse_records_base_query(
             Series.Name.label("series"),
             Consignment.ConsignmentId.label("consignment_id"),
             Consignment.ConsignmentReference.label("consignment_reference"),
+            func.to_char(
+                Consignment.TransferCompleteDatetime,
+                current_app.config["DEFAULT_DATE_FORMAT"],
+            ).label("consignment_transfer_complete_date"),
             File.FileId.label("file_id"),
             File.FileName.label("file_name"),
             File.FilePath.label("file_path"),

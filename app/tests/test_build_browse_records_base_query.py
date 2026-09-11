@@ -1,8 +1,19 @@
+from datetime import datetime
+
+from app.main.db.models import db
 from app.main.db.queries import (
     build_browse_records_base_query,
     get_browse_records_metadata_for_files,
 )
 from app.tests.factories import FileMetadataFactory
+
+
+def _row_mapping(row):
+    return row._mapping
+
+
+def _file_names(rows):
+    return [_row_mapping(row)["file_name"] for row in rows]
 
 
 class TestBrowseRecordsBaseQuery:
@@ -15,6 +26,12 @@ class TestBrowseRecordsBaseQuery:
         Then it returns flattened records for that body
         """
         body_name = browse_consignment_files[0].consignment.series.body.Name
+        consignment = browse_consignment_files[0].consignment
+        transfer_complete_datetime = datetime(2024, 5, 1, 13, 45, 0)
+        expected_transfer_complete_date = "01/05/2024"
+
+        consignment.TransferCompleteDatetime = transfer_complete_datetime
+        db.session.flush()
 
         mock_standard_user(client, body_name)
 
@@ -25,7 +42,6 @@ class TestBrowseRecordsBaseQuery:
 
         body = browse_consignment_files[0].consignment.series.body
         series = browse_consignment_files[0].consignment.series
-        consignment = browse_consignment_files[0].consignment
 
         expected_results = {
             (
@@ -35,6 +51,7 @@ class TestBrowseRecordsBaseQuery:
                 series.Name,
                 consignment.ConsignmentId,
                 consignment.ConsignmentReference,
+                expected_transfer_complete_date,
                 browse_consignment_files[4].FileId,
                 "fifth_file.doc",
                 browse_consignment_files[4].FilePath,
@@ -46,6 +63,7 @@ class TestBrowseRecordsBaseQuery:
                 series.Name,
                 consignment.ConsignmentId,
                 consignment.ConsignmentReference,
+                expected_transfer_complete_date,
                 browse_consignment_files[3].FileId,
                 "fourth_file.xls",
                 browse_consignment_files[3].FilePath,
@@ -57,6 +75,7 @@ class TestBrowseRecordsBaseQuery:
                 series.Name,
                 consignment.ConsignmentId,
                 consignment.ConsignmentReference,
+                expected_transfer_complete_date,
                 browse_consignment_files[2].FileId,
                 "third_file.docx",
                 browse_consignment_files[2].FilePath,
@@ -68,6 +87,7 @@ class TestBrowseRecordsBaseQuery:
                 series.Name,
                 consignment.ConsignmentId,
                 consignment.ConsignmentReference,
+                expected_transfer_complete_date,
                 browse_consignment_files[0].FileId,
                 "first_file.docx",
                 browse_consignment_files[0].FilePath,
@@ -79,6 +99,7 @@ class TestBrowseRecordsBaseQuery:
                 series.Name,
                 consignment.ConsignmentId,
                 consignment.ConsignmentReference,
+                expected_transfer_complete_date,
                 browse_consignment_files[1].FileId,
                 "second_file.ppt",
                 browse_consignment_files[1].FilePath,
@@ -129,7 +150,7 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert [result[7] for result in results] == [
+        assert _file_names(results) == [
             "first_file.docx",
             "fourth_file.xls",
             "third_file.docx",
@@ -155,7 +176,7 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert [result[7] for result in results] == [
+        assert _file_names(results) == [
             "fifth_file.doc",
             "second_file.ppt",
             "third_file.docx",
@@ -181,7 +202,7 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert [result[7] for result in results] == [
+        assert _file_names(results) == [
             "fifth_file.doc",
             "fourth_file.xls",
             "third_file.docx",
@@ -207,7 +228,7 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert [result[7] for result in results] == [
+        assert _file_names(results) == [
             "second_file.ppt",
             "first_file.docx",
             "third_file.docx",
@@ -229,7 +250,7 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        series_values = [result[3] for result in results]
+        series_values = [_row_mapping(result)["series"] for result in results]
 
         assert series_values == sorted(series_values, reverse=True)
 
@@ -253,7 +274,9 @@ class TestBrowseRecordsBaseQuery:
         results = query.all()
 
         assert len(results) == len(browse_consignment_files)
-        assert all(result[3] == series_name for result in results)
+        assert all(
+            _row_mapping(result)["series"] == series_name for result in results
+        )
 
     def test_build_browse_records_base_query_filters_by_consignment_reference(
         self, client, browse_files
@@ -270,7 +293,10 @@ class TestBrowseRecordsBaseQuery:
         results = query.all()
 
         assert len(results) == 3
-        assert all(result[5] == "TDR-2023-TH3" for result in results)
+        assert all(
+            _row_mapping(result)["consignment_reference"] == "TDR-2023-TH3"
+            for result in results
+        )
 
     def test_build_browse_records_base_query_filters_by_record_status_closed(
         self, client, mock_standard_user, browse_consignment_files
@@ -290,7 +316,7 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert sorted(result[7] for result in results) == [
+        assert sorted(_file_names(results)) == [
             "first_file.docx",
             "fourth_file.xls",
             "third_file.docx",
@@ -318,7 +344,7 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert sorted(result[7] for result in results) == [
+        assert sorted(_file_names(results)) == [
             "fifth_file.doc",
             "fourth_file.xls",
         ]
@@ -365,7 +391,7 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert sorted(result[7] for result in results) == [
+        assert sorted(_file_names(results)) == [
             "fifth_file.doc",
             "fourth_file.xls",
         ]
@@ -385,7 +411,10 @@ class TestBrowseRecordsBaseQuery:
         results = query.all()
 
         assert len(results) == 7
-        assert all(result[1] == "second_body" for result in results)
+        assert all(
+            _row_mapping(result)["transferring_body"] == "second_body"
+            for result in results
+        )
 
     def test_build_browse_records_base_query_transferring_body_requires_exact_match(
         self, client, browse_files

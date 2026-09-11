@@ -666,8 +666,6 @@ def browse_records():
     results = []
     for row in page_items:
         meta = metadata_map.get(row.file_id, {})
-        date_last_modified = meta.get("date_last_modified")
-        end_date = meta.get("end_date")
         results.append(
             {
                 "transferring_body_id": row.transferring_body_id,
@@ -676,14 +674,14 @@ def browse_records():
                 "series": row.series,
                 "consignment_id": row.consignment_id,
                 "consignment_reference": row.consignment_reference,
+                "consignment_transfer_complete_date": row.consignment_transfer_complete_date,
                 "file_id": row.file_id,
                 "file_name": row.file_name,
                 "file_path": row.file_path,
-                "date_last_modified": date_last_modified,
-                "end_date": end_date,
                 "closure_type": meta.get("closure_type"),
                 "opening_date": meta.get("opening_date"),
-                "date_of_record": end_date or date_last_modified,
+                "date_of_record": meta.get("end_date")
+                or meta.get("date_last_modified"),
             }
         )
 
