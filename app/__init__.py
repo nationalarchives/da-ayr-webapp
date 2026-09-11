@@ -10,6 +10,7 @@ from flask_s3 import FlaskS3
 from flask_talisman import Talisman
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
+from sqlalchemy.pool import NullPool
 
 from app.logger_config import setup_logging
 from app.main.db.models import db
@@ -165,6 +166,7 @@ def create_app(config_class, local_env, database_uri=None):
         app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://"
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
             "creator": get_connection,
+            "poolclass": NullPool,
         }
         db.init_app(app)
 
