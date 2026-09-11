@@ -250,7 +250,7 @@ class TestBrowseRecords:
         )
 
         assert response.status_code == 200
-        assert b"No results found" in response.data
+        assert b"Help with your search" in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
         transferring_body_filter = soup.find(
@@ -279,7 +279,7 @@ class TestBrowseRecords:
         response = client.get(f"{self.route_url}?series_filter=second")
 
         assert response.status_code == 200
-        assert b"No results" in response.data
+        assert b"Help with your search" in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
         transferring_body_filter = soup.find(

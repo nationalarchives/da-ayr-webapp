@@ -221,8 +221,11 @@ class TestSearchResults:
         response = client.get(self.route_url)
 
         assert response.status_code == 200
-        assert b"No results found" in response.data
         assert b"Help with your search" in response.data
+        assert (
+            b"Try changing or removing one or more applied filters."
+            in response.data
+        )
         mock_setup_opensearch.assert_not_called()
 
     @patch("app.main.routes.setup_opensearch")
@@ -272,8 +275,8 @@ class TestSearchResults:
         response = client.get(f"{self.route_url}?query=test")
 
         assert response.status_code == 200
-        assert b"No results found" in response.data
         assert b"Help with your search" in response.data
+        assert b"Try changing or removing search terms." in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
         assert soup.find("table", attrs={"id": "tbl_result"}) is None
