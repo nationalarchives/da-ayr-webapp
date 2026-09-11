@@ -83,7 +83,6 @@ from app.main.util.schemas import (
     DownloadRequestSchema,
     GenerateManifestRequestSchema,
     RecordRequestSchema,
-    SearchRequestSchema,
     SearchResultsRequestSchema,
     SearchWithinRequestSchema,
 )
@@ -708,16 +707,6 @@ def browse_records():
     )
 
 
-@bp.route("/search", methods=["GET"])
-@access_token_sign_in_required
-@log_page_view
-@validate_request(SearchRequestSchema, location="combined")
-def search():
-    redirect_params = request.validated_args.copy()
-
-    return redirect(url_for("main.search_results", **redirect_params))
-
-
 @bp.route("/search/results", methods=["GET"], endpoint="search_results")
 @bp.route("/search/results/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
@@ -815,6 +804,7 @@ def search_results(_id: uuid.UUID | None = None):
     return render_template(
         "search-results.html",
         form=form,
+        per_page=per_page,
         sort=sort,
         current_page=page,
         filters=filters,

@@ -24,6 +24,6 @@ class TestParameterPollutionSecurity:
         # Set up authenticated session
         mock_standard_user(client)
 
-        response = client.get("/search?query=test&_anchor=exploit")
+        response = client.get("/search/results?_anchor=exploit")
 
-        assert response.status_code == 302
+        assert response.status_code == 200

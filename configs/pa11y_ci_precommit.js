@@ -46,9 +46,9 @@ module.exports = {
     `${base_url}/browse/series/93ed0101-2318-45ab-8730-c681958ded7e?sort=consignment_reference-asc`,
     `${base_url}/browse/series/8bd7ad22-90d1-4c7f-ae00-645dfd1987cc?sort=last_record_transferred-desc`,
     `${base_url}/browse/consignment/b4a8379c-0767-4a9b-8537-181aed23e837`,
-    `${base_url}/search?query=test&search_area=everywhere&search_filter=test`,
+    `${base_url}/search/results?query=test%2Btest&search_area=everywhere`,
     `${base_url}/search/results?query=test`,
     `${base_url}/search/results?query=test&search_area=record`,
-    `${base_url}/search/results?query=a&sort=series-asc&search_filter=test`,
+    `${base_url}/search/results?query=a%2Btest&sort=series-asc`,
   ],
 };

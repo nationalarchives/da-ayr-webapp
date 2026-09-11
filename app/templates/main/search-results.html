@@ -2,6 +2,7 @@
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 {% from 'main/components/back-link.html' import page_back_link %}
 {% from "main/components/no-results-message.html" import no_results_message %}
+{% from 'main/components/records-table.html' import render_record_table %}
 {% from 'macros/forms.html' import render_preserved_params %}
 {% block pageTitle %}Search results – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
@@ -61,64 +62,39 @@
                                 </div>
                             </div>
                             <input type="hidden" name="query" value="{{ filters['query'] }}">
-                            <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
-                                {% set number_of_columns = 4 %}
-                                {% set per_page_value = (query_string_parameters.get('per_page', 5) | int) %}
-                                {% set start_index = ((current_page - 1) * per_page_value) + 1 %}
-                                {% set end_index = [current_page * per_page_value, num_records_found] | min %}
-                                {% set browse_table_params = query_string_parameters.copy() %}
-                                {% set _ = browse_table_params.pop('query', None) %}
-                                {% set _ = browse_table_params.pop('search_area', None) %}
-                                {% set _ = browse_table_params.pop('sort', None) %}
-                                {% set _ = browse_table_params.pop('_id', None) %}
-                                {% set record_back_target = url_for('main.search_results', _anchor='browse-records', **query_string_parameters) %}
-                                {% set is_standard_user = session['user_type'] == 'standard_user' %}
-                                <table class="govuk-table browse-grid__table browse-records__table"
-                                       id="tbl_result"
-                                       aria-label="Browse records table">
-                                    <thead class="govuk-table__head">
-                                        <tr class="govuk-table__row">
-                                            <th scope="col" class="govuk-table__header browse-records__header-cell">Showing {{ start_index }}–{{ end_index }} of {{ num_records_found | format_number_with_commas }}</th>
-                                            <th scope="col"
-                                                class="govuk-table__header browse-records__header-cell govuk-table--invisible-on-mobile">Series</th>
-                                            <th scope="col" class="govuk-table__header browse-records__header-cell">Status</th>
-                                            <th scope="col"
-                                                class="govuk-table__header browse-records__header-cell browse-records__header-cell--right govuk-table--right-align">Opening date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="govuk-table__body">
-                                        {% if results %}
-                                            {% for search_record in results %}
-                                                {% set source = search_record['_source'] %}
-                                                {% set snippet = None %}
-                                                {% if search_record.get('highlight') and search_record['highlight'].get('content') %}
-                                                    {% set snippet = search_record['highlight']['content'] | join(' ... ') | clean_tags_and_replace_highlight_tag(highlight_tag) | safe %}
-                                                {% endif %}
-                                                {% set record = {
-                                                                                                    'file_id': source.get('file_id'),
-                                                                                                    'file_name': source.get('file_name'),
-                                                                                                    'date_of_record': source.get('end_date') or source.get('date_last_modified'),
-                                                                                                    'series': source.get('series_name') or source.get('series'),
-                                                                                                    'closure_type': source.get('closure_type'),
-                                                                                                    'opening_date': source.get('opening_date'),
-                                                                                                    'transferring_body': source.get('transferring_body'),
-                                                                                                    'file_path': source.get('file_path'),
-                                                                                                    'consignment_reference': source.get('consignment_reference'),
-                                                                                                    'search_result_snippet': snippet
-                                                                                                } %}
-                                                {% with query_string_parameters=browse_table_params, number_of_columns=number_of_columns, is_standard_user=is_standard_user, record=record, record_back_target=record_back_target %}
-                                                    {% include "components/browse-record-row.html" %}
-                                                {% endwith %}
-                                            {% endfor %}
+                            {% set number_of_columns = 4 %}
+                            {% set browse_table_params = query_string_parameters.copy() %}
+                            {% set _ = browse_table_params.pop('query', None) %}
+                            {% set _ = browse_table_params.pop('search_area', None) %}
+                            {% set _ = browse_table_params.pop('sort', None) %}
+                            {% set _ = browse_table_params.pop('_id', None) %}
+                            {% set is_standard_user = session['user_type'] == 'standard_user' %}
+                            {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, 'main.search_results', None) %}
+                                {% if results %}
+                                    {% for search_record in results %}
+                                        {% set source = search_record['_source'] %}
+                                        {% set snippet = None %}
+                                        {% if search_record.get('highlight') and search_record['highlight'].get('content') %}
+                                            {% set snippet = search_record['highlight']['content'] | join(' ... ') | clean_tags_and_replace_highlight_tag(highlight_tag) | safe %}
                                         {% endif %}
-                                    </tbody>
-                                </table>
-                                <!-- PAGINATION -->
-                                {% with view_name='main.search_results', id=None %}
-                                    {% include "pagination.html" %}
-                                {% endwith %}
-                                <!-- END PAGINATION -->
-                            </div>
+                                        {% set record = {
+                                                                                    'file_id': source.get('file_id'),
+                                                                                    'file_name': source.get('file_name'),
+                                                                                    'date_of_record': source.get('end_date') or source.get('date_last_modified'),
+                                                                                    'series': source.get('series_name') or source.get('series'),
+                                                                                    'closure_type': source.get('closure_type'),
+                                                                                    'opening_date': source.get('opening_date'),
+                                                                                    'transferring_body': source.get('transferring_body'),
+                                                                                    'file_path': source.get('file_path'),
+                                                                                    'consignment_reference': source.get('consignment_reference'),
+                                                                                    'search_result_snippet': snippet
+                                                                                } %}
+                                        {% with query_string_parameters=browse_table_params, number_of_columns=number_of_columns, is_standard_user=is_standard_user, record=record %}
+                                            {% include "components/results-table-row.html" %}
+                                        {% endwith %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endcall %}
                         {% endif %}
                         <!-- FILTERS -->
                         <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
@@ -200,44 +176,37 @@
             </div>
         </div>
     </div>
-    <script nonce="{{ csp_nonce() }}">
-        document.addEventListener('DOMContentLoaded', () => {
-            const toggleButtons = document.querySelectorAll('.govuk-table__toggle-button');
-
-            const expandableRows = document.querySelectorAll('tr[data-main-row]');
-            expandableRows.forEach(row => {
-                row.classList.add('hidden');
-                row.setAttribute('aria-hidden', 'true');
-                row.setAttribute('aria-expanded', 'false');
-            });
-
-            const toggleRows = (btn, expand) => {
-            const rows = document.querySelectorAll(`tr[data-main-row="${btn.dataset.mainRow}"]`);
-            const fieldCount = document.querySelector(`span[data-main-row="${btn.dataset.mainRow}"].field-count`);
-
-            rows.forEach(row => {
-                row.classList.toggle('hidden', !expand);
-                row.setAttribute('aria-hidden', !expand);
-                row.setAttribute('aria-expanded', expand);
-            });
-
-            if (fieldCount) {
-            fieldCount.classList.toggle('hidden', expand);
-            }
-
-            btn.setAttribute('aria-expanded', expand);
-            btn.setAttribute('aria-label',
-            `${expand ? 'Collapse' : 'Expand'} rows for file ${btn.dataset.fileName}`);
-            };
-
-            document.querySelectorAll('.field-count').forEach(count => {
-                count.classList.remove('hidden');
-            });
-
-            toggleButtons.forEach(btn => {
-                btn.removeAttribute('disabled');
-                btn.onclick = () => toggleRows(btn, btn.getAttribute('aria-expanded') !== 'true');
-            });
-        });
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const toggleButtons = document.querySelectorAll('.govuk-table__toggle-button');
+    const expandableRows = document.querySelectorAll('tr[data-main-row]');
+    expandableRows.forEach(row => {
+    row.classList.add('hidden');
+    row.setAttribute('aria-hidden', 'true');
+    row.setAttribute('aria-expanded', 'false');
+    });
+    const toggleRows = (btn, expand) => {
+    const rows = document.querySelectorAll(`tr[data-main-row="${btn.dataset.mainRow}"]`);
+    const fieldCount = document.querySelector(`span[data-main-row="${btn.dataset.mainRow}"].field-count`);
+    rows.forEach(row => {
+    row.classList.toggle('hidden', !expand);
+    row.setAttribute('aria-hidden', !expand);
+    row.setAttribute('aria-expanded', expand);
+    });
+    if (fieldCount) {
+    fieldCount.classList.toggle('hidden', expand);
+    }
+    btn.setAttribute('aria-expanded', expand);
+    btn.setAttribute('aria-label',
+    `${expand ? 'Collapse' : 'Expand'} rows for file ${btn.dataset.fileName}`);
+    };
+    document.querySelectorAll('.field-count').forEach(count => {
+    count.classList.remove('hidden');
+    });
+    toggleButtons.forEach(btn => {
+    btn.removeAttribute('disabled');
+    btn.onclick = () => toggleRows(btn, btn.getAttribute('aria-expanded') !== 'true');
+    });
+    });
     </script>
 {% endblock %}

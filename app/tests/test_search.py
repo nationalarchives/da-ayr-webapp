@@ -5,7 +5,6 @@ from urllib.parse import parse_qs, urlparse
 
 import opensearchpy
 from bs4 import BeautifulSoup
-from flask import url_for
 from flask.testing import FlaskClient
 from werkzeug.exceptions import NotFound
 
@@ -83,35 +82,32 @@ class MockOpenSearch:
         return self.index_return_value
 
 
-class TestSearchRedirect:
+class TestSearchEndpointRemoved:
     @property
     def route_url(self):
         return "/search"
 
-    def test_search_redirects_all_access_user_to_search_results(
+    def test_search_endpoint_returns_not_found_for_all_access_user(
         self, client: FlaskClient, mock_all_access_user
     ):
         """
         Given an all-access user accessing /search
-        When they submit a query
-        Then they are redirected to canonical /search/results
+        When the endpoint has been removed
+        Then a 404 is returned
         """
         mock_all_access_user(client)
 
         response = client.get(f"{self.route_url}", data={"query": "fi"})
 
-        assert response.status_code == 302
-        assert response.headers["Location"] == url_for(
-            "main.search_results", query="fi"
-        )
+        assert response.status_code == 404
 
-    def test_search_redirects_standard_user_to_search_results(
+    def test_search_endpoint_returns_not_found_for_standard_user(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
         """
         Given a standard user accessing /search
-        When they submit a query
-        Then they are redirected to canonical /search/results
+        When the endpoint has been removed
+        Then a 404 is returned
         """
         mock_standard_user(
             client, browse_consignment_files[0].consignment.series.body.Name
@@ -119,18 +115,15 @@ class TestSearchRedirect:
 
         response = client.get(f"{self.route_url}", data={"query": "fi"})
 
-        assert response.status_code == 302
-        assert response.headers["Location"] == url_for(
-            "main.search_results", query="fi"
-        )
+        assert response.status_code == 404
 
-    def test_search_redirect_preserves_search_query_parameters(
+    def test_search_endpoint_returns_not_found_with_query_parameters(
         self, client: FlaskClient, mock_all_access_user
     ):
         """
         Given a /search request with explicit search parameters
-        When the route redirects to /search/results
-        Then the query parameters are preserved
+        When the endpoint has been removed
+        Then a 404 is returned
         """
         mock_all_access_user(client)
 
@@ -144,15 +137,7 @@ class TestSearchRedirect:
             },
         )
 
-        assert response.status_code == 302
-        parsed_url = urlparse(response.headers["Location"])
-        params = parse_qs(parsed_url.query)
-
-        assert parsed_url.path == "/search/results"
-        assert params["query"] == ["test"]
-        assert params["search_area"] == ["metadata"]
-        assert params["sort"] == ["least_matches"]
-        assert params["search_filter"] == ["extra term"]
+        assert response.status_code == 404
 
 
 class TestSearchResults:
@@ -236,8 +221,11 @@ class TestSearchResults:
         response = client.get(self.route_url)
 
         assert response.status_code == 200
-        assert b"No results found" in response.data
         assert b"Help with your search" in response.data
+        assert (
+            b"Try changing or removing one or more applied filters."
+            in response.data
+        )
         mock_setup_opensearch.assert_not_called()
 
     @patch("app.main.routes.setup_opensearch")
@@ -287,20 +275,20 @@ class TestSearchResults:
         response = client.get(f"{self.route_url}?query=test")
 
         assert response.status_code == 200
-        assert b"No results found" in response.data
         assert b"Help with your search" in response.data
+        assert b"Try changing or removing search terms." in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
         assert soup.find("table", attrs={"id": "tbl_result"}) is None
 
     @patch("app.main.routes.setup_opensearch")
-    def test_search_results_record_links_include_return_to_for_current_results(
+    def test_search_results_record_links_do_not_include_navigation_query(
         self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
     ):
         """
         Given a user on a populated search results page
         When record links are rendered
-        Then each link preserves a return_to URL for the current search page state
+        Then record links only include the record path and no navigation query params
         """
         mock_all_access_user(client)
         mock_setup_opensearch.return_value = MockOpenSearch(
@@ -318,19 +306,8 @@ class TestSearchResults:
         assert record_link is not None
 
         parsed_record_href = urlparse(record_link["href"])
-        record_params = parse_qs(parsed_record_href.query)
-
-        assert "return_to" in record_params
-
-        parsed_return_to = urlparse(record_params["return_to"][0])
-        return_to_params = parse_qs(parsed_return_to.query)
-
-        assert parsed_return_to.path == self.route_url
-        assert return_to_params["query"] == ["test"]
-        assert return_to_params["search_area"] == ["metadata"]
-        assert return_to_params["sort"] == ["least_matches"]
-        assert return_to_params["page"] == ["2"]
-        assert parsed_return_to.fragment == "browse-records"
+        assert parsed_record_href.path.startswith("/record/")
+        assert parsed_record_href.query == ""
 
     def test_search_results_back_link_targets_browse_for_all_access_user(
         self, client: FlaskClient, mock_all_access_user
@@ -350,6 +327,7 @@ class TestSearchResults:
 
         assert back_link is not None
         assert back_link["href"] == "/browse#browse-records"
+        assert back_link.get("data-history-back-link") == "true"
 
     def test_search_results_back_link_targets_body_browse_for_standard_user(
         self,
@@ -432,6 +410,8 @@ class TestSearchResults:
         mock_setup_opensearch.return_value = MockOpenSearch(
             search_return_value=OS_MOCK_RESULTS
         )
+
+        response = client.get(f"{self.route_url}?query=test")
 
         response = client.get(f"{self.route_url}?query=test")
 
