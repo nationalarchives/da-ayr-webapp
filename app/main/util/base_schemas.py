@@ -107,8 +107,8 @@ class DateFilterSchema(Schema):
             raise ValidationError("from_date must be before to_date")
 
 
-class BrowseFilterSchema(DateFilterSchema):
-    """Browse filter validation schema."""
+class SharedBrowseSearchFilterSchema(DateFilterSchema):
+    """Filter validation shared by browse and search results schemas."""
 
     transferring_body_filter = fields.String(
         allow_none=True, load_default="", validate=validate.Length(max=200)
@@ -137,6 +137,11 @@ class BrowseFilterSchema(DateFilterSchema):
         load_default="all",
         validate=validate.OneOf(["all", "open", "closed"]),
     )
+
+
+class BrowseFilterSchema(SharedBrowseSearchFilterSchema):
+    """Browse filter validation schema."""
+
     sort = fields.String(
         allow_none=True,
         load_default="transferring_body",
