@@ -73,6 +73,7 @@ jobs:
 
     - name: Run DRI to AYR Data Migration Tests
       run: |
+        cat data_management/dri_to_ayr_data_migration/tests/Dockerfile
         docker compose -f docker-compose.test.yml run --rm dri_to_ayr_data_migration_tests
 
     - name: Copy OpenSearch Indexer coverage file from shared volume
