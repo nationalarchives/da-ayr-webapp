@@ -80,41 +80,44 @@ CHECKSUM_CSV_NAME = "AYR-manifest.csv"
 CHECKSUM_TEXT_NAME = "AYR-manifest.csv.sha256"
 CHECKSUM_COLUMNS = ["file_name", "checksum_sha256"]
 
+BODY_CSV_NAME = "AYR-body-metadata.csv"
+SERIES_CSV_NAME = "AYR-series-metadata.csv"
+CONSIGNMENT_CSV_NAME = "AYR-consignment-metadata.csv"
+SHARED_STAGING_DIRECTORY = "shared"
+REQUIRED_SINGLE_ROW_CSV_NAMES = (
+    BODY_CSV_NAME,
+    SERIES_CSV_NAME,
+    CONSIGNMENT_CSV_NAME,
+)
+
 CSV_DEFINITIONS = {
-    "AYR-body-metadata.csv": {
+    BODY_CSV_NAME: {
         "columns": BODY_COLUMNS,
-        "unique_column": "Name",
-        "skip_duplicates": True,
+        "required_column": "Name",
     },
-    "AYR-series-metadata.csv": {
+    SERIES_CSV_NAME: {
         "columns": SERIES_COLUMNS,
-        "unique_column": "Name",
-        "skip_duplicates": True,
+        "required_column": "Name",
     },
-    "AYR-consignment-metadata.csv": {
+    CONSIGNMENT_CSV_NAME: {
         "columns": CONSIGNMENT_COLUMNS,
-        "unique_column": "ConsignmentReference",
-        "skip_duplicates": True,
+        "required_column": "ConsignmentReference",
     },
     "AYR-file.csv": {
         "columns": FILE_COLUMNS,
-        "unique_column": "FileId",
-        "skip_duplicates": False,
+        "required_column": "FileId",
     },
     "AYR-file-metadata.csv": {
         "columns": FILE_METADATA_COLUMNS,
-        "unique_column": "MetadataId",
-        "skip_duplicates": False,
+        "required_column": "MetadataId",
     },
     "AYR-ffid-metadata.csv": {
         "columns": FFID_METADATA_COLUMNS,
-        "unique_column": "FileId",
-        "skip_duplicates": False,
+        "required_column": "FileId",
     },
     "AYR-av-metadata.csv": {
         "columns": AV_METADATA_COLUMNS,
-        "unique_column": "FileId",
-        "skip_duplicates": False,
+        "required_column": "FileId",
     },
 }
 
@@ -262,26 +265,50 @@ def prepare_final_output(
     consignment_reference: str,
     context: Any,
 ) -> tuple[dict[str, Any], str]:
-    staging_prefix = join_s3_key(series, STAGING_PREFIX, consignment_reference)
+    shared_staging_prefix = join_s3_key(
+        series,
+        STAGING_PREFIX,
+        SHARED_STAGING_DIRECTORY,
+    )
+    consignment_staging_prefix = join_s3_key(
+        series,
+        STAGING_PREFIX,
+        consignment_reference,
+    )
     final_output_prefix = join_s3_key(
         series, OUTPUT_PREFIX, consignment_reference
     )
 
     logger.info(
-        "Finalising run_id=%s series=%s consignment=%s staging_prefix=%s final_output_prefix=%s",
+        "Finalising run_id=%s series=%s consignment=%s "
+        "shared_staging_prefix=%s consignment_staging_prefix=%s "
+        "final_output_prefix=%s",
         run_id,
         series,
         consignment_reference,
-        staging_prefix,
+        shared_staging_prefix,
+        consignment_staging_prefix,
         final_output_prefix,
     )
 
-    staged_csv_keys = list_staged_csv_keys(staging_prefix)
+    consignment_csv_keys = list_staged_csv_keys(consignment_staging_prefix)
 
-    if not staged_csv_keys:
+    if not consignment_csv_keys:
         raise ValueError(
-            f"No staged CSV files found under s3://{DDT_TEMP_CSV_BUCKET}/{staging_prefix}"
+            "No staged CSV files found under "
+            f"s3://{DDT_TEMP_CSV_BUCKET}/{consignment_staging_prefix}"
         )
+
+    ensure_single_consignment_csv(
+        keys=consignment_csv_keys,
+        staging_prefix=consignment_staging_prefix,
+    )
+
+    staged_csv_keys = [
+        join_s3_key(shared_staging_prefix, BODY_CSV_NAME),
+        join_s3_key(shared_staging_prefix, SERIES_CSV_NAME),
+        *consignment_csv_keys,
+    ]
 
     create_and_upload_final_metadata(
         staged_csv_keys=staged_csv_keys,
@@ -297,6 +324,23 @@ def prepare_final_output(
     return ddt_message, final_output_prefix
 
 
+def ensure_single_consignment_csv(
+    keys: list[str],
+    staging_prefix: str,
+) -> None:
+    """Require exactly one staged Consignment CSV for this consignment."""
+    consignment_csv_count = sum(
+        Path(key).name == CONSIGNMENT_CSV_NAME for key in keys
+    )
+
+    if consignment_csv_count != 1:
+        raise ValueError(
+            f"Expected exactly one {CONSIGNMENT_CSV_NAME} under "
+            f"s3://{DDT_TEMP_CSV_BUCKET}/{staging_prefix}; "
+            f"found {consignment_csv_count}"
+        )
+
+
 def create_and_upload_final_metadata(
     staged_csv_keys: list[str],
     final_output_prefix: str,
@@ -310,12 +354,32 @@ def create_and_upload_final_metadata(
             output_dir=output_dir,
         )
         logger.info("Merged final CSV row counts: %s", merge_counts)
+        ensure_required_single_rows(merge_counts)
 
         create_checksum_files(output_dir)
 
         upload_metadata_files(
             local_dir=output_dir,
             prefix=final_output_prefix,
+        )
+
+
+def ensure_required_single_rows(counts: dict[str, int]) -> None:
+    """Require one Body, Series, and Consignment row in the final package."""
+    invalid_counts = {
+        file_name: counts.get(file_name, 0)
+        for file_name in REQUIRED_SINGLE_ROW_CSV_NAMES
+        if counts.get(file_name, 0) != 1
+    }
+
+    if invalid_counts:
+        details = ", ".join(
+            f"{file_name}={count}"
+            for file_name, count in invalid_counts.items()
+        )
+        raise ValueError(
+            "Expected exactly one row in each shared/consignment CSV; "
+            f"found {details}"
         )
 
 
@@ -354,7 +418,7 @@ def should_merge_staged_csv(key: str) -> bool:
 
     if file_name not in CSV_DEFINITIONS:
         logger.warning(
-            "Ignoring unexpected staged CSV file: s3://%s/%s",
+            "Ignoring unexpected staged file: s3://%s/%s",
             DDT_TEMP_CSV_BUCKET,
             key,
         )
@@ -370,16 +434,12 @@ def merge_staged_csvs(
     """
     Merge worker-staged CSVs into the final consignment package.
 
-    Shared rows are deduped. File-level duplicate rows fail the finaliser.
     S3 objects are fetched concurrently in bounded batches, but rows are
-    merged in sorted key order so output and duplicate handling remain
-    deterministic. Rows are written directly to disk to keep memory bounded.
+    merged in sorted key order so output remains deterministic. Rows are
+    written directly to disk to keep memory bounded.
     """
     keys = sorted(staged_csv_keys)
     total = len(keys)
-    seen_by_file: dict[str, dict[str, str]] = {
-        file_name: {} for file_name in CSV_DEFINITIONS
-    }
     counts: dict[str, int] = {file_name: 0 for file_name in CSV_DEFINITIONS}
 
     logger.info(
@@ -395,7 +455,6 @@ def merge_staged_csvs(
         merge_staged_csv_batches(
             keys=keys,
             writers_by_file=writers_by_file,
-            seen_by_file=seen_by_file,
             counts=counts,
         )
 
@@ -431,7 +490,6 @@ def open_output_csv_writers(
 def merge_staged_csv_batches(
     keys: list[str],
     writers_by_file: dict[str, Any],
-    seen_by_file: dict[str, dict[str, str]],
     counts: dict[str, int],
 ) -> None:
     """Fetch staged objects concurrently and merge each batch in key order."""
@@ -451,7 +509,6 @@ def merge_staged_csv_batches(
                     key=key,
                     rows=rows,
                     writers_by_file=writers_by_file,
-                    seen_by_file=seen_by_file,
                     counts=counts,
                 )
 
@@ -474,47 +531,20 @@ def merge_staged_rows(
     key: str,
     rows: list[dict[str, str]],
     writers_by_file: dict[str, Any],
-    seen_by_file: dict[str, dict[str, str]],
     counts: dict[str, int],
 ) -> None:
+    """Validate and write rows from one staged CSV object."""
     file_name = Path(key).name
     definition = CSV_DEFINITIONS[file_name]
-    unique_column = definition["unique_column"]
+    required_column = definition["required_column"]
 
     for row in rows:
-        unique_value = row.get(unique_column, "")
-
-        if not unique_value:
+        if not row.get(required_column):
             raise ValueError(
-                f"Missing {unique_column} value in {file_name} row from "
+                f"Missing {required_column} value in {file_name} row from "
                 f"s3://{DDT_TEMP_CSV_BUCKET}/{key}"
             )
 
-        first_seen_key = seen_by_file[file_name].get(unique_value)
-
-        if first_seen_key:
-            if definition["skip_duplicates"]:
-                logger.debug(
-                    "Skipping duplicate row in %s for %s=%s. "
-                    "First seen in s3://%s/%s, duplicate in s3://%s/%s",
-                    file_name,
-                    unique_column,
-                    unique_value,
-                    DDT_TEMP_CSV_BUCKET,
-                    first_seen_key,
-                    DDT_TEMP_CSV_BUCKET,
-                    key,
-                )
-                continue
-
-            raise ValueError(
-                f"Duplicate row found in {file_name} for "
-                f"{unique_column}={unique_value}. "
-                f"First seen in s3://{DDT_TEMP_CSV_BUCKET}/{first_seen_key}, "
-                f"duplicate in s3://{DDT_TEMP_CSV_BUCKET}/{key}"
-            )
-
-        seen_by_file[file_name][unique_value] = key
         writers_by_file[file_name].writerow(row)
         counts[file_name] += 1
 
