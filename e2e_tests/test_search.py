@@ -64,5 +64,9 @@ class TestSearchResultsFlow:
         self, aau_user_page: Page
     ):
         aau_user_page.goto(f"{self.canonical_search_results_route}?query=a")
-        expect(aau_user_page.get_by_role("heading", name="Filters")).to_be_visible()
-        expect(aau_user_page.get_by_text("Closed")).to_be_visible()
+        expect(
+            aau_user_page.get_by_role("heading", name="Filters")
+        ).to_be_visible()
+        expect(
+            aau_user_page.get_by_role("radio", name="Closed")
+        ).to_be_visible()
