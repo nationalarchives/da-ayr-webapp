@@ -4,10 +4,10 @@ set -e
 # Directories
 OPENSEARCH_CERTS_DIR=/opensearch_certs
 WEBAPP_POSTGRES_CERTS_DIR=/webapp_postgres_certs
-MINIO_CERTS_DIR=/minio_certs
+RUSTFS_CERTS_DIR=/rustfs_certs
 
 # Create directories if they don't exist
-mkdir -p $OPENSEARCH_CERTS_DIR $WEBAPP_POSTGRES_CERTS_DIR $MINIO_CERTS_DIR
+mkdir -p $OPENSEARCH_CERTS_DIR $WEBAPP_POSTGRES_CERTS_DIR $RUSTFS_CERTS_DIR
 
 # Generate Root CA
 if [ ! -f $OPENSEARCH_CERTS_DIR/root-ca.pem ]; then
@@ -48,12 +48,12 @@ EOF
 generate_cert "opensearch-node1" $OPENSEARCH_CERTS_DIR "opensearch-node1" "DNS:opensearch-node1,IP:127.0.0.1"
 generate_cert "opensearch-node2" $OPENSEARCH_CERTS_DIR "opensearch-node2" "DNS:opensearch-node2,IP:127.0.0.1"
 generate_cert "postgres_localhost" $WEBAPP_POSTGRES_CERTS_DIR "localhost" "DNS:localhost,IP:127.0.0.1"
-generate_cert "minio" $MINIO_CERTS_DIR "minio" "DNS:minio,IP:127.0.0.1"
+generate_cert "rustfs" $RUSTFS_CERTS_DIR "rustfs" "DNS:rustfs,IP:127.0.0.1"
 
 # Copy root CA to other directories
 cp $OPENSEARCH_CERTS_DIR/root-ca.pem $WEBAPP_POSTGRES_CERTS_DIR/
-cp $OPENSEARCH_CERTS_DIR/root-ca.pem $MINIO_CERTS_DIR/root-ca.crt
+cp $OPENSEARCH_CERTS_DIR/root-ca.pem $RUSTFS_CERTS_DIR/root-ca.crt
 
 # Set permissions
-chmod 400 $OPENSEARCH_CERTS_DIR/* $WEBAPP_POSTGRES_CERTS_DIR/* $MINIO_CERTS_DIR/*
+chmod 400 $OPENSEARCH_CERTS_DIR/* $WEBAPP_POSTGRES_CERTS_DIR/* $RUSTFS_CERTS_DIR/*
 chown 999:999 $WEBAPP_POSTGRES_CERTS_DIR/*

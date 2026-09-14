@@ -213,7 +213,7 @@ You should now have the app running on <https://localhost:5000/>
 
 ## Local development with docker
 
-The webapp depends on keycloak, a postgres instance holding metadata, an s3 bucket storing associated records and then an opensearch instance that is populated from those 2 via `data_management/opensearch_indexer`. For ease of use, we provide a `docker-compose.yml` file inside the `local_services` which spins up all these dependencies, using minio as a local replacement for an actual AWS s3, and populates them with consistent test data. Feel free to expand this data but data consistency is left up to you.
+The webapp depends on keycloak, a postgres instance holding metadata, an s3 bucket storing associated records and then an opensearch instance that is populated from those 2 via `data_management/opensearch_indexer`. For ease of use, we provide a `docker-compose.yml` file inside the `local_services` which spins up all these dependencies, using RustFS as a local replacement for an actual AWS s3, and populates them with consistent test data. Feel free to expand this data but data consistency is left up to you.
 
 ### Quick reference — which setup do I need?
 
@@ -304,7 +304,7 @@ It will take a minute or two to spin up the stack, in particular opensearch and 
 Once the stack is running:
 
 1. Create your users in the keycloak admin console at `http://localhost:8080/admin/master/console/#/tdr/users` using the keycloak admin credentials specified in the `.env` file, assigning appropriate groups to each. For local dev it's simple enough to set the passwords in the credentials tab.
-2. Manually upload the folders of files in `local_services/files` to minio by navigating to `http://localhost:9001/browser`, signing in, accessing the bucket name you specified in the env file and then clicking the upload button and selecting those folders. The corresponding metadata in `dev-data.sql` would have already been automatically loaded into the postgres database.
+2. Manually upload the folders of files in `local_services/files` to RustFS by navigating to `http://localhost:9001`, signing in, accessing the bucket name you specified in the env file and then clicking the upload button and selecting those folders. The corresponding metadata in `dev-data.sql` would have already been automatically loaded into the postgres database.
 3. Regenerate the keycloak client's client secret at `http://localhost:8080/admin/master/console/#/tdr/clients/<UUID-OF-CLIENT>/settings`.
 4. Update the `.env` of the webapp in the root directory of the repo, making sure the following env vars are set according to the values set for the associated service in the docker compose stack.
 
@@ -560,14 +560,14 @@ Update the snapshot when:
 
 ## Steps
 
-### 1. Ensure MinIO Has All Test Files
+### 1. Ensure RustFS Has All Test Files
 
 ```bash
-# Check if minio-init service ran successfully
-docker logs local_services-minio-init-1
+# Check if rustfs-init service ran successfully
+docker logs local_services-rustfs-init-1
 
 # If needed, manually trigger file upload
-docker compose -f local_services/docker-compose.ci.yml up -d --force-recreate minio-init
+docker compose -f local_services/docker-compose.ci.yml up -d --force-recreate rustfs-init
 ```
 
 ### 2. Run the Indexer
@@ -1030,23 +1030,23 @@ This tool generates test data for AYR development and performance testing by:
 
 1. Creating test files across a range of document formats (PDF, DOCX, DOC, PPTX, PPT, XLSX, XLS, CSV, RTF, ODT, TIF, PNG, JPG, EPUB, TXT, WK1, WK4, WP, XML)
 2. Adding metadata to a PostgreSQL database
-3. Uploading files to S3/MinIO storage
+3. Uploading files to S3-compatible storage (RustFS in local development)
 4. Indexing files in OpenSearch
 
 ## Prerequisites
 
 Before running the tool, ensure the following environment variables are set (usually via `.env`):
 
-- `MINIO_ROOT_USER` – your MinIO access key
-- `MINIO_ROOT_PASSWORD` – your MinIO secret key
-- `AWS_ENDPOINT_URL` – the S3/MinIO endpoint (e.g., http://localhost:9000)
+- `RUSTFS_ROOT_USER` – your RustFS user
+- `RUSTFS_ROOT_PASSWORD` – your RustFS password
+- `AWS_ENDPOINT_URL` – the S3-compatible endpoint (e.g., http://localhost:9000)
 - `RECORD_BUCKET_NAME` – the name of the bucket used for test files
 
 Example `.env`:
 
 ```env
-MINIO_ROOT_USER=
-MINIO_ROOT_PASSWORD=
+RUSTFS_ROOT_USER=
+RUSTFS_ROOT_PASSWORD=
 AWS_ENDPOINT_URL=http://localhost:9000
 RECORD_BUCKET_NAME=test-record-download
 ```

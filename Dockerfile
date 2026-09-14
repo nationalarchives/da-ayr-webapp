@@ -11,7 +11,7 @@ ARG TESSERACT_OCR_VERSION=5.5.0-1+b1
 # renovate: datasource=repology depName=debian_13/antiword versioning=loose
 ARG ANTIWORD_VERSION=0.37-17
 # renovate: datasource=repology depName=debian_13/unrtf versioning=loose
-ARG UNRTF_VERSION=0.21.10-clean-1
+ARG UNRTF_VERSION=0.21.10-clean-1*
 # renovate: datasource=repology depName=debian_13/libreoffice versioning=loose
 ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u6
 # renovate: datasource=repology depName=debian_13/nodejs versioning=loose
