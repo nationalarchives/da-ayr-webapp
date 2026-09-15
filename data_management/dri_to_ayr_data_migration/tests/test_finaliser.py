@@ -33,7 +33,7 @@ from finaliser.handler import (
     lambda_handler,
     list_staged_csv_keys,
     mark_consignment_sent_to_ddt,
-    merge_staged_csv_batches,
+    merge_staged_csvs,
     process_message,
     publish_ddt_message,
     read_csv_from_s3_as_list,
@@ -175,7 +175,7 @@ class TestProcessMessage:
         self, mock_finaliser, monkeypatch
     ):
         start_finalising_mock = mock.Mock(return_value=False)
-        prepare_final_output_mock = mock.Mock()
+        prepare_final_package_mock = mock.Mock()
         publish_ddt_message_mock = mock.Mock()
         mark_consignment_sent_to_ddt_mock = mock.Mock()
 
@@ -186,8 +186,8 @@ class TestProcessMessage:
         )
         monkeypatch.setattr(
             finaliser_module,
-            "prepare_final_output",
-            prepare_final_output_mock,
+            "prepare_final_package_from_staged_csvs",
+            prepare_final_package_mock,
         )
         monkeypatch.setattr(
             finaliser_module,
@@ -208,7 +208,7 @@ class TestProcessMessage:
             run_id="run-1",
             consignment_reference="TDR-1",
         )
-        prepare_final_output_mock.assert_not_called()
+        prepare_final_package_mock.assert_not_called()
         publish_ddt_message_mock.assert_not_called()
         mark_consignment_sent_to_ddt_mock.assert_not_called()
 
@@ -339,7 +339,7 @@ class TestProcessMessage:
         )
         monkeypatch.setattr(
             finaliser_module,
-            "prepare_final_output",
+            "prepare_final_package_from_staged_csvs",
             mock.Mock(return_value=(message, "output-prefix")),
         )
         monkeypatch.setattr(
@@ -423,8 +423,8 @@ class TestCsvDiscoveryAndMerge:
             }
         ]
 
-    def test_merge_staged_csv_batches_uses_bounded_batches_and_logs_progress(
-        self, mock_finaliser, monkeypatch
+    def test_merge_staged_csvs_uses_bounded_batches_and_logs_progress(
+        self, mock_finaliser, monkeypatch, tmp_path
     ):
         submitted_batches = []
         worker_counts = []
@@ -444,9 +444,6 @@ class TestCsvDiscoveryAndMerge:
                 return [function(key) for key in batch]
 
         keys = [f"staging/file-{index:02}/AYR-file.csv" for index in range(14)]
-        writers_by_file = {}
-        counts = {}
-        merge_staged_rows_mock = mock.Mock()
         log_merge_progress_mock = mock.Mock()
 
         monkeypatch.setattr(finaliser_module, "S3_READ_WORKERS", 2)
@@ -459,12 +456,7 @@ class TestCsvDiscoveryAndMerge:
         monkeypatch.setattr(
             finaliser_module,
             "read_csv_from_s3_as_list",
-            lambda key: [{"source": key}],
-        )
-        monkeypatch.setattr(
-            finaliser_module,
-            "merge_staged_rows",
-            merge_staged_rows_mock,
+            lambda key: [{"FileId": key}],
         )
         monkeypatch.setattr(
             finaliser_module,
@@ -472,23 +464,14 @@ class TestCsvDiscoveryAndMerge:
             log_merge_progress_mock,
         )
 
-        merge_staged_csv_batches(
-            keys=keys,
-            writers_by_file=writers_by_file,
-            counts=counts,
-        )
+        counts = merge_staged_csvs(keys, tmp_path)
 
         assert worker_counts == [2]
         assert submitted_batches == [keys[0:6], keys[6:12], keys[12:14]]
-        assert merge_staged_rows_mock.call_args_list == [
-            mock.call(
-                key=key,
-                rows=[{"source": key}],
-                writers_by_file=writers_by_file,
-                counts=counts,
-            )
-            for key in keys
-        ]
+        assert counts["AYR-file.csv"] == 14
+        assert [
+            row["FileId"] for row in read_csv_file(tmp_path / "AYR-file.csv")
+        ] == keys
         assert log_merge_progress_mock.call_args_list == [
             mock.call(3, 14),
             mock.call(6, 14),
