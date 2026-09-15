@@ -60,6 +60,12 @@ def access_token_sign_in_required(view_func):
             decoded_access_token = keycloak_openid.introspect(
                 session["access_token"]
             )
+            if not decoded_access_token.get("active"):
+                current_app.app_logger.warning(
+                    "Refreshed access token introspected is not active"
+                )
+                session.clear()
+                return redirect(url_for("main.sign_in"))
             user_groups, groups_resolved = _resolve_user_groups(
                 decoded_access_token
             )
@@ -102,7 +108,7 @@ def _validate_or_refresh_tokens(access_token, refresh_token):
 
     decoded_token = keycloak_openid.introspect(access_token)
 
-    if decoded_token["active"] is False:
+    if not decoded_token.get("active"):
         try:
             refreshed_token_response = keycloak_openid.refresh_token(
                 refresh_token

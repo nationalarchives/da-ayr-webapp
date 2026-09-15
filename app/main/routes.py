@@ -180,6 +180,12 @@ def callback():
         current_app.app_logger.error(f"Failed to introspect access token: {e}")
         return redirect(url_for("main.sign_in"))
 
+    if not decoded_access_token.get("active"):
+        current_app.app_logger.error(
+            "Newly issued access token introspected as not active"
+        )
+        return redirect(url_for("main.sign_in"))
+
     user_groups, user_id = _resolve_user_claims_with_fallbacks(
         keycloak_openid=keycloak_openid,
         access_token=access_token_response["access_token"],
