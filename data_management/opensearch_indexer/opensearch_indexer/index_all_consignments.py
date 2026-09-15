@@ -2,7 +2,7 @@
 Script to index all consignments from the database into OpenSearch.
 
 This script is intended for local development to populate OpenSearch with all
-test data from the postgres database and minio bucket.
+test data from the postgres database and RustFS bucket.
 
 Usage:
     python -m data_management.opensearch_indexer.opensearch_indexer.index_all_consignments

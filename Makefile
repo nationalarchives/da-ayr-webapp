@@ -2,6 +2,7 @@ ENV_FILE = .docker.env
 WEBAPP_POSTGRES_CA = local_services/webapp_postgres_certs/root-ca.pem
 OPENSEARCH_CA = local_services/opensearch_certs/root-ca.pem
 KEYCLOAK_CERT = local_services/keycloak_certs/cert.pem
+RUSTFS_CA = local_services/rustfs_certs/root-ca.crt
 
 COMPOSE = docker compose --env-file $(ENV_FILE) -f docker-compose.yml
 
@@ -19,7 +20,10 @@ $(OPENSEARCH_CA):
 $(KEYCLOAK_CERT):
 	sh ./local_services/generate-keycloak-certs.sh
 
-setup: $(ENV_FILE) $(WEBAPP_POSTGRES_CA) $(OPENSEARCH_CA) $(KEYCLOAK_CERT)
+$(RUSTFS_CA):
+	cd local_services/rustfs_certs && sh ./generate_rustfs_certs.sh
+
+setup: $(ENV_FILE) $(WEBAPP_POSTGRES_CA) $(OPENSEARCH_CA) $(KEYCLOAK_CERT) $(RUSTFS_CA)
 	$(COMPOSE) build webapp
 
 start:
