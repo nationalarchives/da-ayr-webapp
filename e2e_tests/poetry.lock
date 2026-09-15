@@ -14,19 +14,19 @@ files = [
 
 [[package]]
 name = "anyio"
-version = "4.14.2"
+version = "4.15.1"
 description = "High-level concurrency and networking framework on top of asyncio or Trio"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "anyio-4.14.2-py3-none-any.whl", hash = "sha256:9f505dda5ac9f0c8309b5e8bd445a8c2bf7246f3ce950121e45ea15bc41d1494"},
-    {file = "anyio-4.14.2.tar.gz", hash = "sha256:cfa139f3ed1a23ee8f88a145ddb5ac7605b8bbfd8592baacd7ce3d8bb4313c7f"},
+    {file = "anyio-4.15.1-py3-none-any.whl", hash = "sha256:6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101"},
+    {file = "anyio-4.15.1.tar.gz", hash = "sha256:9f28306018cbd6d329e64a36d58256edff76dd996fe423bc957326e578b82a94"},
 ]
 
 [package.dependencies]
 idna = ">=2.8"
-typing_extensions = {version = ">=4.5", markers = "python_version < \"3.13\""}
+typing_extensions = {version = ">=4.16.0", markers = "python_version < \"3.15\""}
 
 [package.extras]
 trio = ["trio (>=0.32.0)"]
@@ -674,14 +674,14 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jwcrypto"
-version = "1.5.9"
+version = "1.6.0"
 description = "Implementation of JOSE Web standards"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "jwcrypto-1.5.9-py3-none-any.whl", hash = "sha256:30b1c9afc898eefd112c31d836eb2d7a4c6febcac95d4aa727e963cd42911d8e"},
-    {file = "jwcrypto-1.5.9.tar.gz", hash = "sha256:dbbbfcdad7a6fc40cf3d5a635b11115fc42591b7ab869a36ad347a516a6e1c5d"},
+    {file = "jwcrypto-1.6.0-py3-none-any.whl", hash = "sha256:09ece277d48620079c90af7dfe84be085a229c1cbe06baa295de41e5019ac998"},
+    {file = "jwcrypto-1.6.0.tar.gz", hash = "sha256:02a82b0a3a36b2553309d78c65e1c0e3350b640fe4091f53f66f582b11f49378"},
 ]
 
 [package.dependencies]
