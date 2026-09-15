@@ -30,7 +30,7 @@
                 {% endif %}
                 {{ page_back_link(search_back_link) }}
                 {% if num_records_found > 0 %}
-                    <h2 class="govuk-heading-l browse__records-found__text"
+                    <h1 class="govuk-heading-l browse__records-found__text"
                         id="browse-records"
                         aria-live="polite">
                         Records found {{ num_records_found | format_number_with_commas }}
@@ -39,7 +39,7 @@
                             {{ no_results_message("search") }}
                         {% endwith %}
                     {% endif %}
-                </h2>
+                </h1>
                 <form action="{{ url_for('main.search_results', _anchor='browse-records') }}"
                       method="get">
                     <div class="browse-layout records-page-wrapper">

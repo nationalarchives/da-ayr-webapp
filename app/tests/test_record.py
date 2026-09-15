@@ -368,13 +368,13 @@ class TestRecord:
         expected_header_title_html = f"""
                                 <span class="record-page__scope-text">{file.consignment.series.body.Name}</span>
                                 </p>
-                                <h2 class="record-page__heading" id="record-heading" aria-live="polite">{file.FileName}</h2>
+                                <h1 class="record-page__heading" id="record-heading" aria-live="polite">{file.FileName}</h1>
                 """
 
         assert_contains_html(
             expected_header_title_html,
             html,
-            "h2",
+            "h1",
             {"id": "record-heading"},
         )
 
