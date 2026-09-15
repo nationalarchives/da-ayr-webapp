@@ -4,7 +4,6 @@ import keycloak
 from flask import current_app, flash, g, redirect, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
-from app.main.authorize.keycloak_manager import decode_verified_token_claims
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
@@ -61,10 +60,8 @@ def access_token_sign_in_required(view_func):
             decoded_access_token = keycloak_openid.introspect(
                 session["access_token"]
             )
-            user_groups, groups_resolved = _resolve_user_groups_with_fallbacks(
-                keycloak_openid=keycloak_openid,
-                access_token=session["access_token"],
-                decoded_access_token=decoded_access_token,
+            user_groups, groups_resolved = _resolve_user_groups(
+                decoded_access_token
             )
             if not groups_resolved:
                 current_app.app_logger.warning(
@@ -117,47 +114,14 @@ class InvalidAccessToken(Exception):
     pass
 
 
-def _resolve_user_groups_with_fallbacks(
-    keycloak_openid, access_token, decoded_access_token
-):
+def _resolve_user_groups(decoded_access_token):
     """
-    Returns (user_groups, resolved). `resolved` is True once a source
-    returns a "groups" claim, even an empty one - the caller needs to
-    know that to distinguish "no groups" from "couldn't find out".
+    Returns (user_groups, resolved). `resolved` is True when the
+    introspection response includes a "groups" claim, even an empty one -
+    the caller needs that to distinguish "no groups" from "couldn't find out".
     """
     if "groups" in decoded_access_token:
         return decoded_access_token.get("groups") or [], True
-
-    current_app.app_logger.warning(
-        "Groups missing from introspection response during refresh; trying userinfo fallback"
-    )
-    try:
-        userinfo_claims = keycloak_openid.userinfo(access_token)
-    except Exception as exception:
-        current_app.app_logger.warning(
-            f"Failed to fetch userinfo claims during refresh: {exception}"
-        )
-        userinfo_claims = {}
-
-    if "groups" in userinfo_claims:
-        return userinfo_claims.get("groups") or [], True
-
-    current_app.app_logger.warning(
-        "Groups unavailable from introspection/userinfo during refresh; trying access token claim fallback"
-    )
-    try:
-        token_claims = decode_verified_token_claims(
-            keycloak_openid=keycloak_openid,
-            access_token=access_token,
-        )
-    except Exception as exception:
-        current_app.app_logger.warning(
-            f"Failed to decode access token claims during refresh: {exception}"
-        )
-        return [], False
-
-    if "groups" in token_claims:
-        return token_claims.get("groups") or [], True
 
     return [], False
 

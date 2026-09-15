@@ -395,119 +395,12 @@ class TestAccessTokenSignInRequiredDecorator:
     @patch(
         "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
     )
-    def test_refreshed_token_falls_back_to_userinfo_when_groups_missing(
-        mock_keycloak, app
-    ):
-        view_name = "/protected_view"
-        with app.test_client() as client:
-
-            @app.route(view_name)
-            @access_token_sign_in_required
-            def protected_view():
-                return "Access granted"
-
-            with client.session_transaction() as session:
-                session["access_token"] = "inactive_access_token"
-                session["refresh_token"] = "active_refresh_token"
-                session["user_type"] = "standard_user"
-
-            valid_groups = [
-                "/ayr_user_type/view_all",
-                "/transferring_body_user/foo",
-            ]
-
-            def mock_introspect(token):
-                if token == "inactive_access_token":
-                    return {"active": False}
-                elif token == "active_access_token":
-                    return {"active": True}
-                else:
-                    return {"active": False}
-
-            mock_keycloak.return_value.introspect.side_effect = mock_introspect
-
-            mock_keycloak.return_value.refresh_token.return_value = {
-                "access_token": "active_access_token",
-                "refresh_token": "new_active_refresh_token",
-            }
-            mock_keycloak.return_value.userinfo.return_value = {
-                "groups": valid_groups,
-            }
-
-            response = client.get(view_name)
-
-            assert response.status_code == 200
-            assert response.data.decode() == "Access granted"
-
-            with client.session_transaction() as updated_session:
-                assert updated_session["user_groups"] == valid_groups
-                assert updated_session["user_type"] == "all_access_user"
-
-    @staticmethod
-    @patch(
-        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
-    )
-    def test_refreshed_token_falls_back_to_token_claims_when_userinfo_unavailable(
-        mock_keycloak, app
-    ):
-        view_name = "/protected_view"
-        with app.test_client() as client:
-
-            @app.route(view_name)
-            @access_token_sign_in_required
-            def protected_view():
-                return "Access granted"
-
-            with client.session_transaction() as session:
-                session["access_token"] = "inactive_access_token"
-                session["refresh_token"] = "active_refresh_token"
-                session["user_type"] = "standard_user"
-
-            valid_groups = [
-                "/ayr_user_type/view_all",
-                "/transferring_body_user/foo",
-            ]
-            refreshed_access_token = "active_access_token"
-
-            def mock_introspect(token):
-                if token == "inactive_access_token":
-                    return {"active": False}
-                elif token == refreshed_access_token:
-                    return {"active": True}
-                return {"active": False}
-
-            mock_keycloak.return_value.introspect.side_effect = mock_introspect
-            mock_keycloak.return_value.refresh_token.return_value = {
-                "access_token": refreshed_access_token,
-                "refresh_token": "new_active_refresh_token",
-            }
-            mock_keycloak.return_value.userinfo.side_effect = Exception(
-                "userinfo not available"
-            )
-            mock_keycloak.return_value.decode_token.return_value = {
-                "sub": "test_all_access_user",
-                "groups": valid_groups,
-            }
-
-            response = client.get(view_name)
-
-            assert response.status_code == 200
-            assert response.data.decode() == "Access granted"
-
-            with client.session_transaction() as updated_session:
-                assert updated_session["user_groups"] == valid_groups
-                assert updated_session["user_type"] == "all_access_user"
-
-    @staticmethod
-    @patch(
-        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
-    )
-    def test_refreshed_token_redirects_to_index_when_token_claims_missing_groups(
+    def test_refreshed_token_redirects_to_index_when_introspection_missing_groups(
         mock_keycloak, app
     ):
         """
-        Given every fallback source is reachable but none of introspection,
-            userinfo or the decoded access token claims contains a "groups" key
+        Given a refreshed access token whose introspection response has no
+            "groups" key
         When an inactive access token is refreshed via the 'access_token_sign_in_required' decorator,
         Then it should treat groups as unresolved, overwrite the session with an
             empty groups list and deny access.
@@ -539,10 +432,6 @@ class TestAccessTokenSignInRequiredDecorator:
                 "access_token": refreshed_access_token,
                 "refresh_token": "new_active_refresh_token",
             }
-            mock_keycloak.return_value.userinfo.return_value = {}
-            mock_keycloak.return_value.decode_token.return_value = {
-                "sub": "test_standard_user",
-            }
 
             response = client.get(view_name)
 
@@ -557,63 +446,13 @@ class TestAccessTokenSignInRequiredDecorator:
     @patch(
         "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
     )
-    def test_refreshed_token_redirects_to_index_when_fallback_claims_unavailable(
-        mock_keycloak, app
-    ):
-        view_name = "/protected_view"
-        with app.test_client() as client:
-
-            @app.route(view_name)
-            @access_token_sign_in_required
-            def protected_view():
-                return "Access granted"
-
-            with client.session_transaction() as session:
-                session["access_token"] = "inactive_access_token"
-                session["refresh_token"] = "active_refresh_token"
-                session["user_type"] = "standard_user"
-
-            refreshed_access_token = "active_access_token"
-
-            def mock_introspect(token):
-                if token == "inactive_access_token":
-                    return {"active": False}
-                elif token == refreshed_access_token:
-                    return {"active": True}
-                return {"active": False}
-
-            mock_keycloak.return_value.introspect.side_effect = mock_introspect
-            mock_keycloak.return_value.refresh_token.return_value = {
-                "access_token": refreshed_access_token,
-                "refresh_token": "new_active_refresh_token",
-            }
-            mock_keycloak.return_value.userinfo.side_effect = Exception(
-                "userinfo not available"
-            )
-            mock_keycloak.return_value.decode_token.side_effect = Exception(
-                "decode not available"
-            )
-
-            response = client.get(view_name)
-
-            assert response.status_code == 302
-            assert response.headers["Location"] == url_for("main.index")
-
-            with client.session_transaction() as updated_session:
-                assert updated_session["user_groups"] == []
-                assert updated_session["user_type"] == "standard_user"
-
-    @staticmethod
-    @patch(
-        "app.main.authorize.access_token_sign_in_required.get_keycloak_instance_from_flask_config"
-    )
-    def test_refreshed_token_denies_access_when_fallback_claims_unavailable_even_with_cached_groups(
+    def test_refreshed_token_denies_access_when_introspection_missing_groups_even_with_cached_groups(
         mock_keycloak, app
     ):
         """
         Given a session with cached user_groups that previously granted AYR access,
-        And every fallback source fails to produce a "groups" claim during a
-            token refresh
+        And a refreshed access token whose introspection response has no
+            "groups" key
         When an inactive access token is refreshed via the 'access_token_sign_in_required' decorator,
         Then it should overwrite the session with an empty
             groups list and deny access.
@@ -648,12 +487,6 @@ class TestAccessTokenSignInRequiredDecorator:
                 "access_token": refreshed_access_token,
                 "refresh_token": "new_active_refresh_token",
             }
-            mock_keycloak.return_value.userinfo.side_effect = Exception(
-                "userinfo not available"
-            )
-            mock_keycloak.return_value.decode_token.side_effect = Exception(
-                "decode not available"
-            )
 
             response = client.get(view_name)
 
