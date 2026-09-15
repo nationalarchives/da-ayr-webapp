@@ -41,6 +41,15 @@ OS_MOCK_RESULTS = {
 }
 
 
+def verify_filters_heading(data, expected_heading):
+    """Check the search results filters heading text against expected value."""
+    soup = BeautifulSoup(data, "html.parser")
+    heading = soup.find("h2", class_="govuk-heading-m--browse-all-filter-title")
+
+    assert heading is not None
+    assert " ".join(heading.get_text(separator=" ").split()) == expected_heading
+
+
 class MockIndices:
     def __init__(self, get_mapping_return_value=None):
         self.get_mapping_return_value = get_mapping_return_value or {
@@ -476,6 +485,200 @@ class TestSearchResults:
 
         assert closed_label is not None
         assert closed_label.get_text(strip=True) == "Closed"
+
+    @patch("app.main.routes.setup_opensearch")
+    def test_search_results_status_and_date_radio_defaults(
+        self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given the search results page
+        When shared filters render
+        Then status defaults to all and dates default to last modified
+        """
+        mock_all_access_user(client)
+        mock_setup_opensearch.return_value = MockOpenSearch(
+            search_return_value=OS_MOCK_RESULTS
+        )
+
+        response = client.get(f"{self.route_url}?query=test")
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+
+        status_all = soup.find("input", id="recordStatus-all")
+        status_open = soup.find("input", id="recordStatus-open")
+        status_closed = soup.find("input", id="recordStatus-closed")
+        last_modified_date = soup.find("input", id="date_last_modified")
+        transferred_date = soup.find("input", id="transferred_date")
+
+        assert status_all is not None
+        assert status_open is not None
+        assert status_closed is not None
+        assert last_modified_date is not None
+        assert transferred_date is not None
+        assert status_all.has_attr("checked")
+        assert not status_open.has_attr("checked")
+        assert not status_closed.has_attr("checked")
+        assert last_modified_date.has_attr("checked")
+        assert not transferred_date.has_attr("checked")
+
+    @patch("app.main.routes.setup_opensearch")
+    def test_search_results_date_filter_field_selection_persists(
+        self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given an opening date filter field selection
+        When search results is requested
+        Then opening date radio remains selected
+        """
+        mock_all_access_user(client)
+        mock_setup_opensearch.return_value = MockOpenSearch(
+            search_return_value=OS_MOCK_RESULTS
+        )
+
+        response = client.get(
+            f"{self.route_url}?query=test&date_filter_field=opening_date"
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        opening_date = soup.find("input", id="opening_date")
+
+        assert opening_date is not None
+        assert opening_date.has_attr("checked")
+
+    @patch("app.main.routes.setup_opensearch")
+    def test_search_results_all_access_consignment_filter_autofills_transferring_body_and_series(
+        self,
+        mock_setup_opensearch,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_files,
+    ):
+        """
+        Given an all-access user with consignment filter only
+        When search results is requested
+        Then transferring body and series are auto-populated from the match
+        """
+        mock_all_access_user(client)
+        mock_setup_opensearch.return_value = MockOpenSearch(
+            search_return_value=OS_MOCK_RESULTS
+        )
+
+        response = client.get(
+            f"{self.route_url}?query=test&consignment_reference=TDR-2023-TH3"
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+
+        transferring_body_filter = soup.find(
+            "input", id="transferring_body_filter"
+        )
+        series_filter = soup.find("input", id="series_filter")
+        consignment_filter = soup.find("input", id="consignment_reference")
+
+        assert transferring_body_filter is not None
+        assert series_filter is not None
+        assert consignment_filter is not None
+        assert transferring_body_filter.get("value") == "second_body"
+        assert series_filter.get("value") == "second_series"
+        assert consignment_filter.get("value") == "TDR-2023-TH3"
+        verify_filters_heading(response.data, "Filters (3)")
+
+    @patch("app.main.routes.execute_search")
+    @patch("app.main.routes.setup_opensearch")
+    def test_search_results_applies_transferred_date_filter_in_query(
+        self,
+        mock_setup_opensearch,
+        mock_execute_search,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        """
+        Given a transferred date filter with date range
+        When search results query is built
+        Then the OpenSearch filter uses end_date range
+        """
+        mock_all_access_user(client)
+        mock_setup_opensearch.return_value = MockOpenSearch(
+            search_return_value=OS_MOCK_RESULTS
+        )
+        mock_execute_search.return_value = OS_MOCK_RESULTS
+
+        response = client.get(
+            f"{self.route_url}?query=test&date_filter_field=transferred&date_from_day=1&date_from_month=1&date_from_year=2025&date_to_day=31&date_to_month=12&date_to_year=2025"
+        )
+
+        assert response.status_code == 200
+        _, dsl_query, _, _ = mock_execute_search.call_args[0]
+        assert {
+            "range": {
+                "end_date": {
+                    "gte": "2025-01-01",
+                    "lte": "2025-12-31",
+                }
+            }
+        } in dsl_query["query"]["bool"]["filter"]
+
+    @patch("app.main.routes.execute_search")
+    @patch("app.main.routes.setup_opensearch")
+    def test_search_results_applies_last_modified_date_filter_in_query(
+        self,
+        mock_setup_opensearch,
+        mock_execute_search,
+        client: FlaskClient,
+        mock_all_access_user,
+    ):
+        """
+        Given a last modified date filter with date range
+        When search results query is built
+        Then the OpenSearch filter contains a date-of-record style bool clause
+        """
+        mock_all_access_user(client)
+        mock_setup_opensearch.return_value = MockOpenSearch(
+            search_return_value=OS_MOCK_RESULTS
+        )
+        mock_execute_search.return_value = OS_MOCK_RESULTS
+
+        response = client.get(
+            f"{self.route_url}?query=test&date_filter_field=date_last_modified&date_from_day=1&date_from_month=1&date_from_year=2025&date_to_day=31&date_to_month=12&date_to_year=2025"
+        )
+
+        assert response.status_code == 200
+        _, dsl_query, _, _ = mock_execute_search.call_args[0]
+        expected_clause = {
+            "bool": {
+                "should": [
+                    {
+                        "range": {
+                            "end_date": {
+                                "gte": "2025-01-01",
+                                "lte": "2025-12-31",
+                            }
+                        }
+                    },
+                    {
+                        "bool": {
+                            "must_not": [{"exists": {"field": "end_date"}}],
+                            "filter": [
+                                {
+                                    "range": {
+                                        "date_last_modified": {
+                                            "gte": "2025-01-01",
+                                            "lte": "2025-12-31",
+                                        }
+                                    }
+                                }
+                            ],
+                        }
+                    },
+                ],
+                "minimum_should_match": 1,
+            }
+        }
+
+        assert expected_clause in dsl_query["query"]["bool"]["filter"]
 
     @patch("app.main.routes.execute_search")
     @patch("app.main.routes.setup_opensearch")
