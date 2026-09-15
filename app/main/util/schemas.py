@@ -96,17 +96,8 @@ class SearchRequestSchema(SearchQuerySchema):
         unknown = EXCLUDE
 
 
-class SearchResultsSummaryRequestSchema(PaginationSchema, SearchQuerySchema):
-    """Search results summary request validation schema."""
-
-    class Meta:
-        unknown = EXCLUDE
-
-
-class SearchTransferringBodyRequestSchema(PaginationSchema, SearchQuerySchema):
-    """Search transferring body request validation schema."""
-
-    _id = UUIDField(required=True, data_key="_id")
+class SearchResultsRequestSchema(PaginationSchema, SearchQuerySchema):
+    """Search results request validation schema."""
 
     class Meta:
         unknown = EXCLUDE

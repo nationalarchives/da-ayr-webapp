@@ -1,6 +1,12 @@
 FROM public.ecr.aws/lambda/python:3.14@sha256:5d318087bb422519012c82ddcf4f0057f5e53aed0ff79989a9da0acd53c3fa50
 
 ARG DROID_VERSION=6.9.13
+# renovate: datasource=repology depName=amazon_2023/findutils versioning=loose
+ARG FINDUTILS_VERSION=1:4.8.0-2.amzn2023.0.2
+# renovate: datasource=repology depName=amazon_2023/java-21-amazon-corretto-headless versioning=loose
+ARG JAVA_21_AMAZON_CORRETTO_HEADLESS_VERSION=1:21.0.12+8-1.amzn2023.1
+# renovate: datasource=repology depName=amazon_2023/unzip versioning=loose
+ARG UNZIP_VERSION=6.0-68.amzn2023.0.1
 
 # DROID's own release doesn't refresh these on its own schedule, so we
 # override the vulnerable JARs after unpacking.
@@ -29,9 +35,9 @@ org.apache.cxf:cxf-rt-ws-policy:4.2.3 \
 
 # Install Java for DROID, plus the tools needed to unpack and patch it.
 RUN dnf install -y \
-      findutils \
-      java-21-amazon-corretto-headless \
-      unzip && \
+  findutils-${FINDUTILS_VERSION} \
+  java-21-amazon-corretto-headless-${JAVA_21_AMAZON_CORRETTO_HEADLESS_VERSION} \
+  unzip-${UNZIP_VERSION} && \
     dnf clean all && \
     rm -rf /var/cache/dnf
 
