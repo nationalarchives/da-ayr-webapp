@@ -70,6 +70,7 @@
       "fullScopeAllowed": true,
       "defaultClientScopes": [
         "group_mapper_client_scope",
+        "self-audience-scope",
         "basic"
       ]
     }
@@ -432,6 +433,32 @@
             "claim.name": "groups",
             "userinfo.token.claim": "true",
             "multivalued": "true"
+          }
+        }
+      ]
+    },
+    {
+      "id": "7a1e5c3d-8f2b-4a6e-9c1d-2b6f4e0a9c3f",
+      "name": "self-audience-scope",
+      "description": "Adds client name to the access token's aud claim so Keycloak's introspection endpoint recognises the client as a valid audience (fixes groups going missing during token refresh).",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false",
+        "consent.screen.text": ""
+      },
+      "protocolMappers": [
+        {
+          "id": "3d9b6f2a-1c4e-4a8b-9e7d-5f0a2c8b6d1e",
+          "name": "self audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "ayr-beta",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
           }
         }
       ]

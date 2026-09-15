@@ -50,6 +50,14 @@
   }
 
   &__cell {
+    a {
+      color: $colour-link-default;
+
+      &:visited {
+        color: $colour-link-default;
+      }
+    }
+
     &--flex-layout {
       @include flex-layout;
     }

@@ -421,7 +421,7 @@ a.govuk-link {
         }
 
         &.word-break {
-          word-break: break-word; /* stylelint-disable-line declaration-property-value-keyword-no-deprecated */
+          overflow-wrap: break-word;
         }
       }
     }

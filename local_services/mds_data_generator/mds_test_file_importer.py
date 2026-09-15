@@ -28,12 +28,12 @@ load_dotenv()
 
 
 def get_s3_client():
-    """Get a S3 client for MinIO."""
+    """Get a S3 client for RustFS."""
     return boto3.client(
         "s3",
         endpoint_url=os.getenv("AWS_ENDPOINT_URL"),
-        aws_access_key_id=os.getenv("MINIO_ROOT_USER"),
-        aws_secret_access_key=os.getenv("MINIO_ROOT_PASSWORD"),
+        aws_access_key_id=os.getenv("RUSTFS_ROOT_USER"),
+        aws_secret_access_key=os.getenv("RUSTFS_ROOT_PASSWORD"),
         config=Config(signature_version="s3v4"),
         region_name="eu-west-2",
     )
@@ -64,7 +64,7 @@ def ensure_bucket_exists(bucket_name):
 
 
 def upload_file_to_s3(file_path, s3_key):
-    """Upload a file to MinIO."""
+    """Upload a file to RustFS."""
     s3 = get_s3_client()
     bucket = os.getenv("RECORD_BUCKET_NAME")
 

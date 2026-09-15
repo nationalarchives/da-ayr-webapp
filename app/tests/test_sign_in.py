@@ -47,6 +47,7 @@ def test_callback_route_sets_user_type_and_user_id(
         "refresh_token": "valid_refresh_token",
     }
     mock_keycloak.return_value.introspect.return_value = {
+        "active": True,
         "groups": groups,
         "sub": sub,
     }
@@ -77,6 +78,7 @@ def test_callback_falls_back_to_userinfo_when_introspect_groups_missing(
         "refresh_token": "valid_refresh_token",
     }
     mock_keycloak.return_value.introspect.return_value = {
+        "active": True,
         "sub": "test_all_access_user",
     }
     mock_keycloak.return_value.userinfo.return_value = {
@@ -114,7 +116,7 @@ def test_callback_falls_back_to_access_token_claims_when_userinfo_unavailable(
         "access_token": access_token,
         "refresh_token": "valid_refresh_token",
     }
-    mock_keycloak.return_value.introspect.return_value = {}
+    mock_keycloak.return_value.introspect.return_value = {"active": True}
     mock_keycloak.return_value.userinfo.side_effect = Exception(
         "userinfo not available"
     )
@@ -142,7 +144,7 @@ def test_callback_redirects_to_index_when_all_group_fallbacks_unavailable(
         "access_token": "valid_access_token",
         "refresh_token": "valid_refresh_token",
     }
-    mock_keycloak.return_value.introspect.return_value = {}
+    mock_keycloak.return_value.introspect.return_value = {"active": True}
     mock_keycloak.return_value.userinfo.side_effect = Exception(
         "userinfo not available"
     )
@@ -189,6 +191,41 @@ def test_callback_invalid_access_token(mock_keycloak, client):
 
     assert response.status_code == 302
     assert response.headers["Location"] == url_for("main.sign_in")
+
+
+@patch("app.main.routes.get_keycloak_instance_from_flask_config")
+def test_callback_redirects_to_sign_in_when_introspection_reports_inactive(
+    mock_keycloak, client
+):
+    """
+    Given a newly issued access token whose introspection response
+        explicitly reports "active": False (even though it also carries a
+        "groups" claim)
+    When the Keycloak callback route introspects that token
+    Then it should redirect to sign in without trusting any claims from
+        that introspection response.
+    """
+    mock_keycloak.return_value.token.return_value = {
+        "access_token": "valid_access_token",
+        "refresh_token": "valid_refresh_token",
+    }
+    mock_keycloak.return_value.introspect.return_value = {
+        "active": False,
+        "groups": ["/ayr_user_type/view_all"],
+        "sub": "test_all_access_user",
+    }
+
+    with client.session_transaction() as sess:
+        sess["oauth_state"] = "valid_state"
+
+    response = client.get("/callback?code=valid_code&state=valid_state")
+
+    assert response.status_code == 302
+    assert response.headers["Location"] == url_for("main.sign_in")
+
+    with client.session_transaction() as sess:
+        assert "user_groups" not in sess
+        assert "user_type" not in sess
 
 
 @patch("app.main.routes.get_keycloak_instance_from_flask_config")
@@ -286,6 +323,7 @@ def test_callback_tokens_have_expected_keycloak_lifetimes(
         ),
     }
     mock_keycloak.return_value.introspect.return_value = {
+        "active": True,
         "groups": ["/ayr_user_type/view_all"],
         "sub": "test_all_access_user",
     }

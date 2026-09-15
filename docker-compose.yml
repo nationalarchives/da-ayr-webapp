@@ -131,7 +131,7 @@ services:
     command: ["postgres"]
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.6.4@sha256:0aae0de7fca85525f727d3354df17896092de8bb26ae4c12d89c77e5df8cbce4
+    image: quay.io/keycloak/keycloak:26.7.3@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54
     env_file:
       - .docker.env
     command: start-dev --import-realm --spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true
@@ -170,60 +170,60 @@ services:
       retries: 30
       start_period: 30s
 
-  minio:
+  rustfs:
     env_file:
       - .docker.env
-    image: quay.io/minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
-    container_name: minio
+    image: rustfs/rustfs:1.0.0-rc.6@sha256:97171b3d72cd47dc81000f92ea84de25608bfc35a94c965501afaeb5d99f6035
+    container_name: rustfs
     ports:
       - "9000:9000"
       - "9001:9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      RUSTFS_ROOT_USER: ${RUSTFS_ROOT_USER}
+      RUSTFS_ROOT_PASSWORD: ${RUSTFS_ROOT_PASSWORD}
     volumes:
-      - minio_data:/data
+      - rustfs_data:/data
     command: server /data --console-address ":9001"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health/live"]
       interval: 10s
       timeout: 5s
       retries: 30
       start_period: 30s
     networks:
-      minio_network:
+      rustfs_network:
         aliases:
           - 127.0.0.1
 
-  minio-init:
+  rustfs-init:
     env_file:
       - .docker.env
-    image: minio/mc:latest@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
+    image: rustfs/rc:latest@sha256:adb45b56539006120f1d790bcc17ee5f9b4d93c1d7e71ed0a24f10267f9d6914
     depends_on:
-      minio:
+      rustfs:
         condition: service_healthy
     restart: "no"
     volumes:
       - ./local_services/files:/tmp/files:ro
     networks:
-      - minio_network
+      - rustfs_network
     entrypoint: >
       /bin/sh -c "
       sleep 15;
-      /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
-      /usr/bin/mc mb myminio/test-record-download --ignore-existing;
-      /usr/bin/mc mb myminio/test-access-copy --ignore-existing;
-      /usr/bin/mc cp --recursive /tmp/files/test-record-download/ myminio/test-record-download/ || echo 'No files to copy or copy failed';
-      /usr/bin/mc cp --recursive /tmp/files/test-access-copy/ myminio/test-access-copy/ || echo 'No files to copy or copy failed';
+      /usr/bin/rc alias set myrustfs http://rustfs:9000 ${RUSTFS_ROOT_USER} ${RUSTFS_ROOT_PASSWORD};
+      /usr/bin/rc mb myrustfs/test-record-download --ignore-existing;
+      /usr/bin/rc mb myrustfs/test-access-copy --ignore-existing;
+      /usr/bin/rc cp --recursive /tmp/files/test-record-download/ myrustfs/test-record-download/ || echo 'No files to copy or copy failed';
+      /usr/bin/rc cp --recursive /tmp/files/test-access-copy/ myrustfs/test-access-copy/ || echo 'No files to copy or copy failed';
       exit 0;
       "
 
   socat-localhost:
-    image: alpine/socat@sha256:f134cb7ebb983f971f5deb44e92bc62c1385b0a3b525393f32dd0722acc30315
-    command: tcp-listen:9000,fork,reuseaddr tcp-connect:minio:9000
+    image: alpine/socat@sha256:c5a091e1e735a90aa941a5828529dbe6c6157407a8047a9aa473faa133361b82
+    command: tcp-listen:9000,fork,reuseaddr tcp-connect:rustfs:9000
     network_mode: service:webapp
     depends_on:
-      - minio
+      - rustfs
 
   webapp:
     env_file:
@@ -252,20 +252,20 @@ services:
       # Mount source code for hot reloading directly
       - ./app:/docker_app/app
       # Mount certificates
-      - ./local_services/minio_certs:/docker_app/local_services/minio_certs
+      - ./local_services/rustfs_certs:/docker_app/local_services/rustfs_certs
       - ./local_services/opensearch_certs:/docker_app/local_services/opensearch_certs
       - ./local_services/webapp_postgres_certs:/docker_app/local_services/webapp_postgres_certs
     networks:
       - default
       - keycloak_network
       - opensearch-net
-      - minio_network
+      - rustfs_network
     links:
       - opensearch-node1
     depends_on:
       - webapp_postgres
       - keycloak
-      - minio
+      - rustfs
       - opensearch-node1
       - opensearch-restore
     healthcheck:
@@ -282,7 +282,7 @@ volumes:
     driver: local
   webapp_postgres_data:
     driver: local
-  minio_data:
+  rustfs_data:
     driver: local
 
 networks:
@@ -291,5 +291,5 @@ networks:
   opensearch-net:
   keycloak_network:
     driver: bridge
-  minio_network:
+  rustfs_network:
     driver: bridge

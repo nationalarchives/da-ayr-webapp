@@ -33,7 +33,6 @@ def test_search_query_schema_defaults():
         "query": "",
         "search_area": "everywhere",
         "sort": "file_name",
-        "open_all": "",
         "search_filter": "",
     }
 

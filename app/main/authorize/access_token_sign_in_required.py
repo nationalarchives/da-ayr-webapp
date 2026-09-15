@@ -4,7 +4,6 @@ import keycloak
 from flask import current_app, flash, g, redirect, session, url_for
 
 from app.main.authorize.ayr_user import AYRUser
-from app.main.authorize.keycloak_manager import decode_verified_token_claims
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
@@ -61,11 +60,26 @@ def access_token_sign_in_required(view_func):
             decoded_access_token = keycloak_openid.introspect(
                 session["access_token"]
             )
-            user_groups = _resolve_user_groups_with_fallbacks(
-                keycloak_openid=keycloak_openid,
-                access_token=session["access_token"],
-                decoded_access_token=decoded_access_token,
+            if not decoded_access_token.get("active"):
+                current_app.app_logger.warning(
+                    "Refreshed access token introspected is not active"
+                )
+                session.clear()
+                return redirect(url_for("main.sign_in"))
+            user_groups, groups_resolved = _resolve_user_groups(
+                decoded_access_token
             )
+            if not groups_resolved or not user_groups:
+                if not groups_resolved:
+                    current_app.app_logger.warning(
+                        "User groups could not be resolved during token refresh"
+                    )
+                else:
+                    current_app.app_logger.warning(
+                        "User groups resolved to empty during token refresh"
+                    )
+                session.clear()
+                return redirect(url_for("main.sign_in"))
             session["user_groups"] = user_groups
             _set_user_type(session.get("user_groups"))
 
@@ -94,7 +108,7 @@ def _validate_or_refresh_tokens(access_token, refresh_token):
 
     decoded_token = keycloak_openid.introspect(access_token)
 
-    if decoded_token["active"] is False:
+    if not decoded_token.get("active"):
         try:
             refreshed_token_response = keycloak_openid.refresh_token(
                 refresh_token
@@ -113,39 +127,16 @@ class InvalidAccessToken(Exception):
     pass
 
 
-def _resolve_user_groups_with_fallbacks(
-    keycloak_openid, access_token, decoded_access_token
-):
-    user_groups = decoded_access_token.get("groups")
-    if user_groups is None:
-        current_app.app_logger.warning(
-            "Groups missing from introspection response during refresh; trying userinfo fallback"
-        )
-        try:
-            userinfo_claims = keycloak_openid.userinfo(access_token)
-            user_groups = userinfo_claims.get("groups", [])
-        except Exception as exception:
-            current_app.app_logger.warning(
-                f"Failed to fetch userinfo claims during refresh: {exception}"
-            )
-            user_groups = []
+def _resolve_user_groups(decoded_access_token):
+    """
+    Returns (user_groups, resolved). `resolved` is True when the
+    introspection response includes a "groups" claim, even an empty one -
+    the caller needs that to distinguish "no groups" from "couldn't find out".
+    """
+    if "groups" in decoded_access_token:
+        return decoded_access_token.get("groups") or [], True
 
-    if not user_groups:
-        current_app.app_logger.warning(
-            "Groups unavailable from introspection/userinfo during refresh; trying access token claim fallback"
-        )
-        try:
-            token_claims = decode_verified_token_claims(
-                keycloak_openid=keycloak_openid,
-                access_token=access_token,
-            )
-            user_groups = token_claims.get("groups", user_groups)
-        except Exception as exception:
-            current_app.app_logger.warning(
-                f"Failed to decode access token claims during refresh: {exception}"
-            )
-
-    return user_groups
+    return [], False
 
 
 def _set_user_type(user_groups):
