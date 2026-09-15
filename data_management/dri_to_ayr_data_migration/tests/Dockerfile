@@ -4,7 +4,7 @@ ARG DROID_VERSION=6.9.13
 # renovate: datasource=repology depName=debian_13/ca-certificates versioning=loose
 ARG CA_CERTIFICATES_VERSION=20250419
 # renovate: datasource=repology depName=debian_13/curl versioning=loose
-ARG CURL_VERSION=8.14.1-2+deb13u4
+ARG CURL_VERSION=8.14.1-2+deb13u5
 # renovate: datasource=repology depName=debian_13/openjdk-21-jre-headless versioning=loose
 ARG OPENJDK_21_JRE_HEADLESS_VERSION=21.0.12.1+1-1~deb13u1
 # renovate: datasource=repology depName=debian_13/unzip versioning=loose
