@@ -28,15 +28,20 @@ from finaliser.handler import (
     SENT_TO_DDT,
     build_ddt_prepared_message,
     consignment_key,
+    create_and_upload_final_metadata,
     create_checksum_files,
+    ensure_required_single_rows,
+    ensure_single_consignment_csv,
     get_consignment_status,
     lambda_handler,
     list_staged_csv_keys,
     mark_consignment_sent_to_ddt,
     merge_staged_csvs,
+    prepare_final_package_from_staged_csvs,
     process_message,
     publish_ddt_message,
     read_csv_from_s3_as_list,
+    reset_consignment_for_retry,
     start_finalising_or_skip,
     upload_metadata_files,
 )
@@ -370,6 +375,198 @@ class TestProcessMessage:
         reset_consignment_mock.assert_not_called()
 
 
+class TestFinalPackagePreparation:
+    """Shared and consignment staged CSV preparation tests"""
+
+    def test_prepare_final_package_uses_shared_and_consignment_csvs(
+        self, mock_finaliser, monkeypatch
+    ):
+        consignment_keys = [
+            "MIG 1/ayr-mds-staging/TDR-1/AYR-consignment-metadata.csv",
+            "MIG 1/ayr-mds-staging/TDR-1/file-1/AYR-file.csv",
+        ]
+        ddt_message = {
+            "properties": {"messageType": "test-message-type"},
+            "parameters": {"reference": "TDR-1"},
+        }
+        list_staged_csv_keys_mock = mock.Mock(return_value=consignment_keys)
+        ensure_single_consignment_csv_mock = mock.Mock()
+        create_and_upload_final_metadata_mock = mock.Mock()
+        build_ddt_prepared_message_mock = mock.Mock(return_value=ddt_message)
+        context = LambdaContext()
+
+        monkeypatch.setattr(
+            finaliser_module,
+            "list_staged_csv_keys",
+            list_staged_csv_keys_mock,
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "ensure_single_consignment_csv",
+            ensure_single_consignment_csv_mock,
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "create_and_upload_final_metadata",
+            create_and_upload_final_metadata_mock,
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "build_ddt_prepared_message",
+            build_ddt_prepared_message_mock,
+        )
+
+        result = prepare_final_package_from_staged_csvs(
+            run_id="run-1",
+            series="MIG 1",
+            consignment_reference="TDR-1",
+            context=context,
+        )
+
+        assert result == (ddt_message, "MIG 1/ayr-mds-csv/TDR-1")
+        list_staged_csv_keys_mock.assert_called_once_with(
+            "MIG 1/ayr-mds-staging/TDR-1"
+        )
+        ensure_single_consignment_csv_mock.assert_called_once_with(
+            keys=consignment_keys,
+            staging_prefix="MIG 1/ayr-mds-staging/TDR-1",
+        )
+        create_and_upload_final_metadata_mock.assert_called_once_with(
+            staged_csv_keys=[
+                "MIG 1/ayr-mds-staging/shared/AYR-body-metadata.csv",
+                "MIG 1/ayr-mds-staging/shared/AYR-series-metadata.csv",
+                *consignment_keys,
+            ],
+            final_output_prefix="MIG 1/ayr-mds-csv/TDR-1",
+        )
+        build_ddt_prepared_message_mock.assert_called_once_with(
+            series="MIG 1",
+            consignment_reference="TDR-1",
+            context=context,
+        )
+
+    def test_ensure_single_consignment_csv_accepts_one(self, mock_finaliser):
+        result = ensure_single_consignment_csv(
+            keys=[
+                "staging/TDR-1/AYR-consignment-metadata.csv",
+                "staging/TDR-1/file-1/AYR-file.csv",
+            ],
+            staging_prefix="staging/TDR-1",
+        )
+
+        assert result is None
+
+    @pytest.mark.parametrize(
+        ("keys", "expected_count"),
+        [
+            ([], 0),
+            (
+                [
+                    "staging/TDR-1/first/AYR-consignment-metadata.csv",
+                    "staging/TDR-1/second/AYR-consignment-metadata.csv",
+                ],
+                2,
+            ),
+        ],
+    )
+    def test_ensure_single_consignment_csv_rejects_invalid_count(
+        self,
+        mock_finaliser,
+        keys,
+        expected_count,
+    ):
+        with pytest.raises(ValueError, match=f"found {expected_count}"):
+            ensure_single_consignment_csv(
+                keys=keys,
+                staging_prefix="staging/TDR-1",
+            )
+
+    def test_create_and_upload_final_metadata_runs_each_packaging_step(
+        self, mock_finaliser, monkeypatch
+    ):
+        staged_csv_keys = [
+            "staging/shared/AYR-body-metadata.csv",
+            "staging/shared/AYR-series-metadata.csv",
+            "staging/TDR-1/AYR-consignment-metadata.csv",
+        ]
+        merge_counts = {
+            "AYR-body-metadata.csv": 1,
+            "AYR-series-metadata.csv": 1,
+            "AYR-consignment-metadata.csv": 1,
+        }
+        merge_staged_csvs_mock = mock.Mock(return_value=merge_counts)
+        ensure_required_single_rows_mock = mock.Mock()
+        create_checksum_files_mock = mock.Mock()
+        upload_metadata_files_mock = mock.Mock()
+
+        monkeypatch.setattr(
+            finaliser_module,
+            "merge_staged_csvs",
+            merge_staged_csvs_mock,
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "ensure_required_single_rows",
+            ensure_required_single_rows_mock,
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "create_checksum_files",
+            create_checksum_files_mock,
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "upload_metadata_files",
+            upload_metadata_files_mock,
+        )
+
+        result = create_and_upload_final_metadata(
+            staged_csv_keys=staged_csv_keys,
+            final_output_prefix="MIG 1/ayr-mds-csv/TDR-1",
+        )
+
+        assert result is None
+        merge_staged_csvs_mock.assert_called_once()
+        output_dir = merge_staged_csvs_mock.call_args.kwargs["output_dir"]
+        assert merge_staged_csvs_mock.call_args.kwargs["staged_csv_keys"] == (
+            staged_csv_keys
+        )
+        ensure_required_single_rows_mock.assert_called_once_with(merge_counts)
+        create_checksum_files_mock.assert_called_once_with(output_dir)
+        upload_metadata_files_mock.assert_called_once_with(
+            local_dir=output_dir,
+            prefix="MIG 1/ayr-mds-csv/TDR-1",
+        )
+
+    def test_ensure_required_single_rows_accepts_one_of_each(
+        self, mock_finaliser
+    ):
+        result = ensure_required_single_rows(
+            {
+                "AYR-body-metadata.csv": 1,
+                "AYR-series-metadata.csv": 1,
+                "AYR-consignment-metadata.csv": 1,
+            }
+        )
+
+        assert result is None
+
+    def test_ensure_required_single_rows_rejects_invalid_counts(
+        self, mock_finaliser
+    ):
+        with pytest.raises(
+            ValueError,
+            match="Expected exactly one row in each shared/consignment CSV",
+        ):
+            ensure_required_single_rows(
+                {
+                    "AYR-body-metadata.csv": 0,
+                    "AYR-series-metadata.csv": 2,
+                    "AYR-consignment-metadata.csv": 1,
+                }
+            )
+
+
 class TestCsvDiscoveryAndMerge:
     """CSV listing, merging and checksum tests"""
 
@@ -391,7 +588,10 @@ class TestCsvDiscoveryAndMerge:
                         "Key": "MIG 1/ayr-mds-staging/TDR-1/file-1/unexpected.csv"
                     },
                     {
-                        "Key": "MIG 1/ayr-mds-staging/TDR-1/file-1/AYR-body-metadata.csv"
+                        "Key": (
+                            "MIG 1/ayr-mds-staging/TDR-1/"
+                            "AYR-consignment-metadata.csv"
+                        )
                     },
                 ]
             }
@@ -402,7 +602,7 @@ class TestCsvDiscoveryAndMerge:
 
         assert result == [
             "MIG 1/ayr-mds-staging/TDR-1/file-1/AYR-file.csv",
-            "MIG 1/ayr-mds-staging/TDR-1/file-1/AYR-body-metadata.csv",
+            "MIG 1/ayr-mds-staging/TDR-1/AYR-consignment-metadata.csv",
         ]
         paginator.paginate.assert_called_once_with(
             Bucket="ddt-temp-csv-bucket",
@@ -680,6 +880,91 @@ class TestDynamoDbState:
             ValueError, match="Missing consignment tracking item"
         ):
             get_consignment_status("run-1", "TDR-1")
+
+    def test_reset_consignment_for_retry_resets_finalising_consignment(
+        self, mock_finaliser, monkeypatch
+    ):
+        monkeypatch.setattr(
+            finaliser_module, "utc_now_text", lambda: "2026-09-01T10:00:00Z"
+        )
+
+        result = reset_consignment_for_retry("run-1", "TDR-1")
+
+        assert result is None
+        mock_finaliser.dynamodb.update_item.assert_called_once_with(
+            TableName="tracking-table",
+            Key=consignment_key("run-1", "TDR-1"),
+            UpdateExpression=(
+                "SET #status = :ready, finalisingFailedAt = :now, "
+                "updatedAt = :now REMOVE finalisingStartedAt"
+            ),
+            ConditionExpression="#status = :finalising",
+            ExpressionAttributeNames={"#status": "status"},
+            ExpressionAttributeValues={
+                ":ready": {"S": READY_TO_FINALISE},
+                ":finalising": {"S": FINALISING},
+                ":now": {"S": "2026-09-01T10:00:00Z"},
+            },
+        )
+
+    @pytest.mark.parametrize("status", [READY_TO_FINALISE, SENT_TO_DDT])
+    def test_reset_consignment_for_retry_ignores_completed_reset(
+        self, mock_finaliser, monkeypatch, status
+    ):
+        mock_finaliser.dynamodb.update_item.side_effect = (
+            conditional_check_failed()
+        )
+        get_consignment_status_mock = mock.Mock(return_value=status)
+        monkeypatch.setattr(
+            finaliser_module,
+            "get_consignment_status",
+            get_consignment_status_mock,
+        )
+
+        result = reset_consignment_for_retry("run-1", "TDR-1")
+
+        assert result is None
+        get_consignment_status_mock.assert_called_once_with("run-1", "TDR-1")
+
+    def test_reset_consignment_for_retry_raises_for_unexpected_status(
+        self, mock_finaliser, monkeypatch
+    ):
+        mock_finaliser.dynamodb.update_item.side_effect = (
+            conditional_check_failed()
+        )
+        monkeypatch.setattr(
+            finaliser_module,
+            "get_consignment_status",
+            mock.Mock(return_value=FINALISING),
+        )
+
+        with pytest.raises(
+            RuntimeError,
+            match=(
+                "Could not release finaliser lock. runId=run-1 "
+                "consignmentReference=TDR-1 status=FINALISING"
+            ),
+        ):
+            reset_consignment_for_retry("run-1", "TDR-1")
+
+    def test_reset_consignment_for_retry_reraises_non_conditional_error(
+        self, mock_finaliser
+    ):
+        error = ClientError(
+            {
+                "Error": {
+                    "Code": "InternalServerError",
+                    "Message": "DynamoDB unavailable",
+                }
+            },
+            "UpdateItem",
+        )
+        mock_finaliser.dynamodb.update_item.side_effect = error
+
+        with pytest.raises(ClientError) as raised:
+            reset_consignment_for_retry("run-1", "TDR-1")
+
+        assert raised.value is error
 
     def test_mark_consignment_sent_to_ddt_updates_status(
         self, mock_finaliser, monkeypatch
