@@ -203,11 +203,13 @@ def process_message(message: dict[str, Any], context: Any) -> None:
         return
 
     try:
-        ddt_message, final_output_prefix = prepare_final_output(
-            run_id=run_id,
-            series=series,
-            consignment_reference=consignment_reference,
-            context=context,
+        ddt_message, final_output_prefix = (
+            prepare_final_package_from_staged_csvs(
+                run_id=run_id,
+                series=series,
+                consignment_reference=consignment_reference,
+                context=context,
+            )
         )
     except Exception:
         handle_pre_publish_failure(run_id, consignment_reference)
@@ -259,12 +261,19 @@ def handle_pre_publish_failure(
         )
 
 
-def prepare_final_output(
+def prepare_final_package_from_staged_csvs(
     run_id: str,
     series: str,
     consignment_reference: str,
     context: Any,
 ) -> tuple[dict[str, Any], str]:
+    """Build the final metadata package from staged CSV files.
+
+    Combines the shared Body and Series CSVs with the consignment-specific
+    staged CSVs, validates the required metadata, creates and uploads the
+    merged CSV/checksum package, and returns the DDT message and final output
+    prefix.
+    """
     shared_staging_prefix = join_s3_key(
         series,
         STAGING_PREFIX,
@@ -441,6 +450,8 @@ def merge_staged_csvs(
     keys = sorted(staged_csv_keys)
     total = len(keys)
     counts: dict[str, int] = {file_name: 0 for file_name in CSV_DEFINITIONS}
+    progress_interval = max(1, ceil(total / 5))
+    next_progress = progress_interval
 
     logger.info(
         "Reading and merging %s staged CSV object(s) using %s worker(s) "
@@ -452,11 +463,28 @@ def merge_staged_csvs(
 
     with ExitStack() as stack:
         writers_by_file = open_output_csv_writers(output_dir, stack)
-        merge_staged_csv_batches(
-            keys=keys,
-            writers_by_file=writers_by_file,
-            counts=counts,
-        )
+
+        for processed, (key, rows) in enumerate(
+            get_staged_csv_rows(keys),
+            start=1,
+        ):
+            file_name = Path(key).name
+            definition = CSV_DEFINITIONS[file_name]
+            required_column = definition["required_column"]
+
+            for row in rows:
+                if not row.get(required_column):
+                    raise ValueError(
+                        f"Missing {required_column} value in {file_name} row from "
+                        f"s3://{DDT_TEMP_CSV_BUCKET}/{key}"
+                    )
+
+                writers_by_file[file_name].writerow(row)
+                counts[file_name] += 1
+
+            if processed >= next_progress or processed == total:
+                log_merge_progress(processed, total)
+                next_progress += progress_interval
 
     return counts
 
@@ -487,36 +515,14 @@ def open_output_csv_writers(
     return writers
 
 
-def merge_staged_csv_batches(
-    keys: list[str],
-    writers_by_file: dict[str, Any],
-    counts: dict[str, int],
-) -> None:
-    """Fetch staged objects concurrently and merge each batch in key order."""
-    total = len(keys)
-    processed = 0
-    # Log after roughly every 20% of the staged objects are merged.
-    progress_interval = max(1, ceil(total / 5))
-    next_progress = progress_interval
-
+def get_staged_csv_rows(keys: list[str]):
+    """Fetch staged CSV objects concurrently and yield them in key order."""
     with ThreadPoolExecutor(max_workers=S3_READ_WORKERS) as executor:
-        for start in range(0, total, S3_READ_BATCH_SIZE):
+        for start in range(0, len(keys), S3_READ_BATCH_SIZE):
             batch = keys[start : start + S3_READ_BATCH_SIZE]
             rows_iterator = executor.map(read_csv_from_s3_as_list, batch)
 
-            for key, rows in zip(batch, rows_iterator, strict=True):
-                merge_staged_rows(
-                    key=key,
-                    rows=rows,
-                    writers_by_file=writers_by_file,
-                    counts=counts,
-                )
-
-                processed += 1
-
-                if processed >= next_progress or processed == total:
-                    log_merge_progress(processed, total)
-                    next_progress += progress_interval
+            yield from zip(batch, rows_iterator, strict=True)
 
 
 def log_merge_progress(processed: int, total: int) -> None:
@@ -525,28 +531,6 @@ def log_merge_progress(processed: int, total: int) -> None:
         processed,
         total,
     )
-
-
-def merge_staged_rows(
-    key: str,
-    rows: list[dict[str, str]],
-    writers_by_file: dict[str, Any],
-    counts: dict[str, int],
-) -> None:
-    """Validate and write rows from one staged CSV object."""
-    file_name = Path(key).name
-    definition = CSV_DEFINITIONS[file_name]
-    required_column = definition["required_column"]
-
-    for row in rows:
-        if not row.get(required_column):
-            raise ValueError(
-                f"Missing {required_column} value in {file_name} row from "
-                f"s3://{DDT_TEMP_CSV_BUCKET}/{key}"
-            )
-
-        writers_by_file[file_name].writerow(row)
-        counts[file_name] += 1
 
 
 def read_csv_from_s3_as_list(key: str) -> list[dict[str, str]]:
