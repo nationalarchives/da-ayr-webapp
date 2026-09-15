@@ -91,14 +91,14 @@ def clean_example_files():
         return False
 
 
-def clean_minio():
-    """Clean up test objects from MinIO storage."""
+def clean_rustfs():
+    """Clean up test objects from RustFS storage."""
     try:
         s3_resource = boto3.resource(
             "s3",
             endpoint_url=os.getenv("AWS_ENDPOINT_URL"),
-            aws_access_key_id=os.getenv("MINIO_ROOT_USER"),
-            aws_secret_access_key=os.getenv("MINIO_ROOT_PASSWORD"),
+            aws_access_key_id=os.getenv("RUSTFS_ROOT_USER"),
+            aws_secret_access_key=os.getenv("RUSTFS_ROOT_PASSWORD"),
             config=Config(signature_version="s3v4"),
             region_name="us-east-1",
         )
@@ -112,15 +112,15 @@ def clean_minio():
                 obj.delete()
                 deleted_count += 1
 
-        print(f"MinIO cleanup completed - deleted {deleted_count} objects")
+        print(f"RustFS cleanup completed - deleted {deleted_count} objects")
         return True
     except Exception as e:
-        print(f"Error cleaning up MinIO: {e}")
+        print(f"Error cleaning up RustFS: {e}")
         return False
 
 
 if __name__ == "__main__":
     clean_database()
     clean_example_files()
-    clean_minio()
+    clean_rustfs()
     clean_opensearch()

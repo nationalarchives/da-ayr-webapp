@@ -155,7 +155,7 @@ jobs:
       run: ./local_services/generate-keycloak-certs.sh
 
     - name: Start Docker Compose with CI-specific configuration
-      run: docker compose -f docker-compose.yml --env-file .docker.env up -d --wait --no-build webapp minio-init socat-localhost || exit $(docker compose -f docker-compose.yml --env-file .docker.env ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
+      run: docker compose -f docker-compose.yml --env-file .docker.env up -d --wait --no-build webapp rustfs-init socat-localhost || exit $(docker compose -f docker-compose.yml --env-file .docker.env ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Set up E2E test environment
       env:
@@ -290,7 +290,7 @@ jobs:
       run: npm ci
 
     - name: Start Docker Compose with CI-specific configuration
-      run: docker compose -f docker-compose.yml --env-file .docker.env up -d --wait --no-build webapp minio-init socat-localhost || exit $(docker compose -f docker-compose.yml --env-file .docker.env ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
+      run: docker compose -f docker-compose.yml --env-file .docker.env up -d --wait --no-build webapp rustfs-init socat-localhost || exit $(docker compose -f docker-compose.yml --env-file .docker.env ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Wait for Keycloak token endpoint
       run: |

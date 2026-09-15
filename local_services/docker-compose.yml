@@ -141,17 +141,17 @@ services:
     networks:
       - keycloak_network
 
-  minio:
+  rustfs:
     image: rustfs/rustfs:1.0.0-rc.6@sha256:97171b3d72cd47dc81000f92ea84de25608bfc35a94c965501afaeb5d99f6035
-    container_name: minio
+    container_name: rustfs
     ports:
       - "9000:9000"
       - "9001:9001"
     environment:
-      RUSTFS_ACCESS_KEY: ${MINIO_ROOT_USER}
-      RUSTFS_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      RUSTFS_ROOT_USER: ${RUSTFS_ROOT_USER}
+      RUSTFS_ROOT_PASSWORD: ${RUSTFS_ROOT_PASSWORD}
     volumes:
-      - ~/minio/data:/data
+      - ~/rustfs/data:/data
     command: server /data --console-address ":9001"
 
 volumes:
