@@ -9,18 +9,14 @@ export default defineConfig([
       "coverage/",
       "storybook-static/",
       "storybook/stories/",
-      "app/static/init.uv.test.js",
       "configs/pa11y_ci_precommit.js",
-      "app/static/init.uv.js",
       "accessibility_tests/**",
       "configs/**",
       "lighthouserc.js",
-      "app/static/init.uv*.js",
     ],
   },
   ...tnaEslintConfig,
   {
-    // Override rules for CommonJS / configuration / script files / story files
     files: [".storybook/**/*.js", "accessibility_tests/**/*.js", "*.js"],
     languageOptions: {
       globals: {
@@ -29,6 +25,28 @@ export default defineConfig([
         process: "readonly",
         __dirname: "readonly",
       },
+    },
+  },
+  {
+    files: ["**/*.test.js", "**/*.test-helpers.js"],
+    languageOptions: {
+      globals: {
+        require: "readonly",
+        module: "readonly",
+        global: "writable",
+        describe: "readonly",
+        it: "readonly",
+        test: "readonly",
+        expect: "readonly",
+        jest: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+      },
+    },
+    rules: {
+      "id-length": ["error", { properties: "never" }],
     },
   },
 ]);
