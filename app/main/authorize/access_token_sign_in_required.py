@@ -63,10 +63,17 @@ def access_token_sign_in_required(view_func):
             user_groups, groups_resolved = _resolve_user_groups(
                 decoded_access_token
             )
-            if not groups_resolved:
-                current_app.app_logger.warning(
-                    "User groups could not be resolved during token refresh"
-                )
+            if not groups_resolved or not user_groups:
+                if not groups_resolved:
+                    current_app.app_logger.warning(
+                        "User groups could not be resolved during token refresh"
+                    )
+                else:
+                    current_app.app_logger.warning(
+                        "User groups resolved to empty during token refresh"
+                    )
+                session.clear()
+                return redirect(url_for("main.sign_in"))
             session["user_groups"] = user_groups
             _set_user_type(session.get("user_groups"))
 

@@ -60,7 +60,6 @@ from app.main.util.page_utils import (
 from app.main.util.pagination import (
     calculate_total_pages,
     get_pagination,
-    paginate,
 )
 from app.main.util.render_utils import (
     create_presigned_url,
@@ -84,14 +83,11 @@ from app.main.util.schemas import (
     DownloadRequestSchema,
     GenerateManifestRequestSchema,
     RecordRequestSchema,
-    SearchRequestSchema,
-    SearchResultsSummaryRequestSchema,
-    SearchTransferringBodyRequestSchema,
+    SearchResultsRequestSchema,
     SearchWithinRequestSchema,
 )
 from app.main.util.search_utils import (
-    build_search_results_summary_query,
-    build_search_transferring_body_query,
+    build_search_results_query,
     check_additional_term,
     execute_search,
     extract_search_terms,
@@ -711,118 +707,31 @@ def browse_records():
     )
 
 
-@bp.route("/search", methods=["GET"])
+@bp.route("/search/results", methods=["GET"], endpoint="search_results")
+@bp.route("/search/results/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
-@validate_request(SearchRequestSchema, location="combined")
-def search():
-    validated_data = request.validated_data
-    transferring_body_id = validated_data["transferring_body_id"]
-
+@validate_request(SearchResultsRequestSchema, location="combined")
+def search_results(_id: uuid.UUID | None = None):
+    body = None
     ayr_user = AYRUser(session.get("user_groups"))
 
-    redirect_params = request.validated_args
+    if ayr_user.is_all_access_user and _id is not None:
+        abort(404)
 
-    if ayr_user.is_standard_user or transferring_body_id:
-        if not transferring_body_id:
-            transferring_body_id = str(
-                Body.query.filter(Body.Name == ayr_user.transferring_body.Name)
-                .first()
-                .BodyId
-            )
-        return redirect(
-            url_for(
-                "main.search_transferring_body",
-                _id=transferring_body_id,
-                **redirect_params,
-            )
-        )
-    return redirect(url_for("main.search_results_summary", **redirect_params))
-
-
-@bp.route("/search_results_summary", methods=["GET"])
-@access_token_sign_in_required
-@log_page_view
-@validate_request(SearchResultsSummaryRequestSchema, location="combined")
-def search_results_summary():
-    ayr_user = AYRUser(session.get("user_groups"))
     if ayr_user.is_standard_user:
-        abort(403)
+        user_body = ayr_user.transferring_body
+        if user_body is None:
+            abort(403)
+        body = db.session.get(Body, user_body.BodyId)
+        if body is None:
+            abort(404)
+        _id = body.BodyId
+        validate_body_user_groups_or_404(body.Name)
 
     form = SearchForm()
     validated_data = request.validated_data
     page, per_page = get_page_and_per_page(validated_data)
-
-    default_page = 1
-
-    query = validated_data["query"]
-    search_area = validated_data["search_area"]
-    filters = {"query": query}
-    num_records_found, paginated_results, pagination = 0, [], None
-
-    if query:
-        quoted_phrases, single_terms = extract_search_terms(query)
-        open_search = setup_opensearch()
-        search_fields, sorting = (
-            get_open_search_fields_to_search_on_and_sorting(search_area)
-        )
-        dsl_query = build_search_results_summary_query(
-            search_fields, quoted_phrases, single_terms, sorting
-        )
-
-        try:
-            search_results = execute_search(
-                open_search, dsl_query, page, per_page
-            )
-        except NotFound:
-            # Redirect to first page if page does not exist
-            return redirect_if_page_invalid(
-                page, default_page, "main.search_results_summary"
-            )
-        results = search_results["aggregations"][
-            "aggregate_by_transferring_body"
-        ]["buckets"]
-
-        total_records = sum(bucket["doc_count"] for bucket in results)
-
-        paginated_results = paginate(results, page, per_page)
-        # Match browse: get number of pages from paginated_results.pages if available, else calculate
-        page_count = getattr(paginated_results, "pages", None)
-        if page_count is None:
-            from math import ceil
-
-            page_count = ceil(len(results) / per_page) if per_page else 1
-        pagination = get_pagination(page, page_count)
-
-        if total_records:
-            num_records_found = total_records
-
-    return render_template(
-        "search-results-summary.html",
-        form=form,
-        current_page=page,
-        filters=filters,
-        search_area=search_area,
-        results=paginated_results,
-        pagination=pagination,
-        num_records_found=num_records_found,
-        query_string_parameters=request.validated_args,
-        id=None,
-    )
-
-
-@bp.route("/search/transferring_body/<uuid:_id>", methods=["GET"])
-@access_token_sign_in_required
-@log_page_view
-@validate_request(SearchTransferringBodyRequestSchema, location="combined")
-def search_transferring_body(_id: uuid.UUID):
-    body = db.session.get(Body, _id)
-    validate_body_user_groups_or_404(body.Name)
-
-    form = SearchForm()
-    validated_data = request.validated_data
-    page, per_page = get_page_and_per_page(validated_data)
-    open_all = validated_data["open_all"]
     sort = validated_data["sort"] or "file_name"
     highlight_tag = f"uuid_prefix_{uuid.uuid4().hex}"
 
@@ -836,13 +745,7 @@ def search_transferring_body(_id: uuid.UUID):
         return redirect_response
 
     filters = {"query": query}
-
-    breadcrumb_values = {
-        0: {"query": ""},
-        1: {"transferring_body_id": _id},
-        2: {"transferring_body": body.Name},
-        3: {"search_terms": "‘’"},
-    }
+    current_transferring_body_id = _id if body is not None else None
 
     search_terms, results, pagination, num_records_found = (
         [],
@@ -858,23 +761,18 @@ def search_transferring_body(_id: uuid.UUID):
         quoted_phrases, single_terms = extract_search_terms(query)
         search_terms = quoted_phrases + single_terms
 
-        breadcrumb_values[0] = {"query": query}
-        display_terms = " + ".join(
-            [f"‘{term}’" for term in search_terms if term.strip()]
-        )
-        breadcrumb_values[3]["search_terms"] = display_terms or query
-
         open_search = setup_opensearch()
         search_fields, sorting = (
             get_open_search_fields_to_search_on_and_sorting(search_area, sort)
         )
-        dsl_query = build_search_transferring_body_query(
+        transferring_body_id = None if ayr_user.is_all_access_user else _id
+        dsl_query = build_search_results_query(
             search_fields,
-            _id,
             highlight_tag,
             quoted_phrases,
             single_terms,
             sorting,
+            transferring_body_id=transferring_body_id,
         )
 
         try:
@@ -884,7 +782,9 @@ def search_transferring_body(_id: uuid.UUID):
         except NotFound:
             # Redirect to first page if page does not exist
             return redirect_if_page_invalid(
-                page, default_page, "main.search_transferring_body", _id=_id
+                page,
+                default_page,
+                request.endpoint,
             )
         results = post_process_opensearch_results(
             search_results["hits"]["hits"], sort
@@ -902,18 +802,18 @@ def search_transferring_body(_id: uuid.UUID):
         num_records_found = total_records
 
     return render_template(
-        "search-transferring-body.html",
+        "search-results.html",
         form=form,
+        per_page=per_page,
         sort=sort,
         current_page=page,
         filters=filters,
-        breadcrumb_values=breadcrumb_values,
+        current_transferring_body_id=current_transferring_body_id,
         results=results,
         num_records_found=num_records_found,
         search_terms=search_terms,
         search_area=search_area,
         pagination=pagination,
-        open_all=open_all,
         highlight_tag=highlight_tag,
         query_string_parameters=request.validated_args,
     )

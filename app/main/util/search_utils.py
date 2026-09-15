@@ -367,49 +367,23 @@ def build_dsl_search_query(
     return query_structure
 
 
-def build_search_results_summary_query(
+def build_search_results_query(
     search_fields,
-    quoted_phrases,
-    single_terms,
-    sorting,
-):
-    filter_clauses = []
-    dsl_query = build_dsl_search_query(
-        search_fields,
-        filter_clauses,
-        quoted_phrases,
-        single_terms,
-        sorting,
-    )
-    aggregations = {
-        "aggs": {
-            "aggregate_by_transferring_body": {
-                "terms": {"field": "transferring_body_id.keyword"},
-                "aggs": {
-                    "top_transferring_body_hits": {
-                        "top_hits": {
-                            "size": 1,
-                            "_source": ["transferring_body"],
-                        }
-                    }
-                },
-            }
-        },
-    }
-    return {**dsl_query, **aggregations}
-
-
-def build_search_transferring_body_query(
-    search_fields,
-    transferring_body_id,
     highlight_tag,
     quoted_phrases,
     single_terms,
     sorting,
+    transferring_body_id=None,
 ):
-    filter_clauses = [
-        {"term": {"transferring_body_id.keyword": transferring_body_id}}
-    ]
+    filter_clauses = []
+    if transferring_body_id is not None:
+        filter_clauses = [
+            {
+                "term": {
+                    "transferring_body_id.keyword": str(transferring_body_id)
+                }
+            }
+        ]
     dsl_query = build_dsl_search_query(
         search_fields,
         filter_clauses,
@@ -489,7 +463,7 @@ def check_additional_term(query, validated_data):
         redirect_params["query"] = query
         return redirect(
             url_for(
-                "main.search_transferring_body",
+                "main.search_results",
                 **redirect_params,
                 _anchor="browse-records",
             )

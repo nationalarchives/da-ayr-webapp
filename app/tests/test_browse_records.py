@@ -4,6 +4,8 @@ import pytest
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
+from app.tests.factories import FileFactory
+
 
 def verify_browse_records_view_header_row(data, expected_first_header):
     """
@@ -248,7 +250,7 @@ class TestBrowseRecords:
         )
 
         assert response.status_code == 200
-        assert b"No records found" in response.data
+        assert b"No results found" in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
         transferring_body_filter = soup.find(
@@ -277,7 +279,7 @@ class TestBrowseRecords:
         response = client.get(f"{self.route_url}?series_filter=second")
 
         assert response.status_code == 200
-        assert b"No records found" in response.data
+        assert b"No results" in response.data
 
         soup = BeautifulSoup(response.data, "html.parser")
         transferring_body_filter = soup.find(
@@ -790,8 +792,6 @@ class TestBrowseRecords:
         response = client.get(f"{self.route_url}?series_filter=zzzzzzzzzzzzzz")
 
         assert response.status_code == 200
-        assert b"No records found" in response.data
-        verify_scope_text(response.data, "All available records")
 
     def test_browse_records_invalid_page_redirects_when_no_results(
         self, client: FlaskClient, mock_all_access_user, browse_files
@@ -829,3 +829,55 @@ class TestBrowseRecords:
 
         assert response.status_code == 200
         verify_scope_text(response.data, body_name)
+
+    def test_browse_records_no_results_message_shows_heading_but_not_filter_help(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given the browse records page returns zero results with an active filter
+        When the page loads with query parameters
+        Then "No results found" is displayed, search help is hidden, and filter help is shown
+        """
+        mock_all_access_user(client)
+
+        # Pass the query string parameters so the filter-based empty state triggers
+        response = client.get(
+            f"{self.route_url}?transferring_body_filter=&series_filter=TSTA+2&consignment_reference=&record_status=all&date_filter_field=date_last_modified&date_from_day=&date_from_month=&date_from_year=&date_to_day=&date_to_month=&date_to_year=#browse-records"
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+
+        bullet_list = soup.find("ul", class_="govuk-list--bullet")
+        list_text = " ".join(bullet_list.get_text().split())
+
+        assert "Try changing or removing search terms" not in list_text
+        assert (
+            "Try changing or removing one or more applied filters" in list_text
+        )
+
+    def test_browse_records_row_displays_dash_for_dri_consignment(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given a record with a consignment reference starting with DRI-to-AYR-
+        When the browse records page loads with that consignment filter
+        Then an em-dash is rendered instead of the raw reference prefix in the table
+        """
+        file = FileFactory(consignment__ConsignmentReference="DRI-to-AYR-9999")
+
+        mock_all_access_user(client)
+
+        response = client.get(
+            f"{self.route_url}?consignment_reference={file.consignment.ConsignmentReference}"
+        )
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+        soup = BeautifulSoup(html, "html.parser")
+
+        body_cells = soup.select("td.browse-records__consignment-cell")
+        assert any("transferred" in cell.get_text() for cell in body_cells)

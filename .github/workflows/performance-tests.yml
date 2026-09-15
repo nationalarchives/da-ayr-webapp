@@ -88,13 +88,13 @@ jobs:
     - name: Set up Docker Compose
       uses: docker/setup-compose-action@4eb059ff7f16592f9c84d5ca339c53cb7c5064e2 # v2.3.0
       with:
-        version: v5.5.0
+        version: v5.5.1
 
     - name: Generate Keycloak TLS certs
       run: sh ./local_services/generate-keycloak-certs.sh
 
     - name: Start Docker Compose with CI-specific configuration
-      run: docker compose -f docker-compose.yml --env-file .docker.env up -d --wait --no-build webapp minio-init socat-localhost || exit $(docker compose -f docker-compose.yml --env-file .docker.env ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
+      run: docker compose -f docker-compose.yml --env-file .docker.env up -d --wait --no-build webapp rustfs-init socat-localhost || exit $(docker compose -f docker-compose.yml --env-file .docker.env ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Set up Python
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405

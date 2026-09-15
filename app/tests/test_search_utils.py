@@ -6,8 +6,7 @@ from opensearchpy import OpenSearch
 from app.main.util.search_utils import (
     OPENSEARCH_FIELD_NAME_MAP,
     build_dsl_search_query,
-    build_search_results_summary_query,
-    build_search_transferring_body_query,
+    build_search_results_query,
     build_should_clauses,
     execute_search,
     extract_search_terms,
@@ -413,51 +412,7 @@ def test_build_dsl_search_query_and_non_fuzzy_fuzzy_search():
     assert dsl_query == expected_dsl_query
 
 
-def test_build_search_results_summary_query():
-    query = "test_query"
-    quoted_phrases, single_terms = extract_search_terms(query)
-    dsl_query = build_search_results_summary_query(
-        ["field_1"],
-        quoted_phrases,
-        single_terms,
-        {"sort": "foobar"},
-    )
-    assert dsl_query == {
-        "query": {
-            "bool": {
-                "should": [
-                    {
-                        "multi_match": {
-                            "query": "test_query",
-                            "fields": ["field_1"],
-                            "type": "phrase",
-                            "lenient": True,
-                        }
-                    }
-                ],
-                "minimum_should_match": 1,
-                "filter": [],
-            }
-        },
-        "sort": {"sort": "foobar"},
-        "_source": True,
-        "aggs": {
-            "aggregate_by_transferring_body": {
-                "terms": {"field": "transferring_body_id.keyword"},
-                "aggs": {
-                    "top_transferring_body_hits": {
-                        "top_hits": {
-                            "size": 1,
-                            "_source": ["transferring_body"],
-                        }
-                    }
-                },
-            }
-        },
-    }
-
-
-def test_build_search_transferring_body_query():
+def test_build_search_results_query_with_transferring_body_filter():
     transferring_body_id = "test_transferring_body_id"
     query = '"non_fuzzy"+fuzzy'
     quoted_phrases, single_terms = extract_search_terms(query)
@@ -474,13 +429,13 @@ def test_build_search_transferring_body_query():
         "consignment_reference",
     ]
 
-    dsl_query = build_search_transferring_body_query(
+    dsl_query = build_search_results_query(
         search_fields,
-        transferring_body_id,
         "test_highlight_key",
         quoted_phrases,
         single_terms,
         {"sort": "foobar"},
+        transferring_body_id=transferring_body_id,
     )
     assert dsl_query == {
         "query": {

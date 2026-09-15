@@ -139,6 +139,22 @@
                 form.submit();
             });
         }
+
+        document.addEventListener('click', function(e) {
+            const backLink = e.target.closest('a[data-history-back-link="true"]');
+            if (!backLink) {
+                return;
+            }
+
+            if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+                return;
+            }
+
+            if (window.history.length > 1) {
+                e.preventDefault();
+                window.history.back();
+            }
+        });
     });
     </script>
     <!--<![endif]-->

@@ -33,16 +33,6 @@
                             {% else %}
                                 Browse records {{ num_records_found | format_number_with_commas }}
                             {% endif %}
-                        {% else %}
-                            {% if browse_type == "records" %}
-                                {% if records_has_active_filters %}
-                                    No records found
-                                {% else %}
-                                    0 records
-                                {% endif %}
-                            {% else %}
-                                No results found
-                            {% endif %}
                         {% endif %}
                     </h2>
                     {% if browse_type != "records" %}
