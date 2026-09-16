@@ -108,6 +108,7 @@ def test_main_headings_h1_precedes_h2(
         "/how-to-use-this-service",
         "/terms-of-use",
         "/browse",
+        "/browse/record/",
         "/search/results?query=test&search_area=everywhere&sort=file_name",
         f"/browse/record/{file.FileId}",
         f"/record/{file.FileId}",

@@ -32,14 +32,12 @@
                 {% if num_records_found > 0 %}
                     <h1 class="govuk-heading-l browse__records-found__text"
                         id="browse-records"
-                        aria-live="polite">
-                        Records found {{ num_records_found | format_number_with_commas }}
-                    {% else %}
-                        {% with view_type = "search" %}
-                            {{ no_results_message("search") }}
-                        {% endwith %}
-                    {% endif %}
-                </h1>
+                        aria-live="polite">Records found {{ num_records_found | format_number_with_commas }}</h1>
+                {% else %}
+                    {% with view_type = "search" %}
+                        {{ no_results_message("search") }}
+                    {% endwith %}
+                {% endif %}
                 <form action="{{ url_for('main.search_results', _anchor='browse-records') }}"
                       method="get">
                     <div class="browse-layout records-page-wrapper">
