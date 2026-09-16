@@ -2,7 +2,9 @@ import csv
 import json
 import logging
 import os
+import random
 import subprocess  # nosec
+import time
 from datetime import datetime, timezone
 from io import StringIO
 from pathlib import Path
@@ -26,6 +28,10 @@ TRACKING_TABLE_NAME = os.environ["TRACKING_TABLE_NAME"]
 FINALISER_QUEUE_URL = os.environ["FINALISER_QUEUE_URL"]
 
 STAGING_PREFIX = os.getenv("STAGING_PREFIX", "ayr-mds-staging")
+
+DYNAMODB_TRANSACTION_MAX_ATTEMPTS = 10
+DYNAMODB_TRANSACTION_BASE_DELAY_SECONDS = 0.05
+DYNAMODB_TRANSACTION_MAX_DELAY_SECONDS = 1.0
 
 FFID_METADATA_COLUMNS = [
     "FileId",
@@ -320,8 +326,8 @@ def mark_file_complete_and_trigger_finaliser_if_consignment_ready(
     now = utc_now_text()
 
     try:
-        dynamodb.transact_write_items(
-            TransactItems=[
+        transact_write_with_retry(
+            [
                 {
                     "Update": {
                         "TableName": TRACKING_TABLE_NAME,
@@ -386,6 +392,51 @@ def mark_file_complete_and_trigger_finaliser_if_consignment_ready(
         run_id=run_id,
         series=series,
         consignment_reference=consignment_reference,
+    )
+
+
+def transact_write_with_retry(
+    transact_items: list[dict[str, Any]],
+) -> None:
+    """Retry a cancelled DynamoDB transaction when items are contended."""
+    for attempt in range(1, DYNAMODB_TRANSACTION_MAX_ATTEMPTS + 1):
+        try:
+            dynamodb.transact_write_items(TransactItems=transact_items)
+            return
+        except ClientError as error:
+            if (
+                not has_transaction_conflict(error)
+                or attempt == DYNAMODB_TRANSACTION_MAX_ATTEMPTS
+            ):
+                raise
+
+            maximum_delay = min(
+                DYNAMODB_TRANSACTION_MAX_DELAY_SECONDS,
+                DYNAMODB_TRANSACTION_BASE_DELAY_SECONDS * (2 ** (attempt - 1)),
+            )
+            delay = random.uniform(0, maximum_delay)  # nosec B311
+
+            logger.warning(
+                "DynamoDB transaction conflict. Retrying attempt=%s/%s "
+                "after %.3f seconds",
+                attempt,
+                DYNAMODB_TRANSACTION_MAX_ATTEMPTS,
+                delay,
+            )
+            time.sleep(delay)
+
+
+def has_transaction_conflict(error: ClientError) -> bool:
+    """Return whether DynamoDB cancelled a transaction due to contention."""
+    if (
+        error.response.get("Error", {}).get("Code")
+        != "TransactionCanceledException"
+    ):
+        return False
+
+    return any(
+        reason.get("Code") == "TransactionConflict"
+        for reason in error.response.get("CancellationReasons", [])
     )
 
 
