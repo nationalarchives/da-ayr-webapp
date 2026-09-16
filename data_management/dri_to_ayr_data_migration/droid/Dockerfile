@@ -14,6 +14,13 @@ ARG CURL_VERSION=8.21.0-5.amzn2023.0.1
 ARG OPENSSL_VERSION=1:3.5.8-1.amzn2023.0.1
 ARG ALSA_LIB_VERSION=1.2.7.2-1.amzn2023.0.4
 
+ARG AL2023_RELEASE=2023.12.20260914
+ARG CURL_VERSION=8.21.0-5.amzn2023.0.1
+ARG OPENSSL_VERSION=1:3.5.8-1.amzn2023.0.1
+ARG ALSA_LIB_VERSION=1.2.7.2-1.amzn2023.0.4
+
+
+
 # DROID's own release doesn't refresh these on its own schedule, so we
 # override the vulnerable JARs after unpacking.
 ARG DROID_JAR_PATCHES="\
