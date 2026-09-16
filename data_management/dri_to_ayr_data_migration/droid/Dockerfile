@@ -1,10 +1,11 @@
 FROM public.ecr.aws/lambda/python:3.14@sha256:5d318087bb422519012c82ddcf4f0057f5e53aed0ff79989a9da0acd53c3fa50
 
 ARG DROID_VERSION=6.9.13
+
 # renovate: datasource=repology depName=amazon_2023/findutils versioning=loose
 ARG FINDUTILS_VERSION=1:4.8.0-2.amzn2023.0.2
 # renovate: datasource=repology depName=amazon_2023/java-21-amazon-corretto-headless versioning=loose
-ARG JAVA_21_AMAZON_CORRETTO_HEADLESS_VERSION=1:21.0.12+8-1.amzn2023.1
+ARG JAVA_21_AMAZON_CORRETTO_HEADLESS_VERSION=1:21.0.12+9-1.amzn2023.1
 # renovate: datasource=repology depName=amazon_2023/unzip versioning=loose
 ARG UNZIP_VERSION=6.0-68.amzn2023.0.1
 
@@ -12,8 +13,6 @@ ARG AL2023_RELEASE=2023.12.20260914
 ARG CURL_VERSION=8.21.0-5.amzn2023.0.1
 ARG OPENSSL_VERSION=1:3.5.8-1.amzn2023.0.1
 ARG ALSA_LIB_VERSION=1.2.7.2-1.amzn2023.0.4
-
-ARG JAVA_21_AMAZON_CORRETTO_HEADLESS_VERSION=1:21.0.12+9-1.amzn2023.1
 
 # DROID's own release doesn't refresh these on its own schedule, so we
 # override the vulnerable JARs after unpacking.
@@ -34,7 +33,6 @@ org.springframework:spring-beans:7.0.9 \
 org.springframework:spring-context:7.0.9 \
 org.springframework:spring-core:7.0.9 \
 org.springframework:spring-expression:7.0.9 \
-org.springframework:spring-jcl:7.0.9 \
 org.eclipse.angus:angus-mail:2.0.4 \
 org.apache.cxf:cxf-core:4.2.3 \
 org.apache.cxf:cxf-rt-bindings-soap:4.2.3 \
