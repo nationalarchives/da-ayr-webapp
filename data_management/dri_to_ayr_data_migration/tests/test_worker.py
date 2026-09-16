@@ -5,7 +5,6 @@ from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
-from botocore.exceptions import ClientError
 
 os.environ.setdefault("AWS_DEFAULT_REGION", "eu-west-2")
 os.environ.setdefault("AWS_EC2_METADATA_DISABLED", "true")
@@ -16,11 +15,8 @@ os.environ.setdefault("DRI_JSON_BUCKET", "dri-json-bucket")
 os.environ.setdefault("DRI_DATA_BUCKET", "dri-data-bucket")
 os.environ.setdefault("DDT_TEMP_CSV_BUCKET", "temp-csv-bucket")
 os.environ.setdefault("DDT_TEMP_DATA_BUCKET", "temp-data-bucket")
-os.environ.setdefault("DROID_LAMBDA_NAME", "droid-lambda")
+os.environ.setdefault("DROID_QUEUE_URL", "https://sqs.example.com/droid")
 os.environ.setdefault("TRACKING_TABLE_NAME", "tracking-table")
-os.environ.setdefault(
-    "FINALISER_QUEUE_URL", "https://sqs.example.com/finaliser"
-)
 
 import worker.dri_to_ayr_csv as csv_module
 import worker.handler as worker_module
@@ -30,9 +26,8 @@ ENVIRONMENT = {
     "DRI_DATA_BUCKET": "dri-data-bucket",
     "DDT_TEMP_CSV_BUCKET": "temp-csv-bucket",
     "DDT_TEMP_DATA_BUCKET": "temp-data-bucket",
-    "DROID_LAMBDA_NAME": "droid-lambda",
+    "DROID_QUEUE_URL": "https://sqs.example.com/droid",
     "TRACKING_TABLE_NAME": "tracking-table",
-    "FINALISER_QUEUE_URL": "https://sqs.example.com/finaliser",
 }
 
 FIXED_NOW = "2026-08-27T10:40:00Z"
@@ -50,20 +45,19 @@ def handler_module(monkeypatch):
     monkeypatch.setattr(worker_module, "s3", Mock(name="s3_client"))
     monkeypatch.setattr(worker_module, "sqs", Mock(name="sqs_client"))
     monkeypatch.setattr(worker_module, "dynamodb", Mock(name="dynamodb_client"))
-    monkeypatch.setattr(
-        worker_module, "lambda_client", Mock(name="lambda_client")
-    )
 
     return worker_module
 
 
-def worker_message() -> dict[str, str]:
+def worker_message() -> dict[str, str | bool]:
     return {
         "runId": "run-1",
         "series": "LEV 2",
         "reference": "LEV 2/2BD/Z",
         "consignmentReference": CONSIGNMENT_REFERENCE,
         "fileId": FILE_ID,
+        "includeBodyAndSeries": True,
+        "includeConsignment": True,
     }
 
 
@@ -188,6 +182,22 @@ class TestWorkerHandler:
             "batchItemFailures": [{"itemIdentifier": "message-1"}]
         }
 
+    @pytest.mark.parametrize(
+        "flag_name",
+        ["includeBodyAndSeries", "includeConsignment"],
+    )
+    def test_process_message_requires_boolean_include_flags(
+        self, handler_module, flag_name
+    ):
+        message = worker_message()
+        message[flag_name] = "true"
+
+        with pytest.raises(
+            ValueError,
+            match=f"Missing or invalid boolean field: {flag_name}",
+        ):
+            handler_module.process_message(message)
+
     def test_process_message_skips_terminal_consignment(
         self, handler_module, monkeypatch
     ):
@@ -228,7 +238,31 @@ class TestWorkerHandler:
         )
         module.process_file.assert_not_called()
 
-    def test_process_file_stages_metadata_and_marks_file_complete(
+    def test_process_message_passes_include_flags_to_process_file(
+        self, handler_module, monkeypatch
+    ):
+        module = handler_module
+        monkeypatch.setattr(
+            module, "get_consignment_status", Mock(return_value="STAGING")
+        )
+        monkeypatch.setattr(
+            module, "is_file_already_complete", Mock(return_value=False)
+        )
+        monkeypatch.setattr(module, "process_file", Mock())
+
+        module.process_message(worker_message())
+
+        module.process_file.assert_called_once_with(
+            run_id="run-1",
+            series="LEV 2",
+            reference="LEV 2/2BD/Z",
+            consignment_reference=CONSIGNMENT_REFERENCE,
+            expected_file_id=FILE_ID,
+            include_body_and_series=True,
+            include_consignment=True,
+        )
+
+    def test_process_file_stages_metadata_and_sends_droid_message(
         self, handler_module, monkeypatch
     ):
         module = handler_module
@@ -241,37 +275,20 @@ class TestWorkerHandler:
 
         module.s3.download_file.side_effect = download_file
 
-        copy_data_file_and_run_droid = Mock(
-            return_value={
-                "FileId": FILE_ID,
-                "Extension": "txt",
-                "PUID": "fmt/111",
-                "FormatName": "Plain Text",
-                "ExtensionMismatch": "false",
-                "FFID-Software": "DROID",
-                "FFID-SoftwareVersion": "6.7.0",
-                "FFID-BinarySignatureFileVersion": "",
-                "FFID-ContainerSignatureFileVersion": "",
-            }
-        )
+        copied_key = f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}"
+        copy_data_file = Mock(return_value=copied_key)
         convert_record_to_csv = Mock()
         upload_metadata_files = Mock()
-        mark_file_complete = Mock(return_value=True)
+        send_droid_message = Mock()
 
-        monkeypatch.setattr(
-            module, "copy_data_file_and_run_droid", copy_data_file_and_run_droid
-        )
+        monkeypatch.setattr(module, "copy_data_file", copy_data_file)
         monkeypatch.setattr(
             module, "convert_record_to_csv", convert_record_to_csv
         )
         monkeypatch.setattr(
             module, "upload_metadata_files", upload_metadata_files
         )
-        monkeypatch.setattr(
-            module,
-            "mark_file_complete_and_maybe_trigger_finaliser",
-            mark_file_complete,
-        )
+        monkeypatch.setattr(module, "send_droid_message", send_droid_message)
 
         module.process_file(
             run_id="run-1",
@@ -279,12 +296,13 @@ class TestWorkerHandler:
             reference="LEV 2/2BD/Z",
             consignment_reference=CONSIGNMENT_REFERENCE,
             expected_file_id=FILE_ID,
+            include_body_and_series=True,
+            include_consignment=True,
         )
 
-        copy_data_file_and_run_droid.assert_called_once_with(
+        copy_data_file.assert_called_once_with(
             record_id=RECORD_ID,
             file_id=FILE_ID,
-            extension="txt",
             series="LEV 2",
             consignment_reference=CONSIGNMENT_REFERENCE,
         )
@@ -294,30 +312,43 @@ class TestWorkerHandler:
         assert convert_kwargs["digital_file"] == record["digitalFiles"][0]
         assert Path(convert_kwargs["output_dir"]).name == "csv-output"
         assert convert_kwargs["consignment_reference"] == CONSIGNMENT_REFERENCE
-        upload_metadata_files.assert_called_once()
-        mark_file_complete.assert_called_once_with(
+        assert convert_kwargs["include_body_and_series"] is True
+        assert convert_kwargs["include_consignment"] is True
+
+        upload_metadata_files.assert_called_once_with(
+            local_dir=Path(convert_kwargs["output_dir"]),
+            bucket=ENVIRONMENT["DDT_TEMP_CSV_BUCKET"],
+            shared_prefix="LEV 2/ayr-mds-staging/shared",
+            consignment_prefix=(
+                f"LEV 2/ayr-mds-staging/{CONSIGNMENT_REFERENCE}"
+            ),
+            file_prefix=(
+                f"LEV 2/ayr-mds-staging/{CONSIGNMENT_REFERENCE}/{FILE_ID}"
+            ),
+        )
+        send_droid_message.assert_called_once_with(
             run_id="run-1",
             series="LEV 2",
             consignment_reference=CONSIGNMENT_REFERENCE,
             file_id=FILE_ID,
+            bucket=ENVIRONMENT["DDT_TEMP_DATA_BUCKET"],
+            key=copied_key,
+            extension="txt",
         )
 
-    def test_copy_data_file_and_run_droid_copies_file_then_invokes_droid(
-        self, handler_module, monkeypatch
+    def test_copy_data_file_copies_file_and_returns_destination_key(
+        self, handler_module
     ):
         module = handler_module
-        invoke_droid_lambda = Mock(return_value={"FileId": FILE_ID})
-        monkeypatch.setattr(module, "invoke_droid_lambda", invoke_droid_lambda)
 
-        result = module.copy_data_file_and_run_droid(
+        result = module.copy_data_file(
             record_id=RECORD_ID,
             file_id=FILE_ID,
-            extension="txt",
             series="LEV 2",
             consignment_reference=CONSIGNMENT_REFERENCE,
         )
 
-        assert result == {"FileId": FILE_ID}
+        assert result == f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}"
         module.s3.copy_object.assert_called_once_with(
             Bucket=ENVIRONMENT["DDT_TEMP_DATA_BUCKET"],
             CopySource={
@@ -326,101 +357,35 @@ class TestWorkerHandler:
             },
             Key=f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
         )
-        invoke_droid_lambda.assert_called_once_with(
-            bucket=ENVIRONMENT["DDT_TEMP_DATA_BUCKET"],
-            key=f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
-            file_id=FILE_ID,
-            extension="txt",
-        )
 
-    def test_invoke_droid_lambda_returns_ffid_metadata_row(
+    def test_send_droid_message_sends_expected_sqs_message(
         self, handler_module
     ):
         module = handler_module
-        payload = Mock()
-        payload.read.return_value = json.dumps(
-            {
-                "ffid_metadata_row": {
-                    "FileId": FILE_ID,
-                    "Extension": "txt",
-                }
-            }
-        ).encode("utf-8")
+        module.sqs.send_message.return_value = {"MessageId": "message-1"}
 
-        module.lambda_client.invoke.return_value = {
-            "Payload": payload,
-        }
-
-        result = module.invoke_droid_lambda(
+        module.send_droid_message(
+            run_id="run-1",
+            series="LEV 2",
+            consignment_reference=CONSIGNMENT_REFERENCE,
+            file_id=FILE_ID,
             bucket="temp-data-bucket",
             key=f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
-            file_id=FILE_ID,
             extension="txt",
         )
 
-        assert result == {
-            "FileId": FILE_ID,
-            "Extension": "txt",
-        }
-
-        module.lambda_client.invoke.assert_called_once()
-        invoke_kwargs = module.lambda_client.invoke.call_args.kwargs
-
-        assert invoke_kwargs["FunctionName"] == ENVIRONMENT["DROID_LAMBDA_NAME"]
-        assert invoke_kwargs["InvocationType"] == "RequestResponse"
-
-        request_payload = json.loads(invoke_kwargs["Payload"].decode("utf-8"))
-        assert request_payload == {
+        module.sqs.send_message.assert_called_once()
+        send_kwargs = module.sqs.send_message.call_args.kwargs
+        assert send_kwargs["QueueUrl"] == ENVIRONMENT["DROID_QUEUE_URL"]
+        assert json.loads(send_kwargs["MessageBody"]) == {
+            "runId": "run-1",
+            "series": "LEV 2",
+            "consignmentReference": CONSIGNMENT_REFERENCE,
             "bucket": "temp-data-bucket",
             "key": f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
             "fileId": FILE_ID,
             "extension": "txt",
         }
-
-    def test_invoke_droid_lambda_raises_when_lambda_reports_error(
-        self, handler_module
-    ):
-        module = handler_module
-        payload = Mock()
-        payload.read.return_value = json.dumps(
-            {
-                "errorMessage": "DROID failed",
-            }
-        ).encode("utf-8")
-
-        module.lambda_client.invoke.return_value = {
-            "FunctionError": "Unhandled",
-            "Payload": payload,
-        }
-
-        with pytest.raises(RuntimeError, match="DROID Lambda failed"):
-            module.invoke_droid_lambda(
-                bucket="temp-data-bucket",
-                key=f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
-                file_id=FILE_ID,
-                extension="txt",
-            )
-
-    def test_invoke_droid_lambda_raises_when_ffid_row_missing(
-        self, handler_module
-    ):
-        module = handler_module
-        payload = Mock()
-        payload.read.return_value = json.dumps({}).encode("utf-8")
-
-        module.lambda_client.invoke.return_value = {
-            "Payload": payload,
-        }
-
-        with pytest.raises(
-            RuntimeError, match="did not return ffid_metadata_row"
-        ):
-            module.invoke_droid_lambda(
-                bucket="temp-data-bucket",
-                key=f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
-                file_id=FILE_ID,
-                extension="txt",
-            )
 
     def test_get_consignment_status_returns_none_when_tracking_item_missing(
         self, handler_module
@@ -484,192 +449,6 @@ class TestWorkerHandler:
 
         assert result is True
 
-    def test_mark_file_complete_does_not_increment_counter_when_file_already_complete(
-        self, handler_module, monkeypatch
-    ):
-        module = handler_module
-        send_finaliser_message = Mock()
-        monkeypatch.setattr(
-            module, "send_finaliser_message", send_finaliser_message
-        )
-
-        module.dynamodb.update_item.side_effect = ClientError(
-            {
-                "Error": {
-                    "Code": "ConditionalCheckFailedException",
-                    "Message": "Already complete",
-                }
-            },
-            "UpdateItem",
-        )
-
-        result = module.mark_file_complete_and_maybe_trigger_finaliser(
-            run_id="run-1",
-            series="LEV 2",
-            consignment_reference=CONSIGNMENT_REFERENCE,
-            file_id=FILE_ID,
-        )
-
-        assert result is False
-        assert module.dynamodb.update_item.call_count == 1
-        send_finaliser_message.assert_not_called()
-
-    def test_mark_file_complete_does_not_trigger_finaliser_until_all_files_complete(
-        self, handler_module, monkeypatch
-    ):
-        module = handler_module
-        monkeypatch.setattr(module, "utc_now_text", lambda: FIXED_NOW)
-
-        send_finaliser_message = Mock()
-        monkeypatch.setattr(
-            module, "send_finaliser_message", send_finaliser_message
-        )
-
-        module.dynamodb.update_item.side_effect = [
-            {},
-            {
-                "Attributes": {
-                    "expectedFileCount": {"N": "2"},
-                    "completedFileCount": {"N": "1"},
-                    "failedFileCount": {"N": "0"},
-                }
-            },
-        ]
-
-        result = module.mark_file_complete_and_maybe_trigger_finaliser(
-            run_id="run-1",
-            series="LEV 2",
-            consignment_reference=CONSIGNMENT_REFERENCE,
-            file_id=FILE_ID,
-        )
-
-        assert result is False
-        assert module.dynamodb.update_item.call_count == 2
-        send_finaliser_message.assert_not_called()
-
-    def test_mark_file_complete_returns_false_when_finaliser_already_triggered(
-        self, handler_module, monkeypatch
-    ):
-        module = handler_module
-        monkeypatch.setattr(module, "utc_now_text", lambda: FIXED_NOW)
-
-        send_finaliser_message = Mock()
-        monkeypatch.setattr(
-            module, "send_finaliser_message", send_finaliser_message
-        )
-
-        module.dynamodb.update_item.side_effect = [
-            {},
-            {
-                "Attributes": {
-                    "expectedFileCount": {"N": "1"},
-                    "completedFileCount": {"N": "1"},
-                    "failedFileCount": {"N": "0"},
-                }
-            },
-            ClientError(
-                {
-                    "Error": {
-                        "Code": "ConditionalCheckFailedException",
-                        "Message": "Already ready",
-                    }
-                },
-                "UpdateItem",
-            ),
-        ]
-
-        result = module.mark_file_complete_and_maybe_trigger_finaliser(
-            run_id="run-1",
-            series="LEV 2",
-            consignment_reference=CONSIGNMENT_REFERENCE,
-            file_id=FILE_ID,
-        )
-
-        assert result is False
-        assert module.dynamodb.update_item.call_count == 3
-        send_finaliser_message.assert_not_called()
-
-    def test_mark_file_complete_triggers_finaliser_for_last_successful_file(
-        self, handler_module, monkeypatch
-    ):
-        module = handler_module
-        monkeypatch.setattr(module, "utc_now_text", lambda: FIXED_NOW)
-        send_finaliser_message = Mock()
-        monkeypatch.setattr(
-            module, "send_finaliser_message", send_finaliser_message
-        )
-
-        module.dynamodb.update_item.side_effect = [
-            {},
-            {
-                "Attributes": {
-                    "expectedFileCount": {"N": "1"},
-                    "completedFileCount": {"N": "1"},
-                    "failedFileCount": {"N": "0"},
-                }
-            },
-            {},
-        ]
-
-        result = module.mark_file_complete_and_maybe_trigger_finaliser(
-            run_id="run-1",
-            series="LEV 2",
-            consignment_reference=CONSIGNMENT_REFERENCE,
-            file_id=FILE_ID,
-        )
-
-        assert result is True
-        assert module.dynamodb.update_item.call_count == 3
-        send_finaliser_message.assert_called_once_with(
-            run_id="run-1",
-            series="LEV 2",
-            consignment_reference=CONSIGNMENT_REFERENCE,
-        )
-
-    def test_send_finaliser_message_sends_expected_sqs_message(
-        self, handler_module
-    ):
-        module = handler_module
-
-        module.send_finaliser_message(
-            run_id="run-1",
-            series="LEV 2",
-            consignment_reference=CONSIGNMENT_REFERENCE,
-        )
-
-        module.sqs.send_message.assert_called_once()
-        send_kwargs = module.sqs.send_message.call_args.kwargs
-
-        assert send_kwargs["QueueUrl"] == ENVIRONMENT["FINALISER_QUEUE_URL"]
-        assert json.loads(send_kwargs["MessageBody"]) == {
-            "runId": "run-1",
-            "series": "LEV 2",
-            "consignmentReference": CONSIGNMENT_REFERENCE,
-        }
-
-    def test_upload_metadata_files_uploads_files_under_staging_prefix(
-        self, handler_module, tmp_path
-    ):
-        module = handler_module
-
-        csv_file = tmp_path / "AYR-file.csv"
-        csv_file.write_text("FileId\nfile-1\n", encoding="utf-8")
-
-        nested_dir = tmp_path / "nested"
-        nested_dir.mkdir()
-
-        module.upload_metadata_files(
-            local_dir=tmp_path,
-            bucket="temp-csv-bucket",
-            prefix=f"LEV 2/ayr-mds-staging/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
-        )
-
-        module.s3.upload_file.assert_called_once_with(
-            str(csv_file),
-            "temp-csv-bucket",
-            f"LEV 2/ayr-mds-staging/{CONSIGNMENT_REFERENCE}/{FILE_ID}/AYR-file.csv",
-        )
-
 
 class TestCsvConversion:
     def test_convert_record_to_csv_writes_expected_csv_files(
@@ -685,11 +464,13 @@ class TestCsvConversion:
             digital_file=digital_file,
             output_dir=str(tmp_path),
             consignment_reference=CONSIGNMENT_REFERENCE,
+            include_body_and_series=True,
+            include_consignment=True,
         )
 
-        assert (tmp_path / "AYR-body-metadata.csv").exists()
-        assert (tmp_path / "AYR-series-metadata.csv").exists()
-        assert (tmp_path / "AYR-consignment-metadata.csv").exists()
+        assert (tmp_path / csv_module.BODY_CSV_NAME).exists()
+        assert (tmp_path / csv_module.SERIES_CSV_NAME).exists()
+        assert (tmp_path / csv_module.CONSIGNMENT_CSV_NAME).exists()
         assert (tmp_path / "AYR-file.csv").exists()
         assert (tmp_path / "AYR-file-metadata.csv").exists()
         assert (tmp_path / "AYR-av-metadata.csv").exists()
@@ -736,6 +517,8 @@ class TestCsvConversion:
             digital_file=digital_file,
             output_dir=str(tmp_path),
             consignment_reference=CONSIGNMENT_REFERENCE,
+            include_body_and_series=True,
+            include_consignment=True,
         )
 
         metadata = metadata_values(read_rows(tmp_path, "AYR-file-metadata.csv"))
@@ -762,6 +545,45 @@ class TestCsvConversion:
         )
         assert checksum_metadata == digital_file["checksums"]
 
+    def test_convert_record_to_csv_omits_shared_and_consignment_csvs(
+        self, tmp_path
+    ):
+        record = make_record()
+
+        csv_module.convert_record_to_csv(
+            record=record,
+            digital_file=record["digitalFiles"][0],
+            output_dir=str(tmp_path),
+            consignment_reference=CONSIGNMENT_REFERENCE,
+            include_body_and_series=False,
+            include_consignment=False,
+        )
+
+        assert not (tmp_path / csv_module.BODY_CSV_NAME).exists()
+        assert not (tmp_path / csv_module.SERIES_CSV_NAME).exists()
+        assert not (tmp_path / csv_module.CONSIGNMENT_CSV_NAME).exists()
+        assert (tmp_path / "AYR-file.csv").exists()
+        assert (tmp_path / "AYR-file-metadata.csv").exists()
+        assert (tmp_path / "AYR-av-metadata.csv").exists()
+
+    def test_convert_record_to_csv_writes_consignment_without_shared_csvs(
+        self, tmp_path
+    ):
+        record = make_record()
+
+        csv_module.convert_record_to_csv(
+            record=record,
+            digital_file=record["digitalFiles"][0],
+            output_dir=str(tmp_path),
+            consignment_reference=CONSIGNMENT_REFERENCE,
+            include_body_and_series=False,
+            include_consignment=True,
+        )
+
+        assert not (tmp_path / csv_module.BODY_CSV_NAME).exists()
+        assert not (tmp_path / csv_module.SERIES_CSV_NAME).exists()
+        assert (tmp_path / csv_module.CONSIGNMENT_CSV_NAME).exists()
+
     def test_convert_record_to_csv_requires_consignment_reference(
         self, tmp_path
     ):
@@ -773,6 +595,8 @@ class TestCsvConversion:
                 digital_file=record["digitalFiles"][0],
                 output_dir=str(tmp_path),
                 consignment_reference=None,
+                include_body_and_series=True,
+                include_consignment=True,
             )
 
     def test_create_file_row_requires_file_name(self, tmp_path):
@@ -786,6 +610,8 @@ class TestCsvConversion:
                 digital_file=digital_file,
                 output_dir=str(tmp_path),
                 consignment_reference=CONSIGNMENT_REFERENCE,
+                include_body_and_series=True,
+                include_consignment=True,
             )
 
     def test_missing_is_record_closed_fails(self, tmp_path):
@@ -798,4 +624,6 @@ class TestCsvConversion:
                 digital_file=record["digitalFiles"][0],
                 output_dir=str(tmp_path),
                 consignment_reference=CONSIGNMENT_REFERENCE,
+                include_body_and_series=True,
+                include_consignment=True,
             )

@@ -106,6 +106,10 @@ MAPPED_DIGITAL_FILE_PATHS = {
     "size_bytes",
 }
 
+BODY_CSV_NAME = "AYR-body-metadata.csv"
+SERIES_CSV_NAME = "AYR-series-metadata.csv"
+CONSIGNMENT_CSV_NAME = "AYR-consignment-metadata.csv"
+
 
 def utc_now_text() -> str:
     """Return UTC timestamp in DDT/Talend expected format."""
@@ -603,27 +607,34 @@ def write_csv(
     LOGGER.info("Wrote %s row(s) to %s", len(rows), path)
 
 
-def write_csvs(state: dict[str, Any], output_dir: Path) -> None:
-    """Write all accumulated rows to CSV files."""
+def write_csvs(
+    state: dict[str, Any],
+    output_dir: Path,
+    include_body_and_series: bool,
+    include_consignment: bool,
+) -> None:
+    """Write the requested shared rows and all file-specific rows to CSV files."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    write_csv(
-        output_dir / "AYR-body-metadata.csv",
-        BODY_COLUMNS,
-        state["body_rows"],
-    )
+    if include_body_and_series:
+        write_csv(
+            output_dir / BODY_CSV_NAME,
+            BODY_COLUMNS,
+            state["body_rows"],
+        )
 
-    write_csv(
-        output_dir / "AYR-series-metadata.csv",
-        SERIES_COLUMNS,
-        state["series_rows"],
-    )
+        write_csv(
+            output_dir / SERIES_CSV_NAME,
+            SERIES_COLUMNS,
+            state["series_rows"],
+        )
 
-    write_csv(
-        output_dir / "AYR-consignment-metadata.csv",
-        CONSIGNMENT_COLUMNS,
-        state["consignment_rows"],
-    )
+    if include_consignment:
+        write_csv(
+            output_dir / CONSIGNMENT_CSV_NAME,
+            CONSIGNMENT_COLUMNS,
+            state["consignment_rows"],
+        )
 
     write_csv(
         output_dir / "AYR-file.csv",
@@ -649,6 +660,8 @@ def convert_record_to_csv(
     digital_file: dict[str, Any],
     output_dir: str,
     consignment_reference: str,
+    include_body_and_series: bool,
+    include_consignment: bool,
 ) -> None:
     """Write AYR MDS CSV files for an already-loaded single DRI record/file."""
     state = new_state()
@@ -663,7 +676,12 @@ def convert_record_to_csv(
         consignment_reference=final_consignment_reference,
     )
 
-    write_csvs(state, Path(output_dir))
+    write_csvs(
+        state,
+        Path(output_dir),
+        include_body_and_series,
+        include_consignment,
+    )
 
     LOGGER.info(
         "Completed CSV export for reference=%s, consignment_reference=%s.",

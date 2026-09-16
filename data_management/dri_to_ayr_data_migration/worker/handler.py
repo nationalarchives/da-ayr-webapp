@@ -1,4 +1,3 @@
-import csv
 import json
 import logging
 import os
@@ -7,10 +6,13 @@ from pathlib import Path
 from typing import Any
 
 import boto3
-from botocore.config import Config
-from botocore.exceptions import ClientError
 
-from worker.dri_to_ayr_csv import convert_record_to_csv, utc_now_text
+from worker.dri_to_ayr_csv import (
+    BODY_CSV_NAME,
+    CONSIGNMENT_CSV_NAME,
+    SERIES_CSV_NAME,
+    convert_record_to_csv,
+)
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -18,39 +20,23 @@ logger.setLevel(logging.INFO)
 s3 = boto3.client("s3")
 sqs = boto3.client("sqs")
 dynamodb = boto3.client("dynamodb")
-lambda_client = boto3.client(
-    "lambda",
-    config=Config(
-        connect_timeout=5,
-        read_timeout=900,
-        retries={"max_attempts": 1},
-    ),
-)
 
 DRI_JSON_BUCKET = os.environ["DRI_JSON_BUCKET"]
 DRI_DATA_BUCKET = os.environ["DRI_DATA_BUCKET"]
 DDT_TEMP_CSV_BUCKET = os.environ["DDT_TEMP_CSV_BUCKET"]
 DDT_TEMP_DATA_BUCKET = os.environ["DDT_TEMP_DATA_BUCKET"]
-DROID_LAMBDA_NAME = os.environ["DROID_LAMBDA_NAME"]
+DROID_QUEUE_URL = os.environ["DROID_QUEUE_URL"]
 TRACKING_TABLE_NAME = os.environ["TRACKING_TABLE_NAME"]
-FINALISER_QUEUE_URL = os.environ["FINALISER_QUEUE_URL"]
 
 JSON_PREFIX = os.getenv("JSON_PREFIX", "live")
 DATA_PREFIX = os.getenv("DATA_PREFIX", "v1")
 STAGING_PREFIX = os.getenv("STAGING_PREFIX", "ayr-mds-staging")
 
-FFID_METADATA_COLUMNS = [
-    "FileId",
-    "Extension",
-    "PUID",
-    "FormatName",
-    "ExtensionMismatch",
-    "FFID-Software",
-    "FFID-SoftwareVersion",
-    "FFID-BinarySignatureFileVersion",
-    "FFID-ContainerSignatureFileVersion",
-]
-
+SHARED_STAGING_DIRECTORY = "shared"
+SHARED_CSV_NAMES = {
+    BODY_CSV_NAME,
+    SERIES_CSV_NAME,
+}
 
 CONSIGNMENT_STATUSES_SKIP_WORKER = {
     "READY_TO_FINALISE",
@@ -69,7 +55,9 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
       "series": "LEV 2",
       "reference": "LEV 2/2BD/Z",
       "consignmentReference": "TDR-2026-7333",
-      "fileId": "6be8b424-..."
+      "fileId": "6be8b424-...",
+      "includeBodyAndSeries": true,
+      "includeConsignment": true
     }
     """
     # Allow direct invocation for manually retrying a single failed file
@@ -96,6 +84,8 @@ def process_message(message: dict[str, Any]) -> None:
     reference = require_text(message, "reference")
     consignment_reference = require_text(message, "consignmentReference")
     expected_file_id = require_text(message, "fileId")
+    include_body_and_series = require_bool(message, "includeBodyAndSeries")
+    include_consignment = require_bool(message, "includeConsignment")
 
     consignment_status = get_consignment_status(
         run_id=run_id,
@@ -131,6 +121,8 @@ def process_message(message: dict[str, Any]) -> None:
         reference=reference,
         consignment_reference=consignment_reference,
         expected_file_id=expected_file_id,
+        include_body_and_series=include_body_and_series,
+        include_consignment=include_consignment,
     )
 
 
@@ -140,6 +132,8 @@ def process_file(
     reference: str,
     consignment_reference: str,
     expected_file_id: str,
+    include_body_and_series: bool,
+    include_consignment: bool,
 ) -> None:
     json_key = build_json_key(reference)
     logger.info(
@@ -164,10 +158,9 @@ def process_file(
         file_id = require_text(digital_file, "fileId")
         extension = get_file_extension(digital_file)
 
-        ffid_row = copy_data_file_and_run_droid(
+        destination_key = copy_data_file(
             record_id=record_id,
             file_id=file_id,
-            extension=extension,
             series=series,
             consignment_reference=consignment_reference,
         )
@@ -177,50 +170,61 @@ def process_file(
             digital_file=digital_file,
             output_dir=str(csv_output_dir),
             consignment_reference=consignment_reference,
+            include_body_and_series=include_body_and_series,
+            include_consignment=include_consignment,
         )
 
-        write_ffid_metadata_csv(
-            output_path=csv_output_dir / "AYR-ffid-metadata.csv",
-            rows=[ffid_row],
+        shared_staging_prefix = join_s3_key(
+            series,
+            STAGING_PREFIX,
+            SHARED_STAGING_DIRECTORY,
         )
 
-        staging_prefix = build_staging_prefix(
-            series=series,
-            consignment_reference=consignment_reference,
-            file_id=expected_file_id,
+        consignment_staging_prefix = join_s3_key(
+            series,
+            STAGING_PREFIX,
+            consignment_reference,
+        )
+
+        file_staging_prefix = join_s3_key(
+            series, STAGING_PREFIX, consignment_reference, file_id
         )
 
         upload_metadata_files(
             local_dir=csv_output_dir,
             bucket=DDT_TEMP_CSV_BUCKET,
-            prefix=staging_prefix,
+            shared_prefix=shared_staging_prefix,
+            consignment_prefix=consignment_staging_prefix,
+            file_prefix=file_staging_prefix,
         )
 
-    finaliser_triggered = mark_file_complete_and_maybe_trigger_finaliser(
+    send_droid_message(
         run_id=run_id,
         series=series,
         consignment_reference=consignment_reference,
         file_id=expected_file_id,
+        bucket=DDT_TEMP_DATA_BUCKET,
+        key=destination_key,
+        extension=extension,
     )
 
     logger.info(
-        "Finished worker run_id=%s consignment=%s file_id=%s staging_prefix=s3://%s/%s finaliser_triggered=%s",
+        "Finished worker and queued DROID request. run_id=%s consignment=%s "
+        "file_id=%s staging_prefix=s3://%s/%s",
         run_id,
         consignment_reference,
         expected_file_id,
         DDT_TEMP_CSV_BUCKET,
-        staging_prefix,
-        finaliser_triggered,
+        file_staging_prefix,
     )
 
 
-def copy_data_file_and_run_droid(
+def copy_data_file(
     record_id: str,
     file_id: str,
-    extension: str,
     series: str,
     consignment_reference: str,
-) -> dict[str, str]:
+) -> str:
     source_key = join_s3_key(DATA_PREFIX, record_id, file_id)
     destination_key = join_s3_key(series, consignment_reference, file_id)
 
@@ -239,55 +243,43 @@ def copy_data_file_and_run_droid(
         copied_uri,
     )
 
-    ffid_metadata_row = invoke_droid_lambda(
-        bucket=DDT_TEMP_DATA_BUCKET,
-        key=destination_key,
-        file_id=file_id,
-        extension=extension,
-    )
-
-    return ffid_metadata_row
+    return destination_key
 
 
-def invoke_droid_lambda(
-    bucket: str, key: str, file_id: str, extension: str
-) -> dict[str, str]:
+def send_droid_message(
+    run_id: str,
+    series: str,
+    consignment_reference: str,
+    file_id: str,
+    bucket: str,
+    key: str,
+    extension: str,
+) -> None:
     payload = {
+        "runId": run_id,
+        "series": series,
+        "consignmentReference": consignment_reference,
         "bucket": bucket,
         "key": key,
         "fileId": file_id,
         "extension": extension,
     }
 
+    response = sqs.send_message(
+        QueueUrl=DROID_QUEUE_URL,
+        MessageBody=json.dumps(payload),
+    )
+
     logger.info(
-        "Invoking DROID lambda %s for s3://%s/%s",
-        DROID_LAMBDA_NAME,
+        "Sent DROID message. run_id=%s consignment=%s file_id=%s "
+        "s3_uri=s3://%s/%s sqs_message_id=%s",
+        run_id,
+        consignment_reference,
+        file_id,
         bucket,
         key,
+        response["MessageId"],
     )
-
-    response = lambda_client.invoke(
-        FunctionName=DROID_LAMBDA_NAME,
-        InvocationType="RequestResponse",
-        Payload=json.dumps(payload).encode("utf-8"),
-    )
-
-    response_payload = json.loads(response["Payload"].read().decode("utf-8"))
-
-    if response.get("FunctionError"):
-        raise RuntimeError(
-            f"DROID Lambda failed for s3://{bucket}/{key}: {response_payload}"
-        )
-
-    ffid_metadata_row = response_payload.get("ffid_metadata_row")
-
-    if not ffid_metadata_row:
-        raise RuntimeError(
-            f"DROID Lambda did not return ffid_metadata_row for s3://{bucket}/{key}. "
-            f"Response: {response_payload}"
-        )
-
-    return ffid_metadata_row
 
 
 def get_consignment_status(
@@ -335,153 +327,26 @@ def is_file_already_complete(
     return item.get("status", {}).get("S") == "COMPLETE"
 
 
-def mark_file_complete_and_maybe_trigger_finaliser(
-    run_id: str,
-    series: str,
-    consignment_reference: str,
-    file_id: str,
-) -> bool:
-    """
-    Idempotently mark the file as complete. If this was the final expected file
-    for the consignment, send one message to the finaliser queue.
-    """
-    file_pk = f"RUN#{run_id}#CONSIGNMENT#{consignment_reference}"
-    file_sk = f"FILE#{file_id}"
-    now = utc_now_text()
-
-    try:
-        dynamodb.update_item(
-            TableName=TRACKING_TABLE_NAME,
-            Key={"PK": {"S": file_pk}, "SK": {"S": file_sk}},
-            UpdateExpression="SET #status = :complete, completedAt = :now, updatedAt = :now",
-            ConditionExpression="attribute_not_exists(#status) OR #status <> :complete",
-            ExpressionAttributeNames={"#status": "status"},
-            ExpressionAttributeValues={
-                ":complete": {"S": "COMPLETE"},
-                ":now": {"S": now},
-            },
-        )
-    except ClientError as error:
-        if (
-            error.response.get("Error", {}).get("Code")
-            == "ConditionalCheckFailedException"
-        ):
-            logger.info(
-                "File already marked COMPLETE. Skipping counter increment. file_id=%s",
-                file_id,
-            )
-            return False
-        raise
-
-    consignment_key = {
-        "PK": {"S": f"RUN#{run_id}"},
-        "SK": {"S": f"CONSIGNMENT#{consignment_reference}"},
-    }
-
-    response = dynamodb.update_item(
-        TableName=TRACKING_TABLE_NAME,
-        Key=consignment_key,
-        UpdateExpression="SET updatedAt = :now ADD completedFileCount :one",
-        ExpressionAttributeValues={
-            ":one": {"N": "1"},
-            ":now": {"S": now},
-        },
-        ReturnValues="ALL_NEW",
-    )
-
-    attributes = response["Attributes"]
-    expected = int(attributes["expectedFileCount"]["N"])
-    completed = int(attributes["completedFileCount"]["N"])
-    failed = int(attributes.get("failedFileCount", {"N": "0"})["N"])
-
-    logger.info(
-        "Consignment progress run_id=%s consignment=%s completed=%s expected=%s failed=%s",
-        run_id,
-        consignment_reference,
-        completed,
-        expected,
-        failed,
-    )
-
-    if completed != expected or failed != 0:
-        return False
-
-    try:
-        dynamodb.update_item(
-            TableName=TRACKING_TABLE_NAME,
-            Key=consignment_key,
-            UpdateExpression="SET #status = :ready, readyAt = :now, updatedAt = :now",
-            ConditionExpression="#status = :staging AND completedFileCount = expectedFileCount AND failedFileCount = :zero",
-            ExpressionAttributeNames={"#status": "status"},
-            ExpressionAttributeValues={
-                ":ready": {"S": "READY_TO_FINALISE"},
-                ":staging": {"S": "STAGING"},
-                ":zero": {"N": "0"},
-                ":now": {"S": now},
-            },
-        )
-    except ClientError as error:
-        if (
-            error.response.get("Error", {}).get("Code")
-            == "ConditionalCheckFailedException"
-        ):
-            logger.info(
-                "Finaliser already triggered or consignment is no longer ready."
-            )
-            return False
-        raise
-
-    send_finaliser_message(
-        run_id=run_id,
-        series=series,
-        consignment_reference=consignment_reference,
-    )
-
-    return True
-
-
-def send_finaliser_message(
-    run_id: str, series: str, consignment_reference: str
+def upload_metadata_files(
+    local_dir: Path,
+    bucket: str,
+    shared_prefix: str,
+    consignment_prefix: str,
+    file_prefix: str,
 ) -> None:
-    message = {
-        "runId": run_id,
-        "series": series,
-        "consignmentReference": consignment_reference,
-    }
-
-    sqs.send_message(
-        QueueUrl=FINALISER_QUEUE_URL,
-        MessageBody=json.dumps(message),
-    )
-
-    logger.info(
-        "Sent finaliser message for run_id=%s consignment=%s",
-        run_id,
-        consignment_reference,
-    )
-
-
-def write_ffid_metadata_csv(
-    output_path: Path, rows: list[dict[str, str]]
-) -> None:
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with output_path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=FFID_METADATA_COLUMNS,
-            extrasaction="ignore",
-        )
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def upload_metadata_files(local_dir: Path, bucket: str, prefix: str) -> None:
+    """Upload shared, consignment, and file CSVs to their staging locations."""
     for local_file in sorted(local_dir.iterdir()):
         if not local_file.is_file():
             continue
 
-        destination_key = join_s3_key(prefix, local_file.name)
+        if local_file.name in SHARED_CSV_NAMES:
+            destination_prefix = shared_prefix
+        elif local_file.name == CONSIGNMENT_CSV_NAME:
+            destination_prefix = consignment_prefix
+        else:
+            destination_prefix = file_prefix
+
+        destination_key = join_s3_key(destination_prefix, local_file.name)
         s3.upload_file(str(local_file), bucket, destination_key)
         uploaded_uri = f"s3://{bucket}/{destination_key}"
         logger.info(
@@ -547,12 +412,6 @@ def build_json_key(reference: str) -> str:
     return join_s3_key(JSON_PREFIX, reference_file_name)
 
 
-def build_staging_prefix(
-    series: str, consignment_reference: str, file_id: str
-) -> str:
-    return join_s3_key(series, STAGING_PREFIX, consignment_reference, file_id)
-
-
 def load_record(json_path: Path) -> dict[str, Any]:
     data = json.loads(json_path.read_text(encoding="utf-8"))
 
@@ -575,3 +434,12 @@ def require_text(data: dict[str, Any], key: str) -> str:
         raise ValueError(f"Missing required field: {key}")
 
     return value.strip().rstrip("/")
+
+
+def require_bool(data: dict[str, Any], key: str) -> bool:
+    value = data.get(key)
+
+    if not isinstance(value, bool):
+        raise ValueError(f"Missing or invalid boolean field: {key}")
+
+    return value
