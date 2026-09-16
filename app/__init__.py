@@ -165,6 +165,7 @@ def create_app(config_class, local_env, database_uri=None):
         app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://"
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
             "creator": get_connection,
+            "pool_pre_ping": True,
         }
         db.init_app(app)
 
