@@ -2,7 +2,7 @@ import csv
 import json
 import os
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 import pytest
 
@@ -448,6 +448,63 @@ class TestWorkerHandler:
         )
 
         assert result is True
+
+    def test_upload_metadata_files_routes_each_csv_to_its_staging_prefix(
+        self, handler_module, tmp_path
+    ):
+        module = handler_module
+
+        body_csv = tmp_path / csv_module.BODY_CSV_NAME
+        series_csv = tmp_path / csv_module.SERIES_CSV_NAME
+        consignment_csv = tmp_path / csv_module.CONSIGNMENT_CSV_NAME
+        file_csv = tmp_path / "AYR-file.csv"
+
+        for csv_file in (body_csv, series_csv, consignment_csv, file_csv):
+            csv_file.write_text("header\nvalue\n", encoding="utf-8")
+
+        nested_dir = tmp_path / "nested"
+        nested_dir.mkdir()
+
+        module.upload_metadata_files(
+            local_dir=tmp_path,
+            bucket="temp-csv-bucket",
+            shared_prefix="LEV 2/ayr-mds-staging/shared",
+            consignment_prefix=(
+                f"LEV 2/ayr-mds-staging/{CONSIGNMENT_REFERENCE}"
+            ),
+            file_prefix=(
+                f"LEV 2/ayr-mds-staging/{CONSIGNMENT_REFERENCE}/{FILE_ID}"
+            ),
+        )
+
+        module.s3.upload_file.assert_has_calls(
+            [
+                call(
+                    str(body_csv),
+                    "temp-csv-bucket",
+                    "LEV 2/ayr-mds-staging/shared/AYR-body-metadata.csv",
+                ),
+                call(
+                    str(series_csv),
+                    "temp-csv-bucket",
+                    "LEV 2/ayr-mds-staging/shared/AYR-series-metadata.csv",
+                ),
+                call(
+                    str(consignment_csv),
+                    "temp-csv-bucket",
+                    f"LEV 2/ayr-mds-staging/{CONSIGNMENT_REFERENCE}/"
+                    "AYR-consignment-metadata.csv",
+                ),
+                call(
+                    str(file_csv),
+                    "temp-csv-bucket",
+                    f"LEV 2/ayr-mds-staging/{CONSIGNMENT_REFERENCE}/"
+                    f"{FILE_ID}/AYR-file.csv",
+                ),
+            ],
+            any_order=True,
+        )
+        assert module.s3.upload_file.call_count == 4
 
 
 class TestCsvConversion:
