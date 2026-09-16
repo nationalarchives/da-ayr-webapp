@@ -8,6 +8,14 @@ ARG JAVA_21_AMAZON_CORRETTO_HEADLESS_VERSION=1:21.0.12+8-1.amzn2023.1
 # renovate: datasource=repology depName=amazon_2023/unzip versioning=loose
 ARG UNZIP_VERSION=6.0-68.amzn2023.0.1
 
+RUN dnf clean all && \
+    dnf update -y \
+      --releasever=latest \
+      openssl-fips-provider-latest \
+      openssl-snapsafe-libs && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
+
 # DROID's own release doesn't refresh these on its own schedule, so we
 # override the vulnerable JARs after unpacking.
 ARG DROID_JAR_PATCHES="\
