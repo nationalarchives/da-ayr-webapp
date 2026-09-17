@@ -19,8 +19,8 @@ os.environ.setdefault("TRACKING_TABLE_NAME", "tracking-table")
 os.environ.setdefault("MAX_FILES_PER_FAKE_CONSIGNMENT", "3")
 
 
-import series_coordinator.handler as coordinator_module
-from series_coordinator.handler import (
+import series_coordinator.main as coordinator_module
+from series_coordinator.main import (
     get_consignment_tracking_item,
     get_file_tracking_item,
     group_records_by_consignment,

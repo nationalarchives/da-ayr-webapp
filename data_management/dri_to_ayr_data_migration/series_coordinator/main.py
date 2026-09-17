@@ -368,7 +368,7 @@ def list_series_records(series: str) -> list[dict[str, Any]]:
                         "Loaded %s records in %.1f seconds (%.1f records/second)",
                         len(records),
                         elapsed,
-                        len(records) / elapsed,
+                        len(records) / elapsed if elapsed else 0,
                     )
 
     elapsed = time.monotonic() - started_at
