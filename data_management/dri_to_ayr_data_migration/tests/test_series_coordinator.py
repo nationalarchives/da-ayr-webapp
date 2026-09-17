@@ -141,11 +141,11 @@ def patch_moto_clients(monkeypatch, queue_url: str) -> tuple[Any, Any, Any]:
     return s3_client, sqs_client, dynamodb_client
 
 
-class TestLambdaHandler:
-    """High-level coordinator handler tests"""
+class TestCoordinateSeries:
+    """High-level series coordinator tests"""
 
     @mock_aws
-    def test_lambda_handler_creates_tracking_rows_and_worker_messages(
+    def test_coordinate_series_creates_tracking_rows_and_worker_messages(
         self,
         monkeypatch,
     ):
@@ -173,21 +173,24 @@ class TestLambdaHandler:
             "live/MIG 1-001.json",
             record("MIG 1/001", "file-1", "TDR-1"),
         )
+        put_json_record(
+            s3_client,
+            "dri-json-bucket",
+            "live/MIG 1-003.json",
+            record("MIG 1/003", "file-3", "TDR-2"),
+        )
 
-        response = coordinator_module.lambda_handler(
-            {
-                "series": "MIG 1",
-                "runId": "run-1",
-            },
-            None,
+        response = coordinator_module.coordinate_series(
+            series="MIG 1",
+            supplied_run_id="run-1",
         )
 
         assert response["status"] == "started"
         assert response["runId"] == "run-1"
         assert response["series"] == "MIG 1"
-        assert response["recordCount"] == 2
-        assert response["consignmentCount"] == 1
-        assert response["workerMessagesSent"] == 2
+        assert response["recordCount"] == 3
+        assert response["consignmentCount"] == 2
+        assert response["workerMessagesSent"] == 3
 
         consignment_item = get_tracking_item(
             dynamodb_client,
@@ -224,6 +227,8 @@ class TestLambdaHandler:
                 "reference": "MIG 1/001",
                 "consignmentReference": "TDR-1",
                 "fileId": "file-1",
+                "includeBodyAndSeries": True,
+                "includeConsignment": True,
             },
             {
                 "runId": "run-1",
@@ -231,11 +236,22 @@ class TestLambdaHandler:
                 "reference": "MIG 1/002",
                 "consignmentReference": "TDR-1",
                 "fileId": "file-2",
+                "includeBodyAndSeries": False,
+                "includeConsignment": False,
+            },
+            {
+                "runId": "run-1",
+                "series": "MIG 1",
+                "reference": "MIG 1/003",
+                "consignmentReference": "TDR-2",
+                "fileId": "file-3",
+                "includeBodyAndSeries": False,
+                "includeConsignment": True,
             },
         ]
 
     @mock_aws
-    def test_lambda_handler_skips_terminal_consignment(self, monkeypatch):
+    def test_coordinate_series_skips_terminal_consignment(self, monkeypatch):
         sqs_client = boto3.client("sqs", region_name="eu-west-2")
         queue_url = sqs_client.create_queue(QueueName="worker-queue")[
             "QueueUrl"
@@ -273,12 +289,9 @@ class TestLambdaHandler:
             },
         )
 
-        response = coordinator_module.lambda_handler(
-            {
-                "series": "MIG 1",
-                "runId": "run-1",
-            },
-            None,
+        response = coordinator_module.coordinate_series(
+            series="MIG 1",
+            supplied_run_id="run-1",
         )
 
         assert response["status"] == "started"
@@ -290,6 +303,67 @@ class TestLambdaHandler:
             }
         ]
         assert read_sqs_messages(sqs_client, queue_url) == []
+
+
+class TestMain:
+    """Fargate process entry-point tests"""
+
+    def test_main_reads_environment_and_coordinates_series(
+        self,
+        coordinator,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("SERIES", " MIG 1 ")
+        monkeypatch.setenv("RUN_ID", "run-1")
+        monkeypatch.setenv("FORCE_NEW_RUN", "true")
+
+        coordinate_series_mock = mock.Mock(
+            return_value={"status": "started", "runId": "run-1"}
+        )
+        monkeypatch.setattr(
+            coordinator_module,
+            "coordinate_series",
+            coordinate_series_mock,
+        )
+
+        result = coordinator_module.main()
+
+        assert result is None
+        coordinate_series_mock.assert_called_once_with(
+            series="MIG 1",
+            supplied_run_id="run-1",
+            force_new_run=True,
+        )
+
+    def test_main_raises_when_series_is_missing(
+        self,
+        coordinator,
+        monkeypatch,
+    ):
+        monkeypatch.delenv("SERIES", raising=False)
+
+        with pytest.raises(
+            ValueError,
+            match="Missing required environment variable: SERIES",
+        ):
+            coordinator_module.main()
+
+    def test_main_propagates_coordinator_error(
+        self,
+        coordinator,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("SERIES", "MIG 1")
+        monkeypatch.delenv("RUN_ID", raising=False)
+        monkeypatch.delenv("FORCE_NEW_RUN", raising=False)
+        monkeypatch.setattr(
+            coordinator_module,
+            "coordinate_series",
+            mock.Mock(side_effect=RuntimeError("SQS failed")),
+        )
+
+        with pytest.raises(RuntimeError, match="SQS failed"):
+            coordinator_module.main()
 
 
 class TestConsignmentGrouping:
@@ -422,13 +496,7 @@ class TestRunResolution:
             existing_run_mock,
         )
 
-        result = resolve_run_id(
-            {
-                "series": "MIG 1",
-                "runId": " existing-run-id ",
-            },
-            "MIG 1",
-        )
+        result = resolve_run_id("MIG 1", " existing-run-id ", False)
 
         assert result == "existing-run-id"
         existing_run_mock.assert_not_called()
@@ -445,12 +513,7 @@ class TestRunResolution:
         )
 
         with pytest.raises(ValueError, match="Existing migration run found"):
-            resolve_run_id(
-                {
-                    "series": "MIG 1",
-                },
-                "MIG 1",
-            )
+            resolve_run_id("MIG 1", None, False)
 
     def test_resolve_run_id_allows_force_new_run(
         self, coordinator, monkeypatch
@@ -466,13 +529,7 @@ class TestRunResolution:
             lambda series: "new-run-id",
         )
 
-        result = resolve_run_id(
-            {
-                "series": "MIG 1",
-                "forceNewRun": True,
-            },
-            "MIG 1",
-        )
+        result = resolve_run_id("MIG 1", None, True)
 
         assert result == "new-run-id"
 
@@ -693,6 +750,7 @@ class TestProcessingLoops:
             series="MIG 1",
             consignment_reference="TDR-1",
             group_records=records,
+            include_body_and_series=True,
         )
 
         assert result == {
@@ -706,7 +764,24 @@ class TestProcessingLoops:
             consignment_reference="TDR-1",
             expected_file_count=2,
         )
-        assert process_record_mock.call_count == 2
+        assert process_record_mock.call_args_list == [
+            mock.call(
+                run_id="run-1",
+                series="MIG 1",
+                consignment_reference="TDR-1",
+                record=records[0],
+                include_body_and_series=True,
+                include_consignment=True,
+            ),
+            mock.call(
+                run_id="run-1",
+                series="MIG 1",
+                consignment_reference="TDR-1",
+                record=records[1],
+                include_body_and_series=False,
+                include_consignment=False,
+            ),
+        ]
 
     def test_process_consignment_group_skips_terminal_consignment(
         self,
@@ -730,6 +805,7 @@ class TestProcessingLoops:
             series="MIG 1",
             consignment_reference="TDR-1",
             group_records=[record("MIG 1/001", "file-1", "TDR-1")],
+            include_body_and_series=True,
         )
 
         assert result == {
@@ -771,6 +847,8 @@ class TestProcessingLoops:
             series="MIG 1",
             consignment_reference="TDR-1",
             record=record("MIG 1/001", "file-1", "TDR-1"),
+            include_body_and_series=True,
+            include_consignment=True,
         )
 
         assert result == {
@@ -784,6 +862,8 @@ class TestProcessingLoops:
             reference="MIG 1/001",
             consignment_reference="TDR-1",
             file_id="file-1",
+            include_body_and_series=True,
+            include_consignment=True,
         )
 
     def test_process_record_skips_completed_file(
@@ -815,6 +895,8 @@ class TestProcessingLoops:
             series="MIG 1",
             consignment_reference="TDR-1",
             record=record("MIG 1/001", "file-1", "TDR-1"),
+            include_body_and_series=True,
+            include_consignment=True,
         )
 
         assert result == {
