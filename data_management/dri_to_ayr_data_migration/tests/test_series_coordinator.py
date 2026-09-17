@@ -19,8 +19,8 @@ os.environ.setdefault("TRACKING_TABLE_NAME", "tracking-table")
 os.environ.setdefault("MAX_FILES_PER_FAKE_CONSIGNMENT", "3")
 
 
-import series_coordinator.main as coordinator_module
-from series_coordinator.main import (
+import series_coordinator.handler as coordinator_module
+from series_coordinator.handler import (
     get_consignment_tracking_item,
     get_file_tracking_item,
     group_records_by_consignment,
@@ -303,6 +303,95 @@ class TestCoordinateSeries:
             }
         ]
         assert read_sqs_messages(sqs_client, queue_url) == []
+
+
+class TestS3RecordLoading:
+    """S3 JSON listing and loading tests"""
+
+    def test_list_series_records_skips_wrong_series_and_logs_progress(
+        self,
+        coordinator,
+        monkeypatch,
+        caplog,
+    ):
+        class ImmediateExecutor:
+            def __init__(self, max_workers):
+                self.max_workers = max_workers
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return None
+
+            def map(self, function, keys):
+                return map(function, keys)
+
+        valid_keys = [f"live/MIG 1-{index:05d}.json" for index in range(10_000)]
+        wrong_series_key = "live/MIG 1-wrong-series.json"
+
+        paginator = mock.Mock()
+        paginator.paginate.return_value = [
+            {
+                "Contents": [
+                    {"Key": wrong_series_key},
+                    *({"Key": key} for key in valid_keys),
+                ]
+            }
+        ]
+        coordinator.s3.get_paginator.return_value = paginator
+
+        def fake_read_json_record(key: str) -> dict[str, str]:
+            if key == wrong_series_key:
+                return {"reference": "MIG 2/001"}
+
+            record_number = key.removeprefix("live/MIG 1-").removesuffix(
+                ".json"
+            )
+            return {"reference": f"MIG 1/{record_number}"}
+
+        monkeypatch.setattr(
+            coordinator_module,
+            "ThreadPoolExecutor",
+            ImmediateExecutor,
+        )
+        monkeypatch.setattr(
+            coordinator_module,
+            "read_json_record",
+            fake_read_json_record,
+        )
+        caplog.set_level("INFO")
+
+        result = coordinator_module.list_series_records("MIG 1")
+
+        assert len(result) == 10_000
+        assert result[0] == {"reference": "MIG 1/00000"}
+        assert result[-1] == {"reference": "MIG 1/09999"}
+        assert "record.reference does not belong to series" in caplog.text
+        assert "Loaded 10000 records" in caplog.text
+        assert "Finished loading 10000 records" in caplog.text
+
+    def test_read_json_record_raises_when_json_is_not_an_object(
+        self,
+        coordinator,
+    ):
+        response_body = mock.Mock()
+        response_body.read.return_value = b'["not", "an", "object"]'
+        coordinator.s3.get_object.return_value = {"Body": response_body}
+
+        with pytest.raises(
+            ValueError,
+            match=(
+                "Expected JSON object in "
+                "s3://dri-json-bucket/live/MIG 1-001.json"
+            ),
+        ):
+            coordinator_module.read_json_record("live/MIG 1-001.json")
+
+        coordinator.s3.get_object.assert_called_once_with(
+            Bucket="dri-json-bucket",
+            Key="live/MIG 1-001.json",
+        )
 
 
 class TestMain:

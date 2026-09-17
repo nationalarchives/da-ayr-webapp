@@ -45,6 +45,8 @@ MAX_FILES_PER_FAKE_CONSIGNMENT = int(
     os.getenv("MAX_FILES_PER_FAKE_CONSIGNMENT", "5000")
 )
 
+if MAX_FILES_PER_FAKE_CONSIGNMENT < 1:
+    raise ValueError("MAX_FILES_PER_FAKE_CONSIGNMENT must be greater than 0")
 
 # If a consignment has reached one of these statuses, the coordinator must not
 # create or resend worker messages for it.
