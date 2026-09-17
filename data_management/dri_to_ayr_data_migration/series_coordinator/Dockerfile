@@ -1,19 +1,15 @@
-FROM public.ecr.aws/lambda/python:3.14@sha256:5d318087bb422519012c82ddcf4f0057f5e53aed0ff79989a9da0acd53c3fa50
+FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
 
-WORKDIR ${LAMBDA_TASK_ROOT}
+WORKDIR /app
 
-RUN dnf clean all && \
-    dnf update -y \
-      --releasever=latest \
-      openssl-fips-provider-latest \
-      openssl-snapsafe-libs && \
-    dnf clean all && \
-    rm -rf /var/cache/dnf
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir --upgrade pip
+COPY requirements.txt .
 
-RUN rm -f /usr/local/bin/aws-lambda-rie
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY handler.py .
+COPY main.py .
 
-CMD ["handler.lambda_handler"]
+ENTRYPOINT ["python", "-u", "main.py"]

@@ -4,16 +4,33 @@ import os
 import re
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Any
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+)
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-s3 = boto3.client("s3")
+S3_READ_WORKERS = 30
+
+s3 = boto3.client(
+    "s3",
+    config=Config(
+        max_pool_connections=S3_READ_WORKERS,
+        retries={
+            "mode": "standard",
+            "total_max_attempts": 10,
+        },
+    ),
+)
 sqs = boto3.client("sqs")
 dynamodb = boto3.client("dynamodb")
 
@@ -25,12 +42,11 @@ JSON_PREFIX = os.getenv("JSON_PREFIX", "live")
 DEFAULT_DUMMY_CONSIGNMENT_PREFIX = f"DRI-TO-AYR-{datetime.today().year}"
 
 MAX_FILES_PER_FAKE_CONSIGNMENT = int(
-    os.getenv("MAX_FILES_PER_FAKE_CONSIGNMENT", "1000")
+    os.getenv("MAX_FILES_PER_FAKE_CONSIGNMENT", "5000")
 )
 
 if MAX_FILES_PER_FAKE_CONSIGNMENT < 1:
     raise ValueError("MAX_FILES_PER_FAKE_CONSIGNMENT must be greater than 0")
-
 
 # If a consignment has reached one of these statuses, the coordinator must not
 # create or resend worker messages for it.
@@ -46,21 +62,17 @@ FILE_STATUSES_SKIP_WORKER = {
 }
 
 
-def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
-    """
-    Start a series migration.
-
-    Expected event:
-    {
-      "series": "LEV 2"
-    }
-
-    The coordinator lists DRI JSON files for the series, groups records by
-    ConsignmentReference, writes tracking rows, and sends one worker SQS message
-    per record.
-    """
-    series = require_text(event, "series")
-    run_id = resolve_run_id(event, series)
+def coordinate_series(
+    series: str,
+    supplied_run_id: str | None = None,
+    force_new_run: bool = False,
+) -> dict[str, Any]:
+    """Coordinate one DRI series migration from discovery to worker messages."""
+    run_id = resolve_run_id(
+        series=series,
+        supplied_run_id=supplied_run_id,
+        force_new_run=force_new_run,
+    )
 
     logger.info("Starting migration run_id=%s series=%s", run_id, series)
 
@@ -81,6 +93,7 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
             series=series,
             consignment_reference=consignment_reference,
             group_records=group_records,
+            include_body_and_series=worker_messages_sent == 0,
         )
 
         worker_messages_sent += result["workerMessagesSent"]
@@ -114,6 +127,7 @@ def process_consignment_group(
     series: str,
     consignment_reference: str,
     group_records: list[dict[str, Any]],
+    include_body_and_series: bool,
 ) -> dict[str, Any]:
     """Create/check consignment tracking and send worker messages for its records."""
     existing_consignment = get_consignment_tracking_item(
@@ -154,6 +168,7 @@ def process_consignment_group(
 
     worker_messages_sent = 0
     files_skipped = 0
+    include_consignment = True
 
     for record in group_records:
         result = process_record(
@@ -161,9 +176,15 @@ def process_consignment_group(
             series=series,
             consignment_reference=consignment_reference,
             record=record,
+            include_body_and_series=include_body_and_series,
+            include_consignment=include_consignment,
         )
         worker_messages_sent += result["workerMessageSent"]
         files_skipped += result["fileSkipped"]
+
+        if result["workerMessageSent"]:
+            include_body_and_series = False
+            include_consignment = False
 
     return {
         "workerMessagesSent": worker_messages_sent,
@@ -177,6 +198,8 @@ def process_record(
     series: str,
     consignment_reference: str,
     record: dict[str, Any],
+    include_body_and_series: bool,
+    include_consignment: bool,
 ) -> dict[str, int]:
     """Create/check file tracking and send a worker message if needed."""
     file_id = require_file_id(record)
@@ -215,6 +238,8 @@ def process_record(
         reference=require_text(record, "reference"),
         consignment_reference=consignment_reference,
         file_id=file_id,
+        include_body_and_series=include_body_and_series,
+        include_consignment=include_consignment,
     )
 
     return {
@@ -301,34 +326,58 @@ def list_series_records(series: str) -> list[dict[str, Any]]:
     """List and load DRI JSON records for a series."""
     prefix = join_s3_key(JSON_PREFIX, f"{series}-")
     logger.info(
-        "Listing DRI JSON records from s3://%s/%s", DRI_JSON_BUCKET, prefix
+        "Listing and loading DRI JSON records from s3://%s/%s with %s workers",
+        DRI_JSON_BUCKET,
+        prefix,
+        S3_READ_WORKERS,
     )
 
     records: list[dict[str, Any]] = []
     paginator = s3.get_paginator("list_objects_v2")
+    started_at = time.monotonic()
 
-    for page in paginator.paginate(Bucket=DRI_JSON_BUCKET, Prefix=prefix):
-        for item in page.get("Contents", []):
-            key = item["Key"]
+    with ThreadPoolExecutor(max_workers=S3_READ_WORKERS) as executor:
+        for page in paginator.paginate(Bucket=DRI_JSON_BUCKET, Prefix=prefix):
+            keys = [
+                item["Key"]
+                for item in page.get("Contents", [])
+                if item["Key"].endswith(".json")
+            ]
 
-            if not key.endswith(".json"):
-                continue
+            for key, record in zip(
+                keys, executor.map(read_json_record, keys), strict=True
+            ):
+                record_reference = record.get("reference")
 
-            record = read_json_record(key)
-            record_reference = record.get("reference")
+                if not isinstance(
+                    record_reference, str
+                ) or not record_reference.startswith(f"{series}/"):
+                    logger.warning(
+                        "Skipping JSON because record.reference does not belong to series. key=%s reference=%s series=%s",
+                        key,
+                        record_reference,
+                        series,
+                    )
+                    continue
 
-            if not isinstance(
-                record_reference, str
-            ) or not record_reference.startswith(f"{series}/"):
-                logger.warning(
-                    "Skipping JSON because record.reference does not belong to series. key=%s reference=%s series=%s",
-                    key,
-                    record_reference,
-                    series,
-                )
-                continue
+                records.append(record)
 
-            records.append(record)
+                if len(records) % 10_000 == 0:
+                    elapsed = time.monotonic() - started_at
+                    logger.info(
+                        "Loaded %s records in %.1f seconds (%.1f records/second)",
+                        len(records),
+                        elapsed,
+                        len(records) / elapsed if elapsed else 0,
+                    )
+
+    elapsed = time.monotonic() - started_at
+    logger.info(
+        "Finished loading %s records in %.1f seconds (%.1f records/second)",
+        len(records),
+        elapsed,
+        len(records) / elapsed if elapsed else 0,
+    )
 
     return records
 
@@ -483,6 +532,8 @@ def send_worker_message(
     reference: str,
     consignment_reference: str,
     file_id: str,
+    include_body_and_series: bool,
+    include_consignment: bool,
 ) -> None:
     message = {
         "runId": run_id,
@@ -490,6 +541,8 @@ def send_worker_message(
         "reference": reference,
         "consignmentReference": consignment_reference,
         "fileId": file_id,
+        "includeBodyAndSeries": include_body_and_series,
+        "includeConsignment": include_consignment,
     }
 
     sqs.send_message(
@@ -498,37 +551,38 @@ def send_worker_message(
     )
 
 
-def resolve_run_id(event: dict[str, Any], series: str) -> str:
+def resolve_run_id(
+    series: str,
+    supplied_run_id: str | None,
+    force_new_run: bool,
+) -> str:
     """
     Resolve whether this is a resume or a new run.
 
-    If runId is supplied, we assume the caller intentionally wants to resume
+    If RUN_ID is supplied, we assume the caller intentionally wants to resume
     that exact run.
 
     If runId is not supplied, we check whether this series has already been
     started before creating a new run. This avoids accidentally running the
     same series again and sending duplicate worker messages.
 
-    To deliberately create a new run for the same series, pass:
-      {"series": "MIG 1", "forceNewRun": true}
+    To deliberately create a new run for the same series, set
+    FORCE_NEW_RUN=true when starting the ECS task.
     """
-    supplied_run_id = event.get("runId")
-
     if isinstance(supplied_run_id, str) and supplied_run_id.strip():
         return supplied_run_id.strip()
-
-    force_new_run = event.get("forceNewRun") is True
 
     if series_has_existing_run(series):
         if not force_new_run:
             raise ValueError(
                 f"Existing migration run found for series '{series}'. "
-                "Please provide runId to resume the existing run, or set "
-                "forceNewRun=true to deliberately start a new run."
+                "Please provide RUN_ID to resume the existing run, or set "
+                "FORCE_NEW_RUN=true to deliberately start a new run."
             )
 
         logger.warning(
-            "forceNewRun=true supplied for series=%s. Existing run will not be resumed.",
+            "FORCE_NEW_RUN=true supplied for series=%s. "
+            "Existing run will not be resumed.",
             series,
         )
 
@@ -594,3 +648,27 @@ def utc_now_text() -> str:
 def build_run_id(series: str) -> str:
     timestamp = int(time.time())
     return f"{safe_reference(series)}-{timestamp}-{uuid.uuid4().hex[:8]}"
+
+
+def main() -> None:
+    series = os.getenv("SERIES")
+
+    if not series or not series.strip():
+        raise ValueError("Missing required environment variable: SERIES")
+
+    run_id = os.getenv("RUN_ID")
+
+    force_new_run = (
+        os.getenv("FORCE_NEW_RUN", "false").strip().lower() == "true"
+    )
+
+    result = coordinate_series(
+        series=series.strip(),
+        supplied_run_id=run_id,
+        force_new_run=force_new_run,
+    )
+    logger.info("Coordinator completed: %s", json.dumps(result))
+
+
+if __name__ == "__main__":
+    main()
