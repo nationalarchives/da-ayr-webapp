@@ -108,9 +108,12 @@ def test_main_headings_h1_precedes_h2(
         "/how-to-use-this-service",
         "/terms-of-use",
         "/browse",
-        "/browse/record/",
+        "/browse/records",
+        f"/browse/transferring_body/{file.consignment.series.body.BodyId}",
+        f"/browse/series/{file.consignment.series.SeriesId}",
+        f"/browse/consignment/{file.consignment.ConsignmentId}"
+        "?date_filter_field=date_last_modified&date_from_day=01&date_from_month=03&date_from_year=2024",
         "/search/results?query=test&search_area=everywhere&sort=file_name",
-        f"/browse/record/{file.FileId}",
         f"/record/{file.FileId}",
     ]
 
