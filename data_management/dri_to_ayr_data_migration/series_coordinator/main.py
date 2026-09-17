@@ -42,11 +42,8 @@ JSON_PREFIX = os.getenv("JSON_PREFIX", "live")
 DEFAULT_DUMMY_CONSIGNMENT_PREFIX = f"DRI-TO-AYR-{datetime.today().year}"
 
 MAX_FILES_PER_FAKE_CONSIGNMENT = int(
-    os.getenv("MAX_FILES_PER_FAKE_CONSIGNMENT", "1000")
+    os.getenv("MAX_FILES_PER_FAKE_CONSIGNMENT", "5000")
 )
-
-if MAX_FILES_PER_FAKE_CONSIGNMENT < 1:
-    raise ValueError("MAX_FILES_PER_FAKE_CONSIGNMENT must be greater than 0")
 
 
 # If a consignment has reached one of these statuses, the coordinator must not
