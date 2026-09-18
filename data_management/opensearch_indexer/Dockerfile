@@ -36,9 +36,18 @@ ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u6
 ARG LIBREOFFICE_JAVA_COMMON_VERSION=4:25.2.3-2+deb13u6
 # renovate: datasource=repology depName=debian_13/default-jre versioning=loose
 ARG DEFAULT_JRE_VERSION=2:1.21-76
+# renovate: datasource=repology depName=debian_13/libsqlite3-0 versioning=loose
+ARG LIBSQLITE3_0_VERSION=3.46.1-7+deb13u2
+# renovate: datasource=repology depName=debian_13/perl-base versioning=loose
+ARG PERL_BASE_VERSION=5.40.1-6+deb13u1
+# renovate: datasource=repology depName=debian_13/libpcre2-8-0 versioning=loose
+ARG LIBPCRE2_8_0_VERSION=10.46-1~deb13u2
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    libsqlite3-0=${LIBSQLITE3_0_VERSION} \
+    perl-base=${PERL_BASE_VERSION} \
+    libpcre2-8-0=${LIBPCRE2_8_0_VERSION} \
     python3-dev=${PYTHON3_DEV_VERSION} \
     libxml2-dev=${LIBXML2_DEV_VERSION} \
     libxslt1-dev=${LIBXSLT1_DEV_VERSION} \
