@@ -680,15 +680,12 @@ def start_finalising_or_skip(run_id: str, consignment_reference: str) -> bool:
                 "updatedAt = :now"
             ),
             ConditionExpression=(
-                "#status = :ready "
-                "AND completedFileCount = expectedFileCount "
-                "AND failedFileCount = :zero"
+                "#status = :ready AND completedFileCount = expectedFileCount"
             ),
             ExpressionAttributeNames={"#status": "status"},
             ExpressionAttributeValues={
                 ":ready": {"S": READY_TO_FINALISE},
                 ":finalising": {"S": FINALISING},
-                ":zero": {"N": "0"},
                 ":now": {"S": now},
             },
         )
