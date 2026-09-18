@@ -88,7 +88,6 @@ from app.main.util.schemas import (
 )
 from app.main.util.search_utils import (
     build_search_results_query,
-    check_additional_term,
     execute_search,
     extract_search_terms,
     get_open_search_fields_to_search_on_and_sorting,
@@ -99,6 +98,77 @@ from configs.base_config import CONVERTIBLE_PUIDS
 
 from .forms import SearchForm
 from .process_routes.browse_route import process_browse_request
+
+
+def _build_records_filters_context(validated_data, ayr_user, query=None):
+    date_validation_errors = []
+    from_date = None
+    to_date = None
+    date_filters = {}
+    date_error_fields = []
+
+    if len(validated_data) > 0:
+        (
+            date_validation_errors,
+            from_date,
+            to_date,
+            date_filters,
+            date_error_fields,
+        ) = validate_date_filters(validated_data)
+
+    filters = build_filters(
+        validated_data,
+        date_from=from_date,
+        date_to=to_date,
+        include_hierarchical_filters=False,
+    )
+    if query is not None:
+        filters["query"] = query
+
+    accessible_body_names = get_accessible_body_names(ayr_user)
+    transferring_bodies = build_browse_records_filter_data(
+        validated_data,
+        accessible_body_names,
+        filters,
+    )
+    filter_count = count_selected_filters(
+        filters,
+        from_date,
+        to_date,
+        ayr_user.is_standard_user,
+    )
+
+    return {
+        "filters": filters,
+        "date_validation_errors": date_validation_errors,
+        "date_error_fields": date_error_fields,
+        "date_filters": date_filters,
+        "filter_count": filter_count,
+        "transferring_bodies": transferring_bodies,
+        "accessible_body_names": accessible_body_names,
+    }
+
+
+def _format_search_hit_for_record_row(search_record):
+    source = search_record.get("_source") or {}
+    snippet = None
+    highlight = search_record.get("highlight") or {}
+    if highlight.get("content"):
+        snippet = " ... ".join(highlight["content"])
+
+    return {
+        "file_id": source.get("file_id"),
+        "file_name": source.get("file_name"),
+        "date_of_record": source.get("end_date")
+        or source.get("date_last_modified"),
+        "series": source.get("series_name") or source.get("series"),
+        "closure_type": source.get("closure_type"),
+        "opening_date": source.get("opening_date"),
+        "transferring_body": source.get("transferring_body"),
+        "file_path": source.get("file_path"),
+        "consignment_reference": source.get("consignment_reference"),
+        "search_result_snippet": snippet,
+    }
 
 
 @bp.route("/", methods=["GET"])
@@ -598,44 +668,17 @@ def browse_records():
     per_page = validated_data.get("per_page") or 5
     default_page = 1
     form = SearchForm()
-
-    date_validation_errors = []
-    from_date = None
-    to_date = None
-    date_filters = {}
-    date_error_fields = []
-
-    if len(validated_data) > 0:
-        (
-            date_validation_errors,
-            from_date,
-            to_date,
-            date_filters,
-            date_error_fields,
-        ) = validate_date_filters(validated_data)
-
-    filters = build_filters(
-        validated_data,
-        date_from=from_date,
-        date_to=to_date,
-        include_hierarchical_filters=False,
-    )
-    sorting_orders = build_sorting_orders(validated_data)
-
     ayr_user = AYRUser(session.get("user_groups"))
-    accessible_body_names = get_accessible_body_names(ayr_user)
 
-    transferring_bodies = build_browse_records_filter_data(
-        validated_data,
-        accessible_body_names,
-        filters,
-    )
-    filter_count = count_selected_filters(
-        filters,
-        from_date,
-        to_date,
-        ayr_user.is_standard_user,
-    )
+    filters_context = _build_records_filters_context(validated_data, ayr_user)
+    filters = filters_context["filters"]
+    date_validation_errors = filters_context["date_validation_errors"]
+    date_error_fields = filters_context["date_error_fields"]
+    date_filters = filters_context["date_filters"]
+    filter_count = filters_context["filter_count"]
+    transferring_bodies = filters_context["transferring_bodies"]
+    accessible_body_names = filters_context["accessible_body_names"]
+    sorting_orders = build_sorting_orders(validated_data)
 
     data_query = build_browse_records_base_query(
         accessible_transferring_body_names=accessible_body_names,
@@ -744,15 +787,21 @@ def search_results(_id: uuid.UUID | None = None):
     query = validated_data["query"]
     search_area = validated_data["search_area"]
 
-    redirect_response = check_additional_term(query, validated_data.copy())
-    if redirect_response:
-        return redirect_response
+    filters_context = _build_records_filters_context(
+        validated_data,
+        ayr_user,
+        query=query,
+    )
+    filters = filters_context["filters"]
+    date_validation_errors = filters_context["date_validation_errors"]
+    date_error_fields = filters_context["date_error_fields"]
+    date_filters = filters_context["date_filters"]
+    filter_count = filters_context["filter_count"]
+    transferring_bodies = filters_context["transferring_bodies"]
 
-    filters = {"query": query}
     current_transferring_body_id = _id if body is not None else None
 
-    search_terms, results, pagination, num_records_found = (
-        [],
+    results, pagination, num_records_found = (
         {"hits": {"total": {"value": 0}, "hits": []}},
         None,
         0,
@@ -763,7 +812,6 @@ def search_results(_id: uuid.UUID | None = None):
             query = query[:-1]
 
         quoted_phrases, single_terms = extract_search_terms(query)
-        search_terms = quoted_phrases + single_terms
 
         open_search = setup_opensearch()
         search_fields, sorting = (
@@ -777,6 +825,7 @@ def search_results(_id: uuid.UUID | None = None):
             single_terms,
             sorting,
             transferring_body_id=transferring_body_id,
+            filters=filters,
         )
 
         try:
@@ -793,6 +842,9 @@ def search_results(_id: uuid.UUID | None = None):
         results = post_process_opensearch_results(
             search_results["hits"]["hits"], sort
         )
+        results = [
+            _format_search_hit_for_record_row(result) for result in results
+        ]
 
         total_records = (
             search_results["hits"]["total"]["value"]
@@ -812,13 +864,17 @@ def search_results(_id: uuid.UUID | None = None):
         sort=sort,
         current_page=page,
         filters=filters,
+        filter_count=filter_count,
+        transferring_bodies=transferring_bodies,
         current_transferring_body_id=current_transferring_body_id,
         results=results,
         num_records_found=num_records_found,
-        search_terms=search_terms,
         search_area=search_area,
         pagination=pagination,
         highlight_tag=highlight_tag,
+        date_validation_errors=date_validation_errors,
+        date_error_fields=date_error_fields,
+        date_filters=date_filters,
         query_string_parameters=request.validated_args,
     )
 

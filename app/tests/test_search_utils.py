@@ -507,6 +507,55 @@ def test_build_search_results_query_with_transferring_body_filter():
     }
 
 
+def test_build_search_results_query_with_browse_filters():
+    query = '"non_fuzzy"+fuzzy'
+    quoted_phrases, single_terms = extract_search_terms(query)
+    search_fields = [
+        "file_name",
+        "description",
+        "foi_exemption_code",
+        "content",
+        "closure_start_date",
+        "end_date",
+        "date_last_modified",
+        "citeable_reference",
+        "series_name",
+        "consignment_reference",
+    ]
+
+    dsl_query = build_search_results_query(
+        search_fields,
+        "test_highlight_key",
+        quoted_phrases,
+        single_terms,
+        {"sort": "foobar"},
+        filters={
+            "transferring_body": "first_body",
+            "series": "first_series",
+            "consignment_reference": "cbar",
+            "record_status": "closed",
+            "date_filter_field": "opening_date",
+            "date_from": "2025-01-01",
+            "date_to": "2025-12-31",
+        },
+    )
+
+    assert dsl_query["query"]["bool"]["filter"] == [
+        {"match_phrase": {"transferring_body": "first_body"}},
+        {"match_phrase": {"series_name": "first_series"}},
+        {"match_phrase": {"consignment_reference": "cbar"}},
+        {"term": {"closure_type.keyword": "Closed"}},
+        {
+            "range": {
+                "opening_date": {
+                    "gte": "2025-01-01",
+                    "lte": "2025-12-31",
+                }
+            }
+        },
+    ]
+
+
 @pytest.mark.parametrize(
     "input_results, expected_output",
     [

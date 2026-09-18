@@ -16,6 +16,7 @@ from app.main.util.base_schemas import (
     BrowseFilterSchema,
     PaginationSchema,
     SearchQuerySchema,
+    SharedBrowseSearchFilterSchema,
     UUIDField,
 )
 
@@ -96,7 +97,11 @@ class SearchRequestSchema(SearchQuerySchema):
         unknown = EXCLUDE
 
 
-class SearchResultsRequestSchema(PaginationSchema, SearchQuerySchema):
+class SearchResultsRequestSchema(
+    PaginationSchema,
+    SearchQuerySchema,
+    SharedBrowseSearchFilterSchema,
+):
     """Search results request validation schema."""
 
     class Meta:

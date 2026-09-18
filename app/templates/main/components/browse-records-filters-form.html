@@ -1,6 +1,13 @@
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
-<form action="{{ url_for('main.browse_records', _anchor='browse-records') }}"
+<form action="{{ filters_form_action_url or url_for('main.browse_records', _anchor='browse-records') }}"
       method="get">
+    {% if filters_form_preserved_params %}
+        {% for key, value in filters_form_preserved_params.items() %}
+            {% if value != None and value != '' %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+        {% endfor %}
+    {% endif %}
     {% if query_string_parameters.get('per_page') %}
         <input type="hidden"
                name="per_page"
@@ -80,7 +87,7 @@
                                    value="closed"
                                    {% if filters.get('record_status')=='closed' %}checked{% endif %}>
                             <label class="govuk-label govuk-radios__label govuk-radios__label--consignment"
-                                   for="recordStatus-closed">Close</label>
+                                   for="recordStatus-closed">Closed</label>
                         </div>
                     </div>
                 </fieldset>
@@ -133,7 +140,7 @@
                 'type': "submit"
                 }) }}
                 <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-all-filter"
-                   href="{{ url_for('main.browse_records', sort=query_string_parameters.get('sort'), per_page=query_string_parameters.get('per_page'), _anchor='browse-records') }}">Clear filters</a>
+                   href="{{ clear_filters_href or url_for('main.browse_records', sort=query_string_parameters.get('sort'), per_page=query_string_parameters.get('per_page'), _anchor='browse-records') }}">Clear filters</a>
             </div>
         </div>
     </div>

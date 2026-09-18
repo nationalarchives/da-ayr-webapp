@@ -2,7 +2,7 @@ import re
 import urllib.parse
 
 import opensearchpy
-from flask import abort, current_app, redirect, request, url_for
+from flask import abort, current_app
 from opensearchpy import OpenSearch, RequestsHttpConnection
 
 from app.main.util.date_validator import format_opensearch_date
@@ -367,6 +367,121 @@ def build_dsl_search_query(
     return query_structure
 
 
+def _build_range_filter(field_name, date_from, date_to):
+    range_values = {}
+    if date_from:
+        range_values["gte"] = date_from
+    if date_to:
+        range_values["lte"] = date_to
+    if not range_values:
+        return None
+    return {"range": {field_name: range_values}}
+
+
+def _build_date_of_record_filter(date_from, date_to):
+    end_date_range = _build_range_filter("end_date", date_from, date_to)
+    last_modified_range = _build_range_filter(
+        "date_last_modified", date_from, date_to
+    )
+
+    should_clauses = []
+    if end_date_range:
+        should_clauses.append(end_date_range)
+    if last_modified_range:
+        should_clauses.append(
+            {
+                "bool": {
+                    "must_not": [{"exists": {"field": "end_date"}}],
+                    "filter": [last_modified_range],
+                }
+            }
+        )
+
+    if not should_clauses:
+        return None
+
+    return {
+        "bool": {
+            "should": should_clauses,
+            "minimum_should_match": 1,
+        }
+    }
+
+
+def _append_match_phrase_filter(
+    filter_clauses, filters, filter_key, field_name
+):
+    value = (filters.get(filter_key) or "").strip()
+    if value:
+        filter_clauses.append({"match_phrase": {field_name: value}})
+
+
+def _build_record_status_filter(filters):
+    record_status = (filters.get("record_status") or "").strip().lower()
+    if not record_status or record_status == "all":
+        return None
+
+    return {
+        "term": {
+            "closure_type.keyword": record_status.capitalize(),
+        }
+    }
+
+
+def _build_date_filter(filters):
+    date_from = filters.get("date_from")
+    date_to = filters.get("date_to")
+    if not (date_from or date_to):
+        return None
+
+    date_filter_field = (
+        (filters.get("date_filter_field") or "date_last_modified")
+        .strip()
+        .lower()
+    )
+
+    if date_filter_field == "opening_date":
+        return _build_range_filter("opening_date", date_from, date_to)
+    if date_filter_field == "transferred":
+        return _build_range_filter("end_date", date_from, date_to)
+    return _build_date_of_record_filter(date_from, date_to)
+
+
+def build_search_filter_clauses(transferring_body_id=None, filters=None):
+    filter_clauses = []
+
+    if transferring_body_id is not None:
+        filter_clauses.append(
+            {
+                "term": {
+                    "transferring_body_id.keyword": str(transferring_body_id)
+                }
+            }
+        )
+
+    if not filters:
+        return filter_clauses
+
+    for filter_key, field_name in (
+        ("transferring_body", "transferring_body"),
+        ("series", "series_name"),
+        ("consignment_reference", "consignment_reference"),
+    ):
+        _append_match_phrase_filter(
+            filter_clauses, filters, filter_key, field_name
+        )
+
+    record_status_filter = _build_record_status_filter(filters)
+    if record_status_filter:
+        filter_clauses.append(record_status_filter)
+
+    date_filter = _build_date_filter(filters)
+    if date_filter:
+        filter_clauses.append(date_filter)
+
+    return filter_clauses
+
+
 def build_search_results_query(
     search_fields,
     highlight_tag,
@@ -374,16 +489,12 @@ def build_search_results_query(
     single_terms,
     sorting,
     transferring_body_id=None,
+    filters=None,
 ):
-    filter_clauses = []
-    if transferring_body_id is not None:
-        filter_clauses = [
-            {
-                "term": {
-                    "transferring_body_id.keyword": str(transferring_body_id)
-                }
-            }
-        ]
+    filter_clauses = build_search_filter_clauses(
+        transferring_body_id=transferring_body_id,
+        filters=filters,
+    )
     dsl_query = build_dsl_search_query(
         search_fields,
         filter_clauses,
@@ -446,25 +557,3 @@ def extract_search_terms(query):
             single_terms.extend([term for term in plus_parts if term])
 
     return quoted_phrases, single_terms
-
-
-def check_additional_term(query, validated_data):
-    additional_term = validated_data["search_filter"]
-    if additional_term:
-        if " " in additional_term and not (
-            additional_term.startswith('"') and additional_term.endswith('"')
-        ):
-            additional_term = f'"{additional_term}"'
-
-        query = f"{query}+{additional_term}" if query else additional_term
-
-        redirect_params = request.validated_args.copy()
-        redirect_params.pop("search_filter", None)
-        redirect_params["query"] = query
-        return redirect(
-            url_for(
-                "main.search_results",
-                **redirect_params,
-                _anchor="browse-records",
-            )
-        )

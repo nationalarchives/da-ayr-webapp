@@ -32,19 +32,19 @@ class TestSearchResultsFlow:
         assert "query=a" in aau_user_page.url
         assert aau_user_page.locator("#tbl_result").is_visible()
 
-    def test_clear_all_terms_returns_all_access_user_to_browse(
+    def test_clear_filters_keeps_all_access_user_on_search_results(
         self, aau_user_page: Page
     ):
         aau_user_page.goto(self.browse_route_url)
         aau_user_page.locator("#search-input").fill("a")
         aau_user_page.get_by_role("button", name="Search").click()
-        aau_user_page.get_by_role("link", name="Clear all terms").click()
+        aau_user_page.get_by_role("link", name="Clear filters").click()
 
         expect(aau_user_page).to_have_url(
-            f"{self.browse_route_url}#browse-records"
+            re.compile(r".*/search/results\?query=a.*#browse-records")
         )
 
-    def test_clear_all_terms_returns_standard_user_to_browse_transferring_body(
+    def test_clear_filters_keeps_standard_user_on_search_results(
         self, standard_user_page: Page
     ):
         url = (
@@ -54,22 +54,19 @@ class TestSearchResultsFlow:
         standard_user_page.goto(url)
         standard_user_page.locator("#search-input").fill("a")
         standard_user_page.get_by_role("button", name="Search").click()
-        standard_user_page.get_by_role("link", name="Clear all terms").click()
+        standard_user_page.get_by_role("link", name="Clear filters").click()
 
         expect(standard_user_page).to_have_url(
-            re.compile(r".*/browse/transferring_body/.*#browse-records")
+            re.compile(r".*/search/results\?query=a.*#browse-records")
         )
 
-    def test_remove_single_search_term_updates_query_on_search_results(
+    def test_search_results_shows_browse_filter_component(
         self, aau_user_page: Page
     ):
-        aau_user_page.goto(f"{self.canonical_search_results_route}?query=a,b")
-        aau_user_page.wait_for_selector("a.search-term-link")
-
-        aau_user_page.locator(
-            "a.search-term-link[aria-label=\"Remove filter for 'a'\"]"
-        ).click()
-
-        expect(aau_user_page).to_have_url(
-            re.compile(r".*/search/results.*query=b.*")
-        )
+        aau_user_page.goto(f"{self.canonical_search_results_route}?query=a")
+        expect(
+            aau_user_page.get_by_role("heading", name="Filters")
+        ).to_be_visible()
+        expect(
+            aau_user_page.get_by_role("radio", name="Closed")
+        ).to_be_visible()

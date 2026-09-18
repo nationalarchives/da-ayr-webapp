@@ -13,6 +13,7 @@ from app.main.util.schemas import (
     GenerateManifestRequestSchema,
     RecordRequestSchema,
     SearchRequestSchema,
+    SearchResultsRequestSchema,
     SearchWithinRequestSchema,
 )
 
@@ -330,7 +331,6 @@ class TestSearchRequestSchema:
                 "query": "test query",
                 "search_area": "metadata",
                 "sort": "file_name",
-                "search_filter": "filter text",
                 "transferring_body_id": "test-id",
             }
         )
@@ -350,17 +350,47 @@ class TestSearchRequestSchema:
             schema.load({"query": "x" * 1001})
         assert "query" in exc_info.value.messages
 
-    def test_search_filter_length_validation(self):
-        schema = SearchRequestSchema()
-        with pytest.raises(ValidationError) as exc_info:
-            schema.load({"search_filter": "x" * 501})
-        assert "search_filter" in exc_info.value.messages
-
     def test_transferring_body_id_length_validation(self):
         schema = SearchRequestSchema()
         with pytest.raises(ValidationError) as exc_info:
             schema.load({"transferring_body_id": "x" * 201})
         assert "transferring_body_id" in exc_info.value.messages
+
+
+class TestSearchResultsRequestSchema:
+    """Tests for SearchResultsRequestSchema."""
+
+    def test_search_results_accepts_browse_filters(self):
+        schema = SearchResultsRequestSchema()
+        data = schema.load(
+            {
+                "query": "test",
+                "transferring_body_filter": "Cabinet Office",
+                "series_filter": "CAB 128",
+                "consignment_reference": "TDR-2023-ABC",
+                "record_status": "closed",
+                "date_filter_field": "opening_date",
+                "date_from_day": 1,
+                "date_from_month": 1,
+                "date_from_year": 2024,
+                "date_to_day": 31,
+                "date_to_month": 12,
+                "date_to_year": 2024,
+            }
+        )
+
+        assert data["query"] == "test"
+        assert data["record_status"] == "closed"
+        assert data["date_filter_field"] == "opening_date"
+        assert data["series_filter"] == "CAB 128"
+
+    def test_search_results_rejects_invalid_record_status(self):
+        schema = SearchResultsRequestSchema()
+
+        with pytest.raises(ValidationError) as exc_info:
+            schema.load({"record_status": "not-valid"})
+
+        assert "record_status" in exc_info.value.messages
 
 
 class TestSearchWithinRequestSchema:
