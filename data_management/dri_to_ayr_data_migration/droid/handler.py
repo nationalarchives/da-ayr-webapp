@@ -452,21 +452,19 @@ def trigger_finaliser_if_ready(
     item = get_consignment_tracking_item(consignment_key)
     expected = get_ddb_number(item, "expectedFileCount")
     completed = get_ddb_number(item, "completedFileCount")
-    failed = get_ddb_number(item, "failedFileCount")
     status = get_ddb_string(item, "status")
 
     logger.info(
         "Consignment progress run_id=%s consignment=%s status=%s "
-        "completed=%s expected=%s failed=%s",
+        "completed=%s expected=%s",
         run_id,
         consignment_reference,
         status,
         completed,
         expected,
-        failed,
     )
 
-    if completed != expected or failed != 0:
+    if completed != expected:
         return False
 
     if status == "STAGING":
@@ -481,14 +479,12 @@ def trigger_finaliser_if_ready(
                 ),
                 ConditionExpression=(
                     "#status = :staging "
-                    "AND completedFileCount = expectedFileCount "
-                    "AND failedFileCount = :zero"
+                    "AND completedFileCount = expectedFileCount"
                 ),
                 ExpressionAttributeNames={"#status": "status"},
                 ExpressionAttributeValues={
                     ":ready": {"S": "READY_TO_FINALISE"},
                     ":staging": {"S": "STAGING"},
-                    ":zero": {"N": "0"},
                     ":now": {"S": now},
                 },
             )

@@ -67,14 +67,12 @@ def consignment_item(
     status: str = "STAGING",
     expected: int = 1,
     completed: int = 1,
-    failed: int = 0,
     finaliser_sent_at: str | None = None,
 ) -> dict[str, dict[str, str]]:
     item = {
         "status": {"S": status},
         "expectedFileCount": {"N": str(expected)},
         "completedFileCount": {"N": str(completed)},
-        "failedFileCount": {"N": str(failed)},
     }
 
     if finaliser_sent_at:
@@ -466,20 +464,14 @@ class TestDroidHandler:
                 file_id=FILE_ID,
             )
 
-    @pytest.mark.parametrize(
-        "item",
-        [
-            consignment_item(expected=2, completed=1),
-            consignment_item(expected=1, completed=1, failed=1),
-        ],
-    )
     def test_trigger_finaliser_returns_false_until_consignment_is_ready(
         self,
         droid,
         monkeypatch,
-        item,
     ):
-        droid.dynamodb.get_item.return_value = {"Item": item}
+        droid.dynamodb.get_item.return_value = {
+            "Item": consignment_item(expected=2, completed=1)
+        }
         ensure_required = mock.Mock()
         send_finaliser = mock.Mock()
         record_sent = mock.Mock()

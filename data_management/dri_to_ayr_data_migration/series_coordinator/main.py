@@ -461,7 +461,6 @@ def put_consignment_tracking_item(
                 "consignmentReference": {"S": consignment_reference},
                 "expectedFileCount": {"N": str(expected_file_count)},
                 "completedFileCount": {"N": "0"},
-                "failedFileCount": {"N": "0"},
                 "status": {"S": "STAGING"},
                 "createdAt": {"S": now},
                 "updatedAt": {"S": now},
