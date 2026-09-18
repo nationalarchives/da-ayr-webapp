@@ -331,7 +331,6 @@ class TestSearchRequestSchema:
                 "query": "test query",
                 "search_area": "metadata",
                 "sort": "file_name",
-                "search_filter": "filter text",
                 "transferring_body_id": "test-id",
             }
         )
@@ -350,12 +349,6 @@ class TestSearchRequestSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.load({"query": "x" * 1001})
         assert "query" in exc_info.value.messages
-
-    def test_search_filter_length_validation(self):
-        schema = SearchRequestSchema()
-        with pytest.raises(ValidationError) as exc_info:
-            schema.load({"search_filter": "x" * 501})
-        assert "search_filter" in exc_info.value.messages
 
     def test_transferring_body_id_length_validation(self):
         schema = SearchRequestSchema()

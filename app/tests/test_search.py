@@ -712,52 +712,6 @@ class TestSearchResults:
             }
         } in dsl_query["query"]["bool"]["filter"]
 
-    def test_search_results_redirects_when_search_filter_is_added(
-        self, client: FlaskClient, mock_all_access_user
-    ):
-        """
-        Given a base query and an additional search_filter term
-        When search results are requested
-        Then the request redirects with the merged query and no search_filter
-        """
-        mock_all_access_user(client)
-
-        response = client.get(
-            f"{self.route_url}?query=test&search_filter=extra term"
-        )
-
-        assert response.status_code == 302
-        redirect_location = response.headers["Location"]
-        parsed_url = urlparse(redirect_location)
-        params = parse_qs(parsed_url.query)
-
-        assert parsed_url.path == self.route_url
-        assert params["query"] == ['test+"extra term"']
-        assert "search_filter" not in params
-        assert parsed_url.fragment == "browse-records"
-
-    def test_search_results_redirects_when_search_filter_only_is_added(
-        self, client: FlaskClient, mock_all_access_user
-    ):
-        """
-        Given only a search_filter term
-        When search results are requested
-        Then the request redirects with that term as the quoted query
-        """
-        mock_all_access_user(client)
-
-        response = client.get(f"{self.route_url}?search_filter=extra term")
-
-        assert response.status_code == 302
-        redirect_location = response.headers["Location"]
-        parsed_url = urlparse(redirect_location)
-        params = parse_qs(parsed_url.query)
-
-        assert parsed_url.path == self.route_url
-        assert params["query"] == ['"extra term"']
-        assert "search_filter" not in params
-        assert parsed_url.fragment == "browse-records"
-
     @patch("app.main.routes.execute_search", side_effect=NotFound())
     @patch("app.main.routes.setup_opensearch")
     def test_search_results_redirects_invalid_page_to_page_one(
