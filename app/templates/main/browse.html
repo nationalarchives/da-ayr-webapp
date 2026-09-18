@@ -20,10 +20,10 @@
                             <span class="browse__scope-text">{{ records_scope_text }}</span>
                         </p>
                     {% endif %}
-                    <h2 class="govuk-heading-l browse__records-found__text"
-                        id="browse-records"
-                        aria-live="polite">
-                        {% if num_records_found > 0 %}
+                    {% if num_records_found > 0 %}
+                        <h1 class="govuk-heading-l browse__records-found__text"
+                            id="browse-records"
+                            aria-live="polite">
                             {% if browse_type == "records" %}
                                 {% if records_has_active_filters %}
                                     {{ num_records_found | format_number_with_commas }} records found
@@ -33,8 +33,8 @@
                             {% else %}
                                 Browse records {{ num_records_found | format_number_with_commas }}
                             {% endif %}
-                        {% endif %}
-                    </h2>
+                        </h1>
+                    {% endif %}
                     {% if browse_type != "records" %}
                         <p class="govuk-body browse__body">You are viewing</p>
                     {% endif %}

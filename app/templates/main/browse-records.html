@@ -38,22 +38,22 @@
                                 <span class="browse__scope-text">{{ records_scope_text }}</span>
                             </p>
                         {% endif %}
-                        <h1 class="browse-records__heading"
-                            id="browse-records"
-                            aria-live="polite">
-                            {% if num_records_found > 0 %}
+                        {% if num_records_found > 0 %}
+                            <h1 class="browse-records__heading"
+                                id="browse-records"
+                                aria-live="polite">
                                 {% if records_has_active_filters %}
                                     {{ num_records_found | format_number_with_commas }} records found
                                 {% else %}
                                     {{ num_records_found | format_number_with_commas }} records
                                 {% endif %}
-                            {% else %}
                             </h1>
+                        {% else %}
                             {% if records_has_active_filters %}
                                 {% set preserved_params = request.args.copy() %}
                                 {{ page_back_link(preserved_params=preserved_params) }}
-                                {{ no_results_message("browse_records") }}
                             {% endif %}
+                            {{ no_results_message("browse_records") }}
                         {% endif %}
                     </div>
                     {% if num_records_found > 0 %}
