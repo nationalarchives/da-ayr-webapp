@@ -58,9 +58,6 @@ class SearchQuerySchema(Schema):
         validate=validate.OneOf(["everywhere", "metadata", "record"]),
     )
     sort = fields.String(allow_none=True, load_default="file_name")
-    search_filter = fields.String(
-        allow_none=True, load_default="", validate=validate.Length(max=500)
-    )
 
     class Meta:
         unknown = EXCLUDE

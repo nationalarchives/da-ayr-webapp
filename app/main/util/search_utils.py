@@ -2,7 +2,7 @@ import re
 import urllib.parse
 
 import opensearchpy
-from flask import abort, current_app, redirect, request, url_for
+from flask import abort, current_app
 from opensearchpy import OpenSearch, RequestsHttpConnection
 
 from app.main.util.date_validator import format_opensearch_date
@@ -557,25 +557,3 @@ def extract_search_terms(query):
             single_terms.extend([term for term in plus_parts if term])
 
     return quoted_phrases, single_terms
-
-
-def check_additional_term(query, validated_data):
-    additional_term = validated_data["search_filter"]
-    if additional_term:
-        if " " in additional_term and not (
-            additional_term.startswith('"') and additional_term.endswith('"')
-        ):
-            additional_term = f'"{additional_term}"'
-
-        query = f"{query}+{additional_term}" if query else additional_term
-
-        redirect_params = request.validated_args.copy()
-        redirect_params.pop("search_filter", None)
-        redirect_params["query"] = query
-        return redirect(
-            url_for(
-                "main.search_results",
-                **redirect_params,
-                _anchor="browse-records",
-            )
-        )

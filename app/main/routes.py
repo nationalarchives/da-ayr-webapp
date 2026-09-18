@@ -88,7 +88,6 @@ from app.main.util.schemas import (
 )
 from app.main.util.search_utils import (
     build_search_results_query,
-    check_additional_term,
     execute_search,
     extract_search_terms,
     get_open_search_fields_to_search_on_and_sorting,
@@ -249,6 +248,12 @@ def callback():
         )
     except Exception as e:
         current_app.app_logger.error(f"Failed to introspect access token: {e}")
+        return redirect(url_for("main.sign_in"))
+
+    if not decoded_access_token.get("active"):
+        current_app.app_logger.error(
+            "Newly issued access token introspected as not active"
+        )
         return redirect(url_for("main.sign_in"))
 
     user_groups, user_id = _resolve_user_claims_with_fallbacks(
@@ -706,8 +711,6 @@ def browse_records():
     results = []
     for row in page_items:
         meta = metadata_map.get(row.file_id, {})
-        date_last_modified = meta.get("date_last_modified")
-        end_date = meta.get("end_date")
         results.append(
             {
                 "transferring_body_id": row.transferring_body_id,
@@ -716,14 +719,14 @@ def browse_records():
                 "series": row.series,
                 "consignment_id": row.consignment_id,
                 "consignment_reference": row.consignment_reference,
+                "consignment_transfer_complete_date": row.consignment_transfer_complete_date,
                 "file_id": row.file_id,
                 "file_name": row.file_name,
                 "file_path": row.file_path,
-                "date_last_modified": date_last_modified,
-                "end_date": end_date,
                 "closure_type": meta.get("closure_type"),
                 "opening_date": meta.get("opening_date"),
-                "date_of_record": end_date or date_last_modified,
+                "date_of_record": meta.get("end_date")
+                or meta.get("date_last_modified"),
             }
         )
 
@@ -784,10 +787,6 @@ def search_results(_id: uuid.UUID | None = None):
     query = validated_data["query"]
     search_area = validated_data["search_area"]
 
-    redirect_response = check_additional_term(query, validated_data.copy())
-    if redirect_response:
-        return redirect_response
-
     filters_context = _build_records_filters_context(
         validated_data,
         ayr_user,
@@ -802,8 +801,7 @@ def search_results(_id: uuid.UUID | None = None):
 
     current_transferring_body_id = _id if body is not None else None
 
-    search_terms, results, pagination, num_records_found = (
-        [],
+    results, pagination, num_records_found = (
         {"hits": {"total": {"value": 0}, "hits": []}},
         None,
         0,
@@ -814,7 +812,6 @@ def search_results(_id: uuid.UUID | None = None):
             query = query[:-1]
 
         quoted_phrases, single_terms = extract_search_terms(query)
-        search_terms = quoted_phrases + single_terms
 
         open_search = setup_opensearch()
         search_fields, sorting = (
@@ -872,7 +869,6 @@ def search_results(_id: uuid.UUID | None = None):
         current_transferring_body_id=current_transferring_body_id,
         results=results,
         num_records_found=num_records_found,
-        search_terms=search_terms,
         search_area=search_area,
         pagination=pagination,
         highlight_tag=highlight_tag,

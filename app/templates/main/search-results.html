@@ -29,8 +29,9 @@
                     {% set search_back_link = url_for('main.browse_transferring_body', _id=current_transferring_body_id, _anchor='browse-records') %}
                 {% endif %}
                 {{ page_back_link(search_back_link) }}
+                {% set is_standard_user = session['user_type'] == 'standard_user' %}
                 {% if num_records_found > 0 %}
-                    <h2 class="govuk-heading-l browse__records-found__text"
+                    <h1 class="govuk-heading-l browse__records-found__text"
                         id="browse-records"
                         aria-live="polite">
                         Records found {{ num_records_found | format_number_with_commas }}
@@ -39,7 +40,7 @@
                             {{ no_results_message("search") }}
                         {% endwith %}
                     {% endif %}
-                </h2>
+                </h1>
                 <div class="browse-layout records-page-wrapper">
                     {% if num_records_found > 0 %}
                         <!-- SORT -->
@@ -69,7 +70,6 @@
                         {% set _ = browse_table_params.pop('search_area', None) %}
                         {% set _ = browse_table_params.pop('sort', None) %}
                         {% set _ = browse_table_params.pop('_id', None) %}
-                        {% set is_standard_user = session['user_type'] == 'standard_user' %}
                         {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, 'main.search_results', None) %}
                             {% if results %}
                                 {% for record in results %}
