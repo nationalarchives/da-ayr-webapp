@@ -1,4 +1,3 @@
-from datetime import datetime
 from unittest.mock import patch
 
 import pytest
@@ -859,18 +858,19 @@ class TestBrowseRecords:
             "Try changing or removing one or more applied filters" in list_text
         )
 
-    def test_browse_records_row_displays_transferred_label_and_date(
+    def test_browse_records_hides_consignment_details_for_dri_to_ayr_records(
         self, client: FlaskClient, mock_all_access_user
     ):
         """
         Given a record with a consignment reference starting with DRI-TO-AYR-
         When the browse records page loads with that consignment filter
-        Then the consignment row renders a transferred label and transfer date
+        Then the consignment details are hidden for that record (since DRI-TO-AYR
+            records are not real consignments so we do not want to confuse users
+            and they do not have transfer complete dates)
         """
-        transfer_complete_datetime = datetime(2024, 5, 1, 13, 45, 0)
         file = FileFactory(
             consignment__ConsignmentReference="DRI-TO-AYR-9999",
-            consignment__TransferCompleteDatetime=transfer_complete_datetime,
+            consignment__TransferCompleteDatetime=None,
         )
 
         mock_all_access_user(client)
@@ -884,19 +884,5 @@ class TestBrowseRecords:
         html = response.data.decode()
         soup = BeautifulSoup(html, "html.parser")
 
-        consignment_text_rows = soup.select(
-            "tr.browse-record-row__row--consignment "
-            "p.browse-records__consignment-text"
-        )
-
-        assert len(consignment_text_rows) == 1
-
-        consignment_row = consignment_text_rows[0]
-        row_text = " ".join(consignment_row.get_text(separator=" ").split())
-        transfer_time = consignment_row.select_one("time")
-
-        assert row_text == "transferred on 01/05/2024"
-        assert "consignment DRI-TO-AYR-9999" not in row_text
-        assert transfer_time is not None
-        assert transfer_time.get("datetime") == "2024-05-01"
-        assert transfer_time.get_text(strip=True) == "01/05/2024"
+        assert soup.select("tr.browse-record-row__row--consignment") == []
+        assert "consignment DRI-TO-AYR-9999" not in html
