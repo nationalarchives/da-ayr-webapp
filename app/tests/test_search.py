@@ -291,6 +291,46 @@ class TestSearchResults:
         assert soup.find("table", attrs={"id": "tbl_result"}) is None
 
     @patch("app.main.routes.setup_opensearch")
+    def test_search_results_with_query_and_no_hits_preserves_applied_filters(
+        self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given a search with filters that returns zero hits
+        When /search/results is requested
+        Then the no-results screen still shows the shared filters panel with applied values
+        """
+        mock_all_access_user(client)
+        mock_setup_opensearch.return_value = MockOpenSearch(
+            search_return_value={"hits": {"total": {"value": 0}, "hits": []}}
+        )
+
+        response = client.get(
+            f"{self.route_url}?query=test&search_area=metadata&series_filter=HO+405&consignment_reference=AYR-2026-KSJ2&record_status=closed&date_filter_field=transferred"
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+
+        filters_heading = soup.find(
+            "h2", class_="govuk-heading-m--browse-all-filter-title"
+        )
+        series_filter = soup.find("input", id="series_filter")
+        consignment_filter = soup.find("input", id="consignment_reference")
+        status_closed = soup.find("input", id="recordStatus-closed")
+        transferred_date = soup.find("input", id="transferred_date")
+
+        assert soup.find("table", attrs={"id": "tbl_result"}) is None
+        assert filters_heading is not None
+        assert series_filter is not None
+        assert consignment_filter is not None
+        assert status_closed is not None
+        assert transferred_date is not None
+        assert series_filter.get("value") == "HO 405"
+        assert consignment_filter.get("value") == "AYR-2026-KSJ2"
+        assert status_closed.has_attr("checked")
+        assert transferred_date.has_attr("checked")
+
+    @patch("app.main.routes.setup_opensearch")
     def test_search_results_record_links_do_not_include_navigation_query(
         self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
     ):
@@ -337,6 +377,39 @@ class TestSearchResults:
         assert back_link is not None
         assert back_link["href"] == "/browse#browse-records"
         assert back_link.get("data-history-back-link") == "true"
+
+    @patch("app.main.routes.setup_opensearch")
+    def test_search_results_back_link_fallback_uses_search_results_for_queries(
+        self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given a direct no-referrer search results request with a query
+        When the Back link fallback is rendered
+        Then it points to search results context rather than browse routes
+        """
+        mock_all_access_user(client)
+        mock_setup_opensearch.return_value = MockOpenSearch(
+            search_return_value={"hits": {"total": {"value": 0}, "hits": []}}
+        )
+
+        response = client.get(
+            f"{self.route_url}?query=test&record_status=closed"
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        back_link = soup.select_one("a.govuk-back-link")
+
+        assert back_link is not None
+        parsed_href = urlparse(back_link["href"])
+        params = parse_qs(parsed_href.query)
+
+        assert parsed_href.path == "/search/results"
+        assert params["query"] == ["test"]
+        assert params["search_area"] == ["everywhere"]
+        assert params["sort"] == ["file_name"]
+        assert "record_status" not in params
+        assert parsed_href.fragment == "browse-records"
 
     def test_search_results_back_link_targets_body_browse_for_standard_user(
         self,
