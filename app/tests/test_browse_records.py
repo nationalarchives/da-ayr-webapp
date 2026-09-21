@@ -863,13 +863,13 @@ class TestBrowseRecords:
         self, client: FlaskClient, mock_all_access_user
     ):
         """
-        Given a record with a consignment reference starting with DRI-to-AYR-
+        Given a record with a consignment reference starting with DRI-TO-AYR-
         When the browse records page loads with that consignment filter
         Then the consignment row renders a transferred label and transfer date
         """
         transfer_complete_datetime = datetime(2024, 5, 1, 13, 45, 0)
         file = FileFactory(
-            consignment__ConsignmentReference="DRI-to-AYR-9999",
+            consignment__ConsignmentReference="DRI-TO-AYR-9999",
             consignment__TransferCompleteDatetime=transfer_complete_datetime,
         )
 
@@ -896,7 +896,7 @@ class TestBrowseRecords:
         transfer_time = consignment_row.select_one("time")
 
         assert row_text == "transferred on 01/05/2024"
-        assert "consignment DRI-to-AYR-9999" not in row_text
+        assert "consignment DRI-TO-AYR-9999" not in row_text
         assert transfer_time is not None
         assert transfer_time.get("datetime") == "2024-05-01"
         assert transfer_time.get_text(strip=True) == "01/05/2024"
