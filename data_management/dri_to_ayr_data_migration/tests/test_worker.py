@@ -356,6 +356,7 @@ class TestWorkerHandler:
                 "Key": f"v1/{RECORD_ID}/{FILE_ID}",
             },
             Key=f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
+            TaggingDirective="REPLACE",
         )
 
     def test_send_droid_message_sends_expected_sqs_message(
