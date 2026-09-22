@@ -23,7 +23,9 @@
         <!-- TABLE -->
         <div class="govuk-grid-column-full govuk-grid-column-full__page_container">
             <div class="browse-details">
-                {% if session['user_type'] == 'all_access_user' or not current_transferring_body_id %}
+                {% if query_string_parameters.get('query') %}
+                    {% set search_back_link = url_for('main.search_results', query=query_string_parameters.get('query'), search_area=search_area, sort=sort, per_page=query_string_parameters.get('per_page'), _anchor='browse-records') %}
+                {% elif session['user_type'] == 'all_access_user' or not current_transferring_body_id %}
                     {% set search_back_link = url_for('main.browse', _anchor='browse-records') %}
                 {% else %}
                     {% set search_back_link = url_for('main.browse_transferring_body', _id=current_transferring_body_id, _anchor='browse-records') %}
@@ -33,14 +35,8 @@
                 {% if num_records_found > 0 %}
                     <h1 class="govuk-heading-l browse__records-found__text"
                         id="browse-records"
-                        aria-live="polite">
-                        {{ num_records_found | format_number_with_commas }} records found
-                    {% else %}
-                        {% with view_type = "search" %}
-                            {{ no_results_message("search") }}
-                        {% endwith %}
-                    {% endif %}
-                </h1>
+                        aria-live="polite">Records found {{ num_records_found | format_number_with_commas }}</h1>
+                {% endif %}
                 <div class="browse-layout records-page-wrapper">
                     {% if num_records_found > 0 %}
                         <!-- SORT -->
@@ -79,6 +75,9 @@
                                 {% endfor %}
                             {% endif %}
                         {% endcall %}
+                    {% else %}
+                        <span id="browse-records"></span>
+                        {{ no_results_message("search") }}
                     {% endif %}
                     <!-- FILTERS -->
                     {% set filters_form_action_url = url_for('main.search_results', _anchor='browse-records') %}
