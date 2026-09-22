@@ -148,7 +148,12 @@ class TestBrowseRequestSchema:
         with pytest.raises(ValidationError):
             schema.load({"date_from_month": 13})
         with pytest.raises(ValidationError):
-            schema.load({"date_from_year": 1800})
+            schema.load({"date_from_year": 20})
+
+    def test_pre_1900_date_values_are_valid(self):
+        schema = BrowseRequestSchema()
+        data = schema.load({"date_from_year": 1800})
+        assert data["date_from_year"] == 1800
 
     def test_browse_filters(self):
         schema = BrowseRequestSchema()

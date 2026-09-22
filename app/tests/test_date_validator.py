@@ -538,6 +538,26 @@ class TestDateValidator:
         [
             (
                 {
+                    "date_from_day": "01",
+                    "date_from_month": "06",
+                    "date_from_year": "1850",
+                },
+                (
+                    1,
+                    6,
+                    1850,
+                    None,
+                    None,
+                    None,
+                    {
+                        "date_from": [],
+                        "date_to": [],
+                    },
+                    [],
+                ),
+            ),
+            (
+                {
                     "date_from_day": "",
                     "date_from_month": "",
                     "date_from_year": "2023",
