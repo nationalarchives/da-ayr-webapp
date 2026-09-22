@@ -232,6 +232,7 @@ def copy_data_file(
         Bucket=DDT_TEMP_DATA_BUCKET,
         CopySource={"Bucket": DRI_DATA_BUCKET, "Key": source_key},
         Key=destination_key,
+        TaggingDirective="REPLACE",
     )
 
     copied_uri = f"s3://{DDT_TEMP_DATA_BUCKET}/{destination_key}"
