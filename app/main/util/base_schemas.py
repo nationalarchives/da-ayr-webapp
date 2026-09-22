@@ -79,7 +79,7 @@ class DateFilterSchema(Schema):
     date_from_year = fields.Integer(
         allow_none=True,
         load_default=None,
-        validate=validate.Range(min=1900, max=2100),
+        validate=validate.Range(min=1000, max=9999),
     )
     date_to_day = fields.Integer(
         allow_none=True,
@@ -94,7 +94,7 @@ class DateFilterSchema(Schema):
     date_to_year = fields.Integer(
         allow_none=True,
         load_default=None,
-        validate=validate.Range(min=1900, max=2100),
+        validate=validate.Range(min=1000, max=9999),
     )
 
     def validate_date_range(self, data, **kwargs):
