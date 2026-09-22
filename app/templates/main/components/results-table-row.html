@@ -77,21 +77,18 @@
         </p>
     </td>
 </tr>
-<tr class="govuk-table__row browse-record-row__row browse-record-row__row--consignment">
-    <td colspan="{{ number_of_columns }}"
-        class="govuk-table__cell browse-record-row__cell browse-records__consignment-cell">
-        <p class="govuk-body-s govuk-!-margin-0 browse-records__consignment-text">
-            {% if record["consignment_reference"].startswith("DRI-to-AYR-") %}
-                transferred
-            {% else %}
-                consignment {{ record["consignment_reference"] }}
-            {% endif %}
-            on
-            {% if record["consignment_transfer_complete_date"] %}
-                <time datetime="{{ record['consignment_transfer_complete_date'] | format_date_iso }}">{{ record['consignment_transfer_complete_date'] }}</time>
-            {% else %}
-                -
-            {% endif %}
-        </p>
-    </td>
-</tr>
+{% if not record["consignment_reference"].startswith("DRI-TO-AYR-") %}
+    <tr class="govuk-table__row browse-record-row__row browse-record-row__row--consignment">
+        <td colspan="{{ number_of_columns }}"
+            class="govuk-table__cell browse-record-row__cell browse-records__consignment-cell">
+            <p class="govuk-body-s govuk-!-margin-0 browse-records__consignment-text">
+                consignment {{ record["consignment_reference"] }} on
+                {% if record["consignment_transfer_complete_date"] %}
+                    <time datetime="{{ record['consignment_transfer_complete_date'] | format_date_iso }}"> {{ record['consignment_transfer_complete_date'] }}</time>
+                {% else %}
+                    -
+                {% endif %}
+            </p>
+        </td>
+    </tr>
+{% endif %}

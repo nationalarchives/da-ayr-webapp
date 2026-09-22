@@ -289,6 +289,7 @@ class TestSearchResults:
 
         soup = BeautifulSoup(response.data, "html.parser")
         assert soup.find("table", attrs={"id": "tbl_result"}) is None
+        assert soup.find(id="browse-records") is not None
 
     @patch("app.main.routes.setup_opensearch")
     def test_search_results_with_query_and_no_hits_preserves_applied_filters(

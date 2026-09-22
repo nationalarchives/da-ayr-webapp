@@ -1321,11 +1321,11 @@ class TestRecord:
         self, app, client: FlaskClient, mock_all_access_user
     ):
         """
-        Given a record with a consignment reference starting with DRI-to-AYR-
+        Given a record with a consignment reference starting with DRI-TO-AYR-
         When the individual record page loads
         Then "Not applicable" is rendered instead of the raw reference in the details list
         """
-        file = FileFactory(consignment__ConsignmentReference="DRI-to-AYR-9999")
+        file = FileFactory(consignment__ConsignmentReference="DRI-TO-AYR-9999")
 
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
@@ -1343,5 +1343,5 @@ class TestRecord:
 
         table_text = summary_list.get_text()
 
-        assert "DRI-to-AYR-9999" not in table_text
+        assert "DRI-TO-AYR-9999" not in table_text
         assert "Not applicable" in table_text

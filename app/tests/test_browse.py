@@ -146,7 +146,7 @@ class TestBrowse:
         assert response.status_code == 200
 
         assert b"Search for digital records" in response.data
-        assert b"Browse records 27" in response.data
+        assert b"27 records" in response.data
 
     def test_browse_filter_sort_and_choose_transferring_body_contract(
         self, client: FlaskClient, mock_all_access_user, browse_files
