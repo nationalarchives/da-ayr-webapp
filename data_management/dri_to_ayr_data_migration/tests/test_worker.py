@@ -581,12 +581,10 @@ class TestCsvConversion:
 
         metadata = metadata_values(read_rows(tmp_path, "AYR-file-metadata.csv"))
 
-        assert metadata["description"] == ["Open public description"]
-        assert metadata["description_alternate"] == [
-            "Closed original description"
-        ]
+        assert metadata["description"] == ["Closed original description"]
+        assert metadata["description_alternate"] == ["Open public description"]
         assert metadata["description_closed"] == ["true"]
-        assert metadata["title_alternate"] == ["Closed original title"]
+        assert metadata["title_alternate"] == ["Open public title"]
         assert metadata["title_closed"] == ["true"]
         assert metadata["closure_type"] == ["Closed"]
         assert metadata["opening_date"] == ["2040-01-01"]
