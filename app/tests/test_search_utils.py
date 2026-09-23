@@ -544,7 +544,7 @@ def test_build_search_results_query_with_browse_filters():
         {"match_phrase": {"transferring_body": "first_body"}},
         {"match_phrase": {"series_name": "first_series"}},
         {"match_phrase": {"consignment_reference": "cbar"}},
-        {"term": {"closure_type.keyword": "Closed"}},
+        {"terms": {"closure_type.keyword": ["Closed", "Retained for security"]}},
         {
             "range": {
                 "opening_date": {

@@ -1,4 +1,4 @@
-{% if record['closure_type'] | lower == 'closed' or (record['closure_type'] | lower == 'open' and record['closure_start_date'] != None) %}
+{% if record['closure_type'] | lower == 'closed' or record['closure_type'] | lower == 'retained for security' or (record['closure_type'] | lower == 'open' and record['closure_start_date'] != None) %}
     {% set list_items = {
             "File name": record['file_name'],
             "Alternative file name": record['alternative_title'],

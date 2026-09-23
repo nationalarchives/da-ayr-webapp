@@ -7,6 +7,7 @@ from sqlalchemy.orm import Query
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.main.db.models import Body, Consignment, File, FileMetadata, Series, db
+from app.main.util.closure_status import closure_types_for_record_status
 
 
 def build_browse_query(
@@ -218,8 +219,12 @@ def build_browse_consignment_query(
     if filters:
         record_status = filters.get("record_status")
         if record_status and record_status.lower() != "all":
+            closure_values = [
+                value.lower()
+                for value in closure_types_for_record_status(record_status)
+            ]
             query = query.filter(
-                func.lower(sub_query.c.closure_type) == record_status.lower()
+                func.lower(sub_query.c.closure_type).in_(closure_values)
             )
 
         date_filter = None
@@ -281,9 +286,13 @@ def _build_base_query_filters(accessible_transferring_body_names, filters):
 
     record_status = (filters.get("record_status") or "").lower()
     if record_status and record_status != "all":
+        closure_values = [
+            value.lower()
+            for value in closure_types_for_record_status(record_status)
+        ]
         closure_sub = db.session.query(FileMetadata.FileId).filter(
             FileMetadata.PropertyName == "closure_type",
-            func.lower(FileMetadata.Value) == record_status,
+            func.lower(FileMetadata.Value).in_(closure_values),
         )
         query_filters.append(File.FileId.in_(closure_sub))
 
