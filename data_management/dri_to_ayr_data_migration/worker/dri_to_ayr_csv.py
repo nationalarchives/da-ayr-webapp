@@ -311,12 +311,12 @@ def build_known_metadata(
 
     return {
         "date_last_modified": record.get("dateLastModified"),
-        "description": public_description or description,
-        "description_alternate": description
+        "description": description,
+        "description_alternate": public_description
         if description_closed is True
         else None,
         "description_closed": description_closed,
-        "title_alternate": title if title_closed is True else None,
+        "title_alternate": public_title if title_closed is True else None,
         "title_closed": title_closed,
         "end_date": record.get("coveringDateEnd"),
         "evidence_provided_by": record.get("evidenceProvider"),
