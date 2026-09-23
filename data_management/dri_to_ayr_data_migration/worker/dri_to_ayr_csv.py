@@ -445,37 +445,44 @@ def create_file_row(
     return file_id
 
 
+def is_simple_value_list(value: Any) -> bool:
+    """Return whether a value is a list containing only JSON primitive values."""
+    if not isinstance(value, list):
+        return False
+
+    for item in value:
+        if item is None:
+            continue
+
+        if not isinstance(item, (str, int, float, bool)):
+            return False
+
+    return True
+
+
 def insert_file_metadata(
     state: dict[str, Any],
     file_id: str,
     property_name: str,
     value: Any,
 ) -> None:
-    """Add FileMetadata row(s). Simple arrays become multiple rows."""
+    """Add one FileMetadata row for the supplied property."""
     if value is None:
         return
 
-    if isinstance(value, list):
-        if not value:
-            return
-
-        if any(isinstance(item, (dict, list)) for item in value):
-            insert_file_metadata(
-                state,
-                file_id,
-                property_name,
-                normalise_value(value),
-            )
-            return
+    if is_simple_value_list(value):
+        normalised_items = []
 
         for item in value:
-            insert_file_metadata(
-                state,
-                file_id,
-                property_name,
-                item,
-            )
-        return
+            if item is None:
+                continue
+
+            normalised_items.append(normalise_value(item))
+
+        if not normalised_items:
+            return
+
+        value = ", ".join(normalised_items)
 
     normalised = normalise_value(value)
 

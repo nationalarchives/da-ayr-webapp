@@ -92,7 +92,7 @@ def make_record() -> dict:
         "language": "English",
         "legalStatus": "Public Record(s)",
         "note": "Test note",
-        "copyrightHolders": ["Crown copyright"],
+        "copyrightHolders": ["Crown copyright", "Test copyright"],
         "customRecordField": "keep this source value",
         "sensitivity": {
             "isRecordClosed": True,
@@ -591,7 +591,9 @@ class TestCsvConversion:
         assert metadata["closure_type"] == ["Closed"]
         assert metadata["opening_date"] == ["2040-01-01"]
         assert metadata["foi_exemption_code"] == ["FOI 23;FOI 40"]
-        assert metadata["rights_copyright"] == ["Crown copyright"]
+        assert metadata["rights_copyright"] == [
+            "Crown copyright, Test copyright"
+        ]
 
         assert metadata["dri_custom_record_field"] == ["keep this source value"]
         assert metadata["dri_digital_file_extra_digital_file_field"] == [
@@ -602,6 +604,25 @@ class TestCsvConversion:
             metadata["dri_digital_file_checksums"][0]
         )
         assert checksum_metadata == digital_file["checksums"]
+
+    def test_convert_record_to_csv_ignores_list_containing_only_none(
+        self, tmp_path
+    ):
+        record = make_record()
+        record["nullableList"] = [None]
+
+        csv_module.convert_record_to_csv(
+            record=record,
+            digital_file=record["digitalFiles"][0],
+            output_dir=str(tmp_path),
+            consignment_reference=CONSIGNMENT_REFERENCE,
+            include_body_and_series=True,
+            include_consignment=True,
+        )
+
+        metadata = metadata_values(read_rows(tmp_path, "AYR-file-metadata.csv"))
+
+        assert "dri_nullable_list" not in metadata
 
     def test_convert_record_to_csv_omits_shared_and_consignment_csvs(
         self, tmp_path
