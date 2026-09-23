@@ -605,6 +605,25 @@ class TestCsvConversion:
         )
         assert checksum_metadata == digital_file["checksums"]
 
+    def test_convert_record_to_csv_ignores_list_containing_only_none(
+        self, tmp_path
+    ):
+        record = make_record()
+        record["nullableList"] = [None]
+
+        csv_module.convert_record_to_csv(
+            record=record,
+            digital_file=record["digitalFiles"][0],
+            output_dir=str(tmp_path),
+            consignment_reference=CONSIGNMENT_REFERENCE,
+            include_body_and_series=True,
+            include_consignment=True,
+        )
+
+        metadata = metadata_values(read_rows(tmp_path, "AYR-file-metadata.csv"))
+
+        assert "dri_nullable_list" not in metadata
+
     def test_convert_record_to_csv_omits_shared_and_consignment_csvs(
         self, tmp_path
     ):
