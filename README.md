@@ -213,106 +213,61 @@ You should now have the app running on <https://localhost:5000/>
 
 ## Local development with docker
 
-The webapp depends on keycloak, a postgres instance holding metadata, an s3 bucket storing associated records and then an opensearch instance that is populated from those 2 via `data_management/opensearch_indexer`. For ease of use, we provide a `docker-compose.yml` file inside the `local_services` which spins up all these dependencies, using RustFS as a local replacement for an actual AWS s3, and populates them with consistent test data. Feel free to expand this data but data consistency is left up to you.
+The webapp depends on keycloak, a postgres instance holding metadata, an s3 bucket storing associated records and then an opensearch instance that is populated from those 2 via `data_management/opensearch_indexer`. For ease of use, the root `docker-compose.yml` spins up all these dependencies, plus the webapp itself, using RustFS as a local replacement for an actual AWS s3, and populates them with consistent test data.
 
-### Quick reference — which setup do I need?
+The same compose file is used for local development, running the browser e2e tests and CI. The root `Makefile` wraps it (using the tracked `.docker.env` file for configuration):
 
-| What you want to do | Stack to use | Flask |
-|---|---|---|
-| Manual testing in a browser | `docker-compose.ci.yml` | `flask run --debug` |
-| Full stack in Docker (no local Flask) | `docker-compose.ci.yml` | Not needed |
-| All browser e2e tests (chromium, firefox, webkit) | `docker-compose.ci.yml` | `flask run --debug` |
-
-**Prerequisites — run once before starting any stack:**
-
-```shell
-cd local_services
-./webapp_postgres_certs/generate_webapp_postgres_certs.sh
-./opensearch_certs/generate_opensearch_certs.sh
-cp .env.template .env  # then fill in the values
-```
-
-**Running e2e tests** (from repo root, stack already running):
-
-```shell
-docker run --rm \
-  --env-file .env.e2e_tests \
-  -e WEBAPP_HOST_PORT=5000 \
-  -e KEYCLOAK_BASE_URI=http://localhost:8080 \
-  -e BROWSERS=chromium,firefox,webkit \
-  --network=host \
-  -v "$(pwd)/e2e_tests":/e2e_tests \
-  e2e_tests
-```
-
-### Containerised webapp
-
-A new multi-stage Dockerfile has been added to the root directory that enables running the webapp itself in a container. This Docker setup includes:
-
-**Multi-stage build process:**
-- **Node.js build stage**: Compiles SCSS to CSS and builds frontend assets
-- **Python runtime stage**: Sets up Python dependencies and application runtime
-
-**Changes**
-- **Poetry integration**: Uses Poetry for Python dependency management within the container
-
-There are two compose files in `local_services/`, used for different scenarios:
-
-| File | Purpose |
+| Command | What it does |
 |---|---|
-| `docker-compose.ci.yml` | Main configuration — runs the full stack including the containerised webapp. Works for local browser access, all browser e2e tests, and CI. |
+| `make setup` | Generates the local TLS certs (if missing) and builds the webapp image |
+| `make start` | Starts the full stack in the background |
+| `make stop` | Stops the stack **and deletes its volumes**, so postgres is rebuilt from `dev-data.sql` on the next `make start` |
+| `make e2e` | Builds the e2e image and runs the browser e2e tests against the running stack |
 
-### Prerequisites for running this docker compose stack
+### Prerequisites
 
 1. Have `docker` installed
-2. Create certs for the webapp postgres instance in `local_services/webapp_postgres_certs` by running `generate_webapp_postgres_certs.sh` inside it
-3. Create certs for the opensearch nodes in `local_services/opensearch_certs` by running `generate_opensearch_certs.sh` inside it
-4. Create TLS certs for Keycloak in `local_services/keycloak_certs` by running `generate-keycloak-certs.sh` inside `local_services`:
-   ```shell
-   cd local_services && ./generate-keycloak-certs.sh
-   ```
-5. Create a `.env` file inside of `local_services` using `local_services/.env.template`
+2. Run `make setup`. This creates the certs the stack needs in `local_services/webapp_postgres_certs`, `local_services/opensearch_certs`, `local_services/keycloak_certs` and `local_services/rustfs_certs`, and builds the webapp image.
 
-#### For local development
+### Running the stack
 
 ```shell
-cd local_services
-docker compose -f docker-compose.ci.yml up -d
-flask run --debug
+make start
 ```
 
-Keycloak will be accessible at `http://localhost:8080` (HTTP) and `https://localhost:8443` (HTTPS), and the webapp at `https://localhost:5000`.
+It will take a minute or two to spin up the stack, in particular opensearch and keycloak take a little while. You can check their progress in each container's logs (e.g. `docker logs da-ayr-beta-webapp-keycloak-1`). Starting the stack also:
 
-#### For CI/CD environments
+- loads the test metadata in `local_services/dev-data.sql` into the webapp postgres database (only when its volume is first created)
+- imports the `tdr` keycloak realm from `local_services/import/realm-export.json`, including two test users, `testuser` and `standarduser`, both with the password `password123`
+- uploads the test files in `local_services/files` to RustFS (`rustfs-init`)
+- restores the OpenSearch index from the snapshot in `local_services/snapshots` (`opensearch-restore`)
 
-The CI configuration:
+Once the stack is running the webapp is available at <https://localhost:5000> (you will get a browser warning for the self-signed certificate). The other services are available at:
 
-- Uses a simplified setup with security disabled
-- Automatically restores test data from snapshots
-- Includes a containerised webapp built from the multi-stage Dockerfile
-- Provides proper networking between all services
+| Service | URL / port |
+|---|---|
+| Keycloak | `http://localhost:8080` and `https://localhost:8443` |
+| RustFS (S3 API / console) | `http://localhost:9000` / `http://localhost:9001` |
+| OpenSearch / Dashboards | `http://localhost:9200` / `http://localhost:5601` |
+| Webapp postgres | `localhost:5433` |
+
+If one of those ports is already in use on your machine you can override the webapp and postgres ports without editing `.docker.env`, by setting them in your shell, for example:
 
 ```shell
-cd local_services
-docker compose -f docker-compose.ci.yml up
+WEBAPP_HOST_PORT=8000 WEBAPP_POSTGRES_PORT=5434 make start
 ```
 
-### Running the stack:
+If you change `WEBAPP_HOST_PORT`, use the same value in `.env.e2e_tests` when running the e2e tests.
 
-It will take a minute or two to spin up the stack, in particular opensearch and keycloak take a little while. You can check their progress in each container's logs. The CI file will also create a test user and import indexed test data.
+### Running the webapp outside of docker
 
-Once the stack is running:
-
-1. Create your users in the keycloak admin console at `http://localhost:8080/admin/master/console/#/tdr/users` using the keycloak admin credentials specified in the `.env` file, assigning appropriate groups to each. For local dev it's simple enough to set the passwords in the credentials tab.
-2. Manually upload the folders of files in `local_services/files` to RustFS by navigating to `http://localhost:9001`, signing in, accessing the bucket name you specified in the env file and then clicking the upload button and selecting those folders. The corresponding metadata in `dev-data.sql` would have already been automatically loaded into the postgres database.
-3. Regenerate the keycloak client's client secret at `http://localhost:8080/admin/master/console/#/tdr/clients/<UUID-OF-CLIENT>/settings`.
-4. Update the `.env` of the webapp in the root directory of the repo, making sure the following env vars are set according to the values set for the associated service in the docker compose stack.
+If you would rather run Flask locally (for example to use a debugger), start the stack as above, stop the `webapp` container, and point the `.env` in the root of the repo at the stack's services:
 
 ```
 export KEYCLOAK_BASE_URI=http://localhost:8080
 export KEYCLOAK_REALM_NAME=tdr
 export KEYCLOAK_CLIENT_ID=ayr-beta
-export KEYCLOAK_CLIENT_SECRET=<secret regenerated above>
+export KEYCLOAK_CLIENT_SECRET=<the client secret from .docker.env>
 
 
 export DB_PORT=5433
@@ -326,20 +281,25 @@ export AWS_ENDPOINT_URL=http://localhost:9000
 export AWS_ACCESS_KEY_ID=ROOTNAME
 export AWS_SECRET_ACCESS_KEY=CHANGEME123
 
-export OPEN_SEARCH_HOST=https://localhost:9200
-export OPEN_SEARCH_USERNAME=admin
-export OPEN_SEARCH_PASSWORD=FOOBARCARabc123!
-export OPEN_SEARCH_CA_CERTS=local_services/opensearch_certs/root-ca.pem
+export OPEN_SEARCH_HOST=http://localhost:9200
+export OPEN_SEARCH_USE_SSL=false
+export OPEN_SEARCH_VERIFY_CERTS=false
 export OPEN_SEARCH_TIMEOUT=10
-export OPEN_SEARCH_USE_SSL=true
-export OPEN_SEARCH_VERIFY_CERTS=true
 
 export DB_SSL_ROOT_CERTIFICATE=local_services/webapp_postgres_certs/root-ca.pem
 ```
 
-Finally you can populate the opensearch cluster with the corresponding data stored in snapshot 1 in `local_services/snapshots/` by running `source .env && local_services/opensearch-entrypoint.sh`.
+Then you can run the flask server with `flask run`.
 
-Then you can run the flask server with `flask run`
+### Running the e2e tests
+
+With the stack running, from the root of the repo:
+
+```shell
+make e2e
+```
+
+This runs the tests in chromium, firefox and webkit against `https://127.0.0.1:${WEBAPP_HOST_PORT}` using the values in `.env.e2e_tests` (copy `.env.e2e_tests.template` if you do not have one yet).
 
 ## Local dev without docker
 
@@ -544,9 +504,9 @@ We also have a way to do this for all files in a postgres database with `data_ma
 
 ## Updating the Opensearch Index & Generating a new Snapshot
 
-# How to Update the OpenSearch Snapshot
+The OpenSearch index used by the local stack and by CI is restored from the snapshot committed in `local_services/snapshots/`. When the test data changes, that snapshot needs regenerating so it matches the postgres data in `dev-data.sql`.
 
-## When to Update the Snapshot
+### When to update the snapshot
 
 Update the snapshot when:
 
@@ -554,33 +514,37 @@ Update the snapshot when:
 - New test files are added to `local_services/files/`
 - Indexing logic changes
 
-## Prerequisites
+### Prerequisites
 
-- All services running: `docker compose -f local_services/docker-compose.ci.yml up -d`
+- The stack is running (`make start`) and its postgres database has been loaded from the current `dev-data.sql`. If you have changed `dev-data.sql`, run `make stop` and then `make start` so the database is rebuilt from it.
 
-## Steps
+### Steps
 
-### 1. Ensure RustFS Has All Test Files
+#### 1. Ensure RustFS has all the test files
 
 ```bash
-# Check if rustfs-init service ran successfully
-docker logs local_services-rustfs-init-1
+# Check that the rustfs-init service ran successfully
+docker logs da-ayr-beta-webapp-rustfs-init-1
 
-# If needed, manually trigger file upload
-docker compose -f local_services/docker-compose.ci.yml up -d --force-recreate rustfs-init
+# If needed, manually trigger the file upload
+docker compose --env-file .docker.env -f docker-compose.yml up -d --force-recreate rustfs-init
 ```
 
-### 2. Run the Indexer
+#### 2. Run the indexer
 
 ```bash
 # Index all consignments from the database
-docker exec webapp poetry run python -m data_management.opensearch_indexer.opensearch_indexer.index_all_consignments
+docker exec webapp python -m data_management.opensearch_indexer.opensearch_indexer.index_all_consignments
 ```
 
-### 3. Verify Indexing
+Use `python` directly rather than `poetry run` — the webapp container installs its dependencies system-wide, so `poetry run` will try to create an empty virtualenv and fail to import them.
+
+Some consignments may report a text extraction failure for individual files; check the summary printed at the end of the run to make sure that is expected.
+
+#### 3. Verify indexing
 
 ```bash
-# Check document count
+# Check the document count
 curl "http://localhost:9200/documents/_count"
 
 # List all consignments
@@ -589,65 +553,45 @@ curl -s "http://localhost:9200/documents/_search?size=0" \
   -d '{"aggs": {"consignments": {"terms": {"field": "consignment_reference.keyword", "size": 100}}}}'
 ```
 
-### 4. Create the Snapshot
+#### 4. Create the snapshot
 
 ```bash
-cd local_services
+./local_services/create_opensearch_snapshot.sh
+```
 
-# Create snapshot
-./create_opensearch_snapshot.sh
+This deletes the existing snapshot (named `1`) and replaces it with one of the current `documents` index.
 
-### 5. Verify Snapshot
+#### 5. Verify the snapshot
 
 ```bash
-# List snapshot contents
+# List the snapshot contents
 curl "http://localhost:9200/_snapshot/my-fs-repository/1"
 
-# Check snapshot files exist
+# Check the snapshot files exist
 ls -l local_services/snapshots/
 ```
 
-### 6. Commit the Snapshot
+#### 6. Commit the snapshot
 
 ```bash
-# Stage all snapshot changes
-git add local_services/snapshots/
+# Stage all snapshot changes (including the removal of the old snapshot files)
+git add -A local_services/snapshots/
 
 # Commit
 git commit -m "Updated OpenSearch snapshot with latest indexed data"
 ```
 
-## Quick Reference
+### Quick reference
 
-### Full Rebuild and Re-index
+Re-index and regenerate the snapshot without rebuilding anything:
 
 ```bash
-# 1. Rebuild webapp with tools
-docker compose -f local_services/docker-compose.ci.yml build --no-cache webapp
-
-# 2. Start all services
-docker compose -f local_services/docker-compose.ci.yml up -d
-
-# 3. Run indexer
-docker exec webapp poetry run python -m data_management.opensearch_indexer.opensearch_indexer.index_all_consignments
-
-# 4. Create snapshot
-cd local_services && ./create_opensearch_snapshot.sh
-
-# 5. Verify
+docker exec webapp python -m data_management.opensearch_indexer.opensearch_indexer.index_all_consignments
+./local_services/create_opensearch_snapshot.sh
 curl "http://localhost:9200/documents/_count"
 ```
 
-### Just Reindex (no rebuild)
-
-```bash
-# Run indexer
-docker exec webapp poetry run python -m data_management.opensearch_indexer.opensearch_indexer.index_all_consignments
-
-# Create snapshot
-cd local_services && ./create_opensearch_snapshot.sh
-```
-
+If you have changed the webapp's dependencies and need to rebuild the image first, run `make setup` before `make start`.
 
 ## Testing
 
