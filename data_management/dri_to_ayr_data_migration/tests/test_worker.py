@@ -92,7 +92,7 @@ def make_record() -> dict:
         "language": "English",
         "legalStatus": "Public Record(s)",
         "note": "Test note",
-        "copyrightHolders": ["Crown copyright"],
+        "copyrightHolders": ["Crown copyright", "Test copyright"],
         "customRecordField": "keep this source value",
         "sensitivity": {
             "isRecordClosed": True,
@@ -356,6 +356,7 @@ class TestWorkerHandler:
                 "Key": f"v1/{RECORD_ID}/{FILE_ID}",
             },
             Key=f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
+            TaggingDirective="REPLACE",
         )
 
     def test_send_droid_message_sends_expected_sqs_message(
@@ -580,17 +581,17 @@ class TestCsvConversion:
 
         metadata = metadata_values(read_rows(tmp_path, "AYR-file-metadata.csv"))
 
-        assert metadata["description"] == ["Open public description"]
-        assert metadata["description_alternate"] == [
-            "Closed original description"
-        ]
+        assert metadata["description"] == ["Closed original description"]
+        assert metadata["description_alternate"] == ["Open public description"]
         assert metadata["description_closed"] == ["true"]
-        assert metadata["title_alternate"] == ["Closed original title"]
+        assert metadata["title_alternate"] == ["Open public title"]
         assert metadata["title_closed"] == ["true"]
         assert metadata["closure_type"] == ["Closed"]
         assert metadata["opening_date"] == ["2040-01-01"]
         assert metadata["foi_exemption_code"] == ["FOI 23;FOI 40"]
-        assert metadata["rights_copyright"] == ["Crown copyright"]
+        assert metadata["rights_copyright"] == [
+            "Crown copyright, Test copyright"
+        ]
 
         assert metadata["dri_custom_record_field"] == ["keep this source value"]
         assert metadata["dri_digital_file_extra_digital_file_field"] == [
@@ -601,6 +602,25 @@ class TestCsvConversion:
             metadata["dri_digital_file_checksums"][0]
         )
         assert checksum_metadata == digital_file["checksums"]
+
+    def test_convert_record_to_csv_ignores_list_containing_only_none(
+        self, tmp_path
+    ):
+        record = make_record()
+        record["nullableList"] = [None]
+
+        csv_module.convert_record_to_csv(
+            record=record,
+            digital_file=record["digitalFiles"][0],
+            output_dir=str(tmp_path),
+            consignment_reference=CONSIGNMENT_REFERENCE,
+            include_body_and_series=True,
+            include_consignment=True,
+        )
+
+        metadata = metadata_values(read_rows(tmp_path, "AYR-file-metadata.csv"))
+
+        assert "dri_nullable_list" not in metadata
 
     def test_convert_record_to_csv_omits_shared_and_consignment_csvs(
         self, tmp_path

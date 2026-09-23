@@ -44,6 +44,7 @@ DEFAULT_DUMMY_CONSIGNMENT_PREFIX = f"DRI-TO-AYR-{datetime.today().year}"
 MAX_FILES_PER_FAKE_CONSIGNMENT = int(
     os.getenv("MAX_FILES_PER_FAKE_CONSIGNMENT", "5000")
 )
+SERIES_RUN_SORT_KEY = "MIGRATION"
 
 if MAX_FILES_PER_FAKE_CONSIGNMENT < 1:
     raise ValueError("MAX_FILES_PER_FAKE_CONSIGNMENT must be greater than 0")
@@ -65,13 +66,11 @@ FILE_STATUSES_SKIP_WORKER = {
 def coordinate_series(
     series: str,
     supplied_run_id: str | None = None,
-    force_new_run: bool = False,
 ) -> dict[str, Any]:
     """Coordinate one DRI series migration from discovery to worker messages."""
     run_id = resolve_run_id(
         series=series,
         supplied_run_id=supplied_run_id,
-        force_new_run=force_new_run,
     )
 
     logger.info("Starting migration run_id=%s series=%s", run_id, series)
@@ -553,60 +552,97 @@ def send_worker_message(
 def resolve_run_id(
     series: str,
     supplied_run_id: str | None,
-    force_new_run: bool,
 ) -> str:
     """
     Resolve whether this is a resume or a new run.
 
-    If RUN_ID is supplied, we assume the caller intentionally wants to resume
-    that exact run.
+    If RUN_ID is supplied, require it to exist and belong to this series before
+    resuming it.
 
-    If runId is not supplied, we check whether this series has already been
-    started before creating a new run. This avoids accidentally running the
-    same series again and sending duplicate worker messages.
-
-    To deliberately create a new run for the same series, set
-    FORCE_NEW_RUN=true when starting the ECS task.
+    If RUN_ID is not supplied, create an atomic marker for the first run of
+    this series. This prevents another coordinator task from starting the same
+    series and sending duplicate worker messages.
     """
     if isinstance(supplied_run_id, str) and supplied_run_id.strip():
-        return supplied_run_id.strip()
+        run_id = supplied_run_id.strip()
+        validate_existing_run(run_id=run_id, series=series)
+        return run_id
 
-    if series_has_existing_run(series):
-        if not force_new_run:
-            raise ValueError(
-                f"Existing migration run found for series '{series}'. "
-                "Please provide RUN_ID to resume the existing run, or set "
-                "FORCE_NEW_RUN=true to deliberately start a new run."
-            )
+    run_id = build_run_id(series)
+    mark_series_started(series=series, run_id=run_id)
+    return run_id
 
-        logger.warning(
-            "FORCE_NEW_RUN=true supplied for series=%s. "
-            "Existing run will not be resumed.",
-            series,
+
+def validate_existing_run(run_id: str, series: str) -> None:
+    """Require the supplied run ID to exist and belong to the series."""
+    item = get_series_run_tracking_item(series)
+
+    if not item:
+        raise ValueError(f"Migration run does not exist: {run_id}")
+
+    existing_run_id = get_ddb_string(item, "runId")
+
+    if existing_run_id != run_id:
+        raise ValueError(
+            f"Migration run '{run_id}' does not match the existing run "
+            f"'{existing_run_id}' for series '{series}'."
         )
 
-    return build_run_id(series)
 
-
-def series_has_existing_run(series: str) -> bool:
-    """Return True if this series already has tracking rows for a run."""
-    paginator = dynamodb.get_paginator("scan")
-
-    for page in paginator.paginate(
+def get_series_run_tracking_item(series: str) -> dict[str, Any] | None:
+    """Return the single migration-run marker for a series, if present."""
+    response = dynamodb.get_item(
         TableName=TRACKING_TABLE_NAME,
-        FilterExpression="#series = :series AND attribute_exists(runId)",
-        ProjectionExpression="runId",
-        ExpressionAttributeNames={
-            "#series": "series",
+        Key={
+            "PK": {"S": f"SERIES#{series}"},
+            "SK": {"S": SERIES_RUN_SORT_KEY},
         },
-        ExpressionAttributeValues={
-            ":series": {"S": series},
-        },
-    ):
-        if page.get("Items"):
-            return True
+        ConsistentRead=True,
+    )
+    return response.get("Item")
 
-    return False
+
+def mark_series_started(series: str, run_id: str) -> None:
+    """Atomically register the only migration run allowed for a series."""
+    now = utc_now_text()
+
+    try:
+        dynamodb.put_item(
+            TableName=TRACKING_TABLE_NAME,
+            ConditionExpression=(
+                "attribute_not_exists(PK) AND attribute_not_exists(SK)"
+            ),
+            Item={
+                "PK": {"S": f"SERIES#{series}"},
+                "SK": {"S": SERIES_RUN_SORT_KEY},
+                "entityType": {"S": "SERIES_RUN"},
+                "series": {"S": series},
+                "runId": {"S": run_id},
+                "createdAt": {"S": now},
+                "updatedAt": {"S": now},
+            },
+        )
+    except ClientError as exc:
+        if (
+            exc.response.get("Error", {}).get("Code")
+            != "ConditionalCheckFailedException"
+        ):
+            raise
+
+        existing_item = get_series_run_tracking_item(series)
+        existing_run_id = (
+            get_ddb_string(existing_item, "runId") if existing_item else None
+        )
+
+        if not existing_run_id:
+            raise RuntimeError(
+                f"Series marker already exists without a run ID: {series}"
+            ) from exc
+
+        raise ValueError(
+            f"Existing migration run '{existing_run_id}' found for series "
+            f"'{series}'. Provide RUN_ID='{existing_run_id}' to resume it."
+        ) from exc
 
 
 def get_ddb_string(item: dict[str, Any], key: str) -> str | None:
@@ -657,14 +693,9 @@ def main() -> None:
 
     run_id = os.getenv("RUN_ID")
 
-    force_new_run = (
-        os.getenv("FORCE_NEW_RUN", "false").strip().lower() == "true"
-    )
-
     result = coordinate_series(
         series=series.strip(),
         supplied_run_id=run_id,
-        force_new_run=force_new_run,
     )
     logger.info("Coordinator completed: %s", json.dumps(result))
 

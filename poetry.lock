@@ -163,18 +163,18 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.43.94"
+version = "1.43.95"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "boto3-1.43.94-py3-none-any.whl", hash = "sha256:2534bf331acd2f448b9cf8317f4eed453c65d9e0b7de254e77c99d390ac57aec"},
-    {file = "boto3-1.43.94.tar.gz", hash = "sha256:aa832d88e85035cebb83f04700c65623328b88fe828ff7ed9539483bd9d608c5"},
+    {file = "boto3-1.43.95-py3-none-any.whl", hash = "sha256:c906921c4f9ab41e9587af6586f072c8f2be6979e8bde2ec26aa443bb1745019"},
+    {file = "boto3-1.43.95.tar.gz", hash = "sha256:9d71f299111e1f4e8c28f573a1b7c0555fe40d2147fe9bef852a02bd57cbde60"},
 ]
 
 [package.dependencies]
-botocore = ">=1.43.94,<1.44.0"
+botocore = ">=1.43.95,<1.44.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.19.0,<0.20.0"
 
@@ -183,14 +183,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.43.94"
+version = "1.43.95"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "botocore-1.43.94-py3-none-any.whl", hash = "sha256:1dfb86603a87fdaebda2540db56aef5b226ec58ab72c13ca56737e4d66dea9ab"},
-    {file = "botocore-1.43.94.tar.gz", hash = "sha256:cb97cedec5fceee3261f7fff75d0b0aa2cf68b32eeb2e8c2649e4657419773a6"},
+    {file = "botocore-1.43.95-py3-none-any.whl", hash = "sha256:0fda26d16c7c7bf7082c421390a817b696f98a43d3da7c43dbbb093f76662876"},
+    {file = "botocore-1.43.95.tar.gz", hash = "sha256:779588da32bd48a7bb0c097da4bcb747260e86d2bfc507369dca56f1450e0722"},
 ]
 
 [package.dependencies]
@@ -1288,14 +1288,14 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "flask-compress"
-version = "1.24"
+version = "1.25"
 description = "Compress responses in your Flask app with gzip, deflate, brotli or zstandard."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "flask_compress-1.24-py3-none-any.whl", hash = "sha256:1e63668eb6e3242bd4f6ad98825a924e3984409be90c125477893d586007d00c"},
-    {file = "flask_compress-1.24.tar.gz", hash = "sha256:14097cefe59ecb3e466d52a6aeb62f34f125a9f7dadf1f33a53e430ce4a50f31"},
+    {file = "flask_compress-1.25-py3-none-any.whl", hash = "sha256:6ca78e29728525e575a9e76e0e8e7acc6e0bf1421e0cbfd452bca0a68626166f"},
+    {file = "flask_compress-1.25.tar.gz", hash = "sha256:802954fb3af048cf4ca2a3b414393bf2b98466ae8067e6654ea0aa34ba34aff5"},
 ]
 
 [package.dependencies]
@@ -4361,4 +4361,4 @@ test = ["pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.14,<3.15"
-content-hash = "c052cb8646435d463bf1f9811a962e3d48c76ca4a9ce22389dbaf127cf3f6f78"
+content-hash = "c038dc2a2a2d0972bd00d88d0b76c35eb39469c28dd7a2347f6bfc80251ed19c"

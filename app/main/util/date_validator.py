@@ -221,7 +221,7 @@ def validate_date(  # noqa: C901
 
 
 def _valid_year(year):
-    return 1900 <= year
+    return 1000 <= year <= 9999
 
 
 def _valid_day(day, month, year):
