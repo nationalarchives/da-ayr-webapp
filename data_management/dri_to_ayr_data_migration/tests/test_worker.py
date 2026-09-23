@@ -92,7 +92,7 @@ def make_record() -> dict:
         "language": "English",
         "legalStatus": "Public Record(s)",
         "note": "Test note",
-        "copyrightHolders": ["Crown copyright"],
+        "copyrightHolders": ["Crown copyright", "Test copyright"],
         "customRecordField": "keep this source value",
         "sensitivity": {
             "isRecordClosed": True,
@@ -591,7 +591,9 @@ class TestCsvConversion:
         assert metadata["closure_type"] == ["Closed"]
         assert metadata["opening_date"] == ["2040-01-01"]
         assert metadata["foi_exemption_code"] == ["FOI 23;FOI 40"]
-        assert metadata["rights_copyright"] == ["Crown copyright"]
+        assert metadata["rights_copyright"] == [
+            "Crown copyright, Test copyright"
+        ]
 
         assert metadata["dri_custom_record_field"] == ["keep this source value"]
         assert metadata["dri_digital_file_extra_digital_file_field"] == [
