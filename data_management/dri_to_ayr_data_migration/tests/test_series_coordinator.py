@@ -23,13 +23,15 @@ import series_coordinator.main as coordinator_module
 from series_coordinator.main import (
     get_consignment_tracking_item,
     get_file_tracking_item,
+    get_series_run_tracking_item,
     group_records_by_consignment,
+    mark_series_started,
     process_consignment_group,
     process_record,
     put_consignment_tracking_item,
     put_file_tracking_item,
     resolve_run_id,
-    series_has_existing_run,
+    validate_existing_run,
 )
 
 
@@ -180,9 +182,14 @@ class TestCoordinateSeries:
             record("MIG 1/003", "file-3", "TDR-2"),
         )
 
+        monkeypatch.setattr(
+            coordinator_module,
+            "build_run_id",
+            lambda series: "run-1",
+        )
+
         response = coordinator_module.coordinate_series(
             series="MIG 1",
-            supplied_run_id="run-1",
         )
 
         assert response["status"] == "started"
@@ -191,6 +198,15 @@ class TestCoordinateSeries:
         assert response["recordCount"] == 3
         assert response["consignmentCount"] == 2
         assert response["workerMessagesSent"] == 3
+
+        series_run_item = get_tracking_item(
+            dynamodb_client,
+            "tracking-table",
+            "SERIES#MIG 1",
+            "MIGRATION",
+        )
+        assert series_run_item["entityType"] == {"S": "SERIES_RUN"}
+        assert series_run_item["runId"] == {"S": "run-1"}
 
         consignment_item = get_tracking_item(
             dynamodb_client,
@@ -269,6 +285,17 @@ class TestCoordinateSeries:
             "dri-json-bucket",
             "live/MIG 1-001.json",
             record("MIG 1/001", "file-1", "TDR-1"),
+        )
+
+        dynamodb_client.put_item(
+            TableName="tracking-table",
+            Item={
+                "PK": {"S": "SERIES#MIG 1"},
+                "SK": {"S": "MIGRATION"},
+                "entityType": {"S": "SERIES_RUN"},
+                "runId": {"S": "run-1"},
+                "series": {"S": "MIG 1"},
+            },
         )
 
         dynamodb_client.put_item(
@@ -403,7 +430,6 @@ class TestMain:
     ):
         monkeypatch.setenv("SERIES", " MIG 1 ")
         monkeypatch.setenv("RUN_ID", "run-1")
-        monkeypatch.setenv("FORCE_NEW_RUN", "true")
 
         coordinate_series_mock = mock.Mock(
             return_value={"status": "started", "runId": "run-1"}
@@ -420,7 +446,6 @@ class TestMain:
         coordinate_series_mock.assert_called_once_with(
             series="MIG 1",
             supplied_run_id="run-1",
-            force_new_run=True,
         )
 
     def test_main_raises_when_series_is_missing(
@@ -443,7 +468,6 @@ class TestMain:
     ):
         monkeypatch.setenv("SERIES", "MIG 1")
         monkeypatch.delenv("RUN_ID", raising=False)
-        monkeypatch.delenv("FORCE_NEW_RUN", raising=False)
         monkeypatch.setattr(
             coordinator_module,
             "coordinate_series",
@@ -529,97 +553,183 @@ class TestConsignmentGrouping:
 class TestRunResolution:
     """Run ID resolution tests"""
 
-    def test_series_has_existing_run_returns_true_when_tracking_row_exists(
+    def test_get_series_run_tracking_item_uses_series_marker_key(
         self,
         coordinator,
     ):
-        paginator = mock.Mock()
-        paginator.paginate.return_value = [
-            {"Items": []},
-            {"Items": [{"runId": {"S": "existing-run-id"}}]},
-        ]
-
-        coordinator.dynamodb.get_paginator.return_value = paginator
-
-        result = series_has_existing_run("MIG 1")
-
-        assert result is True
-        coordinator.dynamodb.get_paginator.assert_called_once_with("scan")
-
-        paginate_kwargs = paginator.paginate.call_args.kwargs
-        assert paginate_kwargs["TableName"] == "tracking-table"
-        assert paginate_kwargs["ExpressionAttributeValues"] == {
-            ":series": {"S": "MIG 1"},
+        item = {
+            "series": {"S": "MIG 1"},
+            "runId": {"S": "run-1"},
         }
+        coordinator.dynamodb.get_item.return_value = {"Item": item}
 
-    def test_series_has_existing_run_returns_false_when_no_tracking_rows_exist(
-        self,
-        coordinator,
-    ):
-        paginator = mock.Mock()
-        paginator.paginate.return_value = [
-            {"Items": []},
-            {"Items": []},
-        ]
+        result = get_series_run_tracking_item("MIG 1")
 
-        coordinator.dynamodb.get_paginator.return_value = paginator
-
-        result = series_has_existing_run("MIG 1")
-
-        assert result is False
-        coordinator.dynamodb.get_paginator.assert_called_once_with("scan")
+        assert result == item
+        coordinator.dynamodb.get_item.assert_called_once_with(
+            TableName="tracking-table",
+            Key={
+                "PK": {"S": "SERIES#MIG 1"},
+                "SK": {"S": "MIGRATION"},
+            },
+            ConsistentRead=True,
+        )
 
     def test_resolve_run_id_returns_supplied_run_id(
         self, coordinator, monkeypatch
     ):
-        existing_run_mock = mock.Mock(
-            side_effect=AssertionError(
-                "series_has_existing_run should not be called"
-            )
-        )
+        validate_existing_run_mock = mock.Mock()
+        mark_series_started_mock = mock.Mock()
 
         monkeypatch.setattr(
             coordinator_module,
-            "series_has_existing_run",
-            existing_run_mock,
+            "mark_series_started",
+            mark_series_started_mock,
+        )
+        monkeypatch.setattr(
+            coordinator_module,
+            "validate_existing_run",
+            validate_existing_run_mock,
         )
 
-        result = resolve_run_id("MIG 1", " existing-run-id ", False)
+        result = resolve_run_id("MIG 1", " existing-run-id ")
 
         assert result == "existing-run-id"
-        existing_run_mock.assert_not_called()
+        validate_existing_run_mock.assert_called_once_with(
+            run_id="existing-run-id",
+            series="MIG 1",
+        )
+        mark_series_started_mock.assert_not_called()
 
-    def test_resolve_run_id_blocks_new_run_when_series_already_exists(
+    def test_validate_existing_run_accepts_run_for_series(self, coordinator):
+        coordinator.dynamodb.get_item.return_value = {
+            "Item": {
+                "series": {"S": "MIG 1"},
+                "runId": {"S": "run-1"},
+            }
+        }
+
+        result = validate_existing_run("run-1", "MIG 1")
+
+        assert result is None
+        coordinator.dynamodb.get_item.assert_called_once_with(
+            TableName="tracking-table",
+            Key={
+                "PK": {"S": "SERIES#MIG 1"},
+                "SK": {"S": "MIGRATION"},
+            },
+            ConsistentRead=True,
+        )
+
+    def test_validate_existing_run_rejects_unknown_run(self, coordinator):
+        coordinator.dynamodb.get_item.return_value = {}
+
+        with pytest.raises(
+            ValueError,
+            match="Migration run does not exist: unknown-run",
+        ):
+            validate_existing_run("unknown-run", "MIG 1")
+
+    def test_validate_existing_run_rejects_run_for_another_series(
+        self,
+        coordinator,
+    ):
+        coordinator.dynamodb.get_item.return_value = {
+            "Item": {
+                "series": {"S": "MIG 1"},
+                "runId": {"S": "another-run"},
+            }
+        }
+
+        with pytest.raises(
+            ValueError,
+            match=(
+                "Migration run 'run-1' does not match the existing run "
+                "'another-run' for series 'MIG 1'."
+            ),
+        ):
+            validate_existing_run("run-1", "MIG 1")
+
+    def test_resolve_run_id_builds_and_marks_first_run(
+        self, coordinator, monkeypatch
+    ):
+        mark_series_started_mock = mock.Mock()
+        monkeypatch.setattr(
+            coordinator_module,
+            "build_run_id",
+            lambda series: "new-run-id",
+        )
+        monkeypatch.setattr(
+            coordinator_module,
+            "mark_series_started",
+            mark_series_started_mock,
+        )
+
+        result = resolve_run_id("MIG 1", None)
+
+        assert result == "new-run-id"
+        mark_series_started_mock.assert_called_once_with(
+            series="MIG 1",
+            run_id="new-run-id",
+        )
+
+    def test_mark_series_started_writes_expected_marker(
         self,
         coordinator,
         monkeypatch,
     ):
         monkeypatch.setattr(
             coordinator_module,
-            "series_has_existing_run",
-            lambda series: True,
+            "utc_now_text",
+            lambda: "2026-09-23T10:00:00Z",
         )
 
-        with pytest.raises(ValueError, match="Existing migration run found"):
-            resolve_run_id("MIG 1", None, False)
+        mark_series_started(series="MIG 1", run_id="run-1")
 
-    def test_resolve_run_id_allows_force_new_run(
-        self, coordinator, monkeypatch
+        coordinator.dynamodb.put_item.assert_called_once_with(
+            TableName="tracking-table",
+            ConditionExpression=(
+                "attribute_not_exists(PK) AND attribute_not_exists(SK)"
+            ),
+            Item={
+                "PK": {"S": "SERIES#MIG 1"},
+                "SK": {"S": "MIGRATION"},
+                "entityType": {"S": "SERIES_RUN"},
+                "series": {"S": "MIG 1"},
+                "runId": {"S": "run-1"},
+                "createdAt": {"S": "2026-09-23T10:00:00Z"},
+                "updatedAt": {"S": "2026-09-23T10:00:00Z"},
+            },
+        )
+
+    def test_mark_series_started_rejects_an_existing_series_run(
+        self,
+        coordinator,
     ):
-        monkeypatch.setattr(
-            coordinator_module,
-            "series_has_existing_run",
-            lambda series: True,
+        coordinator.dynamodb.put_item.side_effect = ClientError(
+            {
+                "Error": {
+                    "Code": "ConditionalCheckFailedException",
+                    "Message": "item already exists",
+                }
+            },
+            "PutItem",
         )
-        monkeypatch.setattr(
-            coordinator_module,
-            "build_run_id",
-            lambda series: "new-run-id",
-        )
+        coordinator.dynamodb.get_item.return_value = {
+            "Item": {
+                "series": {"S": "MIG 1"},
+                "runId": {"S": "existing-run"},
+            }
+        }
 
-        result = resolve_run_id("MIG 1", None, True)
-
-        assert result == "new-run-id"
+        with pytest.raises(
+            ValueError,
+            match=(
+                "Existing migration run 'existing-run' found for series "
+                "'MIG 1'."
+            ),
+        ):
+            mark_series_started(series="MIG 1", run_id="new-run")
 
 
 class TestDynamoDbTracking:
