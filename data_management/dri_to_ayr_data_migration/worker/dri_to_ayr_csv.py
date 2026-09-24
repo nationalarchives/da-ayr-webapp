@@ -142,17 +142,6 @@ def stable_uuid(*parts: Any) -> str:
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, f"ayr-dri-to-ayr-csv|{key}"))
 
 
-def valid_uuid_or_none(value: Any) -> str | None:
-    """Return a canonical UUID string if value is a valid UUID; otherwise None."""
-    if not value:
-        return None
-
-    try:
-        return str(uuid.UUID(str(value)))
-    except (ValueError, AttributeError, TypeError):
-        return None
-
-
 def normalise_value(value: Any) -> str:
     """Convert a Python/JSON value to FileMetadata.Value text."""
     if isinstance(value, bool):
@@ -192,21 +181,6 @@ def flatten_json(data: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:
 def get_series_name(reference: str) -> str:
     """Return the segment before the first slash in a DRI reference."""
     return reference.split("/", 1)[0]
-
-
-def derive_file_reference(reference: str) -> str:
-    """
-    Derive File.FileReference from the DRI reference.
-
-    Example:
-      LEV 2/2BD/Z -> 2BD/Z
-    """
-    if "/" not in reference:
-        raise ValueError(
-            f"Could not derive File.FileReference from reference: {reference!r}"
-        )
-
-    return reference.split("/", 1)[1]
 
 
 def require_consignment_reference(consignment_reference: Any) -> str:
@@ -415,13 +389,9 @@ def create_file_row(
 
     file_path = derive_file_path(digital_file)
 
-    source_file_id = valid_uuid_or_none(digital_file.get("fileId"))
-
-    file_id = source_file_id or stable_uuid(
-        "File",
-        record.get("recordId") or reference,
-        file_path,
-        file_name,
+    file_id = require_text(
+        digital_file.get("fileId"),
+        "digitalFiles[].fileId",
     )
 
     checksum = get_sha256_or_first_checksum(digital_file)
@@ -433,7 +403,7 @@ def create_file_row(
             "FileType": "File",
             "FileName": file_name,
             "FilePath": file_path,
-            "FileReference": derive_file_reference(reference),
+            "FileReference": reference,
             "CiteableReference": reference,
             "ParentReference": "",
             "OriginalFilePath": "",
