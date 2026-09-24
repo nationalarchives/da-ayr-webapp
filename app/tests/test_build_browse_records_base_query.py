@@ -5,7 +5,7 @@ from app.main.db.queries import (
     build_browse_records_base_query,
     get_browse_records_metadata_for_files,
 )
-from app.tests.factories import FileMetadataFactory
+from app.tests.factories import FileFactory, FileMetadataFactory
 
 
 def _row_mapping(row):
@@ -319,6 +319,43 @@ class TestBrowseRecordsBaseQuery:
         assert sorted(_file_names(results)) == [
             "first_file.docx",
             "fourth_file.xls",
+            "third_file.docx",
+        ]
+
+    def test_build_browse_records_base_query_filters_by_record_status_closed_includes_retained_for_security(
+        self, client, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a record retained for security and records closed for other reasons
+        When build_browse_records_base_query is executed with record_status closed
+        Then both are returned, since retained-for-security records are a kind of closed record
+        """
+        consignment = browse_consignment_files[0].consignment
+        body_name = consignment.series.body.Name
+
+        retained_file = FileFactory(
+            consignment=consignment,
+            FileName="retained_file.docx",
+            FileType="file",
+        )
+        FileMetadataFactory(
+            file=retained_file,
+            PropertyName="closure_type",
+            Value="Retained for security",
+        )
+
+        mock_standard_user(client, body_name)
+
+        query = build_browse_records_base_query(
+            accessible_transferring_body_names=[body_name],
+            filters={"record_status": "closed"},
+        )
+        results = query.all()
+
+        assert sorted(_file_names(results)) == [
+            "first_file.docx",
+            "fourth_file.xls",
+            "retained_file.docx",
             "third_file.docx",
         ]
 

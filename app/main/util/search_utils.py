@@ -5,6 +5,7 @@ import opensearchpy
 from flask import abort, current_app
 from opensearchpy import OpenSearch, RequestsHttpConnection
 
+from app.main.util.closure_status import closure_types_for_record_status
 from app.main.util.date_validator import format_opensearch_date
 from app.main.util.pagination import calculate_total_pages, get_pagination
 
@@ -422,8 +423,10 @@ def _build_record_status_filter(filters):
         return None
 
     return {
-        "term": {
-            "closure_type.keyword": record_status.capitalize(),
+        "terms": {
+            "closure_type.keyword": closure_types_for_record_status(
+                record_status
+            ),
         }
     }
 

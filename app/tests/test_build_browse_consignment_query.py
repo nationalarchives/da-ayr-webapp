@@ -1,6 +1,7 @@
 from flask.testing import FlaskClient
 
 from app.main.db.queries import build_browse_consignment_query
+from app.tests.factories import FileFactory, FileMetadataFactory
 
 
 class TestBrowseConsignment:
@@ -45,6 +46,42 @@ class TestBrowseConsignment:
             ),
         ]
         assert results == expected_results
+
+    def test_build_browse_consignment_query_closed_filter_includes_retained_for_security(
+        self, client: FlaskClient, mock_standard_user, browse_consignment_files
+    ):
+        """
+        Given a record retained for security in a consignment
+        When build_browse_consignment_query is called with record_status closed
+        Then the retained for security record is included alongside closed records
+        """
+        consignment = browse_consignment_files[0].consignment
+        mock_standard_user(client, consignment.series.body.Name)
+
+        retained_file = FileFactory(
+            consignment=consignment,
+            FileName="retained_file.docx",
+            FileType="file",
+        )
+        FileMetadataFactory(
+            file=retained_file,
+            PropertyName="closure_type",
+            Value="Retained for security",
+        )
+
+        filters = {"record_status": "closed"}
+        query = build_browse_consignment_query(
+            consignment_id=consignment.ConsignmentId, filters=filters
+        )
+
+        results = query.all()
+
+        assert sorted(result.file_name for result in results) == [
+            "first_file.docx",
+            "fourth_file.xls",
+            "retained_file.docx",
+            "third_file.docx",
+        ]
 
     def test_build_browse_consignment_query_no_results(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
