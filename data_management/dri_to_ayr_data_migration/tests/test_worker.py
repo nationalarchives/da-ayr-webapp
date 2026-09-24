@@ -555,7 +555,7 @@ class TestCsvConversion:
         assert file_row["ConsignmentId"] == consignment_row["ConsignmentId"]
         assert file_row["FileName"] == "example.txt"
         assert file_row["FilePath"] == "LEV 2/2BD/example.txt"
-        assert file_row["FileReference"] == "2BD/Z"
+        assert file_row["FileReference"] == "LEV 2/2BD/Z"
         assert file_row["CiteableReference"] == "LEV 2/2BD/Z"
         assert file_row["Checksum"] == "sha256-checksum"
         assert file_row["CreatedDatetime"] == FIXED_NOW
