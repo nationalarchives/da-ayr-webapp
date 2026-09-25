@@ -329,6 +329,54 @@ class TestBrowseTransferringBody:
 
         assert response.status_code == 404
 
+    def test_browse_transferring_body_only_shows_recently_viewed_records_for_own_body(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+    ):
+        """
+        Given a standard user with recently viewed records from their own and
+            another transferring body in their session
+        When they visit their transferring body's browse page
+        Then only the record belonging to their own transferring body is shown
+        """
+        own_body = BodyFactory(Name="own_body")
+        own_file = FileFactory(
+            consignment=ConsignmentFactory(series=SeriesFactory(body=own_body))
+        )
+        other_body = BodyFactory(Name="other_body")
+        other_file = FileFactory(
+            consignment=ConsignmentFactory(
+                series=SeriesFactory(body=other_body)
+            )
+        )
+
+        mock_standard_user(client, own_body.Name)
+
+        with client.session_transaction() as session:
+            session["recently_viewed_records"] = [
+                {
+                    "file_id": str(other_file.FileId),
+                    "file_name": other_file.FileName,
+                    "transferring_body": other_body.Name,
+                    "series": other_file.consignment.series.Name,
+                },
+                {
+                    "file_id": str(own_file.FileId),
+                    "file_name": own_file.FileName,
+                    "transferring_body": own_body.Name,
+                    "series": own_file.consignment.series.Name,
+                },
+            ]
+
+        response = client.get(f"{self.route_url}/{own_body.BodyId}")
+
+        assert response.status_code == 200
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        assert soup.find("a", href=f"/record/{own_file.FileId}") is not None
+        assert soup.find("a", href=f"/record/{other_file.FileId}") is None
+
     def test_browse_transferring_body_clear_filters_link_resets_filters_and_keeps_sort(
         self,
         client: FlaskClient,

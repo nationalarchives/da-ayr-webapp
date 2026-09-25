@@ -1345,3 +1345,57 @@ class TestRecord:
 
         assert "DRI-TO-AYR-9999" not in table_text
         assert "Not applicable" in table_text
+
+    @mock_aws
+    def test_record_view_adds_record_to_recently_viewed_session(
+        self, app, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given a user views a record page
+        When the request completes
+        Then the record is stored at the front of the recently viewed list in their session
+        """
+        file = FileFactory()
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}/{file.FileId}")
+        assert response.status_code == 200
+
+        with client.session_transaction() as session:
+            recently_viewed = session["recently_viewed_records"]
+
+        assert len(recently_viewed) == 1
+        assert recently_viewed[0]["file_id"] == str(file.FileId)
+        assert recently_viewed[0]["file_name"] == file.FileName
+
+    @mock_aws
+    def test_record_view_moves_repeat_view_to_front_without_duplicating(
+        self, app, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given a user has already viewed a record
+        When they view a second record and then view the first record again
+        Then the first record moves back to the front of the list with no duplicate entry
+        """
+        first_file = FileFactory()
+        second_file = FileFactory()
+        bucket_name = "test_bucket"
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, first_file)
+        create_mock_s3_bucket_with_object(bucket_name, second_file)
+        mock_all_access_user(client)
+
+        client.get(f"{self.route_url}/{first_file.FileId}")
+        client.get(f"{self.route_url}/{second_file.FileId}")
+        client.get(f"{self.route_url}/{first_file.FileId}")
+
+        with client.session_transaction() as session:
+            recently_viewed = session["recently_viewed_records"]
+
+        assert [item["file_id"] for item in recently_viewed] == [
+            str(first_file.FileId),
+            str(second_file.FileId),
+        ]

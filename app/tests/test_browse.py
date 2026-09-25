@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
 from app.tests.assertions import assert_contains_html
-from app.tests.factories import BodyFactory
+from app.tests.factories import BodyFactory, FileFactory
 from app.tests.utils import decompose_desktop_invisible_elements
 
 
@@ -177,3 +177,49 @@ class TestBrowse:
             href=f"{self.transferring_body_route_url}/{browse_files[0].consignment.series.body.BodyId}",
         )
         assert body_link is not None
+
+    def test_browse_shows_recently_viewed_records_for_all_access_user(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given an all access user with a record in their session history
+        When they visit the browse page
+        Then a link to that record appears under "Recently viewed records"
+        """
+        mock_all_access_user(client)
+        file = FileFactory()
+
+        with client.session_transaction() as session:
+            session["recently_viewed_records"] = [
+                {
+                    "file_id": str(file.FileId),
+                    "file_name": file.FileName,
+                    "transferring_body": file.consignment.series.body.Name,
+                    "series": file.consignment.series.Name,
+                }
+            ]
+
+        response = client.get(f"{self.route_url}")
+
+        assert response.status_code == 200
+        assert b"Recently viewed records" in response.data
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        record_link = soup.find("a", href=f"/record/{file.FileId}")
+        assert record_link is not None
+        assert record_link.text.strip() == file.FileName
+
+    def test_browse_hides_recently_viewed_section_when_history_is_empty(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given an all access user who has not viewed any records yet
+        When they visit the browse page
+        Then the "Recently viewed records" section is not rendered
+        """
+        mock_all_access_user(client)
+
+        response = client.get(f"{self.route_url}")
+
+        assert response.status_code == 200
+        assert b"Recently viewed records" not in response.data
