@@ -1,0 +1,18 @@
+{% macro recently_viewed_records(records) -%}
+    {% if records %}
+        <div class="recently-viewed-records govuk-!-margin-bottom-6">
+            <h2 class="govuk-heading-s recently-viewed-records__heading">Recently viewed records</h2>
+            <ul class="govuk-list recently-viewed-records__list">
+                {% for record in records %}
+                    <li class="recently-viewed-records__item">
+                        <a class="govuk-link govuk-link--ayr recently-viewed-records__link"
+                           href="{{ url_for('main.record', record_id=record['file_id']) }}">{{ record["file_name"] }}</a>
+                        {% if record.get("series") %}
+                            <span class="govuk-hint govuk-!-margin-bottom-0 recently-viewed-records__series">{{ record["series"] }}</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+{%- endmacro %}

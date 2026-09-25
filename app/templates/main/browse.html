@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 {%- from 'govuk_frontend_jinja/components/back-link/macro.html' import govukBackLink -%}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
+{% from 'main/components/recently-viewed-records.html' import recently_viewed_records %}
 {% block pageTitle %}Browse – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block content %}
     <div class="govuk-grid-row browse__page desktop mobile">
         {{ super() }}
         {% include "top-search.html" %}
+        {% if browse_type in ("browse", "transferring_body") %}
+            {{ recently_viewed_records(recently_viewed_records_list) }}
+        {% endif %}
         {% if results or browse_type == "records" %}
             <!-- TABLE -->
             <div class="govuk-grid-column-full govuk-grid-column-full__page_container">

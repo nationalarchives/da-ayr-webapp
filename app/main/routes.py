@@ -61,6 +61,10 @@ from app.main.util.pagination import (
     calculate_total_pages,
     get_pagination,
 )
+from app.main.util.recently_viewed_records import (
+    get_recently_viewed_records,
+    record_recently_viewed,
+)
 from app.main.util.render_utils import (
     create_presigned_url,
     create_presigned_url_for_access_copy,
@@ -359,6 +363,9 @@ def browse():
             form=form,
             browse_type="browse",
             id=None,
+            recently_viewed_records_list=get_recently_viewed_records(
+                session, ayr_user
+            ),
             **result_data,
         )
 
@@ -384,6 +391,7 @@ def browse_transferring_body(_id: uuid.UUID):
     breadcrumb_values = {0: {"transferring_body": body.Name}}
 
     form = SearchForm()
+    ayr_user = AYRUser(session.get("user_groups"))
     validated_data = request.validated_data
     page, per_page = get_page_and_per_page(validated_data)
 
@@ -455,6 +463,9 @@ def browse_transferring_body(_id: uuid.UUID):
         sorting_orders=sorting_orders,
         num_records_found=num_records_found,
         query_string_parameters=request.validated_args,
+        recently_viewed_records_list=get_recently_viewed_records(
+            session, ayr_user
+        ),
     )
 
 
@@ -906,6 +917,7 @@ def record(record_id: uuid.UUID):
     validate_body_user_groups_or_404(file.consignment.series.body.Name)
 
     file_metadata = get_file_metadata(file.FileId)
+    record_recently_viewed(session, file_metadata)
 
     file_extension = get_file_extension(file)
     puid = get_file_puid(file)
