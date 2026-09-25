@@ -27,6 +27,28 @@
       display: flex;
       align-items: center;
 
+      @media screen and (width <= $breakpoint-medium) {
+        width: 100%;
+
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 0.5rem;
+
+        .sort-list-records__select.js-records-sort-select {
+          width: 100%;
+          margin-right: 0;
+        }
+
+        .sort-list-records-js .browse-records__label--left {
+          margin: 0;
+
+          align-self: center;
+
+          display: inline-block;
+        }
+      }
+
       .sort-list-records__select.js-records-sort-select {
         width: auto;
         min-height: 44px;
@@ -80,6 +102,10 @@
         font-size: 1.1rem;
         font-weight: 400;
         white-space: nowrap;
+
+        @media screen and (width <= $breakpoint-medium) {
+          margin: 0;
+        }
       }
 
       .record-select--sort-left {
@@ -106,6 +132,15 @@
         box-shadow: none;
 
         cursor: pointer;
+
+        @media screen and (width <= $breakpoint-medium) {
+          min-height: 0;
+          margin-left: 0;
+
+          display: inline-flex;
+
+          text-align: left;
+        }
 
         &:hover {
           background-image: url("/assets/image/accordion-chevron-hover.svg");
@@ -137,6 +172,18 @@
     align-items: flex-end;
     justify-content: space-between;
     gap: 0.5rem;
+
+    @media screen and (width <= $breakpoint-medium) {
+      width: 100%;
+      margin-right: 0;
+
+      flex-direction: column;
+      align-items: flex-start;
+
+      .sort-list-records-no-js__per-page .browse-records__label--right {
+        margin-left: 0;
+      }
+    }
 
     .sort-list-records-no-js__sort-control {
       display: flex;

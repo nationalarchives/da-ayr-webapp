@@ -415,6 +415,10 @@
       align-self: flex-start;
 
       order: 3;
+
+      @media screen and (width <= $breakpoint-medium) {
+        overflow-wrap: break-word;
+      }
     }
 
     &-mobile-summary-list {

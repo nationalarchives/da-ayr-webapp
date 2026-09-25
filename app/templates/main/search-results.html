@@ -3,6 +3,7 @@
 {% from 'main/components/back-link.html' import page_back_link %}
 {% from "main/components/no-results-message.html" import no_results_message %}
 {% from 'main/components/records-table.html' import render_record_table %}
+{% from 'main/components/records-per-page.html' import sort_records %}
 {% from 'macros/forms.html' import render_preserved_params %}
 {% block pageTitle %}Search results – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
@@ -41,24 +42,30 @@
                     {% if num_records_found > 0 %}
                         <!-- SORT -->
                         <div class="govuk-grid-column-two-thirds filter-group">
-                            <form action="{{ url_for('main.search_results', _anchor='browse-records') }}"
-                                  method="get">
-                                <div class="browse__sort-container">
-                                    <label class="govuk-label" for="sort">Sort by</label>
-                                    <select class="govuk-select govuk-select__sort-container-select"
-                                            id="sort"
-                                            name="sort">
-                                        {% for key, value in sorting_list.items() %}
-                                            <option value="{{ value }}" {% if value == sort %}selected{% endif %}>{{ key }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    {{ render_preserved_params(query_string_parameters, ['sort', 'page']) }}
-                                    {{ govukButton({
-                                    'text': "Apply",
-                                    'classes': "govuk-button__sort-container-update-button",
-                                    }) }}
-                                </div>
-                            </form>
+                            <div class="browse__sort-container">
+                                <label class="govuk-label" for="sort">Sort by</label>
+                                <select class="govuk-select govuk-select__sort-container-select"
+                                        id="sort"
+                                        name="sort">
+                                    {% for key, value in sorting_list.items() %}
+                                        <option value="{{ value }}" {% if value == sort %}selected{% endif %}>{{ key }}</option>
+                                    {% endfor %}
+                                </select>
+                                {{ render_preserved_params(query_string_parameters, ['sort', 'page']) }}
+                                {{ govukButton({
+                                'text': "Apply",
+                                'classes': "govuk-button__sort-container-update-button",
+                                }) }}
+                            </div>
+                            <div class="browse__sort-container search__per-page-container">
+                                {% set per_page_options = {"5": "5", "10": "10", "20": "20"} %}
+                                {% set preserved_params = query_string_parameters.copy() %}
+                                {% set _ = preserved_params.pop('per_page', None) %}
+                                {% set _ = preserved_params.pop('page', None) %}
+                                {% set _ = preserved_params.pop('_id', None) %}
+                                {% set selected_per_page = (query_string_parameters.get('per_page', '5') | string) %}
+                                {{ sort_records(preserved_params, per_page_options, selected_per_page) }}
+                            </div>
                         </div>
                         {% set number_of_columns = 4 %}
                         {% set browse_table_params = query_string_parameters.copy() %}
