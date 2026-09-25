@@ -441,13 +441,12 @@ a.govuk-link {
 
 .filter-group {
   height: 100%;
-  margin-top: 2rem;
-  margin-bottom: 47px;
+  margin-bottom: 20px;
   padding: 0;
 
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
+  justify-content: flex-start;
 
   @media screen and (width <= $breakpoint-medium) {
     width: 100%;
@@ -455,6 +454,22 @@ a.govuk-link {
 
     flex-direction: column;
     gap: 0.5rem;
+
+    .search__per-page-container {
+      .sort-list-records-left-wrapper {
+        display: none;
+      }
+    }
+  }
+
+  .search__per-page-container {
+    .sort-list-records-left-wrapper {
+      margin-bottom: 0;
+    }
+
+    .sort-list-records-no-js {
+      margin-bottom: 0;
+    }
   }
 
   .browse__sort-container {
