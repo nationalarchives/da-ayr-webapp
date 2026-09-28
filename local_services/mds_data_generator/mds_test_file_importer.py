@@ -247,6 +247,8 @@ def process_files(files):
                     ),
                     CreatedDatetime=datetime.now(UTC),
                     CiteableReference=f"CITE-{i + 1:04d}",
+                    ClosureType="Open",
+                    DateLastModified=datetime.now(UTC).date(),
                     ffid_metadata=ffid_metadata,
                 )
 
@@ -258,9 +260,7 @@ def process_files(files):
                     "rights_copyright": "Crown Copyright",
                     "legal_status": "Public Record(s)",
                     "held_by": "The National Archives",
-                    "date_last_modified": datetime.now(UTC).isoformat(),
                     "description": "Test file for AYR development",
-                    "closure_type": "Open",
                     "title_closed": "false",
                     "description_closed": "false",
                     "language": "English",

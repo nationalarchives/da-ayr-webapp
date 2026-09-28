@@ -51,6 +51,10 @@ class File(db.Model):
     CiteableReference = db.Column(Text)
     Checksum = db.Column(Text)
     CreatedDatetime = db.Column(DateTime)
+    ClosureType = db.Column(Text)
+    OpeningDate = db.Column(DateTime)
+    DateLastModified = db.Column(DateTime)
+    EndDate = db.Column(DateTime)
     consignment = db.relationship(
         "Consignment", foreign_keys="File.ConsignmentId"
     )

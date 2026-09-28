@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from urllib.parse import urlparse
 
 import boto3
@@ -680,12 +680,13 @@ class TestRecord:
         And the HTML content should see summary list with specific items
         on the page
         """
-        file = FileFactory()
+        file = FileFactory(
+            ClosureType="Open",
+            EndDate=date(2023, 1, 15),
+            DateLastModified=date(2023, 1, 15),
+        )
         metadata_values = {
             "description": ("description", "open document file"),
-            "closure_type": ("closure_type", "Open"),
-            "end_date": ("end_date", "2023-01-15"),
-            "date_last_modified": ("date_last_modified", "2023-01-15"),
             "former_reference": ("former_reference_department", "-"),
             "translated_title": ("file_name_translation", "-"),
             "related_material": ("related_material", "-"),
@@ -704,9 +705,7 @@ class TestRecord:
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
-        date_last_modified = datetime.strptime(
-            metadata_by_key["date_last_modified"].Value, db_date_format
-        ).strftime(python_date_format)
+        date_last_modified = file.DateLastModified.strftime(python_date_format)
         response = client.get(f"{self.route_url}/{file.FileId}#record-details")
         assert response.status_code == 200
         html = response.data.decode()
@@ -850,15 +849,16 @@ class TestRecord:
         And the HTML content should see summary list with specific items
         on the page
         """
-        file = FileFactory()
+        file = FileFactory(
+            ClosureType="Open",
+            EndDate=date(2023, 1, 15),
+            DateLastModified=date(2023, 1, 15),
+            OpeningDate=date(2023, 2, 25),
+        )
         metadata_values = {
             "alternative_title": ("title_alternate", "alternate title"),
             "description": ("description", "open once closed document file"),
             "alternative_description": ("description_alternate", "-"),
-            "closure_type": ("closure_type", "Open"),
-            "end_date": ("end_date", "2023-01-15"),
-            "date_last_modified": ("date_last_modified", "2023-01-15"),
-            "opening_date": ("opening_date", "2023-02-25"),
             "closure_start_date": ("closure_start_date", "2023-01-15"),
             "closure_period": ("closure_period", "10"),
             "foi_exemption_code": ("foi_exemption_code", "14(2)(b)"),
@@ -886,9 +886,7 @@ class TestRecord:
         closure_start_date = datetime.strptime(
             metadata_by_key["closure_start_date"].Value, db_date_format
         ).strftime(python_date_format)
-        date_last_modified = datetime.strptime(
-            metadata_by_key["date_last_modified"].Value, db_date_format
-        ).strftime(python_date_format)
+        date_last_modified = file.DateLastModified.strftime(python_date_format)
         response = client.get(f"{self.route_url}/{file.FileId}#record-details")
         assert response.status_code == 200
         html = response.data.decode()
@@ -934,7 +932,7 @@ class TestRecord:
             "Alternative description",
             metadata_by_key["alternative_description"].Value,
         )
-        assert_summary_row("Status", metadata_by_key["closure_type"].Value)
+        assert_summary_row("Status", file.ClosureType)
         assert_summary_row("Closure start date", closure_start_date)
         assert_summary_row(
             "Closure period", metadata_by_key["closure_period"].Value + " years"
@@ -985,14 +983,15 @@ class TestRecord:
         And the HTML content should see summary list with specific items
         on the page
         """
-        file = FileFactory()
+        file = FileFactory(
+            ClosureType="Closed",
+            DateLastModified=date(2023, 1, 15),
+            OpeningDate=date(2023, 2, 25),
+        )
         metadata_values = {
             "alternative_title": ("title_alternate", "alternate title"),
             "description": ("description", "closed document file"),
             "alternative_description": ("description_alternate", "-"),
-            "closure_type": ("closure_type", "Closed"),
-            "date_last_modified": ("date_last_modified", "2023-01-15"),
-            "opening_date": ("opening_date", "2023-02-25"),
             "closure_start_date": ("closure_start_date", "2023-01-15"),
             "closure_period": ("closure_period", "10"),
             "foi_exemption_code": ("foi_exemption_code", "14(2)(b)"),
@@ -1020,9 +1019,7 @@ class TestRecord:
         closure_start_date = datetime.strptime(
             metadata_by_key["closure_start_date"].Value, db_date_format
         ).strftime(python_date_format)
-        date_last_modified = datetime.strptime(
-            metadata_by_key["date_last_modified"].Value, db_date_format
-        ).strftime(python_date_format)
+        date_last_modified = file.DateLastModified.strftime(python_date_format)
         response = client.get(f"{self.route_url}/{file.FileId}#record-details")
         assert response.status_code == 200
         html = response.data.decode()
@@ -1068,7 +1065,7 @@ class TestRecord:
             "Alternative description",
             metadata_by_key["alternative_description"].Value,
         )
-        assert_summary_row("Status", metadata_by_key["closure_type"].Value)
+        assert_summary_row("Status", file.ClosureType)
         assert_summary_row("Closure start date", closure_start_date)
         assert_summary_row(
             "Closure period", metadata_by_key["closure_period"].Value + " years"
@@ -1120,13 +1117,14 @@ class TestRecord:
         And all closed-record-specific fields should be visible
         And open-record-only fields should not be visible
         """
-        file = FileFactory()
+        file = FileFactory(
+            ClosureType="Closed",
+            DateLastModified=date(2023, 1, 15),
+        )
         metadata_values = {
             "alternative_title": ("title_alternate", "alternate title"),
             "description": ("description", "closed document file"),
             "alternative_description": ("description_alternate", "-"),
-            "closure_type": ("closure_type", "Closed"),
-            "date_last_modified": ("date_last_modified", "2023-01-15"),
             "closure_start_date": ("closure_start_date", "2023-01-15"),
             "closure_period": ("closure_period", "10"),
             "foi_exemption_code": ("foi_exemption_code", "14(2)(b)"),
@@ -1143,10 +1141,8 @@ class TestRecord:
             "rights_copyright": ("rights_copyright", "Crown copyright"),
             "language": ("language", "English"),
         }
-        metadata_by_key = {
-            key: FileMetadataFactory(file=file, PropertyName=prop, Value=value)
-            for key, (prop, value) in metadata_values.items()
-        }
+        for prop, value in metadata_values.values():
+            FileMetadataFactory(file=file, PropertyName=prop, Value=value)
         bucket_name = "test_bucket"
         app.config["RECORD_BUCKET_NAME"] = bucket_name
         create_mock_s3_bucket_with_object(bucket_name, file)
@@ -1172,9 +1168,9 @@ class TestRecord:
             dd = row.find("dd", class_="govuk-summary-list__value--record")
             if dt and dt.get_text(strip=True) == "Status":
                 assert dd is not None
-                assert metadata_by_key["closure_type"].Value in dd.get_text(
-                    strip=True
-                ), "Status field value should be 'Closed'"
+                assert file.ClosureType in dd.get_text(strip=True), (
+                    "Status field value should be 'Closed'"
+                )
                 status_row_found = True
                 break
         assert status_row_found, "Status row not found in summary list"
