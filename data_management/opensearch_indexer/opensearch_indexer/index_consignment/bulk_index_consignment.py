@@ -1,11 +1,11 @@
-import json
 import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 import sqlalchemy
 from opensearchpy import OpenSearch, RequestsHttpConnection
+from opensearchpy.helpers import streaming_bulk
 from requests_aws4auth import AWS4Auth
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -19,6 +19,9 @@ from ..text_extraction import TextExtractionStatus, add_text_content
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+OPEN_SEARCH_BULK_CHUNK_SIZE = 100
+OPEN_SEARCH_BULK_MAX_CHUNK_BYTES = 10 * 1024 * 1024
 
 
 class ConsignmentBulkIndexError(Exception):
@@ -316,26 +319,49 @@ def bulk_index_files_in_opensearch(
         connection_class=RequestsHttpConnection,
     )
 
-    actions = prepare_bulk_index_payload(documents_to_index, index)
+    actions = prepare_bulk_index_actions(documents_to_index, index)
+    indexed_count = 0
+    failures = []
 
     try:
-        bulk_response = client.bulk(index=index, body=actions, timeout=timeout)
+        for success, result in streaming_bulk(
+            client,
+            actions,
+            chunk_size=OPEN_SEARCH_BULK_CHUNK_SIZE,
+            max_chunk_bytes=OPEN_SEARCH_BULK_MAX_CHUNK_BYTES,
+            request_timeout=timeout,
+            max_retries=5,
+            initial_backoff=2,
+            max_backoff=60,
+            raise_on_error=False,
+        ):
+            if success:
+                indexed_count += 1
+                continue
+
+            operation_result = next(iter(result.values()))
+            failures.append(
+                {
+                    "document_id": operation_result.get("_id"),
+                    "status": operation_result.get("status"),
+                    "error": operation_result.get("error"),
+                }
+            )
     except Exception as e:
         logger.error(f"Opensearch bulk indexing call failed: {e}")
-        raise e
+        raise
 
-    logger.info("Opensearch bulk indexing call completed with response")
-    logger.info(bulk_response)
+    logger.info(
+        "Opensearch bulk indexing completed. indexed=%s failed=%s",
+        indexed_count,
+        len(failures),
+    )
 
-    if bulk_response["errors"]:
-        logger.info("Opensearch bulk indexing completed with errors")
-        error_message = "Opensearch bulk indexing errors:"
-        for item in bulk_response["items"]:
-            if "error" in item.get("index", {}):
-                error_message += f"\nError for document ID {item['index']['_id']}: {item['index']['error']}"
-        raise Exception(error_message)
-    else:
-        logger.info("Opensearch bulk indexing completed successfully")
+    if failures:
+        raise Exception(
+            f"Opensearch bulk indexing failed for {len(failures)} "
+            f"document(s): {failures[:20]}"
+        )
 
 
 def format_bulk_indexing_error_message(
@@ -364,17 +390,14 @@ def format_bulk_indexing_error_message(
     return error_message
 
 
-def prepare_bulk_index_payload(
+def prepare_bulk_index_actions(
     documents: List[Dict[str, Union[str, Dict]]], opensearch_index: str
-) -> str:
-    bulk_data = []
+) -> Iterator[Dict[str, Any]]:
+    """Yield OpenSearch index actions for byte-bounded bulk requests."""
     for doc in documents:
-        bulk_data.append(
-            json.dumps(
-                {"index": {"_index": opensearch_index, "_id": doc["file_id"]}}
-            )
-        )
-        bulk_data.append(json.dumps(doc["document"]))
-
-    bulk_payload = "\n".join(bulk_data) + "\n"
-    return bulk_payload
+        yield {
+            "_op_type": "index",
+            "_index": opensearch_index,
+            "_id": doc["file_id"],
+            "_source": doc["document"],
+        }
