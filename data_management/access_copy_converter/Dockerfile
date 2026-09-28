@@ -1,24 +1,24 @@
 FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
 
-# renovate: datasource=repology depName=debian_13/libreoffice versioning=loose
+# renovate: datasource=deb depName=libreoffice
 ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u7
-# renovate: datasource=repology depName=debian_13/libreoffice-writer versioning=loose
+# renovate: datasource=deb depName=libreoffice-writer
 ARG LIBREOFFICE_WRITER_VERSION=4:25.2.3-2+deb13u7
-# renovate: datasource=repology depName=debian_13/libreoffice-calc versioning=loose
+# renovate: datasource=deb depName=libreoffice-calc
 ARG LIBREOFFICE_CALC_VERSION=4:25.2.3-2+deb13u7
-# renovate: datasource=repology depName=debian_13/libreoffice-java-common versioning=loose
+# renovate: datasource=deb depName=libreoffice-java-common
 ARG LIBREOFFICE_JAVA_COMMON_VERSION=4:25.2.3-2+deb13u7
-# renovate: datasource=repology depName=debian_13/default-jre versioning=loose
+# renovate: datasource=deb depName=default-jre
 ARG DEFAULT_JRE_VERSION=2:1.21-76
-# renovate: datasource=repology depName=debian_13/libsqlite3-0 versioning=loose
+# renovate: datasource=deb depName=libsqlite3-0
 ARG LIBSQLITE3_0_VERSION=3.46.1-7+deb13u2
-# renovate: datasource=repology depName=debian_13/perl-base versioning=loose
+# renovate: datasource=deb depName=perl-base
 ARG PERL_BASE_VERSION=5.40.1-6+deb13u1
-# renovate: datasource=repology depName=debian_13/libpcre2-8-0 versioning=loose
+# renovate: datasource=deb depName=libpcre2-8-0
 ARG LIBPCRE2_8_0_VERSION=10.46-1~deb13u2
-# renovate: datasource=repology depName=debian_13/libc6 versioning=loose
+# renovate: datasource=deb depName=libc6
 ARG LIBC6_VERSION=2.41-12+deb13u4
-# renovate: datasource=repology depName=debian_13/libc-bin versioning=loose
+# renovate: datasource=deb depName=libc-bin
 ARG LIBC_BIN_VERSION=2.41-12+deb13u4
 
 # Install system dependencies including LibreOffice

@@ -2,21 +2,21 @@ FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae
 
 # renovate: datasource=deb depName=gcc
 ARG GCC_VERSION=4:14.2.0-1
-# renovate: datasource=repology depName=debian_13/libpq-dev versioning=loose
+# renovate: datasource=deb depName=libpq-dev
 ARG LIBPQ_DEV_VERSION=17.11-0+deb13u1
-# renovate: datasource=repology depName=debian_13/openssl versioning=loose
+# renovate: datasource=deb depName=openssl
 ARG OPENSSL_VERSION=3.5.7-1~deb13u2
-# renovate: datasource=repology depName=debian_13/tesseract-ocr versioning=loose
+# renovate: datasource=deb depName=tesseract-ocr
 ARG TESSERACT_OCR_VERSION=5.5.0-1+b1
-# renovate: datasource=repology depName=debian_13/antiword versioning=loose
+# renovate: datasource=deb depName=antiword
 ARG ANTIWORD_VERSION=0.37-17
-# renovate: datasource=repology depName=debian_13/unrtf versioning=loose
+# renovate: datasource=deb depName=unrtf
 ARG UNRTF_VERSION=0.21.10-clean-1*
-# renovate: datasource=repology depName=debian_13/libreoffice versioning=loose
+# renovate: datasource=deb depName=libreoffice
 ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u7
-# renovate: datasource=repology depName=debian_13/nodejs versioning=loose
+# renovate: datasource=deb depName=nodejs
 ARG NODEJS_VERSION=20.19.2+dfsg-1+deb13u3
-# renovate: datasource=repology depName=debian_13/npm versioning=loose
+# renovate: datasource=deb depName=npm
 ARG NPM_VERSION=9.2.0~ds1-3
 
 WORKDIR /docker_app
