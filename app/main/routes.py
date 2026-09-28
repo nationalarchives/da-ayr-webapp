@@ -34,7 +34,6 @@ from app.main.db.queries import (
     build_browse_query,
     build_browse_records_base_query,
     build_browse_series_query,
-    get_browse_records_metadata_for_files,
     get_file_metadata,
 )
 from app.main.flask_config_helpers import (
@@ -704,13 +703,8 @@ def browse_records():
             page, default_page, "main.browse_records"
         )
 
-    # Stage 2: fetch metadata only for the files on this page
-    file_ids = [row.file_id for row in page_items]
-    metadata_map = get_browse_records_metadata_for_files(file_ids)
-
     results = []
     for row in page_items:
-        meta = metadata_map.get(row.file_id, {})
         results.append(
             {
                 "transferring_body_id": row.transferring_body_id,
@@ -723,10 +717,9 @@ def browse_records():
                 "file_id": row.file_id,
                 "file_name": row.file_name,
                 "file_path": row.file_path,
-                "closure_type": meta.get("closure_type"),
-                "opening_date": meta.get("opening_date"),
-                "date_of_record": meta.get("end_date")
-                or meta.get("date_last_modified"),
+                "closure_type": row.closure_type,
+                "opening_date": row.opening_date,
+                "date_of_record": row.date_of_record,
             }
         )
 

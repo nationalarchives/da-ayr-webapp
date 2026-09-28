@@ -1,11 +1,8 @@
 from datetime import datetime
 
 from app.main.db.models import db
-from app.main.db.queries import (
-    build_browse_records_base_query,
-    get_browse_records_metadata_for_files,
-)
-from app.tests.factories import FileFactory, FileMetadataFactory
+from app.main.db.queries import build_browse_records_base_query
+from app.tests.factories import FileFactory
 
 
 def _row_mapping(row):
@@ -55,6 +52,9 @@ class TestBrowseRecordsBaseQuery:
                 browse_consignment_files[4].FileId,
                 "fifth_file.doc",
                 browse_consignment_files[4].FilePath,
+                "Open",
+                None,
+                "20/05/2023",
             ),
             (
                 body.BodyId,
@@ -67,6 +67,9 @@ class TestBrowseRecordsBaseQuery:
                 browse_consignment_files[3].FileId,
                 "fourth_file.xls",
                 browse_consignment_files[3].FilePath,
+                "Closed",
+                "25/03/2070",
+                "12/04/2023",
             ),
             (
                 body.BodyId,
@@ -79,6 +82,9 @@ class TestBrowseRecordsBaseQuery:
                 browse_consignment_files[2].FileId,
                 "third_file.docx",
                 browse_consignment_files[2].FilePath,
+                "Closed",
+                "10/03/2090",
+                "10/03/2023",
             ),
             (
                 body.BodyId,
@@ -91,6 +97,9 @@ class TestBrowseRecordsBaseQuery:
                 browse_consignment_files[0].FileId,
                 "first_file.docx",
                 browse_consignment_files[0].FilePath,
+                "Closed",
+                "25/02/2023",
+                "25/02/2023",
             ),
             (
                 body.BodyId,
@@ -103,6 +112,9 @@ class TestBrowseRecordsBaseQuery:
                 browse_consignment_files[1].FileId,
                 "second_file.ppt",
                 browse_consignment_files[1].FilePath,
+                "Open",
+                None,
+                "15/01/2023",
             ),
         }
 
@@ -333,15 +345,11 @@ class TestBrowseRecordsBaseQuery:
         consignment = browse_consignment_files[0].consignment
         body_name = consignment.series.body.Name
 
-        retained_file = FileFactory(
+        FileFactory(
             consignment=consignment,
             FileName="retained_file.docx",
             FileType="file",
-        )
-        FileMetadataFactory(
-            file=retained_file,
-            PropertyName="closure_type",
-            Value="Retained for security",
+            ClosureType="Retained for security",
         )
 
         mock_standard_user(client, body_name)
@@ -502,46 +510,51 @@ class TestBrowseRecordsBaseQuery:
         assert results == []
 
 
-class TestBrowseRecordsMetadataQuery:
-    def test_get_browse_records_metadata_for_files_empty_file_ids_returns_empty_dict(
-        self, client
+class TestBrowseRecordsBaseQueryMetadataFields:
+    def test_build_browse_records_base_query_returns_browse_metadata_fields(
+        self, client, mock_standard_user, browse_consignment_files
     ):
         """
-        Given no file IDs are supplied
-        When get_browse_records_metadata_for_files is called
-        Then an empty metadata mapping is returned
+        Given files with closure_type, opening_date and date_last_modified/end_date set
+        When build_browse_records_base_query is executed
+        Then closure_type, opening_date and date_of_record are returned directly
+        on each row, formatted for display, without a separate metadata fetch
         """
-        assert get_browse_records_metadata_for_files([]) == {}
+        body_name = browse_consignment_files[0].consignment.series.body.Name
+        mock_standard_user(client, body_name)
 
-    def test_get_browse_records_metadata_for_files_returns_expected_metadata(
-        self, client, browse_consignment_files
+        query = build_browse_records_base_query(
+            accessible_transferring_body_names=[body_name]
+        )
+        results = {
+            _row_mapping(row)["file_name"]: _row_mapping(row)
+            for row in query.all()
+        }
+
+        assert results["first_file.docx"]["closure_type"] == "Closed"
+        assert results["first_file.docx"]["opening_date"] == "25/02/2023"
+        assert results["first_file.docx"]["date_of_record"] == "25/02/2023"
+
+        assert results["second_file.ppt"]["closure_type"] == "Open"
+        assert results["second_file.ppt"]["opening_date"] is None
+        assert results["second_file.ppt"]["date_of_record"] == "15/01/2023"
+
+    def test_build_browse_records_base_query_does_not_query_file_metadata(
+        self, client, mock_standard_user, browse_consignment_files
     ):
         """
-        Given a set of file IDs with browse metadata
-        When get_browse_records_metadata_for_files is called
-        Then metadata is returned per file with date values formatted for display
+        Given the browse records base query
+        When its SQL is compiled
+        Then it does not reference the FileMetadata table
         """
-        file_one = browse_consignment_files[0]
-        file_two = browse_consignment_files[1]
+        body_name = browse_consignment_files[0].consignment.series.body.Name
+        mock_standard_user(client, body_name)
 
-        FileMetadataFactory(
-            file=file_one,
-            PropertyName="end_date",
-            Value="2023-09-30",
+        query = build_browse_records_base_query(
+            accessible_transferring_body_names=[body_name]
+        )
+        sql = str(
+            query.statement.compile(compile_kwargs={"literal_binds": True})
         )
 
-        metadata = get_browse_records_metadata_for_files(
-            [file_one.FileId, file_two.FileId]
-        )
-
-        assert set(metadata.keys()) == {file_one.FileId, file_two.FileId}
-
-        assert metadata[file_one.FileId]["date_last_modified"] == "25/02/2023"
-        assert metadata[file_one.FileId]["end_date"] == "30/09/2023"
-        assert metadata[file_one.FileId]["closure_type"] == "Closed"
-        assert metadata[file_one.FileId]["opening_date"] == "25/02/2023"
-
-        assert metadata[file_two.FileId]["date_last_modified"] == "15/01/2023"
-        assert metadata[file_two.FileId]["closure_type"] == "Open"
-        assert metadata[file_two.FileId]["opening_date"] is None
-        assert "end_date" not in metadata[file_two.FileId]
+        assert "FileMetadata" not in sql

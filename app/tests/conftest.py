@@ -1,4 +1,5 @@
 import os
+from datetime import date
 from unittest.mock import patch
 
 import pytest
@@ -628,95 +629,43 @@ def browse_consignment_files():
         consignment=consignment_1,
         FileName="first_file.docx",
         FileType="file",
-    )
-
-    FileMetadataFactory(
-        file=file_1,
-        PropertyName="date_last_modified",
-        Value="2023-02-25T10:12:47",
-    )
-
-    FileMetadataFactory(
-        file=file_1, PropertyName="closure_type", Value="Closed"
-    )
-    FileMetadataFactory(
-        file=file_1,
-        PropertyName="opening_date",
-        Value="2023-02-25T11:14:34",
+        DateLastModified=date(2023, 2, 25),
+        ClosureType="Closed",
+        OpeningDate=date(2023, 2, 25),
     )
 
     file_2 = FileFactory(
         consignment=consignment_1,
         FileName="second_file.ppt",
         FileType="file",
+        DateLastModified=date(2023, 1, 15),
+        ClosureType="Open",
     )
-    FileMetadataFactory(
-        file=file_2,
-        PropertyName="date_last_modified",
-        Value="2023-01-15T12:28:08",
-    )
-    FileMetadataFactory(file=file_2, PropertyName="closure_type", Value="Open")
-    FileMetadataFactory(file=file_2, PropertyName="opening_date", Value=None)
 
     file_3 = FileFactory(
         consignment=consignment_1,
         FileName="third_file.docx",
         FileType="file",
-    )
-
-    FileMetadataFactory(
-        file=file_3,
-        PropertyName="date_last_modified",
-        Value="2023-03-10T10:12:47",
-    )
-
-    FileMetadataFactory(
-        file=file_3, PropertyName="closure_type", Value="Closed"
-    )
-    FileMetadataFactory(
-        file=file_3,
-        PropertyName="opening_date",
-        Value="2090-03-10T10:12:47",
+        DateLastModified=date(2023, 3, 10),
+        ClosureType="Closed",
+        OpeningDate=date(2090, 3, 10),
     )
 
     file_4 = FileFactory(
         consignment=consignment_1,
         FileName="fourth_file.xls",
         FileType="file",
-    )
-
-    FileMetadataFactory(
-        file=file_4,
-        PropertyName="date_last_modified",
-        Value="2023-04-12T10:12:47",
-    )
-
-    FileMetadataFactory(
-        file=file_4, PropertyName="closure_type", Value="Closed"
-    )
-    FileMetadataFactory(
-        file=file_4,
-        PropertyName="opening_date",
-        Value="2070-03-25T10:12:47",
+        DateLastModified=date(2023, 4, 12),
+        ClosureType="Closed",
+        OpeningDate=date(2070, 3, 25),
     )
 
     file_5 = FileFactory(
         consignment=consignment_1,
         FileName="fifth_file.doc",
         FileType="file",
-    )
-
-    FileMetadataFactory(
-        file=file_5,
-        PropertyName="date_last_modified",
-        Value="2023-05-20T10:12:47",
-    )
-
-    FileMetadataFactory(file=file_5, PropertyName="closure_type", Value="Open")
-    FileMetadataFactory(
-        file=file_5,
-        PropertyName="opening_date",
-        Value=None,
+        DateLastModified=date(2023, 5, 20),
+        ClosureType="Open",
     )
 
     return [
@@ -769,6 +718,9 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/open_file.docx",
         CiteableReference="first_body/ABCDE",
+        ClosureType="Open",
+        EndDate=date(2023, 1, 15),
+        DateLastModified=date(2023, 1, 15),
         ffid_metadata__Extension="docx",
         ffid_metadata__FormatName="Word Document",
         ffid_metadata__ExtensionMismatch=False,
@@ -778,15 +730,6 @@ def record_files():
         "file_object": file_1,
         "description": FileMetadataFactory(
             file=file_1, PropertyName="description", Value="open document file"
-        ),
-        "closure_type": FileMetadataFactory(
-            file=file_1, PropertyName="closure_type", Value="Open"
-        ),
-        "end_date": FileMetadataFactory(
-            file=file_1, PropertyName="end_date", Value="2023-01-15"
-        ),
-        "date_last_modified": FileMetadataFactory(
-            file=file_1, PropertyName="date_last_modified", Value="2023-01-15"
         ),
         "former_reference": FileMetadataFactory(
             file=file_1, PropertyName="former_reference_department", Value="-"
@@ -829,6 +772,10 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/open_file_once_closed.pdf",
         CiteableReference="first_body/ABCDE",
+        ClosureType="Open",
+        EndDate=date(2023, 1, 15),
+        DateLastModified=date(2023, 1, 15),
+        OpeningDate=date(2023, 2, 25),
         ffid_metadata__Extension="pdf",
         ffid_metadata__FormatName="Adobe PDF",
         ffid_metadata__ExtensionMismatch=False,
@@ -846,18 +793,6 @@ def record_files():
         ),
         "alternative_description": FileMetadataFactory(
             file=file_2, PropertyName="description_alternate", Value="-"
-        ),
-        "closure_type": FileMetadataFactory(
-            file=file_2, PropertyName="closure_type", Value="Open"
-        ),
-        "end_date": FileMetadataFactory(
-            file=file_2, PropertyName="end_date", Value="2023-01-15"
-        ),
-        "date_last_modified": FileMetadataFactory(
-            file=file_2, PropertyName="date_last_modified", Value="2023-01-15"
-        ),
-        "opening_date": FileMetadataFactory(
-            file=file_2, PropertyName="opening_date", Value="2023-02-25"
         ),
         "closure_start_date": FileMetadataFactory(
             file=file_2, PropertyName="closure_start_date", Value="2023-01-15"
@@ -911,6 +846,9 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/closed_file.pdf",
         CiteableReference="first_body/ABCDE",
+        ClosureType="Closed",
+        DateLastModified=date(2023, 1, 15),
+        OpeningDate=date(2023, 2, 25),
         ffid_metadata__Extension="pdf",
         ffid_metadata__FormatName="Adobe PDF",
         ffid_metadata__ExtensionMismatch=False,
@@ -928,15 +866,6 @@ def record_files():
         ),
         "alternative_description": FileMetadataFactory(
             file=file_3, PropertyName="description_alternate", Value="-"
-        ),
-        "closure_type": FileMetadataFactory(
-            file=file_3, PropertyName="closure_type", Value="Closed"
-        ),
-        "date_last_modified": FileMetadataFactory(
-            file=file_3, PropertyName="date_last_modified", Value="2023-01-15"
-        ),
-        "opening_date": FileMetadataFactory(
-            file=file_3, PropertyName="opening_date", Value="2023-02-25"
         ),
         "closure_start_date": FileMetadataFactory(
             file=file_3, PropertyName="closure_start_date", Value="2023-01-15"
@@ -1006,18 +935,6 @@ def record_files():
         "alternative_description": FileMetadataFactory(
             file=file_4, PropertyName="description_alternate", Value=None
         ),
-        "closure_type": FileMetadataFactory(
-            file=file_4, PropertyName="closure_type", Value=None
-        ),
-        "end_date": FileMetadataFactory(
-            file=file_4, PropertyName="end_date", Value=None
-        ),
-        "date_last_modified": FileMetadataFactory(
-            file=file_4, PropertyName="date_last_modified", Value=None
-        ),
-        "opening_date": FileMetadataFactory(
-            file=file_4, PropertyName="opening_date", Value=None
-        ),
         "closure_start_date": FileMetadataFactory(
             file=file_4, PropertyName="closure_start_date", Value=None
         ),
@@ -1064,6 +981,8 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/file_without_citeable_reference.docx",
         CiteableReference=None,
+        ClosureType="Open",
+        DateLastModified=date(2023, 1, 15),
         ffid_metadata__Extension="docx",
         ffid_metadata__FormatName="Word Document",
         ffid_metadata__ExtensionMismatch=False,
@@ -1075,12 +994,6 @@ def record_files():
             file=file_5,
             PropertyName="description",
             Value="file without citeable reference",
-        ),
-        "closure_type": FileMetadataFactory(
-            file=file_5, PropertyName="closure_type", Value="Open"
-        ),
-        "date_last_modified": FileMetadataFactory(
-            file=file_5, PropertyName="date_last_modified", Value="2023-01-15"
         ),
         "former_reference": FileMetadataFactory(
             file=file_5, PropertyName="former_reference_department", Value="-"
@@ -1123,6 +1036,9 @@ def record_files():
         FileReference="ABCDE",
         FilePath="data/content/test_folder/open_file_once_closed.png",
         CiteableReference="first_body/ABCDE",
+        ClosureType="Open",
+        DateLastModified=date(2023, 1, 15),
+        OpeningDate=date(2023, 2, 25),
         ffid_metadata__Extension="png",
         ffid_metadata__FormatName="PNG Image",
         ffid_metadata__ExtensionMismatch=False,
@@ -1140,15 +1056,6 @@ def record_files():
         ),
         "alternative_description": FileMetadataFactory(
             file=file_6, PropertyName="description_alternate", Value="-"
-        ),
-        "closure_type": FileMetadataFactory(
-            file=file_6, PropertyName="closure_type", Value="Open"
-        ),
-        "date_last_modified": FileMetadataFactory(
-            file=file_6, PropertyName="date_last_modified", Value="2023-01-15"
-        ),
-        "opening_date": FileMetadataFactory(
-            file=file_6, PropertyName="opening_date", Value="2023-02-25"
         ),
         "closure_start_date": FileMetadataFactory(
             file=file_6, PropertyName="closure_start_date", Value="2023-01-15"

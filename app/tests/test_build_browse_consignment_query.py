@@ -1,7 +1,7 @@
 from flask.testing import FlaskClient
 
 from app.main.db.queries import build_browse_consignment_query
-from app.tests.factories import FileFactory, FileMetadataFactory
+from app.tests.factories import FileFactory
 
 
 class TestBrowseConsignment:
@@ -58,15 +58,11 @@ class TestBrowseConsignment:
         consignment = browse_consignment_files[0].consignment
         mock_standard_user(client, consignment.series.body.Name)
 
-        retained_file = FileFactory(
+        FileFactory(
             consignment=consignment,
             FileName="retained_file.docx",
             FileType="file",
-        )
-        FileMetadataFactory(
-            file=retained_file,
-            PropertyName="closure_type",
-            Value="Retained for security",
+            ClosureType="Retained for security",
         )
 
         filters = {"record_status": "closed"}
