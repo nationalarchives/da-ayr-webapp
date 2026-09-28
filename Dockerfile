@@ -1,6 +1,6 @@
 FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
 
-# renovate: datasource=repology depName=debian_13/gcc versioning=loose
+# renovate: datasource=deb depName=gcc
 ARG GCC_VERSION=4:14.2.0-1
 # renovate: datasource=repology depName=debian_13/libpq-dev versioning=loose
 ARG LIBPQ_DEV_VERSION=17.11-0+deb13u1
