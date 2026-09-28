@@ -13,6 +13,15 @@
   },
   "packageRules": [
     {
+      "description": "Use Debian 13 Trixie repositories",
+      "matchDatasources": [
+        "deb"
+      ],
+      "registryUrls": [
+        "https://deb.debian.org/debian?suite=trixie&components=main,contrib,non-free&binaryArch=amd64"
+      ]
+    },
+    {
       "matchUpdateTypes": [
         "minor",
         "patch",
