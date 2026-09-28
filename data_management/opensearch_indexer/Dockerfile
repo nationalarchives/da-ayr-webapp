@@ -31,9 +31,9 @@ ARG LIBJPEG_DEV_VERSION=1:2.1.5-4
 # renovate: datasource=repology depName=debian_13/swig versioning=loose
 ARG SWIG_VERSION=4.3.0-1
 # renovate: datasource=repology depName=debian_13/libreoffice versioning=loose
-ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u6
+ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u7
 # renovate: datasource=repology depName=debian_13/libreoffice-java-common versioning=loose
-ARG LIBREOFFICE_JAVA_COMMON_VERSION=4:25.2.3-2+deb13u6
+ARG LIBREOFFICE_JAVA_COMMON_VERSION=4:25.2.3-2+deb13u7
 # renovate: datasource=repology depName=debian_13/default-jre versioning=loose
 ARG DEFAULT_JRE_VERSION=2:1.21-76
 # renovate: datasource=repology depName=debian_13/libsqlite3-0 versioning=loose
