@@ -13,7 +13,7 @@ ARG ANTIWORD_VERSION=0.37-17
 # renovate: datasource=repology depName=debian_13/unrtf versioning=loose
 ARG UNRTF_VERSION=0.21.10-clean-1*
 # renovate: datasource=repology depName=debian_13/libreoffice versioning=loose
-ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u6
+ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u7
 # renovate: datasource=repology depName=debian_13/nodejs versioning=loose
 ARG NODEJS_VERSION=20.19.2+dfsg-1+deb13u2
 # renovate: datasource=repology depName=debian_13/npm versioning=loose
