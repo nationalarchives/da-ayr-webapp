@@ -1,35 +1,16 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:best-practices"
+    "config:best-practices",
+    "customManagers:dockerfileVersions"
   ],
   "minimumReleaseAge": "7 days",
   "vulnerabilityAlerts": {
     "minimumReleaseAge": "0 days",
-    "labels": ["security"]
+    "labels": [
+      "security"
+    ]
   },
-  "customManagers": [
-    {
-      "customType": "regex",
-      "description": "Update pinned Debian apt packages in Dockerfiles",
-      "managerFilePatterns": [
-        "(^|/)Dockerfile$"
-      ],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>repology) depName=(?<depName>debian_13/\\S+) versioning=(?<versioning>\\S+)\\s+ARG [A-Z0-9_]+_VERSION=(?<currentValue>\\S+)"
-      ]
-    },
-    {
-      "customType": "regex",
-      "description": "Update pinned Amazon Linux dnf packages in Dockerfiles",
-      "managerFilePatterns": [
-        "(^|/)Dockerfile$"
-      ],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>repology) depName=(?<depName>amazon_2023/\\S+) versioning=(?<versioning>\\S+)\\s+ARG [A-Z0-9_]+_VERSION=(?<currentValue>\\S+)"
-      ]
-    }
-  ],
   "packageRules": [
     {
       "matchUpdateTypes": [
