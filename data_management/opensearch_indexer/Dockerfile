@@ -1,46 +1,46 @@
 FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
 
-# renovate: datasource=repology depName=debian_13/python3-dev versioning=loose
+# renovate: datasource=deb depName=python3-dev
 ARG PYTHON3_DEV_VERSION=3.13.5-1
-# renovate: datasource=repology depName=debian_13/libxml2-dev versioning=loose
+# renovate: datasource=deb depName=libxml2-dev
 ARG LIBXML2_DEV_VERSION=2.12.7+dfsg+really2.9.14-2.1+deb13u3
-# renovate: datasource=repology depName=debian_13/libxslt1-dev versioning=loose
+# renovate: datasource=deb depName=libxslt1-dev
 ARG LIBXSLT1_DEV_VERSION=1.1.35-1.2+deb13u3
-# renovate: datasource=repology depName=debian_13/antiword versioning=loose
+# renovate: datasource=deb depName=antiword
 ARG ANTIWORD_VERSION=0.37-17
-# renovate: datasource=repology depName=debian_13/unrtf versioning=loose
+# renovate: datasource=deb depName=unrtf
 ARG UNRTF_VERSION=0.21.10-clean-1
-# renovate: datasource=repology depName=debian_13/poppler-utils versioning=loose
+# renovate: datasource=deb depName=poppler-utils
 ARG POPPLER_UTILS_VERSION=25.03.0-5+deb13u4
-# renovate: datasource=repology depName=debian_13/tesseract-ocr versioning=loose
+# renovate: datasource=deb depName=tesseract-ocr
 ARG TESSERACT_OCR_VERSION=5.5.0-1+b1
-# renovate: datasource=repology depName=debian_13/flac versioning=loose
+# renovate: datasource=deb depName=flac
 ARG FLAC_VERSION=1.5.0+ds-2
-# renovate: datasource=repology depName=debian_13/ffmpeg versioning=loose
+# renovate: datasource=deb depName=ffmpeg
 ARG FFMPEG_VERSION=7:7.1.5-0+deb13u1
-# renovate: datasource=repology depName=debian_13/lame versioning=loose
+# renovate: datasource=deb depName=lame
 ARG LAME_VERSION=3.100-6+b3
-# renovate: datasource=repology depName=debian_13/libmad0 versioning=loose
+# renovate: datasource=deb depName=libmad0
 ARG LIBMAD0_VERSION=0.15.1b-11+b1
-# renovate: datasource=repology depName=debian_13/libsox-fmt-mp3 versioning=loose
+# renovate: datasource=deb depName=libsox-fmt-mp3
 ARG LIBSOX_FMT_MP3_VERSION=14.4.2+git20190427-5+b3
-# renovate: datasource=repology depName=debian_13/sox versioning=loose
+# renovate: datasource=deb depName=sox
 ARG SOX_VERSION=14.4.2+git20190427-5+b3
-# renovate: datasource=repology depName=debian_13/libjpeg-dev versioning=loose
+# renovate: datasource=deb depName=libjpeg-dev
 ARG LIBJPEG_DEV_VERSION=1:2.1.5-4
-# renovate: datasource=repology depName=debian_13/swig versioning=loose
+# renovate: datasource=deb depName=swig
 ARG SWIG_VERSION=4.3.0-1
-# renovate: datasource=repology depName=debian_13/libreoffice versioning=loose
+# renovate: datasource=deb depName=libreoffice
 ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u7
-# renovate: datasource=repology depName=debian_13/libreoffice-java-common versioning=loose
+# renovate: datasource=deb depName=libreoffice-java-common
 ARG LIBREOFFICE_JAVA_COMMON_VERSION=4:25.2.3-2+deb13u7
-# renovate: datasource=repology depName=debian_13/default-jre versioning=loose
+# renovate: datasource=deb depName=default-jre
 ARG DEFAULT_JRE_VERSION=2:1.21-76
-# renovate: datasource=repology depName=debian_13/libsqlite3-0 versioning=loose
+# renovate: datasource=deb depName=libsqlite3-0
 ARG LIBSQLITE3_0_VERSION=3.46.1-7+deb13u2
-# renovate: datasource=repology depName=debian_13/perl-base versioning=loose
+# renovate: datasource=deb depName=perl-base
 ARG PERL_BASE_VERSION=5.40.1-6+deb13u1
-# renovate: datasource=repology depName=debian_13/libpcre2-8-0 versioning=loose
+# renovate: datasource=deb depName=libpcre2-8-0
 ARG LIBPCRE2_8_0_VERSION=10.46-1~deb13u2
 
 # Install system dependencies
