@@ -30,10 +30,13 @@ from data_management.conftest import (
 
 
 @mock.patch(
+    "opensearch_indexer.index_consignment.bulk_index_consignment.streaming_bulk"
+)
+@mock.patch(
     "opensearch_indexer.index_consignment.bulk_index_consignment.OpenSearch"
 )
 def test_index_file_content_and_metadata_in_opensearch(
-    mock_open_search, caplog
+    mock_open_search, mock_streaming_bulk, caplog
 ):
     """
     Test the `bulk_index_files_in_opensearch` function for successful indexing.
@@ -118,7 +121,9 @@ def test_index_file_content_and_metadata_in_opensearch(
             },
         ],
     }
-    mock_open_search.return_value.bulk.return_value = mock_opensearch_response
+    mock_streaming_bulk.return_value = [
+        (True, item) for item in mock_opensearch_response["items"]
+    ]
 
     bulk_index_files_in_opensearch(
         documents,
@@ -134,31 +139,43 @@ def test_index_file_content_and_metadata_in_opensearch(
         ca_certs=None,
         connection_class=RequestsHttpConnection,
     )
-    mock_open_search.return_value.bulk.assert_called_once_with(
-        index="documents",
-        body=(
-            '{"index": {"_index": "documents", "_id": "8ffacc5a-443a-4568-a5c9-c9741955b40f"}}\n'
-            '{"a": "foo1", "b": "bar1"}\n'
-            '{"index": {"_index": "documents", "_id": "a948a34f-6ba0-4ff2-bef6-a290aec31d3f"}}\n'
-            '{"c": "foo2", "d": "bar2"}\n'
-            '{"index": {"_index": "documents", "_id": "47526ba9-88e5-4cc8-8bc1-d682a10fa270"}}\n'
-            '{"e": "foo3", "f": "bar3"}\n'
-        ),
-        timeout=60,
+    mock_streaming_bulk.assert_called_once_with(
+        mock_open_search.return_value,
+        mock.ANY,
+        chunk_size=100,
+        max_chunk_bytes=10 * 1024 * 1024,
+        request_timeout=60,
+        max_retries=5,
+        initial_backoff=2,
+        max_backoff=60,
+        raise_on_error=False,
     )
 
+    actions = list(mock_streaming_bulk.call_args.args[1])
+
+    assert actions == [
+        {
+            "_op_type": "index",
+            "_index": "documents",
+            "_id": document["file_id"],
+            "_source": document["document"],
+        }
+        for document in documents
+    ]
+
     assert [rec.message for rec in caplog.records] == [
-        "Opensearch bulk indexing call completed with response",
-        str(mock_opensearch_response),
-        "Opensearch bulk indexing completed successfully",
+        "Opensearch bulk indexing completed. indexed=3 failed=0"
     ]
 
 
 @mock.patch(
+    "opensearch_indexer.index_consignment.bulk_index_consignment.streaming_bulk"
+)
+@mock.patch(
     "opensearch_indexer.index_consignment.bulk_index_consignment.OpenSearch"
 )
 def test_index_file_content_and_metadata_in_opensearch_with_document_indexing_errors(
-    mock_open_search, caplog
+    mock_open_search, mock_streaming_bulk, caplog
 ):
     """
     Test the `bulk_index_files_in_opensearch` function for error handling during indexing.
@@ -246,16 +263,22 @@ def test_index_file_content_and_metadata_in_opensearch_with_document_indexing_er
         ],
     }
 
-    mock_open_search.return_value.bulk.return_value = mock_opensearch_response
+    mock_streaming_bulk.return_value = [
+        (True, mock_opensearch_response["items"][0]),
+        (True, mock_opensearch_response["items"][1]),
+        (False, mock_opensearch_response["items"][2]),
+    ]
 
     with pytest.raises(
         Exception,
         match=re.escape(
             (
-                "Opensearch bulk indexing errors:\n"
-                "Error for document ID 47526ba9-88e5-4cc8-8bc1-d682a10fa270: "
-                "{'type': 'document_missing_exception', 'reason': '[_doc][tt0816711]: document missing', "
-                "'index': 'documents', 'shard': '0', 'index_uuid': 'yhizhusbSWmP0G7OJnmcLg'}"
+                "Opensearch bulk indexing failed for 1 document(s): "
+                "[{'document_id': '47526ba9-88e5-4cc8-8bc1-d682a10fa270', "
+                "'status': 404, 'error': {'type': 'document_missing_exception', "
+                "'reason': '[_doc][tt0816711]: document missing', "
+                "'index': 'documents', 'shard': '0', "
+                "'index_uuid': 'yhizhusbSWmP0G7OJnmcLg'}}]"
             )
         ),
     ):
@@ -273,31 +296,31 @@ def test_index_file_content_and_metadata_in_opensearch_with_document_indexing_er
         ca_certs=None,
         connection_class=RequestsHttpConnection,
     )
-    mock_open_search.return_value.bulk.assert_called_once_with(
-        index="documents",
-        body=(
-            '{"index": {"_index": "documents", "_id": "8ffacc5a-443a-4568-a5c9-c9741955b40f"}}\n'
-            '{"a": "foo1", "b": "bar1"}\n'
-            '{"index": {"_index": "documents", "_id": "a948a34f-6ba0-4ff2-bef6-a290aec31d3f"}}\n'
-            '{"c": "foo2", "d": "bar2"}\n'
-            '{"index": {"_index": "documents", "_id": "47526ba9-88e5-4cc8-8bc1-d682a10fa270"}}\n'
-            '{"e": "foo3", "f": "bar3"}\n'
-        ),
-        timeout=60,
+    mock_streaming_bulk.assert_called_once_with(
+        mock_open_search.return_value,
+        mock.ANY,
+        chunk_size=100,
+        max_chunk_bytes=10 * 1024 * 1024,
+        request_timeout=60,
+        max_retries=5,
+        initial_backoff=2,
+        max_backoff=60,
+        raise_on_error=False,
     )
 
     assert [rec.message for rec in caplog.records] == [
-        "Opensearch bulk indexing call completed with response",
-        str(mock_opensearch_response),
-        "Opensearch bulk indexing completed with errors",
+        "Opensearch bulk indexing completed. indexed=2 failed=1"
     ]
 
 
 @mock.patch(
+    "opensearch_indexer.index_consignment.bulk_index_consignment.streaming_bulk"
+)
+@mock.patch(
     "opensearch_indexer.index_consignment.bulk_index_consignment.OpenSearch"
 )
 def test_index_file_content_and_metadata_in_opensearch_with_bulk_api_exception(
-    mock_open_search, caplog
+    mock_open_search, mock_streaming_bulk, caplog
 ):
     """
     Test the `bulk_index_files_in_opensearch` function for handling exceptions raised by the OpenSearch bulk API.
@@ -323,7 +346,7 @@ def test_index_file_content_and_metadata_in_opensearch_with_bulk_api_exception(
         }
     ]
 
-    mock_open_search.return_value.bulk.side_effect = Exception(
+    mock_streaming_bulk.side_effect = Exception(
         "Simulated OpenSearch bulk API failure"
     )
 
@@ -344,13 +367,16 @@ def test_index_file_content_and_metadata_in_opensearch_with_bulk_api_exception(
         ca_certs=None,
         connection_class=RequestsHttpConnection,
     )
-    mock_open_search.return_value.bulk.assert_called_once_with(
-        index="documents",
-        body=(
-            '{"index": {"_index": "documents", "_id": "8ffacc5a-443a-4568-a5c9-c9741955b40f"}}\n'
-            '{"a": "foo1", "b": "bar1"}\n'
-        ),
-        timeout=60,
+    mock_streaming_bulk.assert_called_once_with(
+        mock_open_search.return_value,
+        mock.ANY,
+        chunk_size=100,
+        max_chunk_bytes=10 * 1024 * 1024,
+        request_timeout=60,
+        max_retries=5,
+        initial_backoff=2,
+        max_backoff=60,
+        raise_on_error=False,
     )
 
     assert [rec.message for rec in caplog.records] == [
