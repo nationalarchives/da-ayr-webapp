@@ -151,6 +151,18 @@ def test_index_file_content_and_metadata_in_opensearch(
         raise_on_error=False,
     )
 
+    actions = list(mock_streaming_bulk.call_args.args[1])
+
+    assert actions == [
+        {
+            "_op_type": "index",
+            "_index": "documents",
+            "_id": document["file_id"],
+            "_source": document["document"],
+        }
+        for document in documents
+    ]
+
     assert [rec.message for rec in caplog.records] == [
         "Opensearch bulk indexing completed. indexed=3 failed=0"
     ]
