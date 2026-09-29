@@ -99,6 +99,7 @@ def make_record() -> dict:
             "closurePeriod": 20,
             "closureStartDate": "2020-01-01",
             "closureReviewDate": "2040-01-01",
+            "retentionReconsiderDate": "2035-01-01",
             "foiAssertedDate": "2020-01-02",
             "foiExemptions": [
                 {"reference": "FOI 23"},
@@ -558,6 +559,11 @@ class TestCsvConversion:
         assert file_row["FileReference"] == "LEV 2/2BD/Z"
         assert file_row["CiteableReference"] == "LEV 2/2BD/Z"
         assert file_row["Checksum"] == "sha256-checksum"
+        assert file_row["DateLastModified"] == "2026-08-27T10:40:00Z"
+        assert file_row["EndDate"] == "2026-08-27"
+        assert file_row["ClosureType"] == "Closed"
+        assert file_row["OpeningDate"] == "2040-01-01"
+        assert file_row["ReconsiderDueInDate"] == "2035-01-01"
         assert file_row["CreatedDatetime"] == FIXED_NOW
 
         assert read_rows(tmp_path, "AYR-av-metadata.csv") == []

@@ -49,6 +49,12 @@ FILE_COLUMNS = [
     "ParentReference",
     "OriginalFilePath",
     "Checksum",
+    "DateLastModified",
+    "EndDate",
+    "ClosureType",
+    "OpeningDate",
+    "ReconsiderDueInDate",
+    "FormerFilePathDepartment",
     "CreatedDatetime",
 ]
 
@@ -393,7 +399,7 @@ def create_file_row(
         digital_file.get("fileId"),
         "digitalFiles[].fileId",
     )
-
+    sensitivity = record.get("sensitivity")
     checksum = get_sha256_or_first_checksum(digital_file)
 
     state["file_rows"].append(
@@ -408,6 +414,13 @@ def create_file_row(
             "ParentReference": "",
             "OriginalFilePath": "",
             "Checksum": checksum or "",
+            "DateLastModified": record.get("dateLastModified") or "",
+            "EndDate": record.get("coveringDateEnd") or "",
+            "ClosureType": derive_closure_type(sensitivity),
+            "OpeningDate": sensitivity.get("closureReviewDate") or "",
+            "ReconsiderDueInDate": sensitivity.get("retentionReconsiderDate")
+            or "",
+            "FormerFilePathDepartment": "",
             "CreatedDatetime": state["created_datetime"],
         }
     )
