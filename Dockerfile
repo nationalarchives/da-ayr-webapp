@@ -15,7 +15,7 @@ ARG UNRTF_VERSION=0.21.10-clean-1*
 # renovate: datasource=deb depName=libreoffice
 ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u7
 # renovate: datasource=deb depName=nodejs
-ARG NODEJS_VERSION=20.19.2+dfsg-1+deb13u2
+ARG NODEJS_VERSION=20.19.2+dfsg-1+deb13u3
 # renovate: datasource=deb depName=npm
 ARG NPM_VERSION=9.2.0~ds1-3
 

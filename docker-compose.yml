@@ -229,6 +229,7 @@ services:
     env_file:
       - .docker.env
     image: da-ayr-beta-webapp:latest
+    platform: linux/amd64
     build:
       context: .
       dockerfile: Dockerfile
