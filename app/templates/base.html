@@ -120,6 +120,15 @@
 
         // Show the left select and label element when JS is enabled
 
+        const searchSortSelect = document.getElementById('search-sort');
+        const searchForm = document.getElementById('search-form');
+
+        if (searchSortSelect && searchForm) {
+            searchSortSelect.addEventListener('change', function() {
+                searchForm.submit();
+            });
+        }
+
         if (leftSortSelect) {
             leftSortSelect.style.display = 'inline-flex';
         }

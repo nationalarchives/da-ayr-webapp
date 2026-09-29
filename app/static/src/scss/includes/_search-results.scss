@@ -454,12 +454,6 @@ a.govuk-link {
 
     flex-direction: column;
     gap: 0.5rem;
-
-    .search__per-page-container {
-      .sort-list-records-left-wrapper {
-        display: none;
-      }
-    }
   }
 
   .search__per-page-container {
@@ -481,6 +475,12 @@ a.govuk-link {
 
     @media screen and (width <= $breakpoint-medium) {
       max-width: 100%;
+    }
+
+    &__sort-container-select-no-js {
+      @media screen and (width <= $breakpoint-medium) {
+        width: 100%;
+      }
     }
   }
 

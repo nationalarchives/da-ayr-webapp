@@ -9,6 +9,24 @@
     display: block;
   }
 
+  .sort-list-search-form {
+    display: none;
+  }
+
+  .js-enabled & .sort-list-search-form {
+    margin-right: 1rem;
+
+    display: block;
+    @media screen and (width <= $breakpoint-medium) {
+      width: 100%;
+      margin: 0;
+    }
+  }
+
+  .sort-list-search-form-no-js {
+    margin-right: 5rem;
+  }
+
   .govuk-table {
     width: 100%;
     margin-bottom: 30px;

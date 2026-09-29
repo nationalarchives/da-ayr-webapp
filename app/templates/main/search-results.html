@@ -42,21 +42,46 @@
                     {% if num_records_found > 0 %}
                         <!-- SORT -->
                         <div class="govuk-grid-column-two-thirds filter-group">
-                            <div class="browse__sort-container">
-                                <label class="govuk-label" for="sort">Sort by</label>
-                                <select class="govuk-select govuk-select__sort-container-select"
-                                        id="sort"
-                                        name="sort">
-                                    {% for key, value in sorting_list.items() %}
-                                        <option value="{{ value }}" {% if value == sort %}selected{% endif %}>{{ key }}</option>
-                                    {% endfor %}
-                                </select>
-                                {{ render_preserved_params(query_string_parameters, ['sort', 'page']) }}
-                                {{ govukButton({
-                                'text': "Apply",
-                                'classes': "govuk-button__sort-container-update-button",
-                                }) }}
-                            </div>
+                            <form id="search-form"
+                                  action="{{ url_for('main.search_results', _anchor='browse-records') }}"
+                                  method="get"
+                                  class="sort-list-search-form">
+                                <div class="browse__sort-container">
+                                    <label class="govuk-label govuk-visually-hidden" for="search-sort">Sort by</label>
+                                    <select class="govuk-select govuk-select__sort-container-select"
+                                            id="search-sort"
+                                            name="sort">
+                                        {% for key, value in sorting_list.items() %}
+                                            <option value="{{ value }}" {% if value == sort %}selected{% endif %}>{{ key }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    {{ render_preserved_params(query_string_parameters, ['sort', 'page']) }}
+                                    {{ govukButton({
+                                    'text': "Apply",
+                                    'classes': "govuk-button__sort-container-update-button",
+                                    }) }}
+                                </div>
+                            </form>
+                            <noscript>
+                                <form action="{{ url_for('main.search_results', _anchor='browse-records') }}"
+                                      method="get"
+                                      class="sort-list-search-form-no-js">
+                                    {{ render_preserved_params(query_string_parameters, ['sort', 'page']) }}
+                                    <div class="browse__sort-container">
+                                        <label class="govuk-label govuk-visually-hidden" for="search-sort-no-js">Sort by</label>
+                                        <select class="govuk-select govuk-select__sort-container-select-no-js"
+                                                id="search-sort-no-js"
+                                                name="sort">
+                                            {% for key, value in sorting_list.items() %}
+                                                <option value="{{ value }}" {% if value == sort %}selected{% endif %}>{{ key }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit"
+                                                class="govuk-button govuk-button--secondary govuk-button__sort-container-update-button"
+                                                data-module="govuk-button">Sort</button>
+                                    </div>
+                                </form>
+                            </noscript>
                             <div class="browse__sort-container search__per-page-container">
                                 {% set per_page_options = {"5": "5", "10": "10", "20": "20"} %}
                                 {% set preserved_params = query_string_parameters.copy() %}
