@@ -207,6 +207,7 @@ class TestCoordinateSeries:
         )
         assert series_run_item["entityType"] == {"S": "SERIES_RUN"}
         assert series_run_item["runId"] == {"S": "run-1"}
+        assert series_run_item["maxFilesPerFakeConsignment"] == {"N": "3"}
 
         consignment_item = get_tracking_item(
             dynamodb_client,
@@ -295,6 +296,7 @@ class TestCoordinateSeries:
                 "entityType": {"S": "SERIES_RUN"},
                 "runId": {"S": "run-1"},
                 "series": {"S": "MIG 1"},
+                "maxFilesPerFakeConsignment": {"N": "3"},
             },
         )
 
@@ -329,6 +331,33 @@ class TestCoordinateSeries:
             }
         ]
         assert read_sqs_messages(sqs_client, queue_url) == []
+
+    @pytest.mark.parametrize("recorded_limit", ["2", "4"])
+    def test_coordinate_series_rejects_changed_limit_before_processing(
+        self,
+        coordinator,
+        recorded_limit,
+    ):
+        coordinator.dynamodb.get_item.return_value = {
+            "Item": {
+                "series": {"S": "MIG 1"},
+                "runId": {"S": "run-1"},
+                "maxFilesPerFakeConsignment": {"N": recorded_limit},
+            }
+        }
+
+        with pytest.raises(
+            ValueError,
+            match=(
+                "MAX_FILES_PER_FAKE_CONSIGNMENT is 3, but the original "
+                f"run used {recorded_limit}"
+            ),
+        ):
+            coordinator.coordinate_series("MIG 1", "run-1")
+
+        coordinator.s3.get_paginator.assert_not_called()
+        coordinator.sqs.send_message.assert_not_called()
+        coordinator.dynamodb.put_item.assert_not_called()
 
 
 class TestS3RecordLoading:
@@ -606,6 +635,7 @@ class TestRunResolution:
             "Item": {
                 "series": {"S": "MIG 1"},
                 "runId": {"S": "run-1"},
+                "maxFilesPerFakeConsignment": {"N": "3"},
             }
         }
 
@@ -697,6 +727,7 @@ class TestRunResolution:
                 "entityType": {"S": "SERIES_RUN"},
                 "series": {"S": "MIG 1"},
                 "runId": {"S": "run-1"},
+                "maxFilesPerFakeConsignment": {"N": "3"},
                 "createdAt": {"S": "2026-09-23T10:00:00Z"},
                 "updatedAt": {"S": "2026-09-23T10:00:00Z"},
             },
