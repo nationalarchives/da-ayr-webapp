@@ -26,6 +26,9 @@ DROID_TIMEOUT_SECONDS = int(os.getenv("DROID_TIMEOUT_SECONDS", "120"))
 DDT_TEMP_CSV_BUCKET = os.environ["DDT_TEMP_CSV_BUCKET"]
 TRACKING_TABLE_NAME = os.environ["TRACKING_TABLE_NAME"]
 FINALISER_QUEUE_URL = os.environ["FINALISER_QUEUE_URL"]
+DROID_INPUT_MOUNT_PATH = Path(os.environ["DROID_INPUT_MOUNT_PATH"])
+DROID_INPUT_WAIT_TIMEOUT_SECONDS = 30
+DROID_INPUT_WAIT_INTERVAL_SECONDS = float("0.5")
 
 STAGING_PREFIX = os.getenv("STAGING_PREFIX", "ayr-mds-staging")
 
@@ -109,12 +112,13 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
             "finaliserTriggered": finaliser_triggered,
         }
 
-    ffid_metadata_row = identify_s3_object(
-        bucket=bucket,
-        key=key,
+    mounted_path = get_mounted_object_path(bucket, key)
+    droid_row = run_droid_for_mounted_object(
+        mounted_path=mounted_path,
         file_id=file_id,
         extension=extension,
     )
+    ffid_metadata_row = map_droid_row_to_ffid_metadata(file_id, droid_row)
 
     ffid_csv_key = upload_ffid_metadata_csv(
         series=series,
@@ -150,22 +154,63 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def identify_s3_object(
-    bucket: str,
-    key: str,
+def get_mounted_object_path(bucket: str, key: str) -> Path:
+
+    mounted_path = build_mounted_path(key)
+    wait_for_mounted_object(mounted_path, bucket, key)
+    logger.info(
+        "Using mounted object s3://%s/%s at %s",
+        bucket,
+        key,
+        mounted_path,
+    )
+    return mounted_path
+
+
+def run_droid_for_mounted_object(
+    mounted_path: Path,
     file_id: str,
     extension: str,
 ) -> dict[str, str]:
-    local_path = build_local_path(file_id, extension)
+    droid_path = build_local_path(file_id, extension)
+    droid_path.unlink(missing_ok=True)
 
     try:
-        logger.info("Downloading s3://%s/%s to %s", bucket, key, local_path)
-        s3.download_file(bucket, key, str(local_path))
-
-        droid_row = run_droid(local_path)
-        return map_droid_row_to_ffid_metadata(file_id, droid_row)
+        droid_path.symlink_to(mounted_path)
+        return run_droid(droid_path)
     finally:
-        local_path.unlink(missing_ok=True)
+        droid_path.unlink(missing_ok=True)
+
+
+def build_mounted_path(key: str) -> Path:
+    """Resolve an S3 object key safely below the configured mount path."""
+    key_parts = key.split("/")
+
+    return DROID_INPUT_MOUNT_PATH.joinpath(*key_parts)
+
+
+def wait_for_mounted_object(
+    mounted_path: Path,
+    bucket: str,
+    key: str,
+) -> None:
+    """Wait briefly for an S3 API change to appear in the S3 Files mount."""
+    deadline = time.monotonic() + DROID_INPUT_WAIT_TIMEOUT_SECONDS
+
+    while True:
+        if mounted_path.is_file():
+            return
+
+        remaining = deadline - time.monotonic()
+
+        if remaining <= 0:
+            raise FileNotFoundError(
+                "S3 object did not appear in the mounted file system within "
+                f"{DROID_INPUT_WAIT_TIMEOUT_SECONDS:g} seconds: "
+                f"s3://{bucket}/{key} expected_at={mounted_path}"
+            )
+
+        time.sleep(min(DROID_INPUT_WAIT_INTERVAL_SECONDS, remaining))
 
 
 def build_local_path(file_id: str, extension: str) -> Path:
