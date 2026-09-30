@@ -42,7 +42,7 @@ JSON_PREFIX = os.getenv("JSON_PREFIX", "live")
 DEFAULT_DUMMY_CONSIGNMENT_PREFIX = f"DRI-TO-AYR-{datetime.today().year}"
 
 MAX_FILES_PER_FAKE_CONSIGNMENT = int(
-    os.getenv("MAX_FILES_PER_FAKE_CONSIGNMENT", "5000")
+    os.getenv("MAX_FILES_PER_FAKE_CONSIGNMENT", "2000")
 )
 SERIES_RUN_SORT_KEY = "MIGRATION"
 
@@ -556,8 +556,8 @@ def resolve_run_id(
     """
     Resolve whether this is a resume or a new run.
 
-    If RUN_ID is supplied, require it to exist and belong to this series before
-    resuming it.
+    If RUN_ID is supplied, require it to exist, belong to this series and use
+    the original fake consignment limit before resuming it.
 
     If RUN_ID is not supplied, create an atomic marker for the first run of
     this series. This prevents another coordinator task from starting the same
@@ -586,6 +586,25 @@ def validate_existing_run(run_id: str, series: str) -> None:
         raise ValueError(
             f"Migration run '{run_id}' does not match the existing run "
             f"'{existing_run_id}' for series '{series}'."
+        )
+
+    recorded_limit = item.get("maxFilesPerFakeConsignment", {}).get("N")
+
+    if recorded_limit is None:
+        raise ValueError(
+            f"Migration run '{run_id}' for series '{series}' has no recorded "
+            "MAX_FILES_PER_FAKE_CONSIGNMENT. Confirm the original value and "
+            "add maxFilesPerFakeConsignment as a DynamoDB Number to the "
+            "series run item before resuming."
+        )
+
+    if int(recorded_limit) != MAX_FILES_PER_FAKE_CONSIGNMENT:
+        raise ValueError(
+            f"Cannot resume migration run '{run_id}' for series '{series}': "
+            "MAX_FILES_PER_FAKE_CONSIGNMENT is "
+            f"{MAX_FILES_PER_FAKE_CONSIGNMENT}, but the original run used "
+            f"{recorded_limit}. Set "
+            f"MAX_FILES_PER_FAKE_CONSIGNMENT={recorded_limit} to resume."
         )
 
 
@@ -618,6 +637,9 @@ def mark_series_started(series: str, run_id: str) -> None:
                 "entityType": {"S": "SERIES_RUN"},
                 "series": {"S": series},
                 "runId": {"S": run_id},
+                "maxFilesPerFakeConsignment": {
+                    "N": str(MAX_FILES_PER_FAKE_CONSIGNMENT)
+                },
                 "createdAt": {"S": now},
                 "updatedAt": {"S": now},
             },
