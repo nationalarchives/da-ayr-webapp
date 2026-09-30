@@ -173,7 +173,6 @@ def run_droid_for_mounted_object(
     extension: str,
 ) -> dict[str, str]:
     droid_path = build_local_path(file_id, extension)
-    droid_path.unlink(missing_ok=True)
 
     try:
         droid_path.symlink_to(mounted_path)
