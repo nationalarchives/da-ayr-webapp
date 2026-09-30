@@ -359,6 +359,27 @@ class TestCoordinateSeries:
         coordinator.sqs.send_message.assert_not_called()
         coordinator.dynamodb.put_item.assert_not_called()
 
+    def test_coordinate_series_rejects_missing_limit_before_processing(
+        self,
+        coordinator,
+    ):
+        coordinator.dynamodb.get_item.return_value = {
+            "Item": {
+                "series": {"S": "MIG 1"},
+                "runId": {"S": "run-1"},
+            }
+        }
+
+        with pytest.raises(
+            ValueError,
+            match="has no recorded MAX_FILES_PER_FAKE_CONSIGNMENT",
+        ):
+            coordinator.coordinate_series("MIG 1", "run-1")
+
+        coordinator.s3.get_paginator.assert_not_called()
+        coordinator.sqs.send_message.assert_not_called()
+        coordinator.dynamodb.put_item.assert_not_called()
+
 
 class TestS3RecordLoading:
     """S3 JSON listing and loading tests"""
