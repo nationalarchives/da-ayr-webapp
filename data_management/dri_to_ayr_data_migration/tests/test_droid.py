@@ -6,10 +6,8 @@ from io import StringIO
 from pathlib import Path
 from unittest import mock
 
-import boto3
 import pytest
 from botocore.exceptions import ClientError
-from moto import mock_aws
 
 os.environ.setdefault("AWS_DEFAULT_REGION", "eu-west-2")
 os.environ.setdefault("AWS_EC2_METADATA_DISABLED", "true")
@@ -19,6 +17,7 @@ os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "test")
 os.environ.setdefault("DROID_VERSION", "6.9.13")
 os.environ.setdefault("DROID_COMMAND", "/opt/droid/droid.sh")
 os.environ.setdefault("DROID_TIMEOUT_SECONDS", "120")
+os.environ.setdefault("DROID_INPUT_MOUNT_PATH", "/mnt/s3")
 os.environ.setdefault("DDT_TEMP_CSV_BUCKET", "temp-csv-bucket")
 os.environ.setdefault("TRACKING_TABLE_NAME", "tracking-table")
 os.environ.setdefault(
@@ -47,6 +46,14 @@ FFID_METADATA_ROW = {
     "FFID-SoftwareVersion": "6.9.13",
     "FFID-BinarySignatureFileVersion": "",
     "FFID-ContainerSignatureFileVersion": "",
+}
+
+
+DROID_METADATA_ROW = {
+    "EXT": "pdf",
+    "PUID": "fmt/18",
+    "FORMAT_NAME": "Acrobat PDF 1.4 - Portable Document Format",
+    "EXTENSION_MISMATCH": "false",
 }
 
 
@@ -168,7 +175,8 @@ class TestDroidHandler:
     ):
         is_complete = mock.Mock(return_value=True)
         trigger_finaliser = mock.Mock(return_value=True)
-        identify = mock.Mock()
+        get_mounted_path = mock.Mock()
+        run_mounted_droid = mock.Mock()
         upload_ffid = mock.Mock()
         mark_complete = mock.Mock()
 
@@ -178,7 +186,10 @@ class TestDroidHandler:
             "trigger_finaliser_if_ready",
             trigger_finaliser,
         )
-        monkeypatch.setattr(droid, "identify_s3_object", identify)
+        monkeypatch.setattr(droid, "get_mounted_object_path", get_mounted_path)
+        monkeypatch.setattr(
+            droid, "run_droid_for_mounted_object", run_mounted_droid
+        )
         monkeypatch.setattr(droid, "upload_ffid_metadata_csv", upload_ffid)
         monkeypatch.setattr(
             droid,
@@ -203,7 +214,8 @@ class TestDroidHandler:
             series=SERIES,
             consignment_reference=CONSIGNMENT_REFERENCE,
         )
-        identify.assert_not_called()
+        get_mounted_path.assert_not_called()
+        run_mounted_droid.assert_not_called()
         upload_ffid.assert_not_called()
         mark_complete.assert_not_called()
 
@@ -216,15 +228,20 @@ class TestDroidHandler:
             f"{SERIES}/ayr-mds-staging/{CONSIGNMENT_REFERENCE}/{FILE_ID}/"
             "AYR-ffid-metadata.csv"
         )
+        mounted_path = Path("/mnt/s3") / DATA_KEY
         monkeypatch.setattr(
             droid,
             "is_file_already_complete",
             mock.Mock(return_value=False),
         )
-        identify = mock.Mock(return_value=FFID_METADATA_ROW)
+        get_mounted_path = mock.Mock(return_value=mounted_path)
+        run_mounted_droid = mock.Mock(return_value=DROID_METADATA_ROW)
         upload_ffid = mock.Mock(return_value=ffid_key)
         mark_complete = mock.Mock(return_value=True)
-        monkeypatch.setattr(droid, "identify_s3_object", identify)
+        monkeypatch.setattr(droid, "get_mounted_object_path", get_mounted_path)
+        monkeypatch.setattr(
+            droid, "run_droid_for_mounted_object", run_mounted_droid
+        )
         monkeypatch.setattr(droid, "upload_ffid_metadata_csv", upload_ffid)
         monkeypatch.setattr(
             droid,
@@ -239,9 +256,9 @@ class TestDroidHandler:
             "ffidMetadataKey": ffid_key,
             "finaliserTriggered": True,
         }
-        identify.assert_called_once_with(
-            bucket=DATA_BUCKET,
-            key=DATA_KEY,
+        get_mounted_path.assert_called_once_with(DATA_BUCKET, DATA_KEY)
+        run_mounted_droid.assert_called_once_with(
+            mounted_path=mounted_path,
             file_id=FILE_ID,
             extension="pdf",
         )
@@ -258,50 +275,196 @@ class TestDroidHandler:
             file_id=FILE_ID,
         )
 
-    def test_identify_s3_object_downloads_maps_and_removes_local_file(
+    def test_get_mounted_object_path_returns_existing_file(
         self,
         droid,
         monkeypatch,
         tmp_path,
     ):
-        local_path = tmp_path / "file-1.pdf"
+        mount_path = tmp_path / "mount"
+        mounted_path = mount_path / DATA_KEY
+        mounted_path.parent.mkdir(parents=True)
+        mounted_path.write_bytes(b"PDF")
+        monkeypatch.setattr(droid, "DROID_INPUT_MOUNT_PATH", mount_path)
 
-        def download_file(bucket, key, destination):
-            assert bucket == DATA_BUCKET
-            assert key == DATA_KEY
-            Path(destination).write_bytes(b"PDF")
+        result = droid.get_mounted_object_path(DATA_BUCKET, DATA_KEY)
 
-        droid.s3.download_file.side_effect = download_file
+        assert result == mounted_path
+
+    def test_build_mounted_path_joins_key_under_mount(
+        self,
+        droid,
+        monkeypatch,
+        tmp_path,
+    ):
+        mount_path = tmp_path / "mount"
+        monkeypatch.setattr(droid, "DROID_INPUT_MOUNT_PATH", mount_path)
+
+        result = droid.build_mounted_path(DATA_KEY)
+
+        assert result == mount_path / DATA_KEY
+
+    def test_wait_for_mounted_object_returns_without_sleeping_when_file_exists(
+        self,
+        droid,
+        monkeypatch,
+        tmp_path,
+    ):
+
+        mounted_path = tmp_path / "mounted-file"
+        mounted_path.write_bytes(b"PDF")
+        sleep = mock.Mock()
+        monkeypatch.setattr(droid.time, "sleep", sleep)
+
+        result = droid.wait_for_mounted_object(
+            mounted_path, DATA_BUCKET, DATA_KEY
+        )
+
+        assert result is None
+        sleep.assert_not_called()
+
+    def test_wait_for_mounted_object_returns_when_file_appears_before_timeout(
+        self,
+        droid,
+        monkeypatch,
+        tmp_path,
+    ):
+        mounted_path = tmp_path / "mounted-file"
+
+        # Simulate the file arriving during the wait, without a real delay.
+        clock = mock.Mock()
+        clock.monotonic.side_effect = [100.0, 100.0]
+        clock.sleep.side_effect = lambda delay: mounted_path.write_bytes(b"PDF")
+        monkeypatch.setattr(droid, "time", clock)
+        monkeypatch.setattr(droid, "DROID_INPUT_WAIT_TIMEOUT_SECONDS", 30.0)
+        monkeypatch.setattr(droid, "DROID_INPUT_WAIT_INTERVAL_SECONDS", 0.5)
+
+        result = droid.wait_for_mounted_object(
+            mounted_path, DATA_BUCKET, DATA_KEY
+        )
+
+        assert result is None
+        assert mounted_path.read_bytes() == b"PDF"
+
+    def test_wait_for_mounted_object_raises_when_file_is_missing_at_timeout(
+        self,
+        droid,
+        monkeypatch,
+        tmp_path,
+    ):
+        mounted_path = tmp_path / "missing-file"
+        clock = mock.Mock()
+        # Start the deadline at zero, then advance to the timeout.
+        clock.monotonic.side_effect = [0.0, 30.0]
+        monkeypatch.setattr(droid, "time", clock)
+        monkeypatch.setattr(droid, "DROID_INPUT_WAIT_TIMEOUT_SECONDS", 30.0)
+
+        with pytest.raises(
+            FileNotFoundError, match="did not appear.*30 seconds"
+        ) as error:
+            droid.wait_for_mounted_object(mounted_path, DATA_BUCKET, DATA_KEY)
+
+        assert f"s3://{DATA_BUCKET}/{DATA_KEY}" in str(error.value)
+        assert str(mounted_path) in str(error.value)
+
+    def test_wait_for_mounted_object_caps_sleep_at_remaining_time(
+        self,
+        droid,
+        monkeypatch,
+        tmp_path,
+    ):
+        mounted_path = tmp_path / "missing-file"
+        clock = mock.Mock()
+        clock.monotonic.side_effect = [100.0, 129.9, 130.0]
+        monkeypatch.setattr(droid, "time", clock)
+        monkeypatch.setattr(droid, "DROID_INPUT_WAIT_TIMEOUT_SECONDS", 30.0)
+        monkeypatch.setattr(droid, "DROID_INPUT_WAIT_INTERVAL_SECONDS", 0.5)
+
+        with pytest.raises(FileNotFoundError):
+            droid.wait_for_mounted_object(mounted_path, DATA_BUCKET, DATA_KEY)
+
+        clock.sleep.assert_called_once_with(pytest.approx(0.1))
+
+    def test_run_droid_for_mounted_object_cleans_up_symlink_after_success(
+        self,
+        droid,
+        monkeypatch,
+        tmp_path,
+    ):
+        mounted_path = tmp_path / "mount" / DATA_KEY
+        mounted_path.parent.mkdir(parents=True)
+        mounted_path.write_bytes(b"PDF")
+        local_path = tmp_path / f"{FILE_ID}.pdf"
         monkeypatch.setattr(
             droid,
             "build_local_path",
             mock.Mock(return_value=local_path),
         )
-        run_droid_mock = mock.Mock(
-            return_value={
-                "EXT": "pdf",
-                "PUID": "fmt/18",
-                "FORMAT_NAME": ("Acrobat PDF 1.4 - Portable Document Format"),
-                "EXTENSION_MISMATCH": "false",
-            }
-        )
+
+        def identify(path):
+            assert path.is_symlink()
+            assert path.resolve() == mounted_path
+            assert path.suffix == ".pdf"
+            assert path.read_bytes() == b"PDF"
+            return DROID_METADATA_ROW
+
+        run_droid_mock = mock.Mock(side_effect=identify)
         monkeypatch.setattr(droid, "run_droid", run_droid_mock)
 
-        result = droid.identify_s3_object(
-            bucket=DATA_BUCKET,
-            key=DATA_KEY,
+        result = droid.run_droid_for_mounted_object(
+            mounted_path=mounted_path,
             file_id=FILE_ID,
             extension="pdf",
         )
 
-        assert result == FFID_METADATA_ROW
-        droid.s3.download_file.assert_called_once_with(
-            DATA_BUCKET,
-            DATA_KEY,
-            str(local_path),
-        )
+        assert result == DROID_METADATA_ROW
         run_droid_mock.assert_called_once_with(local_path)
         assert not local_path.exists()
+        assert not local_path.is_symlink()
+        assert mounted_path.read_bytes() == b"PDF"
+
+    @pytest.mark.parametrize(
+        "error",
+        [
+            RuntimeError("DROID failed"),
+            subprocess.TimeoutExpired("/opt/droid/droid.sh", 120),
+        ],
+    )
+    def test_run_droid_for_mounted_object_cleans_up_symlink_after_failure(
+        self,
+        droid,
+        monkeypatch,
+        tmp_path,
+        error,
+    ):
+        mounted_path = tmp_path / "mount" / DATA_KEY
+        mounted_path.parent.mkdir(parents=True)
+        mounted_path.write_bytes(b"PDF")
+        local_path = tmp_path / f"{FILE_ID}.pdf"
+        monkeypatch.setattr(
+            droid,
+            "build_local_path",
+            mock.Mock(return_value=local_path),
+        )
+
+        def fail(path):
+            assert path.is_symlink()
+            assert path.resolve() == mounted_path
+            raise error
+
+        monkeypatch.setattr(droid, "run_droid", mock.Mock(side_effect=fail))
+
+        with pytest.raises(type(error)) as raised:
+            droid.run_droid_for_mounted_object(
+                mounted_path=mounted_path,
+                file_id=FILE_ID,
+                extension="pdf",
+            )
+
+        assert raised.value is error
+        assert not local_path.exists()
+        assert not local_path.is_symlink()
+        assert mounted_path.read_bytes() == b"PDF"
 
     def test_build_local_path_sanitises_file_id_and_extension(self, droid):
         result = droid.build_local_path("file/../1", ".P-D_F")
@@ -866,14 +1029,14 @@ class TestRunDroid:
 
 
 @pytest.mark.integration
-@mock_aws
-def test_identify_s3_object_with_moto_and_installed_droid(monkeypatch):
-    """Exercise Moto download and the real DROID installation end to end."""
-    region = "eu-west-2"
-    bucket = "droid-integration-test-bucket"
-    key = "MIG 1/TDR-1/integration-file"
+def test_mounted_object_with_installed_droid(
+    droid,
+    monkeypatch,
+    tmp_path,
+):
+    """Exercise a local mounted-input fixture and the real DROID installation."""
     file_id = "droid-integration-file"
-    local_path = Path("/tmp/droid-integration-file.pdf")
+    local_path = tmp_path / f"{file_id}.pdf"
     pdf_bytes = (
         b"%PDF-1.4\n"
         b"1 0 obj\n"
@@ -884,7 +1047,7 @@ def test_identify_s3_object_with_moto_and_installed_droid(monkeypatch):
         b"%%EOF\n"
     )
 
-    droid_command = Path(droid_module.DROID_COMMAND)
+    droid_command = Path(droid.DROID_COMMAND)
     assert droid_command.is_file(), (
         f"DROID command is not installed at {droid_command}"
     )
@@ -892,24 +1055,29 @@ def test_identify_s3_object_with_moto_and_installed_droid(monkeypatch):
         f"DROID command is not executable: {droid_command}"
     )
 
-    moto_s3 = boto3.client("s3", region_name=region)
-    moto_s3.create_bucket(
-        Bucket=bucket,
-        CreateBucketConfiguration={"LocationConstraint": region},
+    mount_path = tmp_path / "mount"
+    mounted_object = mount_path / DATA_KEY
+    mounted_object.parent.mkdir(parents=True)
+    mounted_object.write_bytes(pdf_bytes)
+    monkeypatch.setattr(droid, "DROID_INPUT_MOUNT_PATH", mount_path)
+    monkeypatch.setattr(
+        droid,
+        "build_local_path",
+        mock.Mock(return_value=local_path),
     )
-    moto_s3.put_object(Bucket=bucket, Key=key, Body=pdf_bytes)
-
-    monkeypatch.setattr(droid_module, "s3", moto_s3)
 
     try:
-        result = droid_module.identify_s3_object(
-            bucket=bucket,
-            key=key,
+        mounted_path = droid.get_mounted_object_path(DATA_BUCKET, DATA_KEY)
+        droid_row = droid.run_droid_for_mounted_object(
+            mounted_path=mounted_path,
             file_id=file_id,
             extension="pdf",
         )
+        result = droid.map_droid_row_to_ffid_metadata(file_id, droid_row)
 
         assert not local_path.exists()
+        assert not local_path.is_symlink()
+        assert mounted_object.read_bytes() == pdf_bytes
         assert result["FileId"] == file_id
         assert result["Extension"] == "pdf"
         assert result["PUID"] == "fmt/18"
