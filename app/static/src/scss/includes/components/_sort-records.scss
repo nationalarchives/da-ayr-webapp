@@ -20,6 +20,32 @@
     @media screen and (width <= $breakpoint-medium) {
       width: 100%;
       margin: 0;
+
+      display: flex;
+
+      .browse__sort-container {
+        width: 100%;
+
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 0.5rem;
+
+        flex-flow: row wrap;
+
+        select {
+          width: auto;
+          margin-right: 0;
+        }
+
+        .govuk-button {
+          width: auto;
+          margin-top: 0;
+          margin-bottom: 0;
+
+          flex: 0 0 auto;
+        }
+      }
     }
   }
 

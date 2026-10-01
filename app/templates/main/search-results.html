@@ -3,7 +3,7 @@
 {% from 'main/components/back-link.html' import page_back_link %}
 {% from "main/components/no-results-message.html" import no_results_message %}
 {% from 'main/components/records-table.html' import render_record_table %}
-{% from 'main/components/records-per-page.html' import sort_records %}
+{% from 'main/components/records-per-page.html' import records_per_page %}
 {% from 'macros/forms.html' import render_preserved_params %}
 {% block pageTitle %}Search results – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
@@ -89,7 +89,7 @@
                                 {% set _ = preserved_params.pop('page', None) %}
                                 {% set _ = preserved_params.pop('_id', None) %}
                                 {% set selected_per_page = (query_string_parameters.get('per_page', '5') | string) %}
-                                {{ sort_records(preserved_params, per_page_options, selected_per_page) }}
+                                {{ records_per_page(preserved_params, per_page_options, selected_per_page) }}
                             </div>
                         </div>
                         {% set number_of_columns = 4 %}

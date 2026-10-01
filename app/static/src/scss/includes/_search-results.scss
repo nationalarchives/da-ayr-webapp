@@ -445,15 +445,60 @@ a.govuk-link {
   padding: 0;
 
   display: flex;
-  align-items: flex-end;
   justify-content: flex-start;
+  gap: 1rem;
 
   @media screen and (width <= $breakpoint-medium) {
     width: 100%;
     margin-bottom: 0.5rem;
 
     flex-direction: column;
+    align-items: flex-start; /* Aligns all children elements to the left */
+    justify-content: flex-start;
     gap: 0.5rem;
+  }
+
+  js-enabled & {
+    .sort-list-search-form-no-js {
+      display: none;
+    }
+  }
+
+  .sort-list-search-form-no-js {
+    margin-bottom: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    @media screen and (width <= $breakpoint-medium) {
+      width: 100%;
+
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+
+      .browse__sort-container {
+        width: 100%;
+
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .govuk-select__sort-container-select-no-js {
+        width: auto;
+        margin-right: 0;
+      }
+
+      .govuk-button {
+        width: auto;
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+    }
   }
 
   .search__per-page-container {
