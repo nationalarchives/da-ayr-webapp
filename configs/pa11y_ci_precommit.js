@@ -33,7 +33,7 @@ module.exports = {
         `set field #username to ${process.env.AYR_AAU_USER_USERNAME}`,
         `set field #password to ${process.env.AYR_AAU_USER_PASSWORD}`,
         'click element button[type="submit"]',
-        "wait for path to be /browse",
+        "wait for path to be /browse/records",
       ],
     },
 

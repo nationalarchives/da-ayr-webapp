@@ -271,7 +271,7 @@ def callback():
     else:
         session["user_type"] = "standard_user"
 
-    return redirect(url_for("main.browse"))
+    return redirect(url_for("main.browse_records"))
 
 
 def _resolve_user_claims_with_fallbacks(
