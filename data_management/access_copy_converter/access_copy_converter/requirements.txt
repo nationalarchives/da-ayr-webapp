@@ -1,5 +1,5 @@
 boto3==1.43.102
 requests>=2.20.0
-SQLAlchemy==2.1.0
+SQLAlchemy==2.1.1
 psycopg2-binary==2.9.13
 psutil==7.2.2
