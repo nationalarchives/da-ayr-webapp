@@ -5,6 +5,12 @@
 
   border-bottom: 1px solid #b1b4b6;
 
+  @media screen and (width <= $breakpoint-medium) {
+    width: auto;
+
+    table-layout: fixed;
+  }
+
   &__row {
     border-bottom: 1px solid $colour-border-normal;
   }

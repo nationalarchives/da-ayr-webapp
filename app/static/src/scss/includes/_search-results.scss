@@ -441,20 +441,74 @@ a.govuk-link {
 
 .filter-group {
   height: 100%;
-  margin-top: 2rem;
-  margin-bottom: 47px;
+  margin-bottom: 20px;
   padding: 0;
 
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 1rem;
 
   @media screen and (width <= $breakpoint-medium) {
     width: 100%;
     margin-bottom: 0.5rem;
 
     flex-direction: column;
+    align-items: flex-start; /* Aligns all children elements to the left */
+    justify-content: flex-start;
     gap: 0.5rem;
+  }
+
+  js-enabled & {
+    .sort-list-search-form-no-js {
+      display: none;
+    }
+  }
+
+  .sort-list-search-form-no-js {
+    margin-bottom: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    @media screen and (width <= $breakpoint-medium) {
+      width: 100%;
+
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+
+      .browse__sort-container {
+        width: 100%;
+
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .govuk-select__sort-container-select-no-js {
+        width: auto;
+        margin-right: 0;
+      }
+
+      .govuk-button {
+        width: auto;
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .search__per-page-container {
+    .sort-list-records-left-wrapper {
+      margin-bottom: 0;
+    }
+
+    .sort-list-records-no-js {
+      margin-bottom: 0;
+    }
   }
 
   .browse__sort-container {
@@ -466,6 +520,12 @@ a.govuk-link {
 
     @media screen and (width <= $breakpoint-medium) {
       max-width: 100%;
+    }
+
+    &__sort-container-select-no-js {
+      @media screen and (width <= $breakpoint-medium) {
+        width: 100%;
+      }
     }
   }
 

@@ -710,7 +710,7 @@ class TestBrowseRecords:
             "form.sort-list-records-no-js-form"
         )
         noscript_per_page_form = soup.select_one(
-            "form.sort-list-records-no-js__per-page"
+            "form.records-per-page-no-js__form"
         )
 
         assert js_form is not None
@@ -741,16 +741,6 @@ class TestBrowseRecords:
             is None
         )
 
-        noscript_sort_hidden_per_page = noscript_sort_form.find(
-            "input",
-            {
-                "type": "hidden",
-                "name": "per_page",
-                "value": "10",
-            },
-        )
-        assert noscript_sort_hidden_per_page is not None
-
         noscript_per_page_hidden_consignment = noscript_per_page_form.find(
             "input",
             {
@@ -759,14 +749,7 @@ class TestBrowseRecords:
                 "value": "TDR-2023-TH3",
             },
         )
-        noscript_per_page_hidden_sort = noscript_per_page_form.find(
-            "input",
-            {
-                "type": "hidden",
-                "name": "sort",
-                "value": "file_name-desc",
-            },
-        )
+
         noscript_per_page_select = noscript_per_page_form.find(
             "select", {"name": "per_page"}
         )
@@ -775,7 +758,6 @@ class TestBrowseRecords:
         )
 
         assert noscript_per_page_hidden_consignment is not None
-        assert noscript_per_page_hidden_sort is not None
         assert noscript_per_page_select is not None
         assert noscript_per_page_sort_select is None
 

@@ -116,9 +116,22 @@
         const leftSortSelect = document.querySelector('.record-select--sort-left');
         const leftLabel = document.querySelector('.browse-records__label--left');
         const recordsSortSelect = document.querySelector('.js-records-sort-select');
-        const form = document.getElementById('records-form');
+        const form = document.getElementById('records-form') || document.getElementById('per-page-form');
 
         // Show the left select and label element when JS is enabled
+
+        const leftPerPageSelect = document.querySelector('.records-per-page__select--left');
+        const leftPerPageLabel = document.querySelector('.records-per-page__label--left');
+        const perPageForm = document.getElementById('per-page-form');
+
+        const searchSortSelect = document.getElementById('search-sort');
+        const searchForm = document.getElementById('search-form');
+
+        if (searchSortSelect && searchForm) {
+            searchSortSelect.addEventListener('change', function() {
+                searchForm.submit();
+            });
+        }
 
         if (leftSortSelect) {
             leftSortSelect.style.display = 'inline-flex';
@@ -127,7 +140,20 @@
             leftLabel.style.display = 'inline-block';
         }
 
+        if (leftPerPageSelect) {
+            leftPerPageSelect.style.display = 'inline-flex';
+        }
+        if (leftPerPageLabel) {
+            leftPerPageLabel.style.display = 'inline-block';
+        }
+
         // Handle auto-submit for the left dropdown using its class
+        if (leftSortSelect && recordsForm) {
+            leftSortSelect.addEventListener('change', function(e) {
+                recordsForm.submit();
+            });
+        }
+
         if (leftSortSelect && form) {
             leftSortSelect.addEventListener('change', function(e) {
                 form.submit();
@@ -140,6 +166,21 @@
             });
         }
 
+
+        // --- ADD THESE LINES TO FORCE THE LABEL AND SELECT TO SHOW WHEN JS IS ENABLED ---
+        if (leftPerPageLabel) {
+            leftPerPageLabel.style.display = 'inline-block';
+        }
+        if (leftPerPageSelect) {
+            leftPerPageSelect.style.display = 'inline-flex';
+        }
+
+        // Handle auto-submit for the separate per-page dropdown
+        if (leftPerPageSelect && perPageForm) {
+            leftPerPageSelect.addEventListener('change', function() {
+                perPageForm.submit();
+            });
+        }
         document.addEventListener('click', function(e) {
             const backLink = e.target.closest('a[data-history-back-link="true"]');
             if (!backLink) {
