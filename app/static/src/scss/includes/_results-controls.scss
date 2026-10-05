@@ -1,0 +1,31 @@
+@use "../../../../../node_modules/govuk-frontend/dist/govuk/helpers/spacing" as
+  govuk-spacing;
+@use "variables" as *;
+
+.ayr-results-controls {
+  margin-bottom: govuk-spacing.govuk-spacing(4);
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: govuk-spacing.govuk-spacing(3);
+
+  > .ayr-results-control {
+    min-width: min-content;
+
+    flex: 1 1 0;
+  }
+
+  .ayr-results-controls-enhanced & > .ayr-results-control[data-auto-submit] {
+    width: auto;
+
+    flex: 0 1 auto;
+  }
+
+  @media screen and (width <= $breakpoint-medium) {
+    > .ayr-results-control {
+      min-width: 0;
+
+      flex-basis: 100%;
+    }
+  }
+}

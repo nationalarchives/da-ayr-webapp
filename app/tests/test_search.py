@@ -155,6 +155,30 @@ class TestSearchResults:
         return "/search/results"
 
     @patch("app.main.routes.setup_opensearch")
+    def test_search_results_uses_configured_default_per_page(
+        self,
+        mock_setup_opensearch,
+        client: FlaskClient,
+        mock_all_access_user,
+        monkeypatch,
+    ):
+        """The per-page control reflects the default used by the route."""
+        mock_all_access_user(client)
+        monkeypatch.setitem(client.application.config, "DEFAULT_PAGE_SIZE", 10)
+        mock_setup_opensearch.return_value = MockOpenSearch(
+            search_return_value=OS_MOCK_RESULTS
+        )
+
+        response = client.get(f"{self.route_url}?query=test")
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        per_page_select = soup.find("select", id="search-per-page")
+
+        assert per_page_select is not None
+        assert per_page_select.find("option", selected=True)["value"] == "10"
+
+    @patch("app.main.routes.setup_opensearch")
     def test_search_results_renders_top_search_with_default_everywhere_selected(
         self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
     ):

@@ -1,22 +1,22 @@
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
-<div class="browse__sort-container">
-    <label class="govuk-label" for="sort">Sort by</label>
-    <select class="govuk-select govuk-select__sort-container-select"
-            id="sort"
-            name="sort">
-        {% for key, value in dict.items() %}
-            {% set list = value.split('-') %}
-            {% if list | length > 1 %}
-                <option value="{{ value }}"
-                        {% if sorting_orders[list[0]] %} {% if sorting_orders[list[0]] == list[1] %}selected{% endif %}
-                        {% endif %}>{{ key }}</option>
-            {% else %}
-                <option value="{{ value }}">{{ key }}</option>
-            {% endif %}
-        {% endfor %}
-    </select>
+{% from 'govuk_frontend_jinja/components/select/macro.html' import govukSelect %}
+{% set select_items = namespace(items=[]) %}
+{% for key, value in dict.items() %}
+    {% set option_parts = value.split('-') %}
+    {% set selected = option_parts|length > 1 and sorting_orders[option_parts[0]] == option_parts[1] %}
+    {% set _ = select_items.items.append({'value': value, 'text': key, 'selected': selected}) %}
+{% endfor %}
+<div class="ayr-sort-container">
+    {{ govukSelect({
+    'id': 'sort',
+    'name': 'sort',
+    'label': {'text': 'Sort by'},
+    'items': select_items.items,
+    'classes': 'ayr-sort-container__select',
+    'formGroup': {'classes': 'govuk-!-margin-bottom-0'}
+    }) }}
     {{ govukButton({
     'text': "Apply",
-    'classes': "govuk-button__sort-container-update-button",
+    'classes': "ayr-sort-container__button govuk-!-margin-bottom-0",
     }) }}
 </div>

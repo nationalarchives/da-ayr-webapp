@@ -705,19 +705,17 @@ class TestBrowseRecords:
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
 
-        js_form = soup.select_one("form.sort-list-records-form")
-        noscript_sort_form = soup.select_one(
-            "form.sort-list-records-no-js-form"
+        forms = soup.select("form.ayr-results-control")
+        assert len(forms) == 2
+
+        sort_form = next(
+            form for form in forms if form.find("select", {"name": "sort"})
         )
-        noscript_per_page_form = soup.select_one(
-            "form.records-per-page-no-js__form"
+        per_page_form = next(
+            form for form in forms if form.find("select", {"name": "per_page"})
         )
 
-        assert js_form is not None
-        assert noscript_sort_form is not None
-        assert noscript_per_page_form is not None
-
-        for form in [js_form, noscript_sort_form]:
+        for form in [sort_form, per_page_form]:
             hidden_consignment = form.find(
                 "input",
                 {
@@ -726,40 +724,31 @@ class TestBrowseRecords:
                     "value": "TDR-2023-TH3",
                 },
             )
-            sort_select = form.find("select", {"name": "sort"})
             hidden_page = form.find("input", {"type": "hidden", "name": "page"})
 
             assert hidden_consignment is not None
-            assert sort_select is not None
-            selected_sort_option = sort_select.find("option", selected=True)
-            assert selected_sort_option is not None
-            assert selected_sort_option.get("value") == "file_name-desc"
             assert hidden_page is None
 
+        selected_sort_option = sort_form.find("option", selected=True)
+        selected_per_page_option = per_page_form.find("option", selected=True)
+        assert selected_sort_option is not None
+        assert selected_sort_option.get("value") == "file_name-desc"
+        assert selected_per_page_option is not None
+        assert selected_per_page_option.get("value") == "10"
+        assert sort_form.get("data-auto-submit") is not None
+        assert per_page_form.get("data-auto-submit") is not None
+        assert "ayr-results-control--auto-submit" not in sort_form.get(
+            "class", []
+        )
+        assert "ayr-results-control--auto-submit" not in per_page_form.get(
+            "class", []
+        )
+        assert sort_form.find("button", {"type": "submit"}) is not None
+        assert per_page_form.find("button", {"type": "submit"}) is not None
         assert (
-            js_form.find("input", {"type": "hidden", "name": "per_page"})
-            is None
+            per_page_form.find("input", {"type": "hidden", "name": "sort"})
+            is not None
         )
-
-        noscript_per_page_hidden_consignment = noscript_per_page_form.find(
-            "input",
-            {
-                "type": "hidden",
-                "name": "consignment_reference",
-                "value": "TDR-2023-TH3",
-            },
-        )
-
-        noscript_per_page_select = noscript_per_page_form.find(
-            "select", {"name": "per_page"}
-        )
-        noscript_per_page_sort_select = noscript_per_page_form.find(
-            "select", {"name": "sort"}
-        )
-
-        assert noscript_per_page_hidden_consignment is not None
-        assert noscript_per_page_select is not None
-        assert noscript_per_page_sort_select is None
 
     def test_browse_records_no_results_for_nonsensical_filter(
         self, client: FlaskClient, mock_all_access_user, browse_files

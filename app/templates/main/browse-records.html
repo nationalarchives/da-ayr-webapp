@@ -2,8 +2,7 @@
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
 {% from "main/components/no-results-message.html" import no_results_message %}
 {% from 'main/components/back-link.html' import page_back_link %}
-{% from 'main/components/sort-records.html' import sort_records %}
-{% from 'main/components/records-per-page.html' import records_per_page %}
+{% from 'main/components/results-control.html' import results_control %}
 {% from 'main/components/records-table.html' import render_record_table %}
 {% block pageTitle %}Browse records – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {% block content %}
@@ -60,14 +59,19 @@
                     {% if num_records_found > 0 %}
                         {% set number_of_columns = 4 %}
                         <!-- SORT -->
-                        {% set preserved_params = query_string_parameters.copy() %}
-                        {% set _ = preserved_params.pop('per_page', None) %}
-                        {% set _ = preserved_params.pop('page', None) %}
-                        {% set _ = preserved_params.pop('_id', None) %}
-                        {% set _ = preserved_params.pop('sort', None) %}
-                        <div class="govuk-grid-column-two-thirds filter-group">
-                            {{ sort_records(preserved_params, records_sort_options, selected_sort) }}
-                            {{ records_per_page(preserved_params, per_page_options, selected_per_page) }}
+                        <div class="ayr-results-controls">
+                            {{ results_control(
+                            url_for('main.browse_records', _anchor='records'),
+                            'records-sort', 'Sort records', 'sort', records_sort_options,
+                            selected_sort, 'Sort', query_string_parameters, ['sort', 'page'],
+                            auto_submit=true
+                            ) }}
+                            {{ results_control(
+                            url_for('main.browse_records', _anchor='records'),
+                            'records-per-page', 'Records per page', 'per_page', per_page_options,
+                            selected_per_page, 'Apply', query_string_parameters, ['per_page', 'page'],
+                            auto_submit=true, select_class='ayr-results-control__select--compact'
+                            ) }}
                         </div>
                         <!-- TABLE -->
                         {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, 'main.browse_records', None) %}

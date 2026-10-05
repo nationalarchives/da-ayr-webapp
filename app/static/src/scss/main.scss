@@ -33,6 +33,7 @@
 @use "includes/search";
 @use "includes/table";
 @use "includes/search-results";
+@use "includes/results-controls";
 @use "includes/static-content-template";
 @use "includes/overrides";
 @use "includes/uv";
@@ -42,5 +43,4 @@
 @use "includes/components/alert-banner";
 @use "includes/components/belly-band";
 @use "includes/components/browse-record-row";
-@use "includes/components/sort-records";
-@use "includes/components/records-per-page";
+@use "includes/components/results-control";
