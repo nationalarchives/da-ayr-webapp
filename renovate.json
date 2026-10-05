@@ -17,8 +17,11 @@
       "matchDatasources": [
         "deb"
       ],
+      "minimumReleaseAgeBehaviour": "timestamp-optional",
       "registryUrls": [
-        "https://deb.debian.org/debian?suite=trixie&components=main,contrib,non-free&binaryArch=amd64"
+        "https://deb.debian.org/debian?suite=trixie&components=main,contrib,non-free&binaryArch=amd64",
+        "https://deb.debian.org/debian?suite=trixie-updates&components=main,contrib,non-free&binaryArch=amd64",
+        "https://security.debian.org/debian-security?suite=trixie-security&components=main,contrib,non-free&binaryArch=amd64"
       ]
     },
     {
