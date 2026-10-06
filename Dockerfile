@@ -5,7 +5,7 @@ ARG GCC_VERSION=4:14.2.0-1
 # renovate: datasource=deb depName=libpq-dev
 ARG LIBPQ_DEV_VERSION=17.11-0+deb13u1
 # renovate: datasource=deb depName=openssl
-ARG OPENSSL_VERSION=3.5.7-1~deb13u2
+ARG OPENSSL_VERSION=3.5.7-1~deb13u3
 # renovate: datasource=deb depName=tesseract-ocr
 ARG TESSERACT_OCR_VERSION=5.5.0-1+b1
 # renovate: datasource=deb depName=antiword
