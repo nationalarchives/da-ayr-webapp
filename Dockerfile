@@ -1,4 +1,4 @@
-FROM python:3.14-slim@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
+FROM python:3.14.8-slim@sha256:f85c5697265c178cc6887276c55fe16cf3d14ca35c3df6a5eab3b360534a55d2
 
 # renovate: datasource=deb depName=gcc
 ARG GCC_VERSION=4:14.2.0-1
@@ -6,6 +6,8 @@ ARG GCC_VERSION=4:14.2.0-1
 ARG LIBPQ_DEV_VERSION=17.11-0+deb13u1
 # renovate: datasource=deb depName=openssl
 ARG OPENSSL_VERSION=3.5.7-1~deb13u3
+# renovate: datasource=deb depName=libpcre2-8-0
+ARG LIBPCRE2_8_0_VERSION=10.46-1~deb13u3
 # renovate: datasource=deb depName=tesseract-ocr
 ARG TESSERACT_OCR_VERSION=5.5.0-1+b1
 # renovate: datasource=deb depName=antiword
@@ -26,6 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc=${GCC_VERSION} \
     libpq-dev=${LIBPQ_DEV_VERSION} \
     openssl=${OPENSSL_VERSION} \
+    libpcre2-8-0=${LIBPCRE2_8_0_VERSION} \
     tesseract-ocr=${TESSERACT_OCR_VERSION} \
     antiword=${ANTIWORD_VERSION} \
     unrtf=${UNRTF_VERSION} \
@@ -49,7 +52,7 @@ RUN npm ci
 
 COPY build.sh /docker_app/build.sh
 COPY app/ /docker_app/app
-RUN chmod +x /docker_app/build.sh && /docker_app/build.sh && npm run build
+RUN chmod +x /docker_app/build.sh && /docker_app/build.sh && npm run build && npm prune --omit=dev
 
 COPY configs/ /docker_app/configs
 COPY main_app.py .flaskenv /docker_app/

@@ -9,8 +9,8 @@ ARG JAVA_21_AMAZON_CORRETTO_HEADLESS_VERSION=1:21.0.12+9-1.amzn2023.1
 # renovate: datasource=repology depName=amazon_2023/unzip versioning=loose
 ARG UNZIP_VERSION=6.0-68.amzn2023.0.1
 
-ARG AL2023_RELEASE=2023.12.20260914
-ARG CURL_VERSION=8.21.0-5.amzn2023.0.1
+ARG AL2023_RELEASE=2023.12.20260928
+ARG CURL_VERSION=8.21.0-5.amzn2023.0.2
 ARG OPENSSL_VERSION=1:3.5.8-1.amzn2023.0.1
 ARG ALSA_LIB_VERSION=1.2.7.2-1.amzn2023.0.4
 
@@ -48,6 +48,7 @@ org.apache.cxf:cxf-rt-ws-policy:4.2.3 \
 
 # Install Java for DROID, plus the tools needed to unpack and patch it.
 RUN dnf clean all && \
+  dnf upgrade -y --releasever="${AL2023_RELEASE}" && \
     dnf install -y \
       --releasever="${AL2023_RELEASE}" \
       "alsa-lib-${ALSA_LIB_VERSION}" \
