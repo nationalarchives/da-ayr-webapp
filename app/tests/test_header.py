@@ -17,7 +17,7 @@ def test_header_links_render(client):
     header_html = """<header class="govuk-header" data-module="govuk-header" role="banner">
 <div class="govuk-header__container govuk-header__container--ayr govuk-width-container">
 <div class="govuk-header__logo govuk-header__logo--ayr">
-<a class="govuk-header__link govuk-header__link--homepage govuk-header__link--homepage--ayr" href="/browse">
+<a class="govuk-header__link govuk-header__link--homepage govuk-header__link--homepage--ayr" href="/browse/records">
 <span class="govuk-header__logotype-text govuk-header__logotype--ayr">Access Your Records (AYR)</span>
 </a>
 </div>
