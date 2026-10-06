@@ -12,6 +12,7 @@ from jinja2 import (
     PrefixLoader,
     select_autoescape,
 )
+from sqlalchemy.engine import make_url
 from testing.postgresql import PostgresqlFactory
 
 from app import create_app
@@ -103,7 +104,12 @@ def mock_all_access_user():
 
 @pytest.fixture
 def app(database):
-    app = create_app(TestingConfig, True, database.url())
+    database_uri = make_url(database.url()).set(
+        drivername="postgresql+psycopg2"
+    )
+    app = create_app(
+        TestingConfig, True, database_uri.render_as_string(hide_password=False)
+    )
     yield app
 
 
