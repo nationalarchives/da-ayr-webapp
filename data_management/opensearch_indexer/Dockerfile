@@ -31,9 +31,9 @@ ARG LIBJPEG_DEV_VERSION=1:2.1.5-4
 # renovate: datasource=deb depName=swig
 ARG SWIG_VERSION=4.3.0-1
 # renovate: datasource=deb depName=libreoffice
-ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u7
+ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u8
 # renovate: datasource=deb depName=libreoffice-java-common
-ARG LIBREOFFICE_JAVA_COMMON_VERSION=4:25.2.3-2+deb13u7
+ARG LIBREOFFICE_JAVA_COMMON_VERSION=4:25.2.3-2+deb13u8
 # renovate: datasource=deb depName=default-jre
 ARG DEFAULT_JRE_VERSION=2:1.21-76
 # renovate: datasource=deb depName=libsqlite3-0
