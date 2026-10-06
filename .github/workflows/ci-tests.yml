@@ -98,27 +98,6 @@ jobs:
         cache-to: type=gha,scope=webapp,mode=max
         outputs: type=docker,dest=/tmp/da-ayr-beta-webapp-image.tar
 
-    - name: Load webapp image for Wiz scan
-      run: docker load --input /tmp/da-ayr-beta-webapp-image.tar
-
-    - name: Install Wiz CLI
-      run: |
-        curl -fsSL -o wizcli https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64
-        chmod +x wizcli
-
-    - name: Scan webapp image with Wiz
-      if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-      env:
-        WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
-        WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
-        WIZ_PROJECT: ${{ secrets.WIZ_PROJECT_ACCESSYOURRECORDS }}
-      run: |
-        ./wizcli scan container-image \
-          --client-id "$WIZ_CLIENT_ID" \
-          --client-secret "$WIZ_CLIENT_SECRET" \
-          --project "$WIZ_PROJECT" \
-          da-ayr-beta-webapp:latest
-
     - name: Upload webapp image artifact
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
@@ -156,6 +135,26 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
+    - name: Install Wiz CLI
+      run: |
+        curl -fsSL -o wizcli https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64
+        chmod +x wizcli
+
+    - name: Scan deployable build context with Wiz
+      if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+      env:
+        WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
+        WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
+        WIZ_PROJECT: ${{ secrets.WIZ_PROJECT_ACCESSYOURRECORDS }}
+        WIZ_SCAN_NAME: ayr-${{ matrix.name }}-${{ github.run_number }}
+      run: |
+        ./wizcli scan dir \
+          --client-id "$WIZ_CLIENT_ID" \
+          --client-secret "$WIZ_CLIENT_SECRET" \
+          --name "$WIZ_SCAN_NAME" \
+          --project "$WIZ_PROJECT" \
+          "${{ matrix.context }}"
+
     - name: Build deployable image
       uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
       with:
@@ -165,11 +164,6 @@ jobs:
         tags: ayr-${{ matrix.name }}:ci
         cache-from: type=gha,scope=deployable-${{ matrix.name }}
         cache-to: type=gha,scope=deployable-${{ matrix.name }},mode=max
-
-    - name: Install Wiz CLI
-      run: |
-        curl -fsSL -o wizcli https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64
-        chmod +x wizcli
 
     - name: Scan image with Wiz
       if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
