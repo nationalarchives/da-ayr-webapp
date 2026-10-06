@@ -4,6 +4,22 @@
     "config:best-practices",
     "customManagers:dockerfileVersions"
   ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^data_management\\/dri_to_ayr_data_migration\\/droid\\/Dockerfile$/",
+        "/^data_management\\/dri_to_ayr_data_migration\\/tests\\/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "(?<groupId>[A-Za-z0-9_.-]+):(?<artifactId>[A-Za-z0-9_.-]+):(?<currentValue>[^:\\s\\\\]+)(?::(?<replacementArtifact>[A-Za-z0-9_.-]+))?\\s+\\\\"
+      ],
+      "depNameTemplate": "{{#if replacementArtifact}}{{{groupId}}}:{{{replacementArtifact}}}{{else}}{{{groupId}}}:{{{artifactId}}}{{/if}}",
+      "packageNameTemplate": "{{#if replacementArtifact}}{{{groupId}}}:{{{replacementArtifact}}}{{else}}{{{groupId}}}:{{{artifactId}}}{{/if}}",
+      "datasourceTemplate": "maven",
+      "versioningTemplate": "maven"
+    }
+  ],
   "minimumReleaseAge": "7 days",
   "vulnerabilityAlerts": {
     "minimumReleaseAge": "0 days",
@@ -52,6 +68,21 @@
       ],
       "minimumReleaseAge": "1 day",
       "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
+      "description": "Keep DROID runtime and test JAR patches synchronized",
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchFileNames": [
+        "data_management/dri_to_ayr_data_migration/droid/Dockerfile",
+        "data_management/dri_to_ayr_data_migration/tests/Dockerfile"
+      ],
+      "matchDatasources": [
+        "maven"
+      ],
+      "groupName": "DROID JAR patches",
+      "groupSlug": "droid-jar-patches"
     },
     {
       "description": "Pin Python to 3.13 in GitHub Actions workflows; project requires >=3.13,<3.14",
