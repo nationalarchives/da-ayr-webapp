@@ -1,13 +1,13 @@
 FROM python:3.14-slim@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
 
 # renovate: datasource=deb depName=libreoffice
-ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u7
+ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u8
 # renovate: datasource=deb depName=libreoffice-writer
-ARG LIBREOFFICE_WRITER_VERSION=4:25.2.3-2+deb13u7
+ARG LIBREOFFICE_WRITER_VERSION=4:25.2.3-2+deb13u8
 # renovate: datasource=deb depName=libreoffice-calc
-ARG LIBREOFFICE_CALC_VERSION=4:25.2.3-2+deb13u7
+ARG LIBREOFFICE_CALC_VERSION=4:25.2.3-2+deb13u8
 # renovate: datasource=deb depName=libreoffice-java-common
-ARG LIBREOFFICE_JAVA_COMMON_VERSION=4:25.2.3-2+deb13u7
+ARG LIBREOFFICE_JAVA_COMMON_VERSION=4:25.2.3-2+deb13u8
 # renovate: datasource=deb depName=default-jre
 ARG DEFAULT_JRE_VERSION=2:1.21-76
 # renovate: datasource=deb depName=libsqlite3-0
