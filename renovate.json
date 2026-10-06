@@ -39,6 +39,21 @@
       "automerge": true
     },
     {
+      "description": "Apply a one-day release-age window to Python base-image digests; CI and Wiz gate merging",
+      "matchManagers": [
+        "dockerfile"
+      ],
+      "matchPackageNames": [
+        "python",
+        "public.ecr.aws/lambda/python"
+      ],
+      "matchUpdateTypes": [
+        "digest"
+      ],
+      "minimumReleaseAge": "1 day",
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
       "description": "Pin Python to 3.13 in GitHub Actions workflows; project requires >=3.13,<3.14",
       "matchManagers": [
         "github-actions"
