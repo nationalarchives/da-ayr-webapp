@@ -2,7 +2,7 @@ FROM public.ecr.aws/lambda/python:3.14@sha256:682e029708e21793bda61ec0cd551bec16
 
 ARG AL2023_RELEASE=2023.12.20260914
 ARG OPENSSL_VERSION=1:3.5.8-1.amzn2023.0.1
-ARG CURL_VERSION=8.21.0-5.amzn2023.0.2
+ARG CURL_VERSION=8.21.0-5.amzn2023.0.1
 
 RUN dnf clean all && \
     dnf install -y \
