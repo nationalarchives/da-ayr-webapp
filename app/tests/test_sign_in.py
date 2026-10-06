@@ -60,7 +60,7 @@ def test_callback_route_sets_user_type_and_user_id(
     response = client.get("/callback?code=valid_code&state=valid_state")
 
     assert response.status_code == 302
-    assert response.headers["Location"] == url_for("main.browse")
+    assert response.headers["Location"] == url_for("main.browse_records")
 
     with client.session_transaction() as sess:
         assert "user_type" in sess
@@ -91,7 +91,7 @@ def test_callback_falls_back_to_userinfo_when_introspect_groups_missing(
     response = client.get("/callback?code=valid_code&state=valid_state")
 
     assert response.status_code == 302
-    assert response.headers["Location"] == url_for("main.browse")
+    assert response.headers["Location"] == url_for("main.browse_records")
 
     with client.session_transaction() as sess:
         assert sess["user_groups"] == ["/ayr_user_type/view_all"]
@@ -128,7 +128,7 @@ def test_callback_falls_back_to_access_token_claims_when_userinfo_unavailable(
     response = client.get("/callback?code=valid_code&state=valid_state")
 
     assert response.status_code == 302
-    assert response.headers["Location"] == url_for("main.browse")
+    assert response.headers["Location"] == url_for("main.browse_records")
 
     with client.session_transaction() as sess:
         assert sess["user_groups"] == ["/ayr_user_type/view_all"]
@@ -158,7 +158,7 @@ def test_callback_redirects_to_index_when_all_group_fallbacks_unavailable(
     response = client.get("/callback?code=valid_code&state=valid_state")
 
     assert response.status_code == 302
-    assert response.headers["Location"] == url_for("main.browse")
+    assert response.headers["Location"] == url_for("main.browse_records")
 
     with client.session_transaction() as sess:
         assert sess["user_groups"] == []
@@ -334,7 +334,7 @@ def test_callback_tokens_have_expected_keycloak_lifetimes(
     response = client.get("/callback?code=valid_code&state=valid_state")
 
     assert response.status_code == 302
-    assert response.headers["Location"] == url_for("main.browse")
+    assert response.headers["Location"] == url_for("main.browse_records")
 
     with client.session_transaction() as sess:
         access_token = jwt.decode(

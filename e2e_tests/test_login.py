@@ -17,7 +17,7 @@ def test_sign_in_succeeds_when_valid_credentials(
     """
     username, password = create_aau_keycloak_user
     page = create_user_page(username, password)
-    expect(page).to_have_url("/browse")
+    expect(page).to_have_url("/browse/records")
 
     cookies = page.context.cookies()
     for index, cookie in enumerate(cookies):
