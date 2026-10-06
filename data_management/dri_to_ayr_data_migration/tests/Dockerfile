@@ -18,7 +18,8 @@ org.apache.httpcomponents.core5:httpcore5:5.4.3 \
 org.apache.httpcomponents.core5:httpcore5-h2:5.4.3 \
 org.apache.httpcomponents.client5:httpclient5:5.6.3 \
 org.apache.logging.log4j:log4j-api:2.26.1 \
-com.fasterxml.jackson.core:jackson-databind:2.22.1 \
+com.fasterxml.jackson.core:jackson-core:2.22.3 \
+com.fasterxml.jackson.core:jackson-databind:2.22.3 \
 org.bouncycastle:bcprov-jdk15to18:1.84 \
 org.bouncycastle:bcprov-jdk15on:1.79:bcprov-jdk18on \
 org.eclipse.angus:angus-mail:2.0.4 \

@@ -81,6 +81,8 @@
       "matchDatasources": [
         "maven"
       ],
+      "minimumReleaseAge": "1 day",
+      "minimumReleaseAgeBehaviour": "timestamp-optional",
       "groupName": "DROID JAR patches",
       "groupSlug": "droid-jar-patches"
     },
