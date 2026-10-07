@@ -52,7 +52,7 @@ RUN npm ci
 
 COPY build.sh /docker_app/build.sh
 COPY app/ /docker_app/app
-RUN chmod +x /docker_app/build.sh && /docker_app/build.sh && npm run build && npm prune --omit=dev
+RUN chmod +x /docker_app/build.sh && /docker_app/build.sh && npm run build
 
 COPY configs/ /docker_app/configs
 COPY main_app.py .flaskenv /docker_app/
