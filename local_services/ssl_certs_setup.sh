@@ -56,4 +56,6 @@ cp $OPENSEARCH_CERTS_DIR/root-ca.pem $RUSTFS_CERTS_DIR/root-ca.crt
 
 # Set permissions
 chmod 400 $OPENSEARCH_CERTS_DIR/* $WEBAPP_POSTGRES_CERTS_DIR/* $RUSTFS_CERTS_DIR/*
-chown 999:999 $WEBAPP_POSTGRES_CERTS_DIR/*
+if [ "$(uname -s)" = "Linux" ] && [ "$(id -u)" -eq 0 ]; then
+  chown 999:999 $WEBAPP_POSTGRES_CERTS_DIR/*
+fi

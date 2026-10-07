@@ -16,4 +16,6 @@ openssl req -new -key opensearch-node2.key -out opensearch-node2.csr -subj "/C=G
 openssl x509 -req -in opensearch-node1.csr -CA root-ca.pem -CAkey root-ca.key -CAcreateserial -out opensearch-node1.crt -days 365 -sha256
 openssl x509 -req -in opensearch-node2.csr -CA root-ca.pem -CAkey root-ca.key -CAcreateserial -out opensearch-node2.crt -days 365 -sha256
 
-chown 999:999 opensearch-node1.key opensearch-node2.key root-ca.key
+if [ "$(uname -s)" = "Linux" ] && [ "$(id -u)" -eq 0 ]; then
+    chown 999:999 opensearch-node1.key opensearch-node2.key root-ca.key
+fi
