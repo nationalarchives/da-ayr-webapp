@@ -80,13 +80,6 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-    - name: Log in to GHCR for Docker cache
-      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Build webapp image tar with cache
       uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
       with:
@@ -94,7 +87,6 @@ jobs:
         tags: "da-ayr-beta-webapp:latest"
         cache-from: |
           type=gha,scope=webapp
-          type=registry,ref=ghcr.io/nationalarchives/da-ayr-webapp-cache-webapp:main
         cache-to: type=gha,scope=webapp,mode=max
         outputs: type=docker,dest=/tmp/da-ayr-beta-webapp-image.tar
 
@@ -209,14 +201,17 @@ jobs:
 
     - name: Free up disk space
       run: |
-        docker system prune -af --volumes
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf /opt/ghc
-        sudo rm -rf /usr/local/share/boost
-        sudo rm -rf /usr/local/lib/android
-        sudo rm -rf /opt/hostedtoolcache/CodeQL
-        sudo rm -rf /usr/local/share/powershell
-        sudo rm -rf /usr/share/swift
+        available_kb=$(df -Pk / | awk 'NR == 2 { print $4 }')
+        minimum_kb=$((12 * 1024 * 1024))
+        if [ "$available_kb" -lt "$minimum_kb" ]; then
+          echo "Only $((available_kb / 1024 / 1024)) GiB free; reclaiming runner disk space"
+          docker system prune -af --volumes
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost \
+            /usr/local/lib/android /opt/hostedtoolcache/CodeQL \
+            /usr/local/share/powershell /usr/share/swift
+        else
+          echo "$((available_kb / 1024 / 1024)) GiB free; skipping runner cleanup"
+        fi
         df -h
 
     - name: Load webapp image
@@ -254,24 +249,15 @@ jobs:
         TEST_FILTER=$E2E_TEST_FILTER_VALUE
         EOF
 
-    - name: Log in to GHCR for Docker cache
-      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Build E2E Docker image with cache
+    - name: Build E2E Docker image with GHA cache
       uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
       with:
         context: e2e_tests
         push: false
         load: true
         tags: "e2e_tests:latest"
-        cache-from: |
-          type=gha,scope=e2e-tests
-          type=registry,ref=ghcr.io/nationalarchives/da-ayr-webapp-cache-e2e-tests:main
-        cache-to: type=gha,scope=e2e-tests,mode=max
+        cache-from: type=gha,scope=e2e-tests
+        cache-to: type=gha,scope=e2e-tests,mode=min
 
     - name: Run E2E tests with Docker
       run: |
