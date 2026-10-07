@@ -1,4 +1,4 @@
-FROM python:3.14-slim@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
+FROM python:3.14.8-slim@sha256:f85c5697265c178cc6887276c55fe16cf3d14ca35c3df6a5eab3b360534a55d2
 
 # renovate: datasource=deb depName=libreoffice
 ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u8
@@ -15,7 +15,7 @@ ARG LIBSQLITE3_0_VERSION=3.46.1-7+deb13u2
 # renovate: datasource=deb depName=perl-base
 ARG PERL_BASE_VERSION=5.40.1-6+deb13u1
 # renovate: datasource=deb depName=libpcre2-8-0
-ARG LIBPCRE2_8_0_VERSION=10.46-1~deb13u2
+ARG LIBPCRE2_8_0_VERSION=10.46-1~deb13u3
 # renovate: datasource=deb depName=libc6
 ARG LIBC6_VERSION=2.41-12+deb13u4
 # renovate: datasource=deb depName=libc-bin

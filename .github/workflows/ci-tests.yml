@@ -105,6 +105,85 @@ jobs:
         path: /tmp/da-ayr-beta-webapp-image.tar
         retention-days: 1
 
+  build_and_scan_deployable_images:
+    name: Build and scan ${{ matrix.name }} image
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: opensearch-indexer
+            context: data_management/opensearch_indexer
+          - name: access-copy-converter
+            context: data_management/access_copy_converter
+          - name: droid
+            context: data_management/dri_to_ayr_data_migration/droid
+          - name: finaliser
+            context: data_management/dri_to_ayr_data_migration/finaliser
+          - name: worker
+            context: data_management/dri_to_ayr_data_migration/worker
+          - name: series-coordinator
+            context: data_management/dri_to_ayr_data_migration/series_coordinator
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      with:
+        persist-credentials: false
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+    - name: Install Wiz CLI
+      run: |
+          curl -Lo wizcli https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64
+          curl -Lo /tmp/wizcli-sha256 https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64-sha256
+          curl -Lo /tmp/wizcli-sha256.sig https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64-sha256.sig
+          chmod +x wizcli
+          curl -Lo public_key.asc https://downloads.wiz.io/wizcli/public_key.asc
+          gpg --import public_key.asc
+          gpg --verify /tmp/wizcli-sha256.sig /tmp/wizcli-sha256
+          echo "$(cat /tmp/wizcli-sha256) wizcli" | sha256sum --check
+
+    - name: Scan deployable build context with Wiz
+      if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+      env:
+        WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
+        WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
+        WIZ_PROJECT: ${{ secrets.WIZ_PROJECT_ACCESSYOURRECORDS }}
+        WIZ_SCAN_NAME: ayr-${{ matrix.name }}-${{ github.run_number }}
+      run: |
+        ./wizcli scan dir \
+          --client-id "$WIZ_CLIENT_ID" \
+          --client-secret "$WIZ_CLIENT_SECRET" \
+          --name "$WIZ_SCAN_NAME" \
+          --project "$WIZ_PROJECT" \
+          "${{ matrix.context }}"
+
+    - name: Build deployable image
+      uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+      with:
+        context: ${{ matrix.context }}
+        push: false
+        load: true
+        tags: ayr-${{ matrix.name }}:ci
+        cache-from: type=gha,scope=deployable-${{ matrix.name }}
+        cache-to: type=gha,scope=deployable-${{ matrix.name }},mode=max
+
+    - name: Scan image with Wiz
+      if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+      env:
+        WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
+        WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
+        WIZ_PROJECT: ${{ secrets.WIZ_PROJECT_ACCESSYOURRECORDS }}
+      run: |
+        ./wizcli scan container-image \
+          --client-id "$WIZ_CLIENT_ID" \
+          --client-secret "$WIZ_CLIENT_SECRET" \
+          --project "$WIZ_PROJECT" \
+          "ayr-${{ matrix.name }}:ci"
+
   e2e_tests:
     needs:
     - changes
@@ -346,9 +425,10 @@ jobs:
   slack-alerts:
     needs:
     - build_webapp_image
+    - build_and_scan_deployable_images
     - e2e_tests
     - accessibility_tests
-    if: ${{ always() && (github.event_name == 'merge_group' || (github.event_name == 'push' && github.ref_name == 'main')) && (needs.build_webapp_image.result == 'failure' || needs.e2e_tests.result == 'failure' || needs.accessibility_tests.result == 'failure') }}
+    if: ${{ always() && (github.event_name == 'merge_group' || (github.event_name == 'push' && github.ref_name == 'main')) && (needs.build_webapp_image.result == 'failure' || needs.build_and_scan_deployable_images.result == 'failure' || needs.e2e_tests.result == 'failure' || needs.accessibility_tests.result == 'failure') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
