@@ -19,7 +19,6 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      run_e2e: ${{ steps.filter.outputs.e2e }}
       run_accessibility: ${{ steps.filter.outputs.accessibility }}
       run_mds_smoke: ${{ steps.filter.outputs.mds_smoke }}
 
@@ -34,16 +33,6 @@ jobs:
       uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
       with:
         filters: |
-          e2e:
-            - 'app/**'
-            - 'configs/**'
-            - 'local_services/**'
-            - 'e2e_tests/**'
-            - 'docker-compose.yml'
-            - 'Dockerfile'
-            - 'main_app.py'
-            - 'package*.json'
-            - '.github/workflows/ci-tests.yml'
           accessibility:
             - 'app/**'
             - 'configs/**'
@@ -66,8 +55,6 @@ jobs:
             - '.github/workflows/ci-tests.yml'
 
   build_webapp_image:
-    needs: changes
-    if: github.event_name == 'pull_request' || github.event_name == 'merge_group' || github.event_name == 'push' || needs.changes.outputs.run_e2e == 'true' || needs.changes.outputs.run_accessibility == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -80,13 +67,6 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-    - name: Log in to GHCR for Docker cache
-      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Build webapp image tar with cache
       uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
       with:
@@ -94,7 +74,6 @@ jobs:
         tags: "da-ayr-beta-webapp:latest"
         cache-from: |
           type=gha,scope=webapp
-          type=registry,ref=ghcr.io/nationalarchives/da-ayr-webapp-cache-webapp:main
         cache-to: type=gha,scope=webapp,mode=max
         outputs: type=docker,dest=/tmp/da-ayr-beta-webapp-image.tar
 
@@ -209,14 +188,17 @@ jobs:
 
     - name: Free up disk space
       run: |
-        docker system prune -af --volumes
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf /opt/ghc
-        sudo rm -rf /usr/local/share/boost
-        sudo rm -rf /usr/local/lib/android
-        sudo rm -rf /opt/hostedtoolcache/CodeQL
-        sudo rm -rf /usr/local/share/powershell
-        sudo rm -rf /usr/share/swift
+        available_kb=$(df -Pk / | awk 'NR == 2 { print $4 }')
+        minimum_kb=$((12 * 1024 * 1024))
+        if [ "$available_kb" -lt "$minimum_kb" ]; then
+          echo "Only $((available_kb / 1024 / 1024)) GiB free; reclaiming runner disk space"
+          docker system prune -af --volumes
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost \
+            /usr/local/lib/android /opt/hostedtoolcache/CodeQL \
+            /usr/local/share/powershell /usr/share/swift
+        else
+          echo "$((available_kb / 1024 / 1024)) GiB free; skipping runner cleanup"
+        fi
         df -h
 
     - name: Load webapp image
@@ -237,8 +219,6 @@ jobs:
       run: docker compose -f docker-compose.yml --env-file .docker.env up -d --wait --no-build webapp rustfs-init socat-localhost || exit $(docker compose -f docker-compose.yml --env-file .docker.env ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Set up E2E test environment
-      env:
-        E2E_TEST_FILTER_VALUE: ${{ github.event_name == 'pull_request' && (needs.changes.outputs.run_e2e == 'true' && '.' || 'navigation_journeys') || '.' }}
       run: | # pragma: allowlist secret
         cat > .env.e2e_tests << EOF
         AYR_AAU_USER_USERNAME=testuser
@@ -251,27 +231,18 @@ jobs:
         KEYCLOAK_CLIENT_SECRET=test-client-secret
         GIT_REF=main
         BROWSERS=chromium
-        TEST_FILTER=$E2E_TEST_FILTER_VALUE
+        TEST_FILTER=.
         EOF
 
-    - name: Log in to GHCR for Docker cache
-      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Build E2E Docker image with cache
+    - name: Build E2E Docker image with GHA cache
       uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
       with:
         context: e2e_tests
         push: false
         load: true
         tags: "e2e_tests:latest"
-        cache-from: |
-          type=gha,scope=e2e-tests
-          type=registry,ref=ghcr.io/nationalarchives/da-ayr-webapp-cache-e2e-tests:main
-        cache-to: type=gha,scope=e2e-tests,mode=max
+        cache-from: type=gha,scope=e2e-tests
+        cache-to: type=gha,scope=e2e-tests,mode=min
 
     - name: Run E2E tests with Docker
       run: |
