@@ -19,7 +19,6 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      run_e2e: ${{ steps.filter.outputs.e2e }}
       run_accessibility: ${{ steps.filter.outputs.accessibility }}
       run_mds_smoke: ${{ steps.filter.outputs.mds_smoke }}
 
@@ -34,16 +33,6 @@ jobs:
       uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
       with:
         filters: |
-          e2e:
-            - 'app/**'
-            - 'configs/**'
-            - 'local_services/**'
-            - 'e2e_tests/**'
-            - 'docker-compose.yml'
-            - 'Dockerfile'
-            - 'main_app.py'
-            - 'package*.json'
-            - '.github/workflows/ci-tests.yml'
           accessibility:
             - 'app/**'
             - 'configs/**'
@@ -66,8 +55,6 @@ jobs:
             - '.github/workflows/ci-tests.yml'
 
   build_webapp_image:
-    needs: changes
-    if: github.event_name == 'pull_request' || github.event_name == 'merge_group' || github.event_name == 'push' || needs.changes.outputs.run_e2e == 'true' || needs.changes.outputs.run_accessibility == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -232,8 +219,6 @@ jobs:
       run: docker compose -f docker-compose.yml --env-file .docker.env up -d --wait --no-build webapp rustfs-init socat-localhost || exit $(docker compose -f docker-compose.yml --env-file .docker.env ps -q | xargs docker inspect -f '{{.State.ExitCode}}' | grep -v '^0' | wc -l)
 
     - name: Set up E2E test environment
-      env:
-        E2E_TEST_FILTER_VALUE: ${{ github.event_name == 'pull_request' && (needs.changes.outputs.run_e2e == 'true' && '.' || 'navigation_journeys') || '.' }}
       run: | # pragma: allowlist secret
         cat > .env.e2e_tests << EOF
         AYR_AAU_USER_USERNAME=testuser
@@ -246,7 +231,7 @@ jobs:
         KEYCLOAK_CLIENT_SECRET=test-client-secret
         GIT_REF=main
         BROWSERS=chromium
-        TEST_FILTER=$E2E_TEST_FILTER_VALUE
+        TEST_FILTER=.
         EOF
 
     - name: Build E2E Docker image with GHA cache
