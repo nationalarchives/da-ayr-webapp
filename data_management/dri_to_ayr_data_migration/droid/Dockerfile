@@ -18,13 +18,13 @@ ARG ALSA_LIB_VERSION=1.2.7.2-1.amzn2023.0.4
 # DROID's own release doesn't refresh these on its own schedule, so we
 # override the vulnerable JARs after unpacking.
 ARG DROID_JAR_PATCHES="\
-io.netty:netty-codec:4.1.137.Final \
-io.netty:netty-codec-http:4.1.137.Final \
-io.netty:netty-codec-http2:4.1.137.Final \
-io.netty:netty-handler:4.1.137.Final \
-org.apache.httpcomponents.core5:httpcore5:5.4.3 \
-org.apache.httpcomponents.core5:httpcore5-h2:5.4.3 \
-org.apache.httpcomponents.client5:httpclient5:5.6.3 \
+io.netty:netty-codec:4.2.19.Final \
+io.netty:netty-codec-http:4.2.19.Final \
+io.netty:netty-codec-http2:4.2.19.Final \
+io.netty:netty-handler:4.2.19.Final \
+org.apache.httpcomponents.core5:httpcore5:5.4.4 \
+org.apache.httpcomponents.core5:httpcore5-h2:5.4.4 \
+org.apache.httpcomponents.client5:httpclient5:5.6.4 \
 org.apache.logging.log4j:log4j-api:2.26.1 \
 com.fasterxml.jackson.core:jackson-core:2.22.3 \
 com.fasterxml.jackson.core:jackson-databind:2.22.3 \
@@ -35,7 +35,7 @@ org.springframework:spring-beans:7.0.9 \
 org.springframework:spring-context:7.0.9 \
 org.springframework:spring-core:7.0.9 \
 org.springframework:spring-expression:7.0.9 \
-org.eclipse.angus:angus-mail:2.0.4 \
+org.eclipse.angus:angus-mail:2.0.5 \
 org.apache.cxf:cxf-core:4.2.3 \
 org.apache.cxf:cxf-rt-bindings-soap:4.2.3 \
 org.apache.cxf:cxf-rt-bindings-xml:4.2.3 \
