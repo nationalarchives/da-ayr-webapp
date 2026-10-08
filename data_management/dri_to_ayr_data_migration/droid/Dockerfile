@@ -36,15 +36,15 @@ org.springframework:spring-context:7.0.9 \
 org.springframework:spring-core:7.0.9 \
 org.springframework:spring-expression:7.0.9 \
 org.eclipse.angus:angus-mail:2.0.5 \
-org.apache.cxf:cxf-core:4.2.3 \
-org.apache.cxf:cxf-rt-bindings-soap:4.2.3 \
-org.apache.cxf:cxf-rt-bindings-xml:4.2.3 \
-org.apache.cxf:cxf-rt-databinding-jaxb:4.2.3 \
-org.apache.cxf:cxf-rt-frontend-jaxws:4.2.3 \
-org.apache.cxf:cxf-rt-frontend-simple:4.2.3 \
-org.apache.cxf:cxf-rt-transports-http:4.2.3 \
-org.apache.cxf:cxf-rt-ws-addr:4.2.3 \
-org.apache.cxf:cxf-rt-ws-policy:4.2.3 \
+org.apache.cxf:cxf-core:4.2.4 \
+org.apache.cxf:cxf-rt-bindings-soap:4.2.4 \
+org.apache.cxf:cxf-rt-bindings-xml:4.2.4 \
+org.apache.cxf:cxf-rt-databinding-jaxb:4.2.4 \
+org.apache.cxf:cxf-rt-frontend-jaxws:4.2.4 \
+org.apache.cxf:cxf-rt-frontend-simple:4.2.4 \
+org.apache.cxf:cxf-rt-transports-http:4.2.4 \
+org.apache.cxf:cxf-rt-ws-addr:4.2.4 \
+org.apache.cxf:cxf-rt-ws-policy:4.2.4 \
 "
 
 # Install Java for DROID, plus the tools needed to unpack and patch it.
