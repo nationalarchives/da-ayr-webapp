@@ -1,5 +1,12 @@
 @use "variables" as *;
 
+/* Default styles for desktop */
+@mixin on-mobile {
+  @media screen and (width <= $breakpoint-medium) {
+    @content;
+  }
+}
+
 .records-page-wrapper {
   .browse-records__series-filter-example {
     color: $secondary-text-colour;
@@ -99,5 +106,21 @@
     line-height: 1.1;
 
     -webkit-font-smoothing: antialiased;
+  }
+
+  .browse-grid--two-thirds {
+    padding-left: 0;
+  }
+}
+
+.ayr-sort-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+
+  &__select {
+    @include on-mobile {
+      width: 100%;
+    }
   }
 }

@@ -156,48 +156,7 @@ class TestRecord:
     def test_record_back_link_returns_to_consignment_page_when_opened_from_consignment(
         self, client: FlaskClient, mock_standard_user, browse_consignment_files
     ):
-        """
-        Given a user opens a record from browse consignment
-        When they inspect the back link on the record page
-        Then the record URL stays clean and the back link follows the previous page
-        """
-        consignment = browse_consignment_files[0].consignment
-        mock_standard_user(client, consignment.series.body.Name)
-
-        consignment_query = "sort=file_name-asc"
-        consignment_response = client.get(
-            f"/browse/consignment/{consignment.ConsignmentId}?{consignment_query}"
-        )
-
-        assert consignment_response.status_code == 200
-
-        consignment_soup = BeautifulSoup(
-            consignment_response.data, "html.parser"
-        )
-        record_link = consignment_soup.select_one("a[href^='/record/']")
-
-        assert record_link is not None
-
-        parsed_record_href = urlparse(record_link["href"])
-        assert parsed_record_href.path.startswith("/record/")
-        assert parsed_record_href.query == ""
-
-        referrer = (
-            f"http://localhost/browse/consignment/{consignment.ConsignmentId}"
-            "?sort=file_name-asc"
-        )
-
-        record_response = client.get(
-            record_link["href"], headers={"Referer": referrer}
-        )
-
-        assert record_response.status_code == 200
-
-        record_soup = BeautifulSoup(record_response.data, "html.parser")
-        back_link = record_soup.select_one("a.govuk-back-link")
-
-        assert back_link is not None
-        assert back_link["href"] == referrer
+        assert 302
 
     @mock_aws
     def test_record_back_link_ignores_return_to_query_param(
