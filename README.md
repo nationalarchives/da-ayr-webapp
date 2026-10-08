@@ -4,6 +4,22 @@ This is a repo created and maintained by The National Archives for the Access Yo
 
 ## Getting started
 
+### Quick start with Docker
+
+For the full local stack, ensure Docker Compose and OpenSSL are available, then run these commands from the repository root:
+
+```shell
+make setup
+make start
+```
+
+For local sign-in (test accounts only):
+
+- `testuser` / `password123`: all-access account, including download access.
+- `standarduser` / `password123`: view access to the `Testing A` transferring body, without download access.
+
+`make setup` generates the local certificates and builds the webapp image. The image installs the Node dependencies it needs, so a separate `npm install` on the host is not required. See [Local development with docker](#local-development-with-docker) for service URLs and details.
+
 ### Setup Poetry environment
 
 [Install poetry](https://python-poetry.org/docs/)
@@ -223,6 +239,7 @@ The same compose file is used for local development, running the browser e2e tes
 | `make start` | Starts the full stack in the background |
 | `make stop` | Stops the stack **and deletes its volumes**, so postgres is rebuilt from `dev-data.sql` on the next `make start` |
 | `make e2e` | Builds the e2e image and runs the browser e2e tests against the running stack |
+| `make test` | Installs Poetry development dependencies and runs `app/tests`; requires local PostgreSQL but not the Docker stack |
 
 ### Prerequisites
 
