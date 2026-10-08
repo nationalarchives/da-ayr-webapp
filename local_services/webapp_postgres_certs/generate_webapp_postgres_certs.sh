@@ -18,4 +18,6 @@ chmod 600 postgres_localhost.key
 chmod 644 postgres_localhost.crt
 chmod 644 root-ca.pem
 
-chown 999:999 postgres_localhost.key root-ca.key
+if [ "$(uname -s)" = "Linux" ] && [ "$(id -u)" -eq 0 ]; then
+    chown 999:999 postgres_localhost.key root-ca.key
+fi

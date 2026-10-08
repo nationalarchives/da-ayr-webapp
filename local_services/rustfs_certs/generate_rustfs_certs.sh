@@ -18,6 +18,6 @@ openssl req -new -key rustfs.key -out rustfs.csr -subj "/CN=localhost"
 openssl x509 -req -in rustfs.csr -CA root-ca.crt -CAkey root-ca.key -CAcreateserial -out rustfs.crt -days 365 -sha256
 
 # When running as root inside containers, align ownership with service user.
-if [ "$(id -u)" -eq 0 ]; then
+if [ "$(uname -s)" = "Linux" ] && [ "$(id -u)" -eq 0 ]; then
 	chown 999:999 rustfs.key root-ca.key
 fi

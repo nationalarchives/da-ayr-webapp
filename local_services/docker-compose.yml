@@ -30,8 +30,8 @@ services:
       - ./opensearch_certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
       - ./snapshots:/mnt/snapshots
     ports:
-      - 9200:9200
-      - 9600:9600
+      - "127.0.0.1:9200:9200"
+      - "127.0.0.1:9600:9600"
     networks:
       - opensearch-net
 
@@ -71,7 +71,7 @@ services:
     image: opensearchproject/opensearch-dashboards:latest@sha256:1c9e0a50472123bd2cde615ffb7157ef436db794e082dba09e42c3a6d3ce91a3
     container_name: opensearch-dashboards
     ports:
-      - 5601:5601
+      - "127.0.0.1:5601:5601"
     expose:
       - '5601'
     environment:
@@ -88,7 +88,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - ${KC_POSTGRES_PORT}:5432
+      - "127.0.0.1:${KC_POSTGRES_PORT}:5432"
     networks:
       - keycloak_network
 
@@ -106,7 +106,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - ${WEBAPP_POSTGRES_PORT}:5432
+      - "127.0.0.1:${WEBAPP_POSTGRES_PORT}:5432"
     command: [
       "postgres",
       "-c", "ssl=on",
@@ -134,7 +134,7 @@ services:
     volumes:
       - ./import:/opt/keycloak/data/import
     ports:
-      - 8080:8080
+      - "127.0.0.1:8080:8080"
     restart: always
     depends_on:
       - postgres
@@ -145,8 +145,8 @@ services:
     image: rustfs/rustfs:1.0.0-rc.6@sha256:97171b3d72cd47dc81000f92ea84de25608bfc35a94c965501afaeb5d99f6035
     container_name: rustfs
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
     environment:
       RUSTFS_ROOT_USER: ${RUSTFS_ROOT_USER}
       RUSTFS_ROOT_PASSWORD: ${RUSTFS_ROOT_PASSWORD}

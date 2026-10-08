@@ -37,7 +37,7 @@ clean:
 
 test:
 	poetry install --with dev --no-interaction
-	poetry run python -m pytest --cov=app --cov-report=term-missing --cov-branch -vvv app/tests
+	AWS_DEFAULT_REGION=eu-west-2 poetry run python -m pytest --cov=app --cov-report=term-missing --cov-branch -vvv app/tests
 
 build-e2e-tests:
 	docker build -t e2e_tests ./e2e_tests
