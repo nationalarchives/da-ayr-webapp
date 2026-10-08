@@ -27,8 +27,8 @@ DDT_TEMP_CSV_BUCKET = os.environ["DDT_TEMP_CSV_BUCKET"]
 TRACKING_TABLE_NAME = os.environ["TRACKING_TABLE_NAME"]
 FINALISER_QUEUE_URL = os.environ["FINALISER_QUEUE_URL"]
 DROID_INPUT_MOUNT_PATH = Path(os.environ["DROID_INPUT_MOUNT_PATH"])
-DROID_INPUT_WAIT_TIMEOUT_SECONDS = 30
-DROID_INPUT_WAIT_INTERVAL_SECONDS = float("0.5")
+DROID_INPUT_WAIT_TIMEOUT_SECONDS = 90
+DROID_INPUT_WAIT_INTERVAL_SECONDS = 0.5
 
 STAGING_PREFIX = os.getenv("STAGING_PREFIX", "ayr-mds-staging")
 
@@ -155,8 +155,9 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
 
 
 def get_mounted_object_path(bucket: str, key: str) -> Path:
-
     mounted_path = build_mounted_path(key)
+    # The S3 Files mount can lag behind S3 writes, and parallel Lambdas share
+    # the mount, so wait for this object to appear before DROID reads it.
     wait_for_mounted_object(mounted_path, bucket, key)
     logger.info(
         "Using mounted object s3://%s/%s at %s",
@@ -175,6 +176,8 @@ def run_droid_for_mounted_object(
     droid_path = build_local_path(file_id, extension)
 
     try:
+        # Clear any link left behind by a previous run in a warm container.
+        droid_path.unlink(missing_ok=True)
         droid_path.symlink_to(mounted_path)
         return run_droid(droid_path)
     finally:
@@ -182,8 +185,11 @@ def run_droid_for_mounted_object(
 
 
 def build_mounted_path(key: str) -> Path:
-    """Resolve an S3 object key safely below the configured mount path."""
+    """Build the mounted path for an S3 key, rejecting traversal segments."""
     key_parts = key.split("/")
+
+    if any(part in ("", ".", "..") for part in key_parts):
+        raise ValueError(f"Unsafe S3 object key for mounted path: {key!r}")
 
     return DROID_INPUT_MOUNT_PATH.joinpath(*key_parts)
 
