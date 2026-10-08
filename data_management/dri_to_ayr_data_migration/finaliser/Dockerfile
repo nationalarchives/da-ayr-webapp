@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.14@sha256:b81a4aa3bc1d56999090333cefea611e5a84bb4e2638c1ae4107fdc9b8622da3
+FROM public.ecr.aws/lambda/python:3.14@sha256:4bf7bd4e5690820c44c53b10ffb8d54fc35590bac692cf52c36941c8c42c38cd
 
 ARG AL2023_RELEASE=2023.12.20260928
 ARG OPENSSL_VERSION=1:3.5.8-1.amzn2023.0.1
