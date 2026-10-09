@@ -153,11 +153,6 @@ class TestRecord:
         assert back_link is not None
         assert back_link["href"] == referrer
 
-    def test_record_back_link_returns_to_consignment_page_when_opened_from_consignment(
-        self, client: FlaskClient, mock_standard_user, browse_consignment_files
-    ):
-        assert 302
-
     @mock_aws
     def test_record_back_link_ignores_return_to_query_param(
         self, app, client: FlaskClient, mock_standard_user
