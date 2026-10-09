@@ -58,7 +58,6 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
       "runId": "LEV-2-...",
       "series": "LEV 2",
       "consignmentReference": "TDR-2026-7333",
-      "bucket": "ddt-temp-data-bucket",
       "key": "LEV 2/TDR-2026-7333/<fileId>",
       "fileId": "<fileId>",
       "extension": "pdf"
@@ -84,7 +83,6 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
     run_id = require_text(message, "runId")
     series = require_text(message, "series")
     consignment_reference = require_text(message, "consignmentReference")
-    bucket = require_text(message, "bucket")
     key = require_text(message, "key")
     file_id = require_text(message, "fileId")
     extension = message.get("extension") or ""
@@ -112,7 +110,7 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
             "finaliserTriggered": finaliser_triggered,
         }
 
-    mounted_path = get_mounted_object_path(bucket, key)
+    mounted_path = get_mounted_object_path(key)
     droid_row = run_droid_for_mounted_object(
         mounted_path=mounted_path,
         file_id=file_id,
@@ -154,17 +152,12 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def get_mounted_object_path(bucket: str, key: str) -> Path:
+def get_mounted_object_path(key: str) -> Path:
     mounted_path = build_mounted_path(key)
     # The S3 Files mount can lag behind S3 writes, and parallel Lambdas share
     # the mount, so wait for this object to appear before DROID reads it.
-    wait_for_mounted_object(mounted_path, bucket, key)
-    logger.info(
-        "Using mounted object s3://%s/%s at %s",
-        bucket,
-        key,
-        mounted_path,
-    )
+    wait_for_mounted_object(mounted_path, key)
+    logger.info("Using mounted object key=%s at %s", key, mounted_path)
     return mounted_path
 
 
@@ -196,7 +189,6 @@ def build_mounted_path(key: str) -> Path:
 
 def wait_for_mounted_object(
     mounted_path: Path,
-    bucket: str,
     key: str,
 ) -> None:
     """Wait briefly for an S3 API change to appear in the S3 Files mount."""
@@ -212,7 +204,7 @@ def wait_for_mounted_object(
             raise FileNotFoundError(
                 "S3 object did not appear in the mounted file system within "
                 f"{DROID_INPUT_WAIT_TIMEOUT_SECONDS:g} seconds: "
-                f"s3://{bucket}/{key} expected_at={mounted_path}"
+                f"key={key!r} expected_at={mounted_path}"
             )
 
         time.sleep(min(DROID_INPUT_WAIT_INTERVAL_SECONDS, remaining))

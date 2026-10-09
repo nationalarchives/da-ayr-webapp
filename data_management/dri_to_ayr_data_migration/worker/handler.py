@@ -203,7 +203,6 @@ def process_file(
         series=series,
         consignment_reference=consignment_reference,
         file_id=expected_file_id,
-        bucket=DDT_TEMP_DATA_BUCKET,
         key=destination_key,
         extension=extension,
     )
@@ -252,7 +251,6 @@ def send_droid_message(
     series: str,
     consignment_reference: str,
     file_id: str,
-    bucket: str,
     key: str,
     extension: str,
 ) -> None:
@@ -260,7 +258,6 @@ def send_droid_message(
         "runId": run_id,
         "series": series,
         "consignmentReference": consignment_reference,
-        "bucket": bucket,
         "key": key,
         "fileId": file_id,
         "extension": extension,
@@ -273,11 +270,10 @@ def send_droid_message(
 
     logger.info(
         "Sent DROID message. run_id=%s consignment=%s file_id=%s "
-        "s3_uri=s3://%s/%s sqs_message_id=%s",
+        "key=%s sqs_message_id=%s",
         run_id,
         consignment_reference,
         file_id,
-        bucket,
         key,
         response["MessageId"],
     )

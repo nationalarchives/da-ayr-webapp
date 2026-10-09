@@ -332,7 +332,6 @@ class TestWorkerHandler:
             series="LEV 2",
             consignment_reference=CONSIGNMENT_REFERENCE,
             file_id=FILE_ID,
-            bucket=ENVIRONMENT["DDT_TEMP_DATA_BUCKET"],
             key=copied_key,
             extension="txt",
         )
@@ -371,7 +370,6 @@ class TestWorkerHandler:
             series="LEV 2",
             consignment_reference=CONSIGNMENT_REFERENCE,
             file_id=FILE_ID,
-            bucket="temp-data-bucket",
             key=f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
             extension="txt",
         )
@@ -383,7 +381,6 @@ class TestWorkerHandler:
             "runId": "run-1",
             "series": "LEV 2",
             "consignmentReference": CONSIGNMENT_REFERENCE,
-            "bucket": "temp-data-bucket",
             "key": f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
             "fileId": FILE_ID,
             "extension": "txt",

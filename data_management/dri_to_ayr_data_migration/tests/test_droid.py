@@ -32,7 +32,6 @@ RUN_ID = "run-1"
 SERIES = "MIG 1"
 CONSIGNMENT_REFERENCE = "TDR-1"
 FILE_ID = "file-1"
-DATA_BUCKET = "temp-data-bucket"
 DATA_KEY = f"{SERIES}/{CONSIGNMENT_REFERENCE}/{FILE_ID}"
 FIXED_NOW = "2026-09-16T08:00:00Z"
 
@@ -62,7 +61,6 @@ def droid_message() -> dict[str, str]:
         "runId": RUN_ID,
         "series": SERIES,
         "consignmentReference": CONSIGNMENT_REFERENCE,
-        "bucket": DATA_BUCKET,
         "key": DATA_KEY,
         "fileId": FILE_ID,
         "extension": "pdf",
@@ -257,7 +255,7 @@ class TestDroidHandler:
             "ffidMetadataKey": ffid_key,
             "finaliserTriggered": True,
         }
-        get_mounted_path.assert_called_once_with(DATA_BUCKET, DATA_KEY)
+        get_mounted_path.assert_called_once_with(DATA_KEY)
         run_mounted_droid.assert_called_once_with(
             mounted_path=mounted_path,
             file_id=FILE_ID,
@@ -292,7 +290,7 @@ class TestDroidHandler:
         mounted_path.write_bytes(b"PDF")
         monkeypatch.setattr(droid_module, "DROID_INPUT_MOUNT_PATH", mount_path)
 
-        result = droid_module.get_mounted_object_path(DATA_BUCKET, DATA_KEY)
+        result = droid_module.get_mounted_object_path(DATA_KEY)
 
         assert result == mounted_path
 
@@ -397,9 +395,7 @@ class TestDroidHandler:
         sleep = mock.Mock()
         monkeypatch.setattr(droid_module.time, "sleep", sleep)
 
-        result = droid_module.wait_for_mounted_object(
-            mounted_path, DATA_BUCKET, DATA_KEY
-        )
+        result = droid_module.wait_for_mounted_object(mounted_path, DATA_KEY)
 
         assert result is None
         sleep.assert_not_called()
@@ -429,9 +425,7 @@ class TestDroidHandler:
             droid_module, "DROID_INPUT_WAIT_INTERVAL_SECONDS", 0.5
         )
 
-        result = droid_module.wait_for_mounted_object(
-            mounted_path, DATA_BUCKET, DATA_KEY
-        )
+        result = droid_module.wait_for_mounted_object(mounted_path, DATA_KEY)
 
         assert result is None
         assert mounted_path.read_bytes() == b"PDF"
@@ -458,11 +452,9 @@ class TestDroidHandler:
         with pytest.raises(
             FileNotFoundError, match="did not appear.*30 seconds"
         ) as error:
-            droid_module.wait_for_mounted_object(
-                mounted_path, DATA_BUCKET, DATA_KEY
-            )
+            droid_module.wait_for_mounted_object(mounted_path, DATA_KEY)
 
-        assert f"s3://{DATA_BUCKET}/{DATA_KEY}" in str(error.value)
+        assert f"key={DATA_KEY!r}" in str(error.value)
         assert str(mounted_path) in str(error.value)
 
     def test_wait_for_mounted_object_never_sleeps_past_deadline(
@@ -487,9 +479,7 @@ class TestDroidHandler:
         )
 
         with pytest.raises(FileNotFoundError):
-            droid_module.wait_for_mounted_object(
-                mounted_path, DATA_BUCKET, DATA_KEY
-            )
+            droid_module.wait_for_mounted_object(mounted_path, DATA_KEY)
 
         clock.sleep.assert_called_once_with(pytest.approx(0.1))
 
@@ -1187,7 +1177,7 @@ def test_mounted_object_with_installed_droid(monkeypatch, tmp_path):
         mock.Mock(return_value=local_path),
     )
 
-    mounted_path = droid_module.get_mounted_object_path(DATA_BUCKET, DATA_KEY)
+    mounted_path = droid_module.get_mounted_object_path(DATA_KEY)
     droid_row = droid_module.run_droid_for_mounted_object(
         mounted_path=mounted_path,
         file_id=file_id,
