@@ -51,10 +51,6 @@
       margin-bottom: 0.5rem;
     }
 
-    &__sort-container-update-button {
-      margin-bottom: 0;
-    }
-
     &__filters-form-apply-button {
       margin-left: 1rem;
 
@@ -79,15 +75,6 @@
   }
 
   &-select {
-    &__sort-container-select {
-      margin-right: 0.25rem;
-
-      @include on-mobile {
-        width: 100%;
-        margin-bottom: 0.5rem;
-      }
-    }
-
     &__filters-form-transferring-body-select {
       min-width: auto;
       width: 100%;
@@ -102,6 +89,18 @@
 
   &-details {
     display: none;
+  }
+}
+
+.ayr-sort-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+
+  &__select {
+    @include on-mobile {
+      width: 100%;
+    }
   }
 }
 
@@ -415,6 +414,10 @@
       align-self: flex-start;
 
       order: 3;
+
+      @media screen and (width <= $breakpoint-medium) {
+        overflow-wrap: break-word;
+      }
     }
 
     &-mobile-summary-list {
@@ -437,10 +440,6 @@
 
     &-summary-list__value {
       flex: 0;
-    }
-
-    &-button__sort-container-update-button {
-      width: 100%;
     }
   }
 

@@ -1,0 +1,80 @@
+@use "../../../../../../node_modules/govuk-frontend/dist/govuk/helpers/spacing"
+  as govuk-spacing;
+@use "../variables" as *;
+
+.ayr-results-control {
+  min-width: 0;
+  width: 100%;
+
+  max-width: 100%;
+
+  display: grid;
+  grid-template-columns: minmax(min-content, max-content) max-content;
+  align-items: start;
+  justify-content: start;
+  gap: govuk-spacing.govuk-spacing(2);
+
+  &__group {
+    min-width: 0;
+    width: 100%;
+
+    display: flex;
+    align-items: flex-start;
+    gap: govuk-spacing.govuk-spacing(2);
+  }
+
+  &__label {
+    margin-bottom: 0;
+
+    align-self: center;
+
+    overflow-wrap: anywhere;
+  }
+
+  &__select {
+    min-width: 10rem;
+
+    width: 15rem;
+    max-width: 100%;
+    margin-bottom: 0;
+  }
+
+  &__select--compact {
+    min-width: 3.5rem;
+
+    width: 3.5rem;
+
+    background-color: transparent;
+
+    border-color: transparent;
+  }
+
+  &__button {
+    @media screen and (width <= $breakpoint-medium) {
+      width: 100%;
+    }
+  }
+
+  @media screen and (width <= $breakpoint-medium) {
+    grid-template-columns: minmax(0, 1fr);
+
+    row-gap: govuk-spacing.govuk-spacing(2);
+
+    &__group {
+      width: 100%;
+
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__select {
+      width: 100%;
+    }
+  }
+}
+
+.ayr-results-controls-enhanced
+  .ayr-results-control[data-auto-submit]
+  .ayr-results-control__button {
+  display: none;
+}
