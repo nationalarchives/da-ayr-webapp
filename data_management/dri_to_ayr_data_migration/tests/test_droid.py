@@ -6,10 +6,8 @@ from io import StringIO
 from pathlib import Path
 from unittest import mock
 
-import boto3
 import pytest
 from botocore.exceptions import ClientError
-from moto import mock_aws
 
 os.environ.setdefault("AWS_DEFAULT_REGION", "eu-west-2")
 os.environ.setdefault("AWS_EC2_METADATA_DISABLED", "true")
@@ -19,6 +17,7 @@ os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "test")
 os.environ.setdefault("DROID_VERSION", "6.9.13")
 os.environ.setdefault("DROID_COMMAND", "/opt/droid/droid.sh")
 os.environ.setdefault("DROID_TIMEOUT_SECONDS", "120")
+os.environ.setdefault("DDT_TEMP_DATA_BUCKET", "temp-data-bucket")
 os.environ.setdefault("DDT_TEMP_CSV_BUCKET", "temp-csv-bucket")
 os.environ.setdefault("TRACKING_TABLE_NAME", "tracking-table")
 os.environ.setdefault(
@@ -33,7 +32,6 @@ RUN_ID = "run-1"
 SERIES = "MIG 1"
 CONSIGNMENT_REFERENCE = "TDR-1"
 FILE_ID = "file-1"
-DATA_BUCKET = "temp-data-bucket"
 DATA_KEY = f"{SERIES}/{CONSIGNMENT_REFERENCE}/{FILE_ID}"
 FIXED_NOW = "2026-09-16T08:00:00Z"
 
@@ -50,12 +48,19 @@ FFID_METADATA_ROW = {
 }
 
 
+DROID_METADATA_ROW = {
+    "EXT": "pdf",
+    "PUID": "fmt/18",
+    "FORMAT_NAME": "Acrobat PDF 1.4 - Portable Document Format",
+    "EXTENSION_MISMATCH": "false",
+}
+
+
 def droid_message() -> dict[str, str]:
     return {
         "runId": RUN_ID,
         "series": SERIES,
         "consignmentReference": CONSIGNMENT_REFERENCE,
-        "bucket": DATA_BUCKET,
         "key": DATA_KEY,
         "fileId": FILE_ID,
         "extension": "pdf",
@@ -83,6 +88,7 @@ def consignment_item(
 
 @pytest.fixture
 def droid(monkeypatch):
+    """Return the handler module with its AWS clients replaced by mocks."""
     monkeypatch.setattr(droid_module, "s3", mock.Mock(name="s3_client"))
     monkeypatch.setattr(droid_module, "sqs", mock.Mock(name="sqs_client"))
     monkeypatch.setattr(
@@ -168,7 +174,7 @@ class TestDroidHandler:
     ):
         is_complete = mock.Mock(return_value=True)
         trigger_finaliser = mock.Mock(return_value=True)
-        identify = mock.Mock()
+        run_s3_droid = mock.Mock()
         upload_ffid = mock.Mock()
         mark_complete = mock.Mock()
 
@@ -178,7 +184,7 @@ class TestDroidHandler:
             "trigger_finaliser_if_ready",
             trigger_finaliser,
         )
-        monkeypatch.setattr(droid, "identify_s3_object", identify)
+        monkeypatch.setattr(droid, "run_droid_for_s3_object", run_s3_droid)
         monkeypatch.setattr(droid, "upload_ffid_metadata_csv", upload_ffid)
         monkeypatch.setattr(
             droid,
@@ -203,7 +209,7 @@ class TestDroidHandler:
             series=SERIES,
             consignment_reference=CONSIGNMENT_REFERENCE,
         )
-        identify.assert_not_called()
+        run_s3_droid.assert_not_called()
         upload_ffid.assert_not_called()
         mark_complete.assert_not_called()
 
@@ -221,10 +227,10 @@ class TestDroidHandler:
             "is_file_already_complete",
             mock.Mock(return_value=False),
         )
-        identify = mock.Mock(return_value=FFID_METADATA_ROW)
+        run_s3_droid = mock.Mock(return_value=DROID_METADATA_ROW)
         upload_ffid = mock.Mock(return_value=ffid_key)
         mark_complete = mock.Mock(return_value=True)
-        monkeypatch.setattr(droid, "identify_s3_object", identify)
+        monkeypatch.setattr(droid, "run_droid_for_s3_object", run_s3_droid)
         monkeypatch.setattr(droid, "upload_ffid_metadata_csv", upload_ffid)
         monkeypatch.setattr(
             droid,
@@ -239,8 +245,7 @@ class TestDroidHandler:
             "ffidMetadataKey": ffid_key,
             "finaliserTriggered": True,
         }
-        identify.assert_called_once_with(
-            bucket=DATA_BUCKET,
+        run_s3_droid.assert_called_once_with(
             key=DATA_KEY,
             file_id=FILE_ID,
             extension="pdf",
@@ -258,55 +263,108 @@ class TestDroidHandler:
             file_id=FILE_ID,
         )
 
-    def test_identify_s3_object_downloads_maps_and_removes_local_file(
+    @pytest.mark.parametrize(
+        "key",
+        [
+            "../secret.pdf",
+            "folder/../../secret.pdf",
+            "folder/./file.pdf",
+            "folder//file.pdf",
+            "folder/",
+            "",
+        ],
+    )
+    def test_validate_s3_object_key_rejects_unsafe_keys(self, droid, key):
+        with pytest.raises(ValueError, match="Unsafe S3 object key"):
+            droid.validate_s3_object_key(key)
+
+    def test_build_droid_input_alias_key_sanitises_name_and_extension(
         self,
         droid,
         monkeypatch,
-        tmp_path,
     ):
-        local_path = tmp_path / "file-1.pdf"
-
-        def download_file(bucket, key, destination):
-            assert bucket == DATA_BUCKET
-            assert key == DATA_KEY
-            Path(destination).write_bytes(b"PDF")
-
-        droid.s3.download_file.side_effect = download_file
         monkeypatch.setattr(
             droid,
-            "build_local_path",
-            mock.Mock(return_value=local_path),
+            "uuid4",
+            mock.Mock(return_value=mock.Mock(hex="attempt-1")),
         )
-        run_droid_mock = mock.Mock(
-            return_value={
-                "EXT": "pdf",
-                "PUID": "fmt/18",
-                "FORMAT_NAME": ("Acrobat PDF 1.4 - Portable Document Format"),
-                "EXTENSION_MISMATCH": "false",
-            }
-        )
-        monkeypatch.setattr(droid, "run_droid", run_droid_mock)
 
-        result = droid.identify_s3_object(
-            bucket=DATA_BUCKET,
+        result = droid.build_droid_input_alias_key("file/../1", ".P-D_F")
+
+        assert result == "_ayr-droid-inputs/attempt-1/file1.pdf"
+
+    def test_build_droid_input_alias_key_rejects_empty_safe_file_id(
+        self,
+        droid,
+    ):
+        with pytest.raises(ValueError, match="cannot form a safe DROID alias"):
+            droid.build_droid_input_alias_key("../", "pdf")
+
+    def test_run_droid_for_s3_object_copies_runs_and_deletes_alias(
+        self,
+        droid,
+        monkeypatch,
+    ):
+        alias_key = "_ayr-droid-inputs/attempt-1/file1.pdf"
+        alias_uri = f"s3://temp-data-bucket/{alias_key}"
+        monkeypatch.setattr(
+            droid,
+            "uuid4",
+            mock.Mock(return_value=mock.Mock(hex="attempt-1")),
+        )
+        run_droid = mock.Mock(return_value=DROID_METADATA_ROW)
+        monkeypatch.setattr(droid, "run_droid", run_droid)
+
+        result = droid.run_droid_for_s3_object(
             key=DATA_KEY,
-            file_id=FILE_ID,
-            extension="pdf",
+            file_id="file/../1",
+            extension=".pdf",
         )
 
-        assert result == FFID_METADATA_ROW
-        droid.s3.download_file.assert_called_once_with(
-            DATA_BUCKET,
-            DATA_KEY,
-            str(local_path),
+        assert result == DROID_METADATA_ROW
+        droid.s3.copy_object.assert_called_once_with(
+            Bucket="temp-data-bucket",
+            CopySource={"Bucket": "temp-data-bucket", "Key": DATA_KEY},
+            Key=alias_key,
         )
-        run_droid_mock.assert_called_once_with(local_path)
-        assert not local_path.exists()
+        run_droid.assert_called_once_with(
+            alias_uri,
+            expected_uri=alias_uri,
+        )
+        droid.s3.delete_object.assert_called_once_with(
+            Bucket="temp-data-bucket",
+            Key=alias_key,
+        )
 
-    def test_build_local_path_sanitises_file_id_and_extension(self, droid):
-        result = droid.build_local_path("file/../1", ".P-D_F")
+    def test_run_droid_for_s3_object_deletes_alias_after_droid_failure(
+        self,
+        droid,
+        monkeypatch,
+    ):
+        alias_key = "_ayr-droid-inputs/attempt-1/file1.pdf"
+        error = RuntimeError("DROID failed")
+        monkeypatch.setattr(
+            droid,
+            "uuid4",
+            mock.Mock(return_value=mock.Mock(hex="attempt-1")),
+        )
+        monkeypatch.setattr(
+            droid,
+            "run_droid",
+            mock.Mock(side_effect=error),
+        )
 
-        assert result == Path("/tmp/file1.pdf")
+        with pytest.raises(RuntimeError, match="DROID failed"):
+            droid.run_droid_for_s3_object(
+                key=DATA_KEY,
+                file_id="file/../1",
+                extension=".pdf",
+            )
+
+        droid.s3.delete_object.assert_called_once_with(
+            Bucket="temp-data-bucket",
+            Key=alias_key,
+        )
 
     def test_upload_ffid_metadata_csv_writes_expected_s3_object(self, droid):
         result = droid.upload_ffid_metadata_csv(
@@ -772,25 +830,28 @@ class TestDroidHandler:
 class TestRunDroid:
     """DROID subprocess tests."""
 
-    def test_run_droid_parses_csv_output(self, monkeypatch, tmp_path):
-        local_path = tmp_path / "file.pdf"
-        local_path.write_bytes(b"dummy")
+    def test_run_droid_parses_csv_output(self, monkeypatch):
+        source_uri = "s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf"
 
         completed_process = mock.Mock()
         completed_process.returncode = 0
         completed_process.stderr = ""
         completed_process.stdout = (
-            "ID,EXT,PUID,FORMAT_NAME,EXTENSION_MISMATCH\n"
-            "1,pdf,fmt/18,Acrobat PDF 1.4 - Portable Document Format,false\n"
+            "ID,URI,EXT,PUID,FORMAT_NAME,EXTENSION_MISMATCH\n"
+            "1,s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf.old,"
+            "old,fmt/999,Other,false\n"
+            "2,s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf,"
+            "pdf,fmt/18,Acrobat PDF 1.4 - Portable Document Format,false\n"
         )
 
         subprocess_run_mock = mock.Mock(return_value=completed_process)
         monkeypatch.setattr(subprocess, "run", subprocess_run_mock)
 
-        result = run_droid(local_path)
+        result = run_droid(source_uri, expected_uri=source_uri)
 
         assert result == {
-            "ID": "1",
+            "ID": "2",
+            "URI": source_uri,
             "EXT": "pdf",
             "PUID": "fmt/18",
             "FORMAT_NAME": "Acrobat PDF 1.4 - Portable Document Format",
@@ -800,7 +861,7 @@ class TestRunDroid:
         subprocess_run_mock.assert_called_once()
         call_args = subprocess_run_mock.call_args
 
-        assert call_args.args[0] == ["/opt/droid/droid.sh", str(local_path)]
+        assert call_args.args[0] == ["/opt/droid/droid.sh", source_uri]
         assert call_args.kwargs["cwd"] == "/opt/droid"
         assert call_args.kwargs["capture_output"] is True
         assert call_args.kwargs["text"] is True
@@ -815,13 +876,33 @@ class TestRunDroid:
         assert "-Duser.home=/tmp" in env["JAVA_TOOL_OPTIONS"]
         assert "-Djava.io.tmpdir=/tmp" in env["JAVA_TOOL_OPTIONS"]
 
+    def test_run_droid_requires_a_row_for_the_requested_uri(self, monkeypatch):
+        source_uri = "s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf"
+        completed_process = mock.Mock()
+        completed_process.returncode = 0
+        completed_process.stderr = ""
+        completed_process.stdout = (
+            "ID,URI,EXT,PUID,FORMAT_NAME\n"
+            "1,s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf.old,"
+            "old,fmt/999,Other\n"
+        )
+        monkeypatch.setattr(
+            subprocess,
+            "run",
+            mock.Mock(return_value=completed_process),
+        )
+
+        with pytest.raises(
+            RuntimeError,
+            match="did not produce exactly one result",
+        ):
+            run_droid(source_uri, expected_uri=source_uri)
+
     def test_run_droid_raises_when_droid_fails(
         self,
         monkeypatch,
-        tmp_path,
     ):
-        local_path = tmp_path / "file.pdf"
-        local_path.write_bytes(b"dummy")
+        source_uri = "s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf"
 
         completed_process = mock.Mock()
         completed_process.returncode = 1
@@ -838,22 +919,18 @@ class TestRunDroid:
             RuntimeError,
             match="DROID failed with return code 1",
         ):
-            run_droid(local_path)
+            run_droid(source_uri, expected_uri=source_uri)
 
     def test_run_droid_raises_when_no_csv_rows_returned(
         self,
         monkeypatch,
-        tmp_path,
     ):
-        local_path = tmp_path / "file.pdf"
-        local_path.write_bytes(b"dummy")
+        source_uri = "s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf"
 
         completed_process = mock.Mock()
         completed_process.returncode = 0
         completed_process.stderr = ""
-        completed_process.stdout = (
-            "ID,EXT,PUID,FORMAT_NAME,EXTENSION_MISMATCH\n"
-        )
+        completed_process.stdout = "ID,URI,EXT,PUID,FORMAT_NAME\n"
 
         monkeypatch.setattr(
             subprocess,
@@ -862,18 +939,18 @@ class TestRunDroid:
         )
 
         with pytest.raises(RuntimeError, match="DROID produced no CSV rows"):
-            run_droid(local_path)
+            run_droid(source_uri, expected_uri=source_uri)
 
 
 @pytest.mark.integration
-@mock_aws
-def test_identify_s3_object_with_moto_and_installed_droid(monkeypatch):
-    """Exercise Moto download and the real DROID installation end to end."""
-    region = "eu-west-2"
-    bucket = "droid-integration-test-bucket"
-    key = "MIG 1/TDR-1/integration-file"
+def test_local_pdf_with_installed_droid(tmp_path):
+    """
+    Given a valid local PDF and DROID installed
+    When it is identified with the real DROID command
+    Then the expected FFID metadata is returned
+    """
     file_id = "droid-integration-file"
-    local_path = Path("/tmp/droid-integration-file.pdf")
+    local_path = tmp_path / f"{file_id}.pdf"
     pdf_bytes = (
         b"%PDF-1.4\n"
         b"1 0 obj\n"
@@ -892,32 +969,15 @@ def test_identify_s3_object_with_moto_and_installed_droid(monkeypatch):
         f"DROID command is not executable: {droid_command}"
     )
 
-    moto_s3 = boto3.client("s3", region_name=region)
-    moto_s3.create_bucket(
-        Bucket=bucket,
-        CreateBucketConfiguration={"LocationConstraint": region},
-    )
-    moto_s3.put_object(Bucket=bucket, Key=key, Body=pdf_bytes)
+    local_path.write_bytes(pdf_bytes)
+    droid_row = run_droid(str(local_path))
+    result = droid_module.map_droid_row_to_ffid_metadata(file_id, droid_row)
 
-    monkeypatch.setattr(droid_module, "s3", moto_s3)
-
-    try:
-        result = droid_module.identify_s3_object(
-            bucket=bucket,
-            key=key,
-            file_id=file_id,
-            extension="pdf",
-        )
-
-        assert not local_path.exists()
-        assert result["FileId"] == file_id
-        assert result["Extension"] == "pdf"
-        assert result["PUID"] == "fmt/18"
-        assert (
-            result["FormatName"] == "Acrobat PDF 1.4 - Portable Document Format"
-        )
-        assert result["ExtensionMismatch"] == "false"
-        assert result["FFID-Software"] == "DROID"
-        assert result["FFID-SoftwareVersion"] == "6.9.13"
-    finally:
-        local_path.unlink(missing_ok=True)
+    assert local_path.read_bytes() == pdf_bytes
+    assert result["FileId"] == file_id
+    assert result["Extension"] == "pdf"
+    assert result["PUID"] == "fmt/18"
+    assert result["FormatName"] == "Acrobat PDF 1.4 - Portable Document Format"
+    assert result["ExtensionMismatch"] == "false"
+    assert result["FFID-Software"] == "DROID"
+    assert result["FFID-SoftwareVersion"] == "6.9.13"

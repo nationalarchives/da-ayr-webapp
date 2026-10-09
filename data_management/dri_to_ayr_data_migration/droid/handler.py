@@ -7,8 +7,8 @@ import subprocess  # nosec
 import time
 from datetime import datetime, timezone
 from io import StringIO
-from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import boto3
 from botocore.exceptions import ClientError
@@ -23,11 +23,13 @@ dynamodb = boto3.client("dynamodb")
 DROID_COMMAND = os.environ["DROID_COMMAND"]
 DROID_VERSION = os.environ["DROID_VERSION"]
 DROID_TIMEOUT_SECONDS = int(os.getenv("DROID_TIMEOUT_SECONDS", "120"))
+DDT_TEMP_DATA_BUCKET = os.environ["DDT_TEMP_DATA_BUCKET"]
 DDT_TEMP_CSV_BUCKET = os.environ["DDT_TEMP_CSV_BUCKET"]
 TRACKING_TABLE_NAME = os.environ["TRACKING_TABLE_NAME"]
 FINALISER_QUEUE_URL = os.environ["FINALISER_QUEUE_URL"]
 
 STAGING_PREFIX = os.getenv("STAGING_PREFIX", "ayr-mds-staging")
+DROID_INPUT_ALIAS_PREFIX = "_ayr-droid-inputs"
 
 DYNAMODB_TRANSACTION_MAX_ATTEMPTS = 10
 DYNAMODB_TRANSACTION_BASE_DELAY_SECONDS = 0.05
@@ -55,7 +57,6 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
       "runId": "LEV-2-...",
       "series": "LEV 2",
       "consignmentReference": "TDR-2026-7333",
-      "bucket": "ddt-temp-data-bucket",
       "key": "LEV 2/TDR-2026-7333/<fileId>",
       "fileId": "<fileId>",
       "extension": "pdf"
@@ -81,7 +82,6 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
     run_id = require_text(message, "runId")
     series = require_text(message, "series")
     consignment_reference = require_text(message, "consignmentReference")
-    bucket = require_text(message, "bucket")
     key = require_text(message, "key")
     file_id = require_text(message, "fileId")
     extension = message.get("extension") or ""
@@ -109,12 +109,12 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
             "finaliserTriggered": finaliser_triggered,
         }
 
-    ffid_metadata_row = identify_s3_object(
-        bucket=bucket,
+    droid_row = run_droid_for_s3_object(
         key=key,
         file_id=file_id,
         extension=extension,
     )
+    ffid_metadata_row = map_droid_row_to_ffid_metadata(file_id, droid_row)
 
     ffid_csv_key = upload_ffid_metadata_csv(
         series=series,
@@ -150,25 +150,44 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def identify_s3_object(
-    bucket: str,
+def run_droid_for_s3_object(
     key: str,
     file_id: str,
     extension: str,
 ) -> dict[str, str]:
-    local_path = build_local_path(file_id, extension)
+    validate_s3_object_key(key)
+    alias_key = build_droid_input_alias_key(file_id, extension)
+    alias_uri = f"s3://{DDT_TEMP_DATA_BUCKET}/{alias_key}"
 
     try:
-        logger.info("Downloading s3://%s/%s to %s", bucket, key, local_path)
-        s3.download_file(bucket, key, str(local_path))
+        s3.copy_object(
+            Bucket=DDT_TEMP_DATA_BUCKET,
+            CopySource={"Bucket": DDT_TEMP_DATA_BUCKET, "Key": key},
+            Key=alias_key,
+        )
 
-        droid_row = run_droid(local_path)
-        return map_droid_row_to_ffid_metadata(file_id, droid_row)
+        logger.info(
+            "Created temporary DROID input alias s3://%s/%s from s3://%s/%s",
+            DDT_TEMP_DATA_BUCKET,
+            alias_key,
+            DDT_TEMP_DATA_BUCKET,
+            key,
+        )
+        return run_droid(alias_uri, expected_uri=alias_uri)
     finally:
-        local_path.unlink(missing_ok=True)
+        s3.delete_object(Bucket=DDT_TEMP_DATA_BUCKET, Key=alias_key)
 
 
-def build_local_path(file_id: str, extension: str) -> Path:
+def validate_s3_object_key(key: str) -> None:
+    """Reject S3 keys with empty or traversal path segments."""
+    key_parts = key.split("/")
+
+    if any(part in ("", ".", "..") for part in key_parts):
+        raise ValueError(f"Unsafe S3 object key: {key!r}")
+
+
+def build_droid_input_alias_key(file_id: str, extension: str) -> str:
+    """Build a unique, extension-bearing S3 key for DROID identification."""
     safe_file_id = "".join(
         char for char in file_id if char.isalnum() or char in "-_"
     )
@@ -176,13 +195,23 @@ def build_local_path(file_id: str, extension: str) -> Path:
         char for char in str(extension).lower() if char.isalnum()
     )
 
-    if safe_extension:
-        return Path("/tmp") / f"{safe_file_id}.{safe_extension}"  # nosec
+    if not safe_file_id:
+        raise ValueError(f"File ID cannot form a safe DROID alias: {file_id!r}")
 
-    return Path("/tmp") / safe_file_id  # nosec
+    file_name = (
+        f"{safe_file_id}.{safe_extension}" if safe_extension else safe_file_id
+    )
+    return join_s3_key(
+        DROID_INPUT_ALIAS_PREFIX,
+        uuid4().hex,
+        file_name,
+    )
 
 
-def run_droid(local_path: Path) -> dict[str, str]:
+def run_droid(
+    source: str,
+    expected_uri: str | None = None,
+) -> dict[str, str]:
     # Lambda's filesystem is read-only except /tmp. DROID/Java may try to write
     # temp, cache or config files, so force those locations to /tmp.
     env = {
@@ -202,10 +231,10 @@ def run_droid(local_path: Path) -> dict[str, str]:
         ),
     }
 
-    logger.info("Running DROID command: %s %s", DROID_COMMAND, local_path)
+    logger.info("Running DROID command: %s %s", DROID_COMMAND, source)
 
     result = subprocess.run(  # nosec
-        [DROID_COMMAND, str(local_path)],
+        [DROID_COMMAND, source],
         cwd="/opt/droid",
         env=env,
         capture_output=True,
@@ -231,7 +260,24 @@ def run_droid(local_path: Path) -> dict[str, str]:
             f"DROID produced no CSV rows. stdout={result.stdout[:4000]}"
         )
 
-    return rows[0]
+    if expected_uri is None:
+        if len(rows) != 1:
+            raise RuntimeError(
+                "DROID produced multiple CSV rows for one input. "
+                f"stdout={result.stdout[:4000]}"
+            )
+        return rows[0]
+
+    matching_rows = [row for row in rows if row.get("URI") == expected_uri]
+
+    if len(matching_rows) != 1:
+        raise RuntimeError(
+            "DROID did not produce exactly one result for the requested S3 "
+            f"object. uri={expected_uri!r} matches={len(matching_rows)} "
+            f"stdout={result.stdout[:4000]}"
+        )
+
+    return matching_rows[0]
 
 
 def map_droid_row_to_ffid_metadata(
