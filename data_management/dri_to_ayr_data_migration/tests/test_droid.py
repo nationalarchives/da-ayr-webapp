@@ -17,7 +17,7 @@ os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "test")
 os.environ.setdefault("DROID_VERSION", "6.9.13")
 os.environ.setdefault("DROID_COMMAND", "/opt/droid/droid.sh")
 os.environ.setdefault("DROID_TIMEOUT_SECONDS", "120")
-os.environ.setdefault("DROID_INPUT_MOUNT_PATH", "/mnt/s3")
+os.environ.setdefault("DDT_TEMP_DATA_BUCKET", "temp-data-bucket")
 os.environ.setdefault("DDT_TEMP_CSV_BUCKET", "temp-csv-bucket")
 os.environ.setdefault("TRACKING_TABLE_NAME", "tracking-table")
 os.environ.setdefault(
@@ -174,8 +174,7 @@ class TestDroidHandler:
     ):
         is_complete = mock.Mock(return_value=True)
         trigger_finaliser = mock.Mock(return_value=True)
-        get_mounted_path = mock.Mock()
-        run_mounted_droid = mock.Mock()
+        run_s3_droid = mock.Mock()
         upload_ffid = mock.Mock()
         mark_complete = mock.Mock()
 
@@ -185,10 +184,7 @@ class TestDroidHandler:
             "trigger_finaliser_if_ready",
             trigger_finaliser,
         )
-        monkeypatch.setattr(droid, "get_mounted_object_path", get_mounted_path)
-        monkeypatch.setattr(
-            droid, "run_droid_for_mounted_object", run_mounted_droid
-        )
+        monkeypatch.setattr(droid, "run_droid_for_s3_object", run_s3_droid)
         monkeypatch.setattr(droid, "upload_ffid_metadata_csv", upload_ffid)
         monkeypatch.setattr(
             droid,
@@ -213,8 +209,7 @@ class TestDroidHandler:
             series=SERIES,
             consignment_reference=CONSIGNMENT_REFERENCE,
         )
-        get_mounted_path.assert_not_called()
-        run_mounted_droid.assert_not_called()
+        run_s3_droid.assert_not_called()
         upload_ffid.assert_not_called()
         mark_complete.assert_not_called()
 
@@ -227,20 +222,15 @@ class TestDroidHandler:
             f"{SERIES}/ayr-mds-staging/{CONSIGNMENT_REFERENCE}/{FILE_ID}/"
             "AYR-ffid-metadata.csv"
         )
-        mounted_path = Path("/mnt/s3") / DATA_KEY
         monkeypatch.setattr(
             droid,
             "is_file_already_complete",
             mock.Mock(return_value=False),
         )
-        get_mounted_path = mock.Mock(return_value=mounted_path)
-        run_mounted_droid = mock.Mock(return_value=DROID_METADATA_ROW)
+        run_s3_droid = mock.Mock(return_value=DROID_METADATA_ROW)
         upload_ffid = mock.Mock(return_value=ffid_key)
         mark_complete = mock.Mock(return_value=True)
-        monkeypatch.setattr(droid, "get_mounted_object_path", get_mounted_path)
-        monkeypatch.setattr(
-            droid, "run_droid_for_mounted_object", run_mounted_droid
-        )
+        monkeypatch.setattr(droid, "run_droid_for_s3_object", run_s3_droid)
         monkeypatch.setattr(droid, "upload_ffid_metadata_csv", upload_ffid)
         monkeypatch.setattr(
             droid,
@@ -255,9 +245,8 @@ class TestDroidHandler:
             "ffidMetadataKey": ffid_key,
             "finaliserTriggered": True,
         }
-        get_mounted_path.assert_called_once_with(DATA_KEY)
-        run_mounted_droid.assert_called_once_with(
-            mounted_path=mounted_path,
+        run_s3_droid.assert_called_once_with(
+            key=DATA_KEY,
             file_id=FILE_ID,
             extension="pdf",
         )
@@ -274,43 +263,6 @@ class TestDroidHandler:
             file_id=FILE_ID,
         )
 
-    def test_get_mounted_object_path_returns_existing_file(
-        self,
-        monkeypatch,
-        tmp_path,
-    ):
-        """
-        Given the object already exists at its mounted path
-        When the mounted object path is requested
-        Then the mounted path is returned
-        """
-        mount_path = tmp_path / "mount"
-        mounted_path = mount_path / DATA_KEY
-        mounted_path.parent.mkdir(parents=True)
-        mounted_path.write_bytes(b"PDF")
-        monkeypatch.setattr(droid_module, "DROID_INPUT_MOUNT_PATH", mount_path)
-
-        result = droid_module.get_mounted_object_path(DATA_KEY)
-
-        assert result == mounted_path
-
-    def test_build_mounted_path_joins_key_under_mount(
-        self,
-        monkeypatch,
-        tmp_path,
-    ):
-        """
-        Given a mount path and an S3 object key
-        When the mounted path is built from the key
-        Then the key is joined beneath the mount path
-        """
-        mount_path = tmp_path / "mount"
-        monkeypatch.setattr(droid_module, "DROID_INPUT_MOUNT_PATH", mount_path)
-
-        result = droid_module.build_mounted_path(DATA_KEY)
-
-        assert result == mount_path / DATA_KEY
-
     @pytest.mark.parametrize(
         "key",
         [
@@ -322,264 +274,97 @@ class TestDroidHandler:
             "",
         ],
     )
-    def test_build_mounted_path_rejects_unsafe_keys(
-        self,
-        monkeypatch,
-        tmp_path,
-        key,
-    ):
-        """
-        Given an S3 object key containing a traversal or empty segment
-        When the mounted path is built from the key
-        Then a ValueError is raised
-        """
-        monkeypatch.setattr(
-            droid_module, "DROID_INPUT_MOUNT_PATH", tmp_path / "mount"
-        )
-
+    def test_validate_s3_object_key_rejects_unsafe_keys(self, droid, key):
         with pytest.raises(ValueError, match="Unsafe S3 object key"):
-            droid_module.build_mounted_path(key)
+            droid.validate_s3_object_key(key)
 
-    def test_run_droid_for_mounted_object_replaces_stale_symlink(
+    def test_build_droid_input_alias_key_sanitises_name_and_extension(
         self,
+        droid,
         monkeypatch,
-        tmp_path,
     ):
-        """
-        Given a stale symlink exists at the local path from an earlier run
-        When DROID is run for a mounted object
-        Then the stale symlink is replaced and DROID reads the mounted object
-        """
-        mounted_path = tmp_path / "mount" / DATA_KEY
-        mounted_path.parent.mkdir(parents=True)
-        mounted_path.write_bytes(b"PDF")
-        local_path = tmp_path / f"{FILE_ID}.pdf"
-        local_path.symlink_to(tmp_path / "missing-target.pdf")
         monkeypatch.setattr(
-            droid_module,
-            "build_local_path",
-            mock.Mock(return_value=local_path),
+            droid,
+            "uuid4",
+            mock.Mock(return_value=mock.Mock(hex="attempt-1")),
         )
 
-        def identify(path):
-            assert path.resolve() == mounted_path
-            return DROID_METADATA_ROW
+        result = droid.build_droid_input_alias_key("file/../1", ".P-D_F")
 
+        assert result == "_ayr-droid-inputs/attempt-1/file1.pdf"
+
+    def test_build_droid_input_alias_key_rejects_empty_safe_file_id(
+        self,
+        droid,
+    ):
+        with pytest.raises(ValueError, match="cannot form a safe DROID alias"):
+            droid.build_droid_input_alias_key("../", "pdf")
+
+    def test_run_droid_for_s3_object_copies_runs_and_deletes_alias(
+        self,
+        droid,
+        monkeypatch,
+    ):
+        alias_key = "_ayr-droid-inputs/attempt-1/file1.pdf"
+        alias_uri = f"s3://temp-data-bucket/{alias_key}"
         monkeypatch.setattr(
-            droid_module,
+            droid,
+            "uuid4",
+            mock.Mock(return_value=mock.Mock(hex="attempt-1")),
+        )
+        run_droid = mock.Mock(return_value=DROID_METADATA_ROW)
+        monkeypatch.setattr(droid, "run_droid", run_droid)
+
+        result = droid.run_droid_for_s3_object(
+            key=DATA_KEY,
+            file_id="file/../1",
+            extension=".pdf",
+        )
+
+        assert result == DROID_METADATA_ROW
+        droid.s3.copy_object.assert_called_once_with(
+            Bucket="temp-data-bucket",
+            CopySource={"Bucket": "temp-data-bucket", "Key": DATA_KEY},
+            Key=alias_key,
+        )
+        run_droid.assert_called_once_with(
+            alias_uri,
+            expected_uri=alias_uri,
+        )
+        droid.s3.delete_object.assert_called_once_with(
+            Bucket="temp-data-bucket",
+            Key=alias_key,
+        )
+
+    def test_run_droid_for_s3_object_deletes_alias_after_droid_failure(
+        self,
+        droid,
+        monkeypatch,
+    ):
+        alias_key = "_ayr-droid-inputs/attempt-1/file1.pdf"
+        error = RuntimeError("DROID failed")
+        monkeypatch.setattr(
+            droid,
+            "uuid4",
+            mock.Mock(return_value=mock.Mock(hex="attempt-1")),
+        )
+        monkeypatch.setattr(
+            droid,
             "run_droid",
-            mock.Mock(side_effect=identify),
+            mock.Mock(side_effect=error),
         )
 
-        result = droid_module.run_droid_for_mounted_object(
-            mounted_path=mounted_path,
-            file_id=FILE_ID,
-            extension="pdf",
-        )
-
-        assert result == DROID_METADATA_ROW
-        assert not local_path.is_symlink()
-
-    def test_wait_for_mounted_object_returns_immediately_when_file_exists(
-        self,
-        monkeypatch,
-        tmp_path,
-    ):
-        """
-        Given the object is already present at the mounted path
-        When the wait for the mounted object runs
-        Then it returns without waiting
-        """
-        mounted_path = tmp_path / "mounted-file"
-        mounted_path.write_bytes(b"PDF")
-        sleep = mock.Mock()
-        monkeypatch.setattr(droid_module.time, "sleep", sleep)
-
-        result = droid_module.wait_for_mounted_object(mounted_path, DATA_KEY)
-
-        assert result is None
-        sleep.assert_not_called()
-
-    def test_wait_for_mounted_object_returns_when_file_appears_during_wait(
-        self,
-        monkeypatch,
-        tmp_path,
-    ):
-        """
-        Given the object is missing when the wait starts
-        And it appears at the mounted path before the timeout
-        When the wait for the mounted object runs
-        Then it returns once the object is available
-        """
-        mounted_path = tmp_path / "mounted-file"
-
-        # The fake sleep stands in for the object arriving during the wait.
-        clock = mock.Mock()
-        clock.monotonic.side_effect = [100.0, 100.0]
-        clock.sleep.side_effect = lambda delay: mounted_path.write_bytes(b"PDF")
-        monkeypatch.setattr(droid_module, "time", clock)
-        monkeypatch.setattr(
-            droid_module, "DROID_INPUT_WAIT_TIMEOUT_SECONDS", 30.0
-        )
-        monkeypatch.setattr(
-            droid_module, "DROID_INPUT_WAIT_INTERVAL_SECONDS", 0.5
-        )
-
-        result = droid_module.wait_for_mounted_object(mounted_path, DATA_KEY)
-
-        assert result is None
-        assert mounted_path.read_bytes() == b"PDF"
-
-    def test_wait_for_mounted_object_raises_when_file_is_missing_at_timeout(
-        self,
-        monkeypatch,
-        tmp_path,
-    ):
-        """
-        Given the object never appears at the mounted path
-        When the wait reaches the timeout
-        Then a FileNotFoundError names the S3 object and expected path
-        """
-        mounted_path = tmp_path / "missing-file"
-        clock = mock.Mock()
-        # Start the deadline at zero, then advance to the timeout.
-        clock.monotonic.side_effect = [0.0, 30.0]
-        monkeypatch.setattr(droid_module, "time", clock)
-        monkeypatch.setattr(
-            droid_module, "DROID_INPUT_WAIT_TIMEOUT_SECONDS", 30.0
-        )
-
-        with pytest.raises(
-            FileNotFoundError, match="did not appear.*30 seconds"
-        ) as error:
-            droid_module.wait_for_mounted_object(mounted_path, DATA_KEY)
-
-        assert f"key={DATA_KEY!r}" in str(error.value)
-        assert str(mounted_path) in str(error.value)
-
-    def test_wait_for_mounted_object_never_sleeps_past_deadline(
-        self,
-        monkeypatch,
-        tmp_path,
-    ):
-        """
-        Given the object never appears and only 0.1 seconds remain
-        When the wait sleeps before the next check
-        Then the sleep is capped at the remaining 0.1 seconds
-        """
-        mounted_path = tmp_path / "missing-file"
-        clock = mock.Mock()
-        clock.monotonic.side_effect = [100.0, 129.9, 130.0]
-        monkeypatch.setattr(droid_module, "time", clock)
-        monkeypatch.setattr(
-            droid_module, "DROID_INPUT_WAIT_TIMEOUT_SECONDS", 30.0
-        )
-        monkeypatch.setattr(
-            droid_module, "DROID_INPUT_WAIT_INTERVAL_SECONDS", 0.5
-        )
-
-        with pytest.raises(FileNotFoundError):
-            droid_module.wait_for_mounted_object(mounted_path, DATA_KEY)
-
-        clock.sleep.assert_called_once_with(pytest.approx(0.1))
-
-    def test_run_droid_for_mounted_object_cleans_up_symlink_after_success(
-        self,
-        monkeypatch,
-        tmp_path,
-    ):
-        """
-        Given a mounted object and a free local path for DROID
-        When DROID succeeds against a symlink to the mounted object
-        Then the result is returned and the symlink is removed
-        And the mounted object is left unchanged
-        """
-        mounted_path = tmp_path / "mount" / DATA_KEY
-        mounted_path.parent.mkdir(parents=True)
-        mounted_path.write_bytes(b"PDF")
-        local_path = tmp_path / f"{FILE_ID}.pdf"
-        monkeypatch.setattr(
-            droid_module,
-            "build_local_path",
-            mock.Mock(return_value=local_path),
-        )
-
-        def identify(path):
-            assert path.is_symlink()
-            assert path.resolve() == mounted_path
-            assert path.suffix == ".pdf"
-            assert path.read_bytes() == b"PDF"
-            return DROID_METADATA_ROW
-
-        run_droid_mock = mock.Mock(side_effect=identify)
-        monkeypatch.setattr(droid_module, "run_droid", run_droid_mock)
-
-        result = droid_module.run_droid_for_mounted_object(
-            mounted_path=mounted_path,
-            file_id=FILE_ID,
-            extension="pdf",
-        )
-
-        assert result == DROID_METADATA_ROW
-        run_droid_mock.assert_called_once_with(local_path)
-        assert not local_path.exists()
-        assert not local_path.is_symlink()
-        assert mounted_path.read_bytes() == b"PDF"
-
-    @pytest.mark.parametrize(
-        "error",
-        [
-            RuntimeError("DROID failed"),
-            subprocess.TimeoutExpired("/opt/droid/droid.sh", 120),
-        ],
-    )
-    def test_run_droid_for_mounted_object_cleans_up_symlink_after_failure(
-        self,
-        monkeypatch,
-        tmp_path,
-        error,
-    ):
-        """
-        Given DROID raises an error for a symlink to a mounted object
-        When the mounted object is processed
-        Then the error is re-raised and the symlink is still removed
-        And the mounted object is left unchanged
-        """
-        mounted_path = tmp_path / "mount" / DATA_KEY
-        mounted_path.parent.mkdir(parents=True)
-        mounted_path.write_bytes(b"PDF")
-        local_path = tmp_path / f"{FILE_ID}.pdf"
-        monkeypatch.setattr(
-            droid_module,
-            "build_local_path",
-            mock.Mock(return_value=local_path),
-        )
-
-        def fail(path):
-            assert path.is_symlink()
-            assert path.resolve() == mounted_path
-            raise error
-
-        monkeypatch.setattr(
-            droid_module, "run_droid", mock.Mock(side_effect=fail)
-        )
-
-        with pytest.raises(type(error)) as raised:
-            droid_module.run_droid_for_mounted_object(
-                mounted_path=mounted_path,
-                file_id=FILE_ID,
-                extension="pdf",
+        with pytest.raises(RuntimeError, match="DROID failed"):
+            droid.run_droid_for_s3_object(
+                key=DATA_KEY,
+                file_id="file/../1",
+                extension=".pdf",
             )
 
-        assert raised.value is error
-        assert not local_path.exists()
-        assert not local_path.is_symlink()
-        assert mounted_path.read_bytes() == b"PDF"
-
-    def test_build_local_path_sanitises_file_id_and_extension(self, droid):
-        result = droid.build_local_path("file/../1", ".P-D_F")
-
-        assert result == Path("/tmp/file1.pdf")
+        droid.s3.delete_object.assert_called_once_with(
+            Bucket="temp-data-bucket",
+            Key=alias_key,
+        )
 
     def test_upload_ffid_metadata_csv_writes_expected_s3_object(self, droid):
         result = droid.upload_ffid_metadata_csv(
@@ -1045,25 +830,28 @@ class TestDroidHandler:
 class TestRunDroid:
     """DROID subprocess tests."""
 
-    def test_run_droid_parses_csv_output(self, monkeypatch, tmp_path):
-        local_path = tmp_path / "file.pdf"
-        local_path.write_bytes(b"dummy")
+    def test_run_droid_parses_csv_output(self, monkeypatch):
+        source_uri = "s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf"
 
         completed_process = mock.Mock()
         completed_process.returncode = 0
         completed_process.stderr = ""
         completed_process.stdout = (
-            "ID,EXT,PUID,FORMAT_NAME,EXTENSION_MISMATCH\n"
-            "1,pdf,fmt/18,Acrobat PDF 1.4 - Portable Document Format,false\n"
+            "ID,URI,EXT,PUID,FORMAT_NAME,EXTENSION_MISMATCH\n"
+            "1,s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf.old,"
+            "old,fmt/999,Other,false\n"
+            "2,s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf,"
+            "pdf,fmt/18,Acrobat PDF 1.4 - Portable Document Format,false\n"
         )
 
         subprocess_run_mock = mock.Mock(return_value=completed_process)
         monkeypatch.setattr(subprocess, "run", subprocess_run_mock)
 
-        result = run_droid(local_path)
+        result = run_droid(source_uri, expected_uri=source_uri)
 
         assert result == {
-            "ID": "1",
+            "ID": "2",
+            "URI": source_uri,
             "EXT": "pdf",
             "PUID": "fmt/18",
             "FORMAT_NAME": "Acrobat PDF 1.4 - Portable Document Format",
@@ -1073,7 +861,7 @@ class TestRunDroid:
         subprocess_run_mock.assert_called_once()
         call_args = subprocess_run_mock.call_args
 
-        assert call_args.args[0] == ["/opt/droid/droid.sh", str(local_path)]
+        assert call_args.args[0] == ["/opt/droid/droid.sh", source_uri]
         assert call_args.kwargs["cwd"] == "/opt/droid"
         assert call_args.kwargs["capture_output"] is True
         assert call_args.kwargs["text"] is True
@@ -1088,13 +876,33 @@ class TestRunDroid:
         assert "-Duser.home=/tmp" in env["JAVA_TOOL_OPTIONS"]
         assert "-Djava.io.tmpdir=/tmp" in env["JAVA_TOOL_OPTIONS"]
 
+    def test_run_droid_requires_a_row_for_the_requested_uri(self, monkeypatch):
+        source_uri = "s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf"
+        completed_process = mock.Mock()
+        completed_process.returncode = 0
+        completed_process.stderr = ""
+        completed_process.stdout = (
+            "ID,URI,EXT,PUID,FORMAT_NAME\n"
+            "1,s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf.old,"
+            "old,fmt/999,Other\n"
+        )
+        monkeypatch.setattr(
+            subprocess,
+            "run",
+            mock.Mock(return_value=completed_process),
+        )
+
+        with pytest.raises(
+            RuntimeError,
+            match="did not produce exactly one result",
+        ):
+            run_droid(source_uri, expected_uri=source_uri)
+
     def test_run_droid_raises_when_droid_fails(
         self,
         monkeypatch,
-        tmp_path,
     ):
-        local_path = tmp_path / "file.pdf"
-        local_path.write_bytes(b"dummy")
+        source_uri = "s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf"
 
         completed_process = mock.Mock()
         completed_process.returncode = 1
@@ -1111,22 +919,18 @@ class TestRunDroid:
             RuntimeError,
             match="DROID failed with return code 1",
         ):
-            run_droid(local_path)
+            run_droid(source_uri, expected_uri=source_uri)
 
     def test_run_droid_raises_when_no_csv_rows_returned(
         self,
         monkeypatch,
-        tmp_path,
     ):
-        local_path = tmp_path / "file.pdf"
-        local_path.write_bytes(b"dummy")
+        source_uri = "s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf"
 
         completed_process = mock.Mock()
         completed_process.returncode = 0
         completed_process.stderr = ""
-        completed_process.stdout = (
-            "ID,EXT,PUID,FORMAT_NAME,EXTENSION_MISMATCH\n"
-        )
+        completed_process.stdout = "ID,URI,EXT,PUID,FORMAT_NAME\n"
 
         monkeypatch.setattr(
             subprocess,
@@ -1135,16 +939,15 @@ class TestRunDroid:
         )
 
         with pytest.raises(RuntimeError, match="DROID produced no CSV rows"):
-            run_droid(local_path)
+            run_droid(source_uri, expected_uri=source_uri)
 
 
 @pytest.mark.integration
-def test_mounted_object_with_installed_droid(monkeypatch, tmp_path):
+def test_local_pdf_with_installed_droid(tmp_path):
     """
-    Given a valid PDF in the mounted input path and DROID installed
-    When the mounted object is identified with the real DROID command
-    Then the FFID metadata is returned and the symlink is removed
-    And the mounted object is left unchanged
+    Given a valid local PDF and DROID installed
+    When it is identified with the real DROID command
+    Then the expected FFID metadata is returned
     """
     file_id = "droid-integration-file"
     local_path = tmp_path / f"{file_id}.pdf"
@@ -1166,28 +969,11 @@ def test_mounted_object_with_installed_droid(monkeypatch, tmp_path):
         f"DROID command is not executable: {droid_command}"
     )
 
-    mount_path = tmp_path / "mount"
-    mounted_object = mount_path / DATA_KEY
-    mounted_object.parent.mkdir(parents=True)
-    mounted_object.write_bytes(pdf_bytes)
-    monkeypatch.setattr(droid_module, "DROID_INPUT_MOUNT_PATH", mount_path)
-    monkeypatch.setattr(
-        droid_module,
-        "build_local_path",
-        mock.Mock(return_value=local_path),
-    )
-
-    mounted_path = droid_module.get_mounted_object_path(DATA_KEY)
-    droid_row = droid_module.run_droid_for_mounted_object(
-        mounted_path=mounted_path,
-        file_id=file_id,
-        extension="pdf",
-    )
+    local_path.write_bytes(pdf_bytes)
+    droid_row = run_droid(str(local_path))
     result = droid_module.map_droid_row_to_ffid_metadata(file_id, droid_row)
 
-    assert not local_path.exists()
-    assert not local_path.is_symlink()
-    assert mounted_object.read_bytes() == pdf_bytes
+    assert local_path.read_bytes() == pdf_bytes
     assert result["FileId"] == file_id
     assert result["Extension"] == "pdf"
     assert result["PUID"] == "fmt/18"
