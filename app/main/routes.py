@@ -16,7 +16,6 @@ from flask import (
     url_for,
 )
 from jinja2.exceptions import TemplateNotFound
-from sqlalchemy import func
 from werkzeug.exceptions import HTTPException, NotFound
 
 from app.main import bp
@@ -28,12 +27,9 @@ from app.main.authorize.keycloak_manager import decode_verified_token_claims
 from app.main.authorize.permissions_helpers import (
     validate_body_user_groups_or_404,
 )
-from app.main.db.models import Body, Consignment, File, Series, db
+from app.main.db.models import Body, File, db
 from app.main.db.queries import (
-    build_browse_consignment_query,
-    build_browse_query,
     build_browse_records_base_query,
-    build_browse_series_query,
     get_file_metadata,
 )
 from app.main.flask_config_helpers import (
@@ -48,7 +44,6 @@ from app.main.util.browse_records_utils import (
 from app.main.util.date_filters_validator import validate_date_filters
 from app.main.util.download_utils import get_download_endpoint_filename
 from app.main.util.filter_sort_builder import (
-    build_browse_consignment_filters,
     build_filters,
     build_sorting_orders,
 )
@@ -96,7 +91,6 @@ from app.main.util.search_utils import (
 from configs.base_config import CONVERTIBLE_PUIDS
 
 from .forms import SearchForm
-from .process_routes.browse_route import process_browse_request
 
 
 def _build_records_filters_context(validated_data, ayr_user, query=None):
@@ -328,38 +322,7 @@ def accessibility():
 @log_page_view
 @validate_request(BrowseRequestSchema, location="combined")
 def browse():
-    """
-    Render the browse page for all-access users.
-
-    """
-    form = SearchForm()
-    ayr_user = AYRUser(session.get("user_groups"))
-    if ayr_user.is_standard_user:
-        return redirect(
-            f"/browse/transferring_body/{ayr_user.transferring_body.BodyId}"
-        )
-    else:
-        transferring_bodies = [body.Name for body in Body.query.all()]
-        validated_data = request.validated_data
-
-        # Process the browse request (business logic)
-        result_data = process_browse_request(
-            validated_data=validated_data,
-            default_page_size=int(current_app.config["DEFAULT_PAGE_SIZE"]),
-            transferring_bodies=transferring_bodies,
-        )
-
-        # If result_data is a Response (redirect), return it directly
-        if isinstance(result_data, Response):
-            return result_data
-
-        return render_template(
-            "browse.html",
-            form=form,
-            browse_type="browse",
-            id=None,
-            **result_data,
-        )
+    return redirect(url_for("main.browse_records"))
 
 
 @bp.route("/browse/transferring_body/<uuid:_id>", methods=["GET"])
@@ -367,94 +330,7 @@ def browse():
 @log_page_view
 @validate_request(BrowseTransferringBodyRequestSchema, location="combined")
 def browse_transferring_body(_id: uuid.UUID):
-    """
-    Render the browse transferring body view page.
-
-    This function retrieves search results for a specific
-    record(s) based on the transferring_body 'id' provided
-    as list of results on the 'browse-transferring-body.html' template.
-
-    Returns:
-        A rendered HTML page with transferring body records.
-    """
-    body = db.session.get(Body, _id)
-    validate_body_user_groups_or_404(body.Name)
-
-    breadcrumb_values = {0: {"transferring_body": body.Name}}
-
-    form = SearchForm()
-    validated_data = request.validated_data
-    page, per_page = get_page_and_per_page(validated_data)
-
-    default_page = 1
-
-    date_validation_errors = []
-    from_date = None
-    to_date = None
-    date_filters = {}
-    date_error_fields = []
-
-    if len(validated_data) > 0:
-        (
-            date_validation_errors,
-            from_date,
-            to_date,
-            date_filters,
-            date_error_fields,
-        ) = validate_date_filters(validated_data)
-
-    filters = build_filters(
-        validated_data,
-        date_from=from_date,
-        date_to=to_date,
-    )
-    sorting_orders = build_sorting_orders(validated_data)
-
-    # set default sort
-    if len(sorting_orders) == 0:
-        sorting_orders["series"] = "asc"
-
-    query = build_browse_query(
-        transferring_body_id=_id,
-        filters=filters,
-        sorting_orders=sorting_orders,
-    )
-
-    try:
-        browse_results = query.paginate(page=page, per_page=per_page)
-    except NotFound:
-        # Redirect to first page if page does not exist
-        return redirect_if_page_invalid(
-            page, default_page, "main.browse_transferring_body", _id=_id
-        )
-
-    total_records = db.session.query(
-        func.sum(query.subquery().c.records_held)
-    ).scalar()
-
-    if total_records:
-        num_records_found = total_records
-    else:
-        num_records_found = 0
-
-    pagination = get_pagination(page, browse_results.pages)
-
-    return render_template(
-        "browse.html",
-        form=form,
-        current_page=page,
-        browse_type="transferring_body",
-        results=browse_results,
-        date_validation_errors=date_validation_errors,
-        date_error_fields=date_error_fields,
-        breadcrumb_values=breadcrumb_values,
-        pagination=pagination,
-        filters=filters,
-        date_filters=date_filters,
-        sorting_orders=sorting_orders,
-        num_records_found=num_records_found,
-        query_string_parameters=request.validated_args,
-    )
+    return redirect(url_for("main.browse_records"))
 
 
 @bp.route("/browse/series/<uuid:_id>", methods=["GET"])
@@ -462,99 +338,7 @@ def browse_transferring_body(_id: uuid.UUID):
 @log_page_view
 @validate_request(BrowseSeriesRequestSchema, location="combined")
 def browse_series(_id: uuid.UUID):
-    """
-    Render the browse series view page.
-
-    This function retrieves search results for a specific
-    record(s) based on the series 'id' provided
-    as list of results on the 'browse-series.html' template.
-
-    Returns:
-        A rendered HTML page with series records.
-    """
-    series = db.session.get(Series, _id)
-    body = series.body
-    validate_body_user_groups_or_404(body.Name)
-
-    breadcrumb_values = {
-        0: {"transferring_body_id": body.BodyId},
-        1: {"transferring_body": body.Name},
-        2: {"series": series.Name},
-    }
-
-    form = SearchForm()
-    validated_data = request.validated_data
-    page, per_page = get_page_and_per_page(validated_data)
-
-    default_page = 1
-
-    date_validation_errors = []
-    from_date = None
-    to_date = None
-    date_filters = {}
-    date_error_fields = []
-
-    if len(validated_data) > 0:
-        (
-            date_validation_errors,
-            from_date,
-            to_date,
-            date_filters,
-            date_error_fields,
-        ) = validate_date_filters(validated_data)
-
-    filters = build_filters(
-        validated_data,
-        date_from=from_date,
-        date_to=to_date,
-    )
-    sorting_orders = build_sorting_orders(validated_data)
-
-    # set default sort
-    if len(sorting_orders) == 0:
-        sorting_orders["last_record_transferred"] = "desc"
-
-    query = build_browse_series_query(
-        series_id=_id,
-        filters=filters,
-        sorting_orders=sorting_orders,
-    )
-
-    try:
-        browse_results = query.paginate(page=page, per_page=per_page)
-    except NotFound:
-        # Redirect to first page if page does not exist
-        return redirect_if_page_invalid(
-            page, default_page, "main.browse_series", _id=_id
-        )
-
-    total_records = db.session.query(
-        func.sum(query.subquery().c.records_held)
-    ).scalar()
-
-    if total_records:
-        num_records_found = total_records
-    else:
-        num_records_found = 0
-
-    pagination = get_pagination(page, browse_results.pages)
-
-    return render_template(
-        "browse.html",
-        form=form,
-        current_page=page,
-        browse_type="series",
-        results=browse_results,
-        date_validation_errors=date_validation_errors,
-        date_error_fields=date_error_fields,
-        breadcrumb_values=breadcrumb_values,
-        pagination=pagination,
-        filters=filters,
-        date_filters=date_filters,
-        sorting_orders=sorting_orders,
-        num_records_found=num_records_found,
-        query_string_parameters=request.validated_args,
-    )
+    return redirect(url_for("main.browse_records"))
 
 
 @bp.route("/browse/consignment/<uuid:_id>", methods=["GET"])
@@ -562,99 +346,7 @@ def browse_series(_id: uuid.UUID):
 @log_page_view
 @validate_request(BrowseConsignmentRequestSchema, location="combined")
 def browse_consignment(_id: uuid.UUID):
-    """
-    Render the browse consignment view page.
-
-    This function retrieves search results for a specific
-    record(s) based on the consignment 'id' provided
-    as list of results on the 'browse-consignment.html' template.
-
-    Returns:
-        A rendered HTML page with consignment records.
-    """
-    consignment = db.session.get(Consignment, _id)
-    body = consignment.series.body
-    validate_body_user_groups_or_404(body.Name)
-
-    series = consignment.series
-    breadcrumb_values = {
-        0: {"transferring_body_id": body.BodyId},
-        1: {"transferring_body": body.Name},
-        2: {"series_id": series.SeriesId},
-        3: {"series": series.Name},
-        4: {"consignment_reference": consignment.ConsignmentReference},
-    }
-
-    form = SearchForm()
-    validated_data = request.validated_data
-    page, per_page = get_page_and_per_page(validated_data)
-
-    default_page = 1
-
-    date_validation_errors = []
-    from_date = None
-    to_date = None
-    date_filters = {}
-    date_error_fields = []
-
-    if len(validated_data) > 0:
-        (
-            date_validation_errors,
-            from_date,
-            to_date,
-            date_filters,
-            date_error_fields,
-        ) = validate_date_filters(validated_data, browse_consignment=True)
-
-    filters = build_browse_consignment_filters(
-        validated_data,
-        date_from=from_date,
-        date_to=to_date,
-    )
-    sorting_orders = build_sorting_orders(validated_data)
-
-    # set default sort
-    if len(sorting_orders) == 0:
-        sorting_orders["date_last_modified"] = "desc"
-
-    query = build_browse_consignment_query(
-        consignment_id=_id,
-        filters=filters,
-        sorting_orders=sorting_orders,
-    )
-
-    try:
-        browse_results = query.paginate(page=page, per_page=per_page)
-    except NotFound:
-        # Redirect to first page if page does not exist
-        return redirect_if_page_invalid(
-            page, default_page, "main.browse_consignment", _id=_id
-        )
-
-    total_records = query.count()
-    if total_records:
-        num_records_found = total_records
-    else:
-        num_records_found = 0
-
-    pagination = get_pagination(page, browse_results.pages)
-
-    return render_template(
-        "browse.html",
-        form=form,
-        current_page=page,
-        browse_type="consignment",
-        results=browse_results,
-        date_validation_errors=date_validation_errors,
-        date_error_fields=date_error_fields,
-        breadcrumb_values=breadcrumb_values,
-        pagination=pagination,
-        filters=filters,
-        date_filters=date_filters,
-        sorting_orders=sorting_orders,
-        num_records_found=num_records_found,
-        query_string_parameters=request.validated_args,
-    )
+    return redirect(url_for("main.browse_records"))
 
 
 @bp.route("/browse/records", methods=["GET"])
