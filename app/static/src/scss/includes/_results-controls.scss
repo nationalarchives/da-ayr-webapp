@@ -6,13 +6,12 @@
   margin-bottom: govuk-spacing.govuk-spacing(4);
 
   display: flex;
-  flex-wrap: wrap;
-  gap: govuk-spacing.govuk-spacing(3);
+  flex-wrap: nowrap;
+  gap: govuk-spacing.govuk-spacing(7);
 
-  > .ayr-results-control {
-    min-width: min-content;
-
-    flex: 1 1 0;
+  @media screen and (width <= $breakpoint-desktop) {
+    flex-wrap: wrap;
+    gap: govuk-spacing.govuk-spacing(3);
   }
 
   .ayr-results-controls-enhanced & > .ayr-results-control[data-auto-submit] {
@@ -27,5 +26,16 @@
 
       flex-basis: 100%;
     }
+  }
+}
+
+@media screen and (width <= $breakpoint-medium) {
+  .browse-grid--mobile-table:has(.ayr-results-controls) {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    order: -1;
   }
 }

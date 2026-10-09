@@ -59,19 +59,22 @@
                     {% if num_records_found > 0 %}
                         {% set number_of_columns = 4 %}
                         <!-- SORT -->
-                        <div class="ayr-results-controls">
-                            {{ results_control(
-                            url_for('main.browse_records', _anchor='records'),
-                            'records-sort', 'Sort records', 'sort', records_sort_options,
-                            selected_sort, 'Sort', query_string_parameters, ['sort', 'page'],
-                            auto_submit=true
-                            ) }}
-                            {{ results_control(
-                            url_for('main.browse_records', _anchor='records'),
-                            'records-per-page', 'Records per page', 'per_page', per_page_options,
-                            selected_per_page, 'Apply', query_string_parameters, ['per_page', 'page'],
-                            auto_submit=true, select_class='ayr-results-control__select--compact'
-                            ) }}
+                        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
+                            <div class="ayr-results-controls">
+                                {{ results_control(
+                                url_for('main.browse_records', _anchor='records'),
+                                'records-sort', 'Sort records', 'sort', records_sort_options,
+                                selected_sort, 'Sort', query_string_parameters, ['sort', 'page'],
+                                auto_submit=true,
+                                label_class='govuk-visually-hidden'
+                                ) }}
+                                {{ results_control(
+                                url_for('main.browse_records', _anchor='records'),
+                                'records-per-page', 'Records per page', 'per_page', per_page_options,
+                                selected_per_page, 'Apply', query_string_parameters, ['per_page', 'page'],
+                                auto_submit=true, select_class='ayr-results-control__select--compact'
+                                ) }}
+                            </div>
                         </div>
                         <!-- TABLE -->
                         {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, 'main.browse_records', None) %}

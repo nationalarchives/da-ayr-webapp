@@ -40,21 +40,24 @@
                 <div class="browse-layout records-page-wrapper">
                     {% if num_records_found > 0 %}
                         <!-- SORT -->
-                        <div class="ayr-results-controls">
-                            {% set per_page_options = {"5": "5", "10": "10", "20": "20"} %}
-                            {% set selected_per_page = (query_string_parameters.get('per_page', per_page) | string) %}
-                            {{ results_control(
-                            url_for('main.search_results', _anchor='browse-records'),
-                            'search-sort', 'Sort records', 'sort', sorting_list,
-                            sort, 'Sort', query_string_parameters, ['sort', 'page'],
-                            auto_submit=true
-                            ) }}
-                            {{ results_control(
-                            url_for('main.search_results', _anchor='browse-records'),
-                            'search-per-page', 'Records per page', 'per_page', per_page_options,
-                            selected_per_page, 'Apply', query_string_parameters, ['per_page', 'page'],
-                            auto_submit=true, select_class='ayr-results-control__select--compact'
-                            ) }}
+                        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
+                            <div class="ayr-results-controls">
+                                {% set per_page_options = {"5": "5", "10": "10", "20": "20"} %}
+                                {% set selected_per_page = (query_string_parameters.get('per_page', per_page) | string) %}
+                                {{ results_control(
+                                url_for('main.search_results', _anchor='browse-records'),
+                                'search-sort', 'Sort records', 'sort', sorting_list,
+                                sort, 'Sort', query_string_parameters, ['sort', 'page'],
+                                auto_submit=true,
+                                label_class='govuk-visually-hidden'
+                                ) }}
+                                {{ results_control(
+                                url_for('main.search_results', _anchor='browse-records'),
+                                'search-per-page', 'Records per page', 'per_page', per_page_options,
+                                selected_per_page, 'Apply', query_string_parameters, ['per_page', 'page'],
+                                auto_submit=true, select_class='ayr-results-control__select--compact'
+                                ) }}
+                            </div>
                         </div>
                         {% set number_of_columns = 4 %}
                         {% set browse_table_params = query_string_parameters.copy() %}
