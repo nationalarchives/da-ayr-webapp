@@ -322,10 +322,11 @@ class TestDroidHandler:
         )
 
         assert result == DROID_METADATA_ROW
-        droid.s3.copy_object.assert_called_once_with(
-            Bucket="temp-data-bucket",
-            CopySource={"Bucket": "temp-data-bucket", "Key": DATA_KEY},
-            Key=alias_key,
+        droid.s3.copy.assert_called_once_with(
+            {"Bucket": "temp-data-bucket", "Key": DATA_KEY},
+            "temp-data-bucket",
+            alias_key,
+            Config=droid.DROID_ALIAS_COPY_CONFIG,
         )
         run_droid.assert_called_once_with(
             alias_uri,
@@ -335,6 +336,13 @@ class TestDroidHandler:
             Bucket="temp-data-bucket",
             Key=alias_key,
         )
+
+    def test_droid_alias_copy_uses_multipart_for_large_objects(self, droid):
+        config = droid.DROID_ALIAS_COPY_CONFIG
+
+        assert config.multipart_threshold == 4 * 1024**3
+        assert config.multipart_chunksize == 1024**3
+        assert config.max_concurrency == 4
 
     def test_run_droid_for_s3_object_deletes_alias_after_droid_failure(
         self,

@@ -11,6 +11,7 @@ from typing import Any
 from uuid import uuid4
 
 import boto3
+from boto3.s3.transfer import TransferConfig
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger()
@@ -30,6 +31,12 @@ FINALISER_QUEUE_URL = os.environ["FINALISER_QUEUE_URL"]
 
 STAGING_PREFIX = os.getenv("STAGING_PREFIX", "ayr-mds-staging")
 DROID_INPUT_ALIAS_PREFIX = "_ayr-droid-inputs"
+DROID_ALIAS_COPY_CONFIG = TransferConfig(
+    # Stay below S3's 5 GB single-request copy limit.
+    multipart_threshold=4 * 1024**3,
+    multipart_chunksize=1024**3,
+    max_concurrency=4,
+)
 
 DYNAMODB_TRANSACTION_MAX_ATTEMPTS = 10
 DYNAMODB_TRANSACTION_BASE_DELAY_SECONDS = 0.05
@@ -160,10 +167,11 @@ def run_droid_for_s3_object(
     alias_uri = f"s3://{DDT_TEMP_DATA_BUCKET}/{alias_key}"
 
     try:
-        s3.copy_object(
-            Bucket=DDT_TEMP_DATA_BUCKET,
-            CopySource={"Bucket": DDT_TEMP_DATA_BUCKET, "Key": key},
-            Key=alias_key,
+        s3.copy(
+            {"Bucket": DDT_TEMP_DATA_BUCKET, "Key": key},
+            DDT_TEMP_DATA_BUCKET,
+            alias_key,
+            Config=DROID_ALIAS_COPY_CONFIG,
         )
 
         logger.info(
