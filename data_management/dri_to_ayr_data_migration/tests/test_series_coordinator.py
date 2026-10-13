@@ -337,7 +337,15 @@ class TestCoordinateSeries:
         self,
         coordinator,
         recorded_limit,
+        monkeypatch,
     ):
+        """
+        Given the recorded limit for the series run is different
+        When coordinate_series is called with a different MAX_FILES_PER_FAKE_CONSIGNMENT environment variable
+        Then a ValueError is raised
+        """
+        monkeypatch.setenv("MAX_FILES_PER_FAKE_CONSIGNMENT", "3")
+
         coordinator.dynamodb.get_item.return_value = {
             "Item": {
                 "series": {"S": "MIG 1"},
@@ -363,6 +371,11 @@ class TestCoordinateSeries:
         self,
         coordinator,
     ):
+        """
+        Given the recorded limit for the series run is missing
+        When coordinate_series is called
+        Then a ValueError is raised indicating the missing limit
+        """
         coordinator.dynamodb.get_item.return_value = {
             "Item": {
                 "series": {"S": "MIG 1"},
