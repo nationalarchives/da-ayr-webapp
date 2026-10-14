@@ -218,7 +218,7 @@ def build_droid_input_alias_key(file_id: str, extension: str) -> str:
 
 def run_droid(
     source: str,
-    expected_uri: str | None = None,
+    expected_uri: str,
 ) -> dict[str, str]:
     # Lambda's filesystem is read-only except /tmp. DROID/Java may try to write
     # temp, cache or config files, so force those locations to /tmp.
@@ -268,20 +268,12 @@ def run_droid(
             f"DROID produced no CSV rows. stdout={result.stdout[:4000]}"
         )
 
-    if expected_uri is None:
-        if len(rows) != 1:
-            raise RuntimeError(
-                "DROID produced multiple CSV rows for one input. "
-                f"stdout={result.stdout[:4000]}"
-            )
-        return rows[0]
-
     matching_rows = [row for row in rows if row.get("URI") == expected_uri]
 
     if len(matching_rows) != 1:
         raise RuntimeError(
-            "DROID did not produce exactly one result for the requested S3 "
-            f"object. uri={expected_uri!r} matches={len(matching_rows)} "
+            "DROID did not produce exactly one result for the expected URI. "
+            f"uri={expected_uri!r} matches={len(matching_rows)} "
             f"stdout={result.stdout[:4000]}"
         )
 

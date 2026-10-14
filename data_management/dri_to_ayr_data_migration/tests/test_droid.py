@@ -978,7 +978,10 @@ def test_local_pdf_with_installed_droid(tmp_path):
     )
 
     local_path.write_bytes(pdf_bytes)
-    droid_row = run_droid(str(local_path))
+    droid_row = run_droid(
+        str(local_path),
+        expected_uri=f"file:{local_path}",
+    )
     result = droid_module.map_droid_row_to_ffid_metadata(file_id, droid_row)
 
     assert local_path.read_bytes() == pdf_bytes
