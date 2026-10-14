@@ -2549,14 +2549,14 @@ files = [
 
 [[package]]
 name = "pip-tools"
-version = "7.6.1"
+version = "7.6.2"
 description = "pip-tools keeps your pinned dependencies fresh."
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "pip_tools-7.6.1-py3-none-any.whl", hash = "sha256:6111c8b4b07fd14b7223ca921485b0e96cf66e20bf94da95eeed9845f510cb8f"},
-    {file = "pip_tools-7.6.1.tar.gz", hash = "sha256:695556edeb647eb94ee8345cc7108657fdb7fb16b3876623a399b4f61bbede01"},
+    {file = "pip_tools-7.6.2-py3-none-any.whl", hash = "sha256:f37eb4b736859c2c30230e50977312c61918b7ef931071ff7811fd067715c25f"},
+    {file = "pip_tools-7.6.2.tar.gz", hash = "sha256:04dbe0e25f3b60fbdeee17d0590dac7fe20039876aa410a946fc54dc926c09ba"},
 ]
 
 [package.dependencies]
@@ -4491,4 +4491,4 @@ test = ["pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.14,<3.15"
-content-hash = "6651993a249347ba8873ffa85a13d5670986b98f1762504b6b4a5b92def293ff"
+content-hash = "325b4df357bf4114e3f0478bc97c56c67f1de8f6c9be5ca0a0b9573c68a03c05"
