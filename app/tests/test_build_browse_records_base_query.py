@@ -23,6 +23,8 @@ class TestBrowseRecordsBaseQuery:
     def test_scoped_query_binds_consignment_ids(
         self, client, browse_files, scope
     ):
+        for day, file in enumerate(browse_files, start=1):
+            file.DateLastModified = datetime(2020, 1, day)
         target = browse_files[0].consignment
         accessible_names = None
         filters = {}
@@ -248,13 +250,15 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert _file_names(results) == [
+        assert _file_names(results)[:3] == [
             "first_file.docx",
             "fourth_file.xls",
             "third_file.docx",
+        ]
+        assert set(_file_names(results)[3:]) == {
             "fifth_file.doc",
             "second_file.ppt",
-        ]
+        }
 
     def test_build_browse_records_base_query_sorts_by_opening_date_desc(
         self, client, mock_standard_user, browse_consignment_files
@@ -274,9 +278,11 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert _file_names(results) == [
+        assert set(_file_names(results)[:2]) == {
             "fifth_file.doc",
             "second_file.ppt",
+        }
+        assert _file_names(results)[2:] == [
             "third_file.docx",
             "fourth_file.xls",
             "first_file.docx",

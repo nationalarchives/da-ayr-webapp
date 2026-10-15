@@ -32,7 +32,7 @@ from app.main.db.models import Body, Consignment, File, Series, db
 from app.main.db.queries import (
     build_browse_consignment_query,
     build_browse_query,
-    build_browse_records_base_query,
+    build_browse_records_queries,
     build_browse_series_query,
     get_file_metadata,
 )
@@ -679,22 +679,23 @@ def browse_records():
     accessible_body_names = filters_context["accessible_body_names"]
     sorting_orders = build_sorting_orders(validated_data)
 
-    data_query = build_browse_records_base_query(
+    offset = (page - 1) * per_page
+    count_query, data_query = build_browse_records_queries(
         accessible_transferring_body_names=accessible_body_names,
         filters=filters,
         sorting_orders=sorting_orders or {"date_of_record": "desc"},
+        offset=offset,
+        limit=per_page,
     )
-    count_query = data_query.order_by(None)
 
     try:
-        total = count_query.count()
+        total = count_query.scalar()
         total_pages = calculate_total_pages(total, per_page)
         if page > 1 and page > total_pages:
             return redirect_if_page_invalid(
                 page, default_page, "main.browse_records"
             )
-        offset = (page - 1) * per_page
-        page_items = data_query.offset(offset).limit(per_page).all()
+        page_items = data_query.all()
     except NotFound:
         return redirect_if_page_invalid(
             page, default_page, "main.browse_records"
