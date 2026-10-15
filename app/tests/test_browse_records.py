@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
 from app.main.db.queries import _build_records_hierarchy_filters
-from app.tests.factories import FileFactory
+from app.tests.factories import BodyFactory, FileFactory
 
 
 def verify_browse_records_view_header_row(data, expected_first_header):
@@ -54,6 +54,25 @@ class TestBrowseRecords:
     @property
     def route_url(self):
         return "/browse/records"
+
+    def test_empty_body_is_suggested_and_returns_no_records(
+        self, client, mock_all_access_user, browse_files
+    ):
+        BodyFactory(Name="empty_body")
+        mock_all_access_user(client)
+
+        response = client.get(
+            self.route_url,
+            query_string={"transferring_body_filter": "empty_body"},
+        )
+
+        assert response.status_code == 200
+        assert b"No results found" in response.data
+        soup = BeautifulSoup(response.data, "html.parser")
+        assert (
+            soup.select_one("#transferring_bodies option[value='empty_body']")
+            is not None
+        )
 
     def test_scoped_page_and_count_share_consignment_lookup(
         self, client, mock_standard_user, browse_files

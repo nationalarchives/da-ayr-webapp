@@ -45,12 +45,8 @@ def prefill_transferring_body_for_single_scope(
 
 
 def get_transferring_body_options(accessible_body_names):
-    transferring_body_query = (
-        db.session.query(Body.Name.label("transferring_body"))
-        .join(Series, Series.BodyId == Body.BodyId)
-        .join(Consignment, Consignment.SeriesId == Series.SeriesId)
-        .join(File, File.ConsignmentId == Consignment.ConsignmentId)
-        .filter(func.lower(File.FileType) == "file")
+    transferring_body_query = db.session.query(
+        Body.Name.label("transferring_body")
     )
     if accessible_body_names is not None:
         transferring_body_query = transferring_body_query.filter(
@@ -79,8 +75,14 @@ def get_autofill_options_rows(
         )
         .join(Series, Series.BodyId == Body.BodyId)
         .join(Consignment, Consignment.SeriesId == Series.SeriesId)
-        .join(File, File.ConsignmentId == Consignment.ConsignmentId)
-        .filter(func.lower(File.FileType) == "file")
+        .filter(
+            db.session.query(File.FileId)
+            .filter(
+                File.ConsignmentId == Consignment.ConsignmentId,
+                func.lower(File.FileType) == "file",
+            )
+            .exists()
+        )
     )
     if accessible_body_names is not None:
         options_query = options_query.filter(
