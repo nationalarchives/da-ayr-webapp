@@ -327,3 +327,85 @@ def test_route_uses_paged_queries_for_every_sort(
             if file.FileType.lower() == "file"
         }
         assert {link["href"] for link in links} <= permitted_links
+
+
+@pytest.mark.parametrize(
+    "field", [None, "date_last_modified", "opening_date", "transferred"]
+)
+@pytest.mark.parametrize(
+    ("bounds", "expected_positions"),
+    [
+        ({"date_from": "2020-02-29"}, [1, 2, 3, 4]),
+        ({"date_to": "2020-03-01"}, [0, 1, 2, 3]),
+        (
+            {"date_from": "2020-02-29", "date_to": "2020-03-01"},
+            [1, 2, 3],
+        ),
+    ],
+)
+@pytest.mark.parametrize("scoped", [True, False])
+def test_date_filters_use_inclusive_calendar_days(
+    client, field, bounds, expected_positions, scoped
+):
+    consignment = ConsignmentFactory(
+        series=SeriesFactory(body=BodyFactory(Name="permitted"))
+    )
+    dates = [
+        datetime(2020, 2, 28, 23, 59, 59, 999999),
+        datetime(2020, 2, 29),
+        datetime(2020, 3, 1),
+        datetime(2020, 3, 1, 23, 59, 59, 999999),
+        datetime(2020, 3, 2),
+        None,
+    ]
+    files = [
+        FileFactory(
+            consignment=consignment,
+            EndDate=value if position % 2 else None,
+            DateLastModified=value,
+            OpeningDate=value,
+        )
+        for position, value in enumerate(dates)
+    ]
+    # The transferred filter uses EndDate alone, not its modification fallback.
+    if field == "transferred":
+        for file, value in zip(files, dates, strict=True):
+            file.EndDate = value
+    db.session.flush()
+
+    count_query, page_query = build_browse_records_queries(
+        ["permitted"] if scoped else None,
+        {**bounds, "date_filter_field": field},
+        {"file_name": "asc"},
+        limit=10,
+    )
+
+    assert count_query.scalar() == len(expected_positions)
+    assert {row.file_id for row in page_query.all()} == {
+        files[position].FileId for position in expected_positions
+    }
+    count_sql = str(count_query.statement)
+    assert "to_char" not in count_sql
+    assert "CAST(" in count_sql
+
+
+@pytest.mark.parametrize(
+    "field", [None, "date_last_modified", "opening_date", "transferred"]
+)
+def test_upper_date_bound_handles_last_supported_calendar_day(client, field):
+    file = FileFactory(
+        EndDate=datetime.max,
+        DateLastModified=datetime.max,
+        OpeningDate=datetime.max,
+    )
+    db.session.flush()
+    count_query, page_query = build_browse_records_queries(
+        filters={
+            "date_filter_field": field,
+            "date_from": "9999-12-31",
+            "date_to": "9999-12-31",
+        }
+    )
+
+    assert count_query.scalar() == 1
+    assert [row.file_id for row in page_query.all()] == [file.FileId]

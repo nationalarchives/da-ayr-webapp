@@ -1,4 +1,5 @@
 import uuid
+from datetime import timedelta
 from typing import Any, Optional
 
 from flask import current_app
@@ -292,8 +293,15 @@ def _build_date_file_id_filters(date_filter_field, date_from, date_to):
         # sort_date = COALESCE(end_date, date_last_modified)
         date_col = func.coalesce(File.EndDate, File.DateLastModified)
 
-    date_filter = _build_date_range_filter(date_col, date_from, date_to)
-    return [date_filter] if date_filter is not None else []
+    query_filters = []
+    if date_from:
+        query_filters.append(date_col >= func.cast(date_from, DATE))
+    if date_to:
+        # Compute the next midnight in PostgreSQL, including 9999-12-31.
+        query_filters.append(
+            date_col < func.cast(date_to, DATE) + timedelta(days=1)
+        )
+    return query_filters
 
 
 def _apply_base_query_sort(
