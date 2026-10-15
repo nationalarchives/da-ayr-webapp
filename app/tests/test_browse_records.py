@@ -4,6 +4,7 @@ import pytest
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
+from app.main.db.queries import _build_records_hierarchy_filters
 from app.tests.factories import FileFactory
 
 
@@ -53,6 +54,23 @@ class TestBrowseRecords:
     @property
     def route_url(self):
         return "/browse/records"
+
+    def test_scoped_page_and_count_share_consignment_lookup(
+        self, client, mock_standard_user, browse_files
+    ):
+        mock_standard_user(client, "second_body")
+
+        with patch(
+            "app.main.db.queries._build_records_hierarchy_filters",
+            wraps=_build_records_hierarchy_filters,
+        ) as hierarchy_filters:
+            response = client.get(f"{self.route_url}?page=2")
+
+        hierarchy_filters.assert_called_once()
+        assert response.status_code == 200
+        verify_browse_records_view_header_row(
+            response.data, "Showing 6\u20137 of 7"
+        )
 
     def test_browse_records_get_view_for_all_access_user(
         self, client: FlaskClient, mock_all_access_user, browse_files

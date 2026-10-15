@@ -684,10 +684,7 @@ def browse_records():
         filters=filters,
         sorting_orders=sorting_orders or {"date_of_record": "desc"},
     )
-    count_query = build_browse_records_base_query(
-        accessible_transferring_body_names=accessible_body_names,
-        filters=filters,
-    )
+    count_query = data_query.order_by(None)
 
     try:
         total = count_query.count()

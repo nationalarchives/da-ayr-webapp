@@ -208,8 +208,10 @@ def build_browse_consignment_query(
     return query
 
 
-def _build_base_query_filters(accessible_transferring_body_names, filters):
-    query_filters = [func.lower(File.FileType) == "file"]
+def _build_records_hierarchy_filters(
+    accessible_transferring_body_names, filters
+):
+    query_filters = []
     if accessible_transferring_body_names is not None:
         query_filters.append(Body.Name.in_(accessible_transferring_body_names))
 
@@ -228,6 +230,33 @@ def _build_base_query_filters(accessible_transferring_body_names, filters):
             func.lower(Consignment.ConsignmentReference)
             == consignment_reference.lower()
         )
+
+    return query_filters
+
+
+def _build_base_query_filters(accessible_transferring_body_names, filters):
+    hierarchy_filters = _build_records_hierarchy_filters(
+        accessible_transferring_body_names, filters
+    )
+    query_filters = [func.lower(File.FileType) == "file", *hierarchy_filters]
+    if hierarchy_filters:
+        # Explicit IDs let the planner account for consignment size skew
+        # instead of scanning the global date index for a small body.
+        consignment_ids = (
+            db.session.query(Consignment.ConsignmentId)
+            .join(Consignment.series)
+            .join(Series.body)
+            .filter(*hierarchy_filters)
+            .all()
+        )
+        query_filters.append(
+            File.ConsignmentId.in_(
+                [row.ConsignmentId for row in consignment_ids]
+            )
+        )
+
+    if not filters:
+        return query_filters
 
     record_status = (filters.get("record_status") or "").lower()
     if record_status and record_status != "all":
