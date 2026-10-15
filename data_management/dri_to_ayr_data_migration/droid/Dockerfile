@@ -2,19 +2,6 @@ FROM public.ecr.aws/lambda/python:3.14@sha256:1477a590b2104bb8ae2d64f3967d8dde76
 
 ARG DROID_VERSION=6.9.13
 
-# renovate: datasource=repology depName=amazon_2023/findutils versioning=loose
-ARG FINDUTILS_VERSION=1:4.8.0-2.amzn2023.0.2
-# renovate: datasource=repology depName=amazon_2023/java-21-amazon-corretto-headless versioning=loose
-ARG JAVA_21_AMAZON_CORRETTO_HEADLESS_VERSION=1:21.0.12+9-1.amzn2023.1
-# renovate: datasource=repology depName=amazon_2023/unzip versioning=loose
-ARG UNZIP_VERSION=6.0-68.amzn2023.0.1
-
-ARG AL2023_RELEASE=2023.12.20260928
-ARG CURL_VERSION=8.21.0-5.amzn2023.0.2
-ARG OPENSSL_VERSION=1:3.5.8-1.amzn2023.0.1
-ARG ALSA_LIB_VERSION=1.2.7.2-1.amzn2023.0.4
-
-
 # DROID's own release doesn't refresh these on its own schedule, so we
 # override the vulnerable JARs after unpacking.
 ARG DROID_JAR_PATCHES="\
@@ -49,17 +36,16 @@ org.apache.cxf:cxf-rt-ws-policy:4.2.4 \
 
 # Install Java for DROID, plus the tools needed to unpack and patch it.
 RUN dnf clean all && \
-  dnf upgrade -y --releasever="${AL2023_RELEASE}" && \
+  dnf upgrade -y && \
     dnf install -y \
-      --releasever="${AL2023_RELEASE}" \
-      "alsa-lib-${ALSA_LIB_VERSION}" \
-      "curl-minimal-${CURL_VERSION}" \
-      "libcurl-minimal-${CURL_VERSION}" \
-      "openssl-fips-provider-latest-${OPENSSL_VERSION}" \
-      "openssl-snapsafe-libs-${OPENSSL_VERSION}" \
-      "findutils-${FINDUTILS_VERSION}" \
-      "java-21-amazon-corretto-headless-${JAVA_21_AMAZON_CORRETTO_HEADLESS_VERSION}" \
-      "unzip-${UNZIP_VERSION}" && \
+      alsa-lib \
+      curl-minimal \
+      libcurl-minimal \
+      openssl-fips-provider-latest \
+      openssl-snapsafe-libs \
+      findutils \
+      java-21-amazon-corretto-headless \
+      unzip && \
     dnf clean all && \
     rm -rf /var/cache/dnf
 
