@@ -62,7 +62,6 @@ repos:
       entry: npx eslint
       language: system
       files: \.[jt]sx?$
-      args: [--fix]
       pass_filenames: true
 
 - repo: https://github.com/pre-commit/mirrors-prettier
