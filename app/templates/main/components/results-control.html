@@ -1,0 +1,41 @@
+{% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
+{% from 'govuk_frontend_jinja/components/select/macro.html' import govukSelect %}
+{% from 'macros/forms.html' import render_preserved_params %}
+{% macro results_control(action, control_id, label, name, options, selected_value, button_text, params, excluded_params, auto_submit=false, select_class='', label_class='') %}
+    {% set label_classes = "ayr-results-control__label" %}
+    {% if label_class %}
+        {% set label_classes = label_classes + ' ' + label_class %}
+    {% endif %}
+    {% set select_items = namespace(items=[]) %}
+    {% for text, value in options.items() %}
+        {% set _ = select_items.items.append({
+                    'value': value,
+                    'text': text,
+                    'selected': value|string == selected_value|string
+                }) %}
+    {% endfor %}
+    {% set select_classes = "ayr-results-control__select" %}
+    {% if select_class %}
+        {% set select_classes = select_classes + ' ' + select_class %}
+    {% endif %}
+    {# Keep the submit button as fallback; JS hides it only after auto-submit initializes. #}
+    <form action="{{ action }}"
+          method="get"
+          class="ayr-results-control"
+          {% if auto_submit %}data-auto-submit{% endif %}>
+        {{ render_preserved_params(params, excluded_params) }}
+        {{ govukSelect({
+        'id': control_id,
+        'name': name,
+        'label': {'text': label, 'classes': label_classes},
+        'items': select_items.items,
+        'classes': select_classes,
+        'formGroup': {'classes': 'govuk-!-margin-bottom-0 ayr-results-control__group'}
+        }) }}
+        {{ govukButton({
+        'text': button_text,
+        'type': 'submit',
+        'classes': 'ayr-results-control__button govuk-button--secondary govuk-!-margin-bottom-0'
+        }) }}
+    </form>
+{% endmacro %}

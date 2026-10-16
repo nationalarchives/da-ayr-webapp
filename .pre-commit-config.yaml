@@ -51,6 +51,7 @@ repos:
   rev: v17.13.0
   hooks:
     - id: stylelint
+      args: [--fix]
       additional_dependencies:
         - stylelint@^16.26.1
 

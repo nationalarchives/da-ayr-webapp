@@ -3,7 +3,7 @@
 {% from 'main/components/back-link.html' import page_back_link %}
 {% from "main/components/no-results-message.html" import no_results_message %}
 {% from 'main/components/records-table.html' import render_record_table %}
-{% from 'macros/forms.html' import render_preserved_params %}
+{% from 'main/components/results-control.html' import results_control %}
 {% block pageTitle %}Search results – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
 {% set sorting_list = {
@@ -33,32 +33,31 @@
                 {{ page_back_link(search_back_link) }}
                 {% set is_standard_user = session['user_type'] == 'standard_user' %}
                 {% if num_records_found > 0 %}
-                    <h1 class="govuk-heading-l browse__records-found__text"
+                    <h1 class="govuk-heading-l browse-records__heading"
                         id="browse-records"
-                        aria-live="polite">Records found {{ num_records_found | format_number_with_commas }}</h1>
+                        aria-live="polite">{{ num_records_found | format_number_with_commas }} records found</h1>
                 {% endif %}
                 <div class="browse-layout records-page-wrapper">
                     {% if num_records_found > 0 %}
                         <!-- SORT -->
-                        <div class="govuk-grid-column-two-thirds filter-group">
-                            <form action="{{ url_for('main.search_results', _anchor='browse-records') }}"
-                                  method="get">
-                                <div class="browse__sort-container">
-                                    <label class="govuk-label" for="sort">Sort by</label>
-                                    <select class="govuk-select govuk-select__sort-container-select"
-                                            id="sort"
-                                            name="sort">
-                                        {% for key, value in sorting_list.items() %}
-                                            <option value="{{ value }}" {% if value == sort %}selected{% endif %}>{{ key }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    {{ render_preserved_params(query_string_parameters, ['sort', 'page']) }}
-                                    {{ govukButton({
-                                    'text': "Apply",
-                                    'classes': "govuk-button__sort-container-update-button",
-                                    }) }}
-                                </div>
-                            </form>
+                        <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
+                            <div class="ayr-results-controls">
+                                {% set per_page_options = {"5": "5", "10": "10", "20": "20"} %}
+                                {% set selected_per_page = (query_string_parameters.get('per_page', per_page) | string) %}
+                                {{ results_control(
+                                url_for('main.search_results', _anchor='browse-records'),
+                                'search-sort', 'Sort records', 'sort', sorting_list,
+                                sort, 'Sort', query_string_parameters, ['sort', 'page'],
+                                auto_submit=true,
+                                label_class='govuk-visually-hidden'
+                                ) }}
+                                {{ results_control(
+                                url_for('main.search_results', _anchor='browse-records'),
+                                'search-per-page', 'Records per page', 'per_page', per_page_options,
+                                selected_per_page, 'Apply', query_string_parameters, ['per_page', 'page'],
+                                auto_submit=true, select_class='ayr-results-control__select--compact'
+                                ) }}
+                            </div>
                         </div>
                         {% set number_of_columns = 4 %}
                         {% set browse_table_params = query_string_parameters.copy() %}
@@ -88,37 +87,4 @@
             </div>
         </div>
     </div>
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-    const toggleButtons = document.querySelectorAll('.govuk-table__toggle-button');
-    const expandableRows = document.querySelectorAll('tr[data-main-row]');
-    expandableRows.forEach(row => {
-    row.classList.add('hidden');
-    row.setAttribute('aria-hidden', 'true');
-    row.setAttribute('aria-expanded', 'false');
-    });
-    const toggleRows = (btn, expand) => {
-    const rows = document.querySelectorAll(`tr[data-main-row="${btn.dataset.mainRow}"]`);
-    const fieldCount = document.querySelector(`span[data-main-row="${btn.dataset.mainRow}"].field-count`);
-    rows.forEach(row => {
-    row.classList.toggle('hidden', !expand);
-    row.setAttribute('aria-hidden', !expand);
-    row.setAttribute('aria-expanded', expand);
-    });
-    if (fieldCount) {
-    fieldCount.classList.toggle('hidden', expand);
-    }
-    btn.setAttribute('aria-expanded', expand);
-    btn.setAttribute('aria-label',
-    `${expand ? 'Collapse' : 'Expand'} rows for file ${btn.dataset.fileName}`);
-    };
-    document.querySelectorAll('.field-count').forEach(count => {
-    count.classList.remove('hidden');
-    });
-    toggleButtons.forEach(btn => {
-    btn.removeAttribute('disabled');
-    btn.onclick = () => toggleRows(btn, btn.getAttribute('aria-expanded') !== 'true');
-    });
-    });
-    </script>
 {% endblock %}

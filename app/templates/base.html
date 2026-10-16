@@ -107,39 +107,34 @@
         </div>
     </footer>
 {% endblock %}
+{% block bodyStart %}
+    {# Progressive enhancement for auto-submitting results controls #}
+    <script nonce="{{ cspNonce }}">
+        if (typeof HTMLFormElement.prototype.requestSubmit === 'function') {
+            document.addEventListener('change', function(event) {
+                const select = event.target;
+                if (select.tagName !== 'SELECT') {
+                    return;
+                }
+
+                const form = select.form;
+                if (!form || !form.hasAttribute('data-auto-submit')) {
+                    return;
+                }
+
+                form.requestSubmit();
+            });
+            // Mark enhancement only after the delegated handler is installed.
+            document.body.classList.add('ayr-results-controls-enhanced');
+        }
+    </script>
+{% endblock %}
 {% block bodyEnd %}
     <!--[if gt IE 8]><!-->
     <script nonce="{{ cspNonce }}" type="module">
         import { initAll } from "{{ url_for('static', filename='govuk-frontend.min.js') }}"
         initAll()
         document.addEventListener("DOMContentLoaded", function() {
-        const leftSortSelect = document.querySelector('.record-select--sort-left');
-        const leftLabel = document.querySelector('.browse-records__label--left');
-        const recordsSortSelect = document.querySelector('.js-records-sort-select');
-        const form = document.getElementById('records-form');
-
-        // Show the left select and label element when JS is enabled
-
-        if (leftSortSelect) {
-            leftSortSelect.style.display = 'inline-flex';
-        }
-        if (leftLabel) {
-            leftLabel.style.display = 'inline-block';
-        }
-
-        // Handle auto-submit for the left dropdown using its class
-        if (leftSortSelect && form) {
-            leftSortSelect.addEventListener('change', function(e) {
-                form.submit();
-            });
-        }
-
-        if (recordsSortSelect && form) {
-            recordsSortSelect.addEventListener('change', function() {
-                form.submit();
-            });
-        }
-
         document.addEventListener('click', function(e) {
             const backLink = e.target.closest('a[data-history-back-link="true"]');
             if (!backLink) {
