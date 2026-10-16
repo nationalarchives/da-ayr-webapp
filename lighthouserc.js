@@ -1,15 +1,5 @@
 const BASE_URL = "https://localhost:5000";
 
-const transferringBodyIds = [
-  "4654e9f9-335b-4ab1-acd8-edff54f908d4",
-  "8ccc8cd1-c0ee-431d-afad-70cf404ba337",
-];
-
-const seriesIds = [
-  "93ed0101-2318-45ab-8730-c681958ded7e",
-  "8bd7ad22-90d1-4c7f-ae00-645dfd1987cc",
-];
-
 const searchTerms = ["test", "ab"];
 const transferringBodyFilters = ["a", "b"];
 const seriesFilters = ["ab", "y"];
@@ -40,45 +30,11 @@ const staticUrls = [
   `${BASE_URL}/cookies`,
 ];
 
-const browseLandingUrls = [`${BASE_URL}/browse`];
+const browseLandingUrls = [`${BASE_URL}/browse/records`];
 
 const browseRecordsRouteUrls = [
   `${BASE_URL}/browse/records?sort=file_name-asc&per_page=10`,
 ];
-
-const transferringBodyUrls = transferringBodyIds.map(
-  (id) => `${BASE_URL}/browse/transferring_body/${id}`,
-);
-
-const seriesUrls = seriesSorts.map((sort, idx) => {
-  const seriesId = seriesIds[idx % seriesIds.length];
-  return `${BASE_URL}/browse/series/${seriesId}?sort=${sort}`;
-});
-
-const consignmentIds = [
-  "2fd4e03e-5913-4c04-b4f2-5a823fafd430",
-  "016031db-1398-4fe4-b743-630aa82ea32a",
-];
-
-const consignmentUrls = consignmentIds.map(
-  (id) => `${BASE_URL}/browse/consignment/${id}`,
-);
-
-const consignmentFilteredUrls = consignmentIds.slice(0, 2).map((id) => {
-  const params = new URLSearchParams({
-    series_filter: "AYR 1",
-    date_from_day: "01",
-    date_from_month: "01",
-    date_from_year: "2020",
-    date_to_day: "01",
-    date_to_month: "01",
-    date_to_year: "2026",
-    page: "1",
-    per_page: "10",
-  });
-
-  return `${BASE_URL}/browse/consignment/${id}?${params.toString()}`;
-});
 
 const browseRecordUrls = fixedDateSets.map((dates, idx) => {
   const transferringBodyFilter =
@@ -97,7 +53,7 @@ const browseRecordUrls = fixedDateSets.map((dates, idx) => {
     date_to_year: String(dates.date_to_year),
   });
 
-  return `${BASE_URL}/browse?${params.toString()}#browse-records`;
+  return `${BASE_URL}/browse/records?${params.toString()}#browse-records`;
 });
 
 const browseSeriesUrls = seriesFilters.map((seriesFilter, idx) => {
@@ -110,7 +66,7 @@ const browseSeriesUrls = seriesFilters.map((seriesFilter, idx) => {
     date_to_year: String(dates.date_to_year),
   });
 
-  return `${BASE_URL}/browse?${params.toString()}#browse-series`;
+  return `${BASE_URL}/browse/records?${params.toString()}#browse-series`;
 });
 
 const searchLandingUrls = [
@@ -139,9 +95,6 @@ const prSmokeUrls = [
   ...staticUrls,
   ...browseLandingUrls.slice(0, 1),
   ...browseRecordsRouteUrls.slice(0, 1),
-  ...transferringBodyUrls.slice(0, 1),
-  ...seriesUrls.slice(0, 1),
-  ...consignmentUrls.slice(0, 1),
   ...browseRecordUrls.slice(0, 1),
   ...searchLandingUrls.slice(0, 1),
   ...searchResultsByTermUrls.slice(0, 1),
@@ -152,10 +105,6 @@ const allUrls = [
   ...staticUrls,
   ...browseLandingUrls,
   ...browseRecordsRouteUrls,
-  ...transferringBodyUrls,
-  ...seriesUrls,
-  ...consignmentUrls,
-  ...consignmentFilteredUrls,
   ...browseRecordUrls,
   ...browseSeriesUrls,
   ...searchLandingUrls,
