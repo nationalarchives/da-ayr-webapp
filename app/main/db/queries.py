@@ -1,8 +1,10 @@
 import uuid
-from typing import Any, Optional
+from datetime import timedelta
+from typing import Any, Callable, Optional
 
 from flask import current_app
-from sqlalchemy import DATE, and_, desc, func
+from sqlalchemy import DATE, and_, bindparam, desc, func, select, true
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Query
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -208,8 +210,10 @@ def build_browse_consignment_query(
     return query
 
 
-def _build_base_query_filters(accessible_transferring_body_names, filters):
-    query_filters = [func.lower(File.FileType) == "file"]
+def _build_records_hierarchy_filters(
+    accessible_transferring_body_names, filters
+):
+    query_filters = []
     if accessible_transferring_body_names is not None:
         query_filters.append(Body.Name.in_(accessible_transferring_body_names))
 
@@ -228,6 +232,35 @@ def _build_base_query_filters(accessible_transferring_body_names, filters):
             func.lower(Consignment.ConsignmentReference)
             == consignment_reference.lower()
         )
+
+    return query_filters
+
+
+def _resolve_records_consignment_ids(
+    accessible_transferring_body_names, filters
+):
+    hierarchy_filters = _build_records_hierarchy_filters(
+        accessible_transferring_body_names, filters
+    )
+    if not hierarchy_filters:
+        return None
+
+    return [
+        row.ConsignmentId
+        for row in (
+            db.session.query(Consignment.ConsignmentId)
+            .join(Consignment.series)
+            .join(Series.body)
+            .filter(*hierarchy_filters)
+            .all()
+        )
+    ]
+
+
+def _build_records_file_filters(filters):
+    query_filters = [func.lower(File.FileType) == "file"]
+    if not filters:
+        return query_filters
 
     record_status = (filters.get("record_status") or "").lower()
     if record_status and record_status != "all":
@@ -260,8 +293,15 @@ def _build_date_file_id_filters(date_filter_field, date_from, date_to):
         # sort_date = COALESCE(end_date, date_last_modified)
         date_col = func.coalesce(File.EndDate, File.DateLastModified)
 
-    date_filter = _build_date_range_filter(date_col, date_from, date_to)
-    return [date_filter] if date_filter is not None else []
+    query_filters = []
+    if date_from:
+        query_filters.append(date_col >= func.cast(date_from, DATE))
+    if date_to:
+        # Compute the next midnight in PostgreSQL, including 9999-12-31.
+        query_filters.append(
+            date_col < func.cast(date_to, DATE) + timedelta(days=1)
+        )
+    return query_filters
 
 
 def _apply_base_query_sort(
@@ -273,17 +313,13 @@ def _apply_base_query_sort(
     if "date_of_record" in sorting_orders:
         sort_date_col = func.coalesce(File.EndDate, File.DateLastModified)
         if sorting_orders["date_of_record"] == "desc":
-            return query.order_by(
-                desc(sort_date_col), File.FileName, File.FileId
-            )
-        return query.order_by(sort_date_col, File.FileName, File.FileId)
+            return query.order_by(desc(sort_date_col))
+        return query.order_by(sort_date_col)
 
     if "opening_date" in sorting_orders:
         if sorting_orders["opening_date"] == "desc":
-            return query.order_by(
-                desc(File.OpeningDate), File.FileName, File.FileId
-            )
-        return query.order_by(File.OpeningDate, File.FileName, File.FileId)
+            return query.order_by(desc(File.OpeningDate))
+        return query.order_by(File.OpeningDate)
 
     col_map = {
         "file_name": File.FileName,
@@ -305,11 +341,19 @@ def build_browse_records_base_query(
     File/hierarchy plus the browse metadata fields, all read directly off
     File/Consignment columns - no FileMetadata join.
     """
-    query_filters = _build_base_query_filters(
+    consignment_ids = _resolve_records_consignment_ids(
         accessible_transferring_body_names, filters
     )
+    query_filters = _build_records_file_filters(filters)
+    if consignment_ids is not None:
+        query_filters.append(File.ConsignmentId.in_(consignment_ids))
 
-    query = (
+    query = _build_records_metadata_query().filter(*query_filters)
+    return _apply_base_query_sort(query, sorting_orders)
+
+
+def _build_records_metadata_query():
+    return (
         db.session.query(
             Body.BodyId.label("transferring_body_id"),
             Body.Name.label("transferring_body"),
@@ -337,10 +381,230 @@ def build_browse_records_base_query(
         .join(File.consignment)
         .join(Consignment.series)
         .join(Series.body)
-        .filter(*query_filters)
     )
 
-    return _apply_base_query_sort(query, sorting_orders)
+
+def _build_scoped_records_candidates(
+    consignment_ids, file_filters, sort_column, descending, candidate_limit
+):
+    permitted = select(
+        func.unnest(
+            bindparam(
+                "consignment_ids",
+                value=consignment_ids,
+                type_=ARRAY(UUID(as_uuid=True)),
+            )
+        ).label("consignment_id")
+    ).subquery("permitted_consignments")
+    candidate = (
+        select(
+            File.FileId.label("file_id"),
+            sort_column.label("sort_value"),
+        )
+        .where(
+            File.ConsignmentId == permitted.c.consignment_id,
+            *file_filters,
+        )
+        .order_by(desc(sort_column) if descending else sort_column)
+        .limit(candidate_limit)
+        .correlate(permitted)
+        .lateral("candidate")
+    )
+    return select(candidate.c.file_id, candidate.c.sort_value).select_from(
+        permitted.join(candidate, true())
+    )
+
+
+def _build_series_records_candidates(
+    consignment_ids, file_filters, candidate_limit
+):
+    series_query = select(Series.SeriesId, Series.Name).join(Series.body)
+    if consignment_ids is not None:
+        series_query = series_query.where(
+            Series.SeriesId.in_(
+                select(Consignment.SeriesId).where(
+                    Consignment.ConsignmentId.in_(consignment_ids)
+                )
+            )
+        )
+        file_filters = [
+            *file_filters,
+            File.ConsignmentId.in_(consignment_ids),
+        ]
+    eligible_series = series_query.subquery("eligible_series")
+    # All files within a series tie: bound each group's contribution without
+    # sorting its files. The global sort also handles duplicate series names.
+    candidate = (
+        select(File.FileId.label("file_id"))
+        .join(File.consignment)
+        .where(
+            Consignment.SeriesId == eligible_series.c.SeriesId,
+            *file_filters,
+        )
+        .limit(candidate_limit)
+        .correlate(eligible_series)
+        .lateral("candidate")
+    )
+    return select(
+        candidate.c.file_id, eligible_series.c.Name.label("sort_value")
+    ).select_from(eligible_series.join(candidate, true()))
+
+
+def build_browse_records_queries(
+    accessible_transferring_body_names: Optional[list[str]] = None,
+    filters: Optional[dict[str, Any]] = None,
+    sorting_orders: Optional[dict[str, str]] = None,
+    offset: int = 0,
+    limit: int = 5,
+) -> tuple[Query, Query]:
+    count_query, build_page_query = build_browse_records_query_factory(
+        accessible_transferring_body_names,
+        filters,
+        sorting_orders,
+    )
+    page_query, _ = build_page_query(offset, limit, None)
+    return count_query, page_query
+
+
+def build_browse_records_query_factory(
+    accessible_transferring_body_names: Optional[list[str]] = None,
+    filters: Optional[dict[str, Any]] = None,
+    sorting_orders: Optional[dict[str, str]] = None,
+) -> tuple[Query, Callable[[int, int, Optional[int]], tuple[Query, bool]]]:
+    """Build the exact count and a page query deferred until count is known."""
+    consignment_ids = _resolve_records_consignment_ids(
+        accessible_transferring_body_names, filters
+    )
+    file_filters = _build_records_file_filters(filters)
+    count_query = db.session.query(func.count()).select_from(File)
+    if consignment_ids is None:
+        count_query = (
+            count_query.join(File.consignment)
+            .join(Consignment.series)
+            .join(Series.body)
+        )
+    else:
+        count_query = count_query.filter(
+            File.ConsignmentId.in_(consignment_ids)
+        )
+    count_query = count_query.filter(*file_filters)
+
+    sort_field, _ = next(
+        iter((sorting_orders or {"date_of_record": "desc"}).items())
+    )
+    reverse_supported = sort_field in {
+        "date_of_record",
+        "opening_date",
+        "file_name",
+        "series",
+    }
+
+    def build_page_query(
+        offset: int, limit: int, total_records: Optional[int]
+    ) -> tuple[Query, bool]:
+        page_offset = offset
+        page_limit = limit
+        reverse = False
+        if total_records is not None:
+            page_limit = min(limit, max(0, total_records - offset))
+            reverse_offset = max(0, total_records - offset - page_limit)
+            if reverse_supported and page_limit and reverse_offset < offset:
+                page_offset = reverse_offset
+                reverse = True
+
+        return (
+            _build_browse_records_page_query(
+                consignment_ids,
+                file_filters,
+                sorting_orders,
+                page_offset,
+                page_limit,
+                reverse,
+            ),
+            reverse,
+        )
+
+    return count_query, build_page_query
+
+
+def _build_browse_records_page_query(
+    consignment_ids,
+    file_filters,
+    sorting_orders,
+    offset,
+    limit,
+    reverse,
+):
+    sort_field, direction = next(
+        iter((sorting_orders or {"date_of_record": "desc"}).items())
+    )
+    if sort_field not in {
+        "date_of_record",
+        "opening_date",
+        "file_name",
+        "series",
+    }:
+        # The shared browse schema also accepts other pages' sort options.
+        # Preserve their existing unsorted behavior on browse records.
+        page_query = _build_records_metadata_query().filter(*file_filters)
+        if consignment_ids is not None:
+            page_query = page_query.filter(
+                File.ConsignmentId.in_(consignment_ids)
+            )
+        return page_query.offset(offset).limit(limit)
+    descending = (direction == "desc") != reverse
+    if sort_field == "series":
+        candidates = _build_series_records_candidates(
+            consignment_ids, file_filters, offset + limit
+        )
+    else:
+        sort_column = {
+            "date_of_record": func.coalesce(
+                File.EndDate, File.DateLastModified
+            ),
+            "opening_date": File.OpeningDate,
+            "file_name": File.FileName,
+        }[sort_field]
+        if consignment_ids is not None:
+            candidates = _build_scoped_records_candidates(
+                consignment_ids,
+                file_filters,
+                sort_column,
+                descending,
+                offset + limit,
+            )
+        else:
+            candidates = (
+                select(
+                    File.FileId.label("file_id"),
+                    sort_column.label("sort_value"),
+                )
+                .join(File.consignment)
+                .join(Consignment.series)
+                .join(Series.body)
+                .where(*file_filters)
+            )
+
+    candidates = candidates.subquery("candidates")
+    sort_value = candidates.c.sort_value
+    page_keys = (
+        select(candidates.c.file_id, sort_value)
+        .order_by(desc(sort_value) if descending else sort_value)
+        .offset(offset)
+        .limit(limit)
+        .cte("page_keys")
+        .prefix_with("MATERIALIZED")
+    )
+    page_query = (
+        _build_records_metadata_query()
+        .join(page_keys, File.FileId == page_keys.c.file_id)
+        .order_by(
+            desc(page_keys.c.sort_value)
+            if descending
+            else page_keys.c.sort_value
+        )
+    )
+    return page_query
 
 
 def _build_browse_filters(query, sub_query, filters):

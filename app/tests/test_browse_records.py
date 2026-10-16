@@ -4,7 +4,11 @@ import pytest
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
-from app.tests.factories import FileFactory
+from app.main.db.queries import (
+    _build_records_hierarchy_filters,
+    build_browse_records_base_query,
+)
+from app.tests.factories import BodyFactory, FileFactory
 
 
 def verify_browse_records_view_header_row(data, expected_first_header):
@@ -53,6 +57,42 @@ class TestBrowseRecords:
     @property
     def route_url(self):
         return "/browse/records"
+
+    def test_empty_body_is_suggested_and_returns_no_records(
+        self, client, mock_all_access_user, browse_files
+    ):
+        BodyFactory(Name="empty_body")
+        mock_all_access_user(client)
+
+        response = client.get(
+            self.route_url,
+            query_string={"transferring_body_filter": "empty_body"},
+        )
+
+        assert response.status_code == 200
+        assert b"No results found" in response.data
+        soup = BeautifulSoup(response.data, "html.parser")
+        assert (
+            soup.select_one("#transferring_bodies option[value='empty_body']")
+            is not None
+        )
+
+    def test_scoped_page_and_count_share_consignment_lookup(
+        self, client, mock_standard_user, browse_files
+    ):
+        mock_standard_user(client, "second_body")
+
+        with patch(
+            "app.main.db.queries._build_records_hierarchy_filters",
+            wraps=_build_records_hierarchy_filters,
+        ) as hierarchy_filters:
+            response = client.get(f"{self.route_url}?page=2")
+
+        hierarchy_filters.assert_called_once()
+        assert response.status_code == 200
+        verify_browse_records_view_header_row(
+            response.data, "Showing 6\u20137 of 7"
+        )
 
     def test_browse_records_get_view_for_all_access_user(
         self, client: FlaskClient, mock_all_access_user, browse_files
@@ -146,6 +186,38 @@ class TestBrowseRecords:
         assert next_link is not None
         assert "page=1" in previous_link["href"]
         assert "page=3" in next_link["href"]
+
+    @pytest.mark.parametrize("direction", ["asc", "desc"])
+    def test_browse_records_last_page_preserves_display_order(
+        self, client, mock_all_access_user, browse_files, direction
+    ):
+        mock_all_access_user(client)
+        expected = (
+            build_browse_records_base_query(
+                sorting_orders={"file_name": direction}
+            )
+            .offset(21)
+            .limit(7)
+            .all()
+        )
+
+        response = client.get(
+            self.route_url,
+            query_string={
+                "page": 4,
+                "per_page": 7,
+                "sort": f"file_name-{direction}",
+            },
+        )
+
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.data, "html.parser")
+        links = soup.select(
+            "tbody.govuk-table__body td[colspan='4'] > a[href^='/record/']"
+        )
+        assert [link["href"] for link in links] == [
+            f"/record/{row.file_id}" for row in expected
+        ]
 
     def test_browse_records_standard_user_transferring_body_does_not_count(
         self, client: FlaskClient, mock_standard_user, browse_files

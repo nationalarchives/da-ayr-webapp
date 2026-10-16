@@ -1,3 +1,4 @@
+{% set browse_endpoint = browse_endpoint | default('main.browse_records') %}
 <tr class="govuk-table__row browse-record-row__row browse-record-row__row--title">
     <td colspan="{{ number_of_columns }}"
         class="govuk-table__cell browse-record-row__cell browse-records__title-cell">
@@ -26,7 +27,7 @@
         {% for k, v in series_params.items() %}
             {% set _ = combined_params.update({k | string: v}) %}
         {% endfor %}
-        <a href="{{ url_for('main.browse_records', **combined_params) }}">{{ record["series"] }}</a>
+        <a href="{{ url_for(browse_endpoint, **combined_params) }}">{{ record["series"] }}</a>
     </td>
     <td class="govuk-table__cell browse-record-row__cell browse-records__meta-cell--status">
         {% set closure_type = record["closure_type"] %}
@@ -52,7 +53,7 @@
                 {% for k, v in body_params.items() %}
                     {% set _ = combined_params.update({k | string: v}) %}
                 {% endfor %}
-                <a href="{{ url_for('main.browse_records', **combined_params) }}">{{ record["transferring_body"] }}</a>
+                <a href="{{ url_for(browse_endpoint, **combined_params) }}">{{ record["transferring_body"] }}</a>
             </p>
         </td>
     </tr>

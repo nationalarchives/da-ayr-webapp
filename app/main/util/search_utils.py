@@ -485,6 +485,148 @@ def build_search_filter_clauses(transferring_body_id=None, filters=None):
     return filter_clauses
 
 
+def _append_browse_exact_filter(filter_clauses, filters, filter_key, field):
+    value = (filters.get(filter_key) or "").strip()
+    if value:
+        filter_clauses.append(
+            {
+                "term": {
+                    f"{field}.keyword": {
+                        "value": value,
+                        "case_insensitive": True,
+                    }
+                }
+            }
+        )
+
+
+def _build_browse_records_date_filter(filters):
+    date_from = filters.get("date_from")
+    date_to = filters.get("date_to")
+    if not (date_from or date_to):
+        return None
+
+    date_filter_field = (filters.get("date_filter_field") or "").strip().lower()
+    if date_filter_field == "opening_date":
+        return _build_range_filter("opening_date", date_from, date_to)
+    if date_filter_field == "date_last_modified":
+        return _build_range_filter("date_last_modified", date_from, date_to)
+    if date_filter_field == "transferred":
+        return _build_range_filter("end_date", date_from, date_to)
+    return _build_date_of_record_filter(date_from, date_to)
+
+
+def _build_browse_records_sort(sort_option):
+    sort_fields = {
+        "date_of_record": ("date_of_record", None),
+        "file_name": ("file_name.keyword", "keyword"),
+        "opening_date": ("opening_date", "date"),
+        "series": ("series_name.keyword", "keyword"),
+    }
+    sort_parts = (sort_option or "date_of_record-desc").rsplit("-", 1)
+    if len(sort_parts) != 2 or sort_parts[1] not in {"asc", "desc"}:
+        sort_parts = ["date_of_record", "desc"]
+
+    sort_field, sort_order = sort_parts
+    field_config = sort_fields.get(sort_field)
+    if field_config is None:
+        sort_field, sort_order = "date_of_record", "desc"
+        field_config = sort_fields[sort_field]
+
+    field, unmapped_type = field_config
+    if sort_field == "date_of_record":
+        primary_sort = {
+            "_script": {
+                "type": "number",
+                "order": sort_order,
+                "script": {
+                    "lang": "painless",
+                    "source": (
+                        "if (doc.containsKey('end_date') "
+                        "&& doc['end_date'].size() > 0) { "
+                        "return doc['end_date'].value.toInstant()"
+                        ".toEpochMilli(); "
+                        "} "
+                        "if (doc.containsKey('date_last_modified') "
+                        "&& doc['date_last_modified'].size() > 0) { "
+                        "return doc['date_last_modified'].value.toInstant()"
+                        ".toEpochMilli(); "
+                        "} "
+                        "return Long.MAX_VALUE;"
+                    ),
+                },
+            }
+        }
+    else:
+        primary_sort = {
+            field: {
+                "order": sort_order,
+                "missing": "_last",
+                **({"unmapped_type": unmapped_type} if unmapped_type else {}),
+            }
+        }
+
+    return [primary_sort, {"file_id.keyword": {"order": "asc"}}]
+
+
+def build_browse_records_search_query(
+    transferring_body_id=None, filters=None, sort_option=None
+):
+    filters = filters or {}
+    filter_clauses = []
+
+    if transferring_body_id is not None:
+        filter_clauses.append(
+            {
+                "term": {
+                    "transferring_body_id.keyword": str(transferring_body_id)
+                }
+            }
+        )
+
+    for filter_key, field in (
+        ("transferring_body", "transferring_body"),
+        ("series", "series_name"),
+        ("consignment_reference", "consignment_reference"),
+    ):
+        _append_browse_exact_filter(filter_clauses, filters, filter_key, field)
+
+    record_status_filter = _build_record_status_filter(filters)
+    if record_status_filter:
+        filter_clauses.append(record_status_filter)
+
+    date_filter = _build_browse_records_date_filter(filters)
+    if date_filter:
+        filter_clauses.append(date_filter)
+
+    query = (
+        {"bool": {"filter": filter_clauses}}
+        if filter_clauses
+        else {"match_all": {}}
+    )
+    return {
+        "query": query,
+        "sort": _build_browse_records_sort(sort_option),
+        "track_total_hits": True,
+        "_source": [
+            "file_id",
+            "file_name",
+            "file_path",
+            "closure_type",
+            "opening_date",
+            "end_date",
+            "date_last_modified",
+            "series_id",
+            "series_name",
+            "transferring_body_id",
+            "transferring_body",
+            "consignment_id",
+            "consignment_reference",
+            "consignment_transfer_complete_date",
+        ],
+    }
+
+
 def build_search_results_query(
     search_fields,
     highlight_tag,

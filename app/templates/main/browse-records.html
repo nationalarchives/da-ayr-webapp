@@ -9,6 +9,7 @@
     <div class="govuk-grid-row browse__page desktop mobile">
         {{ super() }}
         {% include "top-search.html" %}
+        {% set browse_endpoint = browse_endpoint | default('main.browse_records') %}
         <div class="govuk-grid-column-full govuk-grid-column-full__page_container">
             <div class="browse-details">
                 {% set per_page_options = {"5": "5", "10": "10", "20": "20"} %}
@@ -51,7 +52,7 @@
                         {% else %}
                             {% if records_has_active_filters %}
                                 {% set preserved_params = request.args.copy() %}
-                                {{ page_back_link(preserved_params=preserved_params) }}
+                                {{ page_back_link(fallback_endpoint=browse_endpoint, preserved_params=preserved_params) }}
                             {% endif %}
                             {{ no_results_message("browse_records") }}
                         {% endif %}
@@ -64,14 +65,16 @@
                         {% set _ = preserved_params.pop('page', None) %}
                         {% set _ = preserved_params.pop('_id', None) %}
                         {% set _ = preserved_params.pop('sort', None) %}
-                        {{ sort_records(preserved_params, per_page_options, records_sort_options, selected_sort, selected_per_page) }}
+                        {{ sort_records(preserved_params, per_page_options, records_sort_options, selected_sort, selected_per_page, browse_endpoint) }}
                         <!-- TABLE -->
-                        {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, 'main.browse_records', None) %}
+                        {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, browse_endpoint, None) %}
                             {% for record in results %}
                                 {% include "components/results-table-row.html" %}
                             {% endfor %}
                         {% endcall %}
                     {% endif %}
+                    {% set filters_form_action_url = url_for(browse_endpoint, _anchor='browse-records') %}
+                    {% set clear_filters_href = url_for(browse_endpoint, sort=query_string_parameters.get('sort'), per_page=query_string_parameters.get('per_page'), _anchor='browse-records') %}
                     {% include "components/browse-records-filters-form.html" %}
                 </div>
             </div>

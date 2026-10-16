@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import pytest
+
 from app.main.db.models import db
 from app.main.db.queries import build_browse_records_base_query
 from app.tests.factories import FileFactory
@@ -14,6 +16,92 @@ def _file_names(rows):
 
 
 class TestBrowseRecordsBaseQuery:
+    @pytest.mark.parametrize(
+        "scope",
+        ["body", "series", "consignment", "permissions", "multiple_bodies"],
+    )
+    def test_scoped_query_binds_consignment_ids(
+        self, client, browse_files, scope
+    ):
+        for day, file in enumerate(browse_files, start=1):
+            file.DateLastModified = datetime(2020, 1, day)
+        target = browse_files[0].consignment
+        accessible_names = None
+        filters = {}
+        if scope == "body":
+            filters["transferring_body"] = (
+                f"  {target.series.body.Name.upper()}  "
+            )
+        elif scope == "series":
+            filters["series"] = f"  {target.series.Name.upper()}  "
+        elif scope == "consignment":
+            filters["consignment_reference"] = (
+                f"  {target.ConsignmentReference.lower()}  "
+            )
+        else:
+            accessible_names = [target.series.body.Name]
+            if scope == "multiple_bodies":
+                accessible_names.append("second_body")
+
+        query = build_browse_records_base_query(
+            accessible_transferring_body_names=accessible_names,
+            filters=filters,
+            sorting_orders={"date_of_record": "desc"},
+        )
+        compiled = query.statement.compile()
+
+        assert '"File"."ConsignmentId" IN' in str(compiled)
+        bound_ids = [
+            value
+            for value in compiled.params.values()
+            if isinstance(value, list) and target.ConsignmentId in value
+        ]
+        assert len(bound_ids) == 1
+        assert str(target.ConsignmentId) not in str(compiled)
+        results = query.all()
+        assert results
+        assert query.order_by(None).count() == len(results)
+        assert query.offset(1).limit(2).all() == results[1:3]
+        if accessible_names is not None:
+            assert all(
+                row.transferring_body in accessible_names for row in results
+            )
+
+    @pytest.mark.parametrize(
+        ("accessible_names", "filters"),
+        [
+            ([], None),
+            (["missing_body"], None),
+            (None, {"transferring_body": "missing_body"}),
+            (None, {"series": "missing_series"}),
+            (None, {"consignment_reference": "missing_consignment"}),
+            (["first_body"], {"transferring_body": "second_body"}),
+            (["FIRST_BODY"], None),
+        ],
+    )
+    def test_empty_or_unauthorized_scope_returns_no_records(
+        self, client, browse_files, accessible_names, filters
+    ):
+        query = build_browse_records_base_query(
+            accessible_transferring_body_names=accessible_names,
+            filters=filters,
+        )
+
+        assert '"File"."ConsignmentId" IN' in str(query.statement)
+        assert query.count() == 0
+        assert query.all() == []
+
+    @pytest.mark.parametrize(
+        "filters",
+        [None, {}, {"transferring_body": "  "}, {"record_status": "open"}],
+    )
+    def test_unscoped_query_does_not_add_consignment_ids(
+        self, client, browse_files, filters
+    ):
+        query = build_browse_records_base_query(filters=filters)
+
+        assert '"File"."ConsignmentId" IN' not in str(query.statement)
+
     def test_build_browse_records_base_query_with_results(
         self, client, mock_standard_user, browse_consignment_files
     ):
@@ -162,13 +250,15 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert _file_names(results) == [
+        assert _file_names(results)[:3] == [
             "first_file.docx",
             "fourth_file.xls",
             "third_file.docx",
+        ]
+        assert set(_file_names(results)[3:]) == {
             "fifth_file.doc",
             "second_file.ppt",
-        ]
+        }
 
     def test_build_browse_records_base_query_sorts_by_opening_date_desc(
         self, client, mock_standard_user, browse_consignment_files
@@ -188,9 +278,11 @@ class TestBrowseRecordsBaseQuery:
         )
         results = query.all()
 
-        assert _file_names(results) == [
+        assert set(_file_names(results)[:2]) == {
             "fifth_file.doc",
             "second_file.ppt",
+        }
+        assert _file_names(results)[2:] == [
             "third_file.docx",
             "fourth_file.xls",
             "first_file.docx",
