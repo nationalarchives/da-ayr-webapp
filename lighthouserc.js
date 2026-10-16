@@ -30,10 +30,10 @@ const staticUrls = [
   `${BASE_URL}/cookies`,
 ];
 
-const browseLandingUrls = [`${BASE_URL}/browse/records`];
+const browseLandingUrls = [`${BASE_URL}/browse`];
 
 const browseRecordsRouteUrls = [
-  `${BASE_URL}/browse/records?sort=file_name-asc&per_page=10`,
+  `${BASE_URL}/browse?sort=file_name-asc&per_page=10`,
 ];
 
 const browseRecordUrls = fixedDateSets.map((dates, idx) => {
@@ -53,7 +53,7 @@ const browseRecordUrls = fixedDateSets.map((dates, idx) => {
     date_to_year: String(dates.date_to_year),
   });
 
-  return `${BASE_URL}/browse/records?${params.toString()}#browse-records`;
+  return `${BASE_URL}/browse?${params.toString()}#browse`;
 });
 
 const browseSeriesUrls = seriesFilters.map((seriesFilter, idx) => {
@@ -66,7 +66,7 @@ const browseSeriesUrls = seriesFilters.map((seriesFilter, idx) => {
     date_to_year: String(dates.date_to_year),
   });
 
-  return `${BASE_URL}/browse/records?${params.toString()}#browse-series`;
+  return `${BASE_URL}/browse?${params.toString()}#browse-series`;
 });
 
 const searchLandingUrls = [

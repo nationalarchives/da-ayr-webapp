@@ -33,14 +33,14 @@ module.exports = {
         `set field #username to ${process.env.AYR_AAU_USER_USERNAME}`,
         `set field #password to ${process.env.AYR_AAU_USER_PASSWORD}`,
         'click element button[type="submit"]',
-        "wait for path to be /browse/records",
+        "wait for path to be /browse",
       ],
     },
 
     // pages that require authentication
     `${base_url}/browse`,
-    `${base_url}/browse/records?sort=file_name-asc&per_page=10`,
-    `${base_url}/browse/records?sort=date_of_record-desc&per_page=20`,
+    `${base_url}/browse?sort=file_name-asc&per_page=10`,
+    `${base_url}/browse?sort=date_of_record-desc&per_page=20`,
     `${base_url}/browse/transferring_body/4654e9f9-335b-4ab1-acd8-edff54f908d4`,
     `${base_url}/browse/series/1d4cedb8-95f5-4e5e-bc56-c0c0f6cccbd7`,
     `${base_url}/browse/series/93ed0101-2318-45ab-8730-c681958ded7e?sort=consignment_reference-asc`,

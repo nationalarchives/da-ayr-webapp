@@ -14,7 +14,7 @@
 {% endmacro %}
 {% macro sort_records(preserved_params, per_page_options, sort_options, selected_sort, selected_per_page) %}
     <form id="records-form"
-          action="{{ url_for('main.browse_records', _anchor='records') }}"
+          action="{{ url_for('main.browse', _anchor='records') }}"
           method="get"
           class="sort-list-records-form">
         {{ render_preserved_params(preserved_params) }}
@@ -24,7 +24,7 @@
                 <select class="sort-list-records__select js-records-sort-select"
                         id="sort-records-js"
                         name="sort">{{ render_sort_options(sort_options, selected_sort) }}</select>
-                <label class="browse-records__label--left" for="sort-js">Records per page</label>
+                <label class="browse__label--left" for="sort-js">Records per page</label>
                 <select class="record-select--sort-left" id="sort-js" name="per_page">{{ render_per_page_options(per_page_options, selected_per_page) }}</select>
                 <button type="submit" class="govuk-visually-hidden">Apply sort and records per page</button>
             </div>
@@ -32,7 +32,7 @@
     </form>
     <noscript>
         <div class="sort-list-records-no-js">
-            <form action="{{ url_for('main.browse_records', _anchor='records') }}"
+            <form action="{{ url_for('main.browse', _anchor='records') }}"
                   method="get"
                   class="sort-list-records-no-js-form sort-list-records-no-js__sort-control">
                 {{ render_preserved_params(preserved_params) }}
@@ -49,12 +49,12 @@
                             data-module="govuk-button">Sort</button>
                 </div>
             </form>
-            <form action="{{ url_for('main.browse_records', _anchor='records') }}"
+            <form action="{{ url_for('main.browse', _anchor='records') }}"
                   method="get"
                   class="sort-list-records-no-js__per-page">
                 {{ render_preserved_params(preserved_params) }}
                 <input type="hidden" name="sort" value="{{ selected_sort }}">
-                <label class="browse-records__label--right" for="sort-no-js">Records per page</label>
+                <label class="browse__label--right" for="sort-no-js">Records per page</label>
                 <select class="record-select--sort-right" id="sort-no-js" name="per_page">{{ render_per_page_options(per_page_options, selected_per_page) }}</select>
                 <button type="submit"
                         class="govuk-button govuk-button--secondary"

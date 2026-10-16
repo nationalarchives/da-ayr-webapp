@@ -5,7 +5,6 @@ from marshmallow import ValidationError
 
 from app.main.util.schemas import (
     BrowseConsignmentRequestSchema,
-    BrowseRecordsRequestSchema,
     BrowseRequestSchema,
     BrowseSeriesRequestSchema,
     BrowseTransferringBodyRequestSchema,
@@ -260,64 +259,6 @@ class TestBrowseConsignmentRequestSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.load({})
         assert "_id" in exc_info.value.messages
-
-
-class TestBrowseRecordsRequestSchema:
-    """Tests for BrowseRecordsRequestSchema."""
-
-    def test_defaults_applied(self):
-        schema = BrowseRecordsRequestSchema()
-        data = schema.load({})
-
-        assert data["page"] == 1
-        assert data["per_page"] == 5
-
-    def test_valid_page(self):
-        schema = BrowseRecordsRequestSchema()
-        data = schema.load({"page": 2})
-
-        assert data["page"] == 2
-
-    def test_invalid_page_value(self):
-        schema = BrowseRecordsRequestSchema()
-
-        with pytest.raises(ValidationError) as exc_info:
-            schema.load({"page": 0})
-        assert "page" in exc_info.value.messages
-
-    def test_per_page_is_accepted(self):
-        schema = BrowseRecordsRequestSchema()
-        data = schema.load({"page": 2, "per_page": 10})
-
-        assert data["page"] == 2
-        assert data["per_page"] == 10
-
-    def test_per_page_invalid_value(self):
-        schema = BrowseRecordsRequestSchema()
-
-        with pytest.raises(ValidationError) as exc_info:
-            schema.load({"per_page": 0})
-        assert "per_page" in exc_info.value.messages
-
-    def test_browse_filters_are_accepted(self):
-        schema = BrowseRecordsRequestSchema()
-        data = schema.load(
-            {
-                "transferring_body_filter": "Cabinet Office",
-                "series_filter": "CAB 128",
-                "date_from_day": 1,
-                "date_from_month": 1,
-                "date_from_year": 2023,
-                "date_to_day": 31,
-                "date_to_month": 12,
-                "date_to_year": 2023,
-            }
-        )
-
-        assert data["transferring_body_filter"] == "Cabinet Office"
-        assert data["series_filter"] == "CAB 128"
-        assert data["date_from_year"] == 2023
-        assert data["date_to_year"] == 2023
 
 
 class TestSearchRequestSchema:

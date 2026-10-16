@@ -296,7 +296,7 @@ def _apply_base_query_sort(
     return query
 
 
-def build_browse_records_base_query(
+def build_browse_base_query(
     accessible_transferring_body_names: Optional[list[str]] = None,
     filters: Optional[dict[str, Any]] = None,
     sorting_orders: Optional[dict[str, str]] = None,

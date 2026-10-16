@@ -29,15 +29,15 @@ from app.main.authorize.permissions_helpers import (
 )
 from app.main.db.models import Body, File, db
 from app.main.db.queries import (
-    build_browse_records_base_query,
+    build_browse_base_query,
     get_file_metadata,
 )
 from app.main.flask_config_helpers import (
     get_keycloak_instance_from_flask_config,
 )
 from app.main.middlewares.log_page_view import log_page_view
-from app.main.util.browse_records_utils import (
-    build_browse_records_filter_data,
+from app.main.util.browse_utils import (
+    build_browse_filter_data,
     count_selected_filters,
     get_accessible_body_names,
 )
@@ -70,7 +70,6 @@ from app.main.util.request_validation_utils import validate_request
 from app.main.util.schemas import (
     BrowseConsignmentRequestSchema,
     BrowseRecordsRequestSchema,
-    BrowseRequestSchema,
     BrowseSeriesRequestSchema,
     BrowseTransferringBodyRequestSchema,
     CallbackRequestSchema,
@@ -119,7 +118,7 @@ def _build_records_filters_context(validated_data, ayr_user, query=None):
         filters["query"] = query
 
     accessible_body_names = get_accessible_body_names(ayr_user)
-    transferring_bodies = build_browse_records_filter_data(
+    transferring_bodies = build_browse_filter_data(
         validated_data,
         accessible_body_names,
         filters,
@@ -265,7 +264,7 @@ def callback():
     else:
         session["user_type"] = "standard_user"
 
-    return redirect(url_for("main.browse_records"))
+    return redirect(url_for("main.browse"))
 
 
 def _resolve_user_claims_with_fallbacks(
@@ -317,20 +316,12 @@ def accessibility():
     return render_template("accessibility.html")
 
 
-@bp.route("/browse", methods=["GET"])
-@access_token_sign_in_required
-@log_page_view
-@validate_request(BrowseRequestSchema, location="combined")
-def browse():
-    return redirect(url_for("main.browse_records"))
-
-
 @bp.route("/browse/transferring_body/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
 @validate_request(BrowseTransferringBodyRequestSchema, location="combined")
 def browse_transferring_body(_id: uuid.UUID):
-    return redirect(url_for("main.browse_records"))
+    return redirect(url_for("main.browse"))
 
 
 @bp.route("/browse/series/<uuid:_id>", methods=["GET"])
@@ -338,7 +329,7 @@ def browse_transferring_body(_id: uuid.UUID):
 @log_page_view
 @validate_request(BrowseSeriesRequestSchema, location="combined")
 def browse_series(_id: uuid.UUID):
-    return redirect(url_for("main.browse_records"))
+    return redirect(url_for("main.browse"))
 
 
 @bp.route("/browse/consignment/<uuid:_id>", methods=["GET"])
@@ -346,14 +337,14 @@ def browse_series(_id: uuid.UUID):
 @log_page_view
 @validate_request(BrowseConsignmentRequestSchema, location="combined")
 def browse_consignment(_id: uuid.UUID):
-    return redirect(url_for("main.browse_records"))
+    return redirect(url_for("main.browse"))
 
 
-@bp.route("/browse/records", methods=["GET"])
+@bp.route("/browse", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
 @validate_request(BrowseRecordsRequestSchema, location="combined")
-def browse_records():
+def browse():
     validated_data = request.validated_data
     page = validated_data.get("page") or 1
     per_page = validated_data.get("per_page") or 5
@@ -371,12 +362,12 @@ def browse_records():
     accessible_body_names = filters_context["accessible_body_names"]
     sorting_orders = build_sorting_orders(validated_data)
 
-    data_query = build_browse_records_base_query(
+    data_query = build_browse_base_query(
         accessible_transferring_body_names=accessible_body_names,
         filters=filters,
         sorting_orders=sorting_orders or {"date_of_record": "desc"},
     )
-    count_query = build_browse_records_base_query(
+    count_query = build_browse_base_query(
         accessible_transferring_body_names=accessible_body_names,
         filters=filters,
     )
@@ -385,15 +376,11 @@ def browse_records():
         total = count_query.count()
         total_pages = calculate_total_pages(total, per_page)
         if page > 1 and page > total_pages:
-            return redirect_if_page_invalid(
-                page, default_page, "main.browse_records"
-            )
+            return redirect_if_page_invalid(page, default_page, "main.browse")
         offset = (page - 1) * per_page
         page_items = data_query.offset(offset).limit(per_page).all()
     except NotFound:
-        return redirect_if_page_invalid(
-            page, default_page, "main.browse_records"
-        )
+        return redirect_if_page_invalid(page, default_page, "main.browse")
 
     results = []
     for row in page_items:
@@ -418,7 +405,7 @@ def browse_records():
     pagination = get_pagination(page, total_pages)
 
     return render_template(
-        "browse-records.html",
+        "browse.html",
         form=form,
         browse_type="records",
         is_standard_user=ayr_user.is_standard_user,

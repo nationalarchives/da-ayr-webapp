@@ -1,20 +1,20 @@
 @use "variables" as *;
 
 .records-page-wrapper {
-  .browse-records__series-filter-example {
+  .browse__series-filter-example {
     color: $secondary-text-colour;
     font-weight: 400;
   }
 
-  .browse-records__filter-count {
+  .browse__filter-count {
     color: $colour-link-default;
   }
 
-  .browse-records__error-message {
+  .browse__error-message {
     font-size: 1.1rem;
   }
 
-  .browse-records__table {
+  .browse__table {
     width: 100%;
     margin-bottom: 30px;
 
@@ -29,67 +29,67 @@
     }
   }
 
-  .browse-records__table .browse-record-row__row {
+  .browse__table .browse-row__row {
     border-bottom: none;
   }
 
-  .browse-records__table,
-  .browse-record-row__cell,
-  .browse-records__table .browse-records__header-cell {
+  .browse__table,
+  .browse-row__cell,
+  .browse__table .browse__header-cell {
     padding: 6px 20px 6px 0;
 
     border-bottom: none;
   }
 
-  .browse-records__table .browse-records__header-cell {
+  .browse__table .browse__header-cell {
     border-bottom: 1px solid $colour-border-normal;
   }
 
-  .browse-records__table .browse-record-row__cell--right,
-  .browse-records__table .browse-records__header-cell--right {
+  .browse__table .browse-row__cell--right,
+  .browse__table .browse__header-cell--right {
     text-align: right;
   }
 
-  .browse-records__table,
-  .browse-record-row__cell,
-  .browse-records__table .browse-records__meta-cell--date {
+  .browse__table,
+  .browse-row__cell,
+  .browse__table .browse__meta-cell--date {
     padding: 5px;
   }
 
-  .browse-records__table
+  .browse__table
     .govuk-table__body
-    .browse-record-row__row:last-child
-    .browse-record-row__cell {
+    .browse-row__row:last-child
+    .browse-row__cell {
     border-bottom: 1px solid $colour-border-normal;
   }
 
-  .browse-records__radio-group {
+  .browse__radio-group {
     margin-bottom: 0;
   }
 
-  .browse-records__radio-group .govuk-radios__item {
+  .browse__radio-group .govuk-radios__item {
     margin-bottom: 0;
   }
 
-  .browse-records__radio-group .govuk-radios__item:last-child {
+  .browse__radio-group .govuk-radios__item:last-child {
     margin-bottom: 0;
   }
 
-  .browse-records__radio-options {
+  .browse__radio-options {
     padding-bottom: 0;
   }
 
-  .browse-records__form-group {
+  .browse__form-group {
     margin-bottom: 15px;
   }
 
-  .browse-records__header-container {
+  .browse__header-container {
     p.govuk-body {
       margin-bottom: 0;
     }
   }
 
-  .browse-records__heading {
+  .browse__heading {
     margin-top: 0;
     margin-bottom: 15px;
     padding-top: 0;
