@@ -1,6 +1,7 @@
 import hmac
 import secrets
 import uuid
+from datetime import datetime
 
 import boto3
 from botocore.exceptions import ClientError
@@ -86,6 +87,7 @@ from app.main.util.schemas import (
     SearchWithinRequestSchema,
 )
 from app.main.util.search_utils import (
+    build_browse_records_search_query,
     build_search_results_query,
     execute_search,
     extract_search_terms,
@@ -168,6 +170,41 @@ def _format_search_hit_for_record_row(search_record):
         "consignment_reference": source.get("consignment_reference"),
         "search_result_snippet": snippet,
     }
+
+
+def _format_browse_search_hit_for_record_row(search_record):
+    source = search_record.get("_source") or {}
+    return {
+        "transferring_body_id": source.get("transferring_body_id"),
+        "transferring_body": source.get("transferring_body"),
+        "series_id": source.get("series_id"),
+        "series": source.get("series_name"),
+        "consignment_id": source.get("consignment_id"),
+        "consignment_reference": source.get("consignment_reference"),
+        "consignment_transfer_complete_date": _format_browse_date(
+            source.get("consignment_transfer_complete_date")
+        ),
+        "file_id": source.get("file_id"),
+        "file_name": source.get("file_name"),
+        "file_path": source.get("file_path"),
+        "closure_type": source.get("closure_type"),
+        "opening_date": _format_browse_date(source.get("opening_date")),
+        "date_of_record": _format_browse_date(
+            source.get("end_date") or source.get("date_last_modified")
+        ),
+    }
+
+
+def _format_browse_date(value):
+    if not isinstance(value, str):
+        return value
+
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).strftime(
+            "%d/%m/%Y"
+        )
+    except ValueError:
+        return value
 
 
 @bp.route("/", methods=["GET"])
@@ -743,6 +780,107 @@ def browse_records():
         pagination=pagination,
         num_records_found=total,
         query_string_parameters=request.validated_args,
+    )
+
+
+@bp.route("/browse/records-opensearch", methods=["GET"])
+@access_token_sign_in_required
+@log_page_view
+@validate_request(BrowseRecordsRequestSchema, location="combined")
+def browse_records_opensearch():
+    validated_data = request.validated_data
+    page = validated_data.get("page") or 1
+    per_page = validated_data.get("per_page") or 5
+    default_page = 1
+    form = SearchForm()
+    ayr_user = AYRUser(session.get("user_groups"))
+
+    transferring_body_id = None
+    if ayr_user.is_standard_user:
+        body = ayr_user.transferring_body
+        if body is None:
+            abort(403)
+        validate_body_user_groups_or_404(body.Name)
+        transferring_body_id = body.BodyId
+
+    filters_context = _build_records_filters_context(validated_data, ayr_user)
+    filters = filters_context["filters"]
+    date_validation_errors = filters_context["date_validation_errors"]
+    date_error_fields = filters_context["date_error_fields"]
+    date_filters = filters_context["date_filters"]
+    filter_count = filters_context["filter_count"]
+    transferring_bodies = filters_context["transferring_bodies"]
+
+    available_sorts = {
+        "date_of_record-desc",
+        "date_of_record-asc",
+        "file_name-asc",
+        "file_name-desc",
+        "opening_date-asc",
+        "opening_date-desc",
+        "series-asc",
+        "series-desc",
+    }
+    sort_option = validated_data.get("sort")
+    if sort_option not in available_sorts:
+        sort_option = "date_of_record-desc"
+
+    dsl_query = build_browse_records_search_query(
+        transferring_body_id=transferring_body_id,
+        filters=filters,
+        sort_option=sort_option,
+    )
+
+    try:
+        search_results = execute_search(
+            setup_opensearch(), dsl_query, page, per_page
+        )
+    except NotFound:
+        return redirect_if_page_invalid(
+            page, default_page, "main.browse_records_opensearch"
+        )
+
+    hit_total = search_results.get("hits", {}).get("total", 0)
+    total_records = (
+        hit_total.get("value", 0) if isinstance(hit_total, dict) else hit_total
+    )
+    total_pages = calculate_total_pages(total_records, per_page)
+    if page > 1 and page > total_pages:
+        return redirect_if_page_invalid(
+            page, default_page, "main.browse_records_opensearch"
+        )
+
+    search_hits = post_process_opensearch_results(
+        search_results.get("hits", {}).get("hits", []), "file_name"
+    )
+    results = [
+        _format_browse_search_hit_for_record_row(hit) for hit in search_hits
+    ]
+    pagination = get_pagination(page, total_pages)
+
+    query_string_parameters = request.validated_args.copy()
+    query_string_parameters["sort"] = sort_option
+
+    return render_template(
+        "browse-records.html",
+        form=form,
+        browse_type="records",
+        is_standard_user=ayr_user.is_standard_user,
+        filters=filters,
+        search_area="everywhere",
+        current_page=page,
+        per_page=per_page,
+        date_validation_errors=date_validation_errors,
+        date_error_fields=date_error_fields,
+        date_filters=date_filters,
+        sorting_orders=build_sorting_orders(validated_data),
+        filter_count=filter_count,
+        transferring_bodies=transferring_bodies,
+        results=results,
+        pagination=pagination,
+        num_records_found=total_records,
+        query_string_parameters=query_string_parameters,
+        browse_endpoint="main.browse_records_opensearch",
     )
 
 
