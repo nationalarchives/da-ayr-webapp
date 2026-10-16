@@ -1,6 +1,6 @@
 import uuid
 from datetime import timedelta
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from flask import current_app
 from sqlalchemy import DATE, and_, bindparam, desc, func, select, true
@@ -457,6 +457,21 @@ def build_browse_records_queries(
     offset: int = 0,
     limit: int = 5,
 ) -> tuple[Query, Query]:
+    count_query, build_page_query = build_browse_records_query_factory(
+        accessible_transferring_body_names,
+        filters,
+        sorting_orders,
+    )
+    page_query, _ = build_page_query(offset, limit, None)
+    return count_query, page_query
+
+
+def build_browse_records_query_factory(
+    accessible_transferring_body_names: Optional[list[str]] = None,
+    filters: Optional[dict[str, Any]] = None,
+    sorting_orders: Optional[dict[str, str]] = None,
+) -> tuple[Query, Callable[[int, int, Optional[int]], tuple[Query, bool]]]:
+    """Build the exact count and a page query deferred until count is known."""
     consignment_ids = _resolve_records_consignment_ids(
         accessible_transferring_body_names, filters
     )
@@ -474,6 +489,52 @@ def build_browse_records_queries(
         )
     count_query = count_query.filter(*file_filters)
 
+    sort_field, _ = next(
+        iter((sorting_orders or {"date_of_record": "desc"}).items())
+    )
+    reverse_supported = sort_field in {
+        "date_of_record",
+        "opening_date",
+        "file_name",
+        "series",
+    }
+
+    def build_page_query(
+        offset: int, limit: int, total_records: Optional[int]
+    ) -> tuple[Query, bool]:
+        page_offset = offset
+        page_limit = limit
+        reverse = False
+        if total_records is not None:
+            page_limit = min(limit, max(0, total_records - offset))
+            reverse_offset = max(0, total_records - offset - page_limit)
+            if reverse_supported and page_limit and reverse_offset < offset:
+                page_offset = reverse_offset
+                reverse = True
+
+        return (
+            _build_browse_records_page_query(
+                consignment_ids,
+                file_filters,
+                sorting_orders,
+                page_offset,
+                page_limit,
+                reverse,
+            ),
+            reverse,
+        )
+
+    return count_query, build_page_query
+
+
+def _build_browse_records_page_query(
+    consignment_ids,
+    file_filters,
+    sorting_orders,
+    offset,
+    limit,
+    reverse,
+):
     sort_field, direction = next(
         iter((sorting_orders or {"date_of_record": "desc"}).items())
     )
@@ -490,8 +551,8 @@ def build_browse_records_queries(
             page_query = page_query.filter(
                 File.ConsignmentId.in_(consignment_ids)
             )
-        return count_query, page_query.offset(offset).limit(limit)
-    descending = direction == "desc"
+        return page_query.offset(offset).limit(limit)
+    descending = (direction == "desc") != reverse
     if sort_field == "series":
         candidates = _build_series_records_candidates(
             consignment_ids, file_filters, offset + limit
@@ -543,7 +604,7 @@ def build_browse_records_queries(
             else page_keys.c.sort_value
         )
     )
-    return count_query, page_query
+    return page_query
 
 
 def _build_browse_filters(query, sub_query, filters):

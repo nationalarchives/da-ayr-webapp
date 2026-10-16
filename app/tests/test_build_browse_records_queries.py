@@ -9,6 +9,7 @@ from app.main.db.models import Consignment, File, Series, db
 from app.main.db.queries import (
     build_browse_records_base_query,
     build_browse_records_queries,
+    build_browse_records_query_factory,
 )
 from app.tests.factories import (
     BodyFactory,
@@ -285,6 +286,97 @@ def test_candidates_use_offset_plus_limit_before_global_pagination(
         assert "unnest(" in str(compiled)
         assert "consignment_ids" in compiled.params
         assert compiled.params["consignment_ids"]
+
+
+@pytest.mark.parametrize("field", SORT_FIELDS)
+@pytest.mark.parametrize("direction", ["asc", "desc"])
+@pytest.mark.parametrize("scoped", [True, False])
+@pytest.mark.parametrize("position", ["first", "middle", "last"])
+def test_nearest_edge_pages_match_forward_order(
+    records, field, direction, scoped, position
+):
+    accessible = ["permitted"] if scoped else None
+    sorting_orders = {field: direction}
+    count_query, build_page_query = build_browse_records_query_factory(
+        accessible, sorting_orders=sorting_orders
+    )
+    total = count_query.scalar()
+    limit = 5
+    total_pages = (total + limit - 1) // limit
+    page = {
+        "first": 1,
+        "middle": (total_pages + 1) // 2,
+        "last": total_pages,
+    }[position]
+    offset = (page - 1) * limit
+
+    page_query, reverse_page = build_page_query(offset, limit, total)
+    actual = page_query.all()
+    if reverse_page:
+        actual.reverse()
+
+    reference = build_browse_records_base_query(
+        accessible, sorting_orders=sorting_orders
+    )
+    expected = reference.offset(offset).limit(limit).all()
+    page_size = min(limit, total - offset)
+    reverse_offset = max(0, total - offset - page_size)
+
+    assert reverse_page == (reverse_offset < offset)
+    assert len(actual) == len(expected)
+    assert sort_values(actual, field) == sort_values(expected, field)
+
+
+@pytest.mark.parametrize("field", SORT_FIELDS)
+def test_reverse_scoped_page_bounds_candidates_from_end(records, field):
+    count_query, build_page_query = build_browse_records_query_factory(
+        ["permitted"], sorting_orders={field: "asc"}
+    )
+    total = count_query.scalar()
+
+    page_query, reverse_page = build_page_query(
+        offset=total - 5, limit=5, total_records=total
+    )
+    compiled = page_query.statement.compile(dialect=postgresql.dialect())
+    limits = [
+        value
+        for key, value in compiled.params.items()
+        if key.startswith("param_")
+    ]
+
+    assert reverse_page
+    assert limits == [5, 5, 0]
+
+
+@pytest.mark.parametrize("field", SORT_FIELDS)
+def test_reverse_pages_apply_filters_before_candidate_limits(records, field):
+    filters = {
+        "record_status": "open",
+        "date_filter_field": "opening_date",
+        "date_to": "2020-01-20",
+    }
+    sorting_orders = {field: "desc"}
+    count_query, build_page_query = build_browse_records_query_factory(
+        ["permitted"], filters, sorting_orders
+    )
+    total = count_query.scalar()
+    limit = 5
+    offset = ((total - 1) // limit) * limit
+
+    page_query, reverse_page = build_page_query(offset, limit, total)
+    actual = page_query.all()
+    if reverse_page:
+        actual.reverse()
+
+    reference = build_browse_records_base_query(
+        ["permitted"], filters, sorting_orders
+    )
+    expected = reference.offset(offset).limit(limit).all()
+
+    assert total > limit
+    assert reverse_page
+    assert len(actual) == len(expected)
+    assert sort_values(actual, field) == sort_values(expected, field)
 
 
 @pytest.mark.parametrize("field", SORT_FIELDS)
