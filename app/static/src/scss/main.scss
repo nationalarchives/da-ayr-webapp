@@ -17,12 +17,7 @@
 @use "includes/accessibility";
 @use "includes/base";
 @use "includes/browse";
-@use "includes/browse-all";
-@use "includes/browse-series";
-@use "includes/browse-consignment";
-@use "includes/browse-transferring-body";
-@use "includes/browse-records";
-@use "includes/browse-records-filters-form";
+@use "includes/browse-filters-form";
 @use "includes/footer";
 @use "includes/header";
 @use "includes/ayr_index";
@@ -41,5 +36,5 @@
 // components
 @use "includes/components/alert-banner";
 @use "includes/components/belly-band";
-@use "includes/components/browse-record-row";
+@use "includes/components/browse-row";
 @use "includes/components/sort-records";

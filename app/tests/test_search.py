@@ -289,7 +289,7 @@ class TestSearchResults:
 
         soup = BeautifulSoup(response.data, "html.parser")
         assert soup.find("table", attrs={"id": "tbl_result"}) is None
-        assert soup.find(id="browse-records") is not None
+        assert soup.find(id="browse") is not None
 
     @patch("app.main.routes.setup_opensearch")
     def test_search_results_with_query_and_no_hits_preserves_applied_filters(
@@ -351,7 +351,7 @@ class TestSearchResults:
 
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
-        record_link = soup.select_one("a.browse-records__file-link")
+        record_link = soup.select_one("a.browse__file-link")
 
         assert record_link is not None
 
@@ -376,7 +376,7 @@ class TestSearchResults:
         back_link = soup.select_one("a.govuk-back-link")
 
         assert back_link is not None
-        assert back_link["href"] == "/browse#browse-records"
+        assert back_link["href"] == "/browse#browse"
         assert back_link.get("data-history-back-link") == "true"
 
     @patch("app.main.routes.setup_opensearch")
@@ -410,7 +410,7 @@ class TestSearchResults:
         assert params["search_area"] == ["everywhere"]
         assert params["sort"] == ["file_name"]
         assert "record_status" not in params
-        assert parsed_href.fragment == "browse-records"
+        assert parsed_href.fragment == "browse"
 
     def test_search_results_back_link_targets_body_browse_for_standard_user(
         self,
@@ -435,7 +435,7 @@ class TestSearchResults:
         assert back_link is not None
         assert (
             back_link["href"]
-            == f"/browse/transferring_body/{body.BodyId}#browse-records"
+            == f"/browse/transferring_body/{body.BodyId}#browse"
         )
 
     def test_search_results_back_link_uses_same_origin_referrer(
@@ -448,7 +448,7 @@ class TestSearchResults:
         """
         mock_all_access_user(client)
 
-        referrer = "http://localhost/browse/records?series_filter=HO+405#browse-records"
+        referrer = "http://localhost/browse?series_filter=HO+405#browse"
         response = client.get(self.route_url, headers={"Referer": referrer})
 
         assert response.status_code == 200
@@ -478,7 +478,7 @@ class TestSearchResults:
         back_link = soup.select_one("a.govuk-back-link")
 
         assert back_link is not None
-        assert back_link["href"] == "/browse#browse-records"
+        assert back_link["href"] == "/browse#browse"
 
     @patch("app.main.routes.setup_opensearch")
     def test_search_results_clear_filters_preserves_query_for_all_access_user(
@@ -501,10 +501,7 @@ class TestSearchResults:
         clear_filters_link = soup.find("a", string="Clear filters", href=True)
 
         assert clear_filters_link is not None
-        assert (
-            clear_filters_link["href"]
-            == "/search/results?query=test#browse-records"
-        )
+        assert clear_filters_link["href"] == "/search/results?query=test#browse"
 
     @patch("app.main.routes.setup_opensearch")
     def test_search_results_clear_filters_preserves_query_for_standard_user(
@@ -532,10 +529,7 @@ class TestSearchResults:
         clear_filters_link = soup.find("a", string="Clear filters", href=True)
 
         assert clear_filters_link is not None
-        assert (
-            clear_filters_link["href"]
-            == "/search/results?query=test#browse-records"
-        )
+        assert clear_filters_link["href"] == "/search/results?query=test#browse"
 
     @patch("app.main.routes.setup_opensearch")
     def test_search_results_uses_browse_filters_with_closed_label(

@@ -42,7 +42,7 @@ function runLhciWithSessionCookie(sessionCookieHeader) {
 
 const PROTECTED_ROUTE_PREFIXES = [
   "/browse",
-  "/browse/records",
+  "/browse",
   "/browse/series/",
   "/browse/consignment/",
   "/record/",

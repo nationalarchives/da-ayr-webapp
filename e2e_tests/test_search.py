@@ -41,7 +41,7 @@ class TestSearchResultsFlow:
         aau_user_page.get_by_role("link", name="Clear filters").click()
 
         expect(aau_user_page).to_have_url(
-            re.compile(r".*/search/results\?query=a.*#browse-records")
+            re.compile(r".*/search/results\?query=a.*#browse")
         )
 
     def test_clear_filters_keeps_standard_user_on_search_results(
@@ -49,7 +49,7 @@ class TestSearchResultsFlow:
     ):
         url = (
             f"{self.browse_transferring_body_route_url}/"
-            f"{self.transferring_body_id}#browse-records"
+            f"{self.transferring_body_id}#browse"
         )
         standard_user_page.goto(url)
         standard_user_page.locator("#search-input").fill("a")
@@ -57,7 +57,7 @@ class TestSearchResultsFlow:
         standard_user_page.get_by_role("link", name="Clear filters").click()
 
         expect(standard_user_page).to_have_url(
-            re.compile(r".*/search/results\?query=a.*#browse-records")
+            re.compile(r".*/search/results\?query=a.*#browse")
         )
 
     def test_search_results_shows_browse_filter_component(

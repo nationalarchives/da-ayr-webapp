@@ -172,7 +172,7 @@ def apply_selected_filters(
         filters["date_filter_field"] = selected_date_filter_field
 
 
-def build_browse_records_filter_data(
+def build_browse_filter_data(
     validated_data,
     accessible_body_names,
     filters,
