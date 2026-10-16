@@ -32,11 +32,9 @@ const staticUrls = [
 
 const browseLandingUrls = [`${BASE_URL}/browse`];
 
-const browseRecordsRouteUrls = [
-  `${BASE_URL}/browse?sort=file_name-asc&per_page=10`,
-];
+const browseRouteUrls = [`${BASE_URL}/browse?sort=file_name-asc&per_page=10`];
 
-const browseRecordUrls = fixedDateSets.map((dates, idx) => {
+const browseUrls = fixedDateSets.map((dates, idx) => {
   const transferringBodyFilter =
     transferringBodyFilters[idx % transferringBodyFilters.length];
   const seriesFilter = seriesFilters[idx % seriesFilters.length];
@@ -54,19 +52,6 @@ const browseRecordUrls = fixedDateSets.map((dates, idx) => {
   });
 
   return `${BASE_URL}/browse?${params.toString()}#browse`;
-});
-
-const browseSeriesUrls = seriesFilters.map((seriesFilter, idx) => {
-  const dates = fixedDateSets[idx % fixedDateSets.length];
-  const params = new URLSearchParams({
-    sort: "series-asc",
-    transferring_body_filter: "",
-    series_filter: seriesFilter,
-    date_from_year: String(dates.date_from_year),
-    date_to_year: String(dates.date_to_year),
-  });
-
-  return `${BASE_URL}/browse?${params.toString()}#browse-series`;
 });
 
 const searchLandingUrls = [
@@ -94,8 +79,8 @@ const recordViewUrls = recordIds.map(
 const prSmokeUrls = [
   ...staticUrls,
   ...browseLandingUrls.slice(0, 1),
-  ...browseRecordsRouteUrls.slice(0, 1),
-  ...browseRecordUrls.slice(0, 1),
+  ...browseRouteUrls.slice(0, 1),
+  ...browseUrls.slice(0, 1),
   ...searchLandingUrls.slice(0, 1),
   ...searchResultsByTermUrls.slice(0, 1),
   ...recordViewUrls.slice(0, 1),
@@ -104,9 +89,8 @@ const prSmokeUrls = [
 const allUrls = [
   ...staticUrls,
   ...browseLandingUrls,
-  ...browseRecordsRouteUrls,
-  ...browseRecordUrls,
-  ...browseSeriesUrls,
+  ...browseRouteUrls,
+  ...browseUrls,
   ...searchLandingUrls,
   ...searchResultsByTermUrls,
   ...searchFilteredUrls,
