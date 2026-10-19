@@ -415,6 +415,46 @@ def _build_scoped_records_candidates(
     )
 
 
+def _build_filtered_records_candidates(
+    consignment_ids, file_filters, sort_field, sort_column
+):
+    candidates = select(
+        File.FileId.label("file_id"),
+        sort_column.label("sort_value"),
+    ).select_from(File)
+    if sort_field == "series":
+        candidates = candidates.join(File.consignment).join(Consignment.series)
+        if consignment_ids is None:
+            candidates = candidates.join(Series.body)
+    elif consignment_ids is None:
+        candidates = (
+            candidates.join(File.consignment)
+            .join(Consignment.series)
+            .join(Series.body)
+        )
+
+    if consignment_ids is not None:
+        permitted = select(
+            func.unnest(
+                bindparam(
+                    "consignment_ids",
+                    value=consignment_ids,
+                    type_=ARRAY(UUID(as_uuid=True)),
+                )
+            ).label("consignment_id")
+        ).subquery("permitted_consignments")
+        candidates = candidates.join(
+            permitted,
+            File.ConsignmentId == permitted.c.consignment_id,
+        )
+
+    return (
+        candidates.where(*file_filters)
+        .cte("filtered_candidates")
+        .prefix_with("MATERIALIZED")
+    )
+
+
 def _build_series_records_candidates(
     consignment_ids, file_filters, candidate_limit
 ):
@@ -498,6 +538,20 @@ def build_browse_records_query_factory(
         "file_name",
         "series",
     }
+    filter_field = ((filters or {}).get("date_filter_field") or "").lower()
+    has_date_filter = bool(
+        (filters or {}).get("date_from") or (filters or {}).get("date_to")
+    )
+    filter_matches_sort = (
+        filter_field == "opening_date" and sort_field == "opening_date"
+    ) or (
+        filter_field
+        not in {"opening_date", "date_last_modified", "transferred"}
+        and sort_field == "date_of_record"
+    )
+    materialize_filtered_candidates = (
+        has_date_filter and not filter_matches_sort
+    )
 
     def build_page_query(
         offset: int, limit: int, total_records: Optional[int]
@@ -520,6 +574,7 @@ def build_browse_records_query_factory(
                 page_offset,
                 page_limit,
                 reverse,
+                materialize_filtered_candidates,
             ),
             reverse,
         )
@@ -534,6 +589,7 @@ def _build_browse_records_page_query(
     offset,
     limit,
     reverse,
+    materialize_filtered_candidates=False,
 ):
     sort_field, direction = next(
         iter((sorting_orders or {"date_of_record": "desc"}).items())
@@ -553,18 +609,24 @@ def _build_browse_records_page_query(
             )
         return page_query.offset(offset).limit(limit)
     descending = (direction == "desc") != reverse
-    if sort_field == "series":
+    sort_column = {
+        "date_of_record": func.coalesce(File.EndDate, File.DateLastModified),
+        "opening_date": File.OpeningDate,
+        "file_name": File.FileName,
+        "series": Series.Name,
+    }[sort_field]
+    if materialize_filtered_candidates:
+        candidates = _build_filtered_records_candidates(
+            consignment_ids,
+            file_filters,
+            sort_field,
+            sort_column,
+        )
+    elif sort_field == "series":
         candidates = _build_series_records_candidates(
             consignment_ids, file_filters, offset + limit
         )
     else:
-        sort_column = {
-            "date_of_record": func.coalesce(
-                File.EndDate, File.DateLastModified
-            ),
-            "opening_date": File.OpeningDate,
-            "file_name": File.FileName,
-        }[sort_field]
         if consignment_ids is not None:
             candidates = _build_scoped_records_candidates(
                 consignment_ids,
@@ -585,7 +647,8 @@ def _build_browse_records_page_query(
                 .where(*file_filters)
             )
 
-    candidates = candidates.subquery("candidates")
+    if not materialize_filtered_candidates:
+        candidates = candidates.subquery("candidates")
     sort_value = candidates.c.sort_value
     page_keys = (
         select(candidates.c.file_id, sort_value)

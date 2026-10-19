@@ -288,6 +288,88 @@ def test_candidates_use_offset_plus_limit_before_global_pagination(
         assert compiled.params["consignment_ids"]
 
 
+@pytest.mark.parametrize(
+    "filter_field",
+    ["date_last_modified", "opening_date", "transferred", None],
+)
+@pytest.mark.parametrize("sort_field", SORT_FIELDS)
+def test_date_filter_candidates_materialize_when_sort_differs(
+    records, filter_field, sort_field
+):
+    filters = {
+        "date_filter_field": filter_field,
+        "date_from": "2020-01-05",
+        "date_to": "2020-01-20",
+    }
+    sorting_orders = {sort_field: "desc"}
+    reference = build_browse_records_base_query(
+        filters=filters, sorting_orders=sorting_orders
+    )
+    count_query, page_query = build_browse_records_queries(
+        filters=filters, sorting_orders=sorting_orders, limit=5
+    )
+    actual = page_query.all()
+    expected = reference.limit(5).all()
+    compiled_sql = str(
+        page_query.statement.compile(dialect=postgresql.dialect())
+    )
+    filter_matches_sort = (
+        filter_field == "opening_date" and sort_field == "opening_date"
+    ) or (filter_field is None and sort_field == "date_of_record")
+
+    assert ("filtered_candidates AS MATERIALIZED" in compiled_sql) == (
+        not filter_matches_sort
+    )
+    if not filter_matches_sort:
+        assert compiled_sql.index("filtered_candidates AS MATERIALIZED") < (
+            compiled_sql.index("page_keys AS MATERIALIZED")
+        )
+    assert count_query.scalar() == reference.order_by(None).count()
+    assert len(actual) == len(expected)
+    assert sort_values(actual, sort_field) == sort_values(expected, sort_field)
+
+
+@pytest.mark.parametrize(
+    ("filter_field", "sort_field", "materialized"),
+    [
+        ("date_last_modified", "date_of_record", True),
+        ("opening_date", "opening_date", False),
+        ("transferred", "file_name", True),
+    ],
+)
+def test_scoped_date_filter_candidates_match_expected_order(
+    records, filter_field, sort_field, materialized
+):
+    filters = {
+        "date_filter_field": filter_field,
+        "date_from": "2020-01-05",
+        "date_to": "2020-01-20",
+    }
+    sorting_orders = {sort_field: "desc"}
+    accessible = ["permitted"]
+    reference = build_browse_records_base_query(
+        accessible, filters, sorting_orders
+    )
+    count_query, page_query = build_browse_records_queries(
+        accessible,
+        filters,
+        sorting_orders,
+        limit=5,
+    )
+    actual = page_query.all()
+    expected = reference.limit(5).all()
+    compiled_sql = str(
+        page_query.statement.compile(dialect=postgresql.dialect())
+    )
+
+    assert ("filtered_candidates AS MATERIALIZED" in compiled_sql) == (
+        materialized
+    )
+    assert count_query.scalar() == reference.order_by(None).count()
+    assert len(actual) == len(expected)
+    assert sort_values(actual, sort_field) == sort_values(expected, sort_field)
+
+
 @pytest.mark.parametrize("field", SORT_FIELDS)
 @pytest.mark.parametrize("direction", ["asc", "desc"])
 @pytest.mark.parametrize("scoped", [True, False])
