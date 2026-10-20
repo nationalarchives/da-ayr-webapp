@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from unittest.mock import Mock, patch
 from urllib.parse import urlparse
 
 import boto3
@@ -125,7 +126,62 @@ class TestRecord:
             "&sort=file_name-asc"
         )
 
-        browse_response = client.get(f"/browse?{browse_query}")
+        file = next(
+            file
+            for file in browse_files
+            if file.consignment.series.body.Name == "second_body"
+        )
+        search_response = {
+            "hits": {
+                "total": {"value": 1, "relation": "eq"},
+                "hits": [
+                    {
+                        "_source": {
+                            "file_id": str(file.FileId),
+                            "file_name": file.FileName,
+                            "file_path": file.FilePath,
+                            "closure_type": file.ClosureType,
+                            "opening_date": None,
+                            "end_date": None,
+                            "date_last_modified": None,
+                            "series_id": str(file.consignment.series.SeriesId),
+                            "series_name": file.consignment.series.Name,
+                            "transferring_body_id": str(
+                                file.consignment.series.body.BodyId
+                            ),
+                            "transferring_body": (
+                                file.consignment.series.body.Name
+                            ),
+                            "consignment_id": str(
+                                file.consignment.ConsignmentId
+                            ),
+                            "consignment_reference": (
+                                file.consignment.ConsignmentReference
+                            ),
+                            "consignment_transfer_complete_date": None,
+                        }
+                    }
+                ],
+            }
+        }
+        open_search = Mock()
+        open_search.search.return_value = {
+            "aggregations": {
+                "browse_transferring_bodies": {"buckets": []},
+                "browse_autofill_options": {"buckets": []},
+            }
+        }
+        with (
+            patch(
+                "app.main.routes.setup_opensearch",
+                return_value=open_search,
+            ),
+            patch(
+                "app.main.routes.execute_search",
+                return_value=search_response,
+            ),
+        ):
+            browse_response = client.get(f"/browse?{browse_query}")
 
         assert browse_response.status_code == 200
 

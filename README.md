@@ -624,6 +624,14 @@ python -m pytest app/tests --cov=app --cov-report=term-missing --cov-branch -vvv
 
 This also will generate a test coverage report.
 
+The OpenSearch browse integration tests create and remove a uniquely named
+temporary index. To run them against a reachable OpenSearch instance:
+
+```shell
+OPENSEARCH_INTEGRATION_URL=http://localhost:9200 \
+  poetry run pytest -vvv app/tests/test_browse_records_opensearch_integration.py
+```
+
 For the data_management tests there is a Dockerfile that sets up a local postgres instance to be used as a database.
 
 To run tests for the opensearch_indexer you can run the command:

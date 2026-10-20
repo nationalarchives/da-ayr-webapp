@@ -1,8 +1,7 @@
 from flask import abort
-from sqlalchemy import func
 
 from app.main.authorize.ayr_user import AYRUser
-from app.main.db.models import Body, Consignment, File, Series, db
+from app.main.util.search_utils import BROWSE_INDEX, execute_search_query
 
 
 def get_accessible_body_names(ayr_user: AYRUser):
@@ -44,61 +43,131 @@ def prefill_transferring_body_for_single_scope(
     return selected_transferring_body
 
 
-def get_transferring_body_options(accessible_body_names):
-    transferring_body_query = (
-        db.session.query(Body.Name.label("transferring_body"))
-        .join(Series, Series.BodyId == Body.BodyId)
-        .join(Consignment, Consignment.SeriesId == Series.SeriesId)
-        .join(File, File.ConsignmentId == Consignment.ConsignmentId)
-        .filter(func.lower(File.FileType) == "file")
-    )
-    if accessible_body_names is not None:
-        transferring_body_query = transferring_body_query.filter(
-            Body.Name.in_(accessible_body_names)
-        )
+def _get_browse_composite_buckets(
+    open_search,
+    aggregation_name,
+    sources,
+    query=None,
+    index=BROWSE_INDEX,
+):
+    buckets = []
+    after_key = None
 
+    while True:
+        composite = {"size": 1000, "sources": sources}
+        if after_key:
+            composite["after"] = after_key
+
+        response = execute_search_query(
+            open_search,
+            {
+                "size": 0,
+                "track_total_hits": False,
+                "query": query or {"match_all": {}},
+                "aggs": {
+                    aggregation_name: {
+                        "composite": composite,
+                    }
+                },
+            },
+            index=index,
+        )
+        aggregation = response["aggregations"][aggregation_name]
+        buckets.extend(aggregation["buckets"])
+
+        next_after_key = aggregation.get("after_key")
+        if not next_after_key or next_after_key == after_key:
+            break
+        after_key = next_after_key
+
+    return buckets
+
+
+def get_transferring_body_options_from_opensearch(
+    open_search,
+    index=BROWSE_INDEX,
+):
+    buckets = _get_browse_composite_buckets(
+        open_search,
+        "browse_transferring_bodies",
+        [
+            {
+                "transferring_body": {
+                    "terms": {"field": "transferring_body.keyword"}
+                }
+            }
+        ],
+        index=index,
+    )
     return sorted(
         {
-            row.transferring_body
-            for row in transferring_body_query.distinct().all()
-            if row.transferring_body
+            bucket["key"].get("transferring_body")
+            for bucket in buckets
+            if bucket["key"].get("transferring_body")
         }
     )
 
 
-def get_autofill_options_rows(
+def get_autofill_options_rows_from_opensearch(
+    open_search,
     accessible_body_names,
     selected_series,
     selected_consignment,
+    index=BROWSE_INDEX,
 ):
-    options_query = (
-        db.session.query(
-            Body.Name.label("transferring_body"),
-            Series.Name.label("series"),
-            Consignment.ConsignmentReference.label("consignment_reference"),
-        )
-        .join(Series, Series.BodyId == Body.BodyId)
-        .join(Consignment, Consignment.SeriesId == Series.SeriesId)
-        .join(File, File.ConsignmentId == Consignment.ConsignmentId)
-        .filter(func.lower(File.FileType) == "file")
-    )
+    if accessible_body_names == []:
+        return []
+
+    filter_clauses = []
     if accessible_body_names is not None:
-        options_query = options_query.filter(
-            Body.Name.in_(accessible_body_names)
+        filter_clauses.append(
+            {"terms": {"transferring_body.keyword": accessible_body_names}}
         )
 
-    if selected_series:
-        options_query = options_query.filter(
-            func.lower(Series.Name) == selected_series.lower()
-        )
+    for value, field in (
+        (selected_series, "series_name"),
+        (selected_consignment, "consignment_reference"),
+    ):
+        if value:
+            filter_clauses.append(
+                {
+                    "term": {
+                        f"{field}.keyword": {
+                            "value": value,
+                            "case_insensitive": True,
+                        }
+                    }
+                }
+            )
 
-    if selected_consignment:
-        options_query = options_query.filter(
-            func.lower(Consignment.ConsignmentReference)
-            == selected_consignment.lower()
-        )
+    query = (
+        {"bool": {"filter": filter_clauses}}
+        if filter_clauses
+        else {"match_all": {}}
+    )
+    buckets = _get_browse_composite_buckets(
+        open_search,
+        "browse_autofill_options",
+        [
+            {
+                "transferring_body": {
+                    "terms": {"field": "transferring_body.keyword"}
+                }
+            },
+            {"series": {"terms": {"field": "series_name.keyword"}}},
+        ],
+        query=query,
+        index=index,
+    )
 
-    return options_query.distinct().all()
+    return [
+        {
+            "transferring_body": bucket["key"].get("transferring_body"),
+            "series": bucket["key"].get("series"),
+            "consignment_reference": selected_consignment,
+        }
+        for bucket in buckets
+    ]
 
 
 def autofill_selected_filters(
@@ -111,10 +180,10 @@ def autofill_selected_filters(
         selected_series_lower = selected_series.lower()
         matching_transferring_bodies = sorted(
             {
-                row.transferring_body
+                row["transferring_body"]
                 for row in options_rows
-                if row.transferring_body
-                and selected_series_lower == (row.series or "").lower()
+                if row["transferring_body"]
+                and selected_series_lower == (row["series"] or "").lower()
             }
         )
         if len(matching_transferring_bodies) == 1:
@@ -127,16 +196,17 @@ def autofill_selected_filters(
         matching_rows = [
             row
             for row in options_rows
-            if row.consignment_reference
-            and selected_consignment_lower == row.consignment_reference.lower()
+            if row["consignment_reference"]
+            and selected_consignment_lower
+            == row["consignment_reference"].lower()
         ]
 
         if not selected_transferring_body:
             matching_transferring_bodies = sorted(
                 {
-                    row.transferring_body
+                    row["transferring_body"]
                     for row in matching_rows
-                    if row.transferring_body
+                    if row["transferring_body"]
                 }
             )
             if len(matching_transferring_bodies) == 1:
@@ -144,7 +214,7 @@ def autofill_selected_filters(
 
         if not selected_series:
             matching_series = sorted(
-                {row.series for row in matching_rows if row.series}
+                {row["series"] for row in matching_rows if row["series"]}
             )
             if len(matching_series) == 1:
                 selected_series = matching_series[0]
@@ -176,6 +246,7 @@ def build_browse_filter_data(
     validated_data,
     accessible_body_names,
     filters,
+    open_search,
 ):
     (
         selected_transferring_body,
@@ -190,11 +261,13 @@ def build_browse_filter_data(
         accessible_body_names,
     )
 
-    if accessible_body_names and len(accessible_body_names) == 1:
+    if accessible_body_names == []:
+        transferring_bodies = []
+    elif accessible_body_names and len(accessible_body_names) == 1:
         transferring_bodies = accessible_body_names
     else:
-        transferring_bodies = get_transferring_body_options(
-            accessible_body_names
+        transferring_bodies = get_transferring_body_options_from_opensearch(
+            open_search
         )
 
     should_autofill_from_series = (
@@ -205,7 +278,8 @@ def build_browse_filter_data(
     )
 
     if should_autofill_from_series or should_autofill_from_consignment:
-        options_rows = get_autofill_options_rows(
+        options_rows = get_autofill_options_rows_from_opensearch(
+            open_search,
             accessible_body_names,
             selected_series,
             selected_consignment,
