@@ -35,9 +35,11 @@ org.apache.cxf:cxf-rt-ws-policy:4.2.4 \
 "
 
 # Install Java for DROID, plus the tools needed to unpack and patch it.
-RUN dnf clean all && \
-  dnf upgrade -y && \
-    dnf install -y \
+# Patch all base-image packages, then install new ones from latest release since
+# the base AWS Lambda image can have packages with known vulnerabilities
+# with fixes only available in the latest release
+RUN dnf upgrade --refresh -y --releasever=latest && \
+    dnf install -y --releasever=latest \
       alsa-lib \
       curl-minimal \
       libcurl-minimal \
