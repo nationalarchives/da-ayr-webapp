@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from unittest import mock
 from uuid import uuid4
 
@@ -560,6 +561,92 @@ def test_fetch_files_in_consignment_invalid_column_with_logging(
     assert (
         "Failed to retrieve file metadata for consignment reference: reference-123"
         in caplog.text
+    )
+
+
+@pytest.mark.parametrize(
+    ("transfer_complete_datetime", "expected_transfer_complete_date"),
+    [
+        (
+            datetime(2024, 5, 1, 13, 45),
+            "2024-05-01T13:45:00",
+        ),
+        (None, None),
+    ],
+)
+def test_fetch_files_in_consignment_includes_transfer_complete_date(
+    temp_db,
+    transfer_complete_datetime,
+    expected_transfer_complete_date,
+):
+    session = sessionmaker(bind=temp_db)()
+    body_id = uuid4()
+    series_id = uuid4()
+    consignment_id = uuid4()
+    file_id = uuid4()
+    consignment_reference = "transfer-date-test"
+
+    session.add_all(
+        [
+            Body(BodyId=body_id, Name="body", Description="description"),
+            Series(SeriesId=series_id, Name="series", BodyId=body_id),
+            Consignment(
+                ConsignmentId=consignment_id,
+                SeriesId=series_id,
+                ConsignmentType="Digital",
+                ConsignmentReference=consignment_reference,
+                TransferCompleteDatetime=transfer_complete_datetime,
+            ),
+            File(
+                FileId=file_id,
+                ConsignmentId=consignment_id,
+                FileType="File",
+                FileReference="file-reference",
+                FileName="record.txt",
+                FilePath="/record.txt",
+            ),
+        ]
+    )
+    session.commit()
+    session.close()
+
+    files = fetch_files_in_consignment(
+        consignment_reference,
+        str(temp_db.url),
+    )
+
+    assert len(files) == 1
+    assert (
+        files[0]["consignment_transfer_complete_date"]
+        == expected_transfer_complete_date
+    )
+
+
+def test_construct_documents_preserves_transfer_complete_date():
+    transfer_complete_date = "2024-05-01T13:45:00"
+    files = [
+        {
+            "file_id": "file-id",
+            "consignment_reference": "consignment-reference",
+            "consignment_transfer_complete_date": transfer_complete_date,
+        }
+    ]
+
+    with (
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment.get_s3_file",
+            return_value=b"file content",
+        ),
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment.add_text_content",
+            side_effect=lambda file, _: file,
+        ),
+    ):
+        documents = construct_documents(files, "test-bucket")
+
+    assert (
+        documents[0]["document"]["consignment_transfer_complete_date"]
+        == transfer_complete_date
     )
 
 
