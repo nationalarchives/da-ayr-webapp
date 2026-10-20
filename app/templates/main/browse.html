@@ -26,7 +26,7 @@
                 {% set selected_per_page = (query_string_parameters.get('per_page', per_page) | string) %}
                 {% set records_has_active_filters = (filter_count | default(0)) > 0 %}
                 <div class="browse-layout records-page-wrapper">
-                    <div class="browse-records__header-container">
+                    <div class="browse__header-container">
                         {% if num_records_found > 0 %}
                             {% set records_scope_text = "All available records" %}
                             {% if is_standard_user and filters and filters.get('transferring_body') %}
@@ -39,9 +39,7 @@
                             </p>
                         {% endif %}
                         {% if num_records_found > 0 %}
-                            <h1 class="browse-records__heading"
-                                id="browse-records"
-                                aria-live="polite">
+                            <h1 class="browse__heading" id="browse" aria-live="polite">
                                 {% if records_has_active_filters %}
                                     {{ num_records_found | format_number_with_commas }} records found
                                 {% else %}
@@ -53,7 +51,7 @@
                                 {% set preserved_params = request.args.copy() %}
                                 {{ page_back_link(preserved_params=preserved_params) }}
                             {% endif %}
-                            {{ no_results_message("browse_records") }}
+                            {{ no_results_message("browse") }}
                         {% endif %}
                     </div>
                     {% if num_records_found > 0 %}
@@ -62,14 +60,14 @@
                         <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
                             <div class="ayr-results-controls">
                                 {{ results_control(
-                                url_for('main.browse_records', _anchor='records'),
+                                url_for('main.browse', _anchor='records'),
                                 'records-sort', 'Sort records', 'sort', records_sort_options,
                                 selected_sort, 'Sort', query_string_parameters, ['sort', 'page'],
                                 auto_submit=true,
                                 label_class='govuk-visually-hidden'
                                 ) }}
                                 {{ results_control(
-                                url_for('main.browse_records', _anchor='records'),
+                                url_for('main.browse', _anchor='records'),
                                 'records-per-page', 'Records per page', 'per_page', per_page_options,
                                 selected_per_page, 'Apply', query_string_parameters, ['per_page', 'page'],
                                 auto_submit=true, select_class='ayr-results-control__select--compact'
@@ -77,13 +75,13 @@
                             </div>
                         </div>
                         <!-- TABLE -->
-                        {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, 'main.browse_records', None) %}
+                        {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, 'main.browse', None) %}
                             {% for record in results %}
                                 {% include "components/results-table-row.html" %}
                             {% endfor %}
                         {% endcall %}
                     {% endif %}
-                    {% include "components/browse-records-filters-form.html" %}
+                    {% include "components/browse-filters-form.html" %}
                 </div>
             </div>
         </div>

@@ -82,7 +82,7 @@ class TestRecord:
         return "/record"
 
     @mock_aws
-    def test_record_back_link_direct_navigation_goes_to_browse_records_without_query(
+    def test_record_back_link_direct_navigation_goes_to_browse_without_query(
         self, app, client: FlaskClient, mock_standard_user
     ):
         """
@@ -107,10 +107,10 @@ class TestRecord:
         assert back_link is not None
 
         parsed_back_link = urlparse(back_link["href"])
-        assert parsed_back_link.path == "/browse/records"
+        assert parsed_back_link.path == "/browse"
         assert parsed_back_link.query == ""
 
-    def test_record_back_link_preserves_browse_records_filters_and_sort(
+    def test_record_back_link_preserves_browse_filters_and_sort(
         self, client: FlaskClient, mock_all_access_user, browse_files
     ):
         """
@@ -125,7 +125,7 @@ class TestRecord:
             "&sort=file_name-asc"
         )
 
-        browse_response = client.get(f"/browse/records?{browse_query}")
+        browse_response = client.get(f"/browse?{browse_query}")
 
         assert browse_response.status_code == 200
 
@@ -141,7 +141,7 @@ class TestRecord:
         assert parsed_record_href.path.startswith("/record/")
         assert parsed_record_href.query == ""
 
-        referrer = f"http://localhost/browse/records?{browse_query}"
+        referrer = f"http://localhost/browse?{browse_query}"
 
         record_response = client.get(record_href, headers={"Referer": referrer})
 
@@ -169,9 +169,7 @@ class TestRecord:
         create_mock_s3_bucket_with_object(bucket_name, file)
         mock_standard_user(client, file.consignment.series.body.Name)
 
-        return_to = (
-            "/search/results?query=test&search_area=metadata#browse-records"
-        )
+        return_to = "/search/results?query=test&search_area=metadata#browse"
         response = client.get(
             f"{self.route_url}/{file.FileId}",
             query_string={"return_to": return_to},
@@ -184,7 +182,7 @@ class TestRecord:
 
         assert back_link is not None
         parsed_back_link = urlparse(back_link["href"])
-        assert parsed_back_link.path == "/browse/records"
+        assert parsed_back_link.path == "/browse"
         assert parsed_back_link.query == ""
 
     def test_record_invalid_id_raises_404(self, client: FlaskClient):

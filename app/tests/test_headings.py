@@ -108,7 +108,6 @@ def test_main_headings_h1_precedes_h2(
         "/how-to-use-this-service",
         "/terms-of-use",
         "/browse",
-        "/browse/records",
         f"/browse/transferring_body/{file.consignment.series.body.BodyId}",
         f"/browse/series/{file.consignment.series.SeriesId}",
         f"/browse/consignment/{file.consignment.ConsignmentId}"

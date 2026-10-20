@@ -39,8 +39,8 @@ from .utils.assertions import assert_matches_snapshot
             {"width": 1280, "height": 4000},
         ),
         (
-            "/browse/records",
-            "browse_records.png",
+            "/browse",
+            "browse.png",
             {"width": 1280, "height": 4000},
         ),
         (
@@ -121,8 +121,8 @@ def test_css_no_visual_regression(
             {"width": 390, "height": 5000},
         ),
         (
-            "/browse/records",
-            "browse_records_mobile.png",
+            "/browse",
+            "browse_mobile.png",
             {"width": 390, "height": 5000},
         ),
         (
