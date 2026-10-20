@@ -43,11 +43,13 @@ WORKDIR /app
 
 
 RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
     apt-get install -y --no-install-recommends \
       ca-certificates \
       curl \
       openjdk-21-jre-headless \
       unzip && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Download and unpack DROID.

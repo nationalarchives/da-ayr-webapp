@@ -24,7 +24,9 @@ ARG NPM_VERSION=9.2.0~ds1-3
 WORKDIR /docker_app
 
 # Install system dependencies including Node.js (cached layer)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
+    apt-get install -y --no-install-recommends \
     gcc=${GCC_VERSION} \
     libpq-dev=${LIBPQ_DEV_VERSION} \
     openssl=${OPENSSL_VERSION} \

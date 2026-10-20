@@ -44,7 +44,9 @@ ARG PERL_BASE_VERSION=5.40.1-6+deb13u1
 ARG LIBPCRE2_8_0_VERSION=10.46-1~deb13u3
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
+    apt-get install -y --no-install-recommends \
     libsqlite3-0=${LIBSQLITE3_0_VERSION} \
     perl-base=${PERL_BASE_VERSION} \
     libpcre2-8-0=${LIBPCRE2_8_0_VERSION} \

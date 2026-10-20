@@ -25,17 +25,16 @@ ignore:
       /data_management/opensearch_indexer/Dockerfile:
         reason: FALSE_POSITIVE
     e2ff2d14-e6a7-4ef8-b150-b9fc845e0461:
-      /data_management/access_copy_converter/Dockerfile:
-        reason: FALSE_POSITIVE
       /data_management/dri_to_ayr_data_migration/droid/Dockerfile:
         reason: FALSE_POSITIVE
       /data_management/dri_to_ayr_data_migration/finaliser/Dockerfile:
         reason: FALSE_POSITIVE
-      /data_management/dri_to_ayr_data_migration/series_coordinator/Dockerfile:
-        reason: FALSE_POSITIVE
       /data_management/dri_to_ayr_data_migration/worker/Dockerfile:
         reason: FALSE_POSITIVE
-      /data_management/dri_to_ayr_data_migration/tests/Dockerfile:
+    6d81147f-c854-4867-8046-264c78136942:
+      /data_management/dri_to_ayr_data_migration/droid/Dockerfile:
         reason: FALSE_POSITIVE
-      /data_management/opensearch_indexer/Dockerfile:
+      /data_management/dri_to_ayr_data_migration/finaliser/Dockerfile:
+        reason: FALSE_POSITIVE
+      /data_management/dri_to_ayr_data_migration/worker/Dockerfile:
         reason: FALSE_POSITIVE

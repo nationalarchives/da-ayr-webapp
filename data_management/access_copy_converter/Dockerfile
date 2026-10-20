@@ -22,7 +22,9 @@ ARG LIBC6_VERSION=2.41-12+deb13u4
 ARG LIBC_BIN_VERSION=2.41-12+deb13u4
 
 # Install system dependencies including LibreOffice
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
+    apt-get install -y --no-install-recommends \
     libsqlite3-0=${LIBSQLITE3_0_VERSION} \
     perl-base=${PERL_BASE_VERSION} \
     libpcre2-8-0=${LIBPCRE2_8_0_VERSION} \
@@ -33,8 +35,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libreoffice-calc=${LIBREOFFICE_CALC_VERSION} \
     libreoffice-java-common=${LIBREOFFICE_JAVA_COMMON_VERSION} \
     default-jre=${DEFAULT_JRE_VERSION} \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy the Python script
 COPY access_copy_converter/ /app/

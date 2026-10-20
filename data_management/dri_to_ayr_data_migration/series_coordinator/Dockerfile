@@ -3,7 +3,8 @@ FROM python:3.14.8-slim@sha256:a2b82f3c48559aa0a8446d9af49826b6e2b2016f4cd2afabf
 WORKDIR /app
 
 RUN apt-get update && \
-    apt-get upgrade -y && \
+    apt-get upgrade -y --no-install-recommends && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
