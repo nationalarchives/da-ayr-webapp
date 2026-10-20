@@ -1,7 +1,8 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from opensearchpy import OpenSearch
+from werkzeug.exceptions import NotFound
 
 from app.main.util.search_utils import (
     OPENSEARCH_FIELD_NAME_MAP,
@@ -272,6 +273,63 @@ def test_execute_search(mock_open_search, app):
     execute_search(mock_open_search, dsl_query, page=1, per_page=10)
     mock_open_search.search.assert_called_once_with(
         body={"query": {"match_all": {}}}, from_=0, size=10, timeout=10
+    )
+
+
+def test_execute_search_truncates_last_page_to_result_limit(app):
+    open_search = Mock()
+    open_search.search.return_value = {"hits": {"total": {"value": 10_001}}}
+
+    execute_search(
+        open_search,
+        {"query": {"match_all": {}}},
+        page=1667,
+        per_page=6,
+        max_results=10_000,
+        index="documents",
+    )
+
+    open_search.search.assert_called_once_with(
+        index="documents",
+        body={"query": {"match_all": {}}},
+        from_=9_996,
+        size=4,
+        timeout=10,
+    )
+
+
+def test_execute_search_rejects_page_beyond_result_window(app):
+    open_search = Mock()
+
+    with pytest.raises(NotFound):
+        execute_search(
+            open_search,
+            {"query": {"match_all": {}}},
+            page=2,
+            per_page=5,
+            max_results=5,
+        )
+
+    open_search.search.assert_not_called()
+
+
+def test_execute_search_rejects_page_beyond_total_hits(app):
+    open_search = Mock()
+    open_search.search.return_value = {"hits": {"total": {"value": 10}}}
+
+    with pytest.raises(NotFound):
+        execute_search(
+            open_search,
+            {"query": {"match_all": {}}},
+            page=2,
+            per_page=10,
+        )
+
+    open_search.search.assert_called_once_with(
+        body={"query": {"match_all": {}}},
+        from_=10,
+        size=10,
+        timeout=10,
     )
 
 
@@ -553,7 +611,7 @@ def test_build_search_results_query_with_browse_filters():
             "range": {
                 "opening_date": {
                     "gte": "2025-01-01",
-                    "lte": "2025-12-31",
+                    "lt": "2026-01-01",
                 }
             }
         },

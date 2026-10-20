@@ -4,6 +4,7 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 import opensearchpy
+import pytest
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 from werkzeug.exceptions import NotFound
@@ -81,10 +82,34 @@ class MockOpenSearch:
         self.search_side_effect = search_side_effect
         self.index_return_value = index_return_value or {"result": "created"}
         self.indices = MockIndices(get_mapping_return_value)
+        self.search_calls = []
 
     def search(self, *args, **kwargs):
+        self.search_calls.append(kwargs)
         if self.search_side_effect:
             raise self.search_side_effect
+        body = kwargs.get("body", {})
+        if "aggs" in body:
+            aggregation_name = next(iter(body["aggs"]))
+            buckets = {
+                "browse_transferring_bodies": [
+                    {"key": {"transferring_body": "first_body"}},
+                    {"key": {"transferring_body": "second_body"}},
+                ],
+                "browse_autofill_options": [
+                    {
+                        "key": {
+                            "transferring_body": "second_body",
+                            "series": "second_series",
+                        }
+                    }
+                ],
+            }.get(aggregation_name, [])
+            return {
+                "aggregations": {
+                    aggregation_name: {"buckets": buckets},
+                }
+            }
         return self.search_return_value
 
     def index(self, *args, **kwargs):
@@ -150,6 +175,13 @@ class TestSearchEndpointRemoved:
 
 
 class TestSearchResults:
+    @pytest.fixture(autouse=True)
+    def mock_default_opensearch(self, monkeypatch):
+        monkeypatch.setattr(
+            "app.main.routes.setup_opensearch",
+            lambda: MockOpenSearch(),
+        )
+
     @property
     def route_url(self):
         return "/search/results"
@@ -247,9 +279,11 @@ class TestSearchResults:
         """
         Given an authenticated user on /search/results
         When no query is provided
-        Then the empty state is rendered without calling OpenSearch
+        Then the empty state is rendered and filter options use OpenSearch
         """
         mock_all_access_user(client)
+        open_search = MockOpenSearch()
+        mock_setup_opensearch.return_value = open_search
 
         response = client.get(self.route_url)
 
@@ -259,7 +293,10 @@ class TestSearchResults:
             b"Try changing or removing one or more applied filters."
             in response.data
         )
-        mock_setup_opensearch.assert_not_called()
+        mock_setup_opensearch.assert_called_once()
+        assert open_search.search_calls[0]["body"]["aggs"].keys() == {
+            "browse_transferring_bodies"
+        }
 
     @patch("app.main.routes.setup_opensearch")
     def test_search_results_renders_expected_table_headers_for_query(
@@ -708,7 +745,7 @@ class TestSearchResults:
             "range": {
                 "end_date": {
                     "gte": "2025-01-01",
-                    "lte": "2025-12-31",
+                    "lt": "2026-01-01",
                 }
             }
         } in dsl_query["query"]["bool"]["filter"]
@@ -746,7 +783,7 @@ class TestSearchResults:
                         "range": {
                             "end_date": {
                                 "gte": "2025-01-01",
-                                "lte": "2025-12-31",
+                                "lt": "2026-01-01",
                             }
                         }
                     },
@@ -758,7 +795,7 @@ class TestSearchResults:
                                     "range": {
                                         "date_last_modified": {
                                             "gte": "2025-01-01",
-                                            "lte": "2025-12-31",
+                                            "lt": "2026-01-01",
                                         }
                                     }
                                 }

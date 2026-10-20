@@ -75,7 +75,7 @@
                             </div>
                         </div>
                         <!-- TABLE -->
-                        {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, 'main.browse', None) %}
+                        {% call render_record_table(num_browsable_records_found | default(num_records_found), current_page, per_page, pagination, query_string_parameters, 'main.browse', None) %}
                             {% for record in results %}
                                 {% include "components/results-table-row.html" %}
                             {% endfor %}

@@ -1,10 +1,90 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 
 from app.tests.factories import FileFactory
+
+
+def _browse_search_documents():
+    filenames = [
+        "first_file.txt",
+        "second_file.pdf",
+        "third_file.doc",
+        "fourth_file.docx",
+        "fifth_file.docx",
+        "sixth_file.ppt",
+        *[f"file_{number}.txt" for number in range(7, 28)],
+    ]
+    return [
+        {
+            "_source": {
+                "file_id": f"00000000-0000-0000-0000-{number:012d}",
+                "file_name": filename,
+                "file_path": f"/data/{filename}",
+                "closure_type": "Open",
+                "opening_date": "2024-01-02T00:00:00",
+                "date_last_modified": "2024-01-03T00:53:25.593740+00:00",
+                "series_id": "00000000-0000-0000-0000-000000000101",
+                "series_name": "HO 405",
+                "transferring_body_id": (
+                    "00000000-0000-0000-0000-000000000201"
+                ),
+                "transferring_body": "Land Registry",
+                "consignment_id": "00000000-0000-0000-0000-000000000301",
+                "consignment_reference": "AYR-2026-KSJ2",
+                "consignment_transfer_complete_date": "2024-02-03",
+            }
+        }
+        for number, filename in enumerate(filenames, start=1)
+    ]
+
+
+def _search_response(total=27, page=1, per_page=5, hits=None):
+    documents = _browse_search_documents()
+    start = (page - 1) * per_page
+    page_hits = (
+        hits if hits is not None else documents[start : start + per_page]
+    )
+    return {
+        "hits": {
+            "total": {"value": total, "relation": "eq"},
+            "hits": page_hits,
+        }
+    }
+
+
+def _set_empty_search_response(execute_search):
+    execute_search.side_effect = None
+    execute_search.return_value = _search_response(total=0, hits=[])
+
+
+def _mock_browse_aggregation_response(query):
+    if "browse_transferring_bodies" in query["aggs"]:
+        return {
+            "aggregations": {
+                "browse_transferring_bodies": {
+                    "buckets": [
+                        {"key": {"transferring_body": "first_body"}},
+                        {"key": {"transferring_body": "second_body"}},
+                    ]
+                }
+            }
+        }
+    return {
+        "aggregations": {
+            "browse_autofill_options": {"buckets": []},
+        }
+    }
+
+
+def _autofill_row(body, series, consignment_reference=""):
+    return {
+        "transferring_body": body,
+        "series": series,
+        "consignment_reference": consignment_reference,
+    }
 
 
 def verify_browse_view_header_row(data, expected_first_header):
@@ -50,6 +130,23 @@ def verify_scope_text(data, expected_text):
 
 
 class TestBrowse:
+    @pytest.fixture(autouse=True)
+    def mock_opensearch(self, monkeypatch):
+        open_search = Mock()
+        open_search.search.side_effect = lambda **kwargs: (
+            _mock_browse_aggregation_response(kwargs["body"])
+        )
+        execute_search = Mock(
+            side_effect=lambda _client, _query, page, per_page, **_kwargs: (
+                _search_response(page=page, per_page=per_page)
+            )
+        )
+        monkeypatch.setattr(
+            "app.main.routes.setup_opensearch", lambda: open_search
+        )
+        monkeypatch.setattr("app.main.routes.execute_search", execute_search)
+        return execute_search
+
     @property
     def route_url(self):
         return "/browse"
@@ -84,25 +181,23 @@ class TestBrowse:
         )
         assert len(record_links) == 5
 
-    def test_browse_for_standard_user_only_shows_accessible_body(
-        self, client: FlaskClient, mock_standard_user, browse_files
+    def test_browse_scopes_search_for_standard_user(
+        self,
+        client: FlaskClient,
+        mock_standard_user,
+        mock_opensearch,
+        browse_files,
     ):
         """
         Given a standard user with access to one transferring body
         When they visit browse records
-        Then they only see records for that body
+        Then the OpenSearch query is scoped to that body
         """
         mock_standard_user(client, "first_body")
 
         response = client.get(self.route_url)
 
         assert response.status_code == 200
-        assert b"3 records" in response.data
-        assert b"first_file.txt" in response.data
-        assert b"second_file.pdf" in response.data
-        assert b"third_file.doc" in response.data
-        assert b"fourth_file.docx" not in response.data
-        assert b"Land Registry" not in response.data
         verify_filters_heading(response.data, "Filters (0)")
         verify_scope_text(response.data, "first_body")
 
@@ -110,12 +205,25 @@ class TestBrowse:
         transferring_body_filter = soup.find(
             "input", id="transferring_body_filter"
         )
-        record_links = soup.select(
-            "tbody.govuk-table__body td[colspan='4'] > a[href^='/record/']"
-        )
         assert transferring_body_filter is not None
         assert transferring_body_filter.get("value") == "first_body"
-        assert len(record_links) == 3
+        body_id = browse_files[0].consignment.series.body.BodyId
+        _, query, _, _ = mock_opensearch.call_args.args
+        assert {
+            "term": {"transferring_body_id.keyword": str(body_id)}
+        } in query["query"]["bool"]["filter"]
+
+    @patch("app.main.routes.AYRUser")
+    def test_browse_forbids_standard_user_without_body(
+        self, mock_ayr_user, client: FlaskClient, mock_standard_user
+    ):
+        mock_standard_user(client, "first_body")
+        mock_ayr_user.return_value.is_standard_user = True
+        mock_ayr_user.return_value.transferring_body = None
+
+        response = client.get(self.route_url)
+
+        assert response.status_code == 403
 
     def test_browse_second_page_shows_expected_range_and_links(
         self, client: FlaskClient, mock_all_access_user, browse_files
@@ -160,8 +268,15 @@ class TestBrowse:
         assert response.status_code == 200
         verify_filters_heading(response.data, "Filters (0)")
 
+    @patch(
+        "app.main.util.browse_utils.get_autofill_options_rows_from_opensearch"
+    )
     def test_browse_standard_user_consignment_filter_without_series_backfills_and_applies_series(
-        self, client: FlaskClient, mock_standard_user, browse_files
+        self,
+        mock_get_autofill_options_rows,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_files,
     ):
         """
         Given a standard user with a consignment filter and no series filter
@@ -169,6 +284,13 @@ class TestBrowse:
         Then the matching series value is auto-populated and applied
         """
         mock_standard_user(client, "first_body")
+        mock_get_autofill_options_rows.return_value = [
+            _autofill_row(
+                "first_body",
+                "first_series",
+                "TDR-2023-FI1",
+            )
+        ]
 
         response = client.get(
             f"{self.route_url}?consignment_reference=TDR-2023-FI1"
@@ -191,26 +313,36 @@ class TestBrowse:
         assert consignment_filter.get("value") == "TDR-2023-FI1"
         verify_filters_heading(response.data, "Filters (2)")
 
-    def test_browse_consignment_filter_limits_results(
-        self, client: FlaskClient, mock_all_access_user, browse_files
+    @patch(
+        "app.main.util.browse_utils.get_autofill_options_rows_from_opensearch"
+    )
+    def test_browse_adds_consignment_filter_to_search(
+        self,
+        mock_get_autofill_options_rows,
+        client: FlaskClient,
+        mock_all_access_user,
+        mock_opensearch,
+        browse_files,
     ):
         """
         Given a consignment reference filter
         When browse records is requested with that filter
-        Then only matching records are shown and the filter value is retained
+        Then a match phrase consignment filter is sent to OpenSearch
         """
         mock_all_access_user(client)
+        mock_get_autofill_options_rows.return_value = [
+            _autofill_row(
+                "second_body",
+                "second_series",
+                "TDR-2023-TH3",
+            )
+        ]
 
         response = client.get(
             f"{self.route_url}?consignment_reference=TDR-2023-TH3"
         )
 
         assert response.status_code == 200
-        assert b"3 records found" in response.data
-        assert b"fourth_file.docx" in response.data
-        assert b"fifth_file.docx" in response.data
-        assert b"sixth_file.ppt" in response.data
-        assert b"first_file.txt" not in response.data
         assert b'value="TDR-2023-TH3"' in response.data
         verify_filters_heading(response.data, "Filters (3)")
         verify_scope_text(response.data, "All available records")
@@ -226,18 +358,22 @@ class TestBrowse:
         assert transferring_body_filter.get("value") == "second_body"
         assert series_filter.get("value") == "second_series"
 
-        record_links = soup.select(
-            "tbody.govuk-table__body td[colspan='4'] > a[href^='/record/']"
-        )
-        assert len(record_links) == 3
+        _, query, _, _ = mock_opensearch.call_args.args
+        assert {
+            "match_phrase": {"consignment_reference": "TDR-2023-TH3"}
+        } in query["query"]["bool"]["filter"]
 
-    def test_browse_consignment_filter_requires_exact_match(
-        self, client: FlaskClient, mock_all_access_user, browse_files
+    def test_browse_builds_match_phrase_consignment_filter(
+        self,
+        client: FlaskClient,
+        mock_all_access_user,
+        mock_opensearch,
+        browse_files,
     ):
         """
         Given an all-access user with a partial consignment reference filter
         When browse records is requested
-        Then no records are returned because matching is exact
+        Then OpenSearch receives the partial value as a match phrase filter
         """
         mock_all_access_user(client)
 
@@ -246,50 +382,42 @@ class TestBrowse:
         )
 
         assert response.status_code == 200
-        assert b"No results found" in response.data
+        _, query, _, _ = mock_opensearch.call_args.args
+        assert {
+            "match_phrase": {"consignment_reference": "TDR-2023-TH"}
+        } in query["query"]["bool"]["filter"]
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        transferring_body_filter = soup.find(
-            "input", id="transferring_body_filter"
-        )
-        series_filter = soup.find("input", id="series_filter")
-        consignment_filter = soup.find("input", id="consignment_reference")
-
-        assert transferring_body_filter is not None
-        assert series_filter is not None
-        assert consignment_filter is not None
-        assert transferring_body_filter.get("value") == ""
-        assert series_filter.get("value") == ""
-        assert consignment_filter.get("value") == "TDR-2023-TH"
-
-    def test_browse_series_filter_requires_exact_match(
-        self, client: FlaskClient, mock_all_access_user, browse_files
+    def test_browse_builds_match_phrase_series_filter(
+        self,
+        client: FlaskClient,
+        mock_all_access_user,
+        mock_opensearch,
+        browse_files,
     ):
         """
         Given an all-access user with a partial series filter
         When browse records is requested
-        Then no records are returned because matching is exact
+        Then OpenSearch receives the partial value as a match phrase filter
         """
         mock_all_access_user(client)
 
         response = client.get(f"{self.route_url}?series_filter=second")
 
         assert response.status_code == 200
-        assert b"No results" in response.data
+        _, query, _, _ = mock_opensearch.call_args.args
+        assert {"match_phrase": {"series_name": "second"}} in query["query"][
+            "bool"
+        ]["filter"]
 
-        soup = BeautifulSoup(response.data, "html.parser")
-        transferring_body_filter = soup.find(
-            "input", id="transferring_body_filter"
-        )
-        series_filter = soup.find("input", id="series_filter")
-
-        assert transferring_body_filter is not None
-        assert series_filter is not None
-        assert transferring_body_filter.get("value") == ""
-        assert series_filter.get("value") == "second"
-
+    @patch(
+        "app.main.util.browse_utils.get_autofill_options_rows_from_opensearch"
+    )
     def test_browse_all_access_consignment_filter_autofills_transferring_body_and_series(
-        self, client: FlaskClient, mock_all_access_user, browse_files
+        self,
+        mock_get_autofill_options_rows,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_files,
     ):
         """
         Given an all-access user with no transferring body or series filter selected
@@ -297,6 +425,13 @@ class TestBrowse:
         Then transferring body and series are auto-populated from the match
         """
         mock_all_access_user(client)
+        mock_get_autofill_options_rows.return_value = [
+            _autofill_row(
+                "second_body",
+                "second_series",
+                "TDR-2023-TH3",
+            )
+        ]
 
         initial_response = client.get(self.route_url)
 
@@ -328,8 +463,15 @@ class TestBrowse:
         assert filtered_transferring_body_filter.get("value") == "second_body"
         assert filtered_series_filter.get("value") == "second_series"
 
+    @patch(
+        "app.main.util.browse_utils.get_autofill_options_rows_from_opensearch"
+    )
     def test_browse_series_filter_backfills_transferring_body(
-        self, client: FlaskClient, mock_all_access_user, browse_files
+        self,
+        mock_get_autofill_options_rows,
+        client: FlaskClient,
+        mock_all_access_user,
+        browse_files,
     ):
         """
         Given a series filter that maps to a single transferring body
@@ -337,6 +479,9 @@ class TestBrowse:
         Then the transferring body filter is auto-populated
         """
         mock_all_access_user(client)
+        mock_get_autofill_options_rows.return_value = [
+            _autofill_row("second_body", "second_series")
+        ]
 
         response = client.get(f"{self.route_url}?series_filter=second_series")
 
@@ -352,7 +497,9 @@ class TestBrowse:
         assert transferring_body_filter.get("value") == "second_body"
         assert series_filter.get("value") == "second_series"
 
-    @patch("app.main.util.browse_utils.get_autofill_options_rows")
+    @patch(
+        "app.main.util.browse_utils.get_autofill_options_rows_from_opensearch"
+    )
     def test_browse_skips_autofill_query_on_initial_load(
         self,
         mock_get_autofill_options_rows,
@@ -373,7 +520,9 @@ class TestBrowse:
         assert response.status_code == 200
         mock_get_autofill_options_rows.assert_not_called()
 
-    @patch("app.main.util.browse_utils.get_autofill_options_rows")
+    @patch(
+        "app.main.util.browse_utils.get_autofill_options_rows_from_opensearch"
+    )
     def test_browse_uses_targeted_autofill_query_for_series_filter(
         self,
         mock_get_autofill_options_rows,
@@ -392,13 +541,12 @@ class TestBrowse:
         response = client.get(f"{self.route_url}?series_filter=second_series")
 
         assert response.status_code == 200
-        mock_get_autofill_options_rows.assert_called_once_with(
-            None,
-            "second_series",
-            "",
-        )
+        call_args = mock_get_autofill_options_rows.call_args.args
+        assert call_args[1:] == (None, "second_series", "")
 
-    @patch("app.main.util.browse_utils.get_transferring_body_options")
+    @patch(
+        "app.main.util.browse_utils.get_transferring_body_options_from_opensearch"
+    )
     def test_browse_queries_transferring_body_options_once_for_all_access_user(
         self,
         mock_get_transferring_body_options,
@@ -420,10 +568,14 @@ class TestBrowse:
         response = client.get(self.route_url)
 
         assert response.status_code == 200
-        mock_get_transferring_body_options.assert_called_once_with(None)
+        mock_get_transferring_body_options.assert_called_once()
 
-    @patch("app.main.util.browse_utils.get_autofill_options_rows")
-    @patch("app.main.util.browse_utils.get_transferring_body_options")
+    @patch(
+        "app.main.util.browse_utils.get_autofill_options_rows_from_opensearch"
+    )
+    @patch(
+        "app.main.util.browse_utils.get_transferring_body_options_from_opensearch"
+    )
     def test_browse_series_filter_uses_expected_filter_queries_once_each(
         self,
         mock_get_transferring_body_options,
@@ -447,14 +599,13 @@ class TestBrowse:
         response = client.get(f"{self.route_url}?series_filter=second_series")
 
         assert response.status_code == 200
-        mock_get_transferring_body_options.assert_called_once_with(None)
-        mock_get_autofill_options_rows.assert_called_once_with(
-            None,
-            "second_series",
-            "",
-        )
+        mock_get_transferring_body_options.assert_called_once()
+        call_args = mock_get_autofill_options_rows.call_args.args
+        assert call_args[1:] == (None, "second_series", "")
 
-    @patch("app.main.util.browse_utils.get_transferring_body_options")
+    @patch(
+        "app.main.util.browse_utils.get_transferring_body_options_from_opensearch"
+    )
     def test_browse_standard_user_skips_transferring_body_options_query(
         self,
         mock_get_transferring_body_options,
@@ -745,7 +896,11 @@ class TestBrowse:
         )
 
     def test_browse_no_results_for_nonsensical_filter(
-        self, client: FlaskClient, mock_all_access_user, browse_files
+        self,
+        client: FlaskClient,
+        mock_all_access_user,
+        mock_opensearch,
+        browse_files,
     ):
         """
         Given a nonsensical filter term
@@ -753,13 +908,19 @@ class TestBrowse:
         Then no records found is displayed
         """
         mock_all_access_user(client)
+        _set_empty_search_response(mock_opensearch)
 
         response = client.get(f"{self.route_url}?series_filter=zzzzzzzzzzzzzz")
 
         assert response.status_code == 200
+        assert b"No results found" in response.data
 
     def test_browse_invalid_page_redirects_when_no_results(
-        self, client: FlaskClient, mock_all_access_user, browse_files
+        self,
+        client: FlaskClient,
+        mock_all_access_user,
+        mock_opensearch,
+        browse_files,
     ):
         """
         Given a filter that returns zero records
@@ -767,6 +928,7 @@ class TestBrowse:
         Then the user is redirected to page 1
         """
         mock_all_access_user(client)
+        _set_empty_search_response(mock_opensearch)
 
         response = client.get(
             f"{self.route_url}?series_filter=zzzzzzzzzzzzzz&page=2"
@@ -796,7 +958,7 @@ class TestBrowse:
         verify_scope_text(response.data, body_name)
 
     def test_browse_no_results_message_shows_heading_but_not_filter_help(
-        self, client: FlaskClient, mock_all_access_user
+        self, client: FlaskClient, mock_all_access_user, mock_opensearch
     ):
         """
         Given the browse records page returns zero results with an active filter
@@ -804,6 +966,7 @@ class TestBrowse:
         Then "No results found" is displayed, search help is hidden, and filter help is shown
         """
         mock_all_access_user(client)
+        _set_empty_search_response(mock_opensearch)
 
         # Pass the query string parameters so the filter-based empty state triggers
         response = client.get(
@@ -824,7 +987,7 @@ class TestBrowse:
         )
 
     def test_browse_hides_consignment_details_for_dri_to_ayr_records(
-        self, client: FlaskClient, mock_all_access_user
+        self, client: FlaskClient, mock_all_access_user, mock_opensearch
     ):
         """
         Given a record with a consignment reference starting with DRI-TO-AYR-
@@ -839,6 +1002,15 @@ class TestBrowse:
         )
 
         mock_all_access_user(client)
+        source = {
+            **_browse_search_documents()[0]["_source"],
+            "consignment_reference": "DRI-TO-AYR-9999",
+            "consignment_transfer_complete_date": None,
+        }
+        mock_opensearch.side_effect = None
+        mock_opensearch.return_value = _search_response(
+            total=1, hits=[{"_source": source}]
+        )
 
         response = client.get(
             f"{self.route_url}?consignment_reference={file.consignment.ConsignmentReference}"
