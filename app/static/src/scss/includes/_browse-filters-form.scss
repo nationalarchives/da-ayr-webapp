@@ -1,6 +1,6 @@
 @use "variables" as *;
 
-.browse-all-filter-container {
+.browse-filter-container {
   min-width: 100%;
   margin-bottom: 0.5rem;
   padding: 0.5rem;
@@ -60,7 +60,7 @@
 }
 
 .govuk-heading-m {
-  &--browse-all-filter-title {
+  &--browse-filter-title {
     margin-bottom: 10px;
   }
 }
@@ -79,7 +79,7 @@
 }
 
 .govuk-link {
-  &--browse-all-filter {
+  &--browse-filter {
     margin-left: 1rem;
   }
 }
