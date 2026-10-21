@@ -28,8 +28,6 @@ def test_header_links_render(client):
 </div>
 </div>
 </header>"""
-    print("Actual HTML:", html)
-    print("Expected header HTML:", header_html)
 
     assert_contains_html(
         header_html,

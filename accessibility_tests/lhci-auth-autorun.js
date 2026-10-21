@@ -40,14 +40,7 @@ function runLhciWithSessionCookie(sessionCookieHeader) {
   process.exit(result.status ?? 1);
 }
 
-const PROTECTED_ROUTE_PREFIXES = [
-  "/browse",
-  "/browse",
-  "/browse/series/",
-  "/browse/consignment/",
-  "/record/",
-  "/search/results",
-];
+const PROTECTED_ROUTE_PREFIXES = ["/browse", "/record/", "/search/results"];
 
 function isProtectedRoute(pathname) {
   return PROTECTED_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
