@@ -39,11 +39,6 @@ from .utils.assertions import assert_matches_snapshot
             {"width": 1280, "height": 4000},
         ),
         (
-            "/browse/records",
-            "browse_records.png",
-            {"width": 1280, "height": 4000},
-        ),
-        (
             "/search/results?query=a",
             "search_results.png",
             {"width": 1280, "height": 4000},
@@ -118,11 +113,6 @@ def test_css_no_visual_regression(
         (
             "/browse/consignment/2fd4e03e-5913-4c04-b4f2-5a823fafd430",
             "browse_consignment_mobile.png",
-            {"width": 390, "height": 5000},
-        ),
-        (
-            "/browse/records",
-            "browse_records_mobile.png",
             {"width": 390, "height": 5000},
         ),
         (

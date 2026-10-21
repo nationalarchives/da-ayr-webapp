@@ -24,17 +24,17 @@
         <div class="govuk-grid-column-full govuk-grid-column-full__page_container">
             <div class="browse-details">
                 {% if query_string_parameters.get('query') %}
-                    {% set search_back_link = url_for('main.search_results', query=query_string_parameters.get('query'), search_area=search_area, sort=sort, per_page=query_string_parameters.get('per_page'), _anchor='browse-records') %}
+                    {% set search_back_link = url_for('main.search_results', query=query_string_parameters.get('query'), search_area=search_area, sort=sort, per_page=query_string_parameters.get('per_page'), _anchor='browse') %}
                 {% elif session['user_type'] == 'all_access_user' or not current_transferring_body_id %}
-                    {% set search_back_link = url_for('main.browse', _anchor='browse-records') %}
+                    {% set search_back_link = url_for('main.browse', _anchor='browse') %}
                 {% else %}
-                    {% set search_back_link = url_for('main.browse_transferring_body', _id=current_transferring_body_id, _anchor='browse-records') %}
+                    {% set search_back_link = url_for('main.browse_transferring_body', _id=current_transferring_body_id, _anchor='browse') %}
                 {% endif %}
                 {{ page_back_link(search_back_link) }}
                 {% set is_standard_user = session['user_type'] == 'standard_user' %}
                 {% if num_records_found > 0 %}
-                    <h1 class="govuk-heading-l browse-records__heading"
-                        id="browse-records"
+                    <h1 class="govuk-heading-l browse__heading"
+                        id="browse"
                         aria-live="polite">{{ num_records_found | format_number_with_commas }} records found</h1>
                 {% endif %}
                 <div class="browse-layout records-page-wrapper">
@@ -45,14 +45,14 @@
                                 {% set per_page_options = {"5": "5", "10": "10", "20": "20"} %}
                                 {% set selected_per_page = (query_string_parameters.get('per_page', per_page) | string) %}
                                 {{ results_control(
-                                url_for('main.search_results', _anchor='browse-records'),
+                                url_for('main.search_results', _anchor='browse'),
                                 'search-sort', 'Sort records', 'sort', sorting_list,
                                 sort, 'Sort', query_string_parameters, ['sort', 'page'],
                                 auto_submit=true,
                                 label_class='govuk-visually-hidden'
                                 ) }}
                                 {{ results_control(
-                                url_for('main.search_results', _anchor='browse-records'),
+                                url_for('main.search_results', _anchor='browse'),
                                 'search-per-page', 'Records per page', 'per_page', per_page_options,
                                 selected_per_page, 'Apply', query_string_parameters, ['per_page', 'page'],
                                 auto_submit=true, select_class='ayr-results-control__select--compact'
@@ -75,14 +75,14 @@
                             {% endif %}
                         {% endcall %}
                     {% else %}
-                        <span id="browse-records"></span>
+                        <span id="browse"></span>
                         {{ no_results_message("search") }}
                     {% endif %}
                     <!-- FILTERS -->
-                    {% set filters_form_action_url = url_for('main.search_results', _anchor='browse-records') %}
-                    {% set clear_filters_href = url_for('main.search_results', query=query_string_parameters.get('query'), search_area=query_string_parameters.get('search_area'), sort=query_string_parameters.get('sort'), per_page=query_string_parameters.get('per_page'), _anchor='browse-records') %}
+                    {% set filters_form_action_url = url_for('main.search_results', _anchor='browse') %}
+                    {% set clear_filters_href = url_for('main.search_results', query=query_string_parameters.get('query'), search_area=query_string_parameters.get('search_area'), sort=query_string_parameters.get('sort'), per_page=query_string_parameters.get('per_page'), _anchor='browse') %}
                     {% set filters_form_preserved_params = {'query': query_string_parameters.get('query'), 'search_area': query_string_parameters.get('search_area'), 'sort': query_string_parameters.get('sort')} %}
-                    {% include "components/browse-records-filters-form.html" %}
+                    {% include "components/browse-filters-form.html" %}
                 </div>
             </div>
         </div>

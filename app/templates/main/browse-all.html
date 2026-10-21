@@ -15,8 +15,7 @@
     {% if num_records_found > 0 %}
         <!-- SORT -->
         <div class="govuk-form-group sort-container__form">
-            <form action="{{ url_for('main.browse', _anchor='browse-records') }}"
-                  method="get">
+            <form action="{{ url_for('main.browse', _anchor='browse') }}" method="get">
                 {% with dict = sorting_list %}
                     {% include "sorting-list.html" %}
                 {% endwith %}
@@ -90,12 +89,11 @@
         </div>
     {% else %}
         {% with view_type = "browse" %}
-            {{ no_results_message("browse_records") }}
+            {{ no_results_message("browse") }}
         {% endwith %}
     {% endif %}
     <!-- FILTERS -->
-    <form action="{{ url_for('main.browse', _anchor='browse-records') }}"
-          method="get">
+    <form action="{{ url_for('main.browse', _anchor='browse') }}" method="get">
         <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
             <div class="browse-all-filter-container">
                 <div class="browse-filter__header">
@@ -138,7 +136,7 @@
                     'type': "submit"
                     }) }}
                     <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-all-filter"
-                       href="{{ url_for('main.browse', sort=query_string_parameters.get('sort'), _anchor='browse-records') }}">Clear filters</a>
+                       href="{{ url_for('main.browse', sort=query_string_parameters.get('sort'), _anchor='browse') }}">Clear filters</a>
                 </div>
             </div>
         </div>

@@ -1,13 +1,13 @@
 @use "../variables" as *;
 
 .records-page-wrapper {
-  .browse-records__table {
-    .browse-records__last-modified-text,
-    .browse-records__consignment-text {
+  .browse__table {
+    .browse__last-modified-text,
+    .browse__consignment-text {
       color: $secondary-text-colour;
     }
 
-    .browse-records__path-separator {
+    .browse__path-separator {
       color: $secondary-text-colour;
       font-size: 0.75rem;
 
@@ -16,7 +16,7 @@
       }
     }
 
-    .browse-records__path-condensed-separator {
+    .browse__path-condensed-separator {
       display: inline-block;
 
       position: relative;
@@ -29,57 +29,56 @@
       }
     }
 
-    .browse-records__title-cell,
-    .browse-records__meta-cell--date,
-    .browse-records__meta-cell--series,
-    .browse-records__meta-cell--status,
-    .browse-records__meta-cell--opening-date,
-    .browse-records__path-cell,
-    .browse-records__consignment-cell {
+    .browse__title-cell,
+    .browse__meta-cell--date,
+    .browse__meta-cell--series,
+    .browse__meta-cell--status,
+    .browse__meta-cell--opening-date,
+    .browse__path-cell,
+    .browse__consignment-cell {
       border: none;
     }
 
-    .browse-record-row__row--title .browse-records__title-cell {
+    .browse-record-row__row--title .browse__title-cell {
       padding-top: 15px;
       padding-bottom: 5px;
     }
 
-    .browse-records__meta-cell--date {
+    .browse__meta-cell--date {
       width: 55%;
     }
 
-    .browse-records__meta-cell--series {
+    .browse__meta-cell--series {
       width: 20%;
     }
 
-    .browse-records__meta-cell--status {
+    .browse__meta-cell--status {
       width: 10%;
     }
 
-    .browse-records__meta-cell--opening-date {
+    .browse__meta-cell--opening-date {
       width: 15%;
     }
 
-    .browse-record-row__row--meta .browse-records__meta-cell--date,
-    .browse-record-row__row--meta .browse-records__meta-cell--series,
-    .browse-record-row__row--meta .browse-records__meta-cell--status,
-    .browse-record-row__row--meta .browse-records__meta-cell--opening-date,
-    .browse-record-row__row--path .browse-records__path-cell {
+    .browse-record-row__row--meta .browse__meta-cell--date,
+    .browse-record-row__row--meta .browse__meta-cell--series,
+    .browse-record-row__row--meta .browse__meta-cell--status,
+    .browse-record-row__row--meta .browse__meta-cell--opening-date,
+    .browse-record-row__row--path .browse__path-cell {
       padding-top: 0;
       padding-bottom: 5px;
     }
 
-    .browse-record-row__row--consignment .browse-records__consignment-cell {
+    .browse-record-row__row--consignment .browse__consignment-cell {
       padding-top: 0;
       padding-bottom: 25px;
     }
 
-    .browse-record-row__row--consignment
-      .browse-records__transferring-body-cell {
+    .browse-record-row__row--consignment .browse__transferring-body-cell {
       line-height: 1.15;
     }
 
-    .browse-records__file-link {
+    .browse__file-link {
       display: block;
 
       font-size: 18px;

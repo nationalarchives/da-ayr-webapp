@@ -1,5 +1,5 @@
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
-<form action="{{ filters_form_action_url or url_for('main.browse_records', _anchor='browse-records') }}"
+<form action="{{ filters_form_action_url or url_for('main.browse', _anchor='browse') }}"
       method="get">
     {% if filters_form_preserved_params %}
         {% for key, value in filters_form_preserved_params.items() %}
@@ -16,13 +16,13 @@
     <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
         <div class="browse-all-filter-container">
             <div class="browse-filter__header">
-                <h2 class="govuk-heading-m govuk-heading-m--browse-all-filter-title">Filters <span class="browse-records__filter-count">({{ filter_count }})</span></h2>
+                <h2 class="govuk-heading-m govuk-heading-m--browse-all-filter-title">Filters <span class="browse__filter-count">({{ filter_count }})</span></h2>
             </div>
-            <div class="browse-records__form-group">
+            <div class="browse__form-group">
                 <label class="govuk-label govuk-label__filter"
                        for="transferring_body_filter">
                     Transferring body
-                    {% if not is_standard_user %} <span class="browse-records__series-filter-example">– e.g. Land Registry</span>{% endif %}
+                    {% if not is_standard_user %} <span class="browse__series-filter-example">– e.g. Land Registry</span>{% endif %}
                 </label>
                 <input class="govuk-input"
                        id="transferring_body_filter"
@@ -35,28 +35,28 @@
                     {% for body in transferring_bodies %}<option value="{{ body }}" />{% endfor %}
                 </datalist>
             </div>
-            <div class="browse-records__form-group">
-                <label class="govuk-label govuk-label__filter" for="series_filter">Series <span class="browse-records__series-filter-example">– e.g. HO 405</span></label>
+            <div class="browse__form-group">
+                <label class="govuk-label govuk-label__filter" for="series_filter">Series <span class="browse__series-filter-example">– e.g. HO 405</span></label>
                 <input class="govuk-input govuk-!-width-full"
                        id="series_filter"
                        name="series_filter"
                        value="{% if filters['series'] %}{{ filters['series'] }}{% endif %}"
                        type="text">
             </div>
-            <div class="browse-records__form-group">
-                <label class="govuk-label govuk-label__filter" for="consignment_reference">Consignment <span class="browse-records__series-filter-example">– e.g. AYR-2026-KSJ2</span></label>
+            <div class="browse__form-group">
+                <label class="govuk-label govuk-label__filter" for="consignment_reference">Consignment <span class="browse__series-filter-example">– e.g. AYR-2026-KSJ2</span></label>
                 <input class="govuk-input govuk-!-width-full"
                        id="consignment_reference"
                        name="consignment_reference"
                        value="{% if filters['consignment_reference'] %}{{ filters['consignment_reference'] }}{% endif %}"
                        type="text">
             </div>
-            <div class="browse-records__form-group browse-records__radio-group">
+            <div class="browse__form-group browse__radio-group">
                 <fieldset class="govuk-fieldset govuk-fieldset--record-status">
                     <legend class="govuk-!-margin-0 govuk-!-padding-0">
                         <h3 class="govuk-heading-s govuk-heading-s--consignment-filter">Status</h3>
                     </legend>
-                    <div class="govuk-radios govuk-radios--small browse-records__radio-options"
+                    <div class="govuk-radios govuk-radios--small browse__radio-options"
                          data-module="govuk-radios">
                         <div class="govuk-radios__item govuk-radios__item--consignment">
                             <input class="govuk-radios__input"
@@ -92,12 +92,12 @@
                     </div>
                 </fieldset>
             </div>
-            <div class="browse-records__form-group browse-records__radio-group">
+            <div class="browse__form-group browse__radio-group">
                 <fieldset class="govuk-fieldset govuk-fieldset--record-date">
                     <legend class="govuk-!-margin-0 govuk-!-padding-0">
                         <h3 class="govuk-heading-s govuk-heading-s--consignment-filter">Dates</h3>
                     </legend>
-                    <div class="govuk-radios govuk-radios--small browse-records__radio-options"
+                    <div class="govuk-radios govuk-radios--small browse__radio-options"
                          data-module="govuk-radios">
                         <div class="govuk-radios__item">
                             <input class="govuk-radios__input"
@@ -132,7 +132,7 @@
                     </div>
                 </fieldset>
             </div>
-            <div class="browse-records-filters__date-container">{% include "date-filters.html" %}</div>
+            <div class="browse-filters__date-container">{% include "date-filters.html" %}</div>
             <div class="filters-form__buttons">
                 {{ govukButton({
                 'text': "Apply filters",
@@ -140,7 +140,7 @@
                 'type': "submit"
                 }) }}
                 <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-all-filter"
-                   href="{{ clear_filters_href or url_for('main.browse_records', sort=query_string_parameters.get('sort'), per_page=query_string_parameters.get('per_page'), _anchor='browse-records') }}">Clear filters</a>
+                   href="{{ clear_filters_href or url_for('main.browse', sort=query_string_parameters.get('sort'), per_page=query_string_parameters.get('per_page'), _anchor='browse') }}">Clear filters</a>
             </div>
         </div>
     </div>

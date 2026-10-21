@@ -30,13 +30,11 @@ const staticUrls = [
   `${BASE_URL}/cookies`,
 ];
 
-const browseLandingUrls = [`${BASE_URL}/browse/records`];
+const browseLandingUrls = [`${BASE_URL}/browse`];
 
-const browseRecordsRouteUrls = [
-  `${BASE_URL}/browse/records?sort=file_name-asc&per_page=10`,
-];
+const BrowseRouteUrls = [`${BASE_URL}/browse?sort=file_name-asc&per_page=10`];
 
-const browseRecordUrls = fixedDateSets.map((dates, idx) => {
+const browseUrls = fixedDateSets.map((dates, idx) => {
   const transferringBodyFilter =
     transferringBodyFilters[idx % transferringBodyFilters.length];
   const seriesFilter = seriesFilters[idx % seriesFilters.length];
@@ -53,7 +51,7 @@ const browseRecordUrls = fixedDateSets.map((dates, idx) => {
     date_to_year: String(dates.date_to_year),
   });
 
-  return `${BASE_URL}/browse/records?${params.toString()}#browse-records`;
+  return `${BASE_URL}/browse?${params.toString()}#browse`;
 });
 
 const browseSeriesUrls = seriesFilters.map((seriesFilter, idx) => {
@@ -66,7 +64,7 @@ const browseSeriesUrls = seriesFilters.map((seriesFilter, idx) => {
     date_to_year: String(dates.date_to_year),
   });
 
-  return `${BASE_URL}/browse/records?${params.toString()}#browse-series`;
+  return `${BASE_URL}/browse?${params.toString()}#browse-series`;
 });
 
 const searchLandingUrls = [
@@ -94,8 +92,8 @@ const recordViewUrls = recordIds.map(
 const prSmokeUrls = [
   ...staticUrls,
   ...browseLandingUrls.slice(0, 1),
-  ...browseRecordsRouteUrls.slice(0, 1),
-  ...browseRecordUrls.slice(0, 1),
+  ...BrowseRouteUrls.slice(0, 1),
+  ...browseUrls.slice(0, 1),
   ...searchLandingUrls.slice(0, 1),
   ...searchResultsByTermUrls.slice(0, 1),
   ...recordViewUrls.slice(0, 1),
@@ -104,8 +102,8 @@ const prSmokeUrls = [
 const allUrls = [
   ...staticUrls,
   ...browseLandingUrls,
-  ...browseRecordsRouteUrls,
-  ...browseRecordUrls,
+  ...BrowseRouteUrls,
+  ...browseUrls,
   ...browseSeriesUrls,
   ...searchLandingUrls,
   ...searchResultsByTermUrls,
