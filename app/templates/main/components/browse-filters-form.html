@@ -13,10 +13,10 @@
                name="per_page"
                value="{{ query_string_parameters.get('per_page') }}">
     {% endif %}
-    <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-all-filters">
-        <div class="browse-all-filter-container">
+    <div class="govuk-grid-column-one-third govuk-grid-column-one-third--browse-filters">
+        <div class="browse-filter-container">
             <div class="browse-filter__header">
-                <h2 class="govuk-heading-m govuk-heading-m--browse-all-filter-title">Filters <span class="browse__filter-count">({{ filter_count }})</span></h2>
+                <h2 class="govuk-heading-m govuk-heading-m--browse-filter-title">Filters <span class="browse__filter-count">({{ filter_count }})</span></h2>
             </div>
             <div class="browse__form-group">
                 <label class="govuk-label govuk-label__filter"
@@ -136,10 +136,10 @@
             <div class="filters-form__buttons">
                 {{ govukButton({
                 'text': "Apply filters",
-                'classes': "govuk-button__browse-all-filters-form-apply-button",
+                'classes': "govuk-button__browse-filters-form-apply-button",
                 'type': "submit"
                 }) }}
-                <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-all-filter"
+                <a class="govuk-link govuk-link__no-visited-color govuk-link--browse-filter"
                    href="{{ clear_filters_href or url_for('main.browse', sort=query_string_parameters.get('sort'), per_page=query_string_parameters.get('per_page'), _anchor='browse') }}">Clear filters</a>
             </div>
         </div>

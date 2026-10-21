@@ -44,7 +44,7 @@ OS_MOCK_RESULTS = {
 def verify_filters_heading(data, expected_heading):
     """Check the search results filters heading text against expected value."""
     soup = BeautifulSoup(data, "html.parser")
-    heading = soup.find("h2", class_="govuk-heading-m--browse-all-filter-title")
+    heading = soup.find("h2", class_="govuk-heading-m--browse-filter-title")
 
     assert heading is not None
     assert " ".join(heading.get_text(separator=" ").split()) == expected_heading
@@ -337,7 +337,7 @@ class TestSearchResults:
         soup = BeautifulSoup(response.data, "html.parser")
 
         filters_heading = soup.find(
-            "h2", class_="govuk-heading-m--browse-all-filter-title"
+            "h2", class_="govuk-heading-m--browse-filter-title"
         )
         series_filter = soup.find("input", id="series_filter")
         consignment_filter = soup.find("input", id="consignment_reference")

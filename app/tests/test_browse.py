@@ -32,7 +32,7 @@ def verify_filters_heading(data, expected_heading):
     Check the filters heading text against expected value.
     """
     soup = BeautifulSoup(data, "html.parser")
-    heading = soup.find("h2", class_="govuk-heading-m--browse-all-filter-title")
+    heading = soup.find("h2", class_="govuk-heading-m--browse-filter-title")
 
     assert heading is not None
     assert " ".join(heading.get_text(separator=" ").split()) == expected_heading
