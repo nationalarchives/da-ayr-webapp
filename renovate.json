@@ -21,6 +21,12 @@
     }
   ],
   "minimumReleaseAge": "7 days",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": [
+      "* 0-4 * * *"
+    ]
+  },
   "vulnerabilityAlerts": {
     "minimumReleaseAge": "0 days",
     "labels": [
