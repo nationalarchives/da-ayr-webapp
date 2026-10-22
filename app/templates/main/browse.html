@@ -27,6 +27,10 @@
                 {% set selected_per_page = (query_string_parameters.get('per_page', per_page) | string) %}
                 {% set records_has_active_filters = (filter_count | default(0)) > 0 %}
                 <div class="browse-layout records-page-wrapper">
+                    {% if num_records_found == 0 and records_has_active_filters %}
+                        {% set preserved_params = request.args.copy() %}
+                        {{ page_back_link(preserved_params=preserved_params) }}
+                    {% endif %}
                     {{ records_scope_heading(num_records_found, is_standard_user, filters, records_has_active_filters, heading_text="records", view_type="browse") }}
                     {% if num_records_found > 0 %}
                         {% set number_of_columns = 4 %}
