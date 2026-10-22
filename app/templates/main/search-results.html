@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% from 'govuk_frontend_jinja/components/button/macro.html' import govukButton %}
 {% from 'main/components/back-link.html' import page_back_link %}
-{% from "main/components/no-results-message.html" import no_results_message %}
 {% from 'main/components/records-table.html' import render_record_table %}
 {% from 'main/components/results-control.html' import results_control %}
+{% from 'main/components/records-scope-heading.html' import records_scope_heading %}
 {% block pageTitle %}Search results – {{ config['SERVICE_NAME'] }} – GOV.UK{% endblock %}
 {%- from 'govuk_frontend_jinja/components/inset-text/macro.html' import govukInsetText -%}
 {% set sorting_list = {
@@ -32,12 +32,8 @@
                 {% endif %}
                 {{ page_back_link(search_back_link) }}
                 {% set is_standard_user = session['user_type'] == 'standard_user' %}
-                {% if num_records_found > 0 %}
-                    <h1 class="govuk-heading-l browse__heading"
-                        id="browse"
-                        aria-live="polite">{{ num_records_found | format_number_with_commas }} records found</h1>
-                {% endif %}
                 <div class="browse-layout records-page-wrapper">
+                    {{ records_scope_heading(num_records_found, is_standard_user, filters, heading_text="records found", view_type="search") }}
                     {% if num_records_found > 0 %}
                         <!-- SORT -->
                         <div class="govuk-grid-column-two-thirds browse-grid--two-thirds browse-grid--mobile-table">
@@ -76,7 +72,6 @@
                         {% endcall %}
                     {% else %}
                         <span id="browse"></span>
-                        {{ no_results_message("search") }}
                     {% endif %}
                     <!-- FILTERS -->
                     {% set filters_form_action_url = url_for('main.search_results', _anchor='browse') %}

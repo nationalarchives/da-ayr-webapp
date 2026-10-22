@@ -1,0 +1,25 @@
+{% from "main/components/no-results-message.html" import no_results_message %}
+{% macro records_scope_heading(num_records_found, is_standard_user, filters, records_has_active_filters=false, heading_text="records found", view_type="search") %}
+    <div class="browse__header-container">
+        {% if num_records_found > 0 %}
+            <p class="govuk-body">
+                <span class="browse__scope-text">
+                    {%- if is_standard_user and filters and filters.get('transferring_body') -%}
+                        {{ filters.get('transferring_body') }}
+                    {%- else -%}
+                        All available records
+                    {%- endif -%}
+                </span>
+            </p>
+            <h1 class="browse__heading" id="browse" aria-live="polite">
+                {%- if records_has_active_filters -%}
+                    {{ num_records_found | format_number_with_commas }} records found
+                {%- else -%}
+                    {{ num_records_found | format_number_with_commas }} {{ heading_text }}
+                {%- endif -%}
+            </h1>
+        {% else %}
+            {{ no_results_message(view_type) }}
+        {% endif %}
+    </div>
+{% endmacro %}
