@@ -50,6 +50,17 @@ def verify_filters_heading(data, expected_heading):
     assert " ".join(heading.get_text(separator=" ").split()) == expected_heading
 
 
+def verify_scope_text(data, expected_text):
+    """
+    Check the scope text above records count against expected value.
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    scope_text = soup.find("span", class_="browse__scope-text")
+
+    assert scope_text is not None
+    assert " ".join(scope_text.get_text(separator=" ").split()) == expected_text
+
+
 class MockIndices:
     def __init__(self, get_mapping_return_value=None):
         self.get_mapping_return_value = get_mapping_return_value or {
