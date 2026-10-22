@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from flask.testing import FlaskClient
 from werkzeug.exceptions import NotFound
 
+from app.tests.test_browse import verify_scope_text
 from app.tests.utils import (
     decompose_desktop_invisible_elements,
     decompose_inner_tables,
@@ -1050,3 +1051,47 @@ class TestSearchResults:
         remove_term_link = soup.find("a", attrs={"class": "search-term-link"})
 
         assert remove_term_link is None
+
+    @patch("app.main.routes.setup_opensearch")
+    def test_search_results_renders_all_available_records_scope_label_for_all_access_user(
+        self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given an all-access user on search results
+        When the page renders with matching records
+        Then the scope label displays 'All available records'
+        """
+        mock_all_access_user(client)
+        mock_setup_opensearch.return_value = MockOpenSearch(
+            search_return_value=OS_MOCK_RESULTS
+        )
+
+        response = client.get(f"{self.route_url}?query=test")
+
+        assert response.status_code == 200
+        verify_scope_text(response.data, "All available records")
+
+    @patch("app.main.routes.setup_opensearch")
+    def test_search_results_renders_transferring_body_scope_label_for_standard_user(
+        self,
+        mock_setup_opensearch,
+        client: FlaskClient,
+        mock_standard_user,
+        browse_consignment_files,
+    ):
+        """
+        Given a standard user on search results
+        When the page renders with matching records
+        Then the scope label displays the user's transferring body name
+        """
+        body = browse_consignment_files[0].consignment.series.body
+
+        mock_standard_user(client, body.Name)
+        mock_setup_opensearch.return_value = MockOpenSearch(
+            search_return_value=OS_MOCK_RESULTS
+        )
+
+        response = client.get(f"{self.route_url}?query=test")
+
+        assert response.status_code == 200
+        verify_scope_text(response.data, body.Name)
