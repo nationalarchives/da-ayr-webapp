@@ -1,6 +1,7 @@
 import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 import sqlalchemy
@@ -221,6 +222,7 @@ def fetch_files_in_consignment(
         b."Description" AS transferring_body_description,
         c."ConsignmentId" AS consignment_id,
         c."ConsignmentReference" AS consignment_reference,
+        c."TransferCompleteDatetime" AS consignment_transfer_complete_date,
         fm."PropertyName",
         fm."Value",
         ffid."Extension" AS file_extension,
@@ -258,6 +260,13 @@ def fetch_files_in_consignment(
 
     for row in result:
         file_id = str(row.file_id)
+        transfer_complete_date = row.consignment_transfer_complete_date
+        if isinstance(transfer_complete_date, str):
+            transfer_complete_date = datetime.fromisoformat(
+                transfer_complete_date.replace("Z", "+00:00")
+            )
+        if transfer_complete_date is not None:
+            transfer_complete_date = transfer_complete_date.isoformat()
         if file_id not in files_data:
             files_data[file_id] = {
                 "file_id": str(row.file_id),
@@ -274,6 +283,7 @@ def fetch_files_in_consignment(
                 ),
                 "consignment_id": str(row.consignment_id),
                 "consignment_reference": str(row.consignment_reference),
+                "consignment_transfer_complete_date": transfer_complete_date,
                 "file_extension": str(row.file_extension),
                 "file_puid": str(row.puid),
             }

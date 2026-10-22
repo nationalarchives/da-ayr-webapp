@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from unittest import mock
 from uuid import uuid4
 
@@ -561,6 +562,173 @@ def test_fetch_files_in_consignment_invalid_column_with_logging(
         "Failed to retrieve file metadata for consignment reference: reference-123"
         in caplog.text
     )
+
+
+@pytest.mark.parametrize(
+    ("transfer_complete_datetime", "expected_transfer_complete_date"),
+    [
+        (
+            datetime(2024, 5, 1, 13, 45),
+            "2024-05-01T13:45:00",
+        ),
+        (None, None),
+    ],
+)
+def test_fetch_files_in_consignment_includes_transfer_complete_date(
+    temp_db,
+    transfer_complete_datetime,
+    expected_transfer_complete_date,
+):
+    session = sessionmaker(bind=temp_db)()
+    body_id = uuid4()
+    series_id = uuid4()
+    consignment_id = uuid4()
+    file_id = uuid4()
+    consignment_reference = "transfer-date-test"
+
+    session.add_all(
+        [
+            Body(BodyId=body_id, Name="body", Description="description"),
+            Series(SeriesId=series_id, Name="series", BodyId=body_id),
+            Consignment(
+                ConsignmentId=consignment_id,
+                SeriesId=series_id,
+                ConsignmentType="Digital",
+                ConsignmentReference=consignment_reference,
+                TransferCompleteDatetime=transfer_complete_datetime,
+            ),
+            File(
+                FileId=file_id,
+                ConsignmentId=consignment_id,
+                FileType="File",
+                FileReference="file-reference",
+                FileName="record.txt",
+                FilePath="/record.txt",
+            ),
+        ]
+    )
+    session.commit()
+    session.close()
+
+    files = fetch_files_in_consignment(
+        consignment_reference,
+        str(temp_db.url),
+    )
+
+    assert len(files) == 1
+    assert (
+        files[0]["consignment_transfer_complete_date"]
+        == expected_transfer_complete_date
+    )
+
+
+@pytest.mark.parametrize(
+    ("file_label", "transfer_complete_date", "custom_metadata", "file_stream"),
+    [
+        (
+            "first",
+            "2024-05-01T13:45:00",
+            "first value",
+            b"first file content",
+        ),
+        ("second", None, "second value", b"second file content"),
+    ],
+)
+def test_construct_documents_preserves_file_metadata(
+    file_label, transfer_complete_date, custom_metadata, file_stream
+):
+    file = {
+        "file_id": f"{file_label}-file-id",
+        "file_name": f"{file_label}.txt",
+        "file_reference": f"{file_label}-reference",
+        "file_path": f"/{file_label}.txt",
+        "citeable_reference": f"{file_label}-citeable-reference",
+        "series_id": "series-id",
+        "series_name": "series-name",
+        "transferring_body": "body-name",
+        "transferring_body_id": "body-id",
+        "transferring_body_description": "body description",
+        "consignment_id": "consignment-id",
+        "consignment_reference": "consignment-reference",
+        "consignment_transfer_complete_date": transfer_complete_date,
+        "file_extension": "txt",
+        "file_puid": "x-fmt/111",
+        "CustomMetadata": custom_metadata,
+    }
+
+    with (
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment.get_s3_file",
+            return_value=file_stream,
+        ) as mock_get_s3_file,
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment.add_text_content",
+            side_effect=lambda file, stream: {
+                **file,
+                "content": stream.decode(),
+                "text_extraction_status": "SUCCEEDED",
+            },
+        ) as mock_add_text_content,
+    ):
+        documents = construct_documents([file], "test-bucket")
+
+    expected_document = {
+        **file,
+        "content": file_stream.decode(),
+        "text_extraction_status": "SUCCEEDED",
+    }
+    assert documents == [
+        {"file_id": file["file_id"], "document": expected_document}
+    ]
+    mock_get_s3_file.assert_called_once_with(
+        "test-bucket", f"consignment-reference/{file['file_id']}"
+    )
+    mock_add_text_content.assert_called_once_with(file, file_stream)
+
+
+def test_construct_documents_processes_all_files():
+    files = [
+        {"file_id": "file-1", "consignment_reference": "consignment"},
+        {"file_id": "file-2", "consignment_reference": "consignment"},
+    ]
+    with (
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment.get_s3_file",
+            side_effect=lambda bucket, key: key.encode(),
+        ),
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment.add_text_content",
+            side_effect=lambda file, stream: {
+                **file,
+                "content": stream.decode(),
+            },
+        ),
+    ):
+        documents = construct_documents(files, "test-bucket")
+
+    assert {
+        document["file_id"]: document["document"]["content"]
+        for document in documents
+    } == {
+        "file-1": "consignment/file-1",
+        "file-2": "consignment/file-2",
+    }
+
+
+def test_construct_documents_with_no_files_returns_empty_list():
+    with (
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment.get_s3_file"
+        ) as mock_get_s3_file,
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment.add_text_content"
+        ) as mock_add_text_content,
+    ):
+        documents = construct_documents([], "test-bucket")
+
+    assert documents == []
+    mock_get_s3_file.assert_not_called()
+    mock_add_text_content.assert_not_called()
 
 
 @mock_aws
