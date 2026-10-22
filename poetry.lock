@@ -50,7 +50,6 @@ files = [
 
 [package.dependencies]
 idna = ">=2.8"
-typing_extensions = {version = ">=4.16.0", markers = "python_version < \"3.15\""}
 
 [package.extras]
 trio = ["trio (>=0.32.0)"]
@@ -4463,5 +4462,5 @@ test = ["pytest", "pytest-cov"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.14,<3.15"
-content-hash = "43ac201a95b9f394213b2c964279641d0e03a496a338a422b9cd0d74568b9f35"
+python-versions = ">=3.15,<3.16"
+content-hash = "8d1885017b0dac0339049e541ea3e0323e9b5e5a675a710bcd5d8f062ca38a62"
