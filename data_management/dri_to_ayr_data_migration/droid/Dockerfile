@@ -17,11 +17,11 @@ com.fasterxml.jackson.core:jackson-core:2.22.4 \
 com.fasterxml.jackson.core:jackson-databind:2.22.4 \
 org.bouncycastle:bcprov-jdk15to18:1.86 \
 org.bouncycastle:bcprov-jdk15on:1.86:bcprov-jdk18on \
-org.springframework:spring-aop:7.0.9 \
-org.springframework:spring-beans:7.0.9 \
-org.springframework:spring-context:7.0.9 \
-org.springframework:spring-core:7.0.9 \
-org.springframework:spring-expression:7.0.9 \
+org.springframework:spring-aop:7.0.10 \
+org.springframework:spring-beans:7.0.10 \
+org.springframework:spring-context:7.0.10 \
+org.springframework:spring-core:7.0.10 \
+org.springframework:spring-expression:7.0.10 \
 org.eclipse.angus:angus-mail:2.0.5 \
 org.apache.cxf:cxf-core:4.2.4 \
 org.apache.cxf:cxf-rt-bindings-soap:4.2.4 \
@@ -32,6 +32,7 @@ org.apache.cxf:cxf-rt-frontend-simple:4.2.4 \
 org.apache.cxf:cxf-rt-transports-http:4.2.4 \
 org.apache.cxf:cxf-rt-ws-addr:4.2.4 \
 org.apache.cxf:cxf-rt-ws-policy:4.2.4 \
+com.github.junrar:junrar:7.6.1 \
 "
 
 # Install Java for DROID, plus the tools needed to unpack and patch it.
