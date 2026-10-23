@@ -32,6 +32,7 @@ org.apache.cxf:cxf-rt-frontend-simple:4.2.4 \
 org.apache.cxf:cxf-rt-transports-http:4.2.4 \
 org.apache.cxf:cxf-rt-ws-addr:4.2.4 \
 org.apache.cxf:cxf-rt-ws-policy:4.2.4 \
+com.github.junrar:junrar:7.6.1 \
 "
 
 # Install Java for DROID, plus the tools needed to unpack and patch it.
