@@ -16,7 +16,7 @@
     "@lhci/cli": "0.15.1",
     "@nationalarchives/eslint-config": "0.1.9",
     "@nationalarchives/stylelint-config": "0.1.5",
-    "@storybook/html-vite": "10.6.2",
+    "@storybook/html-vite": "10.6.3",
     "@testing-library/jest-dom": "7.0.1",
     "chokidar-cli": "3.0.0",
     "concurrently": "10.0.6",
