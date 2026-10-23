@@ -5,7 +5,7 @@
     {% if not resolved_href %}
         {% set referrer = request.referrer %}
         {% set is_same_origin_referrer = referrer and referrer.startswith(request.host_url) %}
-        {% if is_same_origin_referrer and referrer != request.url %}
+        {% if is_same_origin_referrer and referrer != request.url and '/search/results' not in referrer %}
             {% set resolved_href = referrer %}
         {% endif %}
     {% endif %}
