@@ -10,46 +10,49 @@
                 {% for key, value in list_items.items() %}
                     {% if key != "opening_date" %}
                         {% if not (key == "Evidence provided by" and (value is none or value|string|trim == "")) %}
-                            {% set value_html %}
-                                {% if value %}
-                                    {% if key == "Status" %}
-                                        {% if (value | lower == "open") %}
-                                            <span class="govuk-tag govuk-tag--green">{{ value }}</span>
+                            {% set val_str = value | string | trim if value is not none else "" %}
+                            {% if (val_str != "" and val_str | lower != "none years" and val_str | lower != "not provided") or key in ["Status", "Description", "Alternative description", "Alternative file name"] %}
+                                {% set value_html %}
+                                    {% if value %}
+                                        {% if key == "Status" %}
+                                            {% if (value | lower == "open") %}
+                                                <span class="govuk-tag govuk-tag--green">{{ value }}</span>
+                                            {% else %}
+                                                <span class="govuk-tag govuk-tag--red">{{ value }}</span>
+                                            {% endif %}
+                                            {% if list_items.get("Closure start date") and list_items.get('opening_date') %}
+                                                <p class="ayr-opening-date">Record opening date {{ list_items.get('opening_date') }}</p>
+                                            {% endif %}
                                         {% else %}
-                                            <span class="govuk-tag govuk-tag--red">{{ value }}</span>
-                                        {% endif %}
-                                        {% if list_items.get("Closure start date") and list_items.get('opening_date') %}
-                                            <p class="ayr-opening-date">Record opening date {{ list_items.get('opening_date') }}</p>
+                                            {% set words = value.replace("-", " ").replace(",", " ").replace(".", " ").replace("  ", " ").split() %}
+                                            {% set ns = namespace(long_word=false) %}
+                                            {% for w in words %}
+                                                {% if w|length > 45 %}
+                                                    {% set ns.long_word = true %}
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if ns.long_word %}
+                                                <span class="govuk-summary-list-long-word">{{ value }}</span>
+                                            {% else %}
+                                                <span class="govuk-summary-list-short-word">{{ value }}</span>
+                                            {% endif %}
                                         {% endif %}
                                     {% else %}
-                                        {% set words = value.replace("-", " ").replace(",", " ").replace(".", " ").replace("  ", " ").split() %}
-                                        {% set ns = namespace(long_word=false) %}
-                                        {% for w in words %}
-                                            {% if w|length > 45 %}
-                                                {% set ns.long_word = true %}
-                                            {% endif %}
-                                        {% endfor %}
-                                        {% if ns.long_word %}
-                                            <span class="govuk-summary-list-long-word">{{ value }}</span>
-                                        {% else %}
-                                            <span class="govuk-summary-list-short-word">{{ value }}</span>
-                                        {% endif %}
+                                        <span>Not provided</span>
                                     {% endif %}
-                                {% else %}
-                                    <span>Not provided</span>
-                                {% endif %}
-                            {% endset %}
-                            {% set _ = macro_rows.append({
-                                                            "classes": "govuk-summary-list__row--record",
-                                                            "key": {
-                                                                "text": key,
-                                                                "classes": "govuk-summary-list__key--record-table"
-                                                            },
-                                                            "value": {
-                                                                "html": value_html,
-                                                                "classes": "govuk-summary-list__value--record"
-                                                            }
-                                                        }) %}
+                                {% endset %}
+                                {% set _ = macro_rows.append({
+                                                                    "classes": "govuk-summary-list__row--record",
+                                                                    "key": {
+                                                                        "text": key,
+                                                                        "classes": "govuk-summary-list__key--record-table"
+                                                                    },
+                                                                    "value": {
+                                                                        "html": value_html,
+                                                                        "classes": "govuk-summary-list__value--record"
+                                                                    }
+                                                                }) %}
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 {% endfor %}
