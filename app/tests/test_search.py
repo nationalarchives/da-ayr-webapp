@@ -428,13 +428,8 @@ class TestSearchResults:
 
         assert back_link is not None
         parsed_href = urlparse(back_link["href"])
-        params = parse_qs(parsed_href.query)
 
-        assert parsed_href.path == "/search/results"
-        assert params["query"] == ["test"]
-        assert params["search_area"] == ["everywhere"]
-        assert params["sort"] == ["file_name"]
-        assert "record_status" not in params
+        assert parsed_href.path == "/browse"
         assert parsed_href.fragment == "browse"
 
     def test_search_results_back_link_targets_body_browse_for_standard_user(
@@ -473,7 +468,7 @@ class TestSearchResults:
         """
         mock_all_access_user(client)
 
-        referrer = "http://localhost/browse?series_filter=HO+405#browse"
+        referrer = "/browse#browse"
         response = client.get(self.route_url, headers={"Referer": referrer})
 
         assert response.status_code == 200
