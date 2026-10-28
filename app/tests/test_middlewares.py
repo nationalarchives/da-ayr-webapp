@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from flask import render_template_string
 from flask.testing import FlaskClient
 from moto import mock_aws
 
@@ -64,10 +65,20 @@ def test_log_page_view(
     def dynamic_route():
         return route_function()
 
+    @app.route("/csrf-token")
+    def csrf_token_route():
+        return render_template_string("{{ csrf_token() }}")
+
     with client.session_transaction() as session:
         session.update(session_object)
 
-    response = client.open(route_path, method=method)
+    request_data = {}
+    if method == "POST":
+        request_data["csrf_token"] = client.get("/csrf-token").get_data(
+            as_text=True
+        )
+
+    response = client.open(route_path, method=method, data=request_data)
 
     assert response.status_code == 200
     assert response.data == expected_response

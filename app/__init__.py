@@ -8,6 +8,7 @@ from flask import Flask, g
 from flask_compress import Compress
 from flask_s3 import FlaskS3
 from flask_talisman import Talisman
+from flask_wtf.csrf import CSRFProtect
 from govuk_frontend_wtf.main import WTFormsHelpers
 from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
@@ -19,6 +20,7 @@ from configs.aws_secrets_manager_config import AWSSecretsManagerConfig
 compress = Compress()
 talisman = Talisman()
 s3 = FlaskS3()
+csrf = CSRFProtect()
 
 
 def null_to_dash(value):
@@ -145,6 +147,7 @@ def create_app(config_class, local_env, database_uri=None):
     setup_logging(app)
     s3.init_app(app)
     compress.init_app(app)
+    csrf.init_app(app)
     talisman.init_app(
         app,
         content_security_policy=csp,
