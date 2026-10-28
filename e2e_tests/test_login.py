@@ -95,6 +95,12 @@ def decode_flask_session_cookie(cookie):
         )
 
 
+def test_sign_out_submits_the_csrf_protected_form(aau_user_page: Page):
+    aau_user_page.get_by_role("button", name="Sign out").click()
+
+    expect(aau_user_page).to_have_url("/signed-out")
+
+
 def test_sign_in_fails_when_invalid_credentials(page: Page):
     """
     Given a user is on the sign-in page,

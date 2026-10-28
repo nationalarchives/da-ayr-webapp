@@ -6,7 +6,7 @@ import boto3
 import pytest
 from botocore.exceptions import ClientError
 from bs4 import BeautifulSoup
-from flask import url_for
+from flask import render_template_string, url_for
 from flask.testing import FlaskClient
 from moto import mock_aws
 from PIL import Image
@@ -528,12 +528,18 @@ class TestRoutes:
         assert response.status_code == 200
         assert b"search_url=" not in response.data
 
-    def test_method_not_allowed_returns_json(self, client: FlaskClient):
+    def test_method_not_allowed_returns_json(self, app, client: FlaskClient):
         """
         Test that a POST request to a GET-only route returns 405 JSON
         instead of crashing with 500 due to missing 405.html template
         """
-        response = client.post("/")
+
+        @app.route("/csrf-token")
+        def csrf_token_route():
+            return render_template_string("{{ csrf_token() }}")
+
+        csrf_token = client.get("/csrf-token").get_data(as_text=True)
+        response = client.post("/", data={"csrf_token": csrf_token})
         assert response.status_code == 405
         data = json.loads(response.data)
         assert data["code"] == 405
