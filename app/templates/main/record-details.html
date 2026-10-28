@@ -11,7 +11,7 @@
                     {% if key != "opening_date" %}
                         {% if not (key == "Evidence provided by" and (value is none or value|string|trim == "")) %}
                             {% set val_str = value | string | trim if value is not none else "" %}
-                            {% if (val_str != "" and val_str | lower != "none years" and val_str | lower != "not provided") or key in ["Status", "Description", "Alternative description", "Alternative file name"] %}
+                            {% if (val_str != "" and val_str | lower not in ["none years", "years", "not provided"]) or key in ["Status", "Description", "Alternative description", "Alternative file name"] %}
                                 {% set value_html %}
                                     {% if value %}
                                         {% if key == "Status" %}
