@@ -468,7 +468,7 @@ class TestSearchResults:
         """
         mock_all_access_user(client)
 
-        referrer = "http://localhost/browse?series_filter=HO+405#browse"
+        referrer = "/browse#browse"
         response = client.get(self.route_url, headers={"Referer": referrer})
 
         assert response.status_code == 200
