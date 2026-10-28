@@ -709,7 +709,10 @@ def test_sign_out_button_on_protected_view_that_uses_base_template(
         response = client.get(view_name)
 
     assert response.status_code == 200
-    assert "Sign out" in response.data.decode()
+    html = response.data.decode()
+    assert "Sign out" in html
+    assert '<form method="post" action="/sign-out">' in html.lower()
+    assert 'name="csrf_token" value="' in html
 
 
 def test_no_sign_out_button_on_unprotected_view_that_uses_base_template(app):

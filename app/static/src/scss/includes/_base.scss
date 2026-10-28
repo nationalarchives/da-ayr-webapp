@@ -7,7 +7,22 @@
   border-bottom: none;
 }
 
-.sign-out a:hover {
+.sign-out button {
+  padding: 0;
+
+  display: inline;
+
+  text-align: left;
+  text-decoration: underline;
+
+  background: none;
+
+  border: 0;
+
+  cursor: pointer;
+}
+
+.sign-out button:hover {
   text-decoration: none;
 }
 

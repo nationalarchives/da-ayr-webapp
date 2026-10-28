@@ -280,12 +280,19 @@ def create_standard_keycloak_user_with_download(
     keycloak_admin.delete_user(user_id=user_id)
 
 
+def _sign_out(page: Page) -> None:
+    page.goto("/browse")
+    sign_out_button = page.get_by_role("button", name="Sign out")
+    if sign_out_button.count():
+        sign_out_button.click()
+
+
 @pytest.fixture
 def aau_user_page(create_user_page, create_aau_keycloak_user) -> Page:
     username, password = create_aau_keycloak_user
     page = create_user_page(username, password)
     yield page
-    page.goto("/sign-out")
+    _sign_out(page)
 
 
 @pytest.fixture
@@ -293,7 +300,7 @@ def standard_user_page(create_user_page, create_standard_keycloak_user) -> Page:
     username, password = create_standard_keycloak_user
     page = create_user_page(username, password)
     yield page
-    page.goto("/sign-out")
+    _sign_out(page)
 
 
 @pytest.fixture
@@ -303,7 +310,7 @@ def aau_user_page_with_download(
     username, password = create_aau_keycloak_user_with_download
     page = create_user_page(username, password)
     yield page
-    page.goto("/sign-out")
+    _sign_out(page)
 
 
 @pytest.fixture
@@ -313,7 +320,7 @@ def standard_user_page_with_download(
     username, password = create_standard_keycloak_user_with_download
     page = create_user_page(username, password)
     yield page
-    page.goto("/sign-out")
+    _sign_out(page)
 
 
 @pytest.fixture
