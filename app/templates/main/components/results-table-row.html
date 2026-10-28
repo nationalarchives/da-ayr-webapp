@@ -20,13 +20,20 @@
     </td>
     <td class="govuk-table__cell govuk-table--invisible-on-mobile browse__meta-cell--series">
         {% set series_params = query_string_parameters.copy() if query_string_parameters else {} %}
+        {% if request.args.get('query') %}
+            {% set _ = series_params.update({'query': request.args.get('query')}) %}
+        {% endif %}
+        {% if request.args.get('search_area') %}
+            {% set _ = series_params.update({'search_area': request.args.get('search_area')}) %}
+        {% endif %}
         {% set _ = series_params.pop('transferring_body_filter', None) %}
         {% set _ = series_params.update({'series_filter': record['series'], 'page': 1}) %}
         {% set combined_params = {} %}
         {% for k, v in series_params.items() %}
             {% set _ = combined_params.update({k | string: v}) %}
         {% endfor %}
-        <a href="{{ url_for('main.browse', **combined_params) }}">{{ record["series"] }}</a>
+        {% set target_route = 'main.search_results' if request.args.get('query') else 'main.browse' %}
+        <a href="{{ url_for(target_route, **combined_params) }}">{{ record["series"] }}</a>
     </td>
     <td class="govuk-table__cell browse-record-row__cell browse__meta-cell--status">
         {% set closure_type = record["closure_type"] %}
