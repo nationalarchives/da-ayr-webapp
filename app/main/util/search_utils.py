@@ -536,7 +536,7 @@ def build_search_results_query(
             "boundary_scanner_locale": "en",
             "order": "score",
             "fields": {"*": {}},
-            "max_analyzer_offset": 1_000_000,
+            "max_analyzer_offset": 1_000_000,  # otherwise search request fails if content length > 1,000,000
         },
     }
 
