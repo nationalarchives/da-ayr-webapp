@@ -1,7 +1,8 @@
 from unittest.mock import patch
 
 import pytest
-from opensearchpy import OpenSearch
+from opensearchpy import ConnectionTimeout, OpenSearch, RequestError
+from werkzeug.exceptions import GatewayTimeout, InternalServerError
 
 from app.main.util.search_utils import (
     OPENSEARCH_FIELD_NAME_MAP,
@@ -269,10 +270,95 @@ def test_setup_opensearch(app):
 @patch("app.main.util.search_utils.OpenSearch")
 def test_execute_search(mock_open_search, app):
     dsl_query = {"query": {"match_all": {}}}
-    execute_search(mock_open_search, dsl_query, page=1, per_page=10)
-    mock_open_search.search.assert_called_once_with(
-        body={"query": {"match_all": {}}}, from_=0, size=10, timeout=10
+    response = {
+        "timed_out": False,
+        "_shards": {"total": 2, "successful": 2, "failed": 0},
+        "hits": {"total": {"value": 1}, "hits": [{"_id": "record"}]},
+    }
+    mock_open_search.search.return_value = response
+
+    assert (
+        execute_search(mock_open_search, dsl_query, page=1, per_page=10)
+        == response
     )
+    mock_open_search.search.assert_called_once_with(
+        body={"query": {"match_all": {}}},
+        from_=0,
+        size=10,
+        timeout=10,
+    )
+
+
+@pytest.mark.parametrize("hits", [[], [{"_id": "partial-result"}]])
+@patch("app.main.util.search_utils.OpenSearch")
+def test_execute_search_rejects_shard_failures(
+    mock_open_search, hits, app, caplog
+):
+    mock_open_search.search.return_value = {
+        "_shards": {
+            "total": 2,
+            "successful": 1,
+            "failed": 1,
+            "failures": [
+                {
+                    "reason": {
+                        "type": "illegal_argument_exception",
+                        "reason": "Highlighting analysis limit exceeded",
+                    }
+                }
+            ],
+        },
+        "hits": {"total": {"value": 10_000}, "hits": hits},
+    }
+
+    with pytest.raises(InternalServerError):
+        execute_search(mock_open_search, {}, page=2, per_page=10)
+
+    assert "OpenSearch search failed on 1 shards" in caplog.text
+    assert "Highlighting analysis limit exceeded" in caplog.text
+
+
+@patch("app.main.util.search_utils.OpenSearch")
+def test_execute_search_rejects_timed_out_response(
+    mock_open_search, app, caplog
+):
+    mock_open_search.search.return_value = {
+        "timed_out": True,
+        "_shards": {"failed": 0},
+        "hits": {"total": {"value": 0}, "hits": []},
+    }
+
+    with pytest.raises(GatewayTimeout):
+        execute_search(mock_open_search, {}, page=2, per_page=10)
+
+    assert "OpenSearch search timed out" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "error, expected_exception, expected_log",
+    [
+        (
+            ConnectionTimeout("Search request timed out"),
+            GatewayTimeout,
+            "OpenSearch search request timed out",
+        ),
+        (
+            RequestError(400, "search_phase_execution_exception"),
+            InternalServerError,
+            "OpenSearch search request failed",
+        ),
+    ],
+)
+@patch("app.main.util.search_utils.OpenSearch")
+def test_execute_search_logs_request_errors(
+    mock_open_search, error, expected_exception, expected_log, app, caplog
+):
+    mock_open_search.search.side_effect = error
+
+    with pytest.raises(expected_exception):
+        execute_search(mock_open_search, {}, page=1, per_page=10)
+
+    assert expected_log in caplog.text
 
 
 @patch("app.main.util.pagination.calculate_total_pages", return_value=10)
@@ -503,6 +589,7 @@ def test_build_search_results_query_with_transferring_body_filter():
             "boundary_scanner_locale": "en",
             "order": "score",
             "fields": {"*": {}},
+            "max_analyzer_offset": 1_000_000,
         },
     }
 
