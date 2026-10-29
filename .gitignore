@@ -89,6 +89,7 @@ coverage.xml
 .pytest_cache/
 cover/
 e2e_tests/playwright-report/
+e2e_tests/test-results/
 
 # Translations
 *.mo
