@@ -41,11 +41,8 @@ def test_null_to_dash(input_value, expected_output):
 @pytest.mark.parametrize(
     "input_text, expected_output",
     [
-        # input with non-test_highlight_key HTML tags
-        (
-            "<div>Test</div> <span>Text</span>",
-            "&lt;div&gt;Test&lt;/div&gt; &lt;span&gt;Text&lt;/span&gt;",
-        ),
+        # nh3 removes disallowed tags while preserving their text
+        ("<div>Test</div> <span>Text</span>", "Test Text"),
         # input with ALLOWED <test_highlight_key> tag
         (
             "<test_highlight_key>Highlight</test_highlight_key>",
@@ -54,48 +51,33 @@ def test_null_to_dash(input_value, expected_output):
         # mixed tags with <test_highlight_key> and other tags
         (
             "<test_highlight_key>Keep</test_highlight_key> <div>Remove</div>",
-            "<mark>Keep</mark> &lt;div&gt;Remove&lt;/div&gt;",
+            "<mark>Keep</mark> Remove",
         ),
         # nested tags including <test_highlight_key>
         (
             "<div><test_highlight_key>Inside</test_highlight_key> Div</div>",
-            "&lt;div&gt;<mark>Inside</mark> Div&lt;/div&gt;",
+            "<mark>Inside</mark> Div",
         ),
-        # self-closing tag (e.g., <img>)
-        (
-            "<img src='image.png'/>Picture",
-            "&lt;img src='image.png'/&gt;Picture",
-        ),
+        # nh3 removes disallowed self-closing tags
+        ("<img src='image.png'/>Picture", "Picture"),
         # no tags in input
         ("Just plain text", "Just plain text"),
-        # tags with attributes
-        (
-            "<p class='text'>Paragraph</p>",
-            "&lt;p class='text'&gt;Paragraph&lt;/p&gt;",
-        ),
+        # nh3 removes disallowed tags and their attributes
+        ("<p class='text'>Paragraph</p>", "Paragraph"),
         # mixed case-sensitive tags (e.g., <test_highlight_key> vs <test_highlight_key>) - tags are not case sensitive
         (
             "<test_highlight_key>Upper</test_highlight_key> <test_highlight_key>Lower</test_highlight_key>",
             "<mark>Upper</mark> <mark>Lower</mark>",
         ),
-        # empty tag pairs
-        ("<div></div>", "&lt;div&gt;&lt;/div&gt;"),
-        # unclosed tag
-        ("<span>Open tag", "&lt;span&gt;Open tag"),
-        # EXTREMELY IMPORTANT: removed stript tags (even if we have CSP)
-        (
-            "<script>This is a script tag</script>",
-            "&lt;script&gt;This is a script tag&lt;/script&gt;",
-        ),
-        # EXTREMELY IMPORTANT: self closing script tags
-        (
-            "<script/>This is a self closing script tag",
-            "&lt;script/&gt;This is a self closing script tag",
-        ),
-        # EXTREMELY IMPORTANT: script tags with attributes
+        # empty and unclosed disallowed tags are removed
+        ("<div></div>", ""),
+        ("<span>Open tag", "Open tag"),
+        # nh3 removes script tags and their contents
+        ("<script>This is a script tag</script>", ""),
+        ("<script/>This is a self closing script tag", ""),
         (
             "<script src='myscript.js'>This is a script tag with attrs</script>",
-            "&lt;script src='myscript.js'&gt;This is a script tag with attrs&lt;/script&gt;",
+            "",
         ),
         # removes onclick attributes from test_highlight_key elements
         (

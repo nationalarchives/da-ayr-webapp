@@ -1,8 +1,8 @@
 import inspect
 from datetime import datetime
 
-import bleach
 import boto3
+import nh3
 import psycopg2
 from flask import Flask, g
 from flask_compress import Compress
@@ -32,8 +32,8 @@ def null_to_dash(value):
 
 def clean_tags_and_replace_highlight_tag(text, highlight_tag):
     """Sanitizes ALL HTML tags that are not the highlight tag UUID and replaces them with <mark>"""
-    allowed_tags = [highlight_tag]
-    clean_text = bleach.clean(text, tags=allowed_tags)
+    allowed_tags = {highlight_tag}
+    clean_text = nh3.clean(text, tags=allowed_tags)
     return clean_text.replace(highlight_tag, "mark")
 
 
