@@ -303,8 +303,6 @@
 }
 
 .record-page {
-  margin-top: -2rem;
-
   &__scope-text {
     padding-top: 5px;
 
@@ -510,12 +508,6 @@
         flex-direction: column;
       }
     }
-  }
-
-  .record-page {
-    margin-top: -2rem;
-
-    display: flex;
   }
 
   .govuk-summary-list {
