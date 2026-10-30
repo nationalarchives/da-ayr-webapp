@@ -1,5 +1,6 @@
 import re
 import urllib.parse
+from datetime import date, timedelta
 
 import opensearchpy
 from flask import abort, current_app
@@ -8,6 +9,9 @@ from opensearchpy import OpenSearch, RequestsHttpConnection
 from app.main.util.closure_status import closure_types_for_record_status
 from app.main.util.date_validator import format_opensearch_date
 from app.main.util.pagination import calculate_total_pages, get_pagination
+
+BROWSE_INDEX = "documents"
+MAX_BROWSE_RESULTS = 10_000
 
 OPENSEARCH_FIELD_NAME_MAP = {
     "file_name": {"display_name": "File name", "allow_fuzzy": True},
@@ -237,20 +241,56 @@ def setup_opensearch():
     )
 
 
-def execute_search(open_search, dsl_query, page, per_page):
+def execute_search(
+    open_search,
+    dsl_query,
+    page,
+    per_page,
+    max_results=None,
+    index=None,
+):
     """Execute the search query using OpenSearch"""
     from_ = per_page * (page - 1)
-    try:
-        response = open_search.search(
-            body=dsl_query,
-            from_=from_,
-            size=per_page,
-            timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
-        )
-        total_hits = response.get("hits", {}).get("total", {}).get("value", 0)
-        if page < 1 or (page > 1 and from_ >= total_hits):
+    size = per_page
+    if max_results is not None:
+        size = min(per_page, max_results - from_)
+        if size <= 0:
             abort(404)
-        return response
+
+    response = execute_search_query(
+        open_search,
+        dsl_query,
+        index=index,
+        from_=from_,
+        size=size,
+    )
+    total_hits = response.get("hits", {}).get("total", {}).get("value", 0)
+    if page < 1 or (page > 1 and from_ >= total_hits):
+        abort(404)
+    return response
+
+
+def execute_search_query(
+    open_search,
+    dsl_query,
+    index=BROWSE_INDEX,
+    from_=None,
+    size=None,
+):
+    """Execute an OpenSearch query with the configured timeout."""
+    try:
+        search_args = {
+            "body": dsl_query,
+            "timeout": current_app.config["OPEN_SEARCH_TIMEOUT"],
+        }
+        if from_ is not None:
+            search_args["from_"] = from_
+        if size is not None:
+            search_args["size"] = size
+        if index is not None:
+            search_args["index"] = index
+
+        return open_search.search(**search_args)
     except opensearchpy.exceptions.ConnectionTimeout:
         abort(504)
 
@@ -373,7 +413,9 @@ def _build_range_filter(field_name, date_from, date_to):
     if date_from:
         range_values["gte"] = date_from
     if date_to:
-        range_values["lte"] = date_to
+        range_values["lt"] = (
+            date.fromisoformat(date_to) + timedelta(days=1)
+        ).isoformat()
     if not range_values:
         return None
     return {"range": {field_name: range_values}}
@@ -483,6 +525,121 @@ def build_search_filter_clauses(transferring_body_id=None, filters=None):
         filter_clauses.append(date_filter)
 
     return filter_clauses
+
+
+def _build_browse_records_sort(sort_option):
+    sort_fields = {
+        "date_of_record": ("date_of_record", None),
+        "file_name": ("file_name.keyword", "keyword"),
+        "opening_date": ("opening_date", "date"),
+        "series": ("series_name.keyword", "keyword"),
+    }
+    sort_parts = (sort_option or "date_of_record-desc").rsplit("-", 1)
+    if len(sort_parts) != 2 or sort_parts[1] not in {"asc", "desc"}:
+        sort_parts = ["date_of_record", "desc"]
+
+    sort_field, sort_order = sort_parts
+    field_config = sort_fields.get(sort_field)
+    if field_config is None:
+        sort_field, sort_order = "date_of_record", "desc"
+        field_config = sort_fields[sort_field]
+
+    field, unmapped_type = field_config
+    if sort_field == "date_of_record":
+        # Use end_date, falling back to last modified; keep undated records last.
+        missing_date_sort_value = (
+            "Long.MAX_VALUE" if sort_order == "asc" else "Long.MIN_VALUE"
+        )
+        primary_sort = {
+            "_script": {
+                "type": "number",
+                "order": sort_order,
+                "script": {
+                    "lang": "painless",
+                    "source": (
+                        "if (doc.containsKey('end_date') "
+                        "&& doc['end_date'].size() > 0) { "
+                        "return doc['end_date'].value.toInstant()"
+                        ".toEpochMilli(); "
+                        "} "
+                        "if (doc.containsKey('date_last_modified') "
+                        "&& doc['date_last_modified'].size() > 0) { "
+                        "return doc['date_last_modified'].value.toInstant()"
+                        ".toEpochMilli(); "
+                        "} "
+                        f"return {missing_date_sort_value};"
+                    ),
+                },
+            }
+        }
+    else:
+        primary_sort = {
+            field: {
+                "order": sort_order,
+                "missing": "_last",
+                **({"unmapped_type": unmapped_type} if unmapped_type else {}),
+            }
+        }
+
+    return [primary_sort, {"file_id.keyword": {"order": "asc"}}]
+
+
+def build_browse_records_search_query(
+    transferring_body_id=None, filters=None, sort_option=None
+):
+    filters = filters or {}
+    filter_clauses = []
+
+    if transferring_body_id is not None:
+        filter_clauses.append(
+            {
+                "term": {
+                    "transferring_body_id.keyword": str(transferring_body_id)
+                }
+            }
+        )
+
+    for filter_key, field in (
+        ("transferring_body", "transferring_body"),
+        ("series", "series_name"),
+        ("consignment_reference", "consignment_reference"),
+    ):
+        _append_match_phrase_filter(filter_clauses, filters, filter_key, field)
+
+    record_status_filter = _build_record_status_filter(filters)
+    if record_status_filter:
+        filter_clauses.append(record_status_filter)
+
+    date_filter = _build_date_filter(filters)
+    if date_filter:
+        filter_clauses.append(date_filter)
+
+    query = (
+        {"bool": {"filter": filter_clauses}}
+        if filter_clauses
+        else {"match_all": {}}
+    )
+    return {
+        "query": query,
+        "sort": _build_browse_records_sort(sort_option),
+        "track_total_hits": True,
+        "_source": [
+            "file_id",
+            "file_name",
+            "file_path",
+            "closure_type",
+            "opening_date",
+            "end_date",
+            "date_last_modified",
+            "series_id",
+            "series_name",
+            "transferring_body_id",
+            "transferring_body",
+            "consignment_id",
+            "consignment_reference",
+            "consignment_transfer_complete_date",
+        ],
+    }
 
 
 def build_search_results_query(

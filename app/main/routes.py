@@ -1,6 +1,7 @@
 import hmac
 import secrets
 import uuid
+from datetime import datetime
 
 import boto3
 from botocore.exceptions import ClientError
@@ -29,7 +30,6 @@ from app.main.authorize.permissions_helpers import (
 )
 from app.main.db.models import Body, File, db
 from app.main.db.queries import (
-    build_browse_base_query,
     get_file_metadata,
 )
 from app.main.flask_config_helpers import (
@@ -80,6 +80,9 @@ from app.main.util.schemas import (
     SearchWithinRequestSchema,
 )
 from app.main.util.search_utils import (
+    BROWSE_INDEX,
+    MAX_BROWSE_RESULTS,
+    build_browse_records_search_query,
     build_search_results_query,
     execute_search,
     extract_search_terms,
@@ -92,7 +95,9 @@ from configs.base_config import CONVERTIBLE_PUIDS
 from .forms import SearchForm
 
 
-def _build_records_filters_context(validated_data, ayr_user, query=None):
+def _build_records_filters_context(
+    validated_data, ayr_user, open_search=None, query=None
+):
     date_validation_errors = []
     from_date = None
     to_date = None
@@ -118,10 +123,28 @@ def _build_records_filters_context(validated_data, ayr_user, query=None):
         filters["query"] = query
 
     accessible_body_names = get_accessible_body_names(ayr_user)
+    selected_series = (validated_data.get("series_filter") or "").strip()
+    selected_consignment = (
+        validated_data.get("consignment_reference") or ""
+    ).strip()
+    needs_transferring_body_options = (
+        accessible_body_names is None or len(accessible_body_names) > 1
+    )
+    needs_autofill_options = bool(
+        selected_consignment
+        and not selected_series
+        and accessible_body_names != []
+    )
+    if open_search is None and (
+        needs_transferring_body_options or needs_autofill_options
+    ):
+        open_search = setup_opensearch()
+
     transferring_bodies = build_browse_filter_data(
         validated_data,
         accessible_body_names,
         filters,
+        open_search=open_search,
     )
     filter_count = count_selected_filters(
         filters,
@@ -161,6 +184,41 @@ def _format_search_hit_for_record_row(search_record):
         "consignment_reference": source.get("consignment_reference"),
         "search_result_snippet": snippet,
     }
+
+
+def _format_browse_search_hit_for_record_row(search_record):
+    source = search_record.get("_source") or {}
+    return {
+        "transferring_body_id": source.get("transferring_body_id"),
+        "transferring_body": source.get("transferring_body"),
+        "series_id": source.get("series_id"),
+        "series": source.get("series_name"),
+        "consignment_id": source.get("consignment_id"),
+        "consignment_reference": source.get("consignment_reference"),
+        "consignment_transfer_complete_date": _format_browse_date(
+            source.get("consignment_transfer_complete_date")
+        ),
+        "file_id": source.get("file_id"),
+        "file_name": source.get("file_name"),
+        "file_path": source.get("file_path"),
+        "closure_type": source.get("closure_type"),
+        "opening_date": _format_browse_date(source.get("opening_date")),
+        "date_of_record": _format_browse_date(
+            source.get("end_date") or source.get("date_last_modified")
+        ),
+    }
+
+
+def _format_browse_date(value):
+    if not isinstance(value, str):
+        return value
+
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).strftime(
+            "%d/%m/%Y"
+        )
+    except ValueError:
+        return value
 
 
 @bp.route("/", methods=["GET"])
@@ -316,92 +374,6 @@ def accessibility():
     return render_template("accessibility.html")
 
 
-@bp.route("/browse", methods=["GET"])
-@access_token_sign_in_required
-@log_page_view
-@validate_request(BrowseRequestSchema, location="combined")
-def browse():
-    validated_data = request.validated_data
-    page = validated_data.get("page") or 1
-    per_page = validated_data.get("per_page") or 5
-    default_page = 1
-    form = SearchForm()
-    ayr_user = AYRUser(session.get("user_groups"))
-
-    filters_context = _build_records_filters_context(validated_data, ayr_user)
-    filters = filters_context["filters"]
-    date_validation_errors = filters_context["date_validation_errors"]
-    date_error_fields = filters_context["date_error_fields"]
-    date_filters = filters_context["date_filters"]
-    filter_count = filters_context["filter_count"]
-    transferring_bodies = filters_context["transferring_bodies"]
-    accessible_body_names = filters_context["accessible_body_names"]
-    sorting_orders = build_sorting_orders(validated_data)
-
-    data_query = build_browse_base_query(
-        accessible_transferring_body_names=accessible_body_names,
-        filters=filters,
-        sorting_orders=sorting_orders or {"date_of_record": "desc"},
-    )
-    count_query = build_browse_base_query(
-        accessible_transferring_body_names=accessible_body_names,
-        filters=filters,
-    )
-
-    try:
-        total = count_query.count()
-        total_pages = calculate_total_pages(total, per_page)
-        if page > 1 and page > total_pages:
-            return redirect_if_page_invalid(page, default_page, "main.browse")
-        offset = (page - 1) * per_page
-        page_items = data_query.offset(offset).limit(per_page).all()
-    except NotFound:
-        return redirect_if_page_invalid(page, default_page, "main.browse")
-
-    results = []
-    for row in page_items:
-        results.append(
-            {
-                "transferring_body_id": row.transferring_body_id,
-                "transferring_body": row.transferring_body,
-                "series_id": row.series_id,
-                "series": row.series,
-                "consignment_id": row.consignment_id,
-                "consignment_reference": row.consignment_reference,
-                "consignment_transfer_complete_date": row.consignment_transfer_complete_date,
-                "file_id": row.file_id,
-                "file_name": row.file_name,
-                "file_path": row.file_path,
-                "closure_type": row.closure_type,
-                "opening_date": row.opening_date,
-                "date_of_record": row.date_of_record,
-            }
-        )
-
-    pagination = get_pagination(page, total_pages)
-
-    return render_template(
-        "browse.html",
-        form=form,
-        browse_type="records",
-        is_standard_user=ayr_user.is_standard_user,
-        filters=filters,
-        search_area="everywhere",
-        current_page=page,
-        per_page=per_page,
-        date_validation_errors=date_validation_errors,
-        date_error_fields=date_error_fields,
-        date_filters=date_filters,
-        sorting_orders=sorting_orders,
-        filter_count=filter_count,
-        transferring_bodies=transferring_bodies,
-        results=results,
-        pagination=pagination,
-        num_records_found=total,
-        query_string_parameters=request.validated_args,
-    )
-
-
 @bp.route("/browse/transferring_body/<uuid:_id>", methods=["GET"])
 @access_token_sign_in_required
 @log_page_view
@@ -424,6 +396,125 @@ def browse_series(_id: uuid.UUID):
 @validate_request(BrowseConsignmentRequestSchema, location="combined")
 def browse_consignment(_id: uuid.UUID):
     return redirect(url_for("main.browse"))
+
+
+@bp.route("/browse", methods=["GET"])
+@access_token_sign_in_required
+@log_page_view
+@validate_request(BrowseRequestSchema, location="combined")
+def browse():
+    validated_data = request.validated_data
+    page = validated_data.get("page") or 1
+    per_page = validated_data.get("per_page") or 5
+    default_page = 1
+    form = SearchForm()
+    ayr_user = AYRUser(session.get("user_groups"))
+
+    transferring_body_id = None
+    if ayr_user.is_standard_user:
+        body = ayr_user.transferring_body
+        if body is None:
+            abort(403)
+        validate_body_user_groups_or_404(body.Name)
+        transferring_body_id = body.BodyId
+
+    open_search = setup_opensearch()
+    filters_context = _build_records_filters_context(
+        validated_data,
+        ayr_user,
+        open_search=open_search,
+    )
+    filters = filters_context["filters"]
+    date_validation_errors = filters_context["date_validation_errors"]
+    date_error_fields = filters_context["date_error_fields"]
+    date_filters = filters_context["date_filters"]
+    filter_count = filters_context["filter_count"]
+    transferring_bodies = filters_context["transferring_bodies"]
+
+    available_sorts = {
+        "date_of_record-desc",
+        "date_of_record-asc",
+        "file_name-asc",
+        "file_name-desc",
+        "opening_date-asc",
+        "opening_date-desc",
+        "series-asc",
+        "series-desc",
+    }
+    sort_option = validated_data.get("sort")
+    if sort_option not in available_sorts:
+        sort_option = "date_of_record-desc"
+
+    max_browse_results = MAX_BROWSE_RESULTS
+    max_pages = calculate_total_pages(max_browse_results, per_page)
+    if page > max_pages:
+        return redirect_if_page_invalid(page, default_page, "main.browse")
+
+    dsl_query = build_browse_records_search_query(
+        transferring_body_id=transferring_body_id,
+        filters=filters,
+        sort_option=sort_option,
+    )
+
+    try:
+        search_results = execute_search(
+            open_search,
+            dsl_query,
+            page,
+            per_page,
+            max_results=max_browse_results,
+            index=BROWSE_INDEX,
+        )
+    except NotFound:
+        return redirect_if_page_invalid(page, default_page, "main.browse")
+
+    hit_total = search_results.get("hits", {}).get("total", 0)
+    total_records = (
+        hit_total.get("value", 0) if isinstance(hit_total, dict) else hit_total
+    )
+    browsable_records = min(total_records, max_browse_results)
+    total_pages = calculate_total_pages(browsable_records, per_page)
+    if page > 1 and page > total_pages:
+        return redirect_if_page_invalid(page, default_page, "main.browse")
+
+    search_hits = post_process_opensearch_results(
+        search_results.get("hits", {}).get("hits", []), "file_name"
+    )
+    results = [
+        _format_browse_search_hit_for_record_row(hit) for hit in search_hits
+    ]
+    pagination = get_pagination(page, total_pages)
+    query_string_parameters = request.validated_args.copy()
+    query_string_parameters["sort"] = sort_option
+
+    return render_template(
+        "browse.html",
+        form=form,
+        browse_type="records",
+        is_standard_user=ayr_user.is_standard_user,
+        filters=filters,
+        search_area="everywhere",
+        current_page=page,
+        per_page=per_page,
+        date_validation_errors=date_validation_errors,
+        date_error_fields=date_error_fields,
+        date_filters=date_filters,
+        sorting_orders=build_sorting_orders(validated_data),
+        filter_count=filter_count,
+        transferring_bodies=transferring_bodies,
+        results=results,
+        pagination=pagination,
+        num_records_found=total_records,
+        num_browsable_records_found=browsable_records,
+        query_string_parameters=query_string_parameters,
+        filters_form_action_url=url_for("main.browse", _anchor="browse"),
+        clear_filters_href=url_for(
+            "main.browse",
+            sort=query_string_parameters.get("sort"),
+            per_page=query_string_parameters.get("per_page"),
+            _anchor="browse",
+        ),
+    )
 
 
 @bp.route("/search/results", methods=["GET"], endpoint="search_results")
@@ -458,10 +549,12 @@ def search_results(_id: uuid.UUID | None = None):
 
     query = validated_data["query"]
     search_area = validated_data["search_area"]
+    open_search = setup_opensearch() if query else None
 
     filters_context = _build_records_filters_context(
         validated_data,
         ayr_user,
+        open_search=open_search,
         query=query,
     )
     filters = filters_context["filters"]
@@ -485,7 +578,6 @@ def search_results(_id: uuid.UUID | None = None):
 
         quoted_phrases, single_terms = extract_search_terms(query)
 
-        open_search = setup_opensearch()
         search_fields, sorting = (
             get_open_search_fields_to_search_on_and_sorting(search_area, sort)
         )
