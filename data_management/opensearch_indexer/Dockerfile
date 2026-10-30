@@ -82,6 +82,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY opensearch_indexer/ ./opensearch_indexer
 
+# Enforce macro blocking for every profile, including trusted documents.
+COPY --chmod=644 libreoffice-macro-security.xcd /usr/lib/libreoffice/share/registry/ayr-macro-security.xcd
+
 RUN useradd --create-home --shell /usr/sbin/nologin appuser \
     && chown -R appuser:appuser /app
 
