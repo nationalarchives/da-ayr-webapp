@@ -247,12 +247,30 @@ def execute_search(open_search, dsl_query, page, per_page):
             size=per_page,
             timeout=current_app.config["OPEN_SEARCH_TIMEOUT"],
         )
-        total_hits = response.get("hits", {}).get("total", {}).get("value", 0)
-        if page < 1 or (page > 1 and from_ >= total_hits):
-            abort(404)
-        return response
     except opensearchpy.exceptions.ConnectionTimeout:
+        current_app.app_logger.exception("OpenSearch search request timed out")
         abort(504)
+    except opensearchpy.exceptions.TransportError:
+        current_app.app_logger.exception("OpenSearch search request failed")
+        abort(500)
+
+    if response.get("timed_out", False):
+        current_app.app_logger.error("OpenSearch search timed out")
+        abort(504)
+
+    shards = response.get("_shards", {})
+    if shards.get("failed", 0) > 0:
+        current_app.app_logger.error(
+            "OpenSearch search failed on %s shards: %s",
+            shards["failed"],
+            shards.get("failures", []),
+        )
+        abort(500)
+
+    total_hits = response.get("hits", {}).get("total", {}).get("value", 0)
+    if page < 1 or (page > 1 and from_ >= total_hits):
+        abort(404)
+    return response
 
 
 def get_pagination_info(results, page, per_page):
@@ -518,6 +536,7 @@ def build_search_results_query(
             "boundary_scanner_locale": "en",
             "order": "score",
             "fields": {"*": {}},
+            "max_analyzer_offset": 1_000_000,  # otherwise search request fails if content length > 1,000,000
         },
     }
 
