@@ -1,40 +1,18 @@
 FROM python:3.14.8-slim@sha256:fbecd461fc72d21b2143c6eaba25143738079154a6d0ea3da3aec724f50eed4a
 
-# renovate: datasource=deb depName=libreoffice
-ARG LIBREOFFICE_VERSION=4:25.2.3-2+deb13u8
-# renovate: datasource=deb depName=libreoffice-writer
-ARG LIBREOFFICE_WRITER_VERSION=4:25.2.3-2+deb13u8
-# renovate: datasource=deb depName=libreoffice-calc
-ARG LIBREOFFICE_CALC_VERSION=4:25.2.3-2+deb13u8
-# renovate: datasource=deb depName=libreoffice-java-common
-ARG LIBREOFFICE_JAVA_COMMON_VERSION=4:25.2.3-2+deb13u8
-# renovate: datasource=deb depName=default-jre
-ARG DEFAULT_JRE_VERSION=2:1.21-76
-# renovate: datasource=deb depName=libsqlite3-0
-ARG LIBSQLITE3_0_VERSION=3.46.1-7+deb13u2
-# renovate: datasource=deb depName=perl-base
-ARG PERL_BASE_VERSION=5.40.1-6+deb13u1
-# renovate: datasource=deb depName=libpcre2-8-0
-ARG LIBPCRE2_8_0_VERSION=10.46-1~deb13u3
-# renovate: datasource=deb depName=libc6
-ARG LIBC6_VERSION=2.41-12+deb13u4
-# renovate: datasource=deb depName=libc-bin
-ARG LIBC_BIN_VERSION=2.41-12+deb13u4
-
 # Install system dependencies including LibreOffice
 RUN apt-get update && \
     apt-get upgrade -y --no-install-recommends && \
     apt-get install -y --no-install-recommends \
-    libsqlite3-0=${LIBSQLITE3_0_VERSION} \
-    perl-base=${PERL_BASE_VERSION} \
-    libpcre2-8-0=${LIBPCRE2_8_0_VERSION} \
-    libc6=${LIBC6_VERSION} \
-    libc-bin=${LIBC_BIN_VERSION} \
-    libreoffice=${LIBREOFFICE_VERSION} \
-    libreoffice-writer=${LIBREOFFICE_WRITER_VERSION} \
-    libreoffice-calc=${LIBREOFFICE_CALC_VERSION} \
-    libreoffice-java-common=${LIBREOFFICE_JAVA_COMMON_VERSION} \
-    default-jre=${DEFAULT_JRE_VERSION} \
+    libsqlite3-0 \
+    perl-base \
+    libc6 \
+    libc-bin \
+    libreoffice \
+    libreoffice-writer \
+    libreoffice-calc \
+    libreoffice-java-common \
+    default-jre \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
