@@ -168,7 +168,7 @@ def index():
     return render_template("index.html")
 
 
-@bp.route("/sign-out", methods=["GET"])
+@bp.route("/sign-out", methods=["POST"])
 @access_token_sign_in_required
 @log_page_view
 def sign_out():
