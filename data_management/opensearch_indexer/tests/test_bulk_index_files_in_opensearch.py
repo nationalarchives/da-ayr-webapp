@@ -15,6 +15,8 @@ from opensearch_indexer.index_consignment.bulk_index_consignment import (
     construct_documents,
     fetch_files_in_consignment,
     format_bulk_indexing_error_message,
+    prepare_bulk_metadata_update_actions,
+    reindex_consignment_metadata,
     validate_text_extraction,
 )
 from opensearchpy import RequestsHttpConnection
@@ -620,6 +622,119 @@ def test_fetch_files_in_consignment_includes_transfer_complete_date(
         files[0]["consignment_transfer_complete_date"]
         == expected_transfer_complete_date
     )
+
+
+def test_prepare_bulk_metadata_update_actions_updates_all_metadata():
+    files = [
+        {
+            "file_id": "file-1",
+            "file_name": "record.txt",
+            "consignment_transfer_complete_date": "2024-05-01T13:45:00",
+        }
+    ]
+
+    actions = list(prepare_bulk_metadata_update_actions(files, "documents"))
+
+    assert actions == [
+        {
+            "_op_type": "update",
+            "_index": "documents",
+            "_id": "file-1",
+            "doc": {
+                "file_name": "record.txt",
+                "consignment_transfer_complete_date": "2024-05-01T13:45:00",
+            },
+        }
+    ]
+
+
+def test_prepare_bulk_metadata_update_actions_updates_and_removes_metadata_key():
+    files = [
+        {
+            "file_id": "file-1",
+            "file_name": "record.txt",
+            "consignment_transfer_complete_date": "2024-05-01T13:45:00",
+        },
+        {"file_id": "file-2", "file_name": "other.txt"},
+    ]
+
+    actions = list(
+        prepare_bulk_metadata_update_actions(
+            files,
+            "documents",
+            metadata_key="consignment_transfer_complete_date",
+        )
+    )
+
+    assert actions == [
+        {
+            "_op_type": "update",
+            "_index": "documents",
+            "_id": "file-1",
+            "doc": {
+                "consignment_transfer_complete_date": ("2024-05-01T13:45:00")
+            },
+        },
+        {
+            "_op_type": "update",
+            "_index": "documents",
+            "_id": "file-2",
+            "script": {
+                "source": "ctx._source.remove(params.field)",
+                "params": {
+                    "field": "consignment_transfer_complete_date",
+                },
+            },
+        },
+    ]
+
+
+@mock.patch(
+    "opensearch_indexer.index_consignment.bulk_index_consignment.streaming_bulk"
+)
+@mock.patch(
+    "opensearch_indexer.index_consignment.bulk_index_consignment.OpenSearch"
+)
+@mock.patch(
+    "opensearch_indexer.index_consignment.bulk_index_consignment.fetch_files_in_consignment"
+)
+def test_reindex_consignment_metadata_uses_partial_updates(
+    mock_fetch_files, mock_open_search, mock_streaming_bulk
+):
+    mock_fetch_files.return_value = [
+        {
+            "file_id": "file-1",
+            "consignment_transfer_complete_date": "2024-05-01T13:45:00",
+        }
+    ]
+    mock_streaming_bulk.return_value = [
+        (True, {"update": {"_id": "file-1", "status": 200}})
+    ]
+
+    updated_count = reindex_consignment_metadata(
+        "consignment-reference",
+        "postgresql://test",
+        "https://opensearch.test",
+        ("user", "password"),
+        60,
+        metadata_key="consignment_transfer_complete_date",
+    )
+
+    assert updated_count == 1
+    mock_fetch_files.assert_called_once_with(
+        "consignment-reference", "postgresql://test"
+    )
+    actions = list(mock_streaming_bulk.call_args.args[1])
+    assert actions == [
+        {
+            "_op_type": "update",
+            "_index": "documents",
+            "_id": "file-1",
+            "doc": {
+                "consignment_transfer_complete_date": ("2024-05-01T13:45:00")
+            },
+        }
+    ]
 
 
 @pytest.mark.parametrize(

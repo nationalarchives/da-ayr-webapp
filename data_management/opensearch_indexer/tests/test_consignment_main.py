@@ -7,6 +7,8 @@ import pytest
 from moto import mock_aws
 from opensearch_indexer.index_consignment.main import (
     BulkIndexMultipleConsignmentsError,
+    all_consignments_index,
+    all_consignments_metadata_index,
     consignment_indexer,
     single_consignment_index,
 )
@@ -619,6 +621,74 @@ def test_invalid_indexer_type_raises_value_error(monkeypatch):
     )
 
     with pytest.raises(
-        ValueError, match="Invalid INDEXER_TYPE. Expected 'ALL' or 'SINGLE'"
+        ValueError,
+        match="Invalid INDEXER_TYPE. Expected 'ALL', 'METADATA' or 'SINGLE'",
     ):
         consignment_indexer()
+
+
+@mock_aws
+def test_all_consignments_metadata_index_passes_optional_key(monkeypatch):
+    s3 = boto3.client("s3", region_name="us-east-1")
+    s3.create_bucket(Bucket="test-bucket")
+    s3.put_object(
+        Bucket="test-bucket",
+        Key="consignment-1/file-1",
+        Body=b"content",
+    )
+
+    with patch(
+        "opensearch_indexer.index_consignment.main.reindex_consignment_metadata_from_aws",
+        return_value=1,
+    ) as mock_reindex:
+        all_consignments_metadata_index(
+            {"RECORD_BUCKET_NAME": "test-bucket"},
+            {"username": "user"},
+            metadata_key="consignment_transfer_complete_date",
+        )
+
+    mock_reindex.assert_called_once_with(
+        "consignment-1",
+        {"RECORD_BUCKET_NAME": "test-bucket"},
+        {"username": "user"},
+        metadata_key="consignment_transfer_complete_date",
+    )
+
+
+@mock_aws
+def test_all_consignments_indexers_treat_empty_bucket_as_noop():
+    s3 = boto3.client("s3", region_name="us-east-1")
+    s3.create_bucket(Bucket="empty-bucket")
+    secret_string = {"RECORD_BUCKET_NAME": "empty-bucket"}
+    db_secret_string = {"username": "user"}
+
+    all_consignments_index(secret_string, db_secret_string)
+    all_consignments_metadata_index(
+        secret_string,
+        db_secret_string,
+        metadata_key="consignment_transfer_complete_date",
+    )
+
+
+def test_consignment_indexer_runs_metadata_reindex_mode(monkeypatch):
+    monkeypatch.setenv("SECRET_ID", "app-secret")
+    monkeypatch.setenv("DB_SECRET_ID", "db-secret")
+    monkeypatch.setenv("INDEXER_TYPE", "METADATA")
+    monkeypatch.setenv("METADATA_KEY", "consignment_transfer_complete_date")
+
+    with (
+        patch(
+            "opensearch_indexer.index_consignment.main.get_secret_data",
+            side_effect=[{"app": "secret"}, {"db": "secret"}],
+        ),
+        patch(
+            "opensearch_indexer.index_consignment.main.all_consignments_metadata_index"
+        ) as mock_reindex,
+    ):
+        consignment_indexer()
+
+    mock_reindex.assert_called_once_with(
+        {"app": "secret"},
+        {"db": "secret"},
+        metadata_key="consignment_transfer_complete_date",
+    )
