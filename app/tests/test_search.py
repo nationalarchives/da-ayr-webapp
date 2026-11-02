@@ -831,6 +831,34 @@ class TestSearchResults:
         assert params["query"] == ["test"]
 
     @patch("app.main.routes.setup_opensearch")
+    def test_search_results_returns_500_for_opensearch_shard_failure(
+        self,
+        mock_setup_opensearch,
+        client: FlaskClient,
+        mock_all_access_user,
+        caplog,
+    ):
+        mock_all_access_user(client)
+        mock_setup_opensearch.return_value = MockOpenSearch(
+            search_return_value={
+                "_shards": {
+                    "failed": 1,
+                    "failures": [
+                        {"reason": "Highlighting analysis limit exceeded"}
+                    ],
+                },
+                "hits": {"total": {"value": 10_000}, "hits": []},
+            }
+        )
+
+        response = client.get(f"{self.route_url}?query=test")
+
+        assert response.status_code == 500
+        assert b"Sorry, there is a problem with the service" in response.data
+        assert b"records found" not in response.data
+        assert "Highlighting analysis limit exceeded" in caplog.text
+
+    @patch("app.main.routes.setup_opensearch")
     def test_search_results_returns_504_for_opensearch_timeout(
         self, mock_setup_opensearch, client: FlaskClient, mock_all_access_user
     ):
