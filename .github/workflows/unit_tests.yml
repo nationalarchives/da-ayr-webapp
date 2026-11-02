@@ -10,6 +10,22 @@ on:
 jobs:
   app_tests:
     runs-on: ubuntu-latest
+    services:
+      opensearch:
+        image: opensearchproject/opensearch:3.9.0@sha256:adfa61f85025d06b4aeb562e7e74fde7e31c437039c93c3862c17e9acebd6c7c
+        env:
+          discovery.type: single-node
+          bootstrap.memory_lock: "false"
+          DISABLE_INSTALL_DEMO_CONFIG: "true"
+          DISABLE_SECURITY_PLUGIN: "true"
+          OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl -fsS http://localhost:9200"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
 
     steps:
     - name: Checkout code
@@ -40,6 +56,12 @@ jobs:
 
     - name: Run App unit tests
       run: AWS_DEFAULT_REGION=eu-west-2 poetry run pytest --cov=app/main --cov-report term-missing -rsa -vvv app/tests
+
+    - name: Run OpenSearch browse integration tests
+      env:
+        AWS_DEFAULT_REGION: eu-west-2
+        OPENSEARCH_INTEGRATION_URL: http://localhost:9200
+      run: poetry run pytest -vvv app/tests/test_browse_records_opensearch_integration.py
 
     - name: Generate coverage XML
       run: poetry run coverage xml

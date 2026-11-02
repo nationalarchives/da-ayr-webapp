@@ -66,6 +66,14 @@ class MockOpenSearch:
         self.indices = MockIndices(get_mapping_return_value)
 
     def search(self, *args, **kwargs):
+        body = kwargs.get("body", {})
+        if "aggs" in body:
+            aggregation_name = next(iter(body["aggs"]))
+            return {
+                "aggregations": {
+                    aggregation_name: {"buckets": []},
+                }
+            }
         if self.search_side_effect:
             raise self.search_side_effect
         return self.search_return_value
