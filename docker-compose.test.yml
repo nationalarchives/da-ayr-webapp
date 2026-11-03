@@ -9,6 +9,8 @@ services:
       - ./test_results:/test_results
     working_dir: /app
     entrypoint: ""
+    environment:
+      OPENSEARCH_INTEGRATION_URL: http://opensearch:9200
     command:
     - sh
     - -c
@@ -26,7 +28,24 @@ services:
           --cov-report=term-missing \
           -vvs data_management/opensearch_indexer/tests
     depends_on:
-      - postgres
+      postgres:
+        condition: service_started
+      opensearch:
+        condition: service_healthy
+
+  opensearch:
+    image: opensearchproject/opensearch:3.9.0@sha256:adfa61f85025d06b4aeb562e7e74fde7e31c437039c93c3862c17e9acebd6c7c
+    environment:
+      discovery.type: single-node
+      bootstrap.memory_lock: "false"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9200"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
 
   access_copy_converter_tests:
     build:

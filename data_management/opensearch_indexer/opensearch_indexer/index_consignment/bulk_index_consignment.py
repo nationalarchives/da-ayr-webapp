@@ -153,11 +153,12 @@ def reindex_consignment_metadata(
     open_search_ca_certs: Optional[str] = None,
     open_search_use_ssl: bool = True,
     open_search_verify_certs: bool = True,
+    opensearch_index: str = "documents",
 ) -> int:
     """Update OpenSearch metadata for a consignment without replacing documents."""
     files = fetch_files_in_consignment(consignment_reference, database_url)
     actions = prepare_bulk_metadata_update_actions(
-        files, "documents", metadata_key
+        files, opensearch_index, metadata_key
     )
     client = OpenSearch(
         open_search_host_url,
