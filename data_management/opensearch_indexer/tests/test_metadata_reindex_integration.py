@@ -54,6 +54,7 @@ def test_metadata_reindex_updates_existing_document_from_database(
     series_id = uuid4()
     consignment_id = uuid4()
     file_id = uuid4()
+    second_file_id = uuid4()
     consignment_reference = "metadata-reindex-integration"
 
     session = sessionmaker(bind=engine)()
@@ -81,11 +82,25 @@ def test_metadata_reindex_updates_existing_document_from_database(
                 FileName="record.txt",
                 FilePath="/record.txt",
             ),
+            File(
+                FileId=second_file_id,
+                ConsignmentId=consignment_id,
+                FileReference="second-file-reference",
+                FileType="File",
+                FileName="second-record.txt",
+                FilePath="/second-record.txt",
+            ),
             FileMetadata(
                 MetadataId=uuid4(),
                 FileId=file_id,
                 PropertyName="custom_metadata",
                 Value="from database",
+            ),
+            FileMetadata(
+                MetadataId=uuid4(),
+                FileId=second_file_id,
+                PropertyName="old_metadata",
+                Value="still current for second file",
             ),
         ]
     )
@@ -99,7 +114,16 @@ def test_metadata_reindex_updates_existing_document_from_database(
             "file_id": str(file_id),
             "file_name": "stale-record.txt",
             "custom_metadata": "stale value",
+            "old_metadata": "stale metadata",
             "content": "previously extracted content",
+        },
+    )
+    client.index(
+        index=index,
+        id=str(second_file_id),
+        body={
+            "file_id": str(second_file_id),
+            "file_name": "stale-second-record.txt",
         },
     )
     client.indices.refresh(index=index)
@@ -116,11 +140,15 @@ def test_metadata_reindex_updates_existing_document_from_database(
     )
 
     updated_document = client.get(index=index, id=str(file_id))["_source"]
-    assert updated_count == 1
+    assert updated_count == 2
     assert updated_document["file_name"] == "record.txt"
     assert updated_document["custom_metadata"] == "from database"
+    assert updated_document["old_metadata"] == "stale metadata"
     assert (
         updated_document["consignment_transfer_complete_date"]
         == "2026-01-02T03:04:05"
     )
     assert updated_document["content"] == "previously extracted content"
+    second_document = client.get(index=index, id=str(second_file_id))["_source"]
+    assert second_document["file_name"] == "second-record.txt"
+    assert second_document["old_metadata"] == "still current for second file"

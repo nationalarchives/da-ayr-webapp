@@ -509,26 +509,15 @@ def prepare_bulk_metadata_update_actions(
     opensearch_index: str,
     metadata_key: Optional[str] = None,
 ) -> Iterator[Dict[str, Any]]:
-    """Yield partial updates for database-backed metadata fields."""
+    """Yield partial updates for metadata currently present in the database."""
     for file in files:
         if metadata_key is None:
             metadata = {
                 key: value for key, value in file.items() if key != "file_id"
             }
-        elif metadata_key == "file_id":
-            continue
-        elif metadata_key in file:
+        elif metadata_key in file and metadata_key != "file_id":
             metadata = {metadata_key: file[metadata_key]}
         else:
-            yield {
-                "_op_type": "update",
-                "_index": opensearch_index,
-                "_id": file["file_id"],
-                "script": {
-                    "source": "ctx._source.remove(params.field)",
-                    "params": {"field": metadata_key},
-                },
-            }
             continue
 
         if metadata:

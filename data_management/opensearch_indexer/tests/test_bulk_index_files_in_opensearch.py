@@ -649,7 +649,7 @@ def test_prepare_bulk_metadata_update_actions_updates_all_metadata():
     ]
 
 
-def test_prepare_bulk_metadata_update_actions_updates_and_removes_metadata_key():
+def test_prepare_bulk_metadata_update_actions_updates_present_metadata_key():
     files = [
         {
             "file_id": "file-1",
@@ -676,30 +676,56 @@ def test_prepare_bulk_metadata_update_actions_updates_and_removes_metadata_key()
                 "consignment_transfer_complete_date": ("2024-05-01T13:45:00")
             },
         },
-        {
-            "_op_type": "update",
-            "_index": "documents",
-            "_id": "file-2",
-            "script": {
-                "source": "ctx._source.remove(params.field)",
-                "params": {
-                    "field": "consignment_transfer_complete_date",
-                },
-            },
-        },
     ]
 
 
-def test_prepare_bulk_metadata_update_actions_does_not_update_file_id():
+@pytest.mark.parametrize(
+    "metadata_key",
+    ["file_id", "content", "unknown_field"],
+)
+def test_prepare_bulk_metadata_update_actions_skips_absent_key(
+    metadata_key,
+):
     files = [{"file_id": "file-1", "file_name": "record.txt"}]
 
     actions = list(
         prepare_bulk_metadata_update_actions(
-            files, "documents", metadata_key="file_id"
+            files, "documents", metadata_key=metadata_key
         )
     )
 
     assert actions == []
+
+
+def test_prepare_bulk_metadata_update_actions_preserves_absent_metadata():
+    files = [
+        {"file_id": "file-1", "file_name": "one.txt"},
+        {
+            "file_id": "file-2",
+            "file_name": "two.txt",
+            "old_metadata": "still present in database",
+        },
+    ]
+
+    actions = list(prepare_bulk_metadata_update_actions(files, "documents"))
+
+    assert actions == [
+        {
+            "_op_type": "update",
+            "_index": "documents",
+            "_id": "file-1",
+            "doc": {"file_name": "one.txt"},
+        },
+        {
+            "_op_type": "update",
+            "_index": "documents",
+            "_id": "file-2",
+            "doc": {
+                "file_name": "two.txt",
+                "old_metadata": "still present in database",
+            },
+        },
+    ]
 
 
 @mock.patch(
