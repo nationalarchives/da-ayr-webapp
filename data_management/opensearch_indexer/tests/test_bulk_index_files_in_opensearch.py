@@ -17,6 +17,7 @@ from opensearch_indexer.index_consignment.bulk_index_consignment import (
     format_bulk_indexing_error_message,
     prepare_bulk_metadata_update_actions,
     reindex_consignment_metadata,
+    reindex_consignment_metadata_from_aws,
     validate_text_extraction,
 )
 from opensearchpy import RequestsHttpConnection
@@ -689,6 +690,18 @@ def test_prepare_bulk_metadata_update_actions_updates_and_removes_metadata_key()
     ]
 
 
+def test_prepare_bulk_metadata_update_actions_does_not_update_file_id():
+    files = [{"file_id": "file-1", "file_name": "record.txt"}]
+
+    actions = list(
+        prepare_bulk_metadata_update_actions(
+            files, "documents", metadata_key="file_id"
+        )
+    )
+
+    assert actions == []
+
+
 @mock.patch(
     "opensearch_indexer.index_consignment.bulk_index_consignment.streaming_bulk"
 )
@@ -735,6 +748,134 @@ def test_reindex_consignment_metadata_uses_partial_updates(
             },
         }
     ]
+
+
+def test_reindex_consignment_metadata_from_aws_builds_and_forwards_settings():
+    secret_string = {
+        "OPEN_SEARCH_HOST": "https://opensearch.test",
+        "OPEN_SEARCH_BULK_INDEX_TIMEOUT": "60",
+    }
+    db_secret_string = {
+        "username": "user",
+        "password": "password",  # pragma: allowlist secret
+    }
+
+    with (
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment."
+            "_build_db_url",
+            return_value="postgresql://test",
+        ) as mock_build_db_url,
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment."
+            "_get_opensearch_auth",
+            return_value=("user", "password"),
+        ) as mock_get_auth,
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment."
+            "reindex_consignment_metadata",
+            return_value=2,
+        ) as mock_reindex,
+    ):
+        updated_count = reindex_consignment_metadata_from_aws(
+            "consignment-reference",
+            secret_string,
+            db_secret_string,
+            metadata_key="custom_metadata",
+        )
+
+    assert updated_count == 2
+    mock_build_db_url.assert_called_once_with(db_secret_string)
+    mock_get_auth.assert_called_once_with(secret_string)
+    mock_reindex.assert_called_once_with(
+        "consignment-reference",
+        "postgresql://test",
+        "https://opensearch.test",
+        ("user", "password"),
+        60,
+        metadata_key="custom_metadata",
+    )
+
+
+def test_reindex_consignment_metadata_raises_for_failed_bulk_item():
+    with (
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment."
+            "fetch_files_in_consignment",
+            return_value=[{"file_id": "file-1", "file_name": "record.txt"}],
+        ),
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment."
+            "OpenSearch"
+        ),
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment."
+            "streaming_bulk",
+            return_value=[
+                (
+                    False,
+                    {
+                        "update": {
+                            "_id": "file-1",
+                            "status": 400,
+                            "error": {
+                                "type": "mapper_parsing_exception",
+                                "reason": "invalid metadata",
+                            },
+                        }
+                    },
+                )
+            ],
+        ),
+    ):
+        with pytest.raises(ConsignmentBulkIndexError) as exc_info:
+            reindex_consignment_metadata(
+                "consignment-reference",
+                "postgresql://test",
+                "https://opensearch.test",
+                ("user", "password"),
+                60,
+            )
+
+    error_message = str(exc_info.value)
+    assert "file-1" in error_message
+    assert "400" in error_message
+    assert "invalid metadata" in error_message
+
+
+def test_reindex_consignment_metadata_logs_and_reraises_stream_exception(
+    caplog,
+):
+    def fail_during_iteration():
+        yield True, {"update": {"_id": "file-1", "status": 200}}
+        raise RuntimeError("connection lost")
+
+    with (
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment."
+            "fetch_files_in_consignment",
+            return_value=[{"file_id": "file-1", "file_name": "record.txt"}],
+        ),
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment."
+            "OpenSearch"
+        ),
+        mock.patch(
+            "opensearch_indexer.index_consignment.bulk_index_consignment."
+            "streaming_bulk",
+            return_value=fail_during_iteration(),
+        ),
+    ):
+        with pytest.raises(RuntimeError, match="connection lost"):
+            reindex_consignment_metadata(
+                "consignment-reference",
+                "postgresql://test",
+                "https://opensearch.test",
+                ("user", "password"),
+                60,
+            )
+
+    assert "OpenSearch metadata update failed: connection lost" in caplog.text
 
 
 @pytest.mark.parametrize(

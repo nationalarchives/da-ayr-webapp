@@ -655,6 +655,66 @@ def test_all_consignments_metadata_index_passes_optional_key(monkeypatch):
     )
 
 
+def test_all_consignments_metadata_index_collects_failures_and_continues():
+    def reindex_consignment(consignment_reference, *args, **kwargs):
+        if consignment_reference == "consignment-fails":
+            raise RuntimeError("bulk update failed")
+        return 1
+
+    with (
+        patch(
+            "opensearch_indexer.index_consignment.main."
+            "_get_consignment_references_from_s3",
+            return_value=["consignment-fails", "consignment-succeeds"],
+        ),
+        patch(
+            "opensearch_indexer.index_consignment.main."
+            "reindex_consignment_metadata_from_aws",
+            side_effect=reindex_consignment,
+        ) as mock_reindex,
+    ):
+        with pytest.raises(
+            BulkIndexMultipleConsignmentsError,
+            match="consignment-fails: bulk update failed",
+        ):
+            all_consignments_metadata_index(
+                {"RECORD_BUCKET_NAME": "test-bucket"},
+                {"username": "user"},
+            )
+
+    assert [call.args[0] for call in mock_reindex.call_args_list] == [
+        "consignment-fails",
+        "consignment-succeeds",
+    ]
+
+
+def test_all_consignments_metadata_index_rejects_zero_updates():
+    with (
+        patch(
+            "opensearch_indexer.index_consignment.main."
+            "_get_consignment_references_from_s3",
+            return_value=["consignment-1"],
+        ),
+        patch(
+            "opensearch_indexer.index_consignment.main."
+            "reindex_consignment_metadata_from_aws",
+            return_value=0,
+        ),
+    ):
+        with pytest.raises(
+            ValueError,
+            match=(
+                "No indexed documents contained metadata field "
+                "'custom_metadata'"
+            ),
+        ):
+            all_consignments_metadata_index(
+                {"RECORD_BUCKET_NAME": "test-bucket"},
+                {"username": "user"},
+                metadata_key="custom_metadata",
+            )
+
+
 @mock_aws
 def test_all_consignments_indexers_treat_empty_bucket_as_noop():
     s3 = boto3.client("s3", region_name="us-east-1")
