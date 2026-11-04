@@ -7,7 +7,10 @@ import boto3
 from ..aws_helpers import (
     get_secret_data,
 )
-from .bulk_index_consignment import bulk_index_consignment_from_aws
+from .bulk_index_consignment import (
+    bulk_index_consignment_from_aws,
+    reindex_consignment_metadata_from_aws,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger()
@@ -17,15 +20,20 @@ class BulkIndexMultipleConsignmentsError(Exception):
     pass
 
 
-def all_consignments_index(secret_string, db_secret_string):
+def _get_consignment_references_from_s3(bucket_name):
     s3 = boto3.client("s3", region_name="eu-west-2")
-    bucket_name = secret_string["RECORD_BUCKET_NAME"]
     paginator = s3.get_paginator("list_objects_v2")
     response = paginator.paginate(Bucket=bucket_name)
     consignments = set()
     for page in response:
-        for obj in page["Contents"]:
+        for obj in page.get("Contents", []):
             consignments.add(obj["Key"].split("/")[0])
+    return consignments
+
+
+def all_consignments_index(secret_string, db_secret_string):
+    bucket_name = secret_string["RECORD_BUCKET_NAME"]
+    consignments = _get_consignment_references_from_s3(bucket_name)
 
     logger.info(f"Found {len(consignments)} consignments")
 
@@ -53,6 +61,54 @@ def all_consignments_index(secret_string, db_secret_string):
         raise BulkIndexMultipleConsignmentsError(error_summary)
 
     logger.info("All consignments indexed without errors")
+
+
+def all_consignments_metadata_index(
+    secret_string, db_secret_string, metadata_key=None
+):
+    """Refresh metadata on all indexed consignments without text extraction."""
+    bucket_name = secret_string["RECORD_BUCKET_NAME"]
+    consignments = _get_consignment_references_from_s3(bucket_name)
+    logger.info("Found %s consignments for metadata reindex", len(consignments))
+
+    errors = {}
+    updated_count = 0
+
+    for consignment_reference in consignments:
+        logger.info(
+            "Updating metadata for consignment: %s", consignment_reference
+        )
+        try:
+            updated_count += reindex_consignment_metadata_from_aws(
+                consignment_reference,
+                secret_string,
+                db_secret_string,
+                metadata_key=metadata_key,
+            )
+        except Exception as e:
+            logger.error(
+                "%s had metadata reindex errors:\n%s", consignment_reference, e
+            )
+            errors[consignment_reference] = str(e)
+
+    if errors:
+        error_summary_lines = [
+            f"{consignment}: {message}"
+            for consignment, message in errors.items()
+        ]
+        raise BulkIndexMultipleConsignmentsError(
+            f"{len(errors)} consignments had metadata reindex error(s):\n"
+            + "\n".join(error_summary_lines)
+        )
+
+    if metadata_key is not None and consignments and updated_count == 0:
+        raise ValueError(
+            f"No indexed documents contained metadata field '{metadata_key}'"
+        )
+
+    logger.info(
+        "Metadata reindex completed. Updated documents: %s", updated_count
+    )
 
 
 def single_consignment_index(secret_string, db_secret_string):
@@ -94,10 +150,18 @@ def consignment_indexer():
 
     if indexer_type == "ALL":
         all_consignments_index(secret_string, db_secret_string)
+    elif indexer_type == "METADATA":
+        all_consignments_metadata_index(
+            secret_string,
+            db_secret_string,
+            metadata_key=os.getenv("METADATA_KEY") or None,
+        )
     elif indexer_type == "SINGLE":
         single_consignment_index(secret_string, db_secret_string)
     else:
-        raise ValueError("Invalid INDEXER_TYPE. Expected 'ALL' or 'SINGLE'")
+        raise ValueError(
+            "Invalid INDEXER_TYPE. Expected 'ALL', 'METADATA' or 'SINGLE'"
+        )
 
 
 if __name__ == "__main__":

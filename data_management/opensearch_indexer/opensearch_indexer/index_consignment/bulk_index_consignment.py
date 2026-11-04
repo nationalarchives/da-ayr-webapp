@@ -70,6 +70,26 @@ def bulk_index_consignment_from_aws(
     )
 
 
+def reindex_consignment_metadata_from_aws(
+    consignment_reference: str,
+    secret_string: Dict[str, Any],
+    db_secret_string: Dict[str, Any],
+    metadata_key: Optional[str] = None,
+) -> int:
+    """Refresh indexed metadata without downloading or extracting file content."""
+    database_url = _build_db_url(db_secret_string)
+    open_search_http_auth = _get_opensearch_auth(secret_string)
+
+    return reindex_consignment_metadata(
+        consignment_reference,
+        database_url,
+        secret_string["OPEN_SEARCH_HOST"],
+        open_search_http_auth,
+        int(secret_string["OPEN_SEARCH_BULK_INDEX_TIMEOUT"]),
+        metadata_key=metadata_key,
+    )
+
+
 def bulk_index_consignment(
     consignment_reference: str,
     bucket_name: str,
@@ -121,6 +141,77 @@ def bulk_index_consignment(
                 consignment_reference, text_extraction_error, bulk_index_error
             )
         )
+
+
+def reindex_consignment_metadata(
+    consignment_reference: str,
+    database_url: str,
+    open_search_host_url: str,
+    open_search_http_auth: Union[Tuple[str, str], AWS4Auth],
+    open_search_bulk_index_timeout: int,
+    metadata_key: Optional[str] = None,
+    open_search_ca_certs: Optional[str] = None,
+    open_search_use_ssl: bool = True,
+    open_search_verify_certs: bool = True,
+    opensearch_index: str = "documents",
+) -> int:
+    """Update OpenSearch metadata for a consignment without replacing documents."""
+    files = fetch_files_in_consignment(consignment_reference, database_url)
+    actions = prepare_bulk_metadata_update_actions(
+        files, opensearch_index, metadata_key
+    )
+    client = OpenSearch(
+        open_search_host_url,
+        http_auth=open_search_http_auth,
+        use_ssl=open_search_use_ssl,
+        verify_certs=open_search_verify_certs,
+        ca_certs=open_search_ca_certs,
+        connection_class=RequestsHttpConnection,
+    )
+    indexed_count = 0
+    failures = []
+
+    try:
+        for success, result in streaming_bulk(
+            client,
+            actions,
+            chunk_size=OPEN_SEARCH_BULK_CHUNK_SIZE,
+            max_chunk_bytes=OPEN_SEARCH_BULK_MAX_CHUNK_BYTES,
+            request_timeout=open_search_bulk_index_timeout,
+            max_retries=5,
+            initial_backoff=2,
+            max_backoff=60,
+            raise_on_error=False,
+        ):
+            if success:
+                indexed_count += 1
+                continue
+
+            operation_result = next(iter(result.values()))
+            failures.append(
+                {
+                    "document_id": operation_result.get("_id"),
+                    "status": operation_result.get("status"),
+                    "error": operation_result.get("error"),
+                }
+            )
+    except Exception as e:
+        logger.error("OpenSearch metadata update failed: %s", e)
+        raise
+
+    logger.info(
+        "OpenSearch metadata update completed for %s. updated=%s failed=%s",
+        consignment_reference,
+        indexed_count,
+        len(failures),
+    )
+
+    if failures:
+        raise ConsignmentBulkIndexError(
+            f"Metadata reindex failed for consignment "
+            f"{consignment_reference}: {failures[:20]}"
+        )
+    return indexed_count
 
 
 def validate_text_extraction(documents: List[Dict]) -> Optional[str]:
@@ -411,3 +502,28 @@ def prepare_bulk_index_actions(
             "_id": doc["file_id"],
             "_source": doc["document"],
         }
+
+
+def prepare_bulk_metadata_update_actions(
+    files: List[Dict[str, Any]],
+    opensearch_index: str,
+    metadata_key: Optional[str] = None,
+) -> Iterator[Dict[str, Any]]:
+    """Yield partial updates for metadata currently present in the database."""
+    for file in files:
+        if metadata_key is None:
+            metadata = {
+                key: value for key, value in file.items() if key != "file_id"
+            }
+        elif metadata_key in file and metadata_key != "file_id":
+            metadata = {metadata_key: file[metadata_key]}
+        else:
+            continue
+
+        if metadata:
+            yield {
+                "_op_type": "update",
+                "_index": opensearch_index,
+                "_id": file["file_id"],
+                "doc": metadata,
+            }

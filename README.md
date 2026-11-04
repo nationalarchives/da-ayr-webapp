@@ -519,6 +519,8 @@ Depending on environment we have different levels of function to do this:
 
 We also have a way to do this for all files in a postgres database with `data_management/opensearch_indexer/opensearch_indexer/index_all_in_db.py`.
 
+To refresh metadata on existing OpenSearch documents without downloading files or re-extracting their text, run the AWS indexer with `INDEXER_TYPE=METADATA`. It updates all consignments found in the record bucket using partial document updates. Set `METADATA_KEY` to a top-level OpenSearch field (for example, `consignment_transfer_complete_date`) to update only that field; leave it unset to refresh all metadata fields.
+
 ## Updating the Opensearch Index & Generating a new Snapshot
 
 The OpenSearch index used by the local stack and by CI is restored from the snapshot committed in `local_services/snapshots/`. When the test data changes, that snapshot needs regenerating so it matches the postgres data in `dev-data.sql`.
