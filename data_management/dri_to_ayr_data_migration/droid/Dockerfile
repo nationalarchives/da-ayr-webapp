@@ -5,10 +5,10 @@ ARG DROID_VERSION=6.9.13
 # DROID's own release doesn't refresh these on its own schedule, so we
 # override the vulnerable JARs after unpacking.
 ARG DROID_JAR_PATCHES="\
-io.netty:netty-codec:4.2.19.Final \
-io.netty:netty-codec-http:4.2.19.Final \
-io.netty:netty-codec-http2:4.2.19.Final \
-io.netty:netty-handler:4.2.19.Final \
+io.netty:netty-codec:4.2.20.Final \
+io.netty:netty-codec-http:4.2.20.Final \
+io.netty:netty-codec-http2:4.2.20.Final \
+io.netty:netty-handler:4.2.20.Final \
 org.apache.httpcomponents.core5:httpcore5:5.4.4 \
 org.apache.httpcomponents.core5:httpcore5-h2:5.4.4 \
 org.apache.httpcomponents.client5:httpclient5:5.6.5 \
