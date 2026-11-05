@@ -25,7 +25,6 @@ module.exports = {
     `${base_url}/`,
 
     // authentication steps
-    `${base_url}/sign-out`,
     {
       url: `${base_url}/sign-in`,
       actions: [
