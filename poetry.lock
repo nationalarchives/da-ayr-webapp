@@ -1325,14 +1325,14 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "flask-compress"
-version = "1.25"
+version = "1.26"
 description = "Compress responses in your Flask app with gzip, deflate, brotli or zstandard."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "flask_compress-1.25-py3-none-any.whl", hash = "sha256:6ca78e29728525e575a9e76e0e8e7acc6e0bf1421e0cbfd452bca0a68626166f"},
-    {file = "flask_compress-1.25.tar.gz", hash = "sha256:802954fb3af048cf4ca2a3b414393bf2b98466ae8067e6654ea0aa34ba34aff5"},
+    {file = "flask_compress-1.26-py3-none-any.whl", hash = "sha256:f647364ba9ec10ba830cac041b781083ca68244cfc0810a68a702e687ad4eb42"},
+    {file = "flask_compress-1.26.tar.gz", hash = "sha256:bd5299504e564eac273951811a1c161d893f5d51b8722066fcef1b4da556749f"},
 ]
 
 [package.dependencies]
@@ -4572,4 +4572,4 @@ test = ["pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.14,<3.15"
-content-hash = "28716d3acb71df04be0260fe95db7f0809825bef3a97dee8a65c08b8d2d8b79f"
+content-hash = "0b1fde057c57fa45ecdc760b21dfc4cfc534e80cadc9d71883a2720b0c4f70e8"
