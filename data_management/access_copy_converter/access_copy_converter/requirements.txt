@@ -1,4 +1,4 @@
-boto3==1.43.122
+boto3==1.43.123
 requests>=2.20.0
 SQLAlchemy==2.1.6
 psycopg2-binary==2.9.13
