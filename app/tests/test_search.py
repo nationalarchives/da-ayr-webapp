@@ -1,6 +1,6 @@
 import uuid
 from types import SimpleNamespace
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 import opensearchpy
@@ -10,6 +10,10 @@ from flask.testing import FlaskClient
 from werkzeug.exceptions import NotFound
 
 from app.tests.test_browse import verify_scope_text
+from app.tests.test_browse_records_opensearch import (
+    _open_search_client,
+    _search_response,
+)
 from app.tests.utils import (
     decompose_desktop_invisible_elements,
     decompose_inner_tables,
@@ -64,43 +68,6 @@ def verify_browse_heading(data, expected_text):
         " ".join(browse_heading.get_text(separator=" ").split())
         == expected_text
     )
-
-
-def _search_response(total=6):
-    return {
-        "hits": {
-            "total": {"value": total, "relation": "eq"},
-            "hits": [
-                {
-                    "_source": {
-                        "file_id": "a8514206-0ebb-4762-9022-fee2edce6436",
-                        "file_name": "indexed_file.txt",
-                        "file_path": "first_body/series/consignment/indexed_file.txt",
-                        "closure_type": "Open",
-                        "opening_date": "2024-01-02T00:00:00",
-                        "date_last_modified": "2024-01-03T00:53:25.593740+00:00",
-                        "series_id": "series-id",
-                        "series_name": "HO 405",
-                        "transferring_body_id": "body-id",
-                        "transferring_body": "first_body",
-                        "consignment_id": "consignment-id",
-                        "consignment_reference": "AYR-2026-KSJ2",
-                    }
-                }
-            ],
-        }
-    }
-
-
-def _open_search_client():
-    client = Mock()
-    client.search.return_value = {
-        "aggregations": {
-            "browse_transferring_bodies": {"buckets": []},
-            "browse_autofill_options": {"buckets": []},
-        }
-    }
-    return client
 
 
 class MockIndices:
