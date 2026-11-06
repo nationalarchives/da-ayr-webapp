@@ -10,6 +10,10 @@ from flask.testing import FlaskClient
 from werkzeug.exceptions import NotFound
 
 from app.tests.test_browse import verify_scope_text
+from app.tests.test_browse_records_opensearch import (
+    _open_search_client,
+    _search_response,
+)
 from app.tests.utils import (
     decompose_desktop_invisible_elements,
     decompose_inner_tables,
@@ -50,6 +54,20 @@ def verify_filters_heading(data, expected_heading):
 
     assert heading is not None
     assert " ".join(heading.get_text(separator=" ").split()) == expected_heading
+
+
+def verify_browse_heading(data, expected_text):
+    """
+    Check the browse heading against expected value.
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    browse_heading = soup.find(class_="browse__heading")
+
+    assert browse_heading is not None
+    assert (
+        " ".join(browse_heading.get_text(separator=" ").split())
+        == expected_text
+    )
 
 
 class MockIndices:
@@ -1155,3 +1173,28 @@ class TestSearchResults:
 
         assert response.status_code == 200
         verify_scope_text(response.data, body.Name)
+
+    def test_search_results_renders_10000_plus_records_found_heading_for_all_access_user(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given an all-access user on search results
+        When the page renders with more than 10,000 records
+        Then the browse heading displays 'Records found 10,000+' and the support text appears
+        """
+        mock_all_access_user(client)
+        with (
+            patch("app.main.routes.setup_opensearch") as setup_opensearch,
+            patch("app.main.routes.execute_search") as execute_search,
+        ):
+            setup_opensearch.return_value = _open_search_client()
+            execute_search.return_value = _search_response(total=1_144_224)
+
+            response = client.get(f"{self.route_url}?query=test")
+
+        assert response.status_code == 200
+        verify_browse_heading(response.data, "Records found 10,000+")
+        assert (
+            b"Only the first 10,000 records are shown; add keywords or apply filters to narrow your search."
+            in response.data
+        )

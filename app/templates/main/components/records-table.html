@@ -7,7 +7,9 @@
                aria-label="Browse records table">
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
-                    <th scope="col" class="govuk-table__header browse__header-cell">Showing {{ start_index }}–{{ end_index }} of {{ num_records_found | format_number_with_commas }}</th>
+                    {# djlint:off #}
+                    <th scope="col" class="govuk-table__header browse__header-cell">Showing {{ start_index | format_number_with_commas }}–{{ end_index | format_number_with_commas }}{% if num_records_found <= 10000 %} of {{ num_records_found | format_number_with_commas }}{% endif %}</th>
+                    {# djlint:on #}
                     <th scope="col"
                         class="govuk-table__header browse__header-cell govuk-table--invisible-on-mobile">Series</th>
                     <th scope="col" class="govuk-table__header browse__header-cell">Status</th>
