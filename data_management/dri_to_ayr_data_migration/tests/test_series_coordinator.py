@@ -17,6 +17,7 @@ os.environ.setdefault("DRI_JSON_BUCKET", "dri-json-bucket")
 os.environ.setdefault("WORKER_QUEUE_URL", "worker-queue-url")
 os.environ.setdefault("TRACKING_TABLE_NAME", "tracking-table")
 os.environ.setdefault("MAX_FILES_PER_FAKE_CONSIGNMENT", "3")
+os.environ.setdefault("SKIP_METADATA", "{}")
 
 
 import series_coordinator.main as coordinator_module
@@ -394,6 +395,322 @@ class TestCoordinateSeries:
         coordinator.dynamodb.put_item.assert_not_called()
 
 
+class TestExclusions:
+    @pytest.fixture
+    def exclusion_aws(self):
+        with mock_aws():
+            yield
+
+    @pytest.fixture
+    def exclusion_clients(self, monkeypatch, exclusion_aws):
+        sqs_client = boto3.client("sqs", region_name="eu-west-2")
+        queue_url = sqs_client.create_queue(QueueName="worker-queue")[
+            "QueueUrl"
+        ]
+        clients = patch_moto_clients(monkeypatch, queue_url)
+        create_bucket(clients[0], "dri-json-bucket")
+        create_tracking_table(clients[2], "tracking-table")
+        monkeypatch.setattr(
+            coordinator_module,
+            "EXCLUSIONS",
+            {
+                "digitalFiles.0.fileId": ["file-1"],
+                "driBatchReference": ["X"],
+            },
+        )
+        return (*clients, queue_url)
+
+    def test_load_exclusions_defaults(self, monkeypatch):
+        monkeypatch.delenv("SKIP_METADATA", raising=False)
+
+        assert coordinator_module.load_exclusions() == {}
+
+    def test_load_exclusions_normalises_order_and_duplicates(self, monkeypatch):
+        monkeypatch.setenv(
+            "SKIP_METADATA", '{"driBatchReference":["Y","X","X"]}'
+        )
+
+        assert coordinator_module.load_exclusions() == {
+            "driBatchReference": ["X", "Y"],
+        }
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "not-json",
+            "[]",
+            '{"driBatchReference":"X"}',
+            '{"driBatchReference":[]}',
+            '{"driBatchReference":[1]}',
+            '{" ":["X"]}',
+            '{"digitalFiles..fileId":["file-1"]}',
+        ],
+    )
+    def test_load_exclusions_rejects_invalid_settings(self, monkeypatch, value):
+        monkeypatch.setenv("SKIP_METADATA", value)
+
+        with pytest.raises(ValueError, match="SKIP_METADATA"):
+            coordinator_module.load_exclusions()
+
+    @pytest.mark.parametrize(
+        "metadata",
+        [
+            {"driBatchReference": "X"},
+            {"driBatchReference": "Y"},
+            {"description": "excluded"},
+        ],
+    )
+    def test_filter_matches_any_exact_top_level_value(
+        self, coordinator, monkeypatch, metadata
+    ):
+        monkeypatch.setattr(
+            coordinator,
+            "EXCLUSIONS",
+            {
+                "driBatchReference": ["X", "Y"],
+                "description": ["excluded"],
+            },
+        )
+        data = {**record("MIG 1/001", "file-1"), **metadata}
+
+        assert coordinator.filter_records([data]) == []
+
+    @pytest.mark.parametrize(
+        "metadata",
+        [
+            {"driBatchReference": "x"},
+            {"dribatchreference": "X"},
+            {"driBatchReference": " X "},
+            {"driBatchReference": None},
+            {"driBatchReference": ["X"]},
+            {"driBatchReference": {"value": "X"}},
+            {},
+        ],
+    )
+    def test_filter_keeps_records_without_exact_top_level_match(
+        self, coordinator, monkeypatch, metadata
+    ):
+        monkeypatch.setattr(
+            coordinator,
+            "EXCLUSIONS",
+            {
+                "driBatchReference": ["X", "Y"],
+                "description": ["excluded"],
+            },
+        )
+        data = {**record("MIG 1/001", "file-1"), **metadata}
+
+        assert coordinator.filter_records([data]) == [data]
+
+    def test_filter_matches_nested_metadata(self, coordinator, monkeypatch):
+        monkeypatch.setattr(
+            coordinator, "EXCLUSIONS", {"metadata.batch.reference": ["X"]}
+        )
+        data = {"metadata": {"batch": {"reference": "X"}}}
+
+        assert coordinator.filter_records([data]) == []
+
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "digitalFiles.1.fileId",
+            "digitalFiles.-1.fileId",
+            "digitalFiles.first.fileId",
+            "digitalFiles.0.missing",
+            "digitalFiles.0.fileId.child",
+            "missing.fileId",
+        ],
+    )
+    def test_filter_keeps_records_when_path_cannot_be_resolved(
+        self, coordinator, monkeypatch, path
+    ):
+        monkeypatch.setattr(coordinator, "EXCLUSIONS", {path: ["file-1"]})
+        data = record("MIG 1/001", "file-1")
+
+        assert coordinator.filter_records([data]) == [data]
+
+    def test_file_id_metadata_matches_exactly(self, coordinator, monkeypatch):
+        monkeypatch.setattr(
+            coordinator, "EXCLUSIONS", {"digitalFiles.0.fileId": ["file-1"]}
+        )
+        data = record("MIG 1/001", " file-1 ")
+
+        assert coordinator.filter_records([data]) == [data]
+
+    def test_exclusions_apply_before_tracking_and_chunking(
+        self, exclusion_clients, caplog
+    ):
+        s3_client, sqs_client, dynamodb_client, queue_url = exclusion_clients
+        records = [
+            record("MIG 1/001", "file-1"),
+            {
+                **record("MIG 1/002", "file-2", "TDR-excluded"),
+                "driBatchReference": "X",
+            },
+            record("MIG 1/003", "file-3"),
+            record("MIG 1/004", "file-4"),
+            record("MIG 1/005", "file-5"),
+            record("MIG 1/006", "file-6"),
+        ]
+        for index, data in enumerate(records, start=1):
+            put_json_record(
+                s3_client,
+                "dri-json-bucket",
+                f"live/MIG 1-{index:03d}.json",
+                data,
+            )
+
+        caplog.set_level("INFO")
+        response = coordinator_module.coordinate_series("MIG 1")
+        assert response["recordCount"] == 6
+        assert response["filesExcluded"] == 2
+        assert response["filesSkipped"] == 2
+        assert response["workerMessagesSent"] == 4
+        assert response["consignmentCount"] == 2
+        assert "Excluding record reference=MIG 1/001" in caplog.text
+
+        items = dynamodb_client.scan(TableName="tracking-table")["Items"]
+        file_ids = {item["fileId"]["S"] for item in items if "fileId" in item}
+        assert file_ids == {"file-3", "file-4", "file-5", "file-6"}
+        consignment_items = [
+            item for item in items if item["entityType"]["S"] == "CONSIGNMENT"
+        ]
+
+        assert sorted(
+            int(item["expectedFileCount"]["N"]) for item in consignment_items
+        ) == [1, 3]
+
+        messages = read_sqs_messages(sqs_client, queue_url)
+        assert {message["fileId"] for message in messages} == file_ids
+        assert messages[0]["includeBodyAndSeries"] is True
+        assert messages[0]["includeConsignment"] is True
+
+        run_item = get_series_run_tracking_item("MIG 1")
+        assert json.loads(run_item["exclusions"]["S"]) == {
+            "digitalFiles.0.fileId": ["file-1"],
+            "driBatchReference": ["X"],
+        }
+
+    def test_excluding_all_records_creates_no_files_or_consignments(
+        self, exclusion_clients, caplog
+    ):
+        s3_client, sqs_client, dynamodb_client, queue_url = exclusion_clients
+        data = record("MIG 1/002", "file-2")
+        data["driBatchReference"] = "X"
+        put_json_record(
+            s3_client,
+            "dri-json-bucket",
+            "live/MIG 1-002.json",
+            data,
+        )
+
+        caplog.set_level("INFO")
+        response = coordinator_module.coordinate_series("MIG 1")
+
+        assert response["recordCount"] == 1
+        assert response["filesExcluded"] == 1
+        assert response["filesSkipped"] == 1
+        assert response["workerMessagesSent"] == 0
+        assert response["consignmentCount"] == 0
+        assert response["consignments"] == []
+        assert "Excluding record reference=MIG 1/002" in caplog.text
+        items = dynamodb_client.scan(TableName="tracking-table")["Items"]
+        assert [item["entityType"]["S"] for item in items] == ["SERIES_RUN"]
+        assert read_sqs_messages(sqs_client, queue_url) == []
+
+    def test_resume_uses_existing_run_id(self, exclusion_clients):
+        s3_client, _, _, _ = exclusion_clients
+        put_json_record(
+            s3_client,
+            "dri-json-bucket",
+            "live/MIG 1-001.json",
+            record("MIG 1/001", "file-1"),
+        )
+        put_json_record(
+            s3_client,
+            "dri-json-bucket",
+            "live/MIG 1-002.json",
+            record("MIG 1/002", "file-2"),
+        )
+        response = coordinator_module.coordinate_series("MIG 1")
+
+        resumed = coordinator_module.coordinate_series(
+            "MIG 1", response["runId"]
+        )
+        assert resumed["runId"] == response["runId"]
+        assert resumed["filesExcluded"] == 1
+        assert resumed["consignments"] == [
+            {
+                "consignmentReference": "DRI-TO-AYR-2026-MIG-1-0001",
+                "expectedFileCount": 1,
+            }
+        ]
+
+    @pytest.mark.parametrize(
+        "original,current",
+        [
+            (None, {"digitalFiles.0.fileId": ["file-1"]}),
+            (
+                {"digitalFiles.0.fileId": ["file-1"]},
+                {},
+            ),
+            (
+                {"driBatchReference": ["X"]},
+                {"driBatchReference": ["Y"]},
+            ),
+        ],
+    )
+    def test_resume_rejects_changed_exclusions_before_loading_records(
+        self, coordinator, monkeypatch, original, current
+    ):
+        item = {
+            "runId": {"S": "run-1"},
+            "maxFilesPerFakeConsignment": {"N": "3"},
+        }
+        if original is not None:
+            item["exclusions"] = {"S": json.dumps(original, sort_keys=True)}
+        coordinator.dynamodb.get_item.return_value = {"Item": item}
+        monkeypatch.setattr(coordinator, "EXCLUSIONS", current)
+
+        with pytest.raises(ValueError, match="must match the original run"):
+            coordinator.coordinate_series("MIG 1", "run-1")
+
+        coordinator.s3.get_paginator.assert_not_called()
+        coordinator.dynamodb.put_item.assert_not_called()
+        coordinator.sqs.send_message.assert_not_called()
+
+    def test_resume_accepts_reordered_and_duplicate_rules(
+        self, coordinator, monkeypatch
+    ):
+        coordinator.dynamodb.get_item.return_value = {
+            "Item": {
+                "runId": {"S": "run-1"},
+                "maxFilesPerFakeConsignment": {"N": "3"},
+                "exclusions": {
+                    "S": json.dumps(
+                        {
+                            "digitalFiles.0.fileId": ["file-1"],
+                            "driBatchReference": ["X", "Y"],
+                        },
+                        sort_keys=True,
+                    )
+                },
+            }
+        }
+        monkeypatch.setenv(
+            "SKIP_METADATA",
+            '{"driBatchReference":["Y","X","X"],'
+            '"digitalFiles.0.fileId":["file-1","file-1"]}',
+        )
+        monkeypatch.setattr(
+            coordinator, "EXCLUSIONS", coordinator.load_exclusions()
+        )
+
+        coordinator.validate_existing_run("run-1", "MIG 1")
+
+        coordinator.dynamodb.put_item.assert_not_called()
+
+
 class TestS3RecordLoading:
     """S3 JSON listing and loading tests"""
 
@@ -762,6 +1079,7 @@ class TestRunResolution:
                 "series": {"S": "MIG 1"},
                 "runId": {"S": "run-1"},
                 "maxFilesPerFakeConsignment": {"N": "3"},
+                "exclusions": {"S": "{}"},
                 "createdAt": {"S": "2026-09-23T10:00:00Z"},
                 "updatedAt": {"S": "2026-09-23T10:00:00Z"},
             },
@@ -991,7 +1309,7 @@ class TestProcessingLoops:
         put_consignment_tracking_item_mock = mock.Mock()
         process_record_mock = mock.Mock(
             return_value={
-                "workerMessageSent": 1,
+                "workerMessagesSent": 1,
                 "fileSkipped": 0,
             }
         )
@@ -1114,7 +1432,7 @@ class TestProcessingLoops:
         )
 
         assert result == {
-            "workerMessageSent": 1,
+            "workerMessagesSent": 1,
             "fileSkipped": 0,
         }
         put_file_tracking_item_mock.assert_called_once()
@@ -1162,7 +1480,7 @@ class TestProcessingLoops:
         )
 
         assert result == {
-            "workerMessageSent": 0,
+            "workerMessagesSent": 0,
             "fileSkipped": 1,
         }
         put_file_tracking_item_mock.assert_not_called()
