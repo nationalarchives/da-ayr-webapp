@@ -73,14 +73,11 @@
         <tbody class="govuk-table__body">
             {% for cookie in [
                 ('session', 'A cookie that holds information for authorisation purpose'),
-                ('KEYCLOAK_SESSION_LEGACY', 'Keeps track of the session'),
+                ('AUTH_SESSION_ID', 'A cookie set by the authorisation component of the service that Tracks the session identity'),
                 ('KEYCLOAK_SESSION', 'Keeps track of the session'),
-                ('KEYCLOAK_IDENTITY_LEGACY', 'Tracks elements related to your identity'),
+                ('KC_AUTH_SESSION_HASH', 'A cookie set by the authorisation component of the service that Tracks the session'),
                 ('KEYCLOAK_IDENTITY', 'Tracks elements related to your identity'),
-                ('AUTH_SESSION_ID_LEGACY', 'Tracks the session identity'),
-                ('AUTH_SESSION_ID', 'Tracks the session identity'),
                 ('KC_RESTART', 'Tracks the session'),
-                ('KC_AUTH_STATE', 'Tracks the session')
                 ] %}
                 <tr class="govuk-table__row">
                     <td class="govuk-table__cell govuk-table__header govuk-table__header--cookies govuk-!-font-size-16">
