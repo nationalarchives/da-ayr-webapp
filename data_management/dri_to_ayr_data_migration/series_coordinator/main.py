@@ -63,6 +63,81 @@ FILE_STATUSES_SKIP_WORKER = {
 }
 
 
+def load_exclusions() -> dict[str, list[str]]:
+    """Validate and normalise the coordinator's JSON exclusion settings."""
+    try:
+        metadata = json.loads(os.getenv("SKIP_METADATA", "{}"))
+    except json.JSONDecodeError as exc:
+        raise ValueError("SKIP_METADATA must contain valid JSON") from exc
+
+    if not isinstance(metadata, dict):
+        raise ValueError("SKIP_METADATA must be a JSON object")
+
+    for field, values in metadata.items():
+        if any(not part.strip() for part in field.split(".")):
+            raise ValueError(
+                "SKIP_METADATA paths must not contain blank segments"
+            )
+        if not isinstance(values, list) or not values:
+            raise ValueError(
+                f"SKIP_METADATA field '{field}' must contain a non-empty array"
+            )
+        if any(not isinstance(value, str) for value in values):
+            raise ValueError(
+                f"SKIP_METADATA field '{field}' values must be strings"
+            )
+
+    return {key: sorted(set(values)) for key, values in metadata.items()}
+
+
+EXCLUSIONS = load_exclusions()
+
+
+def metadata_value(record: dict[str, Any], path: str) -> Any:
+    """Resolve dot-separated object keys and zero-based array indices."""
+    value: Any = record
+    for part in path.split("."):
+        if isinstance(value, dict):
+            value = value.get(part)
+        elif isinstance(value, list) and part.isascii() and part.isdecimal():
+            index = int(part)
+            if index >= len(value):
+                return None
+            value = value[index]
+        else:
+            return None
+    return value
+
+
+def filter_records(
+    records: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Exclude matching records before consignment membership is determined."""
+    included = []
+    exclusion_values = {
+        field: set(values) for field, values in EXCLUSIONS.items()
+    }
+
+    for record in records:
+        reason = None
+        for field, values in exclusion_values.items():
+            value = metadata_value(record, field)
+            if isinstance(value, str) and value in values:
+                reason = f"metadata field={field}"
+                break
+
+        if reason is not None:
+            logger.info(
+                "Excluding record reference=%s matched=%s",
+                record.get("reference"),
+                reason,
+            )
+        else:
+            included.append(record)
+
+    return included
+
+
 def coordinate_series(
     series: str,
     supplied_run_id: str | None = None,
@@ -80,11 +155,13 @@ def coordinate_series(
     if not records:
         raise ValueError(f"No DRI JSON records found for series: {series}")
 
-    consignment_groups = group_records_by_consignment(records, series)
+    included_records = filter_records(records)
+    files_excluded = len(records) - len(included_records)
+    consignment_groups = group_records_by_consignment(included_records, series)
 
     worker_messages_sent = 0
     consignments_skipped = []
-    files_skipped = 0
+    files_skipped = files_excluded
 
     for consignment_reference, group_records in consignment_groups.items():
         result = process_consignment_group(
@@ -110,6 +187,7 @@ def coordinate_series(
         "consignmentCount": len(consignment_groups),
         "workerMessagesSent": worker_messages_sent,
         "filesSkipped": files_skipped,
+        "filesExcluded": files_excluded,
         "consignmentsSkipped": consignments_skipped,
         "consignments": [
             {
@@ -178,10 +256,10 @@ def process_consignment_group(
             include_body_and_series=include_body_and_series,
             include_consignment=include_consignment,
         )
-        worker_messages_sent += result["workerMessageSent"]
+        worker_messages_sent += result["workerMessagesSent"]
         files_skipped += result["fileSkipped"]
 
-        if result["workerMessageSent"]:
+        if result["workerMessagesSent"]:
             include_body_and_series = False
             include_consignment = False
 
@@ -219,7 +297,7 @@ def process_record(
                 file_status,
             )
             return {
-                "workerMessageSent": 0,
+                "workerMessagesSent": 0,
                 "fileSkipped": 1,
             }
     else:
@@ -242,7 +320,7 @@ def process_record(
     )
 
     return {
-        "workerMessageSent": 1,
+        "workerMessagesSent": 1,
         "fileSkipped": 0,
     }
 
@@ -607,6 +685,17 @@ def validate_existing_run(run_id: str, series: str) -> None:
             f"MAX_FILES_PER_FAKE_CONSIGNMENT={recorded_limit} to resume."
         )
 
+    recorded_exclusions = item.get("exclusions", {}).get("S")
+    current_exclusions = json.dumps(EXCLUSIONS, sort_keys=True)
+    if recorded_exclusions is None:
+        recorded_exclusions = "{}"
+    if recorded_exclusions != current_exclusions:
+        raise ValueError(
+            f"Cannot resume migration run '{run_id}' for series '{series}': "
+            "SKIP_METADATA must match the original run. "
+            f"Original exclusions: {recorded_exclusions}"
+        )
+
 
 def get_series_run_tracking_item(series: str) -> dict[str, Any] | None:
     """Return the single migration-run marker for a series, if present."""
@@ -640,6 +729,7 @@ def mark_series_started(series: str, run_id: str) -> None:
                 "maxFilesPerFakeConsignment": {
                     "N": str(MAX_FILES_PER_FAKE_CONSIGNMENT)
                 },
+                "exclusions": {"S": json.dumps(EXCLUSIONS, sort_keys=True)},
                 "createdAt": {"S": now},
                 "updatedAt": {"S": now},
             },
