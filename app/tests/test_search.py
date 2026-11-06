@@ -1,6 +1,6 @@
 import uuid
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 import opensearchpy
@@ -50,6 +50,57 @@ def verify_filters_heading(data, expected_heading):
 
     assert heading is not None
     assert " ".join(heading.get_text(separator=" ").split()) == expected_heading
+
+
+def verify_browse_heading(data, expected_text):
+    """
+    Check the browse heading against expected value.
+    """
+    soup = BeautifulSoup(data, "html.parser")
+    browse_heading = soup.find(class_="browse__heading")
+
+    assert browse_heading is not None
+    assert (
+        " ".join(browse_heading.get_text(separator=" ").split())
+        == expected_text
+    )
+
+
+def _search_response(total=6):
+    return {
+        "hits": {
+            "total": {"value": total, "relation": "eq"},
+            "hits": [
+                {
+                    "_source": {
+                        "file_id": "a8514206-0ebb-4762-9022-fee2edce6436",
+                        "file_name": "indexed_file.txt",
+                        "file_path": "first_body/series/consignment/indexed_file.txt",
+                        "closure_type": "Open",
+                        "opening_date": "2024-01-02T00:00:00",
+                        "date_last_modified": "2024-01-03T00:53:25.593740+00:00",
+                        "series_id": "series-id",
+                        "series_name": "HO 405",
+                        "transferring_body_id": "body-id",
+                        "transferring_body": "first_body",
+                        "consignment_id": "consignment-id",
+                        "consignment_reference": "AYR-2026-KSJ2",
+                    }
+                }
+            ],
+        }
+    }
+
+
+def _open_search_client():
+    client = Mock()
+    client.search.return_value = {
+        "aggregations": {
+            "browse_transferring_bodies": {"buckets": []},
+            "browse_autofill_options": {"buckets": []},
+        }
+    }
+    return client
 
 
 class MockIndices:
@@ -1155,3 +1206,28 @@ class TestSearchResults:
 
         assert response.status_code == 200
         verify_scope_text(response.data, body.Name)
+
+    def test_search_results_renders_10000_plus_records_found_heading_for_all_access_user(
+        self, client: FlaskClient, mock_all_access_user
+    ):
+        """
+        Given an all-access user on search results
+        When the page renders with more than 10,000 records
+        Then the browse heading displays 'Records found 10,000+' and the support text appears
+        """
+        mock_all_access_user(client)
+        with (
+            patch("app.main.routes.setup_opensearch") as setup_opensearch,
+            patch("app.main.routes.execute_search") as execute_search,
+        ):
+            setup_opensearch.return_value = _open_search_client()
+            execute_search.return_value = _search_response(total=1_144_224)
+
+            response = client.get(f"{self.route_url}?query=test")
+
+        assert response.status_code == 200
+        verify_browse_heading(response.data, "Records found 10,000+")
+        assert (
+            b"Only the first 10,000 records are shown; add keywords or apply filters to narrow your search."
+            in response.data
+        )
