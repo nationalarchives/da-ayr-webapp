@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.14@sha256:89bd1aa6e4ccacb0e0af051826f267ae44ddee80b67efc77d7a2896e5b11f75f
+FROM public.ecr.aws/lambda/python:3.14@sha256:cf4c3a72d1cd34b7ae289fef868bac0777afeef9895c5d0a3d83d7dcb4da9a29
 
 ARG DROID_VERSION=6.9.13
 
