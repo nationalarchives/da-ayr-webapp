@@ -2,12 +2,15 @@ import csv
 import json
 import os
 import subprocess
+import tempfile
 from io import StringIO
 from pathlib import Path
 from unittest import mock
 
+import boto3
 import pytest
 from botocore.exceptions import ClientError
+from moto import mock_aws
 
 os.environ.setdefault("AWS_DEFAULT_REGION", "eu-west-2")
 os.environ.setdefault("AWS_EC2_METADATA_DISABLED", "true")
@@ -67,6 +70,23 @@ def droid_message() -> dict[str, str]:
     }
 
 
+def mock_droid_command(
+    monkeypatch, csv_output, *, stdout="", stderr="", returncode=0
+):
+    """Simulate DROID writing CSV to the path supplied after -o."""
+
+    def execute(command, **kwargs):
+        assert command[2] == "-o"
+        output = Path(command[3])
+        assert output.parent.is_dir()
+        output.write_text(csv_output, encoding="utf-8")
+        return subprocess.CompletedProcess(command, returncode, stdout, stderr)
+
+    run = mock.Mock(side_effect=execute)
+    monkeypatch.setattr(subprocess, "run", run)
+    return run
+
+
 def consignment_item(
     *,
     status: str = "STAGING",
@@ -101,6 +121,114 @@ def droid(monkeypatch):
 
 class TestDroidHandler:
     """DROID Lambda handler and orchestration tests."""
+
+    @pytest.mark.parametrize("flag", ["true", 1, None])
+    def test_process_message_rejects_non_boolean_partial_override(
+        self, droid, flag
+    ):
+        with pytest.raises(ValueError, match="must be a boolean"):
+            droid.process_message(
+                {**droid_message(), "allowPartialIdentification": flag}
+            )
+        droid.s3.copy.assert_not_called()
+        droid.dynamodb.get_item.assert_not_called()
+
+    @mock_aws
+    def test_process_message_logs_partial_identification_and_completes_once(
+        self, droid, monkeypatch, caplog
+    ):
+        db = boto3.client("dynamodb", region_name="eu-west-2")
+        db.create_table(
+            TableName="tracking-table",
+            KeySchema=[
+                {"AttributeName": "PK", "KeyType": "HASH"},
+                {"AttributeName": "SK", "KeyType": "RANGE"},
+            ],
+            AttributeDefinitions=[
+                {"AttributeName": "PK", "AttributeType": "S"},
+                {"AttributeName": "SK", "AttributeType": "S"},
+            ],
+            BillingMode="PAY_PER_REQUEST",
+        )
+        file_key = {
+            "PK": {"S": f"RUN#{RUN_ID}#CONSIGNMENT#{CONSIGNMENT_REFERENCE}"},
+            "SK": {"S": f"FILE#{FILE_ID}"},
+        }
+        consignment_key = {
+            "PK": {"S": f"RUN#{RUN_ID}"},
+            "SK": {"S": f"CONSIGNMENT#{CONSIGNMENT_REFERENCE}"},
+        }
+        db.put_item(
+            TableName="tracking-table",
+            Item={**file_key, "status": {"S": "PENDING"}},
+        )
+        db.put_item(
+            TableName="tracking-table",
+            Item={**consignment_key, **consignment_item(completed=0)},
+        )
+        monkeypatch.setattr(droid, "dynamodb", db)
+        monkeypatch.setattr(droid, "utc_now_text", lambda: FIXED_NOW)
+        monkeypatch.setattr(
+            droid, "uuid4", mock.Mock(return_value=mock.Mock(hex="attempt-1"))
+        )
+        uri = "s3://temp-data-bucket/_ayr-droid-inputs/attempt-1/file-1.xls"
+        subprocess_run = mock_droid_command(
+            monkeypatch,
+            (
+                "ID,URI,STATUS,EXT,PUID,FORMAT_NAME,EXTENSION_MISMATCH\n"
+                f"1,{uri},Done,xls,fmt/111,OLE2 Compound Document Format,false\n"
+            ),
+            stdout="2026-11-09T11:59:40,335 ERROR [core-thread-1] "
+            "Ole2IdentifierEngine:133 - No reader was obtained\n",
+        )
+        droid.sqs.send_message.return_value = {"MessageId": "finaliser-message"}
+        message = {
+            **droid_message(),
+            "extension": "xls",
+            "allowPartialIdentification": True,
+        }
+
+        # Default retries cannot complete or upload an FFID result after an ERROR.
+        with pytest.raises(RuntimeError, match="identification errors"):
+            droid.process_message({**droid_message(), "extension": "xls"})
+        droid.s3.put_object.assert_not_called()
+        assert db.get_item(TableName="tracking-table", Key=file_key)["Item"][
+            "status"
+        ] == {"S": "PENDING"}
+
+        result = droid.process_message(message)
+        assert result["finaliserTriggered"] is True
+        item = db.get_item(TableName="tracking-table", Key=file_key)["Item"]
+        assert item == {
+            **file_key,
+            "status": {"S": "COMPLETE"},
+            "completedAt": {"S": FIXED_NOW},
+            "updatedAt": {"S": FIXED_NOW},
+        }
+        assert "Partial DROID identification override requested" in caplog.text
+        assert "Accepting partial DROID identification" in caplog.text
+        assert "No reader was obtained" in caplog.text
+        csv_rows = list(
+            csv.DictReader(
+                StringIO(
+                    droid.s3.put_object.call_args.kwargs["Body"].decode("utf-8")
+                )
+            )
+        )
+        assert csv_rows[0]["PUID"] == "fmt/111"
+        assert csv_rows[0]["FormatName"] == "OLE2 Compound Document Format"
+
+        # Both approved and original duplicate messages preserve the counter.
+        assert droid.process_message(message)["skipped"] is True
+        assert droid.process_message(droid_message())["skipped"] is True
+        consignment = db.get_item(
+            TableName="tracking-table", Key=consignment_key
+        )["Item"]
+        assert consignment["completedFileCount"] == {"N": "1"}
+        assert consignment["status"] == {"S": "READY_TO_FINALISE"}
+        droid.sqs.send_message.assert_called_once()
+        droid.s3.put_object.assert_called_once()
+        assert subprocess_run.call_count == 2
 
     def test_lambda_handler_supports_direct_retry(
         self,
@@ -249,6 +377,7 @@ class TestDroidHandler:
             key=DATA_KEY,
             file_id=FILE_ID,
             extension="pdf",
+            allow_partial_identification=False,
         )
         upload_ffid.assert_called_once_with(
             series=SERIES,
@@ -331,13 +460,16 @@ class TestDroidHandler:
         run_droid.assert_called_once_with(
             alias_uri,
             expected_uri=alias_uri,
+            allow_partial_identification=False,
         )
         droid.s3.delete_object.assert_called_once_with(
             Bucket="temp-data-bucket",
             Key=alias_key,
         )
 
-    def test_droid_alias_copy_uses_multipart_for_large_objects(self, droid):
+    def test_droid_alias_copy_config_uses_multipart_for_large_objects(
+        self, droid
+    ):
         config = droid.DROID_ALIAS_COPY_CONFIG
 
         assert config.multipart_threshold == 4 * 1024**3
@@ -407,7 +539,9 @@ class TestDroidHandler:
             ({"Item": {"status": {"S": "COMPLETE"}}}, True),
         ],
     )
-    def test_is_file_already_complete(self, droid, item, expected):
+    def test_is_file_already_complete_returns_status_check(
+        self, droid, item, expected
+    ):
         droid.dynamodb.get_item.return_value = item
 
         result = droid.is_file_already_complete(
@@ -838,6 +972,181 @@ class TestDroidHandler:
 class TestRunDroid:
     """DROID subprocess tests."""
 
+    def test_read_droid_csv_accepts_reordered_columns(self):
+        rows = droid_module.read_droid_csv(
+            StringIO(
+                "FORMAT_NAME,PUID,URI,ID\nPDF,fmt/18,s3://bucket/file.pdf,1\n"
+            )
+        )
+        assert rows == [
+            {
+                "ID": "1",
+                "URI": "s3://bucket/file.pdf",
+                "PUID": "fmt/18",
+                "FORMAT_NAME": "PDF",
+            }
+        ]
+
+    def test_run_droid_requires_override_for_ole2_reader_error(
+        self, monkeypatch, caplog
+    ):
+        uri = "s3://temp-data-bucket/_ayr-droid-inputs/attempt/file.xls"
+        diagnostic = (
+            "2026-11-09T11:59:40,335 ERROR [core-thread-1] "
+            f"Ole2IdentifierEngine:133 - No reader was obtained for {uri}. "
+            "This may be due to low memory conditions. Try running with a larger heap size!\n"
+        )
+        output = (
+            '"ID","PARENT_ID","URI","FILE_PATH","NAME","METHOD","STATUS","SIZE",'
+            '"TYPE","EXT","LAST_MODIFIED","EXTENSION_MISMATCH","HASH",'
+            '"FORMAT_COUNT","PUID","MIME_TYPE","FORMAT_NAME","FORMAT_VERSION"\n'
+            f'"1","","{uri}","{uri}","file.xls","Signature","Done","7449867",'
+            '"File","xls","2026-11-09T11:59:31","false","","1","fmt/111","",'
+            '"OLE2 Compound Document Format",""\n'
+        )
+        mock_droid_command(
+            monkeypatch,
+            output,
+            stdout=diagnostic,
+        )
+        with pytest.raises(RuntimeError, match="identification errors"):
+            run_droid(uri, uri)
+        row = run_droid(uri, uri, allow_partial_identification=True)
+        assert row["URI"] == uri
+        assert row["STATUS"] == "Done"
+        assert row["PUID"] == "fmt/111"
+        assert row["FORMAT_NAME"] == "OLE2 Compound Document Format"
+        assert row["FORMAT_COUNT"] == "1"
+        assert "Accepting partial DROID identification" in caplog.text
+        assert "No reader was obtained" in caplog.text
+
+    def test_run_droid_requires_override_for_stderr_fatal_error(
+        self, monkeypatch
+    ):
+        uri = "s3://temp-data-bucket/file.xls"
+        mock_droid_command(
+            monkeypatch,
+            f"ID,URI,STATUS,PUID,FORMAT_NAME\n1,{uri},Done,fmt/111,OLE2\n",
+            stderr="2026-11-09T11:59:40,335 FATAL [main] Container reader failed\n",
+        )
+        with pytest.raises(RuntimeError, match="identification errors"):
+            run_droid(uri, uri)
+        assert (
+            run_droid(uri, uri, allow_partial_identification=True)["PUID"]
+            == "fmt/111"
+        )
+
+    @pytest.mark.parametrize(
+        "output,expected_error",
+        [
+            ("not CSV\n", "CSV header"),
+            ("URI,PUID,FORMAT_NAME\n{uri},fmt/111,OLE2\n", "CSV header"),
+            ("ID,URI,PUID,FORMAT_NAME\n1,wrong,fmt/111,OLE2\n", "exactly one"),
+            (
+                "ID,URI,STATUS,PUID,FORMAT_NAME\n1,{uri},Error,fmt/111,OLE2\n",
+                "status",
+            ),
+            (
+                "ID,URI,STATUS,PUID,FORMAT_NAME\n1,{uri},Done,,OLE2\n",
+                "identification",
+            ),
+            (
+                "ID,URI,STATUS,PUID,FORMAT_NAME\n1,{uri},Done,   ,OLE2\n",
+                "identification",
+            ),
+            (
+                "ID,URI,STATUS,PUID,FORMAT_NAME\n1,{uri},Done,fmt/111,   \n",
+                "identification",
+            ),
+            (
+                "ID,URI,PUID,FORMAT_NAME\n1,{uri},fmt/111,OLE2\n",
+                "identification",
+            ),
+            (
+                "ID,URI,STATUS,PUID,FORMAT_NAME\n",
+                "no CSV rows",
+            ),
+            (
+                "ID,URI,URI,PUID,FORMAT_NAME\n1,{uri},{uri},fmt/111,OLE2\n",
+                "CSV header",
+            ),
+            (
+                'ID,URI,STATUS,PUID,FORMAT_NAME\n1,{uri},Done,fmt/111,"unterminated\n',
+                "Malformed",
+            ),
+            (
+                "ID,URI,STATUS,PUID,FORMAT_NAME\n1,{uri},Done,fmt/111,OLE2,extra\n",
+                "Malformed",
+            ),
+            (
+                "ID,URI,STATUS,PUID,FORMAT_NAME\n"
+                "1,{uri},Done,fmt/111,OLE2\n2,{uri},Done,fmt/111,OLE2\n",
+                "exactly one",
+            ),
+        ],
+    )
+    def test_run_droid_rejects_invalid_results_despite_partial_override(
+        self, monkeypatch, output, expected_error
+    ):
+        uri = "s3://temp-data-bucket/file.xls"
+        mock_droid_command(
+            monkeypatch,
+            output.format(uri=uri),
+            stdout="ERROR No reader was obtained\n",
+        )
+        with pytest.raises(RuntimeError, match=expected_error):
+            run_droid(uri, expected_uri=uri, allow_partial_identification=True)
+
+    def test_run_droid_rejects_nonzero_exit_despite_partial_override(
+        self, monkeypatch
+    ):
+        monkeypatch.setattr(
+            subprocess,
+            "run",
+            mock.Mock(
+                return_value=mock.Mock(
+                    returncode=1,
+                    stdout="ERROR container failure",
+                    stderr="failed",
+                )
+            ),
+        )
+        with pytest.raises(RuntimeError, match="return code 1"):
+            run_droid("s3://bucket/file", "s3://bucket/file", True)
+
+    def test_run_droid_preserves_multiline_and_log_like_csv_values(
+        self, monkeypatch
+    ):
+        uri = "s3://temp-data-bucket/file"
+        mock_droid_command(
+            monkeypatch,
+            (
+                "ID,URI,STATUS,PUID,FORMAT_NAME\n"
+                f'1,{uri},Done,fmt/111,"OLE2\nERROR is metadata here"\n'
+            ),
+            stdout="2026-11-09T11:59:40,335 INFO [main] Starting DROID\n",
+        )
+        row = run_droid(uri, uri)
+        assert row["PUID"] == "fmt/111"
+        assert row["FORMAT_NAME"] == "OLE2\nERROR is metadata here"
+
+    def test_run_droid_checks_diagnostics_separately_from_csv_results(
+        self, monkeypatch
+    ):
+        uri = "s3://temp-data-bucket/file.xls"
+        mock_droid_command(
+            monkeypatch,
+            (
+                "ID,URI,STATUS,PUID,FORMAT_NAME\n"
+                "1,s3://other/file,Done,fmt/111,OLE2\n"
+                f"2,{uri},Done,fmt/111,OLE2\n"
+            ),
+            stdout='2026-11-09T11:59:40,335 ERROR [main] reader,"failed".\n',
+        )
+        with pytest.raises(RuntimeError, match="identification errors"):
+            run_droid(uri, uri)
+        assert run_droid(uri, uri, True)["ID"] == "2"
+
     def test_run_droid_parses_csv_output(self, monkeypatch):
         source_uri = "s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf"
 
@@ -852,8 +1161,9 @@ class TestRunDroid:
             "pdf,fmt/18,Acrobat PDF 1.4 - Portable Document Format,false\n"
         )
 
-        subprocess_run_mock = mock.Mock(return_value=completed_process)
-        monkeypatch.setattr(subprocess, "run", subprocess_run_mock)
+        subprocess_run_mock = mock_droid_command(
+            monkeypatch, completed_process.stdout
+        )
 
         result = run_droid(source_uri, expected_uri=source_uri)
 
@@ -869,7 +1179,11 @@ class TestRunDroid:
         subprocess_run_mock.assert_called_once()
         call_args = subprocess_run_mock.call_args
 
-        assert call_args.args[0] == ["/opt/droid/droid.sh", source_uri]
+        assert call_args.args[0][:3] == [
+            "/opt/droid/droid.sh",
+            source_uri,
+            "-o",
+        ]
         assert call_args.kwargs["cwd"] == "/opt/droid"
         assert call_args.kwargs["capture_output"] is True
         assert call_args.kwargs["text"] is True
@@ -894,11 +1208,7 @@ class TestRunDroid:
             "1,s3://temp-data-bucket/_ayr-droid-inputs/run/file.pdf.old,"
             "old,fmt/999,Other\n"
         )
-        monkeypatch.setattr(
-            subprocess,
-            "run",
-            mock.Mock(return_value=completed_process),
-        )
+        mock_droid_command(monkeypatch, completed_process.stdout)
 
         with pytest.raises(
             RuntimeError,
@@ -940,18 +1250,85 @@ class TestRunDroid:
         completed_process.stderr = ""
         completed_process.stdout = "ID,URI,EXT,PUID,FORMAT_NAME\n"
 
-        monkeypatch.setattr(
-            subprocess,
-            "run",
-            mock.Mock(return_value=completed_process),
-        )
+        mock_droid_command(monkeypatch, completed_process.stdout)
 
         with pytest.raises(RuntimeError, match="DROID produced no CSV rows"):
             run_droid(source_uri, expected_uri=source_uri)
 
+    def test_run_droid_uses_unique_temp_directories_and_cleans_up_on_success(
+        self, monkeypatch
+    ):
+        uri = "s3://temp-data-bucket/file.pdf"
+        output_directories = []
+
+        def execute(command, **kwargs):
+            output_path = Path(command[command.index("-o") + 1])
+            output_directories.append(output_path.parent)
+            assert output_path.parent.is_dir()
+            assert output_path.parent.parent == Path(tempfile.gettempdir())
+            output_path.write_text(
+                f"ID,URI,PUID,FORMAT_NAME\n1,{uri},fmt/18,PDF\n",
+                encoding="utf-8",
+            )
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        monkeypatch.setattr(subprocess, "run", execute)
+        run_droid(uri, uri)
+        run_droid(uri, uri)
+
+        first_directory, second_directory = output_directories
+        assert first_directory != second_directory
+        assert not first_directory.exists(), (
+            "First run left temporary files behind"
+        )
+        assert not second_directory.exists(), (
+            "Second run left temporary files behind"
+        )
+
+    def test_run_droid_cleans_up_temp_directory_on_timeout(self, monkeypatch):
+        def execute(command, **kwargs):
+            Path(command[3]).write_text("partial output", encoding="utf-8")
+            raise subprocess.TimeoutExpired(command, 120)
+
+        run = mock.Mock(side_effect=execute)
+        monkeypatch.setattr(subprocess, "run", run)
+        with pytest.raises(subprocess.TimeoutExpired):
+            run_droid("s3://bucket/file", "s3://bucket/file", True)
+        command = run.call_args.args[0]
+        output_path = Path(command[command.index("-o") + 1])
+        temporary_directory = output_path.parent
+        assert not temporary_directory.exists(), (
+            "Temporary directory was not removed after timeout"
+        )
+
+    def test_run_droid_cleans_up_temp_directory_when_output_is_missing(
+        self, monkeypatch
+    ):
+        run = mock.Mock(return_value=subprocess.CompletedProcess([], 0, "", ""))
+        monkeypatch.setattr(subprocess, "run", run)
+        with pytest.raises(
+            RuntimeError, match="did not create its CSV output file"
+        ):
+            run_droid("s3://bucket/file", "s3://bucket/file", True)
+        output_path = Path(run.call_args.args[0][3])
+        assert not output_path.parent.exists(), (
+            "Temporary directory was not removed after missing output"
+        )
+
+    def test_run_droid_cleans_up_temp_directory_on_nonzero_exit(
+        self, monkeypatch
+    ):
+        run = mock_droid_command(monkeypatch, "partial output", returncode=1)
+        with pytest.raises(RuntimeError, match="return code 1"):
+            run_droid("s3://bucket/file", "s3://bucket/file", True)
+        output_path = Path(run.call_args.args[0][3])
+        assert not output_path.parent.exists(), (
+            "Temporary directory was not removed after nonzero exit"
+        )
+
 
 @pytest.mark.integration
-def test_local_pdf_with_installed_droid(tmp_path):
+def test_run_droid_identifies_local_pdf_with_installed_droid(tmp_path):
     """
     Given a valid local PDF and DROID installed
     When it is identified with the real DROID command

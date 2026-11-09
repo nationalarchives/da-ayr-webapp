@@ -3,11 +3,14 @@ import json
 import logging
 import os
 import random
+import re
 import subprocess  # nosec
+import tempfile
 import time
 from datetime import datetime, timezone
 from io import StringIO
-from typing import Any
+from pathlib import Path
+from typing import Any, TextIO
 from uuid import uuid4
 
 import boto3
@@ -41,6 +44,10 @@ DROID_ALIAS_COPY_CONFIG = TransferConfig(
 DYNAMODB_TRANSACTION_MAX_ATTEMPTS = 10
 DYNAMODB_TRANSACTION_BASE_DELAY_SECONDS = 0.05
 DYNAMODB_TRANSACTION_MAX_DELAY_SECONDS = 1.0
+DROID_LOG_PATTERN = re.compile(
+    r"^(?:\d{4}-\d{2}-\d{2}[T ][^\s]*\s+)?"
+    r"(TRACE|DEBUG|INFO|WARN|ERROR|FATAL)\b"
+)
 
 FFID_METADATA_COLUMNS = [
     "FileId",
@@ -92,6 +99,9 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
     key = require_text(message, "key")
     file_id = require_text(message, "fileId")
     extension = message.get("extension") or ""
+    allow_partial = message.get("allowPartialIdentification", False)
+    if not isinstance(allow_partial, bool):
+        raise ValueError("allowPartialIdentification must be a boolean")
 
     if is_file_already_complete(
         run_id=run_id,
@@ -116,10 +126,20 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
             "finaliserTriggered": finaliser_triggered,
         }
 
+    if allow_partial:
+        logger.warning(
+            "Partial DROID identification override requested. run_id=%s "
+            "consignment=%s file_id=%s",
+            run_id,
+            consignment_reference,
+            file_id,
+        )
+
     droid_row = run_droid_for_s3_object(
         key=key,
         file_id=file_id,
         extension=extension,
+        allow_partial_identification=allow_partial,
     )
     ffid_metadata_row = map_droid_row_to_ffid_metadata(file_id, droid_row)
 
@@ -161,6 +181,7 @@ def run_droid_for_s3_object(
     key: str,
     file_id: str,
     extension: str,
+    allow_partial_identification: bool = False,
 ) -> dict[str, str]:
     validate_s3_object_key(key)
     alias_key = build_droid_input_alias_key(file_id, extension)
@@ -181,7 +202,11 @@ def run_droid_for_s3_object(
             DDT_TEMP_DATA_BUCKET,
             key,
         )
-        return run_droid(alias_uri, expected_uri=alias_uri)
+        return run_droid(
+            alias_uri,
+            expected_uri=alias_uri,
+            allow_partial_identification=allow_partial_identification,
+        )
     finally:
         s3.delete_object(Bucket=DDT_TEMP_DATA_BUCKET, Key=alias_key)
 
@@ -219,6 +244,7 @@ def build_droid_input_alias_key(file_id: str, extension: str) -> str:
 def run_droid(
     source: str,
     expected_uri: str,
+    allow_partial_identification: bool = False,
 ) -> dict[str, str]:
     # Lambda's filesystem is read-only except /tmp. DROID/Java may try to write
     # temp, cache or config files, so force those locations to /tmp.
@@ -241,32 +267,41 @@ def run_droid(
 
     logger.info("Running DROID command: %s %s", DROID_COMMAND, source)
 
-    result = subprocess.run(  # nosec
-        [DROID_COMMAND, source],
-        cwd="/opt/droid",
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=DROID_TIMEOUT_SECONDS,
-        check=False,
+    with tempfile.TemporaryDirectory(prefix="droid-") as temp_dir:
+        output_path = Path(temp_dir) / "identifications.csv"
+        result = subprocess.run(  # nosec
+            [DROID_COMMAND, source, "-o", str(output_path)],
+            cwd="/opt/droid",
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=DROID_TIMEOUT_SECONDS,
+            check=False,
+        )
+        logger.info("DROID returncode=%s", result.returncode)
+        if result.stdout:
+            logger.info("DROID stdout: %s", result.stdout[:4000])
+        if result.stderr:
+            logger.info("DROID stderr: %s", result.stderr[:4000])
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"DROID failed with return code {result.returncode}. "
+                f"stderr={result.stderr[:4000]} stdout={result.stdout[:4000]}"
+            )
+        if not output_path.is_file():
+            raise RuntimeError(
+                "DROID did not create its CSV output file. "
+                f"stderr={result.stderr[:4000]} stdout={result.stdout[:4000]}"
+            )
+        with output_path.open(encoding="utf-8", newline="") as output:
+            rows = read_droid_csv(output)
+
+    errors = "\n".join(
+        line
+        for stream in (result.stdout, result.stderr)
+        for line in stream.splitlines()
+        if is_droid_error_log(line)
     )
-
-    logger.info("DROID returncode=%s", result.returncode)
-
-    if result.stderr:
-        logger.info("DROID stderr: %s", result.stderr[:4000])
-
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"DROID failed with return code {result.returncode}. stderr={result.stderr[:4000]}"
-        )
-
-    rows = list(csv.DictReader(StringIO(result.stdout)))
-
-    if not rows:
-        raise RuntimeError(
-            f"DROID produced no CSV rows. stdout={result.stdout[:4000]}"
-        )
 
     matching_rows = [row for row in rows if row.get("URI") == expected_uri]
 
@@ -274,10 +309,72 @@ def run_droid(
         raise RuntimeError(
             "DROID did not produce exactly one result for the expected URI. "
             f"uri={expected_uri!r} matches={len(matching_rows)} "
+            f"returned_uris={[row.get('URI') for row in rows]!r} "
             f"stdout={result.stdout[:4000]}"
         )
 
-    return matching_rows[0]
+    row = matching_rows[0]
+    if "STATUS" in row and row["STATUS"] != "Done":
+        raise RuntimeError(
+            f"DROID returned unsuccessful status={row['STATUS']!r} "
+            f"uri={expected_uri!r} errors={errors[:4000]}"
+        )
+
+    if errors:
+        if not allow_partial_identification:
+            raise RuntimeError(
+                "DROID logged identification errors despite exiting successfully. "
+                f"uri={expected_uri!r} PUID={row.get('PUID')!r} "
+                f"format={row.get('FORMAT_NAME')!r} errors={errors[:4000]}"
+            )
+        if row.get("STATUS") != "Done" or not (
+            row.get("PUID", "").strip() and row.get("FORMAT_NAME", "").strip()
+        ):
+            raise RuntimeError(
+                f"DROID partial identification lacks a completed identification. "
+                f"uri={expected_uri!r} errors={errors[:4000]}"
+            )
+        logger.warning(
+            "Accepting partial DROID identification by explicit override. "
+            "uri=%s PUID=%s format=%s errors=%s",
+            expected_uri,
+            row["PUID"],
+            row["FORMAT_NAME"],
+            errors[:4000],
+        )
+    return row
+
+
+def is_droid_error_log(line: str) -> bool:
+    match = DROID_LOG_PATTERN.match(line)
+    return match is not None and match.group(1) in {"ERROR", "FATAL"}
+
+
+def read_droid_csv(output: TextIO) -> list[dict[str, str]]:
+    try:
+        reader = csv.reader(output, strict=True)
+        fields = next(reader, [])
+        if (
+            not fields
+            or not {"ID", "URI", "PUID", "FORMAT_NAME"} <= set(fields)
+            or len(set(fields)) != len(fields)
+        ):
+            raise RuntimeError("DROID produced no valid CSV header")
+        rows = []
+        for values in reader:
+            if not values:
+                continue
+            if len(values) != len(fields):
+                raise RuntimeError(
+                    "Malformed DROID CSV row: "
+                    f"expected {len(fields)} columns, found {len(values)}"
+                )
+            rows.append(dict(zip(fields, values, strict=True)))
+    except csv.Error as exc:
+        raise RuntimeError(f"Malformed DROID CSV output: {exc}") from exc
+    if not rows:
+        raise RuntimeError("DROID produced no CSV rows")
+    return rows
 
 
 def map_droid_row_to_ffid_metadata(
