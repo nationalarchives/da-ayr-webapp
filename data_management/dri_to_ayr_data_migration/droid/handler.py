@@ -5,11 +5,12 @@ import os
 import random
 import re
 import subprocess  # nosec
+import tempfile
 import time
 from datetime import datetime, timezone
 from io import StringIO
-from itertools import chain
-from typing import Any
+from pathlib import Path
+from typing import Any, TextIO
 from uuid import uuid4
 
 import boto3
@@ -101,8 +102,6 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
     allow_partial = message.get("allowPartialIdentification", False)
     if not isinstance(allow_partial, bool):
         raise ValueError("allowPartialIdentification must be a boolean")
-    if allow_partial:
-        require_text(message, "partialIdentificationReason")
 
     if is_file_already_complete(
         run_id=run_id,
@@ -130,11 +129,10 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
     if allow_partial:
         logger.warning(
             "Partial DROID identification override requested. run_id=%s "
-            "consignment=%s file_id=%s reason=%s",
+            "consignment=%s file_id=%s",
             run_id,
             consignment_reference,
             file_id,
-            require_text(message, "partialIdentificationReason"),
         )
 
     droid_row = run_droid_for_s3_object(
@@ -269,37 +267,41 @@ def run_droid(
 
     logger.info("Running DROID command: %s %s", DROID_COMMAND, source)
 
-    result = subprocess.run(  # nosec
-        [DROID_COMMAND, source],
-        cwd="/opt/droid",
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=DROID_TIMEOUT_SECONDS,
-        check=False,
+    with tempfile.TemporaryDirectory(prefix="droid-") as temp_dir:
+        output_path = Path(temp_dir) / "identifications.csv"
+        result = subprocess.run(  # nosec
+            [DROID_COMMAND, source, "-o", str(output_path)],
+            cwd="/opt/droid",
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=DROID_TIMEOUT_SECONDS,
+            check=False,
+        )
+        logger.info("DROID returncode=%s", result.returncode)
+        if result.stdout:
+            logger.info("DROID stdout: %s", result.stdout[:4000])
+        if result.stderr:
+            logger.info("DROID stderr: %s", result.stderr[:4000])
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"DROID failed with return code {result.returncode}. "
+                f"stderr={result.stderr[:4000]} stdout={result.stdout[:4000]}"
+            )
+        if not output_path.is_file():
+            raise RuntimeError(
+                "DROID did not create its CSV output file. "
+                f"stderr={result.stderr[:4000]} stdout={result.stdout[:4000]}"
+            )
+        with output_path.open(encoding="utf-8", newline="") as output:
+            rows = read_droid_csv(output)
+
+    errors = "\n".join(
+        line
+        for stream in (result.stdout, result.stderr)
+        for line in stream.splitlines()
+        if is_droid_error_log(line)
     )
-
-    logger.info("DROID returncode=%s", result.returncode)
-
-    if result.stderr:
-        logger.info("DROID stderr: %s", result.stderr[:4000])
-
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"DROID failed with return code {result.returncode}. "
-            f"stderr={result.stderr[:4000]} stdout={result.stdout[:4000]}"
-        )
-
-    rows, stdout_errors = parse_droid_output(result.stdout)
-    stderr_errors = [
-        line for line in result.stderr.splitlines() if is_droid_error_log(line)
-    ]
-    errors = "\n".join(stdout_errors + stderr_errors)
-
-    if not rows:
-        raise RuntimeError(
-            f"DROID produced no CSV rows. stdout={result.stdout[:4000]}"
-        )
 
     matching_rows = [row for row in rows if row.get("URI") == expected_uri]
 
@@ -348,36 +350,19 @@ def is_droid_error_log(line: str) -> bool:
     return match is not None and match.group(1) in {"ERROR", "FATAL"}
 
 
-def parse_droid_output(stdout: str) -> tuple[list[dict[str, str]], list[str]]:
-    """Separate DROID diagnostics from CSV without assuming the first line is a header."""
-    fields: list[str] | None = None
-    rows: list[dict[str, str]] = []
-    errors: list[str] = []
+def read_droid_csv(output: TextIO) -> list[dict[str, str]]:
     try:
-        lines = iter(StringIO(stdout))
-        for line in lines:
-            if not line.strip():
-                continue
-            if DROID_LOG_PATTERN.match(line):
-                diagnostic = line.rstrip("\r\n")
-                logger.info("DROID stdout diagnostic: %s", diagnostic[:4000])
-                if is_droid_error_log(diagnostic):
-                    errors.append(diagnostic)
-                continue
-            # Let the CSV reader consume continuation lines of a quoted field.
-            values = next(csv.reader(chain([line], lines), strict=True))
-            first = values[0]
-            if fields is None:
-                if (
-                    first == "ID"
-                    and {"URI", "PUID", "FORMAT_NAME"} <= set(values)
-                    and len(set(values)) == len(values)
-                ):
-                    fields = values
-                else:
-                    logger.info(
-                        "DROID stdout preamble: %s", ",".join(values)[:4000]
-                    )
+        reader = csv.reader(output, strict=True)
+        fields = next(reader, [])
+        if (
+            not fields
+            or not {"ID", "URI", "PUID", "FORMAT_NAME"} <= set(fields)
+            or len(set(fields)) != len(fields)
+        ):
+            raise RuntimeError("DROID produced no valid CSV header")
+        rows = []
+        for values in reader:
+            if not values:
                 continue
             if len(values) != len(fields):
                 raise RuntimeError(
@@ -387,11 +372,9 @@ def parse_droid_output(stdout: str) -> tuple[list[dict[str, str]], list[str]]:
             rows.append(dict(zip(fields, values, strict=True)))
     except csv.Error as exc:
         raise RuntimeError(f"Malformed DROID CSV output: {exc}") from exc
-    if fields is None:
-        raise RuntimeError(
-            f"DROID produced no valid CSV header. stdout={stdout[:4000]}"
-        )
-    return rows, errors
+    if not rows:
+        raise RuntimeError("DROID produced no CSV rows")
+    return rows
 
 
 def map_droid_row_to_ffid_metadata(

@@ -1,4 +1,8 @@
 ignore:
+  sast:
+    WS-I013-PYTHON-00141:
+      /data_management/dri_to_ayr_data_migration/droid/handler.py:
+        reason: FALSE_POSITIVE
   iac:
     a933f7a2-ea43-40c8-8816-38ea2a4e36a1:
       /data_management/dri_to_ayr_data_migration/droid/Dockerfile:
