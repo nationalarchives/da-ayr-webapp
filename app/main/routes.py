@@ -38,6 +38,7 @@ from app.main.flask_config_helpers import (
 from app.main.middlewares.log_page_view import log_page_view
 from app.main.util.browse_utils import (
     build_browse_filter_data,
+    build_series_filter_data,
     count_selected_filters,
     get_accessible_body_names,
 )
@@ -135,8 +136,11 @@ def _build_records_filters_context(
         and not selected_series
         and accessible_body_names != []
     )
+    needs_series_options = accessible_body_names != []
     if open_search is None and (
-        needs_transferring_body_options or needs_autofill_options
+        needs_transferring_body_options
+        or needs_autofill_options
+        or needs_series_options
     ):
         open_search = setup_opensearch()
 
@@ -145,6 +149,11 @@ def _build_records_filters_context(
         accessible_body_names,
         filters,
         open_search=open_search,
+    )
+    series_list = build_series_filter_data(
+        accessible_body_names,
+        open_search,
+        filters.get("transferring_body"),
     )
     filter_count = count_selected_filters(
         filters,
@@ -160,6 +169,7 @@ def _build_records_filters_context(
         "date_filters": date_filters,
         "filter_count": filter_count,
         "transferring_bodies": transferring_bodies,
+        "series_list": series_list,
         "accessible_body_names": accessible_body_names,
     }
 
@@ -430,6 +440,7 @@ def browse():
     date_filters = filters_context["date_filters"]
     filter_count = filters_context["filter_count"]
     transferring_bodies = filters_context["transferring_bodies"]
+    series_list = filters_context["series_list"]
 
     available_sorts = {
         "date_of_record-desc",
@@ -502,6 +513,7 @@ def browse():
         sorting_orders=build_sorting_orders(validated_data),
         filter_count=filter_count,
         transferring_bodies=transferring_bodies,
+        series_list=series_list,
         results=results,
         pagination=pagination,
         num_records_found=total_records,
@@ -563,6 +575,7 @@ def search_results(_id: uuid.UUID | None = None):
     date_filters = filters_context["date_filters"]
     filter_count = filters_context["filter_count"]
     transferring_bodies = filters_context["transferring_bodies"]
+    series_list = filters_context["series_list"]
 
     current_transferring_body_id = _id if body is not None else None
 
@@ -630,6 +643,7 @@ def search_results(_id: uuid.UUID | None = None):
         filters=filters,
         filter_count=filter_count,
         transferring_bodies=transferring_bodies,
+        series_list=series_list,
         current_transferring_body_id=current_transferring_body_id,
         results=results,
         num_records_found=num_records_found,

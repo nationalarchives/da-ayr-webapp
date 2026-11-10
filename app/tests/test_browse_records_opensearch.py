@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from werkzeug.exceptions import NotFound
 
 from app.main.util.browse_utils import (
+    build_series_filter_data,
     get_autofill_options_rows_from_opensearch,
     get_transferring_body_options_from_opensearch,
 )
@@ -42,6 +43,7 @@ def _open_search_client():
     client.search.return_value = {
         "aggregations": {
             "browse_transferring_bodies": {"buckets": []},
+            "browse_series_options": {"buckets": []},
             "browse_autofill_options": {"buckets": []},
         }
     }
@@ -317,6 +319,49 @@ def test_transferring_body_options_fetch_all_composite_pages(monkeypatch):
     assert aggregation["composite"]["after"] == {
         "transferring_body": "First Body"
     }
+
+
+def test_series_options_use_access_and_selected_body_filters():
+    response = {
+        "aggregations": {
+            "browse_series_options": {
+                "buckets": [
+                    {"key": {"series": "HO 406"}},
+                    {"key": {"series": "HO 405"}},
+                    {"key": {"series": None}},
+                ]
+            }
+        }
+    }
+    with patch(
+        "app.main.util.browse_utils.execute_search_query",
+        return_value=response,
+    ) as execute_search_query:
+        options = build_series_filter_data(
+            ["First Body"],
+            Mock(),
+            "First Body",
+        )
+
+    assert options == ["HO 405", "HO 406"]
+    query = execute_search_query.call_args.args[1]
+    assert query["query"]["bool"]["filter"] == [
+        {"terms": {"transferring_body.keyword": ["First Body"]}},
+        {"term": {"transferring_body.keyword": "First Body"}},
+    ]
+    assert query["aggs"]["browse_series_options"]["composite"]["sources"] == [
+        {"series": {"terms": {"field": "series_name.keyword"}}}
+    ]
+
+
+def test_series_options_skip_search_when_user_has_no_accessible_bodies():
+    with patch(
+        "app.main.util.browse_utils.execute_search_query"
+    ) as execute_search_query:
+        options = build_series_filter_data([], Mock())
+
+    assert options == []
+    execute_search_query.assert_not_called()
 
 
 def test_browse_renders_and_keeps_navigation_on_browse(

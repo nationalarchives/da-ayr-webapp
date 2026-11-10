@@ -72,6 +72,17 @@ def _mock_browse_aggregation_response(query):
                 }
             }
         }
+    if "browse_series_options" in query["aggs"]:
+        return {
+            "aggregations": {
+                "browse_series_options": {
+                    "buckets": [
+                        {"key": {"series": "HO 405"}},
+                        {"key": {"series": "HO 406"}},
+                    ]
+                }
+            }
+        }
     return {
         "aggregations": {
             "browse_autofill_options": {"buckets": []},
@@ -625,13 +636,13 @@ class TestBrowse:
         assert response.status_code == 200
         mock_get_transferring_body_options.assert_not_called()
 
-    def test_browse_series_filter_has_no_datalist(
+    def test_browse_series_filter_shows_series_suggestions(
         self, client: FlaskClient, mock_all_access_user, browse_files
     ):
         """
         Given the browse records page
         When the series filter is rendered
-        Then it is a plain text input without a datalist
+        Then it has a datalist of series suggestions
         """
         mock_all_access_user(client)
 
@@ -640,11 +651,14 @@ class TestBrowse:
         assert response.status_code == 200
         soup = BeautifulSoup(response.data, "html.parser")
         series_filter = soup.find("input", id="series_filter")
-        series_datalist = soup.find("datalist", id="series_options")
+        series_datalist = soup.find("datalist", id="series_list")
 
         assert series_filter is not None
-        assert series_filter.get("list") is None
-        assert series_datalist is None
+        assert series_filter.get("list") == "series_list"
+        assert series_datalist is not None
+        assert [
+            option.get("value") for option in series_datalist.find_all("option")
+        ] == ["HO 405", "HO 406"]
 
     def test_browse_status_and_date_radio_defaults(
         self, client: FlaskClient, mock_all_access_user, browse_files
