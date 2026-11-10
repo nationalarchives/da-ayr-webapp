@@ -47,6 +47,12 @@ FILE_COLUMNS = [
     "ParentReference",
     "OriginalFilePath",
     "Checksum",
+    "DateLastModified",
+    "EndDate",
+    "ClosureType",
+    "OpeningDate",
+    "ReconsiderDueInDate",
+    "FormerFilePathDepartment",
     "CreatedDatetime",
 ]
 

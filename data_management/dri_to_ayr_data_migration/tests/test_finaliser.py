@@ -1,7 +1,7 @@
 import csv
 import json
 import os
-from io import BytesIO
+from io import BytesIO, StringIO
 from pathlib import Path
 from typing import Any
 from unittest import mock
@@ -45,6 +45,7 @@ from finaliser.handler import (
     start_finalising_or_skip,
     upload_metadata_files,
 )
+from worker import dri_to_ayr_csv as worker_csv
 
 
 @pytest.fixture
@@ -565,6 +566,51 @@ class TestFinalPackagePreparation:
                     "AYR-consignment-metadata.csv": 1,
                 }
             )
+
+
+class TestFileCsvSchema:
+    """File CSV contract and field-preservation tests."""
+
+    def test_file_columns_match_worker_schema(self):
+        assert finaliser_module.FILE_COLUMNS == worker_csv.FILE_COLUMNS
+
+    @pytest.mark.parametrize(
+        "empty_values", [False, True], ids=["populated", "empty"]
+    )
+    def test_merge_staged_csvs_preserves_new_file_fields(
+        self, mock_finaliser, tmp_path, empty_values
+    ):
+        new_fields = {
+            "FormerFilePathDepartment": "department/former/path.txt",
+            "DateLastModified": "2026-08-27T10:40:00Z",
+            "ReconsiderDueInDate": "2035-01-01",
+            "EndDate": "2026-08-27",
+            "ClosureType": "Closed",
+            "OpeningDate": "2040-01-01",
+        }
+        if empty_values:
+            new_fields = dict.fromkeys(new_fields, "")
+
+        row = {
+            "FileId": "file-1",
+            "FileName": "test.txt",
+            "CreatedDatetime": "2026-09-01T10:00:00Z",
+            **new_fields,
+        }
+        staged_csv = StringIO()
+        writer = csv.DictWriter(staged_csv, fieldnames=list(row))
+        writer.writeheader()
+        writer.writerow(row)
+        mock_finaliser.s3.get_object.return_value = {
+            "Body": BytesIO(staged_csv.getvalue().encode("utf-8"))
+        }
+
+        counts = merge_staged_csvs(["staging/file-1/AYR-file.csv"], tmp_path)
+
+        assert counts["AYR-file.csv"] == 1
+        rows = read_csv_file(tmp_path / "AYR-file.csv")
+        assert len(rows) == 1
+        assert {column: rows[0][column] for column in row} == row
 
 
 class TestCsvDiscoveryAndMerge:
