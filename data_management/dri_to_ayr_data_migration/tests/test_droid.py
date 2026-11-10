@@ -1,14 +1,19 @@
 import csv
 import json
 import os
+import re
+import socket
 import subprocess
 import tempfile
 from io import StringIO
 from pathlib import Path
 from unittest import mock
+from urllib.parse import urlsplit
+from uuid import uuid4
 
 import boto3
 import pytest
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from moto import mock_aws
 
@@ -1327,8 +1332,90 @@ class TestRunDroid:
         )
 
 
+@pytest.fixture
+def damaged_ole2_uri(monkeypatch):
+    """Upload synthetic corruption to the isolated Compose RustFS service."""
+    endpoint_url = urlsplit(os.environ["RUSTFS_ENDPOINT_URL"])
+    assert endpoint_url.hostname, "RUSTFS_ENDPOINT_URL requires a hostname"
+    # An IP endpoint makes DROID's Java SDK use path-style S3 addressing,
+    # rather than trying to resolve <random-bucket>.migration-rustfs.
+    address = socket.gethostbyname(endpoint_url.hostname)
+    endpoint = endpoint_url._replace(
+        netloc=f"{address}:{endpoint_url.port or 9000}"
+    ).geturl()
+    monkeypatch.setenv("AWS_ENDPOINT_URL_S3", endpoint)
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "migration-test")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "migration-test-secret")
+    monkeypatch.setenv("AWS_REGION", "us-east-1")
+    client = boto3.client(
+        "s3",
+        endpoint_url=endpoint,
+        aws_access_key_id="migration-test",
+        aws_secret_access_key="migration-test-secret",  # pragma: allowlist secret
+        region_name="us-east-1",
+        config=Config(
+            connect_timeout=2,
+            read_timeout=2,
+            retries={"max_attempts": 0},
+            s3={"addressing_style": "path"},
+        ),
+    )
+    bucket = f"droid-integration-{uuid4().hex}"
+    key = "damaged.xls"
+    client.create_bucket(Bucket=bucket)
+    try:
+        client.upload_file(
+            str(Path(__file__).parent / "fixtures" / "damaged-ole2.xls"),
+            bucket,
+            key,
+        )
+        yield f"s3://{bucket}/{key}"
+    finally:
+        try:
+            client.delete_object(Bucket=bucket, Key=key)
+        finally:
+            client.delete_bucket(Bucket=bucket)
+            client.close()
+
+
+@pytest.fixture
+def installed_droid(monkeypatch):
+    """Fail rather than skip if the integration-test image lacks DROID."""
+    command = Path(droid_module.DROID_COMMAND)
+    assert command.is_file(), f"DROID command is not installed at {command}"
+    assert os.access(command, os.X_OK), (
+        f"DROID command is not executable: {command}"
+    )
+    monkeypatch.setattr(droid_module, "DROID_TIMEOUT_SECONDS", 60)
+
+
 @pytest.mark.integration
-def test_run_droid_identifies_local_pdf_with_installed_droid(tmp_path):
+def test_run_droid_identifies_damaged_ole2_with_installed_droid(
+    installed_droid, damaged_ole2_uri, caplog
+):
+    row = run_droid(
+        damaged_ole2_uri,
+        expected_uri=damaged_ole2_uri,
+        allow_partial_identification=True,
+    )
+    result = droid_module.map_droid_row_to_ffid_metadata("damaged-file", row)
+
+    assert re.search(
+        r"\bERROR\b[^\r\n]*Ole2IdentifierEngine[^\r\n]*No reader was obtained",
+        caplog.text,
+    ), caplog.text
+    assert row["URI"] == damaged_ole2_uri
+    assert row["STATUS"] == "Done"
+    assert result["FileId"] == "damaged-file"
+    assert result["PUID"] == "fmt/111"
+    assert result["FormatName"] == "OLE2 Compound Document Format"
+    assert result["FFID-SoftwareVersion"] == "6.9.13"
+
+
+@pytest.mark.integration
+def test_run_droid_identifies_local_pdf_with_installed_droid(
+    installed_droid, tmp_path
+):
     """
     Given a valid local PDF and DROID installed
     When it is identified with the real DROID command
@@ -1344,14 +1431,6 @@ def test_run_droid_identifies_local_pdf_with_installed_droid(tmp_path):
         b"trailer\n"
         b"<< /Root 1 0 R >>\n"
         b"%%EOF\n"
-    )
-
-    droid_command = Path(droid_module.DROID_COMMAND)
-    assert droid_command.is_file(), (
-        f"DROID command is not installed at {droid_command}"
-    )
-    assert os.access(droid_command, os.X_OK), (
-        f"DROID command is not executable: {droid_command}"
     )
 
     local_path.write_bytes(pdf_bytes)

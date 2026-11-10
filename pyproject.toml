@@ -9,6 +9,11 @@ readme = "README.md"
 exclude_dirs = ['*_test.py', '*/test_*.py', 'venv', 'node_modules']
 skips = ["B105"]
 
+[tool.pytest.ini_options]
+markers = [
+    "integration: exercises installed services or tools, including real DROID",
+]
+
 [tool.poetry.dependencies]
 python = ">=3.14,<3.15"
 cssmin = "0.2.0"
