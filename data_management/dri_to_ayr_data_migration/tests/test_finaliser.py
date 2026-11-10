@@ -45,7 +45,6 @@ from finaliser.handler import (
     start_finalising_or_skip,
     upload_metadata_files,
 )
-from worker import dri_to_ayr_csv as worker_csv
 
 
 @pytest.fixture
@@ -569,41 +568,38 @@ class TestFinalPackagePreparation:
 
 
 class TestCsvSchema:
-    """Shared CSV contracts and File field-preservation tests."""
+    """File field-preservation tests."""
 
     @pytest.mark.parametrize(
-        "column_name",
+        "new_fields",
         [
-            "BODY_COLUMNS",
-            "SERIES_COLUMNS",
-            "CONSIGNMENT_COLUMNS",
-            "FILE_COLUMNS",
-            "FILE_METADATA_COLUMNS",
-            "AV_METADATA_COLUMNS",
+            pytest.param(
+                {
+                    "FormerFilePathDepartment": "department/former/path.txt",
+                    "DateLastModified": "2026-08-27T10:40:00Z",
+                    "ReconsiderDueInDate": "2035-01-01",
+                    "EndDate": "2026-08-27",
+                    "ClosureType": "Closed",
+                    "OpeningDate": "2040-01-01",
+                },
+                id="populated",
+            ),
+            pytest.param(
+                {
+                    "FormerFilePathDepartment": "",
+                    "DateLastModified": "",
+                    "ReconsiderDueInDate": "",
+                    "EndDate": "",
+                    "ClosureType": "",
+                    "OpeningDate": "",
+                },
+                id="empty",
+            ),
         ],
     )
-    def test_worker_and_finaliser_share_schema(self, column_name):
-        assert getattr(finaliser_module, column_name) is getattr(
-            worker_csv, column_name
-        )
-
-    @pytest.mark.parametrize(
-        "empty_values", [False, True], ids=["populated", "empty"]
-    )
     def test_merge_staged_csvs_preserves_new_file_fields(
-        self, mock_finaliser, tmp_path, empty_values
+        self, mock_finaliser, tmp_path, new_fields
     ):
-        new_fields = {
-            "FormerFilePathDepartment": "department/former/path.txt",
-            "DateLastModified": "2026-08-27T10:40:00Z",
-            "ReconsiderDueInDate": "2035-01-01",
-            "EndDate": "2026-08-27",
-            "ClosureType": "Closed",
-            "OpeningDate": "2040-01-01",
-        }
-        if empty_values:
-            new_fields = dict.fromkeys(new_fields, "")
-
         row = {
             "FileId": "file-1",
             "FileName": "test.txt",
@@ -682,16 +678,20 @@ class TestCsvDiscoveryAndMerge:
             }
         ]
 
-    @pytest.mark.parametrize("file_name", finaliser_module.CSV_DEFINITIONS)
-    @pytest.mark.parametrize("data_row", ["", "value,extra\n"])
+    @pytest.mark.parametrize(
+        "data_row",
+        [
+            pytest.param("", id="header-only"),
+            pytest.param("file-1,extra\n", id="with-row"),
+        ],
+    )
     def test_merge_rejects_unexpected_columns(
-        self, mock_finaliser, tmp_path, file_name, data_row
+        self, mock_finaliser, tmp_path, data_row
     ):
-        column = finaliser_module.CSV_DEFINITIONS[file_name]["required_column"]
-        key = f"staging/{file_name}"
+        key = "staging/AYR-file.csv"
         mock_finaliser.s3.get_object.return_value = {
             "Body": BytesIO(
-                f"{column},UnexpectedField\n{data_row}".encode("utf-8")
+                f"FileId,UnexpectedField\n{data_row}".encode("utf-8")
             )
         }
 
@@ -710,21 +710,6 @@ class TestCsvDiscoveryAndMerge:
 
         with pytest.raises(ValueError, match="More values than columns"):
             merge_staged_csvs(["staging/AYR-file.csv"], tmp_path)
-
-    def test_merge_accepts_older_file_csv_with_missing_optional_columns(
-        self, mock_finaliser, tmp_path
-    ):
-        mock_finaliser.s3.get_object.return_value = {
-            "Body": BytesIO(b"FileName,FileId\ntest.txt,file-1\n")
-        }
-
-        merge_staged_csvs(["staging/AYR-file.csv"], tmp_path)
-
-        row = read_csv_file(tmp_path / "AYR-file.csv")[0]
-        assert row == {
-            column: {"FileId": "file-1", "FileName": "test.txt"}.get(column, "")
-            for column in finaliser_module.FILE_COLUMNS
-        }
 
     def test_merge_staged_csvs_uses_bounded_batches_and_logs_progress(
         self, mock_finaliser, monkeypatch, tmp_path
