@@ -238,6 +238,21 @@ def test_browse_date_filter_includes_timestamps_through_selected_end_date(
     assert "next-day" not in _file_ids(response)
 
 
+def test_browse_transferred_filter_uses_consignment_transfer_date(browse_index):
+    client, index = browse_index
+
+    query = build_browse_records_search_query(
+        filters={
+            "date_filter_field": "transferred",
+            "date_from": "2024-02-01",
+            "date_to": "2024-02-29",
+        }
+    )
+    response = client.search(index=index, body=query)
+
+    assert _file_ids(response) == ["file-a", "file-b"]
+
+
 @pytest.mark.parametrize(
     ("sort_option", "expected_ids"),
     [

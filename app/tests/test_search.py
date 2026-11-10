@@ -736,7 +736,7 @@ class TestSearchResults:
         """
         Given a transferred date filter with date range
         When search results query is built
-        Then the OpenSearch filter uses end_date range
+        Then the OpenSearch filter uses consignment transfer date range
         """
         mock_all_access_user(client)
         mock_setup_opensearch.return_value = MockOpenSearch(
@@ -752,7 +752,7 @@ class TestSearchResults:
         _, dsl_query, _, _ = mock_execute_search.call_args[0]
         assert {
             "range": {
-                "end_date": {
+                "consignment_transfer_complete_date": {
                     "gte": "2025-01-01",
                     "lt": "2026-01-01",
                 }
