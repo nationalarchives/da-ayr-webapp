@@ -568,11 +568,24 @@ class TestFinalPackagePreparation:
             )
 
 
-class TestFileCsvSchema:
-    """File CSV contract and field-preservation tests."""
+class TestCsvSchema:
+    """Shared CSV contracts and File field-preservation tests."""
 
-    def test_file_columns_match_worker_schema(self):
-        assert finaliser_module.FILE_COLUMNS == worker_csv.FILE_COLUMNS
+    @pytest.mark.parametrize(
+        "column_name",
+        [
+            "BODY_COLUMNS",
+            "SERIES_COLUMNS",
+            "CONSIGNMENT_COLUMNS",
+            "FILE_COLUMNS",
+            "FILE_METADATA_COLUMNS",
+            "AV_METADATA_COLUMNS",
+        ],
+    )
+    def test_worker_and_finaliser_share_schema(self, column_name):
+        assert getattr(finaliser_module, column_name) is getattr(
+            worker_csv, column_name
+        )
 
     @pytest.mark.parametrize(
         "empty_values", [False, True], ids=["populated", "empty"]
@@ -668,6 +681,50 @@ class TestCsvDiscoveryAndMerge:
                 "FileName": "test.txt",
             }
         ]
+
+    @pytest.mark.parametrize("file_name", finaliser_module.CSV_DEFINITIONS)
+    @pytest.mark.parametrize("data_row", ["", "value,extra\n"])
+    def test_merge_rejects_unexpected_columns(
+        self, mock_finaliser, tmp_path, file_name, data_row
+    ):
+        column = finaliser_module.CSV_DEFINITIONS[file_name]["required_column"]
+        key = f"staging/{file_name}"
+        mock_finaliser.s3.get_object.return_value = {
+            "Body": BytesIO(
+                f"{column},UnexpectedField\n{data_row}".encode("utf-8")
+            )
+        }
+
+        with pytest.raises(ValueError) as error:
+            merge_staged_csvs([key], tmp_path)
+
+        assert "UnexpectedField" in str(error.value)
+        assert f"s3://ddt-temp-csv-bucket/{key}" in str(error.value)
+
+    def test_merge_rejects_values_without_headers(
+        self, mock_finaliser, tmp_path
+    ):
+        mock_finaliser.s3.get_object.return_value = {
+            "Body": BytesIO(b"FileId\nfile-1,extra\n")
+        }
+
+        with pytest.raises(ValueError, match="More values than columns"):
+            merge_staged_csvs(["staging/AYR-file.csv"], tmp_path)
+
+    def test_merge_accepts_older_file_csv_with_missing_optional_columns(
+        self, mock_finaliser, tmp_path
+    ):
+        mock_finaliser.s3.get_object.return_value = {
+            "Body": BytesIO(b"FileName,FileId\ntest.txt,file-1\n")
+        }
+
+        merge_staged_csvs(["staging/AYR-file.csv"], tmp_path)
+
+        row = read_csv_file(tmp_path / "AYR-file.csv")[0]
+        assert row == {
+            column: {"FileId": "file-1", "FileName": "test.txt"}.get(column, "")
+            for column in finaliser_module.FILE_COLUMNS
+        }
 
     def test_merge_staged_csvs_uses_bounded_batches_and_logs_progress(
         self, mock_finaliser, monkeypatch, tmp_path

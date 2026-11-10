@@ -16,59 +16,14 @@ from typing import Any
 import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
-
-BODY_COLUMNS = ["BodyId", "Name", "Description"]
-
-SERIES_COLUMNS = ["SeriesId", "BodyId", "Name", "Description"]
-
-CONSIGNMENT_COLUMNS = [
-    "ConsignmentId",
-    "BodyId",
-    "SeriesId",
-    "ConsignmentReference",
-    "ConsignmentType",
-    "IncludeTopLevelFolder",
-    "ContactName",
-    "ContactEmail",
-    "TransferStartDatetime",
-    "TransferCompleteDatetime",
-    "ExportDatetime",
-    "CreatedDatetime",
-]
-
-FILE_COLUMNS = [
-    "FileId",
-    "ConsignmentId",
-    "FileType",
-    "FileName",
-    "FilePath",
-    "FileReference",
-    "CiteableReference",
-    "ParentReference",
-    "OriginalFilePath",
-    "Checksum",
-    "DateLastModified",
-    "EndDate",
-    "ClosureType",
-    "OpeningDate",
-    "ReconsiderDueInDate",
-    "FormerFilePathDepartment",
-    "CreatedDatetime",
-]
-
-FILE_METADATA_COLUMNS = [
-    "MetadataId",
-    "FileId",
-    "PropertyName",
-    "Value",
-    "CreatedDatetime",
-]
-
-AV_METADATA_COLUMNS = [
-    "FileId",
-    "Filepath",
-    "AV_Software",
-]
+from csv_schema import (
+    AV_METADATA_COLUMNS,
+    BODY_COLUMNS,
+    CONSIGNMENT_COLUMNS,
+    FILE_COLUMNS,
+    FILE_METADATA_COLUMNS,
+    SERIES_COLUMNS,
+)
 
 FFID_METADATA_COLUMNS = [
     "FileId",
@@ -513,7 +468,6 @@ def open_output_csv_writers(
         writer = csv.DictWriter(
             handle,
             fieldnames=definition["columns"],
-            extrasaction="ignore",
         )
         writer.writeheader()
         writers[file_name] = writer
@@ -540,6 +494,7 @@ def log_merge_progress(processed: int, total: int) -> None:
 
 
 def read_csv_from_s3_as_list(key: str) -> list[dict[str, str]]:
+    """Read staged rows, rejecting columns outside the output schema."""
     logger.debug("Reading staged CSV s3://%s/%s", DDT_TEMP_CSV_BUCKET, key)
 
     response = s3.get_object(Bucket=DDT_TEMP_CSV_BUCKET, Key=key)
@@ -554,7 +509,25 @@ def read_csv_from_s3_as_list(key: str) -> list[dict[str, str]]:
         return []
 
     reader = csv.DictReader(StringIO(body))
-    return [dict(row) for row in reader]
+    expected_columns = CSV_DEFINITIONS[Path(key).name]["columns"]
+    unexpected_columns = sorted(
+        set(reader.fieldnames or []) - set(expected_columns)
+    )
+    if unexpected_columns:
+        raise ValueError(
+            f"Unexpected CSV columns {unexpected_columns} in "
+            f"s3://{DDT_TEMP_CSV_BUCKET}/{key}"
+        )
+
+    rows = []
+    for row_number, row in enumerate(reader, start=2):
+        if None in row:
+            raise ValueError(
+                f"More values than columns in CSV row {row_number} from "
+                f"s3://{DDT_TEMP_CSV_BUCKET}/{key}"
+            )
+        rows.append(dict(row))
+    return rows
 
 
 def create_checksum_files(output_dir: Path) -> None:

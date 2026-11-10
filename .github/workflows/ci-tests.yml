@@ -99,9 +99,11 @@ jobs:
           - name: droid
             context: data_management/dri_to_ayr_data_migration/droid
           - name: finaliser
-            context: data_management/dri_to_ayr_data_migration/finaliser
+            context: data_management/dri_to_ayr_data_migration
+            dockerfile: data_management/dri_to_ayr_data_migration/finaliser/Dockerfile
           - name: worker
-            context: data_management/dri_to_ayr_data_migration/worker
+            context: data_management/dri_to_ayr_data_migration
+            dockerfile: data_management/dri_to_ayr_data_migration/worker/Dockerfile
           - name: series-coordinator
             context: data_management/dri_to_ayr_data_migration/series_coordinator
 
@@ -144,6 +146,7 @@ jobs:
       uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
       with:
         context: ${{ matrix.context }}
+        file: ${{ matrix.dockerfile || format('{0}/Dockerfile', matrix.context) }}
         push: false
         load: true
         tags: ayr-${{ matrix.name }}:ci
