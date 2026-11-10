@@ -97,6 +97,10 @@ class MockOpenSearch:
                     {"key": {"transferring_body": "first_body"}},
                     {"key": {"transferring_body": "second_body"}},
                 ],
+                "browse_series_options": [
+                    {"key": {"series": "HO 405"}},
+                    {"key": {"series": "HO 406"}},
+                ],
                 "browse_autofill_options": [
                     {
                         "key": {
@@ -298,6 +302,9 @@ class TestSearchResults:
         assert open_search.search_calls[0]["body"]["aggs"].keys() == {
             "browse_transferring_bodies"
         }
+        assert open_search.search_calls[1]["body"]["aggs"].keys() == {
+            "browse_series_options"
+        }
 
     @patch("app.main.routes.setup_opensearch")
     def test_search_results_renders_expected_table_headers_for_query(
@@ -378,6 +385,7 @@ class TestSearchResults:
             "h2", class_="govuk-heading-m--browse-filter-title"
         )
         series_filter = soup.find("input", id="series_filter")
+        series_datalist = soup.find("datalist", id="series_list")
         consignment_filter = soup.find("input", id="consignment_reference")
         status_closed = soup.find("input", id="recordStatus-closed")
         transferred_date = soup.find("input", id="transferred_date")
@@ -385,6 +393,11 @@ class TestSearchResults:
         assert soup.find("table", attrs={"id": "tbl_result"}) is None
         assert filters_heading is not None
         assert series_filter is not None
+        assert series_datalist is not None
+        assert series_filter.get("list") == "series_list"
+        assert [
+            option.get("value") for option in series_datalist.find_all("option")
+        ] == ["HO 405", "HO 406"]
         assert consignment_filter is not None
         assert status_closed is not None
         assert transferred_date is not None

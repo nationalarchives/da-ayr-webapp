@@ -168,6 +168,7 @@ class TestRecord:
         open_search.search.return_value = {
             "aggregations": {
                 "browse_transferring_bodies": {"buckets": []},
+                "browse_series_options": {"buckets": []},
                 "browse_autofill_options": {"buckets": []},
             }
         }

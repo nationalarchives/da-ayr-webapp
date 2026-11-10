@@ -304,6 +304,44 @@ def build_browse_filter_data(
     return transferring_bodies
 
 
+def build_series_filter_data(
+    accessible_body_names,
+    open_search,
+    selected_transferring_body=None,
+):
+    if accessible_body_names == []:
+        return []
+
+    filter_clauses = []
+    if accessible_body_names is not None:
+        filter_clauses.append(
+            {"terms": {"transferring_body.keyword": accessible_body_names}}
+        )
+    if selected_transferring_body:
+        filter_clauses.append(
+            {"term": {"transferring_body.keyword": selected_transferring_body}}
+        )
+
+    query = (
+        {"bool": {"filter": filter_clauses}}
+        if filter_clauses
+        else {"match_all": {}}
+    )
+    buckets = _get_browse_composite_buckets(
+        open_search,
+        "browse_series_options",
+        [{"series": {"terms": {"field": "series_name.keyword"}}}],
+        query=query,
+    )
+    return sorted(
+        {
+            bucket["key"].get("series")
+            for bucket in buckets
+            if bucket["key"].get("series")
+        }
+    )
+
+
 def count_selected_filters(
     filters,
     from_date,
