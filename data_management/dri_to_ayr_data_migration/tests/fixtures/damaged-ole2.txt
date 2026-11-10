@@ -1,0 +1,19 @@
+damaged-ole2.xls is a synthetic 512-byte OLE2 header, not a real spreadsheet.
+It contains no user data or third-party document content.
+
+The header declares version 3, 512-byte sectors, 64-byte mini-sectors, one FAT
+sector and a 4096-byte mini-stream cutoff. Mini-FAT and DIFAT chains are absent,
+and all 109 header DIFAT entries are unused. The declared FAT and directory
+sectors are deliberately missing: the file ends immediately after the header.
+
+Header specification:
+https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/
+
+When read from RustFS over S3, DROID 6.9.13 logs an Ole2IdentifierEngine
+ERROR containing "No reader was obtained", but exits with zero and returns
+STATUS=Done, PUID=fmt/111 and FORMAT_NAME=OLE2 Compound Document Format.
+The same bytes read as a local file did not reproduce that diagnostic.
+The regression test uses an isolated RustFS bucket; this also reproduced over
+range-capable HTTP during fixture development.
+
+SHA256: 68f8e6c0f06b013edd3a3af0b2ac516c794b40fb088bb273986d23c3de8ea511

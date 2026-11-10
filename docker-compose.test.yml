@@ -88,6 +88,11 @@ services:
       - ./test_results:/test_results
     working_dir: /app
     entrypoint: ""
+    environment:
+      RUSTFS_ENDPOINT_URL: http://migration-rustfs:9000
+    depends_on:
+      migration-rustfs:
+        condition: service_healthy
     command:
     - sh
     - -c
@@ -105,6 +110,22 @@ services:
           --cov-report=xml:/test_results/dri_to_ayr_data_migration_coverage.xml \
           --cov-report=term-missing \
           -vvs data_management/dri_to_ayr_data_migration/tests
+
+  migration-rustfs:
+    image: rustfs/rustfs:1.0.0-rc.6@sha256:97171b3d72cd47dc81000f92ea84de25608bfc35a94c965501afaeb5d99f6035
+    environment:
+      RUSTFS_ACCESS_KEY: migration-test
+      RUSTFS_SECRET_KEY: migration-test-secret # pragma: allowlist secret
+      RUSTFS_CONSOLE_ENABLE: "false"
+    tmpfs:
+      - /data:uid=10001,gid=10001,mode=0700
+    command: ["/data"]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/health/ready"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+      start_period: 2s
 
   postgres:
     image: postgres@sha256:3a82e1f56c8f0f5616a11103ac3d47e632c3938698946a7ad26da0df1334744a # postgres:18.0 with digest for immutability
