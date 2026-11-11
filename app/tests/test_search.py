@@ -1174,13 +1174,13 @@ class TestSearchResults:
         assert response.status_code == 200
         verify_scope_text(response.data, body.Name)
 
-    def test_search_results_renders_10000_plus_records_found_heading_for_all_access_user(
+    def test_search_results_renders_full_count_heading_for_all_access_user(
         self, client: FlaskClient, mock_all_access_user
     ):
         """
         Given an all-access user on search results
         When the page renders with more than 10,000 records
-        Then the browse heading displays 'Records found 10,000+' and the support text appears
+        Then the browse heading displays the full record count and the support text appears
         """
         mock_all_access_user(client)
         with (
@@ -1193,7 +1193,7 @@ class TestSearchResults:
             response = client.get(f"{self.route_url}?query=test")
 
         assert response.status_code == 200
-        verify_browse_heading(response.data, "Records found 10,000+")
+        verify_browse_heading(response.data, "1,144,224 records found")
         assert (
             b"Only the first 10,000 records are shown; add keywords or apply filters to narrow your search."
             in response.data

@@ -652,6 +652,7 @@ def test_build_search_results_query_with_transferring_body_filter():
             "fields": {"*": {}},
             "max_analyzer_offset": 1_000_000,
         },
+        "track_total_hits": True,
     }
 
 

@@ -12,14 +12,10 @@
                 </span>
             </p>
             <h1 class="browse__heading" id="browse" aria-live="polite">
-                {%- if view_type == "search" and num_records_found > 10000 -%}
-                    Records found 10,000+
+                {%- if records_has_active_filters -%}
+                    {{ num_records_found | format_number_with_commas }} records found
                 {%- else -%}
-                    {%- if records_has_active_filters -%}
-                        {{ num_records_found | format_number_with_commas }} records found
-                    {%- else -%}
-                        {{ num_records_found | format_number_with_commas }} {{ heading_text }}
-                    {%- endif -%}
+                    {{ num_records_found | format_number_with_commas }} {{ heading_text }}
                 {%- endif -%}
             </h1>
             {% if view_type == "search" and num_records_found > 10000 %}
