@@ -494,7 +494,7 @@ def log_merge_progress(processed: int, total: int) -> None:
 
 
 def read_csv_from_s3_as_list(key: str) -> list[dict[str, str]]:
-    """Read staged rows, rejecting columns outside the output schema."""
+    """Read staged rows, rejecting duplicate or unexpected columns."""
     logger.debug("Reading staged CSV s3://%s/%s", DDT_TEMP_CSV_BUCKET, key)
 
     response = s3.get_object(Bucket=DDT_TEMP_CSV_BUCKET, Key=key)
@@ -509,10 +509,18 @@ def read_csv_from_s3_as_list(key: str) -> list[dict[str, str]]:
         return []
 
     reader = csv.DictReader(StringIO(body))
-    expected_columns = CSV_DEFINITIONS[Path(key).name]["columns"]
-    unexpected_columns = sorted(
-        set(reader.fieldnames or []) - set(expected_columns)
+    fieldnames = reader.fieldnames or []
+    duplicate_columns = sorted(
+        {column for column in fieldnames if fieldnames.count(column) > 1}
     )
+    if duplicate_columns:
+        raise ValueError(
+            f"Duplicate CSV columns {duplicate_columns} in "
+            f"s3://{DDT_TEMP_CSV_BUCKET}/{key}"
+        )
+
+    expected_columns = CSV_DEFINITIONS[Path(key).name]["columns"]
+    unexpected_columns = sorted(set(fieldnames) - set(expected_columns))
     if unexpected_columns:
         raise ValueError(
             f"Unexpected CSV columns {unexpected_columns} in "

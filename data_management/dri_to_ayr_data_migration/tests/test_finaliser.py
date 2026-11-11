@@ -701,6 +701,40 @@ class TestCsvDiscoveryAndMerge:
         assert "UnexpectedField" in str(error.value)
         assert f"s3://ddt-temp-csv-bucket/{key}" in str(error.value)
 
+    @pytest.mark.parametrize(
+        ("header", "data_row", "duplicates"),
+        [
+            pytest.param("FileId,FileId", "", "['FileId']", id="header-only"),
+            pytest.param(
+                "FileName,FileId,FileName,FileId,FileId",
+                "first,file-1,second,file-2,file-3\n",
+                "['FileId', 'FileName']",
+                id="multiple-duplicates-with-row",
+            ),
+            pytest.param(
+                "FileId,UnexpectedField,UnexpectedField",
+                "",
+                "['UnexpectedField']",
+                id="duplicate-unexpected-column",
+            ),
+        ],
+    )
+    def test_merge_rejects_duplicate_columns(
+        self, mock_finaliser, tmp_path, header, data_row, duplicates
+    ):
+        key = "staging/AYR-file.csv"
+        mock_finaliser.s3.get_object.return_value = {
+            "Body": BytesIO(f"{header}\n{data_row}".encode("utf-8"))
+        }
+
+        with pytest.raises(ValueError) as error:
+            merge_staged_csvs([key], tmp_path)
+
+        assert str(error.value) == (
+            f"Duplicate CSV columns {duplicates} in "
+            f"s3://ddt-temp-csv-bucket/{key}"
+        )
+
     def test_merge_rejects_values_without_headers(
         self, mock_finaliser, tmp_path
     ):
