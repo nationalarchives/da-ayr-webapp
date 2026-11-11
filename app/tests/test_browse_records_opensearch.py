@@ -218,7 +218,7 @@ def test_browse_query_builds_indexed_field_filters():
             "transferred",
             {
                 "range": {
-                    "end_date": {
+                    "consignment_transfer_complete_date": {
                         "gte": "2024-01-01",
                         "lt": "2025-01-01",
                     }

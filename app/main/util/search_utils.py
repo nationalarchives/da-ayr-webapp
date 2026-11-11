@@ -506,7 +506,9 @@ def _build_date_filter(filters):
     if date_filter_field == "opening_date":
         return _build_range_filter("opening_date", date_from, date_to)
     if date_filter_field == "transferred":
-        return _build_range_filter("end_date", date_from, date_to)
+        return _build_range_filter(
+            "consignment_transfer_complete_date", date_from, date_to
+        )
     return _build_date_of_record_filter(date_from, date_to)
 
 
