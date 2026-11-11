@@ -22,7 +22,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 OPEN_SEARCH_BULK_CHUNK_SIZE = 100
-OPEN_SEARCH_BULK_MAX_CHUNK_BYTES = 10 * 1024 * 1024
+OPEN_SEARCH_BULK_MAX_CHUNK_BYTES = 5 * 1024 * 1024
 
 
 class ConsignmentBulkIndexError(Exception):
