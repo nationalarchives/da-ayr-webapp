@@ -430,10 +430,10 @@ def test_browse_redirects_invalid_page_to_browse(client, mock_all_access_user):
     ("per_page", "page", "expected_summary", "has_next_page"),
     [
         (5, 5, "Showing 21–25 of 10,000", True),
-        (5, 2000, "Showing 9996–10000 of 10,000", False),
-        (6, 1667, "Showing 9997–10000 of 10,000", False),
-        (10, 1000, "Showing 9991–10000 of 10,000", False),
-        (20, 500, "Showing 9981–10000 of 10,000", False),
+        (5, 2000, "Showing 9,996–10,000 of 10,000", False),
+        (6, 1667, "Showing 9,997–10,000 of 10,000", False),
+        (10, 1000, "Showing 9,991–10,000 of 10,000", False),
+        (20, 500, "Showing 9,981–10,000 of 10,000", False),
     ],
 )
 def test_browse_caps_pagination_at_10000_results(

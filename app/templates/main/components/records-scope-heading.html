@@ -18,6 +18,9 @@
                     {{ num_records_found | format_number_with_commas }} {{ heading_text }}
                 {%- endif -%}
             </h1>
+            {% if num_records_found > 10000 %}
+                <p class="govuk-body-l">Only the first 10,000 records are shown; add keywords or apply filters to narrow your search.</p>
+            {% endif %}
         {% else %}
             {{ no_results_message(view_type) }}
         {% endif %}

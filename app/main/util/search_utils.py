@@ -699,7 +699,7 @@ def build_search_results_query(
         },
     }
 
-    return {**dsl_query, **highlighting}
+    return {**dsl_query, **highlighting, "track_total_hits": True}
 
 
 def extract_search_terms(query):
