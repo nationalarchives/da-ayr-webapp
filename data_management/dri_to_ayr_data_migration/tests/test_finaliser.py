@@ -1,7 +1,7 @@
 import csv
 import json
 import os
-from io import BytesIO
+from io import BytesIO, StringIO
 from pathlib import Path
 from typing import Any
 from unittest import mock
@@ -567,6 +567,61 @@ class TestFinalPackagePreparation:
             )
 
 
+class TestCsvSchema:
+    """File field-preservation tests."""
+
+    @pytest.mark.parametrize(
+        "new_fields",
+        [
+            pytest.param(
+                {
+                    "FormerFilePathDepartment": "department/former/path.txt",
+                    "DateLastModified": "2026-08-27T10:40:00Z",
+                    "ReconsiderDueInDate": "2035-01-01",
+                    "EndDate": "2026-08-27",
+                    "ClosureType": "Closed",
+                    "OpeningDate": "2040-01-01",
+                },
+                id="populated",
+            ),
+            pytest.param(
+                {
+                    "FormerFilePathDepartment": "",
+                    "DateLastModified": "",
+                    "ReconsiderDueInDate": "",
+                    "EndDate": "",
+                    "ClosureType": "",
+                    "OpeningDate": "",
+                },
+                id="empty",
+            ),
+        ],
+    )
+    def test_merge_staged_csvs_preserves_new_file_fields(
+        self, mock_finaliser, tmp_path, new_fields
+    ):
+        row = {
+            "FileId": "file-1",
+            "FileName": "test.txt",
+            "CreatedDatetime": "2026-09-01T10:00:00Z",
+            **new_fields,
+        }
+        staged_csv = StringIO()
+        writer = csv.DictWriter(staged_csv, fieldnames=list(row))
+        writer.writeheader()
+        writer.writerow(row)
+        mock_finaliser.s3.get_object.return_value = {
+            "Body": BytesIO(staged_csv.getvalue().encode("utf-8"))
+        }
+
+        counts = merge_staged_csvs(["staging/file-1/AYR-file.csv"], tmp_path)
+
+        assert counts["AYR-file.csv"] == 1
+        rows = read_csv_file(tmp_path / "AYR-file.csv")
+        assert len(rows) == 1
+        assert {column: rows[0][column] for column in row} == row
+
+
 class TestCsvDiscoveryAndMerge:
     """CSV listing, merging and checksum tests"""
 
@@ -622,6 +677,73 @@ class TestCsvDiscoveryAndMerge:
                 "FileName": "test.txt",
             }
         ]
+
+    @pytest.mark.parametrize(
+        "data_row",
+        [
+            pytest.param("", id="header-only"),
+            pytest.param("file-1,extra\n", id="with-row"),
+        ],
+    )
+    def test_merge_rejects_unexpected_columns(
+        self, mock_finaliser, tmp_path, data_row
+    ):
+        key = "staging/AYR-file.csv"
+        mock_finaliser.s3.get_object.return_value = {
+            "Body": BytesIO(
+                f"FileId,UnexpectedField\n{data_row}".encode("utf-8")
+            )
+        }
+
+        with pytest.raises(ValueError) as error:
+            merge_staged_csvs([key], tmp_path)
+
+        assert "UnexpectedField" in str(error.value)
+        assert f"s3://ddt-temp-csv-bucket/{key}" in str(error.value)
+
+    @pytest.mark.parametrize(
+        ("header", "data_row", "duplicates"),
+        [
+            pytest.param("FileId,FileId", "", "['FileId']", id="header-only"),
+            pytest.param(
+                "FileName,FileId,FileName,FileId,FileId",
+                "first,file-1,second,file-2,file-3\n",
+                "['FileId', 'FileName']",
+                id="multiple-duplicates-with-row",
+            ),
+            pytest.param(
+                "FileId,UnexpectedField,UnexpectedField",
+                "",
+                "['UnexpectedField']",
+                id="duplicate-unexpected-column",
+            ),
+        ],
+    )
+    def test_merge_rejects_duplicate_columns(
+        self, mock_finaliser, tmp_path, header, data_row, duplicates
+    ):
+        key = "staging/AYR-file.csv"
+        mock_finaliser.s3.get_object.return_value = {
+            "Body": BytesIO(f"{header}\n{data_row}".encode("utf-8"))
+        }
+
+        with pytest.raises(ValueError) as error:
+            merge_staged_csvs([key], tmp_path)
+
+        assert str(error.value) == (
+            f"Duplicate CSV columns {duplicates} in "
+            f"s3://ddt-temp-csv-bucket/{key}"
+        )
+
+    def test_merge_rejects_values_without_headers(
+        self, mock_finaliser, tmp_path
+    ):
+        mock_finaliser.s3.get_object.return_value = {
+            "Body": BytesIO(b"FileId\nfile-1,extra\n")
+        }
+
+        with pytest.raises(ValueError, match="More values than columns"):
+            merge_staged_csvs(["staging/AYR-file.csv"], tmp_path)
 
     def test_merge_staged_csvs_uses_bounded_batches_and_logs_progress(
         self, mock_finaliser, monkeypatch, tmp_path

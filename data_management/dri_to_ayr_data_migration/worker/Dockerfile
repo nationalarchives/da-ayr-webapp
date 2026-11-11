@@ -18,7 +18,8 @@ RUN rm -f /usr/local/bin/aws-lambda-rie
 
 RUN mkdir -p worker
 
-COPY handler.py worker/handler.py
-COPY dri_to_ayr_csv.py worker/dri_to_ayr_csv.py
+COPY csv_schema.py .
+COPY worker/handler.py worker/handler.py
+COPY worker/dri_to_ayr_csv.py worker/dri_to_ayr_csv.py
 
 CMD ["worker.handler.lambda_handler"]

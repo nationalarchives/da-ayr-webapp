@@ -16,6 +16,7 @@ RUN dnf upgrade --refresh -y --releasever=latest && \
 
 RUN rm -f /usr/local/bin/aws-lambda-rie
 
-COPY handler.py .
+COPY csv_schema.py .
+COPY finaliser/handler.py .
 
 CMD ["handler.lambda_handler"]

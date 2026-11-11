@@ -16,61 +16,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
 
+from csv_schema import (
+    AV_METADATA_COLUMNS,
+    BODY_COLUMNS,
+    CONSIGNMENT_COLUMNS,
+    FILE_COLUMNS,
+    FILE_METADATA_COLUMNS,
+    SERIES_COLUMNS,
+)
+
 LOGGER = logging.getLogger(__name__)
-
-
-BODY_COLUMNS = ["BodyId", "Name", "Description"]
-
-SERIES_COLUMNS = ["SeriesId", "BodyId", "Name", "Description"]
-
-CONSIGNMENT_COLUMNS = [
-    "ConsignmentId",
-    "BodyId",
-    "SeriesId",
-    "ConsignmentReference",
-    "ConsignmentType",
-    "IncludeTopLevelFolder",
-    "ContactName",
-    "ContactEmail",
-    "TransferStartDatetime",
-    "TransferCompleteDatetime",
-    "ExportDatetime",
-    "CreatedDatetime",
-]
-
-FILE_COLUMNS = [
-    "FileId",
-    "ConsignmentId",
-    "FileType",
-    "FileName",
-    "FilePath",
-    "FileReference",
-    "CiteableReference",
-    "ParentReference",
-    "OriginalFilePath",
-    "Checksum",
-    "DateLastModified",
-    "EndDate",
-    "ClosureType",
-    "OpeningDate",
-    "ReconsiderDueInDate",
-    "FormerFilePathDepartment",
-    "CreatedDatetime",
-]
-
-FILE_METADATA_COLUMNS = [
-    "MetadataId",
-    "FileId",
-    "PropertyName",
-    "Value",
-    "CreatedDatetime",
-]
-
-AV_METADATA_COLUMNS = [
-    "FileId",
-    "Filepath",
-    "AV_Software",
-]
 
 # Source fields already represented by Body, Series, Consignment, File,
 # or known FileMetadata mappings. These do not need duplicate dri_* entries.
