@@ -915,7 +915,10 @@ class TestRecord:
         summary_list = soup.find("dl", class_="govuk-summary-list--record")
         assert summary_list is not None
 
+        last_found_index = -1
+
         def assert_summary_row(key_text, value_text):
+            nonlocal last_found_index
             rows = summary_list.find_all(
                 "div", class_="govuk-summary-list__row--record"
             )
@@ -925,6 +928,12 @@ class TestRecord:
                 )
                 dd = row.find("dd", class_="govuk-summary-list__value--record")
                 if dt and dt.get_text(strip=True) == key_text:
+                    current_index = rows.index(row)
+                    assert current_index > last_found_index, (
+                        f"Out of order in HTML! '{key_text}' appeared at index {current_index}, "
+                        f"but must come after the previous row (index {last_found_index})."
+                    )
+                    last_found_index = current_index
                     assert dd is not None and value_text in dd.get_text(
                         strip=True
                     )
@@ -948,11 +957,11 @@ class TestRecord:
             "Alternative file name", metadata_by_key["alternative_title"].Value
         )
         assert_summary_row("Description", metadata_by_key["description"].Value)
-        assert_summary_row("Citeable reference", str(file.CiteableReference))
         assert_summary_row(
             "Alternative description",
             metadata_by_key["alternative_description"].Value,
         )
+        assert_summary_row("Citeable reference", str(file.CiteableReference))
         assert_summary_row("Status", file.ClosureType)
         assert_summary_row("Closure start date", closure_start_date)
         assert_summary_row(
@@ -1048,7 +1057,10 @@ class TestRecord:
         summary_list = soup.find("dl", class_="govuk-summary-list--record")
         assert summary_list is not None
 
+        last_found_index = -1
+
         def assert_summary_row(key_text, value_text):
+            nonlocal last_found_index
             rows = summary_list.find_all(
                 "div", class_="govuk-summary-list__row--record"
             )
@@ -1058,6 +1070,13 @@ class TestRecord:
                 )
                 dd = row.find("dd", class_="govuk-summary-list__value--record")
                 if dt and dt.get_text(strip=True) == key_text:
+                    current_index = rows.index(row)
+                    assert current_index > last_found_index, (
+                        f"Out of order! '{key_text}' appeared at index {current_index}, "
+                        f"but must come after the previous row (index {last_found_index})."
+                    )
+                    last_found_index = current_index
+
                     if key_text == "Status":
                         return
                     assert dd is not None and value_text in dd.get_text(
@@ -1081,11 +1100,11 @@ class TestRecord:
             "Alternative file name", metadata_by_key["alternative_title"].Value
         )
         assert_summary_row("Description", metadata_by_key["description"].Value)
-        assert_summary_row("Citeable reference", str(file.CiteableReference))
         assert_summary_row(
             "Alternative description",
             metadata_by_key["alternative_description"].Value,
         )
+        assert_summary_row("Citeable reference", str(file.CiteableReference))
         assert_summary_row("Status", file.ClosureType)
         assert_summary_row("Closure start date", closure_start_date)
         assert_summary_row(
