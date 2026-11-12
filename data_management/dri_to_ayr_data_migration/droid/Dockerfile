@@ -16,7 +16,7 @@ org.apache.logging.log4j:log4j-api:2.26.1 \
 com.fasterxml.jackson.core:jackson-core:2.23.0 \
 com.fasterxml.jackson.core:jackson-databind:2.23.0 \
 org.bouncycastle:bcprov-jdk15to18:1.86 \
-org.bouncycastle:bcprov-jdk15on:1.86:bcprov-jdk18on \
+org.bouncycastle:bcprov-jdk15on:1.87:bcprov-jdk18on \
 org.springframework:spring-aop:7.0.10 \
 org.springframework:spring-beans:7.0.10 \
 org.springframework:spring-context:7.0.10 \
