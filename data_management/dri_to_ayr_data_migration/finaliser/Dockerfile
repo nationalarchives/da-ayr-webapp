@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.14@sha256:af5e126c7bf423607e0ed9f96384186d108346d9df6a5d8e913aa6c2f1746308
+FROM public.ecr.aws/lambda/python:3.14@sha256:e7521626e637d974ee44e03377ad192a3c0b4577db625a47fd64a0c19e0d63e0
 
 ARG AL2023_RELEASE=2023.12.20260928
 
