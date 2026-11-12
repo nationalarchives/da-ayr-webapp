@@ -99,9 +99,17 @@ def process_message(message: dict[str, Any]) -> dict[str, Any]:
     key = require_text(message, "key")
     file_id = require_text(message, "fileId")
     extension = message.get("extension") or ""
-    allow_partial = message.get("allowPartialIdentification", False)
-    if not isinstance(allow_partial, bool):
-        raise ValueError("allowPartialIdentification must be a boolean")
+    allow_partial_raw_value = message.get("allowPartialIdentification", "false")
+
+    if not isinstance(
+        allow_partial_raw_value, str
+    ) or allow_partial_raw_value.lower() not in (
+        "true",
+        "false",
+    ):
+        raise ValueError("allowPartialIdentification must be 'true' or 'false'")
+
+    allow_partial = allow_partial_raw_value.lower() == "true"
 
     if is_file_already_complete(
         run_id=run_id,

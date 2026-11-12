@@ -127,11 +127,13 @@ def droid(monkeypatch):
 class TestDroidHandler:
     """DROID Lambda handler and orchestration tests."""
 
-    @pytest.mark.parametrize("flag", ["true", 1, None])
-    def test_process_message_rejects_non_boolean_partial_override(
+    @pytest.mark.parametrize(
+        "flag", [True, False, 1, 0, None, "", "yes", "no", "1", "0", {}]
+    )
+    def test_process_message_rejects_non_boolean_string_partial_override(
         self, droid, flag
     ):
-        with pytest.raises(ValueError, match="must be a boolean"):
+        with pytest.raises(ValueError, match="must be 'true' or 'false'"):
             droid.process_message(
                 {**droid_message(), "allowPartialIdentification": flag}
             )
@@ -187,10 +189,12 @@ class TestDroidHandler:
             "Ole2IdentifierEngine:133 - No reader was obtained\n",
         )
         droid.sqs.send_message.return_value = {"MessageId": "finaliser-message"}
+
+        # Test using string-encoded boolean "true" from SQS message body parsing
         message = {
             **droid_message(),
             "extension": "xls",
-            "allowPartialIdentification": True,
+            "allowPartialIdentification": "true",
         }
 
         # Default retries cannot complete or upload an FFID result after an ERROR.
@@ -234,6 +238,31 @@ class TestDroidHandler:
         droid.sqs.send_message.assert_called_once()
         droid.s3.put_object.assert_called_once()
         assert subprocess_run.call_count == 2
+
+    def test_lambda_handler_processes_successful_sqs_message_with_string_boolean(
+        self,
+        droid,
+        monkeypatch,
+    ):
+        process_message = mock.Mock()
+        monkeypatch.setattr(droid, "process_message", process_message)
+
+        payload = {**droid_message(), "allowPartialIdentification": "true"}
+
+        result = droid.lambda_handler(
+            {
+                "Records": [
+                    {
+                        "messageId": "message-1",
+                        "body": json.dumps(payload),
+                    }
+                ]
+            },
+            None,
+        )
+
+        assert result == {"batchItemFailures": []}
+        process_message.assert_called_once_with(payload)
 
     def test_lambda_handler_supports_direct_retry(
         self,
