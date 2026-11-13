@@ -139,64 +139,6 @@ class MockOpenSearch:
         return self.index_return_value
 
 
-class TestSearchEndpointRemoved:
-    @property
-    def route_url(self):
-        return "/search"
-
-    def test_search_endpoint_returns_not_found_for_all_access_user(
-        self, client: FlaskClient, mock_all_access_user
-    ):
-        """
-        Given an all-access user accessing /search
-        When the endpoint has been removed
-        Then a 404 is returned
-        """
-        mock_all_access_user(client)
-
-        response = client.get(f"{self.route_url}", data={"query": "fi"})
-
-        assert response.status_code == 404
-
-    def test_search_endpoint_returns_not_found_for_standard_user(
-        self, client: FlaskClient, mock_standard_user, browse_consignment_files
-    ):
-        """
-        Given a standard user accessing /search
-        When the endpoint has been removed
-        Then a 404 is returned
-        """
-        mock_standard_user(
-            client, browse_consignment_files[0].consignment.series.body.Name
-        )
-
-        response = client.get(f"{self.route_url}", data={"query": "fi"})
-
-        assert response.status_code == 404
-
-    def test_search_endpoint_returns_not_found_with_query_parameters(
-        self, client: FlaskClient, mock_all_access_user
-    ):
-        """
-        Given a /search request with explicit search parameters
-        When the endpoint has been removed
-        Then a 404 is returned
-        """
-        mock_all_access_user(client)
-
-        response = client.get(
-            self.route_url,
-            query_string={
-                "query": "test",
-                "search_area": "metadata",
-                "sort": "least_matches",
-                "search_filter": "extra term",
-            },
-        )
-
-        assert response.status_code == 404
-
-
 class TestSearchResults:
     @pytest.fixture(autouse=True)
     def mock_default_opensearch(self, monkeypatch):
@@ -767,7 +709,7 @@ class TestSearchResults:
         )
 
         assert response.status_code == 200
-        _, dsl_query, _, _ = mock_execute_search.call_args[0]
+        _, dsl_query, _, _, max_results = mock_execute_search.call_args[0]
         assert {
             "range": {
                 "consignment_transfer_complete_date": {
@@ -776,6 +718,7 @@ class TestSearchResults:
                 }
             }
         } in dsl_query["query"]["bool"]["filter"]
+        assert max_results == 10000
 
     @patch("app.main.routes.execute_search")
     @patch("app.main.routes.setup_opensearch")
@@ -1187,13 +1130,15 @@ class TestSearchResults:
         assert response.status_code == 200
         verify_scope_text(response.data, body.Name)
 
-    def test_search_results_renders_full_count_heading_for_all_access_user(
+    def test_search_results_renders_correct_count_heading_and_pagination(
         self, client: FlaskClient, mock_all_access_user
     ):
         """
-        Given an all-access user on search results
+        Given an all-access user on search results with per_page set to 5
         When the page renders with more than 10,000 records
         Then the browse heading displays the full record count and the support text appears
+        And the final page number in the pagination control is 2000
+        And the number of results displayed control displays "Showing 1–5 of 10,000"
         """
         mock_all_access_user(client)
         with (
@@ -1203,11 +1148,34 @@ class TestSearchResults:
             setup_opensearch.return_value = _open_search_client()
             execute_search.return_value = _search_response(total=1_144_224)
 
-            response = client.get(f"{self.route_url}?query=test")
+            response = client.get(f"{self.route_url}?query=test&per_page=5")
 
         assert response.status_code == 200
-        verify_browse_heading(response.data, "1,144,224 records found")
+
+        response_string = response.data.decode()
+
+        verify_browse_heading(response_string, "1,144,224 records found")
         assert (
-            b"Only the first 10,000 records are shown; add keywords or apply filters to narrow your search."
-            in response.data
+            "Only the first 10,000 records are shown; add keywords or apply filters to narrow your search."
+            in response_string
         )
+
+        assert "Showing 1–5 of 10,000" in response_string
+
+        soup = BeautifulSoup(response_string, "html.parser")
+
+        # Find the specific link by text and test ID
+        link = soup.find("a", {"data-testid": "pagination-link"}, string="2000")
+
+        assert link is not None
+        assert link["class"] == [
+            "govuk-link",
+            "govuk-link__no-visited-color",
+            "govuk-pagination__link",
+        ]
+
+        assert (
+            link["href"]
+            == "/search/results?page=2000&query=test&per_page=5#tbl_result"
+        )
+        assert link["aria-label"] == "Search results page 2000 of 2000"

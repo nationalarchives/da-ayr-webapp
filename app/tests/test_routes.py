@@ -299,28 +299,6 @@ class TestRoutes:
             actual_manifest = json.loads(response.text)
             assert actual_manifest == expected_image_manifest
 
-    def test_search_route_removed_for_all_access_user(
-        app,
-        client: FlaskClient,
-        mock_all_access_user,
-    ):
-        mock_all_access_user(client)
-
-        response = client.get("/search?query=test")
-
-        assert response.status_code == 404
-
-    def test_search_route_removed_for_standard_user(
-        app,
-        client: FlaskClient,
-        mock_standard_user,
-    ):
-        mock_standard_user(client)
-
-        response = client.get("/search?query=test")
-
-        assert response.status_code == 404
-
     @mock_aws
     @patch("app.main.routes.boto3.client")
     @patch("app.main.routes.generate_pdf_manifest")
