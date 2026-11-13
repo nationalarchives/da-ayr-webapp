@@ -539,29 +539,49 @@ class TestCsvConversion:
         }
 
         series_row = read_rows(tmp_path, "AYR-series-metadata.csv")[0]
-        assert series_row["Name"] == "LEV 2"
-        assert series_row["Description"] == "LEV 2"
+        assert series_row == {
+            "BodyId": "",
+            "Description": "LEV 2",
+            "Name": "LEV 2",
+            "SeriesId": "",
+        }
 
         consignment_row = read_rows(tmp_path, "AYR-consignment-metadata.csv")[0]
-        assert consignment_row["ConsignmentReference"] == CONSIGNMENT_REFERENCE
-        assert consignment_row["ConsignmentType"] == "Standard"
-        assert consignment_row["IncludeTopLevelFolder"] == "false"
-        assert consignment_row["CreatedDatetime"] == FIXED_NOW
+        assert consignment_row == {
+            "BodyId": "",
+            "ConsignmentId": "862832b2-3d65-5160-8a98-954843f395a0",
+            "ConsignmentReference": "TDR-2026-7333",
+            "ConsignmentType": "Standard",
+            "ContactEmail": "",
+            "ContactName": "",
+            "CreatedDatetime": "2026-08-27T10:40:00Z",
+            "ExportDatetime": "",
+            "IncludeTopLevelFolder": "false",
+            "SeriesId": "",
+            "TransferCompleteDatetime": "",
+            "TransferStartDatetime": "",
+        }
 
         file_row = read_rows(tmp_path, "AYR-file.csv")[0]
-        assert file_row["FileId"] == FILE_ID
-        assert file_row["ConsignmentId"] == consignment_row["ConsignmentId"]
-        assert file_row["FileName"] == "example.txt"
-        assert file_row["FilePath"] == "LEV 2/2BD/example.txt"
-        assert file_row["FileReference"] == "LEV 2/2BD/Z"
-        assert file_row["CiteableReference"] == "LEV 2/2BD/Z"
-        assert file_row["Checksum"] == "sha256-checksum"
-        assert file_row["DateLastModified"] == "2026-08-27T10:40:00Z"
-        assert file_row["EndDate"] == "2026-08-27"
-        assert file_row["ClosureType"] == "Closed"
-        assert file_row["OpeningDate"] == "2040-01-01"
-        assert file_row["ReconsiderDueInDate"] == "2035-01-01"
-        assert file_row["CreatedDatetime"] == FIXED_NOW
+        assert file_row == {
+            "Checksum": "sha256-checksum",
+            "CiteableReference": "LEV 2/2BD/Z",
+            "ClosureType": "Closed",
+            "ConsignmentId": "862832b2-3d65-5160-8a98-954843f395a0",
+            "CreatedDatetime": "2026-08-27T10:40:00Z",
+            "DateLastModified": "2026-08-27T10:40:00Z",
+            "EndDate": "2026-08-27T00:00:00",
+            "FileId": "6be8b424-6f9a-4f34-91e2-bde01bdf7f8b",
+            "FileName": "example.txt",
+            "FilePath": "LEV 2/2BD/example.txt",
+            "FileReference": "LEV 2/2BD/Z",
+            "FileType": "File",
+            "FormerFilePathDepartment": "",
+            "OpeningDate": "2040-01-01T00:00:00",
+            "OriginalFilePath": "",
+            "ParentReference": "",
+            "ReconsiderDueInDate": "2035-01-01T00:00:00",
+        }
 
         assert read_rows(tmp_path, "AYR-av-metadata.csv") == []
 
@@ -584,22 +604,41 @@ class TestCsvConversion:
 
         metadata = metadata_values(read_rows(tmp_path, "AYR-file-metadata.csv"))
 
-        assert metadata["description"] == ["Closed original description"]
-        assert metadata["description_alternate"] == ["Open public description"]
-        assert metadata["description_closed"] == ["true"]
-        assert metadata["title_alternate"] == ["Open public title"]
-        assert metadata["title_closed"] == ["true"]
-        assert metadata["closure_type"] == ["Closed"]
-        assert metadata["opening_date"] == ["2040-01-01"]
-        assert metadata["foi_exemption_code"] == ["FOI 23;FOI 40"]
-        assert metadata["rights_copyright"] == [
-            "Crown copyright, Test copyright"
-        ]
-
-        assert metadata["dri_custom_record_field"] == ["keep this source value"]
-        assert metadata["dri_digital_file_extra_digital_file_field"] == [
-            "extra file value"
-        ]
+        assert metadata == {
+            "closure_period": ["20"],
+            "closure_start_date": ["2020-01-01T00:00:00"],
+            "closure_type": ["Closed"],
+            "date_last_modified": ["2026-08-27T10:40:00Z"],
+            "description": ["Closed original description"],
+            "description_alternate": ["Open public description"],
+            "description_closed": ["true"],
+            "dri_custom_record_field": ["keep this source value"],
+            "dri_digital_file_checksums": [
+                '[{"hash": "MD5", "value": "md5-checksum"}, '
+                '{"hash": "SHA-256", "value": '
+                '"sha256-checksum"}]'
+            ],
+            "dri_digital_file_extra_digital_file_field": ["extra file value"],
+            "dri_public_title": ["Open public title"],
+            "dri_record_id": ["dc2da3fd-62ef-41fd-8b44-6574097b7951"],
+            "dri_sensitivity_retention_reconsider_date": ["2035-01-01"],
+            "dri_title": ["Closed original title"],
+            "end_date": ["2026-08-27T00:00:00"],
+            "evidence_provided_by": ["Evidence provider"],
+            "file_name": ["example.txt"],
+            "file_size": ["1234"],
+            "foi_exemption_asserted": ["2020-01-02T00:00:00"],
+            "foi_exemption_code": ["FOI 23;FOI 40"],
+            "former_reference_department": ["TEST 123"],
+            "held_by": ["The National Archives"],
+            "language": ["English"],
+            "legal_status": ["Public Record(s)"],
+            "note": ["Test note"],
+            "opening_date": ["2040-01-01T00:00:00"],
+            "rights_copyright": ["Crown copyright, Test copyright"],
+            "title_alternate": ["Open public title"],
+            "title_closed": ["true"],
+        }
 
         checksum_metadata = json.loads(
             metadata["dri_digital_file_checksums"][0]
@@ -707,3 +746,28 @@ class TestCsvConversion:
                 include_body_and_series=True,
                 include_consignment=True,
             )
+
+
+def test_pad_date_to_timestamp_formats_date():
+    input_date = "2024-06-15"
+    expected = "2024-06-15T00:00:00"
+    assert csv_module.pad_date_to_timestamp(input_date) == expected
+
+
+@pytest.mark.parametrize(
+    "input_date",
+    [
+        "15-06-2024",
+        "2024/06/15",
+        "2024-6-15",
+        "2024-06-15 12:34:56",
+        "2024-22-44",
+    ],
+)
+def test_pad_date_to_timestamp_raises_for_invalid_format(input_date):
+    with pytest.raises(ValueError, match="Invalid date for format YYYY-MM-DD"):
+        csv_module.pad_date_to_timestamp(input_date)
+
+
+def test_pad_date_to_timestamp_passes_through_none():
+    assert csv_module.pad_date_to_timestamp(None) is None
