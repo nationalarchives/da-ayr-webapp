@@ -53,7 +53,7 @@
         {% block main %}
             <div class="govuk-width-container {%- if containerClasses %}{{ containerClasses }}{% endif %}">
                 {% block beforeContent %}{% endblock %}
-                <main class="govuk-main-wrapper {%- if mainClasses %}{{ mainClasses }}{% endif %}"
+                <main class="govuk-main-wrapper govuk-!-padding-top-1{%- if mainClasses %}{{ mainClasses }}{% endif %}"
                       id="main-wrapper"
                       role="main"
                       {%- if mainLang %}lang="{{ mainLang }}"{% endif %}>

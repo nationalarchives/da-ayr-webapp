@@ -1,3 +1,5 @@
+@use "../../../../../node_modules/govuk-frontend/dist/govuk/helpers/spacing" as
+  govuk-spacing;
 @use "variables" as *;
 
 /* SCSS for static content template */
@@ -15,7 +17,7 @@
 
 .govuk-main-wrapper {
   &--ayr-content {
-    padding-top: 0;
+    padding-top: govuk-spacing.govuk-spacing(7);
   }
 }
 
