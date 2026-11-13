@@ -82,7 +82,7 @@ from app.main.util.schemas import (
 )
 from app.main.util.search_utils import (
     BROWSE_INDEX,
-    MAX_BROWSE_RESULTS,
+    MAX_OPEN_SEARCH_RESULTS,
     build_browse_records_search_query,
     build_search_results_query,
     execute_search,
@@ -456,8 +456,8 @@ def browse():
     if sort_option not in available_sorts:
         sort_option = "date_of_record-desc"
 
-    max_browse_results = MAX_BROWSE_RESULTS
-    max_pages = calculate_total_pages(max_browse_results, per_page)
+    max_results = MAX_OPEN_SEARCH_RESULTS
+    max_pages = calculate_total_pages(max_results, per_page)
     if page > max_pages:
         return redirect_if_page_invalid(page, default_page, "main.browse")
 
@@ -473,7 +473,7 @@ def browse():
             dsl_query,
             page,
             per_page,
-            max_results=max_browse_results,
+            max_results=max_results,
             index=BROWSE_INDEX,
         )
     except NotFound:
@@ -483,8 +483,8 @@ def browse():
     total_records = (
         hit_total.get("value", 0) if isinstance(hit_total, dict) else hit_total
     )
-    browsable_records = min(total_records, max_browse_results)
-    total_pages = calculate_total_pages(browsable_records, per_page)
+    returned_result_count = min(total_records, max_results)
+    total_pages = calculate_total_pages(returned_result_count, per_page)
     if page > 1 and page > total_pages:
         return redirect_if_page_invalid(page, default_page, "main.browse")
 
@@ -516,8 +516,9 @@ def browse():
         series_list=series_list,
         results=results,
         pagination=pagination,
+        total_pages=total_pages,
         num_records_found=total_records,
-        num_browsable_records_found=browsable_records,
+        returned_result_count=returned_result_count,
         query_string_parameters=query_string_parameters,
         filters_form_action_url=url_for("main.browse", _anchor="browse"),
         clear_filters_href=url_for(
@@ -579,11 +580,21 @@ def search_results(_id: uuid.UUID | None = None):
 
     current_transferring_body_id = _id if body is not None else None
 
+    max_results = MAX_OPEN_SEARCH_RESULTS
+    max_pages = calculate_total_pages(max_results, per_page)
+    if page > max_pages:
+        return redirect_if_page_invalid(
+            page, default_page, "main.search_results"
+        )
+
     results, pagination, num_records_found = (
         {"hits": {"total": {"value": 0}, "hits": []}},
         None,
         0,
     )
+
+    total_pages = 0
+    returned_result_count = 0
 
     if query:
         if query.endswith(","):
@@ -607,7 +618,7 @@ def search_results(_id: uuid.UUID | None = None):
 
         try:
             search_results = execute_search(
-                open_search, dsl_query, page, per_page
+                open_search, dsl_query, page, per_page, max_results=max_results
             )
         except NotFound:
             # Redirect to first page if page does not exist
@@ -629,13 +640,14 @@ def search_results(_id: uuid.UUID | None = None):
             else 0
         )
 
-        page_count = calculate_total_pages(total_records, per_page)
+        returned_result_count = min(total_records, max_results)
+        total_pages = calculate_total_pages(returned_result_count, per_page)
 
-        pagination = get_pagination(page, page_count)
+        pagination = get_pagination(page, total_pages)
         num_records_found = total_records
 
     return render_template(
-        "search-results.html",
+        "main/search-results.html",
         form=form,
         per_page=per_page,
         sort=sort,
@@ -649,6 +661,8 @@ def search_results(_id: uuid.UUID | None = None):
         num_records_found=num_records_found,
         search_area=search_area,
         pagination=pagination,
+        total_pages=total_pages,
+        returned_result_count=returned_result_count,
         highlight_tag=highlight_tag,
         date_validation_errors=date_validation_errors,
         date_error_fields=date_error_fields,

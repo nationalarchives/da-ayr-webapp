@@ -11,7 +11,7 @@ from app.main.util.date_validator import format_opensearch_date
 from app.main.util.pagination import calculate_total_pages, get_pagination
 
 BROWSE_INDEX = "documents"
-MAX_BROWSE_RESULTS = 10_000
+MAX_OPEN_SEARCH_RESULTS = 10_000
 
 OPENSEARCH_FIELD_NAME_MAP = {
     "file_name": {"display_name": "File name", "allow_fuzzy": True},
