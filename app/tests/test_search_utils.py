@@ -493,7 +493,7 @@ def test_build_dsl_search_query():
             }
         },
         "sort": {"sort": "foobar"},
-        "_source": True,
+        "_source": {"excludes": ["content"]},
     }
 
     dsl_query = build_dsl_search_query(
@@ -546,7 +546,7 @@ def test_build_dsl_search_query_and_non_fuzzy_fuzzy_search():
             }
         },
         "sort": {"sort": "foobar"},
-        "_source": True,
+        "_source": {"excludes": ["content"]},
     }
 
     dsl_query = build_dsl_search_query(
@@ -637,7 +637,7 @@ def test_build_search_results_query_with_transferring_body_filter():
             }
         },
         "sort": {"sort": "foobar"},
-        "_source": True,
+        "_source": {"excludes": ["content"]},
         "highlight": {
             "pre_tags": ["<test_highlight_key>"],
             "post_tags": ["</test_highlight_key>"],

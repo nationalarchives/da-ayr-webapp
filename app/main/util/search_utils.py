@@ -420,7 +420,7 @@ def build_dsl_search_query(
             }
         },
         "sort": sorting,
-        "_source": True,
+        "_source": {"excludes": ["content"]},
     }
 
     return query_structure
