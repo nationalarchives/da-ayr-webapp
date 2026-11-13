@@ -14,7 +14,7 @@ import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Iterator, Optional
 
 from csv_schema import (
     AV_METADATA_COLUMNS,
@@ -253,11 +253,13 @@ def build_known_metadata(
         "description_closed": description_closed,
         "title_alternate": public_title if title_closed is True else None,
         "title_closed": title_closed,
-        "end_date": record.get("coveringDateEnd"),
+        "end_date": pad_date_to_timestamp(record.get("coveringDateEnd")),
         "evidence_provided_by": record.get("evidenceProvider"),
         "file_name": digital_file.get("fileName"),
         "file_size": digital_file.get("sizeBytes"),
-        "foi_exemption_asserted": sensitivity.get("foiAssertedDate"),
+        "foi_exemption_asserted": pad_date_to_timestamp(
+            sensitivity.get("foiAssertedDate")
+        ),
         "foi_exemption_code": join_foi_exemption_codes(sensitivity),
         "former_reference_department": record.get("formerReferenceDepartment"),
         "held_by": record.get("heldBy"),
@@ -266,9 +268,13 @@ def build_known_metadata(
         "note": record.get("note"),
         "rights_copyright": record.get("copyrightHolders"),
         "closure_period": sensitivity.get("closurePeriod"),
-        "closure_start_date": sensitivity.get("closureStartDate"),
+        "closure_start_date": pad_date_to_timestamp(
+            sensitivity.get("closureStartDate")
+        ),
         "closure_type": derive_closure_type(sensitivity),
-        "opening_date": sensitivity.get("closureReviewDate"),
+        "opening_date": pad_date_to_timestamp(
+            sensitivity.get("closureReviewDate")
+        ),
     }
 
 
@@ -370,10 +376,16 @@ def create_file_row(
             "OriginalFilePath": "",
             "Checksum": checksum or "",
             "DateLastModified": record.get("dateLastModified") or "",
-            "EndDate": record.get("coveringDateEnd") or "",
+            "EndDate": pad_date_to_timestamp(record.get("coveringDateEnd"))
+            or "",
             "ClosureType": derive_closure_type(sensitivity),
-            "OpeningDate": sensitivity.get("closureReviewDate") or "",
-            "ReconsiderDueInDate": sensitivity.get("retentionReconsiderDate")
+            "OpeningDate": pad_date_to_timestamp(
+                sensitivity.get("closureReviewDate")
+            )
+            or "",
+            "ReconsiderDueInDate": pad_date_to_timestamp(
+                sensitivity.get("retentionReconsiderDate")
+            )
             or "",
             "FormerFilePathDepartment": "",
             "CreatedDatetime": state["created_datetime"],
@@ -381,6 +393,20 @@ def create_file_row(
     )
 
     return file_id
+
+
+def pad_date_to_timestamp(date_str: Optional[str]) -> Optional[str]:
+    """Pad a date string in YYYY-MM-DD format to a timestamp string in YYYY-MM-DDTHH:MM:SS format."""
+    if date_str is None:
+        return None
+
+    if not re.compile(r"^\d{4}-\d{2}-\d{2}$").match(date_str):
+        raise ValueError(f"Invalid date for format YYYY-MM-DD: {date_str}")
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        raise ValueError(f"Invalid date for format YYYY-MM-DD: {date_str}")
+    return f"{date_str}T00:00:00"
 
 
 def is_simple_value_list(value: Any) -> bool:
