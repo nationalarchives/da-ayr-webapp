@@ -119,13 +119,14 @@ class TestPaginationTemplate:
                 },
                 current_page=5,
                 view_name="main.browse",
+                total_pages=10,
                 id=None,
                 query_string_parameters={"sort": "date", "page": 999},
             )
 
             assert "govuk-pagination__item--ellipsis" in rendered
             assert "..." in rendered
-            assert 'aria-label="Search results page 5 of 7"' in rendered
+            assert 'aria-label="Search results page 5 of 10"' in rendered
 
     def test_template_renders_nothing_when_no_pagination(self, app):
         """Test template renders empty when pagination is None."""

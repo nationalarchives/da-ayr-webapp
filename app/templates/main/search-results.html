@@ -59,7 +59,7 @@
                         {% set _ = browse_table_params.pop('search_area', None) %}
                         {% set _ = browse_table_params.pop('sort', None) %}
                         {% set _ = browse_table_params.pop('_id', None) %}
-                        {% call render_record_table(num_records_found, current_page, per_page, pagination, query_string_parameters, 'main.search_results', None) %}
+                        {% call render_record_table(returned_result_count, current_page, per_page, pagination, total_pages, query_string_parameters, 'main.search_results', None) %}
                             {% if results %}
                                 {% for record in results %}
                                     {% with query_string_parameters=browse_table_params, number_of_columns=number_of_columns, is_standard_user=is_standard_user, record=record %}
