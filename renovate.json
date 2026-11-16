@@ -81,14 +81,8 @@
       "groupSlug": "droid-jar-patches"
     },
     {
-      "description": "Pin Python to 3.13 in GitHub Actions workflows; project requires >=3.13,<3.14",
-      "matchManagers": [
-        "github-actions"
-      ],
-      "matchDepNames": [
-        "python"
-      ],
-      "enabled": false
+      "matchPackageNames": ["python"],
+      "allowedVersions": "<3.15"
     },
     {
       "description": "Keep Playwright runtime and Python deps in lockstep for e2e to avoid CI breakage on partial upgrades",
