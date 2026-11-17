@@ -79,6 +79,7 @@ services:
       - postgres
 
   dri_to_ayr_data_migration_tests:
+    image: ayr-dri-to-ayr-migration-tests:local
     build:
       context: ./data_management/dri_to_ayr_data_migration/tests
       dockerfile: Dockerfile
@@ -94,22 +95,13 @@ services:
       migration-rustfs:
         condition: service_healthy
     command:
-    - sh
-    - -c
-    - |
-        set -e
-
-        apt-get update
-
-        echo 'Installing Python test dependencies...'
-        pip install -r data_management/dri_to_ayr_data_migration/tests/requirements-dev.txt
-
-        pytest \
-          --confcutdir=data_management/dri_to_ayr_data_migration \
-          --cov=data_management/dri_to_ayr_data_migration \
-          --cov-report=xml:/test_results/dri_to_ayr_data_migration_coverage.xml \
-          --cov-report=term-missing \
-          -vvs data_management/dri_to_ayr_data_migration/tests
+      - pytest
+      - --confcutdir=data_management/dri_to_ayr_data_migration
+      - --cov=data_management/dri_to_ayr_data_migration
+      - --cov-report=xml:/test_results/dri_to_ayr_data_migration_coverage.xml
+      - --cov-report=term-missing
+      - -vvs
+      - data_management/dri_to_ayr_data_migration/tests
 
   migration-rustfs:
     image: rustfs/rustfs:1.0.0-rc.6@sha256:97171b3d72cd47dc81000f92ea84de25608bfc35a94c965501afaeb5d99f6035
