@@ -210,8 +210,7 @@ class TestProcessMessage:
         assert result is None
 
         start_finalising_mock.assert_called_once_with(
-            run_id="run-1",
-            consignment_reference="TDR-1",
+            run_id="run-1", consignment_reference="TDR-1"
         )
         prepare_final_package_mock.assert_not_called()
         publish_ddt_message_mock.assert_not_called()

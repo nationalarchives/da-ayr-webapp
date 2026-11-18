@@ -94,8 +94,7 @@ jobs:
         docker compose -f docker-compose.test.yml run --rm access_copy_converter_tests
 
     - name: Run DRI to AYR Data Migration Tests
-      run: |
-        docker compose -f docker-compose.test.yml run --rm dri_to_ayr_data_migration_tests
+      run: make test-dri-to-ayr
 
     - name: Copy OpenSearch Indexer coverage file from shared volume
       run: |

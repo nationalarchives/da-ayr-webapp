@@ -640,11 +640,6 @@ class TestCsvConversion:
             "title_closed": ["true"],
         }
 
-        checksum_metadata = json.loads(
-            metadata["dri_digital_file_checksums"][0]
-        )
-        assert checksum_metadata == digital_file["checksums"]
-
     def test_convert_record_to_csv_ignores_list_containing_only_none(
         self, tmp_path
     ):

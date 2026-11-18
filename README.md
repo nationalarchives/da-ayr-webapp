@@ -521,6 +521,156 @@ We also have a way to do this for all files in a postgres database with `data_ma
 
 To refresh metadata on existing OpenSearch documents without downloading files or re-extracting their text, run the AWS indexer with `INDEXER_TYPE=METADATA`. It updates all consignments found in the record bucket using partial document updates. Set `METADATA_KEY` to a top-level OpenSearch field (for example, `consignment_transfer_complete_date`) to update only that field; leave it unset to refresh all metadata fields.
 
+## DRI to AYR data migration
+
+The DRI-to-AYR pipeline reads DRI record JSON and digital files, builds AYR
+Metadata Store (MDS) CSVs, identifies file formats with DROID, and submits a
+completed package to the DDT hand-off. It is an AWS-backed batch pipeline, not
+a feature of the Flask web application.
+
+The code for each stage is in
+[`data_management/dri_to_ayr_data_migration/`](data_management/dri_to_ayr_data_migration/):
+
+| Component | Responsibility |
+| --- | --- |
+| `series_coordinator` | Discovers records for a series, applies configured metadata exclusions, groups records into consignments, creates tracking records, and queues work. |
+| `worker` | Fetches a record and its selected digital file, copies the file to the migration data area, converts record/file details into MDS CSVs, stages the CSVs, and queues DROID. |
+| `droid` | Runs DROID against each copied file, stages format-identification metadata, and marks file processing complete. |
+| `finaliser` | When all tracked files are complete, validates and combines the staged CSVs, creates the final package, and publishes the DDT hand-off notification. |
+| `consignment_rerunner` | Reprocesses an existing tracked consignment after resetting its tracking state and removing its previous staged and output files. |
+
+### Normal migration flow
+
+1. **Start a series run with the coordinator.** It reads the requested series'
+   DRI JSON records, applies `SKIP_METADATA` exclusions when configured, and
+   groups records by their DRI consignment identifier. Records without one are
+   placed into deterministic synthetic consignments, split according to
+   `MAX_FILES_PER_FAKE_CONSIGNMENT` (default: 2,000 files). The coordinator
+   records the run and expected file counts in DynamoDB, then queues one worker
+   message per included file.
+2. **Generate and stage metadata.** Workers fetch the record JSON and matching
+   digital file, copy the file to the migration data location, generate the
+   MDS CSV rows, and upload them to the staging location. Shared Body and
+   Series CSVs and a Consignment CSV are included on the appropriate first
+   worker messages; file-specific and file-metadata CSVs are generated per
+   file.
+3. **Identify formats and track completion.** DROID processes the copied file,
+   writes its format-identification metadata, and atomically marks that file
+   complete while incrementing the consignment's completed-file count. When
+   the count reaches the expected count, tracking moves through
+   `READY_TO_FINALISE` and a finaliser message is sent.
+4. **Build and hand off the package.** The finaliser takes a lock on the
+   consignment, checks the staged inputs, merges the shared and
+   consignment-specific CSVs, creates the final metadata package and checksum
+   files, uploads the output, and publishes the DDT-prepared notification. On
+   success, tracking records `SENT_TO_DDT`.
+
+The worker-generated files include `AYR-body-metadata.csv`,
+`AYR-series-metadata.csv`, `AYR-consignment-metadata.csv`, `AYR-file.csv`,
+`AYR-file-metadata.csv`, and `AYR-av-metadata.csv`. DROID adds the
+file-format-identification metadata, and the finaliser creates the manifest
+and checksum alongside the final package. CSV column contracts are defined in
+[`csv_schema.py`](data_management/dri_to_ayr_data_migration/csv_schema.py);
+the transformations are implemented in
+[`worker/dri_to_ayr_csv.py`](data_management/dri_to_ayr_data_migration/worker/dri_to_ayr_csv.py).
+
+The main tracking states are `PENDING`/`COMPLETE` for files and
+`STAGING` → `READY_TO_FINALISE` → `FINALISING` → `SENT_TO_DDT` for consignments.
+They are persisted in the configured DynamoDB tracking table and are used to
+make queue retries safe. A worker or DROID message can be retried without
+counting an already-completed file twice. SQS-triggered handlers report failed
+records so the queue can retry them; inspect the corresponding function logs
+and tracking state when a run is not progressing.
+
+### Starting, resuming, and rerunning work
+
+In the deployed environment, start a new run by running the
+`series_coordinator` task with `SERIES` set to the series to process. The
+coordinator generates a `runId` and includes it in its result/log output. To
+resume an existing run, supply that same ID using `RUN_ID`; the coordinator
+checks that it belongs to the series and that the run's fake-consignment limit
+and metadata exclusions still match. The coordinator allows only one run
+marker per series, so resume that run rather than starting a duplicate.
+
+To reprocess one consignment already sent to DDT after fixing an issue, invoke
+the `consignment_rerunner` for that consignment; there is no need to rerun the
+whole series. Use an event shaped like this:
+
+**Before starting or retrying a rerun, ensure that work for the consignment is
+quiescent:** no worker, DROID, finaliser, or coordinator invocation is running
+or can still deliver a delayed or retried message for it. An apparently empty
+queue does not establish this on its own. The pipeline does not isolate
+successive attempts, so an old in-flight job could otherwise write stale
+objects or complete files during the rerun. Use the approved operational
+procedure to establish quiescence, and do not run two rerunners concurrently.
+
+```json
+{
+  "runId": "<existing-run-id>",
+  "series": "<series-name>",
+  "consignmentReference": "<consignment-reference>",
+  "reason": "Optional explanation",
+  "triggeredBy": "Optional operator identifier"
+}
+```
+
+The rerunner resets file statuses and the completed count, clears old
+finaliser/publication markers, removes the consignment's previous staging and
+output objects, and then queues worker messages. DROID can consequently
+complete the files and trigger a new finalisation. Files shared across
+consignments are not removed by the consignment-scoped cleanup.
+The worker, DROID and finaliser use their normal tracking-state checks because
+tracking has already been reset; there is no force override.
+
+DynamoDB transactions allow at most 100 actions. The rerunner resets up to 99
+files and the consignment in one transaction. For larger consignments it first
+sets `RERUN_PREPARING`, resets files in batches, then atomically returns the
+consignment to `STAGING` and clears its completion markers. This intermediate
+state prevents DROID from completing a partially reset consignment. A failed
+reset does not queue workers. After a failure, establish quiescence again and
+resolve the cause before invoking the same event again. A retry restarts the
+rerun from scratch: it resets every file, repeats cleanup, and queues all
+files again, discarding any partial progress. The rerunner accepts
+`SENT_TO_DDT`, `STAGING` and `RERUN_PREPARING` consignments; for other states,
+including `FINALISING`, inspect the state and follow the operational procedure.
+
+### Running the coordinator and tests
+
+Run the coordinator only in an environment configured with the required AWS
+access and pipeline resources, and with its dependencies installed from
+`series_coordinator/requirements.txt`. From the repository root, the same
+entry point used by its container can be run directly when that runtime
+configuration is available:
+
+```shell
+SERIES="<series-name>" python data_management/dri_to_ayr_data_migration/series_coordinator/main.py
+```
+
+Add `RUN_ID="<existing-run-id>"` to resume rather than start a new run. Do not
+put credentials, secret values, account-specific resource identifiers, bucket
+names, queue URLs, or production event payloads in this README or in source
+control. Obtain environment-specific deployment, access, and operational
+procedures from the approved internal runbook/Confluence documentation.
+
+Run the DRI-to-AYR tests from the repository root with:
+
+```shell
+make test-dri-to-ayr
+```
+
+This runs the suite in its Docker test environment, including the DROID
+integration tests. The image is built automatically the first time and reused
+for subsequent runs; Python test dependencies are installed in the image
+rather than reinstalled each time the test container starts. If you change the
+test Dockerfile or its requirements, rebuild it explicitly with
+`make build-dri-to-ayr-tests`, then run `make test-dri-to-ayr` again.
+
+The tests cover coordinator grouping and tracking, CSV generation, worker and
+DROID behavior, finalisation, and consignment reruns. For deployed runs, use
+the approved operational procedures for permissions and configuration, and
+monitor the coordinator, worker, DROID, and finaliser logs alongside the
+tracking-table statuses and queue retries.
+
 ## Updating the Opensearch Index & Generating a new Snapshot
 
 The OpenSearch index used by the local stack and by CI is restored from the snapshot committed in `local_services/snapshots/`. When the test data changes, that snapshot needs regenerating so it matches the postgres data in `dev-data.sql`.

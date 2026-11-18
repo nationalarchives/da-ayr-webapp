@@ -5,8 +5,10 @@ KEYCLOAK_CERT = local_services/keycloak_certs/cert.pem
 RUSTFS_CA = local_services/rustfs_certs/root-ca.crt
 
 COMPOSE = docker compose --env-file $(ENV_FILE) -f docker-compose.yml
+TEST_COMPOSE = docker compose -f docker-compose.test.yml
+DRI_TO_AYR_TEST_IMAGE = ayr-dri-to-ayr-migration-tests:local
 
-.PHONY: setup start stop clean unit test pre-commit e2e build-e2e-tests run-e2e-tests
+.PHONY: setup start stop clean unit test test-dri-to-ayr build-dri-to-ayr-tests pre-commit e2e build-e2e-tests run-e2e-tests
 
 $(ENV_FILE):
 	cp .docker.env.template $(ENV_FILE)
@@ -38,6 +40,13 @@ clean:
 test:
 	poetry install --with dev --no-interaction
 	AWS_DEFAULT_REGION=eu-west-2 poetry run python -m pytest --cov=app --cov-report=term-missing --cov-branch -vvv app/tests
+
+test-dri-to-ayr:
+	@docker image inspect $(DRI_TO_AYR_TEST_IMAGE) >/dev/null 2>&1 || $(TEST_COMPOSE) build dri_to_ayr_data_migration_tests
+	$(TEST_COMPOSE) run --rm dri_to_ayr_data_migration_tests
+
+build-dri-to-ayr-tests:
+	$(TEST_COMPOSE) build dri_to_ayr_data_migration_tests
 
 build-e2e-tests:
 	docker build -t e2e_tests ./e2e_tests

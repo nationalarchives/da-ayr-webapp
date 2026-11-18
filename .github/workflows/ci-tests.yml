@@ -106,6 +106,9 @@ jobs:
             dockerfile: data_management/dri_to_ayr_data_migration/worker/Dockerfile
           - name: series-coordinator
             context: data_management/dri_to_ayr_data_migration/series_coordinator
+          - name: consignment-rerunner
+            context: data_management/dri_to_ayr_data_migration/consignment_rerunner
+            dockerfile: data_management/dri_to_ayr_data_migration/consignment_rerunner/Dockerfile
 
     steps:
     - name: Checkout code

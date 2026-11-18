@@ -32,6 +32,9 @@ ENV DROID_COMMAND=/opt/droid/droid.sh \
 
 WORKDIR /app
 
+COPY requirements-dev.txt /tmp/requirements-dev.txt
+RUN pip install --no-cache-dir -r /tmp/requirements-dev.txt && \
+    rm /tmp/requirements-dev.txt
 
 RUN apt-get update && \
     apt-get upgrade -y --no-install-recommends && \

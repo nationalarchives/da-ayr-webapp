@@ -13,6 +13,8 @@ ignore:
         reason: FALSE_POSITIVE
       /data_management/dri_to_ayr_data_migration/worker/Dockerfile:
         reason: FALSE_POSITIVE
+      /data_management/dri_to_ayr_data_migration/consignment_rerunner/Dockerfile:
+        reason: FALSE_POSITIVE
     03502c03-f986-40a8-848d-cc3bf000a861:
       /data_management/access_copy_converter/Dockerfile:
         reason: FALSE_POSITIVE
@@ -23,6 +25,8 @@ ignore:
       /data_management/dri_to_ayr_data_migration/series_coordinator/Dockerfile:
         reason: FALSE_POSITIVE
       /data_management/dri_to_ayr_data_migration/worker/Dockerfile:
+        reason: FALSE_POSITIVE
+      /data_management/dri_to_ayr_data_migration/consignment_rerunner/Dockerfile:
         reason: FALSE_POSITIVE
       /data_management/dri_to_ayr_data_migration/tests/Dockerfile:
         reason: FALSE_POSITIVE
@@ -35,10 +39,14 @@ ignore:
         reason: FALSE_POSITIVE
       /data_management/dri_to_ayr_data_migration/worker/Dockerfile:
         reason: FALSE_POSITIVE
+      /data_management/dri_to_ayr_data_migration/consignment_rerunner/Dockerfile:
+        reason: FALSE_POSITIVE
     6d81147f-c854-4867-8046-264c78136942:
       /data_management/dri_to_ayr_data_migration/droid/Dockerfile:
         reason: FALSE_POSITIVE
       /data_management/dri_to_ayr_data_migration/finaliser/Dockerfile:
         reason: FALSE_POSITIVE
       /data_management/dri_to_ayr_data_migration/worker/Dockerfile:
+        reason: FALSE_POSITIVE
+      /data_management/dri_to_ayr_data_migration/consignment_rerunner/Dockerfile:
         reason: FALSE_POSITIVE
