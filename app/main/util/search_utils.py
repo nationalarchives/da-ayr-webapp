@@ -686,13 +686,11 @@ def build_search_results_query(
         "highlight": {
             "pre_tags": [f"<{highlight_tag}>"],
             "post_tags": [f"</{highlight_tag}>"],
-            "type": "unified",  # default
+            "type": "plain",
             "fragment_size": 200,  # limit amount of text
             "number_of_fragments": 5,  # default
             "phrase_limit": 256,  # default
             "require_field_match": True,  # default, highlights only in fields that were searched
-            "boundary_scanner": "sentence",
-            "boundary_scanner_locale": "en",
             "order": "score",
             "fields": {"*": {}},
             "max_analyzer_offset": 1_000_000,  # otherwise search request fails if content length > 1,000,000
