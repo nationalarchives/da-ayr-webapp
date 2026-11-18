@@ -8,6 +8,7 @@ from flask.testing import FlaskClient
 from app.main.db.queries import (
     get_file_metadata,
 )
+from app.tests.factories import FileMetadataFactory
 
 per_page = 5
 db_date_format = "%Y-%m-%d"
@@ -34,6 +35,11 @@ class TestGetFileMetadata:
         Then a tuple of specific metadata for the file is returned
         """
         file = record_files[1]["file_object"]
+        physical_description = FileMetadataFactory(
+            file=file,
+            PropertyName="description_physical",
+            Value="Two bound volumes",
+        )
 
         assert get_file_metadata(file_id=file.FileId) == (
             {
@@ -65,7 +71,8 @@ class TestGetFileMetadata:
                 ].Value,
                 "file_reference": file.FileReference,
                 "former_reference": record_files[1]["former_reference"].Value,
-                "translated_title": record_files[1]["translated_title"].Value,
+                "title_translated": record_files[1]["translated_title"].Value,
+                "description_physical": physical_description.Value,
                 "related_material": record_files[1]["related_material"].Value,
                 "restrictions_on_use": record_files[1][
                     "restrictions_on_use"
@@ -116,7 +123,8 @@ class TestGetFileMetadata:
                 ].Value,
                 "file_reference": file.FileReference,
                 "former_reference": record_files[3]["former_reference"].Value,
-                "translated_title": record_files[3]["translated_title"].Value,
+                "title_translated": record_files[3]["translated_title"].Value,
+                "description_physical": None,
                 "related_material": record_files[3]["related_material"].Value,
                 "restrictions_on_use": record_files[3][
                     "restrictions_on_use"

@@ -89,12 +89,12 @@ def _get_file_metadata_query(file_id: uuid.UUID):
         func.max(
             db.case(
                 (
-                    FileMetadata.PropertyName == "file_name_translation",
+                    FileMetadata.PropertyName == "title_translated",
                     FileMetadata.Value,
                 ),
                 else_=None,
             )
-        ).label("translated_title"),
+        ).label("title_translated"),
         func.max(
             db.case(
                 (
@@ -167,8 +167,16 @@ def _get_file_metadata_query(file_id: uuid.UUID):
                 else_=None,
             ),
         ).label("evidence_provided_by"),
+        func.max(
+            db.case(
+                (
+                    FileMetadata.PropertyName == "description_physical",
+                    FileMetadata.Value,
+                ),
+                else_=None,
+            ),
+        ).label("description_physical"),
     )
-
     filters = [
         File.FileId == file_id,
         func.lower(File.FileType) == "file",
@@ -214,7 +222,8 @@ def _get_file_metadata_query(file_id: uuid.UUID):
             sub_query.c.foi_exemption_code,
             sub_query.c.file_reference,
             sub_query.c.former_reference,
-            sub_query.c.translated_title,
+            sub_query.c.title_translated,
+            sub_query.c.description_physical,
             sub_query.c.related_material,
             sub_query.c.restrictions_on_use,
             sub_query.c.note,

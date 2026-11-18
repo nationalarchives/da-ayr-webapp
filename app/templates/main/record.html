@@ -2,8 +2,10 @@
     {% set list_items = {
             "File name": record['file_name'],
             "Alternative file name": record['alternative_title'],
+            "Translated file name": record['title_translated'],
             "Description": record['description'],
             "Alternative description": record['alternative_description'],
+            "Physical description": record['description_physical'],
             "Evidence provided by": record.get("evidence_provided_by"),
             "Citeable reference": record['citeable_reference'],
             "Status": record['closure_type'],
@@ -17,7 +19,6 @@
             "Consignment reference": "Not applicable" if (record["consignment_reference"].startswith("DRI-TO-AYR-")) else record["consignment_reference"],
             "File reference": record['file_reference'],
             "Former reference": record['former_reference'],
-            "Translated file name": record['translated_title'],
             "Related material": record['related_material'],
             "Restrictions on use": record['restrictions_on_use'],
             "Note": record['note'],
@@ -29,7 +30,9 @@
 {% else %}
     {% set list_items = {
             "File name": record['file_name'],
+            "Translated file name": record['title_translated'],
             "Description": record['description'],
+            "Physical description": record['description_physical'],
             "Evidence provided by": record.get("evidence_provided_by"),
             "Citeable reference": record['citeable_reference'],
             "Status": record['closure_type'],
@@ -39,7 +42,6 @@
             "Consignment reference": "Not applicable" if (record["consignment_reference"].startswith("DRI-TO-AYR-")) else record["consignment_reference"],
             "File reference": record['file_reference'],
             "Former reference": record['former_reference'],
-            "Translated file name": record['translated_title'],
             "Related material": record['related_material'],
             "Restrictions on use": record['restrictions_on_use'],
             "Note": record['note'],

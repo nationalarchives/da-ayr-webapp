@@ -697,7 +697,11 @@ class TestRecord:
         metadata_values = {
             "description": ("description", "open document file"),
             "former_reference": ("former_reference_department", "-"),
-            "translated_title": ("file_name_translation", "-"),
+            "translated_title": ("title_translated", "-"),
+            "physical_description": (
+                "description_physical",
+                "Two bound volumes",
+            ),
             "related_material": ("related_material", "-"),
             "restrictions_on_use": ("restrictions_on_use", "-"),
             "note": ("note", "-"),
@@ -762,6 +766,10 @@ class TestRecord:
         )
         assert_summary_row(
             "Translated file name", metadata_by_key["translated_title"].Value
+        )
+        assert_summary_row(
+            "Physical description",
+            metadata_by_key["physical_description"].Value,
         )
         assert_summary_row(
             "Related material", metadata_by_key["related_material"].Value
@@ -878,6 +886,7 @@ class TestRecord:
         )
         metadata_values = {
             "alternative_title": ("title_alternate", "alternate title"),
+            "translated_title": ("title_translated", "-"),
             "description": ("description", "open once closed document file"),
             "alternative_description": ("description_alternate", "-"),
             "closure_start_date": ("closure_start_date", "2023-01-15"),
@@ -887,7 +896,6 @@ class TestRecord:
                 "former_reference_department",
                 "former reference",
             ),
-            "translated_title": ("file_name_translation", "-"),
             "related_material": ("related_material", "-"),
             "restrictions_on_use": ("restrictions_on_use", "-"),
             "note": ("note", "-"),
@@ -956,6 +964,9 @@ class TestRecord:
         assert_summary_row(
             "Alternative file name", metadata_by_key["alternative_title"].Value
         )
+        assert_summary_row(
+            "Translated file name", metadata_by_key["translated_title"].Value
+        )
         assert_summary_row("Description", metadata_by_key["description"].Value)
         assert_summary_row(
             "Alternative description",
@@ -981,9 +992,6 @@ class TestRecord:
         assert_summary_row("File reference", file.FileReference)
         assert_summary_row(
             "Former reference", metadata_by_key["former_reference"].Value
-        )
-        assert_summary_row(
-            "Translated file name", metadata_by_key["translated_title"].Value
         )
         assert_summary_row(
             "Related material", metadata_by_key["related_material"].Value
@@ -1020,6 +1028,7 @@ class TestRecord:
         )
         metadata_values = {
             "alternative_title": ("title_alternate", "alternate title"),
+            "translated_title": ("title_translated", "-"),
             "description": ("description", "closed document file"),
             "alternative_description": ("description_alternate", "-"),
             "closure_start_date": ("closure_start_date", "2023-01-15"),
@@ -1029,7 +1038,6 @@ class TestRecord:
                 "former_reference_department",
                 "former reference",
             ),
-            "translated_title": ("file_name_translation", "-"),
             "related_material": ("related_material", "-"),
             "restrictions_on_use": ("restrictions_on_use", "-"),
             "note": ("note", "-"),
@@ -1099,6 +1107,9 @@ class TestRecord:
         assert_summary_row(
             "Alternative file name", metadata_by_key["alternative_title"].Value
         )
+        assert_summary_row(
+            "Translated file name", metadata_by_key["translated_title"].Value
+        )
         assert_summary_row("Description", metadata_by_key["description"].Value)
         assert_summary_row(
             "Alternative description",
@@ -1124,9 +1135,6 @@ class TestRecord:
         assert_summary_row("File reference", file.FileReference)
         assert_summary_row(
             "Former reference", metadata_by_key["former_reference"].Value
-        )
-        assert_summary_row(
-            "Translated file name", metadata_by_key["translated_title"].Value
         )
         assert_summary_row(
             "Related material", metadata_by_key["related_material"].Value
@@ -1163,6 +1171,7 @@ class TestRecord:
         )
         metadata_values = {
             "alternative_title": ("title_alternate", "alternate title"),
+            "translated_title": ("title_translated", "-"),
             "description": ("description", "closed document file"),
             "alternative_description": ("description_alternate", "-"),
             "closure_start_date": ("closure_start_date", "2023-01-15"),
@@ -1172,7 +1181,6 @@ class TestRecord:
                 "former_reference_department",
                 "former reference",
             ),
-            "translated_title": ("file_name_translation", "-"),
             "related_material": ("related_material", "-"),
             "restrictions_on_use": ("restrictions_on_use", "-"),
             "note": ("note", "-"),
