@@ -89,12 +89,12 @@ def _get_file_metadata_query(file_id: uuid.UUID):
         func.max(
             db.case(
                 (
-                    FileMetadata.PropertyName == "title_translated",
+                    FileMetadata.PropertyName == "file_name_translation",
                     FileMetadata.Value,
                 ),
                 else_=None,
             )
-        ).label("title_translated"),
+        ).label("file_name_translation"),
         func.max(
             db.case(
                 (
@@ -222,7 +222,7 @@ def _get_file_metadata_query(file_id: uuid.UUID):
             sub_query.c.foi_exemption_code,
             sub_query.c.file_reference,
             sub_query.c.former_reference,
-            sub_query.c.title_translated,
+            sub_query.c.file_name_translation,
             sub_query.c.description_physical,
             sub_query.c.related_material,
             sub_query.c.restrictions_on_use,

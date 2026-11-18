@@ -697,7 +697,7 @@ class TestRecord:
         metadata_values = {
             "description": ("description", "open document file"),
             "former_reference": ("former_reference_department", "-"),
-            "translated_title": ("title_translated", "-"),
+            "translated_title": ("file_name_translation", "-"),
             "physical_description": (
                 "description_physical",
                 "Two bound volumes",
@@ -886,7 +886,7 @@ class TestRecord:
         )
         metadata_values = {
             "alternative_title": ("title_alternate", "alternate title"),
-            "translated_title": ("title_translated", "-"),
+            "translated_title": ("file_name_translation", "-"),
             "description": ("description", "open once closed document file"),
             "alternative_description": ("description_alternate", "-"),
             "closure_start_date": ("closure_start_date", "2023-01-15"),
@@ -1028,7 +1028,7 @@ class TestRecord:
         )
         metadata_values = {
             "alternative_title": ("title_alternate", "alternate title"),
-            "translated_title": ("title_translated", "-"),
+            "translated_title": ("file_name_translation", "-"),
             "description": ("description", "closed document file"),
             "alternative_description": ("description_alternate", "-"),
             "closure_start_date": ("closure_start_date", "2023-01-15"),
@@ -1171,7 +1171,7 @@ class TestRecord:
         )
         metadata_values = {
             "alternative_title": ("title_alternate", "alternate title"),
-            "translated_title": ("title_translated", "-"),
+            "translated_title": ("file_name_translation", "-"),
             "description": ("description", "closed document file"),
             "alternative_description": ("description_alternate", "-"),
             "closure_start_date": ("closure_start_date", "2023-01-15"),

@@ -741,7 +741,7 @@ def record_files():
             file=file_1, PropertyName="former_reference_department", Value="-"
         ),
         "translated_title": FileMetadataFactory(
-            file=file_1, PropertyName="title_translated", Value="-"
+            file=file_1, PropertyName="file_name_translation", Value="-"
         ),
         "related_material": FileMetadataFactory(
             file=file_1, PropertyName="related_material", Value="-"
@@ -815,7 +815,7 @@ def record_files():
             Value="former reference",
         ),
         "translated_title": FileMetadataFactory(
-            file=file_2, PropertyName="title_translated", Value="-"
+            file=file_2, PropertyName="file_name_translation", Value="-"
         ),
         "related_material": FileMetadataFactory(
             file=file_2, PropertyName="related_material", Value="-"
@@ -888,7 +888,7 @@ def record_files():
             Value="former reference",
         ),
         "translated_title": FileMetadataFactory(
-            file=file_3, PropertyName="title_translated", Value="-"
+            file=file_3, PropertyName="file_name_translation", Value="-"
         ),
         "related_material": FileMetadataFactory(
             file=file_3, PropertyName="related_material", Value="-"
@@ -954,7 +954,7 @@ def record_files():
             file=file_4, PropertyName="former_reference_department", Value=None
         ),
         "translated_title": FileMetadataFactory(
-            file=file_4, PropertyName="title_translated", Value=None
+            file=file_4, PropertyName="file_name_translation", Value=None
         ),
         "related_material": FileMetadataFactory(
             file=file_4, PropertyName="related_material", Value=None
@@ -1005,7 +1005,7 @@ def record_files():
             file=file_5, PropertyName="former_reference_department", Value="-"
         ),
         "translated_title": FileMetadataFactory(
-            file=file_5, PropertyName="title_translated", Value="-"
+            file=file_5, PropertyName="file_name_translation", Value="-"
         ),
         "related_material": FileMetadataFactory(
             file=file_5, PropertyName="related_material", Value="-"
@@ -1078,7 +1078,7 @@ def record_files():
             Value="former reference",
         ),
         "translated_title": FileMetadataFactory(
-            file=file_6, PropertyName="title_translated", Value="-"
+            file=file_6, PropertyName="file_name_translation", Value="-"
         ),
         "related_material": FileMetadataFactory(
             file=file_6, PropertyName="related_material", Value="-"

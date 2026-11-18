@@ -71,7 +71,9 @@ class TestGetFileMetadata:
                 ].Value,
                 "file_reference": file.FileReference,
                 "former_reference": record_files[1]["former_reference"].Value,
-                "title_translated": record_files[1]["translated_title"].Value,
+                "file_name_translation": record_files[1][
+                    "translated_title"
+                ].Value,
                 "description_physical": physical_description.Value,
                 "related_material": record_files[1]["related_material"].Value,
                 "restrictions_on_use": record_files[1][
@@ -123,7 +125,9 @@ class TestGetFileMetadata:
                 ].Value,
                 "file_reference": file.FileReference,
                 "former_reference": record_files[3]["former_reference"].Value,
-                "title_translated": record_files[3]["translated_title"].Value,
+                "file_name_translation": record_files[3][
+                    "translated_title"
+                ].Value,
                 "description_physical": None,
                 "related_material": record_files[3]["related_material"].Value,
                 "restrictions_on_use": record_files[3][
