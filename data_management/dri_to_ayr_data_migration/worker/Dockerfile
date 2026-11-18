@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.14@sha256:6a21791117a382e708a6f53fdd5c0f693209ca3fb3af3d10e3fa1c265f778395
+FROM public.ecr.aws/lambda/python:3.14@sha256:3ec108c3e910eadd0b2a04ca3189a5932a3c657d18fa533d9b70f34009c9066f
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 
