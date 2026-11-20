@@ -340,6 +340,7 @@ class TestWorkerHandler:
         self, handler_module
     ):
         module = handler_module
+        module.s3.head_object.return_value = {"ContentLength": 1234}
 
         result = module.copy_data_file(
             record_id=RECORD_ID,
@@ -349,6 +350,10 @@ class TestWorkerHandler:
         )
 
         assert result == f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}"
+        module.s3.head_object.assert_called_once_with(
+            Bucket=ENVIRONMENT["DRI_DATA_BUCKET"],
+            Key=f"v1/{RECORD_ID}/{FILE_ID}",
+        )
         module.s3.copy_object.assert_called_once_with(
             Bucket=ENVIRONMENT["DDT_TEMP_DATA_BUCKET"],
             CopySource={
@@ -358,6 +363,42 @@ class TestWorkerHandler:
             Key=f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
             TaggingDirective="REPLACE",
         )
+        module.s3.copy.assert_not_called()
+
+    def test_copy_data_file_uses_multipart_without_tagging_directive(
+        self, handler_module
+    ):
+        module = handler_module
+        module.s3.head_object.return_value = {
+            "ContentLength": 5 * 1024**3,
+        }
+
+        module.copy_data_file(
+            record_id=RECORD_ID,
+            file_id=FILE_ID,
+            series="LEV 2",
+            consignment_reference=CONSIGNMENT_REFERENCE,
+        )
+
+        module.s3.copy.assert_called_once_with(
+            {
+                "Bucket": ENVIRONMENT["DRI_DATA_BUCKET"],
+                "Key": f"v1/{RECORD_ID}/{FILE_ID}",
+            },
+            ENVIRONMENT["DDT_TEMP_DATA_BUCKET"],
+            f"LEV 2/{CONSIGNMENT_REFERENCE}/{FILE_ID}",
+            Config=module.DATA_FILE_COPY_CONFIG,
+        )
+        module.s3.copy_object.assert_not_called()
+
+    def test_data_file_copy_config_uses_multipart_for_large_objects(
+        self, handler_module
+    ):
+        config = handler_module.DATA_FILE_COPY_CONFIG
+
+        assert config.multipart_threshold == 4 * 1024**3
+        assert config.multipart_chunksize == 1024**3
+        assert config.max_concurrency == 4
 
     def test_send_droid_message_sends_expected_sqs_message(
         self, handler_module

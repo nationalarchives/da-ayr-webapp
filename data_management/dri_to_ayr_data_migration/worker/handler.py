@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import boto3
+from boto3.s3.transfer import TransferConfig
 
 from worker.dri_to_ayr_csv import (
     BODY_CSV_NAME,
@@ -31,6 +32,13 @@ TRACKING_TABLE_NAME = os.environ["TRACKING_TABLE_NAME"]
 JSON_PREFIX = os.getenv("JSON_PREFIX", "live")
 DATA_PREFIX = os.getenv("DATA_PREFIX", "v1")
 STAGING_PREFIX = os.getenv("STAGING_PREFIX", "ayr-mds-staging")
+
+DATA_FILE_COPY_CONFIG = TransferConfig(
+    # Stay below S3's 5 GB single-request copy limit.
+    multipart_threshold=4 * 1024**3,
+    multipart_chunksize=1024**3,
+    max_concurrency=4,
+)
 
 SHARED_STAGING_DIRECTORY = "shared"
 SHARED_CSV_NAMES = {
@@ -226,13 +234,27 @@ def copy_data_file(
 ) -> str:
     source_key = join_s3_key(DATA_PREFIX, record_id, file_id)
     destination_key = join_s3_key(series, consignment_reference, file_id)
+    copy_source = {"Bucket": DRI_DATA_BUCKET, "Key": source_key}
+    source_size = s3.head_object(
+        Bucket=DRI_DATA_BUCKET,
+        Key=source_key,
+    )["ContentLength"]
 
-    s3.copy_object(
-        Bucket=DDT_TEMP_DATA_BUCKET,
-        CopySource={"Bucket": DRI_DATA_BUCKET, "Key": source_key},
-        Key=destination_key,
-        TaggingDirective="REPLACE",
-    )
+    if source_size < DATA_FILE_COPY_CONFIG.multipart_threshold:
+        s3.copy_object(
+            Bucket=DDT_TEMP_DATA_BUCKET,
+            CopySource=copy_source,
+            Key=destination_key,
+            TaggingDirective="REPLACE",
+        )
+    else:
+        # TaggingDirective isn't accepted by multipart copy requests.
+        s3.copy(
+            copy_source,
+            DDT_TEMP_DATA_BUCKET,
+            destination_key,
+            Config=DATA_FILE_COPY_CONFIG,
+        )
 
     copied_uri = f"s3://{DDT_TEMP_DATA_BUCKET}/{destination_key}"
 
