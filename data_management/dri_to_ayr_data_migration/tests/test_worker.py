@@ -82,8 +82,10 @@ def make_record() -> dict:
         "transferredBy": "Ministry of Test Data",
         "title": "Closed original title",
         "publicTitle": "Open public title",
+        "translatedTitle": "Translated title",
         "description": "Closed original description",
         "publicDescription": "Open public description",
+        "physicalDescription": "Box with photographs",
         "dateLastModified": "2026-08-27T10:40:00Z",
         "coveringDateEnd": "2026-08-27",
         "evidenceProvider": "Evidence provider",
@@ -612,6 +614,7 @@ class TestCsvConversion:
             "description": ["Closed original description"],
             "description_alternate": ["Open public description"],
             "description_closed": ["true"],
+            "description_physical": ["Box with photographs"],
             "dri_custom_record_field": ["keep this source value"],
             "dri_digital_file_checksums": [
                 '[{"hash": "MD5", "value": "md5-checksum"}, '
@@ -638,6 +641,7 @@ class TestCsvConversion:
             "rights_copyright": ["Crown copyright, Test copyright"],
             "title_alternate": ["Open public title"],
             "title_closed": ["true"],
+            "file_name_translation": ["Translated title"],
         }
 
     def test_convert_record_to_csv_ignores_list_containing_only_none(

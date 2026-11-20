@@ -52,6 +52,8 @@ MAPPED_RECORD_PATHS = {
     "sensitivity_closure_start_date",
     "sensitivity_closure_review_date",
     "sensitivity_is_record_closed",
+    "physical_description",
+    "translated_title",
 }
 
 # These are preserved as source metadata because their final AYR mapping
@@ -238,8 +240,10 @@ def build_known_metadata(
 
     title = record.get("title")
     public_title = record.get("publicTitle")
+    translated_title = record.get("translatedTitle")
     description = record.get("description")
     public_description = record.get("publicDescription")
+    physical_description = record.get("physicalDescription")
 
     title_closed = derive_closed_flag(title, public_title)
     description_closed = derive_closed_flag(description, public_description)
@@ -251,7 +255,9 @@ def build_known_metadata(
         if description_closed is True
         else None,
         "description_closed": description_closed,
+        "description_physical": physical_description,
         "title_alternate": public_title if title_closed is True else None,
+        "file_name_translation": translated_title,
         "title_closed": title_closed,
         "end_date": pad_date_to_timestamp(record.get("coveringDateEnd")),
         "evidence_provided_by": record.get("evidenceProvider"),
