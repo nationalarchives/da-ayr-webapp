@@ -2681,26 +2681,27 @@ files = [
 
 [[package]]
 name = "pip-tools"
-version = "7.6.2"
+version = "7.7.0"
 description = "pip-tools keeps your pinned dependencies fresh."
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "pip_tools-7.6.2-py3-none-any.whl", hash = "sha256:f37eb4b736859c2c30230e50977312c61918b7ef931071ff7811fd067715c25f"},
-    {file = "pip_tools-7.6.2.tar.gz", hash = "sha256:04dbe0e25f3b60fbdeee17d0590dac7fe20039876aa410a946fc54dc926c09ba"},
+    {file = "pip_tools-7.7.0-py3-none-any.whl", hash = "sha256:4cee2e99ae34b37f81ae4b0947911ad462e41f07fc164e084b8f83af3f1efdad"},
+    {file = "pip_tools-7.7.0.tar.gz", hash = "sha256:210a8939ee5ad30734731a804a57dae35ba1fe0541175a289798e95948c624b9"},
 ]
 
 [package.dependencies]
 build = ">=1.0.0"
 click = ">=8"
-pip = ">=22.2"
+pip = ">=26.2.2"
 pyproject_hooks = "*"
 setuptools = "*"
 wheel = "*"
 
 [package.extras]
 coverage = ["covdefaults", "pytest-cov"]
+stable = ["pip (<=26.3)"]
 testing = ["flit_core (>=2,<4)", "poetry_core (>=1.0.0)", "pytest (>=7.2.0)", "pytest-mock (>=3.15.1)", "pytest-rerunfailures", "pytest-xdist", "tomli-w"]
 
 [[package]]
@@ -4570,4 +4571,4 @@ test = ["pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.14,<3.15"
-content-hash = "7d2b5247d1dd38bdb46e943489e48a16a6048eb5803d6e260e3ad2c991c418b8"
+content-hash = "3f5bdcd95a4766d52737759481dfc9c8309ee699776e1e798b5b34101120a617"
