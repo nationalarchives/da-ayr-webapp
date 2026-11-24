@@ -153,8 +153,6 @@ jobs:
         push: false
         load: true
         tags: ayr-${{ matrix.name }}:ci
-        cache-from: type=gha,scope=deployable-${{ matrix.name }}
-        cache-to: type=gha,scope=deployable-${{ matrix.name }},mode=max
 
     - name: Scan image with Wiz
       if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
