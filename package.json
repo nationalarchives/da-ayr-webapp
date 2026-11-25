@@ -17,7 +17,7 @@
     "@nationalarchives/eslint-config": "0.2.0",
     "@nationalarchives/stylelint-config": "0.1.5",
     "@storybook/html-vite": "10.6.8",
-    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/jest-dom": "8.0.0",
     "chokidar-cli": "3.0.0",
     "concurrently": "10.0.7",
     "jest": "30.5.2",
