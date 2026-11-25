@@ -17,7 +17,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the Python script
-COPY access_copy_converter/ /app/
+COPY data_management/access_copy_converter/access_copy_converter/ /app/
+COPY format_policy.py /app/format_policy.py
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r /app/requirements.txt
@@ -26,7 +27,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 WORKDIR /app
 
 # Enforce macro blocking for every profile, including trusted documents.
-COPY --chmod=644 libreoffice-macro-security.xcd /usr/lib/libreoffice/share/registry/ayr-macro-security.xcd
+COPY --chmod=644 data_management/access_copy_converter/libreoffice-macro-security.xcd /usr/lib/libreoffice/share/registry/ayr-macro-security.xcd
 
 RUN useradd --create-home --shell /usr/sbin/nologin appuser \
     && chown -R appuser:appuser /app

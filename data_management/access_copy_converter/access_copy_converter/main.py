@@ -12,31 +12,7 @@ from botocore.exceptions import ClientError
 from sqlalchemy import MetaData, Table, create_engine, select
 from sqlalchemy.exc import SQLAlchemyError
 
-CONVERTIBLE_PUIDS = {
-    "fmt/39": "doc",
-    "fmt/40": "doc",
-    "x-fmt/44": "doc",
-    "x-fmt/45": "doc",
-    "fmt/50": "rtf",
-    "fmt/59": "xls",
-    "fmt/61": "xls",
-    "x-fmt/111": "txt",
-    "x-fmt/116": "wk4",
-    "fmt/126": "ppt",
-    "fmt/214": "xlsx",
-    "fmt/215": "pptx",
-    "fmt/355": "rtf",
-    "x-fmt/394": "wp",
-    "fmt/412": "docx",
-    "x-fmt/115": "wk3",
-    "fmt/116": "bmp",
-    "x-fmt/258": "vsd",
-    "fmt/443": "vsd",
-    "fmt/1510": "vsd",
-    "x-fmt/255": "pub",
-    "x-fmt/332": "fm3",
-    "x-fmt/18": "csv",
-}
+from format_policy import CONVERTIBLE_PUIDS
 
 EXCEL_PUIDS = {"fmt/214": "xlsx", "fmt/59": "xls", "fmt/61": "xls"}
 

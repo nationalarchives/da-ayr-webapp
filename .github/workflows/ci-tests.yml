@@ -93,9 +93,11 @@ jobs:
       matrix:
         include:
           - name: opensearch-indexer
-            context: data_management/opensearch_indexer
+            context: .
+            dockerfile: data_management/opensearch_indexer/Dockerfile
           - name: access-copy-converter
-            context: data_management/access_copy_converter
+            context: .
+            dockerfile: data_management/access_copy_converter/Dockerfile
           - name: droid
             context: data_management/dri_to_ayr_data_migration/droid
           - name: finaliser

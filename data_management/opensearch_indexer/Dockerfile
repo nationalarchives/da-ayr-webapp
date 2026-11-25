@@ -31,15 +31,16 @@ RUN apt-get update && \
 WORKDIR /app
 
 # Copy dependencies
-COPY requirements.txt .
+COPY data_management/opensearch_indexer/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY opensearch_indexer/ ./opensearch_indexer
+COPY data_management/opensearch_indexer/opensearch_indexer/ ./opensearch_indexer
+COPY format_policy.py ./format_policy.py
 
 # Enforce macro blocking for every profile, including trusted documents.
-COPY --chmod=644 libreoffice-macro-security.xcd /usr/lib/libreoffice/share/registry/ayr-macro-security.xcd
+COPY --chmod=644 data_management/opensearch_indexer/libreoffice-macro-security.xcd /usr/lib/libreoffice/share/registry/ayr-macro-security.xcd
 
 RUN useradd --create-home --shell /usr/sbin/nologin appuser \
     && chown -R appuser:appuser /app

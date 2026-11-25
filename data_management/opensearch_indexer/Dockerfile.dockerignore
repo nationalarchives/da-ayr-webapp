@@ -1,0 +1,10 @@
+**
+!format_policy.py
+!data_management/
+!data_management/opensearch_indexer/
+!data_management/opensearch_indexer/requirements.txt
+!data_management/opensearch_indexer/libreoffice-macro-security.xcd
+!data_management/opensearch_indexer/opensearch_indexer/
+!data_management/opensearch_indexer/opensearch_indexer/**
+**/__pycache__/
+**/*.pyc

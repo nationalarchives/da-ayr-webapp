@@ -1,8 +1,8 @@
 services:
   opensearch_indexer_tests:
     build:
-      context: ./data_management/opensearch_indexer
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: data_management/opensearch_indexer/Dockerfile
     user: root
     volumes:
       - .:/app
@@ -49,8 +49,8 @@ services:
 
   access_copy_converter_tests:
     build:
-      context: ./data_management/access_copy_converter
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: data_management/access_copy_converter/Dockerfile
     user: root
     volumes:
       - .:/app

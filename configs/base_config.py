@@ -1,55 +1,14 @@
+from format_policy import (
+    CONVERTIBLE_PUIDS as CONVERTIBLE_PUIDS,
+)
+from format_policy import (
+    UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS,
+    UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS,
+)
+
 from .db_utils import build_database_url
 
 SELF = "'self'"
-
-
-UNIVERSAL_VIEWER_SUPPORTED_IMAGE_PUIDS = {
-    "fmt/3": "gif",
-    "fmt/4": "gif",
-    "fmt/43": "jpg",
-    "fmt/44": "jpg",
-    "x-fmt/391": "jpg",
-    "fmt/11": "png",
-    "fmt/12": "png",
-    "fmt/13": "png",
-    "fmt/353": "tif",
-    "fmt/567": "webp",
-}
-
-UNIVERSAL_VIEWER_SUPPORTED_APPLICATION_PUIDS = {
-    "fmt/16": "pdf",
-    "fmt/17": "pdf",
-    "fmt/18": "pdf",
-    "fmt/19": "pdf",
-    "fmt/20": "pdf",
-    "fmt/276": "pdf",
-}
-
-CONVERTIBLE_PUIDS = {
-    "fmt/39": "doc",
-    "fmt/40": "doc",
-    "x-fmt/44": "doc",
-    "x-fmt/45": "doc",
-    "fmt/50": "rtf",
-    "fmt/59": "xls",
-    "fmt/61": "xls",
-    "x-fmt/111": "txt",
-    "x-fmt/116": "wk4",
-    "fmt/126": "ppt",
-    "fmt/214": "xlsx",
-    "fmt/215": "pptx",
-    "fmt/355": "rtf",
-    "x-fmt/394": "wp",
-    "fmt/412": "docx",
-    "x-fmt/115": "wk3",
-    "fmt/116": "bmp",
-    "x-fmt/258": "vsd",
-    "fmt/443": "vsd",
-    "fmt/1510": "vsd",
-    "x-fmt/255": "pub",
-    "x-fmt/332": "fm3",
-    "x-fmt/18": "csv",
-}
 
 
 class BaseConfig(object):

@@ -35,6 +35,7 @@ COPY app/ /docker_app/app
 RUN chmod +x /docker_app/build.sh && /docker_app/build.sh && npm run build
 
 COPY configs/ /docker_app/configs
+COPY format_policy.py /docker_app/
 COPY main_app.py .flaskenv /docker_app/
 COPY local_services/mds_data_generator/ /docker_app/local_services/mds_data_generator/
 COPY data_management/opensearch_indexer/requirements.txt /tmp/indexer-requirements.txt

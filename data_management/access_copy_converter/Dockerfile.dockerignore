@@ -1,0 +1,9 @@
+**
+!format_policy.py
+!data_management/
+!data_management/access_copy_converter/
+!data_management/access_copy_converter/libreoffice-macro-security.xcd
+!data_management/access_copy_converter/access_copy_converter/
+!data_management/access_copy_converter/access_copy_converter/**
+**/__pycache__/
+**/*.pyc
