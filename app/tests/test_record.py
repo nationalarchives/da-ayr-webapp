@@ -357,8 +357,6 @@ class TestRecord:
         <div class="record-container">
             <h2 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h2>
             <ol class="record-arrangement-list">
-                <li class="govuk-body__record-arrangement-list">{record_path_details[0]}</li>
-                <li class="govuk-body__record-arrangement-list">{record_path_details[1]}</li>
                 <li class="govuk-body__record-arrangement-list">{record_path_details[2]}</li>
                 <li class="govuk-body__record-arrangement-list">{record_path_details[3]}</li>
             </ol>
@@ -371,6 +369,105 @@ class TestRecord:
             "div",
             {"class": "record-container"},
         )
+
+    @mock_aws
+    def test_record_record_arrangement_excludes_data_and_content(
+        self, app, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a File in the database with 'data' and 'content' segments in its path
+        When a standard user with request to view the record details page
+        Then the response status code should be 200
+        And the HTML content should should exclude 'data' and 'content' from the record arrangement
+        """
+
+        file = FileFactory(FilePath="data/content/test_folder/open_file.docx")
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        record_path_details = file.FilePath.split("/")
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        expected_arrangement_html = f"""
+        <div class="record-container">
+            <h2 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h2>
+            <ol class="record-arrangement-list">
+                <li class="govuk-body__record-arrangement-list">{record_path_details[2]}</li>
+                <li class="govuk-body__record-arrangement-list">{record_path_details[3]}</li>
+            </ol>
+        </div>
+        """
+
+        assert_contains_html(
+            expected_arrangement_html,
+            html,
+            "div",
+            {"class": "record-container"},
+        )
+        assert (
+            '<li class="govuk-body__record-arrangement-list">data</li>'
+            not in html
+        )
+        assert (
+            '<li class="govuk-body__record-arrangement-list">content</li>'
+            not in html
+        )
+
+    @mock_aws
+    def test_record_arrangement_two_level_path_shows_data_or_content_in_file_name(
+        self, app, client: FlaskClient, mock_standard_user
+    ):
+        """
+        Given a File in the database with a 4-level path containing a 'data'  and 'content'
+        When a standard user with request to view the record details page
+        Then the response status code should be 200
+        And the HTML content should see record arrangement based on file path
+        on the page
+        """
+
+        file = FileFactory(
+            FilePath="data/content/data_test_folder/content_open_file.docx"
+        )
+        bucket_name = "test_bucket"
+
+        app.config["RECORD_BUCKET_NAME"] = bucket_name
+        create_mock_s3_bucket_with_object(bucket_name, file)
+        mock_standard_user(client, file.consignment.series.body.Name)
+
+        record_path_details = file.FilePath.split("/")
+
+        response = client.get(f"{self.route_url}/{file.FileId}#record-details")
+
+        assert response.status_code == 200
+
+        html = response.data.decode()
+
+        expected_arrangement_html = f"""
+        <div class="record-container">
+            <h2 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h2>
+            <ol class="record-arrangement-list">
+                <li class="govuk-body__record-arrangement-list">{record_path_details[2]}</li>
+                <li class="govuk-body__record-arrangement-list">{record_path_details[3]}</li>
+            </ol>
+        </div>
+        """
+
+        assert_contains_html(
+            expected_arrangement_html,
+            html,
+            "div",
+            {"class": "record-container"},
+        )
+        assert "data" in record_path_details[2]
+        assert "content" in record_path_details[3]
 
     @mock_aws
     def test_record_record_alert_banner_is_visible_when_unsupported_file_extension(
