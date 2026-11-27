@@ -90,7 +90,9 @@
                 <h2 class="govuk-heading-m govuk-heading-m__record-header">Record arrangement</h2>
                 <ol class="record-arrangement-list">
                     {% for file_level in record["file_path"].split("/") %}
-                        <li class="govuk-body__record-arrangement-list">{{ file_level }}</li>
+                        {% if file_level and not (loop.index0 < 2 and file_level | lower in ['data', 'content']) %}
+                            <li class="govuk-body__record-arrangement-list">{{ file_level }}</li>
+                        {% endif %}
                     {% endfor %}
                 </ol>
             </div>
